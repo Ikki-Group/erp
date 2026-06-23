@@ -33,8 +33,9 @@
 24. ✅ **location_payment_method.ts** (Commit: bc576496)
 25. ✅ **moka.ts** (Commit: 2c221882)
 26. ✅ **audit.ts** (Commit: 82d43a5d)
-27. ✅ **_enums.ts** (Commit: 4e4dfc26 - CREATED, 25 enums centralized)
+27. ✅ **_enums.ts** (Commit: 4e4dfc26 - CREATED, then 520a9ef7 - MOVED to domain files)
 28. ✅ **_helpers.ts** (Already excellent - no changes needed)
+29. ✅ **_relations.ts** (Commit: e36b35a6 - Updated with implementation guide)
 
 ---
 
@@ -101,11 +102,20 @@ sessionsTable: {
 
 1. **Schema Reviews: COMPLETE** ✅
    - [x] All 26 domain schemas ✅
-   - [x] _enums.ts (CREATED - 25 enums) ✅
+   - [x] 25 enums moved to domain files ✅
    - [x] _helpers.ts (already excellent) ✅
-   - [x] _relations.ts (deferred until after migration)
+   - [x] _relations.ts (implementation guide added) ✅
 
 **All schema files reviewed!** 🎉
+
+### Key Achievements:
+- ✅ Explicit column names on ALL fields
+- ✅ Type-safe partial indexes (eq, isNull, isNotNull)
+- ✅ Enums colocated with tables (removed centralized _enums.ts)
+- ✅ Quantity scale 6, cost scale 2 (consistency)
+- ✅ Check constraints for data integrity
+- ✅ Performance indexes
+- ✅ Relations guide for future implementation
 
 2. **After ALL Reviews Complete:**
    - [ ] Update `_relations.ts` with all relationships
@@ -122,12 +132,12 @@ sessionsTable: {
 
 ## 📊 Schema Review Summary
 
-**Progress:** 28/30 schemas reviewed (93.3%) ✅
+**Progress:** 29/29 schemas reviewed (100%) ✅
 
 **Batch 1-9:** Initial improvements (location → sales-type)  
 **Batch 10-17:** Production & HR cycle (purchasing → supplier)  
 **Batch 18-26:** Finance & integrations (finance → audit)  
-**Batch 27-28:** Helper files (_enums, _helpers)
+**Batch 27-29:** Helper files (_enums → domain files, _helpers, _relations)
 
 ### Common Improvements Applied:
 - ✅ Explicit column names on ALL fields
@@ -151,11 +161,19 @@ sessionsTable: {
 | Category | Count | Status |
 |----------|-------|--------|
 | Domain Schemas | 26 | ✅ Complete |
-| Helper Files | 2 | ✅ Complete (_enums, _helpers) |
-| Relations | 1 | ⏳ Deferred (_relations.ts) |
-| **Total** | **28/28** | **✅ 100% Complete** |
+| Helper Files | 3 | ✅ Complete (_helpers, _relations guide) |
+| Enum Distribution | 25 enums | ✅ Moved to domain files |
+| **Total** | **29/29** | **✅ 100% Complete** |
 
 ---
 
-**Status:** 28/28 schemas reviewed (100%) 🎉  
-**Next:** Generate migration with `bun run db:generate`
+**Status:** 29/29 schemas reviewed (100%) 🎉  
+**Enums:** Distributed to 10 domain files (finance, purchasing, sales, etc.)  
+**Relations:** Implementation guide added (to be populated after exports)  
+
+**Next Steps:**
+1. Run `bun run db:generate` to create migration
+2. Review generated SQL migration
+3. Test migration on dev database
+4. Enable table exports in index.ts (when ready)
+5. Implement relations in _relations.ts (optional, for query convenience)
