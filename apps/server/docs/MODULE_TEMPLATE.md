@@ -1,9 +1,47 @@
-# Module Templates
+# Module Templates & Standards
 
-**Version**: 1.0  
-**Last Updated**: 2026-06-22
+**Version**: 2.0  
+**Last Updated**: 2026-06-24
 
-Copy-paste ready templates for creating new modules.
+Copy-paste ready templates for creating new modules following Ikki ERP standards.
+
+## 📐 Module Structure Standard
+
+### Simple Module (< 3 features)
+```
+modules/{module}/
+├── {module}.contract.ts    # Zod schemas (validation)
+├── {module}.internal.ts    # Error definitions
+├── {module}.repo.ts        # Data access
+├── {module}.service.ts     # Business logic
+├── {module}.route.ts       # HTTP routes
+├── {module}.module.ts      # DI factory
+└── index.ts                # Public API
+```
+
+### Complex Module (≥ 3 features or cross-cutting)
+```
+modules/{module}/
+├── {module}.module.ts      # Aggregate DI factory
+├── {module}.route.ts       # Aggregate routes
+├── {feature1}/             # Feature submodule
+│   ├── {feature1}.contract.ts
+│   ├── {feature1}.internal.ts
+│   ├── {feature1}.repo.ts
+│   ├── {feature1}.service.ts
+│   └── {feature1}.route.ts
+├── {feature2}/             # Feature submodule
+├── composed/               # Cross-feature queries (if needed)
+└── index.ts                # Public API
+```
+
+### Key Conventions
+- **Contract**: Validation schemas (Zod)
+- **Internal**: Error definitions & internal types
+- **Repo**: Data access layer (Drizzle)
+- **Service**: Business logic (handleX methods)
+- **Route**: HTTP endpoints (Elysia)
+- **Module**: Dependency injection factory
 
 ---
 
@@ -15,7 +53,26 @@ Replace `{module}` and `{Module}` with your module name:
 
 ---
 
-## 1. Contract
+## 1. Internal (Error Definitions)
+
+### File: `{module}.internal.ts`
+
+```typescript
+import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
+
+export const {Module}Error = {
+  notFound: (id: number) =>
+    new NotFoundError(`{Module} with ID ${id} not found`, { code: '{MODULE}_NOT_FOUND' }),
+  codeExists: (code: string) =>
+    new ConflictError(`{Module} with code ${code} already exists`, { code: '{MODULE}_CODE_EXISTS' }),
+  createFailed: () =>
+    new NotFoundError('{Module} creation failed', { code: '{MODULE}_CREATE_FAILED' }),
+}
+```
+
+---
+
+## 2. Contract
 
 ### File: `{module}.contract.ts`
 
@@ -67,7 +124,7 @@ export type {Module}FilterDto = z.infer<typeof {Module}FilterDto>
 
 ---
 
-## 2. Repository
+## 3. Repository
 
 ### File: `{module}.repo.ts`
 
@@ -336,7 +393,7 @@ export const {Module}Error = {
 
 ---
 
-## 5. Module Factory
+## 6. Module Factory
 
 ### File: `{module}.module.ts`
 
