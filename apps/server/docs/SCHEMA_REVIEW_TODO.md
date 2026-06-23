@@ -46,6 +46,11 @@
    - Added: Check constraints for all amount/quantity fields (14 constraints)
    - Added: batchStatusEnum (replaced text status)
 
+9. ✅ **sales-type.ts** (Commit: pending)
+   - Fixed: isBuiltIn → isSystem (naming consistency)
+   - Fixed: Use type-safe isNull()/isNotNull() for partial indexes (4 indexes)
+   - Updated: Check constraint name (system_global_chk)
+
 ---
 
 ## 📋 Pending Tasks

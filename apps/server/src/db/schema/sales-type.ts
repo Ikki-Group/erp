@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { isNotNull, isNull, sql } from 'drizzle-orm'
 import { boolean, check, index, integer, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from './_helpers'
@@ -24,11 +24,11 @@ import { locationsTable } from './location.ts'
  *     — `code` unique within the same location (partial unique index).
  *     — Two locations may share the same code (e.g. both have 'WHOLESALE').
  *
- * `isBuiltIn`  — true for seeder-created global sales types. Protected from
- *                update and deletion by the service layer. Mirrors the pattern
- *                on rolesTable and uomsTable.
- *                Invariant: isBuiltIn = true → locationId IS NULL.
- *                Enforced via check constraint.
+ * `isSystem`  — true for seeder-created global sales types. Protected from
+ *               update and deletion by the service layer. Mirrors the pattern
+ *               on roles, users, and uoms tables.
+ *               Invariant: isSystem = true → locationId IS NULL.
+ *               Enforced via check constraint.
  *
  * onDelete: 'restrict' from location — a location with active per-location
  * sales types cannot be deleted. Safer than cascade: productPricesTable and
@@ -44,33 +44,33 @@ export const salesTypesTable = pgTable(
 		}),
 		code: text('code').notNull(),
 		name: text('name').notNull(),
-		isBuiltIn: boolean('is_built_in').notNull().default(false),
+		isSystem: boolean('is_system').notNull().default(false),
 		...auditBasicColumns,
 	},
 	(t) => [
 		// Global sales types: code unique across all global rows
 		uniqueIndex('sales_types_global_code_idx')
 			.on(t.code)
-			.where(sql`location_id IS NULL`),
+			.where(isNull(t.locationId)),
 
 		// Per-location sales types: code unique within a location
 		uniqueIndex('sales_types_location_code_idx')
 			.on(t.locationId, t.code)
-			.where(sql`location_id IS NOT NULL`),
+			.where(isNotNull(t.locationId)),
 
 		// Global sales types: name unique across all global rows
 		uniqueIndex('sales_types_global_name_idx')
 			.on(t.name)
-			.where(sql`location_id IS NULL`),
+			.where(isNull(t.locationId)),
 
 		// Per-location sales types: name unique within a location
 		uniqueIndex('sales_types_location_name_idx')
 			.on(t.locationId, t.name)
-			.where(sql`location_id IS NOT NULL`),
+			.where(isNotNull(t.locationId)),
 
 		index('sales_types_location_idx').on(t.locationId),
 
-		// isBuiltIn types are always global — locationId must be null
-		check('sales_types_built_in_global_chk', sql`NOT is_built_in OR location_id IS NULL`),
+		// isSystem types are always global — locationId must be null
+		check('sales_types_system_global_chk', sql`NOT is_system OR location_id IS NULL`),
 	],
 )

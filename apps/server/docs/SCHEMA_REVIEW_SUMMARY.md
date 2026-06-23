@@ -2,7 +2,7 @@
 
 **Project:** Ikki ERP  
 **Date:** 2026-06-23  
-**Status:** 🔄 IN PROGRESS (8/30+ schemas reviewed)
+**Status:** 🔄 IN PROGRESS (9/30+ schemas reviewed)
 
 ---
 
@@ -369,6 +369,49 @@ status: batchStatusEnum('status').notNull().default('pending')
 
 ---
 
+### 9. **sales-type.ts** (Commit: `pending`)
+
+**Rating:** ⭐⭐⭐⭐⭐ (5/5 - excellent!)
+
+**Changes Applied:**
+```typescript
+// BEFORE: Field naming inconsistency
+isBuiltIn: boolean('is_built_in').notNull().default(false)
+
+// AFTER: Consistent naming
+isSystem: boolean('is_system').notNull().default(false)
+
+// BEFORE: Non-type-safe partial indexes (4 indexes)
+.where(sql`location_id IS NULL`)
+.where(sql`location_id IS NOT NULL`)
+
+// AFTER: Type-safe with isNull() and isNotNull()
+import { isNull, isNotNull } from 'drizzle-orm'
+.where(isNull(t.locationId))
+.where(isNotNull(t.locationId))
+
+// Updated check constraint name
+check('sales_types_system_global_chk', sql`NOT is_system OR location_id IS NULL`)
+```
+
+**Reason:**
+- Naming consistency: Match roles, users, uoms tables
+- Type safety: Compile-time checking with isNull()/isNotNull()
+- Check constraint: Enforce business rule (system types are global)
+
+**Schema Highlights:**
+- ⭐⭐⭐⭐⭐ Two-tier architecture: Global (shared) + per-location (custom)
+- ⭐⭐⭐⭐⭐ Clever partial indexes: Tiered uniqueness (global vs location)
+- ⭐⭐⭐⭐⭐ Check constraint: System types must be global (DB-enforced)
+- ⭐⭐⭐⭐⭐ Outstanding documentation: Explains architecture clearly
+
+**Tables in Schema:**
+- `salesTypesTable` - Sales channel/pricing context (Dine In, Takeaway, Delivery, Wholesale)
+
+**Impact:** ⭐⭐⭐⭐⭐ Naming consistency + type safety + architectural clarity
+
+---
+
 ## 🎯 Consistency Achievements
 
 ### System Flag Naming Pattern
@@ -401,7 +444,7 @@ status: batchStatusEnum('status').notNull().default('pending')
 | **LBAC Architecture** | Added location context to sessions | 1 (sessions) | ⭐⭐⭐⭐⭐ |
 | **Security Hardening** | Limited field sizes, proper constraints | 1 (sessions) | ⭐⭐⭐ |
 | **Index Optimization** | Performance indexes for common queries | 3 (locations, users, sessions) | ⭐⭐⭐⭐ |
-| **Documentation** | Enhanced schema documentation | 8 (all reviewed) | ⭐⭐⭐⭐⭐ |
+| **Documentation** | Enhanced schema documentation | 9 (all reviewed) | ⭐⭐⭐⭐⭐ |
 
 ---
 
@@ -493,7 +536,7 @@ index('sessions_location_idx').on(t.locationId)
 
 **Schemas Reviewed:** 8/30+
 
-**All Completed & Committed:**
+**Completed & Committed:**
 1. ✅ location.ts (5c7b4b95)
 2. ✅ iam.ts (3c8fef2e)
 3. ✅ session.ts (5dce9701)
@@ -502,6 +545,9 @@ index('sessions_location_idx').on(t.locationId)
 6. ✅ product.ts (f4571464)
 7. ✅ inventory.ts (f4571464)
 8. ✅ sales.ts (06bd3b3b)
+
+**Applied (Pending Commit):**
+9. ✅ sales-type.ts
 
 **Pending:** (estimated)
 - [ ] inventory.ts
