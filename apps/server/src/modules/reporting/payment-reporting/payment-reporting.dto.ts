@@ -1,4 +1,5 @@
-import { z, zp } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zp } from '@/shared/schema'
 
 import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
 
@@ -32,7 +33,8 @@ export const PaymentByAccountDto = z.object({
 export type PaymentByAccountDto = z.infer<typeof PaymentByAccountDto>
 
 /** Payment report request */
-export const PaymentReportRequestDto = ReportRequestDto.extend({
+export const PaymentReportRequestDto = z.object({
+	...ReportRequestDto.shape,
 	accountId: zp.num.optional(),
 	method: zp.str.optional(),
 	type: z.enum(['payable', 'receivable']).optional(),

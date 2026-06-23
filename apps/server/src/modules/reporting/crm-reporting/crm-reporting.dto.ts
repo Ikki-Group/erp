@@ -1,4 +1,5 @@
-import { z, zp } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zp } from '@/shared/schema'
 
 import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
 
@@ -38,7 +39,8 @@ export const LoyaltyPointsSummaryDto = z.object({
 export type LoyaltyPointsSummaryDto = z.infer<typeof LoyaltyPointsSummaryDto>
 
 /** CRM report request */
-export const CrmReportRequestDto = ReportRequestDto.extend({
+export const CrmReportRequestDto = z.object({
+	...ReportRequestDto.shape,
 	tierId: zp.num.optional(),
 })
 export type CrmReportRequestDto = z.infer<typeof CrmReportRequestDto>

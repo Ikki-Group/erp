@@ -3,7 +3,7 @@ import {
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@ikki/api-contract/validation'
+} from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'

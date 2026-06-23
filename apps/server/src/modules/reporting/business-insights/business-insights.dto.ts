@@ -1,4 +1,5 @@
-import { z, zp } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zp } from '@/shared/schema'
 
 import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
 
@@ -37,7 +38,8 @@ export const InventoryTurnoverDto = z.object({
 export type InventoryTurnoverDto = z.infer<typeof InventoryTurnoverDto>
 
 /** Business insights request */
-export const BusinessInsightsRequestDto = ReportRequestDto.extend({
+export const BusinessInsightsRequestDto = z.object({
+	...ReportRequestDto.shape,
 	locationId: zp.num.optional(),
 	materialId: zp.num.optional(),
 })

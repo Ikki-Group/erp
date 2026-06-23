@@ -1,4 +1,5 @@
-import { z, zp } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zp } from '@/shared/schema'
 
 import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
 
@@ -45,7 +46,8 @@ export const LowStockItemDto = z.object({
 export type LowStockItemDto = z.infer<typeof LowStockItemDto>
 
 /** Inventory report request */
-export const InventoryReportRequestDto = ReportRequestDto.extend({
+export const InventoryReportRequestDto = z.object({
+	...ReportRequestDto.shape,
 	locationId: zp.num.optional(),
 	productId: zp.num.optional(),
 })

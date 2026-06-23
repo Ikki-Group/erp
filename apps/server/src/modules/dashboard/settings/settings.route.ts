@@ -1,4 +1,4 @@
-import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
+import { createSuccessResponseSchema } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { res } from '@/shared/http/response'
