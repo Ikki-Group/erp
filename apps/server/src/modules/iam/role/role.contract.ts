@@ -23,17 +23,19 @@ export const RoleFilterDto = z.object({
 })
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 
-export const RoleCreateDto = z.object({
+const RoleMutationDto = z.object({
 	code: zc.strTrim.min(2).max(32).toUpperCase(),
 	name: zc.strTrim.min(2),
 	description: zc.strTrimNullable,
 	permissions: z.array(zp.str).default([]),
 	isSystem: zp.bool.default(false),
 })
+
+export const RoleCreateDto = RoleMutationDto
 export type RoleCreateDto = z.infer<typeof RoleCreateDto>
 
 export const RoleUpdateDto = z.object({
 	id: zp.id,
-	...RoleCreateDto.shape,
+	...RoleMutationDto.shape,
 })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
