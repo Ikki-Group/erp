@@ -38,7 +38,7 @@ export const companySettingsTable = pgTable(
 		settings: jsonb('settings'),
 		...auditBasicColumns,
 	},
-	(t) => [
+	() => [
 		// Tax rate must be between 0 and 100%
 		check('company_settings_tax_rate_range_chk', sql`tax_rate >= 0 AND tax_rate <= 100`),
 	],
