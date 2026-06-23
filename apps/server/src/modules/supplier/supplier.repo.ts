@@ -13,10 +13,10 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
-	SupplierCreateSchema,
-	SupplierSchema,
-	SupplierFilterSchema,
-	SupplierUpdateSchema,
+	SupplierCreateDto,
+	SupplierDto,
+	SupplierFilterDto,
+	SupplierUpdateDto,
 } from './supplier.schema'
 
 export class SupplierRepo {
@@ -25,8 +25,8 @@ export class SupplierRepo {
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getListPaginated(
-		filter: SupplierFilterSchema,
-	): Promise<WithPaginationResult<SupplierSchema>> {
+		filter: SupplierFilterDto,
+	): Promise<WithPaginationResult<SupplierDto>> {
 		const { q, page, limit } = filter
 
 		const searchCondition = q
@@ -35,7 +35,7 @@ export class SupplierRepo {
 
 		const where = and(isNull(suppliersTable.deletedAt), searchCondition)
 
-		return paginate<SupplierSchema>({
+		return paginate<SupplierDto>({
 			data: ({ limit: l, offset }) =>
 				this.db
 					.select()
@@ -49,7 +49,7 @@ export class SupplierRepo {
 		})
 	}
 
-	async getById(id: number): Promise<SupplierSchema | undefined> {
+	async getById(id: number): Promise<SupplierDto | undefined> {
 		return this.db
 			.select()
 			.from(suppliersTable)
@@ -60,18 +60,17 @@ export class SupplierRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: SupplierCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: SupplierCreateDto, actorId: ActorId): Promise<EntityRef | undefined> {
 		const metadata = stampCreate(actorId)
 		const [res] = await this.db
 			.insert(suppliersTable)
 			.values({ ...data, ...metadata })
 			.returning({ id: suppliersTable.id })
 
-		if (!res) throw new Error('Supplier creation failed')
 		return res
 	}
 
-	async update(data: SupplierUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async update(data: SupplierUpdateDto, actorId: ActorId): Promise<EntityRef | undefined> {
 		const { id, ...rest } = data
 		const metadata = stampUpdate(actorId)
 		const [res] = await this.db
@@ -80,18 +79,16 @@ export class SupplierRepo {
 			.where(eq(suppliersTable.id, id))
 			.returning({ id: suppliersTable.id })
 
-		if (!res) throw new Error('Supplier update failed')
 		return res
 	}
 
-	async remove(id: number, actorId: ActorId): Promise<EntityRef> {
+	async remove(id: number, actorId: ActorId): Promise<EntityRef | undefined> {
 		const [res] = await this.db
 			.update(suppliersTable)
 			.set({ deletedAt: new Date(), deletedBy: actorId })
 			.where(eq(suppliersTable.id, id))
 			.returning({ id: suppliersTable.id })
 
-		if (!res) throw new Error('Supplier deletion failed')
 		return res
 	}
 }

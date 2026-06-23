@@ -1,22 +1,23 @@
-import { CacheService, type CacheClient } from '@/infra/cache'
+import { record } from '@elysiajs/opentelemetry'
 
 import { suppliersTable } from '@/db/schema/supplier'
 
-import { checkConflict, type ConflictField} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { SupplierRepo } from './supplier.repo'
 import type {
-	SupplierCreateSchema,
-	SupplierSchema,
-	SupplierFilterSchema,
-	SupplierUpdateSchema,
+	SupplierCreateDto,
+	SupplierDto,
+	SupplierFilterDto,
+	SupplierUpdateDto,
 } from './supplier.schema'
 
-const supplierConflictFields: ConflictField<any>[] = [
+const supplierConflictFields: ConflictField<{ code: string }>[] = [
 	{
 		field: 'code',
 		column: suppliersTable.code,
@@ -43,69 +44,90 @@ export class SupplierService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<SupplierSchema | undefined> {
-		return this.cache.getOrSetWithSkip({
-			key: `byId:${id}`,
-			factory: () => this.repo.getById(id),
-		})
+	async getById(id: number): Promise<SupplierDto | undefined> {
+		return record('SupplierService.getById', async () =>
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
+				factory: () => this.repo.getById(id),
+			}),
+		)
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: SupplierFilterSchema): Promise<WithPaginationResult<SupplierSchema>> {
-		return this.repo.getListPaginated(filter)
+	async handleList(filter: SupplierFilterDto): Promise<WithPaginationResult<SupplierDto>> {
+		return record('SupplierService.handleList', () => this.repo.getListPaginated(filter))
 	}
 
-	async handleDetail(id: number): Promise<SupplierSchema> {
-		const result = await this.getById(id)
-		if (!result) throw err.notFound(id)
-		return result
-	}
-
-	async handleCreate(data: SupplierCreateSchema, actorId: ActorId): Promise<EntityRef> {
-		await checkConflict({
-			table: suppliersTable,
-			pkColumn: suppliersTable.id,
-			fields: supplierConflictFields,
-			input: data,
+	async handleDetail(id: number): Promise<SupplierDto> {
+		return record('SupplierService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
 		})
-
-		const result = await this.repo.create(data, actorId)
-
-		await this.cache.deleteMany({ keys: ['list', 'count'] })
-
-		return result
 	}
 
-	async handleUpdate(data: SupplierUpdateSchema, actorId: ActorId): Promise<EntityRef> {
-		const { id } = data
+	async handleCreate(data: SupplierCreateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('SupplierService.handleCreate', async () => {
+			await checkConflict({
+				table: suppliersTable,
+				pkColumn: suppliersTable.id,
+				fields: supplierConflictFields,
+				input: data,
+			})
 
-		const existing = await this.getById(id)
-		if (!existing) throw err.notFound(id)
+			const result = await this.repo.create(data, actorId)
+			if (!result) throw err.createFailed()
 
-		await checkConflict({
-			table: suppliersTable,
-			pkColumn: suppliersTable.id,
-			fields: supplierConflictFields,
-			input: data,
-			existing,
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
+
+			return result
 		})
+	}
 
-		const result = await this.repo.update(data, actorId)
+	async handleUpdate(data: SupplierUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('SupplierService.handleUpdate', async () => {
+			const { id } = data
 
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 
-		return result
+			await checkConflict({
+				table: suppliersTable,
+				pkColumn: suppliersTable.id,
+				fields: supplierConflictFields,
+				input: data,
+				existing,
+			})
+
+			const result = await this.repo.update(data, actorId)
+			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
+
+			return result
+		})
 	}
 
 	async handleRemove(id: number, actorId: ActorId): Promise<EntityRef> {
-		const existing = await this.getById(id)
-		if (!existing) throw err.notFound(id)
+		return record('SupplierService.handleRemove', async () => {
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 
-		const result = await this.repo.remove(id, actorId)
+			const result = await this.repo.remove(id, actorId)
+			if (!result) throw err.notFound(id)
 
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
 
-		return result
+			return result
+		})
 	}
 }

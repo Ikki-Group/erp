@@ -1,18 +1,14 @@
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@ikki/api-contract/validation'
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/shared/schema'
 
 import {
-	SupplierSchema,
-	SupplierFilterSchema,
-	SupplierCreateSchema,
-	SupplierUpdateSchema,
+	SupplierDto,
+	SupplierFilterDto,
+	SupplierCreateDto,
+	SupplierUpdateDto,
 } from './supplier.schema'
 import type { SupplierService } from './supplier.service'
 
@@ -26,8 +22,8 @@ export function initSupplierRoute(service: SupplierService) {
 				return res.paginated(result)
 			},
 			{
-				query: SupplierFilterSchema,
-				response: createPaginatedResponseSchema(SupplierSchema),
+				query: SupplierFilterDto,
+				response: createPaginatedResponseSchema(SupplierDto),
 				auth: true,
 			},
 		)
@@ -37,7 +33,7 @@ export function initSupplierRoute(service: SupplierService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(SupplierSchema), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(SupplierDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -46,7 +42,7 @@ export function initSupplierRoute(service: SupplierService) {
 				return res.created(result)
 			},
 			{
-				body: SupplierCreateSchema,
+				body: SupplierCreateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -58,7 +54,7 @@ export function initSupplierRoute(service: SupplierService) {
 				return res.ok(result)
 			},
 			{
-				body: SupplierUpdateSchema,
+				body: SupplierUpdateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},

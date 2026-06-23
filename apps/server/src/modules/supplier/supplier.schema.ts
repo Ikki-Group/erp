@@ -1,8 +1,10 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
-export const SupplierSchema = z.object({
+export const SupplierDto = z.object({
 	...zc.RecordId.shape,
 	code: zp.str,
 	name: zp.str,
@@ -12,31 +14,32 @@ export const SupplierSchema = z.object({
 	taxId: zp.strNullable,
 	...zc.AuditBasic.shape,
 })
-export type SupplierSchema = z.infer<typeof SupplierSchema>
+export type SupplierDto = z.infer<typeof SupplierDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const SupplierMutationSchema = z.object({
-	code: zc.strTrim.uppercase().min(1).max(20),
+const SupplierMutationDto = z.object({
+	code: zc.strTrim.toUpperCase().min(1).max(20),
 	name: zc.strTrim.min(1).max(100),
-	email: zc.email.optional().nullable(),
+	email: z.string().email().optional().nullable(),
 	phone: zc.strTrim.min(5).max(20).optional().nullable(),
 	address: zc.strTrimNullable,
 	taxId: zc.strTrimNullable,
 })
 
-export const SupplierCreateSchema = SupplierMutationSchema
-export type SupplierCreateSchema = z.infer<typeof SupplierCreateSchema>
+export const SupplierCreateDto = SupplierMutationDto
+export type SupplierCreateDto = z.infer<typeof SupplierCreateDto>
 
-export const SupplierUpdateSchema = SupplierMutationSchema.extend({
+export const SupplierUpdateDto = z.object({
 	...zc.RecordId.shape,
+	...SupplierMutationDto.shape,
 })
-export type SupplierUpdateSchema = z.infer<typeof SupplierUpdateSchema>
+export type SupplierUpdateDto = z.infer<typeof SupplierUpdateDto>
 
 /* ---------------------------------- FILTER ---------------------------------- */
 
-export const SupplierFilterSchema = z.object({
+export const SupplierFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 })
-export type SupplierFilterSchema = z.infer<typeof SupplierFilterSchema>
+export type SupplierFilterDto = z.infer<typeof SupplierFilterDto>

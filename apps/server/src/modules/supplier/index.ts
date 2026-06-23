@@ -7,10 +7,10 @@ import type { DbClient } from '@/infra/database'
 import { SupplierRepo } from './supplier.repo'
 import { initSupplierRoute } from './supplier.route'
 import type {
-	SupplierSchema,
-	SupplierFilterSchema,
-	SupplierCreateSchema,
-	SupplierUpdateSchema,
+	SupplierDto,
+	SupplierFilterDto,
+	SupplierCreateDto,
+	SupplierUpdateDto,
 } from './supplier.schema'
 import { SupplierService } from './supplier.service'
 
@@ -30,5 +30,5 @@ export function initSupplierRouteModule(s: SupplierServiceModule) {
 	return new Elysia({ prefix: '/supplier' }).use(initSupplierRoute(s.supplier))
 }
 
-export type { SupplierSchema, SupplierFilterSchema, SupplierCreateSchema, SupplierUpdateSchema }
+export type { SupplierDto, SupplierFilterDto, SupplierCreateDto, SupplierUpdateDto }
 export type { SupplierService } from './supplier.service'
