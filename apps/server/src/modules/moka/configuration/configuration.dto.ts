@@ -1,4 +1,5 @@
-import { z, zc, zp } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zp } from '@/shared/schema'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
@@ -43,7 +44,8 @@ const MokaConfigurationMutationDto = z.object({
 export const MokaConfigurationCreateDto = MokaConfigurationMutationDto
 export type MokaConfigurationCreateDto = z.infer<typeof MokaConfigurationCreateDto>
 
-export const MokaConfigurationUpdateDto = MokaConfigurationMutationDto.partial().extend({
+export const MokaConfigurationUpdateDto = z.object({
 	...zc.RecordId.shape,
+	...MokaConfigurationMutationDto.partial().shape,
 })
 export type MokaConfigurationUpdateDto = z.infer<typeof MokaConfigurationUpdateDto>

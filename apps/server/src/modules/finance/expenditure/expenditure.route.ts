@@ -1,8 +1,5 @@
-import {
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-	zc,
-} from '@ikki/api-contract/validation'
+import { zc } from '@/shared/schema'
+import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'

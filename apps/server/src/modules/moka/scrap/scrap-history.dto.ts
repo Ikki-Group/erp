@@ -1,4 +1,5 @@
-import { z, zc, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zq } from '@/shared/schema'
 
 import {
 	MokaProvider,

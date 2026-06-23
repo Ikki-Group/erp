@@ -1,4 +1,4 @@
-import { z } from '@ikki/api-contract/validation'
+import { z } from 'zod'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
