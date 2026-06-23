@@ -1,4 +1,6 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 /** Payment method types. */
 export const PaymentMethodTypeDto = z.enum([

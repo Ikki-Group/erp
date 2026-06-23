@@ -1,5 +1,6 @@
-// @ts-nocheck
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 export const LocationPaymentMethodCredentialsDto = z.object({
 	merchantId: zc.strTrim.optional(),

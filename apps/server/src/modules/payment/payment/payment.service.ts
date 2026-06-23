@@ -12,7 +12,7 @@ import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import * as dto from './payment.dto'
 import { PaymentRepo } from './payment.repo'
-import type { RecordId } from '@ikki/api-contract'
+import type { EntityRef } from '@/shared/types/utils'
 
 const uniqueFields: ConflictField<any>[] = [
 	{
@@ -98,7 +98,7 @@ export class PaymentService {
 		})
 	}
 
-	async handleCreate(data: dto.PaymentCreateDto, actorId: number): Promise<RecordId> {
+	async handleCreate(data: dto.PaymentCreateDto, actorId: number): Promise<EntityRef> {
 		return record('PaymentService.handleCreate', async () => {
 			await checkConflict({
 				table: paymentsTable,
@@ -113,7 +113,7 @@ export class PaymentService {
 		})
 	}
 
-	async handleUpdate(data: dto.PaymentUpdateDto, actorId: number): Promise<RecordId> {
+	async handleUpdate(data: dto.PaymentUpdateDto, actorId: number): Promise<EntityRef> {
 		return record('PaymentService.handleUpdate', async () => {
 			const { id } = data
 
@@ -135,7 +135,7 @@ export class PaymentService {
 		})
 	}
 
-	async handleRemove(id: number): Promise<RecordId> {
+	async handleRemove(id: number): Promise<EntityRef> {
 		return record('PaymentService.handleRemove', async () => {
 			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
