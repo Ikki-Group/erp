@@ -1,4 +1,6 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 import { attendanceStatusEnum } from '@/db/schema'
 
@@ -31,7 +33,7 @@ export const ShiftCreateDto = z.object({
 })
 export type ShiftCreateDto = z.infer<typeof ShiftCreateDto>
 
-export const ShiftUpdateDto = ShiftCreateDto.extend({
+export const ShiftUpdateDto = ShiftCreateDto.object({
 	...zc.RecordId.shape,
 })
 export type ShiftUpdateDto = z.infer<typeof ShiftUpdateDto>
@@ -52,7 +54,7 @@ export const AttendanceDto = z.object({
 })
 export type AttendanceDto = z.infer<typeof AttendanceDto>
 
-export const AttendanceSelectDto = AttendanceDto.extend({
+export const AttendanceSelectDto = AttendanceDto.object({
 	employeeName: zp.str.optional(),
 	employeeCode: zp.str.optional(),
 	locationName: zp.str.optional(),

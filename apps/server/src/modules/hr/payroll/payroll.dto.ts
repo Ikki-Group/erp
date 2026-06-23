@@ -1,4 +1,6 @@
-import { z, zc, zp } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 import { payrollAdjustmentTypeEnum, payrollStatusEnum } from '@/db/schema'
 

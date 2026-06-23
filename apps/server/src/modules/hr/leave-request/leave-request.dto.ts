@@ -1,4 +1,6 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 import { leaveStatusEnum, leaveTypeEnum } from '@/db/schema'
 
@@ -25,7 +27,7 @@ export const LeaveRequestDto = z.object({
 })
 export type LeaveRequestDto = z.infer<typeof LeaveRequestDto>
 
-export const LeaveRequestSelectDto = LeaveRequestDto.extend({
+export const LeaveRequestSelectDto = LeaveRequestDto.object({
 	employeeName: zp.str.optional(),
 	employeeCode: zp.str.optional(),
 })
@@ -43,7 +45,7 @@ export const LeaveRequestCreateDto = z.object({
 })
 export type LeaveRequestCreateDto = z.infer<typeof LeaveRequestCreateDto>
 
-export const LeaveRequestUpdateDto = LeaveRequestCreateDto.extend({
+export const LeaveRequestUpdateDto = LeaveRequestCreateDto.object({
 	...zc.RecordId.shape,
 })
 export type LeaveRequestUpdateDto = z.infer<typeof LeaveRequestUpdateDto>

@@ -1,4 +1,6 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
@@ -30,7 +32,7 @@ const EmployeeMutationDto = z.object({
 export const EmployeeCreateDto = EmployeeMutationDto
 export type EmployeeCreateDto = z.infer<typeof EmployeeCreateDto>
 
-export const EmployeeUpdateDto = EmployeeMutationDto.extend({
+export const EmployeeUpdateDto = EmployeeMutationDto.object({
 	...zc.RecordId.shape,
 })
 export type EmployeeUpdateDto = z.infer<typeof EmployeeUpdateDto>
