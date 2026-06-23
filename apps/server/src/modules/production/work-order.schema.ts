@@ -1,4 +1,5 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -25,7 +26,8 @@ export type WorkOrderSchema = z.infer<typeof WorkOrderSchema>
 
 /* ---------------------------------- READ ---------------------------------- */
 
-export const WorkOrderSelectSchema = WorkOrderSchema.extend({
+export const WorkOrderSelectSchema = z.object({
+	...WorkOrderSchema.shape,
 	recipeName: zp.str.optional(),
 	productName: zp.str.optional(),
 	locationName: zp.str.optional(),
