@@ -1,11 +1,19 @@
 import { sql } from 'drizzle-orm'
-import { check, index, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { check, index, integer, numeric, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-import { paymentMethodEnum, paymentTypeEnum } from './_enums'
 import { auditBasicColumns, pk } from './_helpers'
 import { accountsTable } from './finance'
 import { purchaseInvoicesTable } from './purchasing'
 import { salesInvoicesTable } from './sales'
+
+export const paymentTypeEnum = pgEnum('payment_type', ['payable', 'receivable'])
+export const paymentMethodEnum = pgEnum('payment_method', [
+	'cash',
+	'bank_transfer',
+	'credit_card',
+	'debit_card',
+	'e_wallet',
+])
 
 /**
  * Payments Table (Header)

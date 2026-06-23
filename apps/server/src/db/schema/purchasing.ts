@@ -1,11 +1,22 @@
-import { check, index, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { check, index, integer, numeric, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
-import { goodsReceiptStatusEnum, invoiceStatusEnum, purchaseOrderStatusEnum, purchaseRequestStatusEnum } from './_enums'
 import { auditFullColumns, pk } from './_helpers'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 import { suppliersTable } from './supplier'
+
+export const purchaseRequestStatusEnum = pgEnum('purchase_request_status', ['open', 'approved', 'rejected', 'void'])
+export const purchaseOrderStatusEnum = pgEnum('purchase_order_status', [
+	'pending_approval',
+	'approved',
+	'rejected',
+	'open',
+	'closed',
+	'void',
+])
+export const goodsReceiptStatusEnum = pgEnum('goods_receipt_status', ['open', 'completed', 'void'])
+export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'open', 'paid', 'void'])
 
 // ─── Purchase Requests ────────────────────────────────────────────────────────
 

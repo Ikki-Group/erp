@@ -5,16 +5,18 @@ import {
 	index,
 	integer,
 	numeric,
+	pgEnum,
 	pgTable,
 	text,
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from './_helpers'
-import { productStatusEnum } from './_enums'
 import { locationsTable } from './location.ts'
 import { salesTypesTable } from './sales-type.ts'
 // import { taxesTable } from './tax.ts'
+
+export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'archived'])
 
 
 /**

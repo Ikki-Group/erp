@@ -1,8 +1,10 @@
-import { boolean, index, integer, pgTable, text } from 'drizzle-orm/pg-core'
+import { boolean, index, integer, pgEnum, pgTable, text } from 'drizzle-orm/pg-core'
 
-import { paymentMethodCategoryEnum, paymentMethodEnum } from './_enums'
 import { auditBasicColumns, pk } from './_helpers'
+import { paymentMethodEnum } from './finance_payment'
 import { paymentProvidersTable } from './payment_provider'
+
+export const paymentMethodCategoryEnum = pgEnum('payment_method_category', ['cash', 'cashless'])
 
 /**
  * Payment Methods Table

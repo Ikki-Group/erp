@@ -1,10 +1,15 @@
-import { check, index, integer, numeric, pgTable, text, time, timestamp } from 'drizzle-orm/pg-core'
+import { check, index, integer, numeric, pgEnum, pgTable, text, time, timestamp } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
-import { attendanceStatusEnum, leaveStatusEnum, leaveTypeEnum, payrollAdjustmentTypeEnum, payrollStatusEnum } from './_enums'
 import { auditFullColumns, pk } from './_helpers'
 import { employeesTable } from './employee'
 import { locationsTable } from './location'
+
+export const attendanceStatusEnum = pgEnum('attendance_status', ['present', 'absent', 'late', 'on_leave'])
+export const leaveTypeEnum = pgEnum('leave_type', ['annual', 'sick', 'unpaid', 'other'])
+export const leaveStatusEnum = pgEnum('leave_status', ['pending', 'approved', 'rejected', 'cancelled'])
+export const payrollStatusEnum = pgEnum('payroll_status', ['draft', 'approved', 'paid', 'cancelled'])
+export const payrollAdjustmentTypeEnum = pgEnum('payroll_adjustment_type', ['addition', 'deduction'])
 
 export const shiftsTable = pgTable('shifts', {
 	...pk,

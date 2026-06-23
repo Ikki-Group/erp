@@ -3,15 +3,20 @@ import {
 	index,
 	integer,
 	jsonb,
+	pgEnum,
 	pgTable,
 	text,
 	timestamp,
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-import { integrationProviderEnum, mokaScrapStatusEnum, mokaScrapTypeEnum, mokaSyncTriggerModeEnum } from './_enums'
 import { auditBasicColumns, pk } from './_helpers'
 import { locationsTable } from './location'
+
+export const integrationProviderEnum = pgEnum('integration_provider', ['moka'])
+export const mokaScrapTypeEnum = pgEnum('moka_scrap_type', ['sales', 'product', 'category'])
+export const mokaScrapStatusEnum = pgEnum('moka_scrap_status', ['pending', 'processing', 'completed', 'failed'])
+export const mokaSyncTriggerModeEnum = pgEnum('moka_sync_trigger_mode', ['manual', 'cron', 'upload', 'machine_fetch'])
 
 // ─── Tables ───────────────────────────────────────────────────────────────────
 

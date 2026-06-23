@@ -12,12 +12,13 @@ import {
 } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
-import { invoiceStatusEnum, salesOrderSourceEnum, salesOrderStatusEnum } from './_enums'
-
-// Batch status enum (previously using text)
-export const batchStatusEnum = pgEnum('batch_status', ['pending', 'prepared', 'delivered', 'cancelled'])
 import { auditBasicColumns, pk } from './_helpers'
 import { customersTable } from './customer'
+import { invoiceStatusEnum } from './purchasing'
+
+export const salesOrderStatusEnum = pgEnum('sales_order_status', ['open', 'closed', 'void'])
+export const salesOrderSourceEnum = pgEnum('sales_order_source', ['web', 'moka', 'upload', 'machine_fetch'])
+export const batchStatusEnum = pgEnum('batch_status', ['pending', 'prepared', 'delivered', 'cancelled'])
 import { usersTable } from './iam'
 import { locationsTable } from './location'
 import { productsTable, productVariantsTable } from './product'

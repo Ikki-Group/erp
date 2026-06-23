@@ -5,16 +5,28 @@ import {
 	index,
 	integer,
 	numeric,
+	pgEnum,
 	pgTable,
 	text,
 	timestamp,
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-import { stockAdjustmentTypeEnum, transactionTypeEnum } from './_enums'
 import { auditFullColumns, pk } from './_helpers'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
+
+export const transactionTypeEnum = pgEnum('transaction_type', [
+	'purchase',
+	'transfer_in',
+	'transfer_out',
+	'adjustment',
+	'sell',
+	'usage',
+	'production_in',
+	'production_out',
+])
+export const stockAdjustmentTypeEnum = pgEnum('stock_adjustment_type', ['opname', 'found', 'waste', 'correction'])
 
 // ─── Stock Batches ────────────────────────────────────────────────────────────
 

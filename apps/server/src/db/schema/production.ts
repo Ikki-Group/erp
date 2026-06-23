@@ -1,10 +1,11 @@
-import { check, index, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { check, index, integer, numeric, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
-import { workOrderStatusEnum } from './_enums'
 import { auditFullColumns, pk } from './_helpers'
 import { locationsTable } from './location'
 import { recipesTable } from './recipe'
+
+export const workOrderStatusEnum = pgEnum('work_order_status', ['draft', 'in_progress', 'completed', 'cancelled'])
 
 export const workOrdersTable = pgTable(
 	'work_orders',
