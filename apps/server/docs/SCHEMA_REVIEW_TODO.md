@@ -40,11 +40,11 @@
    - Changed: Quantity precision from scale 4 → scale 6 (match material.ts)
    - Added: Check constraints for cost fields (3 constraints)
 
-8. 📋 **sales.ts** (Status: REVIEWED - NOT APPLIED)
-   - Issue: Missing explicit column names (8 tables, ~50 fields)
-   - Issue: Quantity precision scale 4 (should be 6)
-   - Issue: Missing check constraints (amounts, quantity)
-   - Issue: Batch status uses text (should be enum)
+8. ✅ **sales.ts** (Commit: pending)
+   - Fixed: Added explicit column names to ALL fields (8 tables, ~50 fields)
+   - Changed: Quantity precision from scale 4 → scale 6 (match inventory.ts)
+   - Added: Check constraints for all amount/quantity fields (14 constraints)
+   - Added: batchStatusEnum (replaced text status)
 
 ---
 
@@ -143,7 +143,7 @@ sessionsTable: {
 | material.ts | ✅ Applied (pending commit) | Non-type-safe partial indexes | ⭐⭐⭐⭐⭐ |
 | product.ts | ✅ Applied (pending commit) | Non-type-safe partial index + check constraints | ⭐⭐⭐⭐⭐ |
 | inventory.ts | ✅ Applied (pending commit) | Missing column names + precision + check constraints | ⭐⭐⭐⭐⭐ |
-| sales.ts | 📋 Reviewed (not applied) | Missing column names + precision + check constraints + enum | ⭐⭐⭐⭐⭐ |
+| sales.ts | ✅ Applied (pending commit) | Missing column names + precision + check constraints + enum | ⭐⭐⭐⭐⭐ |
 
 ---
 

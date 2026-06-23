@@ -306,43 +306,47 @@ check('stock_adj_items_unit_cost_nonneg_chk', sql`unit_cost >= 0`)
 
 ---
 
-### 8. **sales.ts** (Status: `📋 REVIEWED - NOT APPLIED`)
+### 8. **sales.ts** (Commit: `pending`)
 
 **Rating:** ⭐⭐⭐⭐⭐ (5/5 - excellent!)
 
-**Issues Found:**
+**Changes Applied:**
 ```typescript
-// ISSUE 1: Missing explicit column names (ALL tables)
-locationId: integer()  // ❌ Missing column name
+// BEFORE: Missing explicit column names
+locationId: integer()
   .notNull()
   .references(() => locationsTable.id, { onDelete: 'restrict' })
 
-// Should be:
-locationId: integer('location_id')  // ✅ Explicit
+// AFTER: Explicit column names added
+locationId: integer('location_id')
   .notNull()
   .references(() => locationsTable.id, { onDelete: 'restrict' })
 
-// ISSUE 2: Quantity precision inconsistency
-quantity: numeric({ precision: 18, scale: 4 })  // ❌ Scale 4
+// BEFORE: Quantity scale 4
+quantity: numeric({ precision: 18, scale: 4 })
 
-// Should be (match inventory.ts):
-quantity: numeric('quantity', { precision: 18, scale: 6 })  // ✅ Scale 6
+// AFTER: Quantity scale 6 (matches inventory.ts)
+quantity: numeric('quantity', { precision: 18, scale: 6 })
 
-// ISSUE 3: Missing check constraints
-// No constraints for totalAmount, discountAmount, quantity, etc.
+// ADDED: Check constraints (14 constraints total)
+check('sales_orders_total_nonneg_chk', sql`total_amount >= 0`)
+check('sales_order_items_qty_pos_chk', sql`quantity > 0`)
+check('sales_refunds_amount_pos_chk', sql`amount > 0`)
+// ... and 11 more
 
-// ISSUE 4: Batch status uses text instead of enum
-status: text().notNull().default('pending')  // ❌ Text
+// BEFORE: Batch status uses text
+status: text().notNull().default('pending')
 
-// Should be:
-status: batchStatusEnum('status').notNull().default('pending')  // ✅ Enum
+// AFTER: Created enum
+export const batchStatusEnum = pgEnum('batch_status', ['pending', 'prepared', 'delivered', 'cancelled'])
+status: batchStatusEnum('status').notNull().default('pending')
 ```
 
-**Recommended Actions:**
-1. 🔴 Add explicit column names to ALL fields (8 tables)
-2. 🟡 Change quantity precision from scale 4 → scale 6
-3. 🟡 Add check constraints (amounts >= 0, quantity > 0)
-4. 🟢 Create `batchStatusEnum` (replace text status)
+**Reason:**
+- Explicitness: Consistent with all other schemas
+- Precision consistency: Match inventory.ts scale (6 for quantities)
+- Data integrity: Check constraints prevent invalid data
+- Type safety: Enum instead of text for batch status
 
 **Schema Highlights:**
 - ⭐⭐⭐⭐⭐ Immutable history: Item names stored, never lost
@@ -361,9 +365,7 @@ status: batchStatusEnum('status').notNull().default('pending')  // ✅ Enum
 - `salesRefundsTable` - Refund tracking (post-payment)
 - `salesExternalRefsTable` - Third-party integration
 
-**Impact:** ⭐⭐⭐⭐⭐ Consistency + precision + data integrity + type safety
-
-**Note:** Review complete, fixes NOT yet applied. Awaiting user decision to proceed.
+**Impact:** ⭐⭐⭐⭐⭐ Explicitness + precision consistency + data integrity + type safety
 
 ---
 
@@ -491,17 +493,17 @@ index('sessions_location_idx').on(t.locationId)
 
 **Schemas Reviewed:** 8/30+
 
-**Completed & Applied:**
+**Completed & Committed:**
 1. ✅ location.ts
 2. ✅ iam.ts
 3. ✅ session.ts
 4. ✅ uom.ts
-5. ✅ material.ts (pending commit)
-6. ✅ product.ts (pending commit)
-7. ✅ inventory.ts (pending commit)
+5. ✅ material.ts
+6. ✅ product.ts
+7. ✅ inventory.ts
 
-**Reviewed (Not Applied):**
-8. 📋 sales.ts
+**Applied (Pending Commit):**
+8. ✅ sales.ts
 
 **Pending:** (estimated)
 - [ ] inventory.ts
@@ -562,6 +564,5 @@ All detailed reviews stored in:
 **Status:** 🔄 In Progress (8/30+ schemas reviewed)  
 **Next Schema:** (to be determined)
 
-**Pending Commits:**
-- material.ts, product.ts, inventory.ts (fixes applied, awaiting commit)
-- sales.ts (reviewed, fixes NOT applied)
+**Pending Commit:**
+- sales.ts (fixes applied, awaiting commit)
