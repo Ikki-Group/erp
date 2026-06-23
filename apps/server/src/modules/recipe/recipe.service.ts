@@ -2,11 +2,10 @@ import Decimal from 'decimal.js'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
+import { RecipeError } from './recipe.internal'
 import { RecipeRepo } from './recipe.repo'
 import type {
 	RecipeCostDto,
@@ -16,14 +15,6 @@ import type {
 	RecipeSelectSchema,
 	RecipeUpdateSchema,
 } from './recipe.contract'
-
-const err = {
-	notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, { code: 'RECIPE_NOT_FOUND' }),
-	targetMissing: () =>
-		new ConflictError('Recipe must have exactly one target', { code: 'RECIPE_MISSING_TARGET' }),
-	targetExists: () =>
-		new ConflictError('A recipe already exists for this target', { code: 'RECIPE_TARGET_ALREADY_EXISTS' }),
-}
 
 export class RecipeService {
 	private readonly cache: CacheService
@@ -43,7 +34,7 @@ export class RecipeService {
 			key,
 			factory: () => this.repo.getById(id),
 		})
-		if (!recipe) throw err.notFound(id)
+		if (!recipe) throw RecipeError.notFound(id)
 		return recipe
 	}
 
@@ -77,11 +68,11 @@ export class RecipeService {
 		})
 
 		if (!hasConflict && !data.materialId && !data.productId && !data.productVariantId) {
-			throw err.targetMissing()
+			throw RecipeError.targetMissing()
 		}
 
 		if (hasConflict) {
-			throw err.targetExists()
+			throw RecipeError.targetExists()
 		}
 
 		const result = await this.repo.create(data, actorId)
@@ -101,7 +92,7 @@ export class RecipeService {
 
 		const hasConflict = await this.repo.checkTargetConflict(target, data.id)
 		if (hasConflict) {
-			throw err.targetExists()
+			throw RecipeError.targetExists()
 		}
 
 		const result = await this.repo.update(data, actorId)
