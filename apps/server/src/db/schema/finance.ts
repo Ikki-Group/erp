@@ -1,6 +1,7 @@
-import { isNull } from 'drizzle-orm'
+import { isNull, sql } from 'drizzle-orm'
 import {
 	boolean,
+	check,
 	integer,
 	numeric,
 	pgTable,
@@ -36,7 +37,7 @@ export const journalEntriesTable = pgTable(
 	'journal_entries',
 	{
 		...pk,
-		date: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		date: timestamp('date', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
 		reference: text('reference').notNull(),
 		sourceType: text('source_type').notNull(), // 'sales', 'payroll', 'purchasing', 'production'
 		sourceId: integer('source_id').notNull(),
@@ -59,13 +60,17 @@ export const journalItemsTable = pgTable(
 		accountId: integer('account_id')
 			.notNull()
 			.references(() => accountsTable.id),
-		debit: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		credit: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		debit: numeric('debit', { precision: 18, scale: 2 }).notNull().default('0'),
+		credit: numeric('credit', { precision: 18, scale: 2 }).notNull().default('0'),
 		...auditFullColumns,
 	},
 	(t) => [
 		index('journal_items_entry_idx').on(t.journalEntryId),
 		index('journal_items_account_idx').on(t.accountId),
+
+		// Debit and credit must be non-negative
+		check('journal_items_debit_nonneg_chk', sql`debit >= 0`),
+		check('journal_items_credit_nonneg_chk', sql`credit >= 0`),
 	],
 )
 
@@ -77,8 +82,8 @@ export const expendituresTable = pgTable(
 		status: expenditureStatusEnum('status').notNull().default('PAID'),
 		title: text('title').notNull(),
 		description: text('description'),
-		date: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
-		amount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		date: timestamp('date', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		amount: numeric('amount', { precision: 18, scale: 2 }).notNull().default('0'),
 
 		// Source: Where the money comes from (Cash/Bank)
 		sourceAccountId: integer('source_account_id')
@@ -105,5 +110,9 @@ export const expendituresTable = pgTable(
 		index('expenditures_date_idx').on(t.date),
 		index('expenditures_location_idx').on(t.locationId),
 		index('expenditures_type_idx').on(t.type),
+		index('expenditures_status_idx').on(t.status),
+
+		// Amount must be positive
+		check('expenditures_amount_pos_chk', sql`amount > 0`),
 	],
 )
