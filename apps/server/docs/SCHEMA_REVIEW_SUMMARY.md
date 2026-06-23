@@ -144,7 +144,7 @@ isSystem: boolean('is_system').notNull().default(false),
 
 ---
 
-### 5. **material.ts** (Commit: `pending`)
+### 5. **material.ts** (Commit: `f4571464`)
 
 **Rating:** ⭐⭐⭐⭐⭐ (5/5 - excellent!)
 
@@ -195,7 +195,7 @@ uniqueIndex('materials_name_type_active_idx')
 
 ---
 
-### 6. **product.ts** (Commit: `pending`)
+### 6. **product.ts** (Commit: `f4571464`)
 
 **Rating:** ⭐⭐⭐⭐⭐ (5/5 - excellent!)
 
@@ -248,7 +248,7 @@ check('variant_prices_price_chk', sql`price >= 0`)
 
 ---
 
-### 7. **inventory.ts** (Commit: `pending`)
+### 7. **inventory.ts** (Commit: `f4571464`)
 
 **Rating:** ⭐⭐⭐⭐⭐ (5/5 - excellent!)
 
@@ -306,7 +306,7 @@ check('stock_adj_items_unit_cost_nonneg_chk', sql`unit_cost >= 0`)
 
 ---
 
-### 8. **sales.ts** (Commit: `pending`)
+### 8. **sales.ts** (Commit: `06bd3b3b`)
 
 **Rating:** ⭐⭐⭐⭐⭐ (5/5 - excellent!)
 
@@ -493,17 +493,15 @@ index('sessions_location_idx').on(t.locationId)
 
 **Schemas Reviewed:** 8/30+
 
-**Completed & Committed:**
-1. ✅ location.ts
-2. ✅ iam.ts
-3. ✅ session.ts
-4. ✅ uom.ts
-5. ✅ material.ts
-6. ✅ product.ts
-7. ✅ inventory.ts
-
-**Applied (Pending Commit):**
-8. ✅ sales.ts
+**All Completed & Committed:**
+1. ✅ location.ts (5c7b4b95)
+2. ✅ iam.ts (3c8fef2e)
+3. ✅ session.ts (5dce9701)
+4. ✅ uom.ts (228a1c22)
+5. ✅ material.ts (f4571464)
+6. ✅ product.ts (f4571464)
+7. ✅ inventory.ts (f4571464)
+8. ✅ sales.ts (06bd3b3b)
 
 **Pending:** (estimated)
 - [ ] inventory.ts
@@ -561,8 +559,9 @@ All detailed reviews stored in:
 ---
 
 **Last Updated:** 2026-06-23  
-**Status:** 🔄 In Progress (8/30+ schemas reviewed)  
+**Status:** 🔄 In Progress (8/30+ schemas reviewed - all committed!)  
 **Next Schema:** (to be determined)
 
-**Pending Commit:**
-- sales.ts (fixes applied, awaiting commit)
+**Recent Commits:**
+- f4571464: material.ts, product.ts, inventory.ts
+- 06bd3b3b: sales.ts

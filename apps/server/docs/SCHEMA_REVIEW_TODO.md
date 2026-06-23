@@ -5,7 +5,7 @@
 
 ---
 
-## ✅ Completed Reviews
+## ✅ Completed Reviews (All Applied & Committed)
 
 1. ✅ **location.ts** (Commit: 5c7b4b95)
    - Fixed indexes (removed partial where)
@@ -26,21 +26,21 @@
    - Fixed: is_built_in → is_system
    - Updated documentation
 
-5. ✅ **material.ts** (Commit: pending)
+5. ✅ **material.ts** (Commit: f4571464)
    - Fixed: Use type-safe eq() for partial indexes
    - Both materials_sku_active_idx and materials_name_type_active_idx
 
-6. ✅ **product.ts** (Commit: pending)
+6. ✅ **product.ts** (Commit: f4571464)
    - Fixed: Use type-safe eq() for partial index (product_variants_default_idx)
    - Added: Check constraints for all price fields (3 constraints)
 
-7. ✅ **inventory.ts** (Commit: pending)
+7. ✅ **inventory.ts** (Commit: f4571464)
    - Fixed: Added explicit column names to ALL fields (consistency)
    - Fixed: Use type-safe isNull() for partial index
    - Changed: Quantity precision from scale 4 → scale 6 (match material.ts)
    - Added: Check constraints for cost fields (3 constraints)
 
-8. ✅ **sales.ts** (Commit: pending)
+8. ✅ **sales.ts** (Commit: 06bd3b3b)
    - Fixed: Added explicit column names to ALL fields (8 tables, ~50 fields)
    - Changed: Quantity precision from scale 4 → scale 6 (match inventory.ts)
    - Added: Check constraints for all amount/quantity fields (14 constraints)
@@ -136,14 +136,14 @@ sessionsTable: {
 
 | Schema | Status | Issues Found | Rating |
 |--------|--------|--------------|--------|
-| location.ts | ✅ Applied & Committed | Partial index design | ⭐⭐⭐⭐⭐ |
-| iam.ts | ✅ Applied & Committed | Field name mismatch | ⭐⭐⭐⭐⭐ |
-| session.ts | ✅ Applied & Committed | Missing locationId | ⭐⭐⭐⭐⭐ |
-| uom.ts | ✅ Applied & Committed | Field name mismatch | ⭐⭐⭐⭐⭐ |
-| material.ts | ✅ Applied (pending commit) | Non-type-safe partial indexes | ⭐⭐⭐⭐⭐ |
-| product.ts | ✅ Applied (pending commit) | Non-type-safe partial index + check constraints | ⭐⭐⭐⭐⭐ |
-| inventory.ts | ✅ Applied (pending commit) | Missing column names + precision + check constraints | ⭐⭐⭐⭐⭐ |
-| sales.ts | ✅ Applied (pending commit) | Missing column names + precision + check constraints + enum | ⭐⭐⭐⭐⭐ |
+| location.ts | ✅ Committed (5c7b4b95) | Partial index design | ⭐⭐⭐⭐⭐ |
+| iam.ts | ✅ Committed (3c8fef2e) | Field name mismatch | ⭐⭐⭐⭐⭐ |
+| session.ts | ✅ Committed (5dce9701) | Missing locationId | ⭐⭐⭐⭐⭐ |
+| uom.ts | ✅ Committed (228a1c22) | Field name mismatch | ⭐⭐⭐⭐⭐ |
+| material.ts | ✅ Committed (f4571464) | Non-type-safe partial indexes | ⭐⭐⭐⭐⭐ |
+| product.ts | ✅ Committed (f4571464) | Non-type-safe partial index + check constraints | ⭐⭐⭐⭐⭐ |
+| inventory.ts | ✅ Committed (f4571464) | Missing column names + precision + check constraints | ⭐⭐⭐⭐⭐ |
+| sales.ts | ✅ Committed (06bd3b3b) | Missing column names + precision + check constraints + enum | ⭐⭐⭐⭐⭐ |
 
 ---
 
