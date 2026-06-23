@@ -1,14 +1,15 @@
-import { CacheService, type CacheClient } from '@/infra/cache'
+import { record } from '@elysiajs/opentelemetry'
 
+import { CacheService, type CacheClient } from '@/infra/cache'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { CompanySettingsRepo } from './company-settings.repo'
 import type {
-	CompanySettingsSchema,
-	CompanySettingsCreateSchema,
-	CompanySettingsUpdateSchema,
+	CompanySettingsDto,
+	CompanySettingsCreateDto,
+	CompanySettingsUpdateDto,
 } from './company-settings.schema'
 
 const err = {
@@ -32,60 +33,74 @@ export class CompanySettingsService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async get(): Promise<CompanySettingsSchema> {
-		const result = await this.cache.getOrSetWithSkip({
-			key: 'list',
-			factory: () => this.repo.get(),
+	async get(): Promise<CompanySettingsDto> {
+		return record('CompanySettingsService.get', async () => {
+			const result = await this.cache.getOrSetWithSkip({
+				key: this.cache.keys.list,
+				factory: () => this.repo.get(),
+			})
+			if (!result) throw err.notConfigured()
+			return result
 		})
-		if (!result) throw err.notConfigured()
-		return result
 	}
 
-	async getById(id: number): Promise<CompanySettingsSchema | undefined> {
-		return this.cache.getOrSetWithSkip({
-			key: `byId:${id}`,
-			factory: () => this.repo.getById(id),
-		})
+	async getById(id: number): Promise<CompanySettingsDto | undefined> {
+		return record('CompanySettingsService.getById', async () =>
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
+				factory: () => this.repo.getById(id),
+			}),
+		)
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleGet(): Promise<CompanySettingsSchema> {
-		return this.get()
+	async handleGet(): Promise<CompanySettingsDto> {
+		return record('CompanySettingsService.handleGet', () => this.get())
 	}
 
-	async handleDetail(id: number): Promise<CompanySettingsSchema> {
-		const result = await this.repo.getById(id)
-		if (!result) throw err.notFound(id)
-		return result
+	async handleDetail(id: number): Promise<CompanySettingsDto> {
+		return record('CompanySettingsService.handleDetail', async () => {
+			const result = await this.repo.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
+		})
 	}
 
-	async handleCreate(data: CompanySettingsCreateSchema, actorId: ActorId): Promise<EntityRef> {
-		// Check if settings already exist (should be single instance)
-		const existing = await this.repo.get()
-		if (existing) {
-			throw new InternalServerError(
-				'Company settings already exist. Use update instead.',
-				{ code: 'COMPANY_SETTINGS_ALREADY_EXISTS' })
-		}
+	async handleCreate(data: CompanySettingsCreateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('CompanySettingsService.handleCreate', async () => {
+			// Check if settings already exist (should be single instance)
+			const existing = await this.repo.get()
+			if (existing) {
+				throw new InternalServerError('Company settings already exist. Use update instead.', {
+					code: 'COMPANY_SETTINGS_ALREADY_EXISTS',
+				})
+			}
 
-		const result = await this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
 
-		await this.cache.deleteMany({ keys: ['list', 'count'] })
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
 
-		return result
+			return result
+		})
 	}
 
-	async handleUpdate(data: CompanySettingsUpdateSchema, actorId: ActorId): Promise<EntityRef> {
-		const { id } = data
+	async handleUpdate(data: CompanySettingsUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('CompanySettingsService.handleUpdate', async () => {
+			const { id } = data
 
-		const existing = await this.getById(id)
-		if (!existing) throw err.notFound(id)
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 
-		const result = await this.repo.update(data, actorId)
+			const result = await this.repo.update(data, actorId)
 
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
 
-		return result
+			return result
+		})
 	}
 }

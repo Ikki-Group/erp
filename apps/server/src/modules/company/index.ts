@@ -7,9 +7,9 @@ import type { DbClient } from '@/infra/database'
 import { CompanySettingsRepo } from './company-settings.repo'
 import { initCompanySettingsRoute } from './company-settings.route'
 import type {
-	CompanySettingsSchema,
-	CompanySettingsCreateSchema,
-	CompanySettingsUpdateSchema,
+	CompanySettingsDto,
+	CompanySettingsCreateDto,
+	CompanySettingsUpdateDto,
 } from './company-settings.schema'
 import { CompanySettingsService } from './company-settings.service'
 
@@ -28,5 +28,5 @@ export function initCompanyRouteModule(service: CompanyServiceModule) {
 	return new Elysia({ prefix: '/company' }).use(settingsRouter)
 }
 
-export type { CompanySettingsSchema, CompanySettingsCreateSchema, CompanySettingsUpdateSchema }
+export type { CompanySettingsDto, CompanySettingsCreateDto, CompanySettingsUpdateDto }
 export type { CompanySettingsService } from './company-settings.service'

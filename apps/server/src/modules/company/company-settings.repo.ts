@@ -9,9 +9,9 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
-	CompanySettingsSchema,
-	type CompanySettingsCreateSchema,
-	type CompanySettingsUpdateSchema,
+	CompanySettingsDto,
+	type CompanySettingsCreateDto,
+	type CompanySettingsUpdateDto,
 } from './company-settings.schema'
 
 export class CompanySettingsRepo {
@@ -19,13 +19,13 @@ export class CompanySettingsRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async get(): Promise<CompanySettingsSchema | undefined> {
+	async get(): Promise<CompanySettingsDto | undefined> {
 		const res = await this.db.select().from(companySettingsTable).limit(1).then(takeFirst)
 
-		return res ? CompanySettingsSchema.parse(res) : undefined
+		return res ? CompanySettingsDto.parse(res) : undefined
 	}
 
-	async getById(id: number): Promise<CompanySettingsSchema | undefined> {
+	async getById(id: number): Promise<CompanySettingsDto | undefined> {
 		const res = await this.db
 			.select()
 			.from(companySettingsTable)
@@ -33,12 +33,12 @@ export class CompanySettingsRepo {
 			.limit(1)
 			.then(takeFirst)
 
-		return res ? CompanySettingsSchema.parse(res) : undefined
+		return res ? CompanySettingsDto.parse(res) : undefined
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: CompanySettingsCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: CompanySettingsCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const metadata = stampCreate(actorId)
 		const [res] = await this.db
 			.insert(companySettingsTable)
@@ -48,7 +48,7 @@ export class CompanySettingsRepo {
 		return { id: res?.id ?? 0 }
 	}
 
-	async update(data: CompanySettingsUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async update(data: CompanySettingsUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const metadata = stampUpdate(actorId)
 		const [res] = await this.db
 			.update(companySettingsTable)

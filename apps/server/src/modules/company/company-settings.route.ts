@@ -1,13 +1,13 @@
-import { createSuccessResponseSchema, zc, zq } from '@ikki/api-contract/validation'
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { createSuccessResponseSchema, zc, zq } from '@/shared/schema'
 
 import {
-	CompanySettingsSchema,
-	CompanySettingsCreateSchema,
-	CompanySettingsUpdateSchema,
+	CompanySettingsDto,
+	CompanySettingsCreateDto,
+	CompanySettingsUpdateDto,
 } from './company-settings.schema'
 import type { CompanySettingsService } from './company-settings.service'
 
@@ -21,7 +21,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 				return res.ok(result)
 			},
 			{
-				response: createSuccessResponseSchema(CompanySettingsSchema),
+				response: createSuccessResponseSchema(CompanySettingsDto),
 				auth: true,
 			},
 		)
@@ -33,7 +33,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(CompanySettingsSchema),
+				response: createSuccessResponseSchema(CompanySettingsDto),
 				auth: true,
 			},
 		)
@@ -44,7 +44,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 				return res.created(result)
 			},
 			{
-				body: CompanySettingsCreateSchema,
+				body: CompanySettingsCreateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -56,7 +56,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 				return res.ok(result)
 			},
 			{
-				body: CompanySettingsUpdateSchema,
+				body: CompanySettingsUpdateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
