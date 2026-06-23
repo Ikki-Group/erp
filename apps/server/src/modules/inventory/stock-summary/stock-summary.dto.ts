@@ -1,4 +1,5 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
@@ -43,7 +44,8 @@ export type StockSummaryDto = z.infer<typeof StockSummaryDto>
 /* --------------------------------- RESULT --------------------------------- */
 
 /** Summary enriched with material info for display */
-export const StockSummarySelectDto = StockSummaryDto.extend({
+export const StockSummarySelectDto = z.object({
+	...StockSummaryDto.shape,
 	materialName: zp.str,
 	materialSku: zp.str,
 })

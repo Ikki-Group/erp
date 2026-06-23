@@ -1,9 +1,6 @@
-import {
-	z,
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zq,
-} from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zq } from '@/shared/schema'
+import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -17,13 +14,12 @@ export function initStockAlertRoute(s: StockAlertService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			// @ts-expect-error
 			async function list({ query }) {
 				const result = await s.handleAlerts(query)
 				return res.paginated(result)
 			},
 			{
-				query: StockAlertFilterDto.extend(zq.pagination.shape),
+				query: z.object({ ...StockAlertFilterDto.shape, ...zq.pagination.shape }),
 				response: createPaginatedResponseSchema(StockAlertSelectDto),
 				auth: true,
 				detail: { tags: ['Inventory Alert'] },

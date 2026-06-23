@@ -1,4 +1,5 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -45,7 +46,8 @@ export type StockTransactionDto = z.infer<typeof StockTransactionDto>
 /* --------------------------------- RESULT --------------------------------- */
 
 /** Transaction enriched with material info for display */
-export const StockTransactionSelectDto = StockTransactionDto.extend({
+export const StockTransactionSelectDto = z.object({
+	...StockTransactionDto.shape,
 	materialName: zp.str,
 	materialSku: zp.str,
 })
@@ -103,14 +105,16 @@ const BaseBatchMutationDto = z.object({
 })
 
 /** Create purchase transactions (multiple materials at one location) */
-export const PurchaseTransactionDto = BaseBatchMutationDto.extend({
+export const PurchaseTransactionDto = z.object({
+	...BaseBatchMutationDto.shape,
 	locationId: zp.id,
 	items: z.array(PurchaseItemDto).min(1, 'At least one item is required'),
 })
 export type PurchaseTransactionDto = z.infer<typeof PurchaseTransactionDto>
 
 /** Create transfer transactions (multiple materials between two locations) */
-export const TransferTransactionDto = BaseBatchMutationDto.extend({
+export const TransferTransactionDto = z.object({
+	...BaseBatchMutationDto.shape,
 	sourceLocationId: zp.id,
 	destinationLocationId: zp.id,
 	items: z.array(TransferItemDto).min(1, 'At least one item is required'),
@@ -118,35 +122,40 @@ export const TransferTransactionDto = BaseBatchMutationDto.extend({
 export type TransferTransactionDto = z.infer<typeof TransferTransactionDto>
 
 /** Create adjustment transactions (multiple materials at one location) */
-export const AdjustmentTransactionDto = BaseBatchMutationDto.extend({
+export const AdjustmentTransactionDto = z.object({
+	...BaseBatchMutationDto.shape,
 	locationId: zp.id,
 	items: z.array(AdjustmentItemDto).min(1, 'At least one item is required'),
 })
 export type AdjustmentTransactionDto = z.infer<typeof AdjustmentTransactionDto>
 
 /** Create usage transactions (multiple materials at one location) */
-export const UsageTransactionDto = BaseBatchMutationDto.extend({
+export const UsageTransactionDto = z.object({
+	...BaseBatchMutationDto.shape,
 	locationId: zp.id,
 	items: z.array(UsageItemDto).min(1, 'At least one item is required'),
 })
 export type UsageTransactionDto = z.infer<typeof UsageTransactionDto>
 
 /** Create sales transactions (multiple materials at one location) */
-export const SellTransactionDto = BaseBatchMutationDto.extend({
+export const SellTransactionDto = z.object({
+	...BaseBatchMutationDto.shape,
 	locationId: zp.id,
 	items: z.array(UsageItemDto).min(1, 'At least one item is required'),
 })
 export type SellTransactionDto = z.infer<typeof SellTransactionDto>
 
 /** Production In transactions (finished goods) */
-export const ProductionInTransactionDto = BaseBatchMutationDto.extend({
+export const ProductionInTransactionDto = z.object({
+	...BaseBatchMutationDto.shape,
 	locationId: zp.id,
 	items: z.array(PurchaseItemDto).min(1, 'At least one item is required'),
 })
 export type ProductionInTransactionDto = z.infer<typeof ProductionInTransactionDto>
 
 /** Production Out transactions (material consumption) */
-export const ProductionOutTransactionDto = BaseBatchMutationDto.extend({
+export const ProductionOutTransactionDto = z.object({
+	...BaseBatchMutationDto.shape,
 	locationId: zp.id,
 	items: z.array(UsageItemDto).min(1, 'At least one item is required'),
 })

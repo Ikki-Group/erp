@@ -1,4 +1,5 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -73,8 +74,9 @@ const StockTransferMutationDto = z.object({
 export const StockTransferCreateDto = StockTransferMutationDto
 export type StockTransferCreateDto = z.infer<typeof StockTransferCreateDto>
 
-export const StockTransferUpdateDto = StockTransferMutationDto.extend({
+export const StockTransferUpdateDto = z.object({
 	...zc.RecordId.shape,
+	...StockTransferMutationDto.shape,
 })
 export type StockTransferUpdateDto = z.infer<typeof StockTransferUpdateDto>
 
