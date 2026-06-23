@@ -1,5 +1,6 @@
-import { sql } from 'drizzle-orm'
+import { isNull, sql } from 'drizzle-orm'
 import {
+	check,
 	date,
 	index,
 	integer,
@@ -25,13 +26,13 @@ export const stockBatchesTable = pgTable(
 	'stock_batches',
 	{
 		...pk,
-		materialId: integer()
+		materialId: integer('material_id')
 			.notNull()
 			.references(() => materialsTable.id, { onDelete: 'cascade' }),
 		batchNo: text('batch_no').notNull(),
 		expiryDate: timestamp('expiry_date', { mode: 'date' }),
 		productionDate: timestamp('production_date', { mode: 'date' }),
-		notes: text(),
+		notes: text('notes'),
 		...auditFullColumns,
 	},
 	(t) => [
@@ -52,14 +53,14 @@ export const stockAdjustmentsTable = pgTable(
 	'stock_adjustments',
 	{
 		...pk,
-		locationId: integer()
+		locationId: integer('location_id')
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
-		type: stockAdjustmentTypeEnum().notNull(),
+		type: stockAdjustmentTypeEnum('type').notNull(),
 		adjustmentDate: timestamp('adjustment_date', { mode: 'date', withTimezone: true })
 			.notNull()
 			.defaultNow(),
-		reason: text(),
+		reason: text('reason'),
 		referenceNo: text('reference_no'),
 		...auditFullColumns,
 	},
@@ -73,25 +74,28 @@ export const stockAdjustmentItemsTable = pgTable(
 	'stock_adjustment_items',
 	{
 		...pk,
-		adjustmentId: integer()
+		adjustmentId: integer('adjustment_id')
 			.notNull()
 			.references(() => stockAdjustmentsTable.id, { onDelete: 'cascade' }),
-		materialId: integer()
+		materialId: integer('material_id')
 			.notNull()
 			.references(() => materialsTable.id, { onDelete: 'restrict' }),
-		batchId: integer().references(() => stockBatchesTable.id, { onDelete: 'set null' }),
+		batchId: integer('batch_id').references(() => stockBatchesTable.id, { onDelete: 'set null' }),
 
 		/** Difference in quantity: positive for found, negative for waste/correction */
-		qtyDiff: numeric({ precision: 18, scale: 4 }).notNull(),
+		qtyDiff: numeric('qty_diff', { precision: 18, scale: 6 }).notNull(),
 		/** Snapshot of unit cost at adjustment time */
-		unitCost: numeric({ precision: 18, scale: 2 }).notNull(),
+		unitCost: numeric('unit_cost', { precision: 18, scale: 2 }).notNull(),
 
-		notes: text(),
+		notes: text('notes'),
 		...auditFullColumns,
 	},
 	(t) => [
 		index('stock_adj_items_header_idx').on(t.adjustmentId),
 		index('stock_adj_items_material_idx').on(t.materialId),
+
+		// Unit cost must be non-negative
+		check('stock_adj_items_unit_cost_nonneg_chk', sql`unit_cost >= 0`),
 	],
 )
 
@@ -101,35 +105,37 @@ export const stockTransactionsTable = pgTable(
 	'stock_transactions',
 	{
 		...pk,
-		materialId: integer()
+		materialId: integer('material_id')
 			.notNull()
 			.references(() => materialsTable.id, { onDelete: 'restrict' }),
-		locationId: integer()
+		locationId: integer('location_id')
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
 
-		type: transactionTypeEnum().notNull(),
-		date: date({ mode: 'date' }).notNull(),
-		referenceNo: text().notNull(),
-		notes: text(),
+		type: transactionTypeEnum('type').notNull(),
+		date: date('date', { mode: 'date' }).notNull(),
+		referenceNo: text('reference_no').notNull(),
+		notes: text('notes'),
 
 		// Batch Support
-		batchId: integer().references(() => stockBatchesTable.id, { onDelete: 'set null' }),
+		batchId: integer('batch_id').references(() => stockBatchesTable.id, { onDelete: 'set null' }),
 
 		// Quantity & Cost — using numeric
-		// qty keeps scale 4 (e.g., 0.0125 kg)
-		qty: numeric({ precision: 18, scale: 4 }).notNull(),
+		// qty keeps scale 6 (matches material.ts precision)
+		qty: numeric('qty', { precision: 18, scale: 6 }).notNull(),
 		// unitCost & totalCost use scale 2 for IDR/Rupiah or standard fiat
-		unitCost: numeric({ precision: 18, scale: 2 }).notNull(),
-		totalCost: numeric({ precision: 18, scale: 2 }).notNull(),
+		unitCost: numeric('unit_cost', { precision: 18, scale: 2 }).notNull(),
+		totalCost: numeric('total_cost', { precision: 18, scale: 2 }).notNull(),
 
 		// Transfer-specific
-		counterpartLocationId: integer().references(() => locationsTable.id, { onDelete: 'restrict' }),
-		transferId: integer(),
+		counterpartLocationId: integer('counterpart_location_id').references(() => locationsTable.id, {
+			onDelete: 'restrict',
+		}),
+		transferId: integer('transfer_id'),
 
 		// Running snapshot after this transaction
-		runningQty: numeric({ precision: 18, scale: 4 }).notNull(),
-		runningAvgCost: numeric({ precision: 18, scale: 2 }).notNull(),
+		runningQty: numeric('running_qty', { precision: 18, scale: 6 }).notNull(),
+		runningAvgCost: numeric('running_avg_cost', { precision: 18, scale: 2 }).notNull(),
 
 		...auditFullColumns,
 	},
@@ -140,6 +146,10 @@ export const stockTransactionsTable = pgTable(
 		index('stock_txn_transfer_idx').on(t.transferId),
 		index('stock_txn_reference_no_idx').on(t.referenceNo),
 		index('stock_txn_batch_idx').on(t.batchId),
+
+		// Cost fields must be non-negative
+		check('stock_txn_unit_cost_nonneg_chk', sql`unit_cost >= 0`),
+		check('stock_txn_total_cost_nonneg_chk', sql`total_cost >= 0`),
 	],
 )
 
@@ -149,48 +159,52 @@ export const stockSummariesTable = pgTable(
 	'stock_summaries',
 	{
 		...pk,
-		materialId: integer()
+		materialId: integer('material_id')
 			.notNull()
 			.references(() => materialsTable.id, { onDelete: 'restrict' }),
-		locationId: integer()
+		locationId: integer('location_id')
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
-		date: date({ mode: 'date' }).notNull(),
+		date: date('date', { mode: 'date' }).notNull(),
 
 		// Opening balance
-		openingQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		openingAvgCost: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		openingValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		openingQty: numeric('opening_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		openingAvgCost: numeric('opening_avg_cost', { precision: 18, scale: 2 }).notNull().default('0'),
+		openingValue: numeric('opening_value', { precision: 18, scale: 2 }).notNull().default('0'),
 
 		// Movements
-		purchaseQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		purchaseValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		transferInQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		transferInValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		transferOutQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		transferOutValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		adjustmentQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		adjustmentValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		usageQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		usageValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		productionInQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		productionInValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		productionOutQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		productionOutValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		sellQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		sellValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		purchaseQty: numeric('purchase_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		purchaseValue: numeric('purchase_value', { precision: 18, scale: 2 }).notNull().default('0'),
+		transferInQty: numeric('transfer_in_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		transferInValue: numeric('transfer_in_value', { precision: 18, scale: 2 }).notNull().default('0'),
+		transferOutQty: numeric('transfer_out_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		transferOutValue: numeric('transfer_out_value', { precision: 18, scale: 2 }).notNull().default('0'),
+		adjustmentQty: numeric('adjustment_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		adjustmentValue: numeric('adjustment_value', { precision: 18, scale: 2 }).notNull().default('0'),
+		usageQty: numeric('usage_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		usageValue: numeric('usage_value', { precision: 18, scale: 2 }).notNull().default('0'),
+		productionInQty: numeric('production_in_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		productionInValue: numeric('production_in_value', { precision: 18, scale: 2 })
+			.notNull()
+			.default('0'),
+		productionOutQty: numeric('production_out_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		productionOutValue: numeric('production_out_value', { precision: 18, scale: 2 })
+			.notNull()
+			.default('0'),
+		sellQty: numeric('sell_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		sellValue: numeric('sell_value', { precision: 18, scale: 2 }).notNull().default('0'),
 
 		// Closing balance
-		closingQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		closingAvgCost: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		closingValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		closingQty: numeric('closing_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		closingAvgCost: numeric('closing_avg_cost', { precision: 18, scale: 2 }).notNull().default('0'),
+		closingValue: numeric('closing_value', { precision: 18, scale: 2 }).notNull().default('0'),
 
 		...auditFullColumns,
 	},
 	(t) => [
 		uniqueIndex('stock_summaries_material_location_date_idx')
 			.on(t.materialId, t.locationId, t.date)
-			.where(sql`${t.deletedAt} IS NULL`),
+			.where(isNull(t.deletedAt)),
 		index('stock_summaries_location_date_idx').on(t.locationId, t.date),
 		index('stock_summaries_date_idx').on(t.date),
 	],

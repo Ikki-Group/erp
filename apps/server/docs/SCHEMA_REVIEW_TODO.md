@@ -22,6 +22,30 @@
    - Changed: text → varchar(512) for userAgent
    - Added: sessions_location_idx
 
+4. ✅ **uom.ts** (Commit: 228a1c22)
+   - Fixed: is_built_in → is_system
+   - Updated documentation
+
+5. ✅ **material.ts** (Commit: pending)
+   - Fixed: Use type-safe eq() for partial indexes
+   - Both materials_sku_active_idx and materials_name_type_active_idx
+
+6. ✅ **product.ts** (Commit: pending)
+   - Fixed: Use type-safe eq() for partial index (product_variants_default_idx)
+   - Added: Check constraints for all price fields (3 constraints)
+
+7. ✅ **inventory.ts** (Commit: pending)
+   - Fixed: Added explicit column names to ALL fields (consistency)
+   - Fixed: Use type-safe isNull() for partial index
+   - Changed: Quantity precision from scale 4 → scale 6 (match material.ts)
+   - Added: Check constraints for cost fields (3 constraints)
+
+8. 📋 **sales.ts** (Status: REVIEWED - NOT APPLIED)
+   - Issue: Missing explicit column names (8 tables, ~50 fields)
+   - Issue: Quantity precision scale 4 (should be 6)
+   - Issue: Missing check constraints (amounts, quantity)
+   - Issue: Batch status uses text (should be enum)
+
 ---
 
 ## 📋 Pending Tasks
@@ -112,11 +136,16 @@ sessionsTable: {
 
 | Schema | Status | Issues Found | Rating |
 |--------|--------|--------------|--------|
-| location.ts | ✅ Complete | Partial index design | ⭐⭐⭐⭐⭐ |
-| iam.ts | ✅ Complete | Field name mismatch | ⭐⭐⭐⭐⭐ |
-| session.ts | ✅ Complete | Missing locationId | ⭐⭐⭐⭐⭐ |
+| location.ts | ✅ Applied & Committed | Partial index design | ⭐⭐⭐⭐⭐ |
+| iam.ts | ✅ Applied & Committed | Field name mismatch | ⭐⭐⭐⭐⭐ |
+| session.ts | ✅ Applied & Committed | Missing locationId | ⭐⭐⭐⭐⭐ |
+| uom.ts | ✅ Applied & Committed | Field name mismatch | ⭐⭐⭐⭐⭐ |
+| material.ts | ✅ Applied (pending commit) | Non-type-safe partial indexes | ⭐⭐⭐⭐⭐ |
+| product.ts | ✅ Applied (pending commit) | Non-type-safe partial index + check constraints | ⭐⭐⭐⭐⭐ |
+| inventory.ts | ✅ Applied (pending commit) | Missing column names + precision + check constraints | ⭐⭐⭐⭐⭐ |
+| sales.ts | 📋 Reviewed (not applied) | Missing column names + precision + check constraints + enum | ⭐⭐⭐⭐⭐ |
 
 ---
 
-**Status:** 3/30+ schemas reviewed  
+**Status:** 8/30+ schemas reviewed  
 **Next:** Continue reviewing remaining schemas, then update relations

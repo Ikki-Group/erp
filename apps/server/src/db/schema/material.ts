@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import {
 	boolean,
 	check,
@@ -87,10 +87,10 @@ export const materialsTable = pgTable(
 		// Partial unique indexes: deactivated materials don't block reuse
 		uniqueIndex('materials_sku_active_idx')
 			.on(t.sku)
-			.where(sql`is_active = TRUE`),
+			.where(eq(t.isActive, true)),
 		uniqueIndex('materials_name_type_active_idx')
 			.on(t.name, t.type)
-			.where(sql`is_active = TRUE`),
+			.where(eq(t.isActive, true)),
 
 		index('materials_category_idx').on(t.categoryId),
 		index('materials_base_uom_idx').on(t.baseUomId),

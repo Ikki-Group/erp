@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import {
 	boolean,
 	check,
@@ -162,6 +162,9 @@ export const productPricesTable = pgTable(
 	(t) => [
 		uniqueIndex('product_prices_product_sales_type_idx').on(t.productId, t.salesTypeId),
 		index('product_prices_sales_type_idx').on(t.salesTypeId),
+
+		// Price must be non-negative
+		check('product_prices_price_chk', sql`price >= 0`),
 	],
 )
 
@@ -211,7 +214,10 @@ export const productVariantsTable = pgTable(
 		// Exactly one default variant per product — DB-enforced
 		uniqueIndex('product_variants_default_idx')
 			.on(t.productId)
-			.where(sql`is_default = TRUE`),
+			.where(eq(t.isDefault, true)),
+
+		// basePrice must be non-negative
+		check('product_variants_base_price_chk', sql`base_price >= 0`),
 	],
 )
 
@@ -244,5 +250,8 @@ export const productVariantPricesTable = pgTable(
 	(t) => [
 		uniqueIndex('variant_prices_variant_sales_type_idx').on(t.variantId, t.salesTypeId),
 		index('variant_prices_sales_type_idx').on(t.salesTypeId),
+
+		// Price must be non-negative
+		check('variant_prices_price_chk', sql`price >= 0`),
 	],
 )
