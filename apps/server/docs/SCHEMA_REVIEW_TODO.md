@@ -8,48 +8,31 @@
 ## ✅ Completed Reviews (All Applied & Committed)
 
 1. ✅ **location.ts** (Commit: 5c7b4b95)
-   - Fixed indexes (removed partial where)
-   - Global unique constraints
-   - Query optimization index
-
 2. ✅ **iam.ts** (Commit: 3c8fef2e)
-   - Fixed: is_built_in → is_system
-   - Added: users_active_idx
-   - Enhanced documentation
-
 3. ✅ **session.ts** (Commit: 5dce9701)
-   - Added: locationId (CRITICAL for LBAC)
-   - Changed: text → varchar(512) for userAgent
-   - Added: sessions_location_idx
-
 4. ✅ **uom.ts** (Commit: 228a1c22)
-   - Fixed: is_built_in → is_system
-   - Updated documentation
-
 5. ✅ **material.ts** (Commit: f4571464)
-   - Fixed: Use type-safe eq() for partial indexes
-   - Both materials_sku_active_idx and materials_name_type_active_idx
-
 6. ✅ **product.ts** (Commit: f4571464)
-   - Fixed: Use type-safe eq() for partial index (product_variants_default_idx)
-   - Added: Check constraints for all price fields (3 constraints)
-
 7. ✅ **inventory.ts** (Commit: f4571464)
-   - Fixed: Added explicit column names to ALL fields (consistency)
-   - Fixed: Use type-safe isNull() for partial index
-   - Changed: Quantity precision from scale 4 → scale 6 (match material.ts)
-   - Added: Check constraints for cost fields (3 constraints)
-
 8. ✅ **sales.ts** (Commit: 06bd3b3b)
-   - Fixed: Added explicit column names to ALL fields (8 tables, ~50 fields)
-   - Changed: Quantity precision from scale 4 → scale 6 (match inventory.ts)
-   - Added: Check constraints for all amount/quantity fields (14 constraints)
-   - Added: batchStatusEnum (replaced text status)
-
-9. ✅ **sales-type.ts** (Commit: pending)
-   - Fixed: isBuiltIn → isSystem (naming consistency)
-   - Fixed: Use type-safe isNull()/isNotNull() for partial indexes (4 indexes)
-   - Updated: Check constraint name (system_global_chk)
+9. ✅ **sales-type.ts** (Commit: b13d127b)
+10. ✅ **purchasing.ts** (Commit: 9c5d5d04)
+11. ✅ **production.ts** (Commit: 73a459dd)
+12. ✅ **recipe.ts** (Commit: d204d6e8)
+13. ✅ **inventory_transfer.ts** (Commit: c5ff950b)
+14. ✅ **employee.ts** (Commit: 636e5d69)
+15. ✅ **customer.ts** (Commit: 4a8a3a07)
+16. ✅ **hr.ts** (Commit: 593224d3)
+17. ✅ **supplier.ts** (Commit: 7a26ef29)
+18. ✅ **finance.ts** (Commit: d4bd881a)
+19. ✅ **finance_payment.ts** (Commit: 3568b7a1)
+20. ✅ **tax.ts** (Commit: 167cd0ca)
+21. ✅ **company.ts** (Commit: 63dd0267)
+22. ✅ **payment_methods.ts** (Commit: a3354a53)
+23. ✅ **payment_provider.ts** (Commit: 1b801f7 - already excellent)
+24. ✅ **location_payment_method.ts** (Commit: bc576496)
+25. ✅ **moka.ts** (Commit: 2c221882)
+26. ✅ **audit.ts** (Commit: 82d43a5d)
 
 ---
 
@@ -115,29 +98,30 @@ sessionsTable: {
 ## 🎯 Next Steps
 
 1. **Continue Schema Reviews:**
-   - [x] material.ts ✅ (f4571464)
-   - [x] product.ts ✅ (f4571464)
-   - [x] inventory.ts ✅ (f4571464)
-   - [x] sales.ts ✅ (06bd3b3b)
-   - [ ] inventory_transfer.ts
-   - [ ] purchasing.ts
-   - [ ] production.ts
-   - [ ] recipe.ts
-   - [ ] customer.ts
-   - [ ] supplier.ts
-   - [ ] employee.ts
-   - [ ] finance.ts
-   - [ ] finance_payment.ts
-   - [ ] hr.ts
-   - [ ] tax.ts
-   - [ ] sales-type.ts
-   - [ ] payment_methods.ts
-   - [ ] payment_provider.ts
-   - [ ] location_payment_method.ts
-   - [ ] company.ts
-   - [ ] moka.ts
-   - [ ] audit.ts
-   - [ ] Other schemas...
+   - [x] material.ts ✅
+   - [x] product.ts ✅
+   - [x] inventory.ts ✅
+   - [x] sales.ts ✅
+   - [x] inventory_transfer.ts ✅
+   - [x] purchasing.ts ✅
+   - [x] production.ts ✅
+   - [x] recipe.ts ✅
+   - [x] customer.ts ✅
+   - [x] supplier.ts ✅
+   - [x] employee.ts ✅
+   - [x] finance.ts ✅
+   - [x] finance_payment.ts ✅
+   - [x] hr.ts ✅
+   - [x] tax.ts ✅
+   - [x] sales-type.ts ✅
+   - [x] payment_methods.ts ✅
+   - [x] payment_provider.ts ✅
+   - [x] location_payment_method.ts ✅
+   - [x] company.ts ✅
+   - [x] moka.ts ✅
+   - [x] audit.ts ✅
+   - [ ] Helper/Enum files (_enums.ts, _helpers.ts)
+   - [ ] Other schemas (if any)
 
 2. **After ALL Reviews Complete:**
    - [ ] Update `_relations.ts` with all relationships
@@ -154,18 +138,31 @@ sessionsTable: {
 
 ## 📊 Schema Review Summary
 
-| Schema | Status | Issues Found | Rating |
-|--------|--------|--------------|--------|
-| location.ts | ✅ Committed (5c7b4b95) | Partial index design | ⭐⭐⭐⭐⭐ |
-| iam.ts | ✅ Committed (3c8fef2e) | Field name mismatch | ⭐⭐⭐⭐⭐ |
-| session.ts | ✅ Committed (5dce9701) | Missing locationId | ⭐⭐⭐⭐⭐ |
-| uom.ts | ✅ Committed (228a1c22) | Field name mismatch | ⭐⭐⭐⭐⭐ |
-| material.ts | ✅ Committed (f4571464) | Non-type-safe partial indexes | ⭐⭐⭐⭐⭐ |
-| product.ts | ✅ Committed (f4571464) | Non-type-safe partial index + check constraints | ⭐⭐⭐⭐⭐ |
-| inventory.ts | ✅ Committed (f4571464) | Missing column names + precision + check constraints | ⭐⭐⭐⭐⭐ |
-| sales.ts | ✅ Committed (06bd3b3b) | Missing column names + precision + check constraints + enum | ⭐⭐⭐⭐⭐ |
+**Progress:** 26/30+ schemas reviewed (86.7%) ✅
+
+**Batch 1-9:** Initial improvements (location → sales-type)  
+**Batch 10-17:** Production & HR cycle (purchasing → supplier)  
+**Batch 18-26:** Finance & integrations (finance → audit)
+
+### Common Improvements Applied:
+- ✅ Explicit column names on ALL fields
+- ✅ Type-safe partial indexes (eq, isNull, isNotNull)
+- ✅ Quantity precision scale 6 (consistency)
+- ✅ Cost/monetary precision scale 2
+- ✅ Check constraints for data integrity
+- ✅ Performance indexes
+- ✅ Timestamp mode and timezone explicit
+
+### Key Schemas:
+| Schema | Key Changes | Commit |
+|--------|-------------|--------|
+| inventory.ts | Quantity scale 6, type-safe indexes | f4571464 |
+| sales.ts | 8 tables, 14 check constraints | 06bd3b3b |
+| purchasing.ts | 8 tables, 17 check constraints | 9c5d5d04 |
+| finance.ts | Debit/credit validation | d4bd881a |
+| audit.ts | 4 performance indexes | 82d43a5d |
 
 ---
 
-**Status:** 8/30+ schemas reviewed  
-**Next:** Continue reviewing remaining schemas, then update relations
+**Status:** 26/30+ schemas reviewed (86.7%)  
+**Next:** Review helper/enum files, then update relations
