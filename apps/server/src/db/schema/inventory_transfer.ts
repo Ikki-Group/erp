@@ -1,4 +1,5 @@
-import { index, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { check, index, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 import { auditFullColumns, pk } from './_helpers'
 import { locationsTable } from './location'
@@ -25,21 +26,21 @@ export const stockTransfersTable = pgTable(
 	'stock_transfers',
 	{
 		...pk,
-		sourceLocationId: integer()
+		sourceLocationId: integer('source_location_id')
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
-		destinationLocationId: integer()
+		destinationLocationId: integer('destination_location_id')
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
 		status: text('status', { enum: transferStatusEnum }).notNull().default('pending_approval'),
 
-		transferDate: timestamp('transfer_date', { mode: 'date' }).notNull(),
-		expectedDate: timestamp('expected_date', { mode: 'date' }),
-		receivedDate: timestamp('received_date', { mode: 'date' }),
+		transferDate: timestamp('transfer_date', { mode: 'date', withTimezone: true }).notNull(),
+		expectedDate: timestamp('expected_date', { mode: 'date', withTimezone: true }),
+		receivedDate: timestamp('received_date', { mode: 'date', withTimezone: true }),
 
 		// Reference number for tracking
 		referenceNo: text('reference_no').notNull(),
-		notes: text(),
+		notes: text('notes'),
 		rejectionReason: text('rejection_reason'),
 
 		...auditFullColumns,
@@ -49,6 +50,9 @@ export const stockTransfersTable = pgTable(
 		index('stock_transfers_destination_idx').on(t.destinationLocationId),
 		index('stock_transfers_status_idx').on(t.status),
 		index('stock_transfers_date_idx').on(t.transferDate),
+
+		// Source and destination cannot be the same
+		check('stock_transfers_different_locations_chk', sql`source_location_id <> destination_location_id`),
 	],
 )
 
@@ -61,23 +65,29 @@ export const stockTransferItemsTable = pgTable(
 	'stock_transfer_items',
 	{
 		...pk,
-		transferId: integer()
+		transferId: integer('transfer_id')
 			.notNull()
 			.references(() => stockTransfersTable.id, { onDelete: 'cascade' }),
-		materialId: integer()
+		materialId: integer('material_id')
 			.notNull()
 			.references(() => materialsTable.id, { onDelete: 'restrict' }),
 
-		itemName: text().notNull(),
-		quantity: numeric({ precision: 18, scale: 4 }).notNull(),
-		unitCost: numeric({ precision: 18, scale: 2 }).notNull(),
-		totalCost: numeric({ precision: 18, scale: 2 }).notNull(),
+		itemName: text('item_name').notNull(),
+		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull(),
+		unitCost: numeric('unit_cost', { precision: 18, scale: 2 }).notNull(),
+		totalCost: numeric('total_cost', { precision: 18, scale: 2 }).notNull(),
 
-		notes: text(),
+		notes: text('notes'),
 		...auditFullColumns,
 	},
 	(t) => [
 		index('stock_transfer_items_transfer_idx').on(t.transferId),
 		index('stock_transfer_items_material_idx').on(t.materialId),
+
+		// Quantity must be positive
+		check('stock_transfer_items_qty_pos_chk', sql`quantity > 0`),
+		// Cost fields must be non-negative
+		check('stock_transfer_items_unit_cost_nonneg_chk', sql`unit_cost >= 0`),
+		check('stock_transfer_items_total_cost_nonneg_chk', sql`total_cost >= 0`),
 	],
 )
