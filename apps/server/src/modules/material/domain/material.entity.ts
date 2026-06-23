@@ -5,7 +5,9 @@
  * Used by repos (return type) and services (working type).
  */
 
-import { z, zc, zp } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

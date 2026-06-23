@@ -15,7 +15,7 @@ import type {
 } from '../domain/ports'
 import { MATERIAL_CACHE_NS } from '../material.constants'
 import { ConversionErrors } from '../material.errors'
-import type { RecordId } from '@ikki/api-contract'
+import type { EntityRef } from '@/shared/types/utils'
 
 export class MaterialConversionService {
 	private readonly cache: CacheService
@@ -88,7 +88,7 @@ export class MaterialConversionService {
 		})
 	}
 
-	async create(data: ConversionInsertData, actorId: number): Promise<RecordId> {
+	async create(data: ConversionInsertData, actorId: number): Promise<EntityRef> {
 		return record('MaterialConversionService.create', async () => {
 			const existing = await this.deps.repo.getByMaterialAndUom(data.materialId, data.uomId)
 			if (existing) throw ConversionErrors.uomAlreadyExists()
@@ -101,7 +101,7 @@ export class MaterialConversionService {
 		})
 	}
 
-	async update(data: ConversionUpdateData, actorId: number): Promise<RecordId> {
+	async update(data: ConversionUpdateData, actorId: number): Promise<EntityRef> {
 		return record('MaterialConversionService.update', async () => {
 			const current = await this.findById(data.id)
 			if (!current) throw ConversionErrors.notFound(data.id)
@@ -119,7 +119,7 @@ export class MaterialConversionService {
 		})
 	}
 
-	async remove(id: number): Promise<RecordId> {
+	async remove(id: number): Promise<EntityRef> {
 		return record('MaterialConversionService.remove', async () => {
 			const current = await this.findById(id)
 			if (!current) throw ConversionErrors.notFound(id)

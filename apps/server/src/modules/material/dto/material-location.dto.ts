@@ -2,11 +2,13 @@
  * Material Location DTOs — HTTP boundary schemas
  */
 
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
+import { LocationDto } from '@/modules/location'
+import { UomDto } from '@/modules/uom'
 
 import { MaterialLocationEntity } from '../domain/material-location.entity'
-import { LocationSchema } from '@/modules/location'
-import { UomEntity } from '../domain/uom.entity'
 
 /* -------------------------------- RESPONSE -------------------------------- */
 
@@ -14,8 +16,12 @@ export const MaterialLocationDto = MaterialLocationEntity
 export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
 
 /** Enriched view with location details */
-export const MaterialLocationWithLocationDto = MaterialLocationEntity.extend({
-	location: LocationSchema,
+const MaterialLocationWithLocationMutation = z.object({
+	location: LocationDto,
+})
+export const MaterialLocationWithLocationDto = z.object({
+	...MaterialLocationEntity.shape,
+	...MaterialLocationWithLocationMutation.shape,
 })
 export type MaterialLocationWithLocationDto = z.infer<typeof MaterialLocationWithLocationDto>
 
@@ -27,7 +33,7 @@ export const MaterialLocationStockDto = z.object({
 	materialName: zp.str,
 	materialSku: zp.str,
 	baseUomId: zp.id,
-	uom: UomEntity.nullable(),
+	uom: UomDto.nullable(),
 	minStock: zp.decimal,
 	maxStock: zp.decimal.nullable(),
 	reorderPoint: zp.decimal,

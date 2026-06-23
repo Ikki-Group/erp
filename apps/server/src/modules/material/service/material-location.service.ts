@@ -6,7 +6,7 @@ import type { DbTx } from '@/infra/database'
 
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import type { LocationService } from '@/modules/location'
+import type { LocationModule } from '@/modules/location'
 
 import type { MaterialLocation } from '../domain/material-location.entity'
 import type {
@@ -25,7 +25,7 @@ export class MaterialLocationService {
 	constructor(
 		private readonly deps: {
 			master: MaterialService
-			location: LocationService
+			location: LocationModule
 			repo: IMaterialLocationRepo
 		},
 		cacheClient: CacheClient,

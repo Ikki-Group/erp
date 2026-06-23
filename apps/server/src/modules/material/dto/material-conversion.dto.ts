@@ -2,10 +2,12 @@
  * Material Conversion DTOs — HTTP boundary schemas
  */
 
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
+import { UomDto } from '@/modules/uom'
 
 import { MaterialConversionEntity } from '../domain/material-conversion.entity'
-import { UomEntity } from '../domain/uom.entity'
 
 /* -------------------------------- RESPONSE -------------------------------- */
 
@@ -14,7 +16,7 @@ export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 
 export const MaterialConversionDetailDto = z.object({
 	...MaterialConversionEntity.shape,
-	uom: UomEntity,
+	uom: UomDto,
 })
 export type MaterialConversionDetailDto = z.infer<typeof MaterialConversionDetailDto>
 

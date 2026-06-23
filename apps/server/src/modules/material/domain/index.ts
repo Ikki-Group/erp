@@ -5,7 +5,6 @@
 // Entities
 export { MaterialEntity, MaterialTypeSchema, type Material, type MaterialType } from './material.entity'
 export { MaterialCategoryEntity, type MaterialCategory } from './material-category.entity'
-export { UomEntity, type Uom } from './uom.entity'
 export { MaterialConversionEntity, type MaterialConversion } from './material-conversion.entity'
 export { MaterialLocationEntity, type MaterialLocation } from './material-location.entity'
 
@@ -13,7 +12,6 @@ export { MaterialLocationEntity, type MaterialLocation } from './material-locati
 export type {
 	IMaterialRepo,
 	IMaterialCategoryRepo,
-	IUomRepo,
 	IMaterialConversionRepo,
 	IMaterialLocationRepo,
 	IMaterialQueryRepo,
@@ -23,7 +21,6 @@ export type {
 	CategoryFilter,
 	CategoryInsertData,
 	CategoryUpdateData,
-	UomFilter,
 	ConversionFilter,
 	ConversionInsertData,
 	ConversionUpdateData,

@@ -4,6 +4,5 @@
 
 export { MaterialRepo } from './material.repo'
 export { MaterialCategoryRepo } from './material-category.repo'
-export { UomRepo } from './uom.repo'
 export { MaterialConversionRepo } from './material-conversion.repo'
 export { MaterialLocationRepo } from './material-location.repo'

@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import type { LocationService } from '@/modules/location'
+import type { LocationModule } from '@/modules/location'
 
 import type { MaterialConversion } from '../domain/material-conversion.entity'
 import type { MaterialLocation } from '../domain/material-location.entity'
@@ -18,7 +18,7 @@ export class MaterialQueryService {
 		private readonly deps: {
 			master: MaterialService
 			category: MaterialCategoryService
-			location: LocationService
+			location: LocationModule
 			conversion: MaterialConversionService
 			materialLocation: MaterialLocationService
 		},
@@ -28,10 +28,12 @@ export class MaterialQueryService {
 		return record('MaterialQueryService.list', async () => {
 			const { data, meta } = await this.deps.master.list(filter)
 
-			const [categoriesMap, locationsMap] = await Promise.all([
+			const [categoriesMap, locations] = await Promise.all([
 				this.deps.category.getRelationMap(),
-				this.deps.location.getRelationMap(),
+				this.deps.location.getListAll(),
 			])
+
+			const locationsMap = this.deps.location.toRelationMap(locations)
 
 			const results: MaterialQueryDetailDto[] = await Promise.all(
 				data.map(async (m) => {
@@ -65,17 +67,14 @@ export class MaterialQueryService {
 			const material = await this.deps.master.findById(id)
 			if (!material) return undefined
 
-			const [categoriesMap, locationsMap, conversions, materialLocations]: [
-				Awaited<ReturnType<typeof this.deps.category.getRelationMap>>,
-				Awaited<ReturnType<typeof this.deps.location.getRelationMap>>,
-				MaterialConversion[],
-				MaterialLocation[],
-			] = await Promise.all([
+			const [categoriesMap, locations, conversions, materialLocations] = await Promise.all([
 				this.deps.category.getRelationMap(),
-				this.deps.location.getRelationMap(),
+				this.deps.location.getListAll(),
 				this.deps.conversion.findAll(id),
 				this.deps.materialLocation.findByMaterialId(id),
 			])
+
+			const locationsMap = this.deps.location.toRelationMap(locations)
 
 			const locationIds: number[] = materialLocations.map((ml: MaterialLocation) => ml.locationId)
 

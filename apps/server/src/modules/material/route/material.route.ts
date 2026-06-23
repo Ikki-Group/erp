@@ -1,6 +1,8 @@
-import { z, zc, createSuccessResponseSchema } from '@ikki/api-contract/validation'
+import { z } from 'zod'
 import Elysia from 'elysia'
 
+import { zc } from '@/shared/schema'
+import { createSuccessResponseSchema } from '@/shared/schema/response'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 

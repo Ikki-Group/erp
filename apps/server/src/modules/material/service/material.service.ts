@@ -16,7 +16,7 @@ import { MATERIAL_CACHE_NS } from '../material.constants'
 import { MasterErrors } from '../material.errors'
 import type { MaterialCategoryService } from './material-category.service'
 import type { MaterialConversionService } from './material-conversion.service'
-import type { RecordId } from '@ikki/api-contract'
+import type { EntityRef } from '@/shared/types/utils'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -133,7 +133,7 @@ export class MaterialService {
 		})
 	}
 
-	async create(input: MaterialCreateInput, actorId: number): Promise<RecordId> {
+	async create(input: MaterialCreateInput, actorId: number): Promise<EntityRef> {
 		return record('MaterialService.create', async () => {
 			const { sku, name, conversions } = input
 
@@ -175,7 +175,7 @@ export class MaterialService {
 		})
 	}
 
-	async update(id: number, input: MaterialCreateInput, actorId: number): Promise<RecordId> {
+	async update(id: number, input: MaterialCreateInput, actorId: number): Promise<EntityRef> {
 		return record('MaterialService.update', async () => {
 			const { sku, name, conversions } = input
 
@@ -219,7 +219,7 @@ export class MaterialService {
 		})
 	}
 
-	async remove(id: number): Promise<RecordId> {
+	async remove(id: number): Promise<EntityRef> {
 		return record('MaterialService.remove', async () => {
 			const existing = await this.findById(id)
 			if (!existing) throw MasterErrors.notFound(id)

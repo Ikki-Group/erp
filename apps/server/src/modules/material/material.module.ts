@@ -11,39 +11,35 @@ import type { CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 
-import type { LocationService } from '@/modules/location'
+import type { LocationModule } from '@/modules/location'
 
 import { MaterialCategoryRepo } from './repo/material-category.repo'
 import { MaterialConversionRepo } from './repo/material-conversion.repo'
 import { MaterialLocationRepo } from './repo/material-location.repo'
 import { MaterialRepo } from './repo/material.repo'
-import { UomRepo } from './repo/uom.repo'
 import {
 	initMaterialCategoryRoute,
 	initMaterialConversionRoute,
 	initMaterialLocationRoute,
 	initMaterialMasterRoute,
 	initMaterialQueryRoute,
-	initMaterialUomRoute,
 } from './route'
 import { MaterialCategoryService } from './service/material-category.service'
 import { MaterialConversionService } from './service/material-conversion.service'
 import { MaterialLocationService } from './service/material-location.service'
 import { MaterialQueryService } from './service/material-query.service'
 import { MaterialService } from './service/material.service'
-import { UomService } from './service/uom.service'
 
 /* ----------------------------- MODULE DEPS -------------------------------- */
 
 interface MaterialModuleDeps {
-	location: LocationService
+	location: LocationModule
 }
 
 /* ----------------------------- MODULE CLASS -------------------------------- */
 
 export class MaterialModule {
 	public readonly category: MaterialCategoryService
-	public readonly uom: UomService
 	public readonly conversion: MaterialConversionService
 	public readonly master: MaterialService
 	public readonly location: MaterialLocationService
@@ -57,9 +53,6 @@ export class MaterialModule {
 		// Layer 1 — Base services (no cross-dependencies)
 		const categoryRepo = new MaterialCategoryRepo(this.db)
 		this.category = new MaterialCategoryService({ repo: categoryRepo }, this.cacheClient)
-
-		const uomRepo = new UomRepo(this.db)
-		this.uom = new UomService({ repo: uomRepo }, this.cacheClient)
 
 		// Layer 2 — Conversion (depends on db for transactions)
 		const conversionRepo = new MaterialConversionRepo(this.db)
@@ -107,7 +100,6 @@ export class MaterialModule {
 export function initMaterialRoutes(m: MaterialModule) {
 	return new Elysia({ prefix: '/material' })
 		.use(initMaterialCategoryRoute(m.category))
-		.use(initMaterialUomRoute(m.uom))
 		.use(initMaterialConversionRoute(m.conversion))
 		.use(initMaterialLocationRoute(m.location))
 		.use(initMaterialQueryRoute(m.query))

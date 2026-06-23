@@ -2,9 +2,10 @@
  * Material Query DTOs — composite read-model schemas
  */
 
-import { z, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
 
-import { LocationSchema } from '@/modules/location'
+import { zq } from '@/shared/schema'
+import { LocationDto } from '@/modules/location'
 import { MaterialCategoryEntity } from '../domain/material-category.entity'
 import { MaterialEntity, MaterialTypeSchema } from '../domain/material.entity'
 import { MaterialConversionEntity } from '../domain/material-conversion.entity'
@@ -15,7 +16,7 @@ export const MaterialQueryDetailDto = z.object({
 	...MaterialEntity.shape,
 	category: MaterialCategoryEntity.nullable(),
 	conversions: z.array(MaterialConversionEntity),
-	locations: z.array(LocationSchema),
+	locations: z.array(LocationDto),
 })
 export type MaterialQueryDetailDto = z.infer<typeof MaterialQueryDetailDto>
 

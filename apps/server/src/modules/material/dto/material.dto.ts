@@ -6,7 +6,9 @@
  * - Filter schemas define query param shapes
  */
 
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 import { MaterialCategoryEntity } from '../domain/material-category.entity'
 import { MaterialConversionEntity } from '../domain/material-conversion.entity'
@@ -33,7 +35,7 @@ export type MaterialDetailDto = z.infer<typeof MaterialDetailDto>
 export const MaterialCreateDto = z.object({
 	name: zc.strTrim.min(3).max(100),
 	description: zc.strTrimNullable,
-	sku: zc.strTrim.min(3).max(50).toUpperCase(),
+	sku: zc.strTrim.min(3).max(50).transform((v) => v.toUpperCase()),
 	type: MaterialTypeSchema,
 	categoryId: zp.id,
 	baseUomId: zp.id,

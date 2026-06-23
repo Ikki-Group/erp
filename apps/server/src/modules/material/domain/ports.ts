@@ -10,11 +10,12 @@ import type { DbClient, DbTx } from '@/infra/database'
 
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
+import type { UomDto } from '@/modules/uom'
+
 import type { MaterialCategory } from './material-category.entity'
 import type { MaterialConversion } from './material-conversion.entity'
 import type { MaterialLocation } from './material-location.entity'
 import type { Material, MaterialType } from './material.entity'
-import type { Uom } from './uom.entity'
 
 /* -------------------------------- MATERIAL -------------------------------- */
 
@@ -90,25 +91,6 @@ export interface CategoryUpdateData {
 	description?: string | null | undefined
 	parentId?: number | null | undefined
 	updatedBy: number
-}
-
-/* ---------------------------------- UOM ----------------------------------- */
-
-export interface IUomRepo {
-	getList(): Promise<Uom[]>
-	getById(id: number): Promise<Uom | undefined>
-	getListPaginated(filter: UomFilter): Promise<WithPaginationResult<Uom>>
-	count(): Promise<number>
-	create(data: { code: string; createdBy: number }): Promise<number | undefined>
-	update(id: number, data: { code: string; updatedBy: number }): Promise<number | undefined>
-	remove(id: number): Promise<number | undefined>
-	seed(data: { code: string; createdBy: number }[]): Promise<void>
-}
-
-export interface UomFilter {
-	page: number
-	limit: number
-	q?: string | undefined
 }
 
 /* ------------------------------- CONVERSION ------------------------------- */
@@ -210,7 +192,7 @@ export interface MaterialLocationStock {
 	materialName: string
 	materialSku: string
 	baseUomId: number
-	uom: Uom | null
+	uom: UomDto | null
 	minStock: string
 	maxStock: string | null
 	reorderPoint: string

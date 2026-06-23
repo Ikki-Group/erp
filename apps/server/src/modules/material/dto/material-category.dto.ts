@@ -2,7 +2,9 @@
  * Material Category DTOs — HTTP boundary schemas
  */
 
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 import { MaterialCategoryEntity } from '../domain/material-category.entity'
 
@@ -32,7 +34,8 @@ export type MaterialCategoryMutationDto = z.infer<typeof MaterialCategoryMutatio
 export const MaterialCategoryCreateDto = MaterialCategoryMutationDto
 export type MaterialCategoryCreateDto = z.infer<typeof MaterialCategoryCreateDto>
 
-export const MaterialCategoryUpdateDto = MaterialCategoryMutationDto.extend({
+export const MaterialCategoryUpdateDto = z.object({
 	...zc.RecordId.shape,
+	...MaterialCategoryMutationDto.shape,
 })
 export type MaterialCategoryUpdateDto = z.infer<typeof MaterialCategoryUpdateDto>

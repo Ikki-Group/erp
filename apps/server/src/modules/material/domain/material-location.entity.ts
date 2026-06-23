@@ -2,7 +2,9 @@
  * Material Location Entity — Zod-based domain schema
  */
 
-import { z, zc, zp } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp } from '@/shared/schema'
 
 export const MaterialLocationEntity = z.object({
 	...zc.RecordId.shape,

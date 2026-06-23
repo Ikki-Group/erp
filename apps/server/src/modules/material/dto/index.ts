@@ -21,8 +21,6 @@ export {
 	MaterialCategoryUpdateDto,
 } from './material-category.dto'
 
-export { UomDto, UomFilterDto, UomMutationDto } from './uom.dto'
-
 export {
 	MaterialConversionDto,
 	MaterialConversionDetailDto,
