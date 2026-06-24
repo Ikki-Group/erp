@@ -1,7 +1,7 @@
 import Elysia from 'elysia'
 
 import { res } from '@/shared/http/response'
-import { createSuccessResponseSchema, zp } from '@/shared/schema'
+import { createSuccessResponseDto, zp } from '@/shared/schema'
 
 import type { SeedService } from './seed.service'
 
@@ -12,6 +12,6 @@ export function initSeedRoute(seedSvc: SeedService) {
 			await seedSvc.seed()
 			return res.ok('Seeding data...')
 		},
-		{ response: createSuccessResponseSchema(zp.str) },
+		{ response: createSuccessResponseDto(zp.str) },
 	)
 }

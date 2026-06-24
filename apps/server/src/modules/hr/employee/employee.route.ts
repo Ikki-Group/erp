@@ -1,5 +1,5 @@
 import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -19,7 +19,7 @@ export function initEmployeeRoute(service: EmployeeService) {
 			},
 			{
 				query: dto.EmployeeFilterDto,
-				response: createPaginatedResponseSchema(dto.EmployeeDto),
+				response: createPaginatedResponseDto(dto.EmployeeDto),
 				auth: true,
 			},
 		)
@@ -29,7 +29,7 @@ export function initEmployeeRoute(service: EmployeeService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(dto.EmployeeDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(dto.EmployeeDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -39,7 +39,7 @@ export function initEmployeeRoute(service: EmployeeService) {
 			},
 			{
 				body: dto.EmployeeCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -51,7 +51,7 @@ export function initEmployeeRoute(service: EmployeeService) {
 			},
 			{
 				body: dto.EmployeeUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -61,6 +61,6 @@ export function initEmployeeRoute(service: EmployeeService) {
 				const result = await service.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 }

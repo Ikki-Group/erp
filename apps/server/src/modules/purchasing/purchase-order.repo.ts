@@ -12,11 +12,11 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
-	PurchaseOrderCreateSchema,
-	PurchaseOrderSchema,
-	PurchaseOrderFilterSchema,
-	PurchaseOrderSelectSchema, type PurchaseOrderStatus,
-	PurchaseOrderUpdateSchema,
+	PurchaseOrderCreateDto,
+	PurchaseOrderDto,
+	PurchaseOrderFilterDto,
+	PurchaseOrderSelectDto, type PurchaseOrderStatus,
+	PurchaseOrderUpdateDto,
 } from './purchase-order.contract'
 
 export class PurchaseOrderRepo {
@@ -24,7 +24,7 @@ export class PurchaseOrderRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<PurchaseOrderSchema | undefined> {
+	async getById(id: number): Promise<PurchaseOrderDto | undefined> {
 		const [order] = await this.db
 			.select()
 			.from(purchaseOrdersTable)
@@ -39,12 +39,12 @@ export class PurchaseOrderRepo {
 				and(eq(purchaseOrderItemsTable.orderId, id), isNull(purchaseOrderItemsTable.deletedAt)),
 			)
 
-		return PurchaseOrderSchema.parse({ ...order, items })
+		return PurchaseOrderDto.parse({ ...order, items })
 	}
 
 	async getListPaginated(
-		filter: PurchaseOrderFilterSchema,
-	): Promise<WithPaginationResult<PurchaseOrderSelectSchema>> {
+		filter: PurchaseOrderFilterDto,
+	): Promise<WithPaginationResult<PurchaseOrderSelectDto>> {
 		const { q, page, limit, status, locationId, supplierId } = filter
 		const where = and(
 			isNull(purchaseOrdersTable.deletedAt),
@@ -63,7 +63,7 @@ export class PurchaseOrderRepo {
 					.orderBy(sortBy(purchaseOrdersTable.updatedAt, 'desc'))
 					.limit(l)
 					.offset(offset)
-				return rows.map((r) => PurchaseOrderSelectSchema.parse(r))
+				return rows.map((r) => PurchaseOrderSelectDto.parse(r))
 			},
 			pq: { page, limit },
 			countQuery: () => this.db.select({ count: count() }).from(purchaseOrdersTable).where(where),
@@ -72,7 +72,7 @@ export class PurchaseOrderRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: PurchaseOrderCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: PurchaseOrderCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const result = await this.db.transaction(async (tx) => {
 			const { items, ...orderData } = data
 			const meta = stampCreate(actorId)
@@ -109,7 +109,7 @@ export class PurchaseOrderRepo {
 		return result
 	}
 
-	async update(data: PurchaseOrderUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async update(data: PurchaseOrderUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const { id, items, ...orderData } = data
 		const updateMeta = stampUpdate(actorId)
 		const createMeta = stampCreate(actorId)

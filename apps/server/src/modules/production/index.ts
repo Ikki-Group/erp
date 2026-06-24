@@ -40,11 +40,11 @@ export function initProductionRouteModule(s: ProductionServiceModule) {
 }
 
 export {
-	WorkOrderSchema,
-	WorkOrderCreateSchema,
-	WorkOrderUpdateSchema,
-	WorkOrderFilterSchema,
-	WorkOrderCompleteSchema,
+	WorkOrderDto,
+	WorkOrderCreateDto,
+	WorkOrderUpdateDto,
+	WorkOrderFilterDto,
+	WorkOrderCompleteDto,
 	WorkOrderStatusEnum,
 	type WorkOrderStatus,
 } from './work-order.contract'

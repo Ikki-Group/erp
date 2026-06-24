@@ -14,12 +14,12 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 import { CustomerRepo } from './customer.repo'
 import type {
 	CustomerDto,
-	CustomerCreateSchema,
-	CustomerUpdateSchema,
-	CustomerFilterSchema,
-	CustomerAddPointsSchema,
-	CustomerRedeemPointsSchema,
-	CustomerLoyaltyTransactionSchema,
+	CustomerCreateDto,
+	CustomerUpdateDto,
+	CustomerFilterDto,
+	CustomerAddPointsDto,
+	CustomerRedeemPointsDto,
+	CustomerLoyaltyTransactionDto,
 } from './customer.contract'
 
 const uniqueFields: ConflictField<'code' | 'name' | 'phone'>[] = [
@@ -76,13 +76,13 @@ export class CustomerService {
 		return this.repo.getByPhone(phone)
 	}
 
-	async getLoyaltyHistory(customerId: number): Promise<CustomerLoyaltyTransactionSchema[]> {
+	async getLoyaltyHistory(customerId: number): Promise<CustomerLoyaltyTransactionDto[]> {
 		return this.repo.getLoyaltyHistory(customerId)
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: CustomerFilterSchema): Promise<WithPaginationResult<CustomerDto>> {
+	async handleList(filter: CustomerFilterDto): Promise<WithPaginationResult<CustomerDto>> {
 		const result = await this.repo.getListPaginated(filter)
 		return result
 	}
@@ -99,7 +99,7 @@ export class CustomerService {
 		return result
 	}
 
-	async handleCreate(data: CustomerCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: CustomerCreateDto, actorId: ActorId): Promise<EntityRef> {
 		await checkConflict({
 			table: customersTable,
 			pkColumn: customersTable.id,
@@ -116,7 +116,7 @@ export class CustomerService {
 		return result
 	}
 
-	async handleUpdate(data: CustomerUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleUpdate(data: CustomerUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const { id } = data
 
 		const existing = await this.getById(id)
@@ -146,7 +146,7 @@ export class CustomerService {
 		return result
 	}
 
-	async handleAddPoints(data: CustomerAddPointsSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleAddPoints(data: CustomerAddPointsDto, actorId: ActorId): Promise<EntityRef> {
 		const existing = await this.getById(data.customerId)
 		if (!existing) throw err.notFound(data.customerId)
 
@@ -161,7 +161,7 @@ export class CustomerService {
 		return result
 	}
 
-	async handleRedeemPoints(data: CustomerRedeemPointsSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleRedeemPoints(data: CustomerRedeemPointsDto, actorId: ActorId): Promise<EntityRef> {
 		const existing = await this.getById(data.customerId)
 		if (!existing) throw err.notFound(data.customerId)
 

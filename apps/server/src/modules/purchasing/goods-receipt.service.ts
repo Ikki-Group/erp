@@ -14,10 +14,10 @@ import type { StockTransactionService } from '@/modules/inventory'
 
 import { GoodsReceiptRepo } from './goods-receipt.repo'
 import type {
-	GoodsReceiptNoteSchema,
-	GoodsReceiptNoteFilterSchema,
-	GoodsReceiptNoteSelectSchema,
-	GoodsReceiptNoteCreateSchema,
+	GoodsReceiptNoteDto,
+	GoodsReceiptNoteFilterDto,
+	GoodsReceiptNoteSelectDto,
+	GoodsReceiptNoteCreateDto,
 } from './goods-receipt.contract'
 
 export class GoodsReceiptService {
@@ -34,7 +34,7 @@ export class GoodsReceiptService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<GoodsReceiptNoteSchema> {
+	async getById(id: number): Promise<GoodsReceiptNoteDto> {
 		const key = `byId:${id}`
 		const grn = await this.cache.getOrSetWithSkip({
 			key,
@@ -47,8 +47,8 @@ export class GoodsReceiptService {
 	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(
-		filter: GoodsReceiptNoteFilterSchema,
-	): Promise<WithPaginationResult<GoodsReceiptNoteSelectSchema>> {
+		filter: GoodsReceiptNoteFilterDto,
+	): Promise<WithPaginationResult<GoodsReceiptNoteSelectDto>> {
 		const key = `list.${JSON.stringify(filter)}`
 		return this.cache.getOrSet({
 			key,
@@ -56,11 +56,11 @@ export class GoodsReceiptService {
 		})
 	}
 
-	async handleDetail(id: number): Promise<GoodsReceiptNoteSchema> {
+	async handleDetail(id: number): Promise<GoodsReceiptNoteDto> {
 		return this.getById(id)
 	}
 
-	async handleCreate(data: GoodsReceiptNoteCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: GoodsReceiptNoteCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const result = await this.repo.create(data, actorId)
 		await this.cache.deleteMany({ keys: ['list', 'count'] })
 		return result

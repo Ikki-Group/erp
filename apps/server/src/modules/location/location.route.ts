@@ -3,8 +3,8 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
+	createPaginatedResponseDto,
+	createSuccessResponseDto,
 	zc,
 	zq,
 } from '@/shared/schema'
@@ -28,7 +28,7 @@ export function createLocationRoute(m: LocationModule) {
 			},
 			{
 				query: LocationFilterDto,
-				response: createPaginatedResponseSchema(LocationDto),
+				response: createPaginatedResponseDto(LocationDto),
 				auth: true,
 			},
 		)
@@ -40,7 +40,7 @@ export function createLocationRoute(m: LocationModule) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(LocationDto),
+				response: createSuccessResponseDto(LocationDto),
 				auth: true,
 			},
 		)
@@ -52,7 +52,7 @@ export function createLocationRoute(m: LocationModule) {
 			},
 			{
 				body: LocationCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -64,7 +64,7 @@ export function createLocationRoute(m: LocationModule) {
 			},
 			{
 				body: LocationUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -76,7 +76,7 @@ export function createLocationRoute(m: LocationModule) {
 			},
 			{
 				body: zc.RecordId,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

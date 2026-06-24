@@ -1,6 +1,6 @@
 import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
+	createPaginatedResponseDto,
+	createSuccessResponseDto,
 	zc,
 	zq,
 } from '@/shared/schema/response'
@@ -9,7 +9,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import { AuditLogSchema, AuditLogFilterSchema, AuditLogCreateSchema } from './audit-log.contract'
+import { AuditLogDto, AuditLogFilterDto, AuditLogCreateDto } from './audit-log.contract'
 import type { AuditLogService } from './audit-log.service'
 
 export function initAuditLogRoute(service: AuditLogService) {
@@ -22,8 +22,8 @@ export function initAuditLogRoute(service: AuditLogService) {
 				return res.paginated(result)
 			},
 			{
-				query: AuditLogFilterSchema,
-				response: createPaginatedResponseSchema(AuditLogSchema),
+				query: AuditLogFilterDto,
+				response: createPaginatedResponseDto(AuditLogDto),
 				auth: true,
 			},
 		)
@@ -35,7 +35,7 @@ export function initAuditLogRoute(service: AuditLogService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(AuditLogSchema),
+				response: createSuccessResponseDto(AuditLogDto),
 				auth: true,
 			},
 		)
@@ -46,8 +46,8 @@ export function initAuditLogRoute(service: AuditLogService) {
 				return res.created(result)
 			},
 			{
-				body: AuditLogCreateSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: AuditLogCreateDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

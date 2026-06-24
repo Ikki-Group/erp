@@ -7,14 +7,14 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { PurchaseOrderRepo } from './purchase-order.repo'
 import type {
-	PurchaseOrderSchema,
-	PurchaseOrderFilterSchema,
-	PurchaseOrderSelectSchema,
-	PurchaseOrderCreateSchema,
-	PurchaseOrderUpdateSchema,
-	PurchaseOrderSubmitForApprovalSchema,
-	PurchaseOrderApproveSchema,
-	PurchaseOrderRejectSchema,
+	PurchaseOrderDto,
+	PurchaseOrderFilterDto,
+	PurchaseOrderSelectDto,
+	PurchaseOrderCreateDto,
+	PurchaseOrderUpdateDto,
+	PurchaseOrderSubmitForApprovalDto,
+	PurchaseOrderApproveDto,
+	PurchaseOrderRejectDto,
 } from './purchase-order.contract'
 
 const err = {
@@ -38,7 +38,7 @@ export class PurchaseOrderService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<PurchaseOrderSchema> {
+	async getById(id: number): Promise<PurchaseOrderDto> {
 		const key = `byId:${id}`
 		const order = await this.cache.getOrSetWithSkip({
 			key,
@@ -51,8 +51,8 @@ export class PurchaseOrderService {
 	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(
-		filter: PurchaseOrderFilterSchema,
-	): Promise<WithPaginationResult<PurchaseOrderSelectSchema>> {
+		filter: PurchaseOrderFilterDto,
+	): Promise<WithPaginationResult<PurchaseOrderSelectDto>> {
 		const key = `list.${JSON.stringify(filter)}`
 		return this.cache.getOrSet({
 			key,
@@ -60,17 +60,17 @@ export class PurchaseOrderService {
 		})
 	}
 
-	async handleDetail(id: number): Promise<PurchaseOrderSchema> {
+	async handleDetail(id: number): Promise<PurchaseOrderDto> {
 		return this.getById(id)
 	}
 
-	async handleCreate(data: PurchaseOrderCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: PurchaseOrderCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const result = await this.repo.create(data, actorId)
 		await this.cache.deleteMany({ keys: ['list', 'count'] })
 		return result
 	}
 
-	async handleUpdate(data: PurchaseOrderUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleUpdate(data: PurchaseOrderUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const result = await this.repo.update(data, actorId)
 		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${data.id}`] })
 		return result
@@ -89,7 +89,7 @@ export class PurchaseOrderService {
 	}
 
 	async handleSubmitForApproval(
-		data: PurchaseOrderSubmitForApprovalSchema,
+		data: PurchaseOrderSubmitForApprovalDto,
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		const { id } = data
@@ -106,7 +106,7 @@ export class PurchaseOrderService {
 		return result
 	}
 
-	async handleApprove(data: PurchaseOrderApproveSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleApprove(data: PurchaseOrderApproveDto, actorId: ActorId): Promise<EntityRef> {
 		const { id } = data
 		const order = await this.repo.getById(id)
 		if (!order) throw err.notFound(id)
@@ -121,7 +121,7 @@ export class PurchaseOrderService {
 		return result
 	}
 
-	async handleReject(data: PurchaseOrderRejectSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleReject(data: PurchaseOrderRejectDto, actorId: ActorId): Promise<EntityRef> {
 		const { id } = data
 		const order = await this.repo.getById(id)
 		if (!order) throw err.notFound(id)

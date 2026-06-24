@@ -3,7 +3,7 @@
  */
 
 // Entities
-export { MaterialEntity, MaterialTypeSchema, type Material, type MaterialType } from './material.entity'
+export { MaterialEntity, MaterialTypeDto, type Material, type MaterialType } from './material.entity'
 export { MaterialCategoryEntity, type MaterialCategory } from './material-category.entity'
 export { MaterialConversionEntity, type MaterialConversion } from './material-conversion.entity'
 export { MaterialLocationEntity, type MaterialLocation } from './material-location.entity'

@@ -4,7 +4,7 @@ import { zc, zp, zq } from '@/shared/schema'
 
 /* --------------------------------- NESTED --------------------------------- */
 
-export const RecipeItemSchema = z.object({
+export const RecipeItemDto = z.object({
 	...zc.RecordId.shape,
 	recipeId: zp.id,
 	materialId: zp.id,
@@ -19,7 +19,7 @@ export const RecipeItemSchema = z.object({
 	uom: z.object({ code: zp.str }).optional(),
 	...zc.AuditBasic.shape,
 })
-export type RecipeItemSchema = z.infer<typeof RecipeItemSchema>
+export type RecipeItemDto = z.infer<typeof RecipeItemDto>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -33,14 +33,14 @@ export const RecipeDto = z.object({
 	instructions: zp.strNullable,
 
 	// items can be populated
-	items: z.array(RecipeItemSchema).optional(),
+	items: z.array(itemDto).optional(),
 	...zc.AuditBasic.shape,
 })
 export type RecipeDto = z.infer<typeof RecipeDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const RecipeFilterSchema = z.object({
+export const RecipeFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	materialId: zq.id.optional(),
@@ -48,16 +48,16 @@ export const RecipeFilterSchema = z.object({
 	productVariantId: zq.id.optional(),
 	isActive: zq.boolean,
 })
-export type RecipeFilterSchema = z.infer<typeof RecipeFilterSchema>
+export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
 
 /* --------------------------------- RESULT --------------------------------- */
 
-export const RecipeSelectSchema = RecipeDto
-export type RecipeSelectSchema = z.infer<typeof RecipeSelectSchema>
+export const RecipeSelectDto = RecipeDto
+export type RecipeSelectDto = z.infer<typeof RecipeSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const RecipeItemMutationSchema = z.object({
+const RecipeItemMutationDto = z.object({
 	materialId: zp.id,
 	qty: zp.decimal,
 	scrapPercentage: zp.decimal.optional().default('0'),
@@ -66,7 +66,7 @@ const RecipeItemMutationSchema = z.object({
 	sortOrder: zp.num.optional().default(0),
 })
 
-export const RecipeCreateSchema = z
+export const RecipeCreateDto = z
 	.object({
 		materialId: zp.id.optional().nullable(),
 		productId: zp.id.optional().nullable(),
@@ -74,7 +74,7 @@ export const RecipeCreateSchema = z
 		targetQty: zp.decimal.optional().default('1'),
 		isActive: zp.bool.default(true),
 		instructions: zc.strTrimNullable,
-		items: z.array(RecipeItemMutationSchema).min(1, 'At least one item is required'),
+		items: z.array(itemDto).min(1, 'At least one item is required'),
 	})
 	.refine(
 		(data) => {
@@ -88,26 +88,26 @@ export const RecipeCreateSchema = z
 			path: ['materialId'],
 		},
 	)
-export type RecipeCreateSchema = z.infer<typeof RecipeCreateSchema>
+export type RecipeCreateDto = z.infer<typeof RecipeCreateDto>
 
-export const RecipeUpdateSchema = RecipeCreateSchema.extend({
+export const RecipeUpdateDto = RecipeCreateDto.extend({
 	...zc.RecordId.shape,
 })
-export type RecipeUpdateSchema = z.infer<typeof RecipeUpdateSchema>
+export type RecipeUpdateDto = z.infer<typeof RecipeUpdateDto>
 
 /* ---------------------------------- COST ---------------------------------- */
 
-export const RecipeItemCostSchema = RecipeItemSchema.extend({
+export const RecipeItemCostDto = RecipeItemDto.extend({
 	unitCost: zp.decimal,
 	extendedCost: zp.decimal,
 })
-export type RecipeItemCostSchema = z.infer<typeof RecipeItemCostSchema>
+export type RecipeItemCostDto = z.infer<typeof RecipeItemCostDto>
 
-export const RecipeCostSchema = z.object({
+export const RecipeCostDto = z.object({
 	recipeId: zp.id,
 	targetQty: zp.decimal,
 	totalCost: zp.decimal,
 	unitCost: zp.decimal,
-	items: z.array(RecipeItemCostSchema),
+	items: z.array(itemDto),
 })
-export type RecipeCostSchema = z.infer<typeof RecipeCostSchema>
+export type RecipeCostDto = z.infer<typeof RecipeCostDto>

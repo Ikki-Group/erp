@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -21,7 +21,7 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 			},
 			{
 				query: dto.PaymentMethodFilterDto,
-				response: createPaginatedResponseSchema(dto.PaymentMethodDto),
+				response: createPaginatedResponseDto(dto.PaymentMethodDto),
 				auth: true,
 			},
 		)
@@ -33,7 +33,7 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.PaymentMethodDto),
+				response: createSuccessResponseDto(dto.PaymentMethodDto),
 				auth: true,
 			},
 		)
@@ -43,7 +43,7 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 				const result = await service.getEnabled()
 				return res.ok(result)
 			},
-			{ response: createSuccessResponseSchema(dto.PaymentMethodDto.array()), auth: true },
+			{ response: createSuccessResponseDto(dto.PaymentMethodDto.array()), auth: true },
 		)
 		.get(
 			'/global',
@@ -51,7 +51,7 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 				const result = await service.getGlobal()
 				return res.ok(result)
 			},
-			{ response: createSuccessResponseSchema(dto.PaymentMethodDto.array()), auth: true },
+			{ response: createSuccessResponseDto(dto.PaymentMethodDto.array()), auth: true },
 		)
 		.post(
 			'/create',
@@ -61,7 +61,7 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 			},
 			{
 				body: dto.PaymentMethodCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -73,7 +73,7 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 			},
 			{
 				body: dto.PaymentMethodUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -83,7 +83,7 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 				const result = await service.handleRemove(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/seed',
@@ -91,6 +91,6 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 				await service.seedDefault(auth.userId)
 				return res.ok({ message: 'Payment methods seeded successfully' })
 			},
-			{ response: createSuccessResponseSchema(z.object({ message: z.string() })), auth: true },
+			{ response: createSuccessResponseDto(z.object({ message: z.string() })), auth: true },
 		)
 }

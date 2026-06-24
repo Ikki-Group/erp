@@ -15,9 +15,9 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
-	AuditLogSchema,
-	type AuditLogFilterSchema,
-	type AuditLogCreateSchema,
+	AuditLogDto,
+	type AuditLogFilterDto,
+	type AuditLogCreateDto,
 } from './audit-log.contract'
 
 export class AuditLogRepo {
@@ -26,8 +26,8 @@ export class AuditLogRepo {
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getListPaginated(
-		filter: AuditLogFilterSchema,
-	): Promise<WithPaginationResult<AuditLogSchema>> {
+		filter: AuditLogFilterDto,
+	): Promise<WithPaginationResult<AuditLogDto>> {
 		const { q, page, limit, action, entityType, userId, fromDate, toDate } = filter
 		const where = and(
 			q === undefined ? undefined : searchFilter(auditLogsTable.description, q),
@@ -57,7 +57,7 @@ export class AuditLogRepo {
 		})
 	}
 
-	async getById(id: number): Promise<AuditLogSchema | undefined> {
+	async getById(id: number): Promise<AuditLogDto | undefined> {
 		const res = await this.db
 			.select()
 			.from(auditLogsTable)
@@ -70,7 +70,7 @@ export class AuditLogRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: AuditLogCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: AuditLogCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const metadata = stampCreate(actorId)
 		const [res] = await this.db
 			.insert(auditLogsTable)

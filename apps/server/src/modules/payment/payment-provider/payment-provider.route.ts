@@ -1,5 +1,5 @@
 import { zc, zq } from '@/shared/schema'
-import { createSuccessResponseSchema, createPaginatedResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -24,7 +24,7 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 			},
 			{
 				query: PaymentProviderFilterDto,
-				response: createPaginatedResponseSchema(PaymentProviderDto),
+				response: createPaginatedResponseDto(PaymentProviderDto),
 				auth: true,
 			},
 		)
@@ -34,7 +34,7 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 				const provider = await service.handleDetail(query.id)
 				return res.ok(provider)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(PaymentProviderDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(PaymentProviderDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -44,7 +44,7 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 			},
 			{
 				body: PaymentProviderCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -56,7 +56,7 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 			},
 			{
 				body: PaymentProviderUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -66,6 +66,6 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 				await service.handleRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 }

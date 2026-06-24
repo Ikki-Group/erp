@@ -1,16 +1,16 @@
 import { zc } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
 import {
-	WorkOrderCompleteSchema,
-	WorkOrderCreateSchema,
-	WorkOrderFilterSchema,
-	WorkOrderSchema,
-	WorkOrderSelectSchema,
+	WorkOrderCompleteDto,
+	WorkOrderCreateDto,
+	WorkOrderFilterDto,
+	WorkOrderDto,
+	WorkOrderSelectDto,
 } from './work-order.contract'
 import type { WorkOrderService } from './work-order.service'
 
@@ -24,8 +24,8 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				return res.paginated(result)
 			},
 			{
-				query: WorkOrderFilterSchema,
-				response: createPaginatedResponseSchema(WorkOrderSelectSchema),
+				query: WorkOrderFilterDto,
+				response: createPaginatedResponseDto(WorkOrderDto),
 				auth: true,
 			},
 		)
@@ -35,7 +35,7 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				const wo = await service.handleDetail(query.id)
 				return res.ok(wo)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(WorkOrderSchema), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(WorkOrderDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -44,8 +44,8 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				return res.created(result)
 			},
 			{
-				body: WorkOrderCreateSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: WorkOrderCreateDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -55,7 +55,7 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				const result = await service.handleStart(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/complete',
@@ -64,8 +64,8 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: WorkOrderCompleteSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: WorkOrderCompleteDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

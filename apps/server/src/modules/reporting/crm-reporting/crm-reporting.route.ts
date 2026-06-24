@@ -1,4 +1,4 @@
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -18,7 +18,7 @@ export function initCrmReportingRoute(service: CrmReportingService) {
 			},
 			{
 				query: dto.CrmReportRequestDto,
-				response: createSuccessResponseSchema(dto.CustomerGrowthChartResponseDto),
+				response: createSuccessResponseDto(dto.CustomerGrowthChartResponseDto),
 				auth: true,
 			},
 		)
@@ -30,7 +30,7 @@ export function initCrmReportingRoute(service: CrmReportingService) {
 			},
 			{
 				query: dto.CrmReportRequestDto,
-				response: createSuccessResponseSchema(dto.CustomerByTierResponseDto),
+				response: createSuccessResponseDto(dto.CustomerByTierResponseDto),
 				auth: true,
 			},
 		)
@@ -42,7 +42,7 @@ export function initCrmReportingRoute(service: CrmReportingService) {
 			},
 			{
 				query: dto.CrmReportRequestDto,
-				response: createSuccessResponseSchema(dto.TopCustomersResponseDto),
+				response: createSuccessResponseDto(dto.TopCustomersResponseDto),
 				auth: true,
 			},
 		)
@@ -54,7 +54,7 @@ export function initCrmReportingRoute(service: CrmReportingService) {
 			},
 			{
 				query: dto.CrmReportRequestDto,
-				response: createSuccessResponseSchema(dto.LoyaltyPointsResponseDto),
+				response: createSuccessResponseDto(dto.LoyaltyPointsResponseDto),
 				auth: true,
 			},
 		)

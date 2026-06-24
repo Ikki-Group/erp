@@ -42,18 +42,18 @@ export function initPurchasingRouteModule(s: PurchasingServiceModule) {
 }
 
 export {
-	PurchaseOrderSchema,
-	PurchaseOrderCreateSchema,
-	PurchaseOrderUpdateSchema,
-	PurchaseOrderFilterSchema,
+	PurchaseOrderDto,
+	PurchaseOrderCreateDto,
+	PurchaseOrderUpdateDto,
+	PurchaseOrderFilterDto,
 	PurchaseOrderStatusEnum,
 	type PurchaseOrderStatus,
 } from './purchase-order.contract'
 export {
-	GoodsReceiptNoteSchema,
-	GoodsReceiptNoteCreateSchema,
-	GoodsReceiptNoteUpdateSchema,
-	GoodsReceiptNoteFilterSchema,
+	GoodsReceiptNoteDto,
+	GoodsReceiptNoteCreateDto,
+	GoodsReceiptNoteUpdateDto,
+	GoodsReceiptNoteFilterDto,
 	GoodsReceiptStatusEnum,
 	type GoodsReceiptStatus,
 } from './goods-receipt.contract'

@@ -1,4 +1,4 @@
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -18,7 +18,7 @@ export function initBusinessInsightsRoute(service: BusinessInsightsService) {
 			},
 			{
 				query: dto.BusinessInsightsRequestDto,
-				response: createSuccessResponseSchema(dto.ProfitabilityResponseDto),
+				response: createSuccessResponseDto(dto.ProfitabilityResponseDto),
 				auth: true,
 			},
 		)
@@ -30,7 +30,7 @@ export function initBusinessInsightsRoute(service: BusinessInsightsService) {
 			},
 			{
 				query: dto.BusinessInsightsRequestDto,
-				response: createSuccessResponseSchema(dto.LocationPerformanceResponseDto),
+				response: createSuccessResponseDto(dto.LocationPerformanceResponseDto),
 				auth: true,
 			},
 		)
@@ -42,7 +42,7 @@ export function initBusinessInsightsRoute(service: BusinessInsightsService) {
 			},
 			{
 				query: dto.BusinessInsightsRequestDto,
-				response: createSuccessResponseSchema(dto.InventoryTurnoverResponseDto),
+				response: createSuccessResponseDto(dto.InventoryTurnoverResponseDto),
 				auth: true,
 			},
 		)

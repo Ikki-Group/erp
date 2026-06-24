@@ -1,19 +1,19 @@
 import { zc } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
 import {
-	PurchaseOrderFilterSchema,
-	PurchaseOrderSelectSchema,
-	PurchaseOrderSchema,
-	PurchaseOrderCreateSchema,
-	PurchaseOrderUpdateSchema,
-	PurchaseOrderSubmitForApprovalSchema,
-	PurchaseOrderApproveSchema,
-	PurchaseOrderRejectSchema,
+	PurchaseOrderFilterDto,
+	PurchaseOrderSelectDto,
+	PurchaseOrderDto,
+	PurchaseOrderCreateDto,
+	PurchaseOrderUpdateDto,
+	PurchaseOrderSubmitForApprovalDto,
+	PurchaseOrderApproveDto,
+	PurchaseOrderRejectDto,
 } from './purchase-order.contract'
 import type { PurchaseOrderService } from './purchase-order.service'
 
@@ -27,8 +27,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.paginated(result)
 			},
 			{
-				query: PurchaseOrderFilterSchema,
-				response: createPaginatedResponseSchema(PurchaseOrderSelectSchema),
+				query: PurchaseOrderFilterDto,
+				response: createPaginatedResponseDto(PurchaseOrderDto),
 				auth: true,
 			},
 		)
@@ -40,7 +40,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 			},
 			{
 				query: zc.RecordId,
-				response: createSuccessResponseSchema(PurchaseOrderSchema),
+				response: createSuccessResponseDto(PurchaseOrderDto),
 				auth: true,
 			},
 		)
@@ -51,8 +51,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: PurchaseOrderCreateSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: PurchaseOrderCreateDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -63,8 +63,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: PurchaseOrderUpdateSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: PurchaseOrderUpdateDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -74,7 +74,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				const result = await service.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -82,7 +82,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				const result = await service.handleHardRemove(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/submit-for-approval',
@@ -91,8 +91,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: PurchaseOrderSubmitForApprovalSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: PurchaseOrderSubmitForApprovalDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -103,8 +103,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: PurchaseOrderApproveSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: PurchaseOrderApproveDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -115,8 +115,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: PurchaseOrderRejectSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: PurchaseOrderRejectDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

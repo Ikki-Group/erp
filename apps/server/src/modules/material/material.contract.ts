@@ -4,28 +4,28 @@ import { zc, zp } from '@/shared/schema'
 
 /* ---------------------------------- BASE ---------------------------------- */
 
-export const MaterialTypeSchema = z.enum(['raw', 'semi', 'packaging'])
-export type MaterialTypeSchema = z.infer<typeof MaterialTypeSchema>
+export const MaterialTypeDto = z.enum(['raw', 'semi', 'packaging'])
+export type MaterialTypeDto = z.infer<typeof MaterialTypeDto>
 
-export const MaterialSchema = z.object({
+export const MaterialDto = z.object({
 	id: zp.id,
 	name: zp.str,
 	description: zp.strNullable,
 	sku: zp.str,
-	type: MaterialTypeSchema,
+	type: MaterialTypeDto,
 	categoryId: zp.id.nullable(),
 	baseUomId: zp.id,
 	...zc.AuditBasic.shape,
 })
-export type MaterialSchema = z.infer<typeof MaterialSchema>
+export type MaterialDto = z.infer<typeof MaterialDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const MaterialMutationSchema = z.object({
+export const MaterialMutationDto = z.object({
 	name: zc.strTrim.min(3).max(100),
 	description: zc.strTrimNullable,
 	sku: zc.strTrim.min(3).max(50).toUpperCase(),
-	type: MaterialTypeSchema,
+	type: MaterialTypeDto,
 	categoryId: zp.id.nullable(),
 	baseUomId: zp.id,
 	locationIds: z.array(zp.id).default([]),
@@ -39,4 +39,4 @@ export const MaterialMutationSchema = z.object({
 		.default([]),
 })
 
-export type MaterialMutationSchema = z.infer<typeof MaterialMutationSchema>
+export type MaterialMutationDto = z.infer<typeof MaterialMutationDto>

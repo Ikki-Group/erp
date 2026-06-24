@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { zq } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -20,7 +20,7 @@ export function initStockAlertRoute(s: StockAlertService) {
 			},
 			{
 				query: z.object({ ...StockAlertFilterDto.shape, ...zq.pagination.shape }),
-				response: createPaginatedResponseSchema(StockAlertSelectDto),
+				response: createPaginatedResponseDto(StockAlertSelectDto),
 				auth: true,
 				detail: { tags: ['Inventory Alert'] },
 			},
@@ -33,7 +33,7 @@ export function initStockAlertRoute(s: StockAlertService) {
 			},
 			{
 				query: StockAlertFilterDto,
-				response: createSuccessResponseSchema(z.object({ count: z.number() })),
+				response: createSuccessResponseDto(z.object({ count: z.number() })),
 				auth: true,
 				detail: { tags: ['Inventory Alert'] },
 			},

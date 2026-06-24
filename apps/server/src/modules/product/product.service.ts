@@ -57,7 +57,7 @@ export class ProductService {
 			page: 1,
 			limit: 1000,
 		})
-		const categoriesMap = new Map<number, ProductCategorySchema>(
+		const categoriesMap = new Map<number, ProductCategoryDto>(
 			allCategories.data.map((cat) => [cat.id, cat]),
 		)
 
@@ -79,7 +79,7 @@ export class ProductService {
 		return { ...product, category }
 	}
 
-	async handleCreate(data: ProductMutationSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: ProductMutationDto, actorId: ActorId): Promise<EntityRef> {
 		const sku = data.sku.trim()
 		const name = data.name.trim()
 
@@ -98,7 +98,7 @@ export class ProductService {
 
 	async handleUpdate(
 		id: number,
-		data: ProductMutationSchema,
+		data: ProductMutationDto,
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		const existing = await this.getById(id)

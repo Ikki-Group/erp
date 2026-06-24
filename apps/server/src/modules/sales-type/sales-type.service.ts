@@ -11,10 +11,10 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { SalesTypeRepo } from './sales-type.repo'
 import type {
-	SalesTypeCreateSchema,
+	SalesTypeCreateDto,
 	SalesTypeDto,
-	SalesTypeFilterSchema,
-	SalesTypeUpdateSchema,
+	SalesTypeFilterDto,
+	SalesTypeUpdateDto,
 } from './sales-type.contract'
 
 const uniqueFields: ConflictField<{ code: string }>[] = [
@@ -65,7 +65,7 @@ export class SalesTypeService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: SalesTypeFilterSchema): Promise<WithPaginationResult<SalesTypeDto>> {
+	async handleList(filter: SalesTypeFilterDto): Promise<WithPaginationResult<SalesTypeDto>> {
 		return record('SalesTypeService.handleList', async () =>
 			this.repo.getListPaginated(filter),
 		)
@@ -79,7 +79,7 @@ export class SalesTypeService {
 		})
 	}
 
-	async handleCreate(data: SalesTypeCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: SalesTypeCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('SalesTypeService.handleCreate', async () => {
 			const code = data.code.trim().toLowerCase()
 			const name = data.name.trim()
@@ -102,7 +102,7 @@ export class SalesTypeService {
 
 	async handleUpdate(
 		id: number,
-		data: Partial<SalesTypeUpdateSchema>,
+		data: Partial<SalesTypeUpdateDto>,
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('SalesTypeService.handleUpdate', async () => {
@@ -160,7 +160,7 @@ export class SalesTypeService {
 
 	/* --------------------------------- INTERNAL -------------------------------- */
 
-	async seed(data: (SalesTypeCreateSchema & { id?: number; createdBy: ActorId })[]): Promise<void> {
+	async seed(data: (SalesTypeCreateDto & { id?: number; createdBy: ActorId })[]): Promise<void> {
 		return record('SalesTypeService.seed', async () => {
 			const mappedData = data.map((d) => ({
 				...d,

@@ -1,5 +1,5 @@
 import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -19,7 +19,7 @@ export function initPaymentRoute(service: PaymentService) {
 			},
 			{
 				query: dto.PaymentFilterDto,
-				response: createPaginatedResponseSchema(dto.PaymentDto),
+				response: createPaginatedResponseDto(dto.PaymentDto),
 				auth: true,
 			},
 		)
@@ -29,7 +29,7 @@ export function initPaymentRoute(service: PaymentService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(dto.PaymentDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(dto.PaymentDto), auth: true },
 		)
 		.get(
 			'/invoices',
@@ -39,7 +39,7 @@ export function initPaymentRoute(service: PaymentService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.PaymentInvoiceDto.array()),
+				response: createSuccessResponseDto(dto.PaymentInvoiceDto.array()),
 				auth: true,
 			},
 		)
@@ -51,7 +51,7 @@ export function initPaymentRoute(service: PaymentService) {
 			},
 			{
 				body: dto.PaymentCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -63,7 +63,7 @@ export function initPaymentRoute(service: PaymentService) {
 			},
 			{
 				body: dto.PaymentUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -73,6 +73,6 @@ export function initPaymentRoute(service: PaymentService) {
 				const result = await service.handleRemove(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 }

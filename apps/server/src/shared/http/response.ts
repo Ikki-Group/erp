@@ -2,7 +2,7 @@ import type { WithPaginationResult } from '@/shared/types/pagination'
 
 /**
  * Standard HTTP response shape helpers.
- * Consistent with createSuccessResponseSchema and createPaginatedResponseSchema.
+ * Consistent with createSuccessResponseDto and createPaginatedResponseDto.
  *
  * Note: these helpers only shape the response body. HTTP status codes must
  * still be set via `set.status` in the route handler.

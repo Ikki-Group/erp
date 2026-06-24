@@ -20,11 +20,11 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
 	ProductDto,
-	type ProductFilterSchema,
-	type ProductMutationSchema,
-	ProductPriceSchema,
-	ProductVariantSchema,
-	VariantPriceSchema,
+	type ProductFilterDto,
+	type ProductMutationDto,
+	ProductPriceDto,
+	ProductVariantDto,
+	VariantPriceDto,
 } from './product.contract'
 
 const DEFAULT_VARIANT_NAME = 'Default'
@@ -33,14 +33,14 @@ export class ProductRepo {
 	constructor(private readonly db: DbClient) {}
 
 	async #getProductPricesBatch(productIds: number[]) {
-		if (productIds.length === 0) return new Map<number, ProductPriceSchema[]>()
+		if (productIds.length === 0) return new Map<number, ProductPriceDto[]>()
 
 		const prices = await this.db
 			.select()
 			.from(productPricesTable)
 			.where(inArray(productPricesTable.productId, productIds))
 
-		const map = new Map<number, ProductPriceSchema[]>()
+		const map = new Map<number, ProductPriceDto[]>()
 		for (const id of productIds) map.set(id, [])
 		for (const p of prices) {
 			map.get(p.productId)!.push({ ...p, price: p.price })
@@ -49,7 +49,7 @@ export class ProductRepo {
 	}
 
 	async #getVariantsBatch(productIds: number[]) {
-		if (productIds.length === 0) return new Map<number, ProductVariantSchema[]>()
+		if (productIds.length === 0) return new Map<number, ProductVariantDto[]>()
 		const variants = await this.db
 			.select()
 			.from(productVariantsTable)
@@ -64,14 +64,14 @@ export class ProductRepo {
 						.where(inArray(variantPricesTable.variantId, variantIds))
 				: []
 
-		const pricesByVariant = new Map<number, VariantPriceSchema[]>()
+		const pricesByVariant = new Map<number, VariantPriceDto[]>()
 		for (const p of prices) {
 			const list = pricesByVariant.get(p.variantId) ?? []
 			list.push({ ...p, price: p.price })
 			pricesByVariant.set(p.variantId, list)
 		}
 
-		const map = new Map<number, ProductVariantSchema[]>()
+		const map = new Map<number, ProductVariantDto[]>()
 		for (const id of productIds) map.set(id, [])
 		for (const v of variants) {
 			map.get(v.productId)!.push({
@@ -109,7 +109,7 @@ export class ProductRepo {
 	}
 
 	async getListPaginated(
-		filter: ProductFilterSchema,
+		filter: ProductFilterDto,
 	): Promise<WithPaginationResult<ProductDto>> {
 		const { search, status, categoryId, locationId, page, limit } = filter
 
@@ -181,7 +181,7 @@ export class ProductRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: ProductMutationSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: ProductMutationDto, actorId: ActorId): Promise<EntityRef> {
 		const meta = stampCreate(actorId)
 		return this.db.transaction(async (tx) => {
 			const [product] = await tx
@@ -255,7 +255,7 @@ export class ProductRepo {
 		})
 	}
 
-	async update(id: number, data: ProductMutationSchema, actorId: ActorId): Promise<EntityRef> {
+	async update(id: number, data: ProductMutationDto, actorId: ActorId): Promise<EntityRef> {
 		const updateMeta = stampUpdate(actorId)
 		const createMeta = stampCreate(actorId)
 

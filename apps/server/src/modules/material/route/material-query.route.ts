@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { zq } from '@/shared/schema'
-import { createSuccessResponseSchema, createPaginatedResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -15,12 +15,12 @@ export function initMaterialQueryRoute(s: MaterialQueryService) {
 		.use(authPluginMacro)
 		.get('/list', async ({ query }) => res.paginated(await s.list(query)), {
 			query: MaterialQueryFilterDto,
-			response: createPaginatedResponseSchema(z.any()),
+			response: createPaginatedResponseDto(z.any()),
 			auth: true,
 		})
 		.get('/detail', async ({ query }) => res.ok(await s.detail(query.id)), {
 			query: zq.recordId,
-			response: createSuccessResponseSchema(z.any()),
+			response: createSuccessResponseDto(z.any()),
 			auth: true,
 		})
 }

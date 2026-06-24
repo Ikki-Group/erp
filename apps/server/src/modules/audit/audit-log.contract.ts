@@ -3,13 +3,13 @@ import { zc, zp, zq } from '@/shared/schema'
 
 /** Audit action types */
 const auditActionValues = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'OTHER'] as const
-export const AuditActionSchema = z.enum(auditActionValues)
-export type AuditActionSchema = z.infer<typeof AuditActionSchema>
+export const AuditActionDto = z.enum(auditActionValues)
+export type AuditActionDto = z.infer<typeof AuditActionDto>
 
-export const AuditLogSchema = z.object({
+export const AuditLogDto = z.object({
 	...zc.RecordId.shape,
 	userId: zp.id,
-	action: AuditActionSchema,
+	action: AuditActionDto,
 	entityType: zp.str,
 	entityId: zp.strNullable,
 	description: zp.str,
@@ -20,11 +20,11 @@ export const AuditLogSchema = z.object({
 	actionAt: zp.date,
 	...zc.AuditBasic.shape,
 })
-export type AuditLogSchema = z.infer<typeof AuditLogSchema>
+export type AuditLogDto = z.infer<typeof AuditLogDto>
 
-export const AuditLogCreateSchema = z.object({
+export const AuditLogCreateDto = z.object({
 	userId: zp.id,
-	action: AuditActionSchema,
+	action: AuditActionDto,
 	entityType: zc.strTrim.min(2).max(100),
 	entityId: zc.strTrim.max(50).optional(),
 	description: zc.strTrim.min(5).max(500),
@@ -33,9 +33,9 @@ export const AuditLogCreateSchema = z.object({
 	ipAddress: zc.strTrim.max(45).optional().or(z.literal('')),
 	userAgent: zc.strTrim.max(500).optional().or(z.literal('')),
 })
-export type AuditLogCreateSchema = z.infer<typeof AuditLogCreateSchema>
+export type AuditLogCreateDto = z.infer<typeof AuditLogCreateDto>
 
-export const AuditLogFilterSchema = z.object({
+export const AuditLogFilterDto = z.object({
 	q: zq.search,
 	action: z.enum(auditActionValues).nullish(),
 	entityType: zp.str.optional(),
@@ -44,4 +44,4 @@ export const AuditLogFilterSchema = z.object({
 	toDate: zp.date.optional(),
 	...zq.pagination.shape,
 })
-export type AuditLogFilterSchema = z.infer<typeof AuditLogFilterSchema>
+export type AuditLogFilterDto = z.infer<typeof AuditLogFilterDto>

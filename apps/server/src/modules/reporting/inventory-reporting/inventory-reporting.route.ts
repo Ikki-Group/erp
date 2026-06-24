@@ -1,4 +1,4 @@
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -18,7 +18,7 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 			},
 			{
 				query: dto.InventoryReportRequestDto,
-				response: createSuccessResponseSchema(dto.StockLevelResponseDto),
+				response: createSuccessResponseDto(dto.StockLevelResponseDto),
 				auth: true,
 			},
 		)
@@ -30,7 +30,7 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 			},
 			{
 				query: dto.InventoryReportRequestDto,
-				response: createSuccessResponseSchema(dto.StockValueResponseDto),
+				response: createSuccessResponseDto(dto.StockValueResponseDto),
 				auth: true,
 			},
 		)
@@ -42,7 +42,7 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 			},
 			{
 				query: dto.InventoryReportRequestDto,
-				response: createSuccessResponseSchema(dto.LowStockResponseDto),
+				response: createSuccessResponseDto(dto.LowStockResponseDto),
 				auth: true,
 			},
 		)
@@ -54,7 +54,7 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 			},
 			{
 				query: dto.InventoryReportRequestDto,
-				response: createSuccessResponseSchema(dto.InventoryMovementChartResponseDto),
+				response: createSuccessResponseDto(dto.InventoryMovementChartResponseDto),
 				auth: true,
 			},
 		)
@@ -66,7 +66,7 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 			},
 			{
 				query: dto.InventoryReportRequestDto,
-				response: createSuccessResponseSchema(dto.ConsumptionResponseDto),
+				response: createSuccessResponseDto(dto.ConsumptionResponseDto),
 				auth: true,
 			},
 		)
@@ -78,7 +78,7 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 			},
 			{
 				query: dto.InventoryReportRequestDto,
-				response: createSuccessResponseSchema(dto.OpnameVarianceResponseDto),
+				response: createSuccessResponseDto(dto.OpnameVarianceResponseDto),
 				auth: true,
 			},
 		)
@@ -90,7 +90,7 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 			},
 			{
 				query: dto.InventoryReportRequestDto,
-				response: createSuccessResponseSchema(dto.WasteResponseDto),
+				response: createSuccessResponseDto(dto.WasteResponseDto),
 				auth: true,
 			},
 		)

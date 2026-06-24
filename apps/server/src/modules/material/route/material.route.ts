@@ -2,7 +2,7 @@ import { z } from 'zod'
 import Elysia from 'elysia'
 
 import { zc } from '@/shared/schema'
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
@@ -20,7 +20,7 @@ export function initMaterialMasterRoute(s: MaterialService) {
 			},
 			{
 				body: MaterialCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -32,7 +32,7 @@ export function initMaterialMasterRoute(s: MaterialService) {
 			},
 			{
 				body: z.object({ ...zc.RecordId.shape, ...MaterialCreateDto.shape }),
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -44,7 +44,7 @@ export function initMaterialMasterRoute(s: MaterialService) {
 			},
 			{
 				query: z.object({ id: z.coerce.number().int().positive() }),
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

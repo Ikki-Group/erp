@@ -1,5 +1,5 @@
 import { zc, zq } from '@/shared/schema'
-import { createSuccessResponseSchema, createPaginatedResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -24,7 +24,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 			},
 			{
 				query: ProductCategoryFilterDto,
-				response: createPaginatedResponseSchema(ProductCategoryDto),
+				response: createPaginatedResponseDto(ProductCategoryDto),
 				auth: true,
 			},
 		)
@@ -36,7 +36,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(ProductCategoryDto),
+				response: createSuccessResponseDto(ProductCategoryDto),
 				auth: true,
 			},
 		)
@@ -48,7 +48,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 			},
 			{
 				body: ProductCategoryCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -60,7 +60,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 			},
 			{
 				body: ProductCategoryUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -70,7 +70,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				await s.handleRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -78,6 +78,6 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				await s.handleHardRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 }

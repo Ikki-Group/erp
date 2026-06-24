@@ -10,7 +10,7 @@ export {
 	MaterialFilterDto,
 } from './material.contract'
 
-export { MaterialTypeSchema } from '../domain/material.entity'
+export { MaterialTypeDto } from '../domain/material.entity'
 export type { MaterialType } from '../domain/material.entity'
 
 export {

@@ -7,15 +7,15 @@ import { zc } from './common'
  * Wraps any schema into { success: true, code: string, data: T }
  *
  * @example
- * const userSchema = z.object({ id: z.number(), name: z.string() })
- * const response = createSuccessResponseSchema(userSchema)
+ * const userDto = z.object({ id: z.number(), name: z.string() })
+ * const response = createSuccessResponseDto( T)
  * // { success: true, code: string, data: { id, name } }
  */
-export function createSuccessResponseSchema<T extends z.ZodType>(dataSchema: T) {
+export function createSuccessResponseDto<T extends z.ZodType>(dataDto: T) {
 	return z.object({
 		success: z.literal(true),
 		code: z.string().default('OK'),
-		data: dataSchema,
+		data: dataDto,
 	})
 }
 
@@ -24,18 +24,18 @@ export function createSuccessResponseSchema<T extends z.ZodType>(dataSchema: T) 
  * Wraps an array into { success: true, code: string, data: T[], meta: { ... } }
  *
  * @example
- * const itemSchema = z.object({ id: z.number(), name: z.string() })
- * const response = createPaginatedResponseSchema(itemSchema)
+ * const itemDto = z.object({ id: z.number(), name: z.string() })
+ * const response = createPaginatedResponseDto( T)
  * // { success: true, code: string, data: [{ id, name }], meta: { page, limit, total, totalPages } }
  */
-export function createPaginatedResponseSchema<T extends z.ZodType>(itemSchema: T) {
+export function createPaginatedResponseDto<T extends z.ZodType>(itemDto: T) {
 	return z.object({
 		success: z.literal(true),
 		code: z.string().default('OK'),
-		data: z.array(itemSchema),
+		data: z.array(itemDto),
 		meta: zc.PaginationMeta,
 	})
 }
 
-export const successRecordIdSchema = createSuccessResponseSchema(zc.RecordId)
-export const successNoDataSchema = createSuccessResponseSchema(z.undefined())
+export const successRecordIdDto = createSuccessResponseDto(zc.RecordId)
+export const successNoDataDto = createSuccessResponseDto(z.undefined())

@@ -12,10 +12,10 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
-	GoodsReceiptNoteCreateSchema,
-	GoodsReceiptNoteSchema,
-	GoodsReceiptNoteFilterSchema,
-	GoodsReceiptNoteSelectSchema, type GoodsReceiptStatus,
+	GoodsReceiptNoteCreateDto,
+	GoodsReceiptNoteDto,
+	GoodsReceiptNoteFilterDto,
+	GoodsReceiptNoteSelectDto, type GoodsReceiptStatus,
 } from './goods-receipt.contract'
 
 export class GoodsReceiptRepo {
@@ -23,7 +23,7 @@ export class GoodsReceiptRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<GoodsReceiptNoteSchema | undefined> {
+	async getById(id: number): Promise<GoodsReceiptNoteDto | undefined> {
 		const [grn] = await this.db
 			.select()
 			.from(goodsReceiptNotesTable)
@@ -38,12 +38,12 @@ export class GoodsReceiptRepo {
 				and(eq(goodsReceiptNoteItemsTable.grnId, id), isNull(goodsReceiptNoteItemsTable.deletedAt)),
 			)
 
-		return GoodsReceiptNoteSchema.parse({ ...grn, items })
+		return GoodsReceiptNoteDto.parse({ ...grn, items })
 	}
 
 	async getListPaginated(
-		filter: GoodsReceiptNoteFilterSchema,
-	): Promise<WithPaginationResult<GoodsReceiptNoteSelectSchema>> {
+		filter: GoodsReceiptNoteFilterDto,
+	): Promise<WithPaginationResult<GoodsReceiptNoteSelectDto>> {
 		const { q, page, limit, status, orderId, locationId, supplierId } = filter
 		const where = and(
 			isNull(goodsReceiptNotesTable.deletedAt),
@@ -68,7 +68,7 @@ export class GoodsReceiptRepo {
 					.orderBy(sortBy(goodsReceiptNotesTable.updatedAt, 'desc'))
 					.limit(l)
 					.offset(offset)
-				return rows.map((r) => GoodsReceiptNoteSelectSchema.parse(r))
+				return rows.map((r) => GoodsReceiptNoteSelectDto.parse(r))
 			},
 			pq: { page, limit },
 			countQuery: () => this.db.select({ count: count() }).from(goodsReceiptNotesTable).where(where),
@@ -77,7 +77,7 @@ export class GoodsReceiptRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: GoodsReceiptNoteCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: GoodsReceiptNoteCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const result = await this.db.transaction(async (tx) => {
 			const { items, ...headerData } = data
 			const meta = stampCreate(actorId)

@@ -6,7 +6,7 @@ import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { AuditLogRepo } from './audit-log.repo'
-import type { AuditLogSchema, AuditLogCreateSchema, AuditLogFilterSchema } from './audit-log.contract'
+import type { AuditLogDto, AuditLogCreateDto, AuditLogFilterDto } from './audit-log.contract'
 
 const err = {
 	notFound: (id: number) =>
@@ -27,31 +27,31 @@ export class AuditLogService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<AuditLogSchema | undefined> {
+	async getById(id: number): Promise<AuditLogDto | undefined> {
 		return this.cache.getOrSetWithSkip({
 			key: `byId:${id}`,
 			factory: () => this.repo.getById(id),
 		})
 	}
 
-	async log(data: AuditLogCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async log(data: AuditLogCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return this.repo.create(data, actorId)
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: AuditLogFilterSchema): Promise<WithPaginationResult<AuditLogSchema>> {
+	async handleList(filter: AuditLogFilterDto): Promise<WithPaginationResult<AuditLogDto>> {
 		const result = await this.repo.getListPaginated(filter)
 		return result
 	}
 
-	async handleDetail(id: number): Promise<AuditLogSchema> {
+	async handleDetail(id: number): Promise<AuditLogDto> {
 		const result = await this.repo.getById(id)
 		if (!result) throw err.notFound(id)
 		return result
 	}
 
-	async handleCreate(data: AuditLogCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: AuditLogCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const result = await this.repo.create(data, actorId)
 
 		await this.cache.deleteMany({ keys: ['list', 'count'] })

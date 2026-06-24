@@ -1,5 +1,5 @@
 import { zc } from '@/shared/schema'
-import { createSuccessResponseSchema, createPaginatedResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -24,7 +24,7 @@ export function initProductRoute(s: ProductService) {
 			},
 			{
 				query: ProductFilterDto,
-				response: createPaginatedResponseSchema(ProductSelectDto),
+				response: createPaginatedResponseDto(ProductSelectDto),
 				auth: true,
 			},
 		)
@@ -36,7 +36,7 @@ export function initProductRoute(s: ProductService) {
 			},
 			{
 				query: zc.RecordId,
-				response: createSuccessResponseSchema(ProductSelectDto),
+				response: createSuccessResponseDto(ProductSelectDto),
 				auth: true,
 			},
 		)
@@ -48,7 +48,7 @@ export function initProductRoute(s: ProductService) {
 			},
 			{
 				body: ProductCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -60,7 +60,7 @@ export function initProductRoute(s: ProductService) {
 			},
 			{
 				body: ProductUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -70,7 +70,7 @@ export function initProductRoute(s: ProductService) {
 				await s.handleRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -78,6 +78,6 @@ export function initProductRoute(s: ProductService) {
 				await s.handleHardRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 }

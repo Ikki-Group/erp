@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { zq } from '@/shared/schema'
 import { LocationDto } from '@/modules/location'
 import { MaterialCategoryEntity } from '../domain/material-category.entity'
-import { MaterialEntity, MaterialTypeSchema } from '../domain/material.entity'
+import { MaterialEntity, MaterialTypeDto } from '../domain/material.entity'
 import { MaterialConversionEntity } from '../domain/material-conversion.entity'
 
 /* -------------------------------- RESPONSE -------------------------------- */
@@ -25,7 +25,7 @@ export type MaterialQueryDetailDto = z.infer<typeof MaterialQueryDetailDto>
 export const MaterialQueryFilterDto = z.object({
 	...zq.pagination.shape,
 	search: zq.search,
-	type: MaterialTypeSchema.optional(),
+	type: MaterialTypeDto.optional(),
 	categoryId: zq.id.optional(),
 	locationIds: zq.ids.optional(),
 	excludeLocationIds: zq.ids.optional(),

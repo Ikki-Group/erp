@@ -1,5 +1,5 @@
 import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -7,13 +7,13 @@ import { res } from '@/shared/http/response'
 
 import {
 	CustomerDto,
-	CustomerFilterSchema,
-	CustomerCreateSchema,
-	CustomerUpdateSchema,
-	CustomerAddPointsSchema,
-	CustomerRedeemPointsSchema,
-	CustomerLoyaltyTransactionSchema,
-	CustomerGetByPhoneSchema,
+	CustomerFilterDto,
+	CustomerCreateDto,
+	CustomerUpdateDto,
+	CustomerAddPointsDto,
+	CustomerRedeemPointsDto,
+	CustomerLoyaltyTransactionDto,
+	CustomerGetByPhoneDto,
 } from './customer.contract'
 import type { CustomerService } from './customer.service'
 
@@ -27,8 +27,8 @@ export function initCustomerRoute(service: CustomerService) {
 				return res.paginated(result)
 			},
 			{
-				query: CustomerFilterSchema,
-				response: createPaginatedResponseSchema(CustomerDto),
+				query: CustomerFilterDto,
+				response: createPaginatedResponseDto(CustomerDto),
 				auth: true,
 			},
 		)
@@ -40,7 +40,7 @@ export function initCustomerRoute(service: CustomerService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(CustomerDto),
+				response: createSuccessResponseDto(CustomerDto),
 				auth: true,
 			},
 		)
@@ -51,8 +51,8 @@ export function initCustomerRoute(service: CustomerService) {
 				return res.ok(result)
 			},
 			{
-				body: CustomerGetByPhoneSchema,
-				response: createSuccessResponseSchema(CustomerDto),
+				body: CustomerGetByPhoneDto,
+				response: createSuccessResponseDto(CustomerDto),
 				auth: true,
 			},
 		)
@@ -63,8 +63,8 @@ export function initCustomerRoute(service: CustomerService) {
 				return res.created(result)
 			},
 			{
-				body: CustomerCreateSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: CustomerCreateDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -75,8 +75,8 @@ export function initCustomerRoute(service: CustomerService) {
 				return res.ok(result)
 			},
 			{
-				body: CustomerUpdateSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: CustomerUpdateDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -88,7 +88,7 @@ export function initCustomerRoute(service: CustomerService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -99,8 +99,8 @@ export function initCustomerRoute(service: CustomerService) {
 				return res.ok(result)
 			},
 			{
-				body: CustomerAddPointsSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: CustomerAddPointsDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -111,8 +111,8 @@ export function initCustomerRoute(service: CustomerService) {
 				return res.ok(result)
 			},
 			{
-				body: CustomerRedeemPointsSchema,
-				response: createSuccessResponseSchema(zc.RecordId),
+				body: CustomerRedeemPointsDto,
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -124,7 +124,7 @@ export function initCustomerRoute(service: CustomerService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(CustomerLoyaltyTransactionSchema.array()),
+				response: createSuccessResponseDto(CustomerLoyaltyTransactionDto.array()),
 				auth: true,
 			},
 		)

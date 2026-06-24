@@ -1,4 +1,4 @@
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -18,7 +18,7 @@ export function initPaymentReportingRoute(service: PaymentReportingService) {
 			},
 			{
 				query: dto.PaymentReportRequestDto,
-				response: createSuccessResponseSchema(dto.PaymentByMethodResponseDto),
+				response: createSuccessResponseDto(dto.PaymentByMethodResponseDto),
 				auth: true,
 			},
 		)
@@ -30,7 +30,7 @@ export function initPaymentReportingRoute(service: PaymentReportingService) {
 			},
 			{
 				query: dto.PaymentReportRequestDto,
-				response: createSuccessResponseSchema(dto.PaymentOverTimeResponseDto),
+				response: createSuccessResponseDto(dto.PaymentOverTimeResponseDto),
 				auth: true,
 			},
 		)
@@ -42,7 +42,7 @@ export function initPaymentReportingRoute(service: PaymentReportingService) {
 			},
 			{
 				query: dto.PaymentReportRequestDto,
-				response: createSuccessResponseSchema(dto.PaymentByAccountResponseDto),
+				response: createSuccessResponseDto(dto.PaymentByAccountResponseDto),
 				auth: true,
 			},
 		)

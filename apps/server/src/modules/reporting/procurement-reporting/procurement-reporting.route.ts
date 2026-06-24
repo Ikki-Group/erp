@@ -1,4 +1,4 @@
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -18,7 +18,7 @@ export function initProcurementReportingRoute(service: ProcurementReportingServi
 			},
 			{
 				query: dto.ProcurementReportRequestDto,
-				response: createSuccessResponseSchema(dto.PurchaseReportResponseDto),
+				response: createSuccessResponseDto(dto.PurchaseReportResponseDto),
 				auth: true,
 			},
 		)
@@ -30,7 +30,7 @@ export function initProcurementReportingRoute(service: ProcurementReportingServi
 			},
 			{
 				query: dto.ProcurementReportRequestDto,
-				response: createSuccessResponseSchema(dto.SupplierReportResponseDto),
+				response: createSuccessResponseDto(dto.SupplierReportResponseDto),
 				auth: true,
 			},
 		)
@@ -42,7 +42,7 @@ export function initProcurementReportingRoute(service: ProcurementReportingServi
 			},
 			{
 				query: dto.ProcurementReportRequestDto,
-				response: createSuccessResponseSchema(dto.TransferReportResponseDto),
+				response: createSuccessResponseDto(dto.TransferReportResponseDto),
 				auth: true,
 			},
 		)
@@ -54,7 +54,7 @@ export function initProcurementReportingRoute(service: ProcurementReportingServi
 			},
 			{
 				query: dto.ProcurementReportRequestDto,
-				response: createSuccessResponseSchema(dto.CostReportResponseDto),
+				response: createSuccessResponseDto(dto.CostReportResponseDto),
 				auth: true,
 			},
 		)

@@ -15,7 +15,7 @@ export type PurchaseOrderStatus = z.infer<typeof PurchaseOrderStatusEnum>
 
 /* ---------------------------------- ITEM ---------------------------------- */
 
-export const PurchaseOrderItemSchema = z.object({
+export const PurchaseOrderItemDto = z.object({
 	...zc.RecordId.shape,
 	orderId: zp.id,
 	materialId: zp.id.nullable().optional(),
@@ -27,11 +27,11 @@ export const PurchaseOrderItemSchema = z.object({
 	subtotal: zp.decimal,
 	...zc.AuditBasic.shape,
 })
-export type PurchaseOrderItemSchema = z.infer<typeof PurchaseOrderItemSchema>
+export type PurchaseOrderItemDto = z.infer<typeof PurchaseOrderItemDto>
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
-export const PurchaseOrderSchema = z.object({
+export const PurchaseOrderDto = z.object({
 	...zc.RecordId.shape,
 	locationId: zp.id,
 	supplierId: zp.id,
@@ -42,16 +42,16 @@ export const PurchaseOrderSchema = z.object({
 	discountAmount: zp.decimal,
 	taxAmount: zp.decimal,
 	notes: zp.strNullable,
-	items: z.array(PurchaseOrderItemSchema),
+	items: z.array(itemDto),
 	...zc.AuditBasic.shape,
 })
-export type PurchaseOrderSchema = z.infer<typeof PurchaseOrderSchema>
-export const PurchaseOrderSelectSchema = PurchaseOrderSchema.omit({ items: true })
-export type PurchaseOrderSelectSchema = z.infer<typeof PurchaseOrderSelectSchema>
+export type PurchaseOrderDto = z.infer<typeof PurchaseOrderDto>
+export const PurchaseOrderSelectDto = PurchaseOrderDto.omit({ items: true })
+export type PurchaseOrderSelectDto = z.infer<typeof PurchaseOrderSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const PurchaseOrderItemMutationSchema = z.object({
+const PurchaseOrderItemMutationDto = z.object({
 	materialId: zp.id.optional().nullable(),
 	itemName: zc.strTrim.min(1).max(255),
 	quantity: zp.decimal.refine((v) => Number(v) > 0, 'Must be greater than 0'),
@@ -61,7 +61,7 @@ const PurchaseOrderItemMutationSchema = z.object({
 	subtotal: zp.decimal,
 })
 
-const PurchaseOrderMutationSchema = z.object({
+const PurchaseOrderMutationDto = z.object({
 	locationId: zp.id,
 	supplierId: zp.id,
 	status: PurchaseOrderStatusEnum.default('open'),
@@ -71,44 +71,44 @@ const PurchaseOrderMutationSchema = z.object({
 	discountAmount: zp.decimal.default('0'),
 	taxAmount: zp.decimal.default('0'),
 	notes: zc.strTrimNullable,
-	items: z.array(z.object({ ...PurchaseOrderItemMutationSchema.shape, id: zp.id.optional() })).min(1),
+	items: z.array(z.object({ ...PurchaseOrderItemMutationDto.shape, id: zp.id.optional() })).min(1),
 })
 
-export const PurchaseOrderCreateSchema = PurchaseOrderMutationSchema
-export type PurchaseOrderCreateSchema = z.infer<typeof PurchaseOrderCreateSchema>
+export const PurchaseOrderCreateDto = PurchaseOrderMutationDto
+export type PurchaseOrderCreateDto = z.infer<typeof PurchaseOrderCreateDto>
 
-export const PurchaseOrderUpdateSchema = z.object({
+export const PurchaseOrderUpdateDto = z.object({
 	...zc.RecordId.shape,
-	...PurchaseOrderMutationSchema.shape,
+	...PurchaseOrderMutationDto.shape,
 })
-export type PurchaseOrderUpdateSchema = z.infer<typeof PurchaseOrderUpdateSchema>
+export type PurchaseOrderUpdateDto = z.infer<typeof PurchaseOrderUpdateDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const PurchaseOrderFilterSchema = z.object({
+export const PurchaseOrderFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	status: PurchaseOrderStatusEnum.optional(),
 	locationId: zq.id.optional(),
 	supplierId: zq.id.optional(),
 })
-export type PurchaseOrderFilterSchema = z.infer<typeof PurchaseOrderFilterSchema>
+export type PurchaseOrderFilterDto = z.infer<typeof PurchaseOrderFilterDto>
 
 /* -------------------------------- APPROVAL -------------------------------- */
 
-export const PurchaseOrderApproveSchema = z.object({
+export const PurchaseOrderApproveDto = z.object({
 	id: zp.id,
 	notes: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
 })
-export type PurchaseOrderApproveSchema = z.infer<typeof PurchaseOrderApproveSchema>
+export type PurchaseOrderApproveDto = z.infer<typeof PurchaseOrderApproveDto>
 
-export const PurchaseOrderRejectSchema = z.object({
+export const PurchaseOrderRejectDto = z.object({
 	id: zp.id,
 	reason: zc.strTrim.min(5).max(500),
 })
-export type PurchaseOrderRejectSchema = z.infer<typeof PurchaseOrderRejectSchema>
+export type PurchaseOrderRejectDto = z.infer<typeof PurchaseOrderRejectDto>
 
-export const PurchaseOrderSubmitForApprovalSchema = z.object({
+export const PurchaseOrderSubmitForApprovalDto = z.object({
 	id: zp.id,
 })
-export type PurchaseOrderSubmitForApprovalSchema = z.infer<typeof PurchaseOrderSubmitForApprovalSchema>
+export type PurchaseOrderSubmitForApprovalDto = z.infer<typeof PurchaseOrderSubmitForApprovalDto>

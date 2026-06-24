@@ -1,5 +1,5 @@
 import { zc } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -19,7 +19,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 			},
 			{
 				query: dto.StockTransferFilterDto,
-				response: createPaginatedResponseSchema(dto.StockTransferSelectDto),
+				response: createPaginatedResponseDto(dto.StockTransferSelectDto),
 				auth: true,
 			},
 		)
@@ -31,7 +31,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 			},
 			{
 				query: zc.RecordId,
-				response: createSuccessResponseSchema(dto.StockTransferDto),
+				response: createSuccessResponseDto(dto.StockTransferDto),
 				auth: true,
 			},
 		)
@@ -43,7 +43,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 			},
 			{
 				body: dto.StockTransferCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -55,7 +55,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 			},
 			{
 				body: dto.StockTransferUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -65,7 +65,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 				const result = await service.handleRemove(body.id, auth.userId)
 				return res.ok(result)
 			},
-			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/approve',
@@ -75,7 +75,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 			},
 			{
 				body: dto.StockTransferApproveDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -87,7 +87,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 			},
 			{
 				body: dto.StockTransferRejectDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -99,7 +99,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 			},
 			{
 				body: dto.StockTransferMarkInTransitDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -111,7 +111,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 			},
 			{
 				body: dto.StockTransferMarkCompletedDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -123,7 +123,7 @@ export function initStockTransferRoute(service: StockTransferService) {
 			},
 			{
 				body: dto.StockTransferCancelDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

@@ -1,5 +1,5 @@
 import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -19,7 +19,7 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 			},
 			{
 				query: dto.SalesInvoiceFilterDto,
-				response: createPaginatedResponseSchema(dto.SalesInvoiceDto),
+				response: createPaginatedResponseDto(dto.SalesInvoiceDto),
 				auth: true,
 			},
 		)
@@ -31,7 +31,7 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.SalesInvoiceDto),
+				response: createSuccessResponseDto(dto.SalesInvoiceDto),
 				auth: true,
 			},
 		)
@@ -43,7 +43,7 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.SalesInvoiceWithItemsDto),
+				response: createSuccessResponseDto(dto.SalesInvoiceWithItemsDto),
 				auth: true,
 			},
 		)
@@ -55,7 +55,7 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 			},
 			{
 				body: dto.SalesInvoiceCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -67,7 +67,7 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 			},
 			{
 				body: dto.SalesInvoiceGenerateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -79,7 +79,7 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 			},
 			{
 				body: dto.SalesInvoiceUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -91,7 +91,7 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

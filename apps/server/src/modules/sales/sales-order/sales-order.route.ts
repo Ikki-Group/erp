@@ -1,5 +1,5 @@
 import { z, zc, zq } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -25,7 +25,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 			},
 			{
 				query: z.object({ ...SalesOrderFilterDto.shape, ...zq.pagination.shape }),
-				response: createPaginatedResponseSchema(SalesOrderOutputDto),
+				response: createPaginatedResponseDto(SalesOrderOutputDto),
 				auth: true,
 			},
 		)
@@ -37,7 +37,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(SalesOrderOutputDto),
+				response: createSuccessResponseDto(SalesOrderOutputDto),
 				auth: true,
 			},
 		)
@@ -49,7 +49,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 			},
 			{
 				body: SalesOrderCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -62,7 +62,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 			{
 				query: zq.recordId,
 				body: SalesOrderAddBatchDto,
-				response: createSuccessResponseSchema(z.object({ batchId: z.number() })),
+				response: createSuccessResponseDto(z.object({ batchId: z.number() })),
 				auth: true,
 			},
 		)
@@ -72,7 +72,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 				const result = await service.handleClose(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/void',
@@ -83,7 +83,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 			{
 				query: zq.recordId,
 				body: SalesOrderVoidDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

@@ -1,4 +1,4 @@
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { res } from '@/shared/http/response'
@@ -12,6 +12,6 @@ export function initSettingsRoute(service: SettingsService) {
 		async function summary() {
 			return res.ok(await service.getSettingsSummary())
 		},
-		{ response: createSuccessResponseSchema(SettingsSummaryDto) },
+		{ response: createSuccessResponseDto(SettingsSummaryDto) },
 	)
 }

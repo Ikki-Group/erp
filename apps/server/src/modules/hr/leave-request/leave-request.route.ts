@@ -1,5 +1,5 @@
 import { zc } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -19,7 +19,7 @@ export function initLeaveRequestRoute(service: LeaveRequestService) {
 			},
 			{
 				query: dto.LeaveRequestFilterDto,
-				response: createPaginatedResponseSchema(dto.LeaveRequestSelectDto),
+				response: createPaginatedResponseDto(dto.LeaveRequestSelectDto),
 				auth: true,
 			},
 		)
@@ -31,7 +31,7 @@ export function initLeaveRequestRoute(service: LeaveRequestService) {
 			},
 			{
 				query: zc.RecordId,
-				response: createSuccessResponseSchema(dto.LeaveRequestDto),
+				response: createSuccessResponseDto(dto.LeaveRequestDto),
 				auth: true,
 			},
 		)
@@ -43,7 +43,7 @@ export function initLeaveRequestRoute(service: LeaveRequestService) {
 			},
 			{
 				body: dto.LeaveRequestCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -55,7 +55,7 @@ export function initLeaveRequestRoute(service: LeaveRequestService) {
 			},
 			{
 				body: dto.LeaveRequestUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -65,7 +65,7 @@ export function initLeaveRequestRoute(service: LeaveRequestService) {
 				const result = await service.handleRemove(body.id, auth.userId)
 				return res.ok(result)
 			},
-			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/approve',
@@ -75,7 +75,7 @@ export function initLeaveRequestRoute(service: LeaveRequestService) {
 			},
 			{
 				body: dto.LeaveRequestApproveDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -87,7 +87,7 @@ export function initLeaveRequestRoute(service: LeaveRequestService) {
 			},
 			{
 				body: dto.LeaveRequestRejectDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -99,7 +99,7 @@ export function initLeaveRequestRoute(service: LeaveRequestService) {
 			},
 			{
 				body: dto.LeaveRequestCancelDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

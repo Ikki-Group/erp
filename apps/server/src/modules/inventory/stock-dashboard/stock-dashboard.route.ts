@@ -1,4 +1,4 @@
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -16,7 +16,7 @@ export function initStockDashboardRoute(s: StockDashboardService) {
 		},
 		{
 			query: DashboardKpiFilterDto,
-			response: createSuccessResponseSchema(DashboardKpiSelectDto),
+			response: createSuccessResponseDto(DashboardKpiSelectDto),
 			auth: true,
 			detail: { tags: ['Inventory Dashboard'] },
 		},

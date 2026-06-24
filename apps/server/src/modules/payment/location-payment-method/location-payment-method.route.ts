@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
-import { createSuccessResponseSchema, createPaginatedResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -26,7 +26,7 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 			},
 			{
 				query: LocationPaymentMethodFilterDto,
-				response: createPaginatedResponseSchema(LocationPaymentMethodDto),
+				response: createPaginatedResponseDto(LocationPaymentMethodDto),
 				auth: true,
 			},
 		)
@@ -38,7 +38,7 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(LocationPaymentMethodDto),
+				response: createSuccessResponseDto(LocationPaymentMethodDto),
 				auth: true,
 			},
 		)
@@ -50,7 +50,7 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 			},
 			{
 				query: z.object({ locationId: zp.num }),
-				response: createSuccessResponseSchema(z.array(LocationPaymentMethodDto)),
+				response: createSuccessResponseDto(z.array(LocationPaymentMethodDto)),
 				auth: true,
 			},
 		)
@@ -62,7 +62,7 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 			},
 			{
 				body: LocationPaymentMethodCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -74,7 +74,7 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 			},
 			{
 				body: LocationPaymentMethodUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -84,6 +84,6 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 				await service.handleRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 }

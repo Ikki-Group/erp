@@ -1,5 +1,5 @@
 import { zq } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -25,7 +25,7 @@ export function initHRRoute(s: HRService) {
 				const result = await s.handleShiftList(query)
 				return res.paginated(result)
 			},
-			{ query: zq.pagination, response: createPaginatedResponseSchema(ShiftDto), auth: true },
+			{ query: zq.pagination, response: createPaginatedResponseDto(ShiftDto), auth: true },
 		)
 		.post(
 			'/shifts',
@@ -33,7 +33,7 @@ export function initHRRoute(s: HRService) {
 				const result = await s.handleShiftCreate(body, auth.userId)
 				return res.created(result)
 			},
-			{ body: ShiftCreateDto, response: createSuccessResponseSchema(ShiftDto), auth: true },
+			{ body: ShiftCreateDto, response: createSuccessResponseDto(ShiftDto), auth: true },
 		)
 		.get(
 			'/attendances',
@@ -43,7 +43,7 @@ export function initHRRoute(s: HRService) {
 			},
 			{
 				query: AttendanceFilterDto,
-				response: createPaginatedResponseSchema(AttendanceSelectDto),
+				response: createPaginatedResponseDto(AttendanceSelectDto),
 				auth: true,
 			},
 		)
@@ -53,7 +53,7 @@ export function initHRRoute(s: HRService) {
 				const result = await s.handleClockIn(body, auth.userId)
 				return res.created(result)
 			},
-			{ body: ClockInDto, response: createSuccessResponseSchema(AttendanceDto), auth: true },
+			{ body: ClockInDto, response: createSuccessResponseDto(AttendanceDto), auth: true },
 		)
 		.post(
 			'/clock-out',
@@ -61,6 +61,6 @@ export function initHRRoute(s: HRService) {
 				const result = await s.handleClockOut(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: ClockOutDto, response: createSuccessResponseSchema(AttendanceDto), auth: true },
+			{ body: ClockOutDto, response: createSuccessResponseDto(AttendanceDto), auth: true },
 		)
 }

@@ -24,5 +24,5 @@ export function initCrmRouteModule(service: CrmServiceModule) {
 	return new Elysia({ prefix: '/crm' }).use(customerRouter)
 }
 
-export type { CustomerSchema, CustomerLoyaltyTransactionSchema }
+export type { CustomerDto, CustomerLoyaltyTransactionDto }
 export type { CustomerService } from './customer.service'

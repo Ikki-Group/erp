@@ -2,7 +2,7 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/shared/schema'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc } from '@/shared/schema'
 
 import {
 	SupplierDto,
@@ -23,7 +23,7 @@ export function initSupplierRoute(service: SupplierService) {
 			},
 			{
 				query: SupplierFilterDto,
-				response: createPaginatedResponseSchema(SupplierDto),
+				response: createPaginatedResponseDto(SupplierDto),
 				auth: true,
 			},
 		)
@@ -33,7 +33,7 @@ export function initSupplierRoute(service: SupplierService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(SupplierDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(SupplierDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -43,7 +43,7 @@ export function initSupplierRoute(service: SupplierService) {
 			},
 			{
 				body: SupplierCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -55,7 +55,7 @@ export function initSupplierRoute(service: SupplierService) {
 			},
 			{
 				body: SupplierUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -65,6 +65,6 @@ export function initSupplierRoute(service: SupplierService) {
 				const result = await service.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 }

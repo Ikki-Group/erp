@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { zc, zq } from '@/shared/schema'
-import { createSuccessResponseSchema, createPaginatedResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -21,22 +21,22 @@ export function initMaterialLocationRoute(s: MaterialLocationService) {
 		.use(authPluginMacro)
 		.post('/assign', async ({ body, auth }) => res.ok(await s.assign(body, auth.userId)), {
 			body: MaterialLocationAssignDto,
-			response: createSuccessResponseSchema(z.object({ assignedCount: z.number() })),
+			response: createSuccessResponseDto(z.object({ assignedCount: z.number() })),
 			auth: true,
 		})
 		.delete('/unassign', async ({ query }) => res.ok(await s.unassign(query)), {
 			query: MaterialLocationUnassignDto,
-			response: createSuccessResponseSchema(zc.RecordId),
+			response: createSuccessResponseDto(zc.RecordId),
 			auth: true,
 		})
 		.get('/by-material', async ({ query }) => res.ok(await s.locationsByMaterial(query.id)), {
 			query: zq.recordId,
-			response: createSuccessResponseSchema(z.any()),
+			response: createSuccessResponseDto(z.any()),
 			auth: true,
 		})
 		.get('/stock', async ({ query }) => res.paginated(await s.stockByLocation(query)), {
 			query: MaterialLocationFilterDto,
-			response: createPaginatedResponseSchema(MaterialLocationStockDto),
+			response: createPaginatedResponseDto(MaterialLocationStockDto),
 			auth: true,
 		})
 		.put(
@@ -57,7 +57,7 @@ export function initMaterialLocationRoute(s: MaterialLocationService) {
 			},
 			{
 				body: MaterialLocationConfigDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

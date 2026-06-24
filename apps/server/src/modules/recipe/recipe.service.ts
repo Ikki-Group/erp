@@ -9,11 +9,11 @@ import { RecipeError } from './recipe.internal'
 import { RecipeRepo } from './recipe.repo'
 import type {
 	RecipeCostDto,
-	RecipeCreateSchema,
+	RecipeCreateDto,
 	RecipeDto,
-	RecipeFilterSchema,
-	RecipeSelectSchema,
-	RecipeUpdateSchema,
+	RecipeFilterDto,
+	RecipeSelectDto,
+	RecipeUpdateDto,
 } from './recipe.contract'
 
 export class RecipeService {
@@ -48,7 +48,7 @@ export class RecipeService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: RecipeFilterSchema): Promise<WithPaginationResult<RecipeSelectSchema>> {
+	async handleList(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeSelectDto>> {
 		const key = `list.${JSON.stringify(filter)}`
 		return this.cache.getOrSet({
 			key,
@@ -56,11 +56,11 @@ export class RecipeService {
 		})
 	}
 
-	async handleDetail(id: number): Promise<RecipeSelectSchema> {
+	async handleDetail(id: number): Promise<RecipeSelectDto> {
 		return this.getById(id)
 	}
 
-	async handleCreate(data: RecipeCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: RecipeCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const hasConflict = await this.repo.checkTargetConflict({
 			materialId: data.materialId,
 			productId: data.productId,
@@ -80,7 +80,7 @@ export class RecipeService {
 		return result
 	}
 
-	async handleUpdate(data: RecipeUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleUpdate(data: RecipeUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const existing = await this.getById(data.id)
 
 		const target = {

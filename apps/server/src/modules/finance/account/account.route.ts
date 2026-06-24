@@ -1,5 +1,5 @@
 import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -19,7 +19,7 @@ export function initAccountRoute(s: AccountService) {
 			},
 			{
 				query: AccountFilterDto,
-				response: createPaginatedResponseSchema(AccountDto),
+				response: createPaginatedResponseDto(AccountDto),
 				auth: true,
 			},
 		)
@@ -29,7 +29,7 @@ export function initAccountRoute(s: AccountService) {
 				const account = await s.handleDetail(query.id)
 				return res.ok(account)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(AccountDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(AccountDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -39,7 +39,7 @@ export function initAccountRoute(s: AccountService) {
 			},
 			{
 				body: AccountCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -51,7 +51,7 @@ export function initAccountRoute(s: AccountService) {
 			},
 			{
 				body: AccountUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -61,6 +61,6 @@ export function initAccountRoute(s: AccountService) {
 				const result = await s.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 }

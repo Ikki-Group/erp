@@ -19,11 +19,11 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
-	RecipeCreateSchema,
+	RecipeCreateDto,
 	RecipeDto,
-	RecipeFilterSchema,
-	RecipeSelectSchema,
-	RecipeUpdateSchema,
+	RecipeFilterDto,
+	RecipeSelectDto,
+	RecipeUpdateDto,
 } from './recipe.contract'
 
 export class RecipeRepo {
@@ -83,8 +83,8 @@ export class RecipeRepo {
 	}
 
 	async getListPaginated(
-		filter: RecipeFilterSchema,
-	): Promise<WithPaginationResult<RecipeSelectSchema>> {
+		filter: RecipeFilterDto,
+	): Promise<WithPaginationResult<RecipeSelectDto>> {
 		const { materialId, productId, productVariantId, isActive, page, limit } = filter
 
 		const where = and(
@@ -149,7 +149,7 @@ export class RecipeRepo {
 			itemsByRecipe.set(item.recipeId, list)
 		}
 
-		const data: RecipeSelectSchema[] = result.data.map((r) => ({
+		const data: RecipeSelectDto[] = result.data.map((r) => ({
 			...r,
 			targetQty: r.targetQty,
 			items: (itemsByRecipe.get(r.id) as any) ?? [],
@@ -201,7 +201,7 @@ export class RecipeRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: RecipeCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: RecipeCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const meta = stampCreate(actorId)
 
 		return this.db.transaction(async (tx) => {
@@ -239,7 +239,7 @@ export class RecipeRepo {
 		})
 	}
 
-	async update(data: RecipeUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async update(data: RecipeUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const { id } = data
 		const existing = await this.getById(id)
 		if (!existing) throw new Error(`Recipe with ID ${id} not found`)

@@ -34,12 +34,12 @@ export function initRecipeRouteModule(s: RecipeServiceModule) {
 }
 
 export type {
-	RecipeSchema,
-	RecipeSelectSchema,
-	RecipeFilterSchema,
-	RecipeCreateSchema,
-	RecipeUpdateSchema,
-	RecipeItemSchema,
-	RecipeCostSchema,
+	RecipeDto,
+	RecipeSelectDto,
+	RecipeFilterDto,
+	RecipeCreateDto,
+	RecipeUpdateDto,
+	RecipeItemDto,
+	RecipeCostDto,
 }
 export type { RecipeService } from './recipe.service'

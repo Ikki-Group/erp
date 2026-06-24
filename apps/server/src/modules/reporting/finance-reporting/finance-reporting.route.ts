@@ -1,4 +1,4 @@
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -18,7 +18,7 @@ export function initFinanceReportingRoute(service: FinanceReportingService) {
 			},
 			{
 				query: dto.FinanceReportRequestDto,
-				response: createSuccessResponseSchema(dto.CashFlowChartResponseDto),
+				response: createSuccessResponseDto(dto.CashFlowChartResponseDto),
 				auth: true,
 			},
 		)
@@ -30,7 +30,7 @@ export function initFinanceReportingRoute(service: FinanceReportingService) {
 			},
 			{
 				query: dto.FinanceReportRequestDto,
-				response: createSuccessResponseSchema(dto.AccountBalanceResponseDto),
+				response: createSuccessResponseDto(dto.AccountBalanceResponseDto),
 				auth: true,
 			},
 		)
@@ -42,7 +42,7 @@ export function initFinanceReportingRoute(service: FinanceReportingService) {
 			},
 			{
 				query: dto.FinanceReportRequestDto,
-				response: createSuccessResponseSchema(dto.ExpenditureByCategoryResponseDto),
+				response: createSuccessResponseDto(dto.ExpenditureByCategoryResponseDto),
 				auth: true,
 			},
 		)

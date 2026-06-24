@@ -5,7 +5,7 @@ import { verifyPassword } from '@/shared/utils/password'
 import type { IamModule, UserDto } from '@/modules/iam'
 import type { SessionService } from '@/modules/session/session.service'
 
-import type { AuthOutputSchema, AuthLoginSchema } from './auth.contract'
+import type { AuthOutputDto, AuthLoginDto } from './auth.contract'
 import { AuthError } from './auth.internal'
 
 export class AuthService {
@@ -14,7 +14,7 @@ export class AuthService {
 		private readonly sessionSvc: SessionService,
 	) {}
 
-	async login(input: AuthLoginSchema): Promise<AuthOutputSchema> {
+	async login(input: AuthLoginDto): Promise<AuthOutputDto> {
 		return record('AuthService.login', async () => {
 			const { identifier, password } = input
 			const targetUser = await this.iam.user.getByIdentifier(identifier)

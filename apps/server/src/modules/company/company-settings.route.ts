@@ -2,7 +2,7 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { createSuccessResponseSchema, zc, zq } from '@/shared/schema'
+import { createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import {
 	CompanySettingsDto,
@@ -21,7 +21,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 				return res.ok(result)
 			},
 			{
-				response: createSuccessResponseSchema(CompanySettingsDto),
+				response: createSuccessResponseDto(CompanySettingsDto),
 				auth: true,
 			},
 		)
@@ -33,7 +33,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(CompanySettingsDto),
+				response: createSuccessResponseDto(CompanySettingsDto),
 				auth: true,
 			},
 		)
@@ -45,7 +45,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 			},
 			{
 				body: CompanySettingsCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -57,7 +57,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 			},
 			{
 				body: CompanySettingsUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

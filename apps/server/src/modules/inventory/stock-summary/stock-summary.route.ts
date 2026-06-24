@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { zc } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -29,7 +29,7 @@ export function initStockSummaryRoute(s: StockSummaryService) {
 				},
 				{
 					query: StockSummaryFilterDto,
-					response: createPaginatedResponseSchema(StockSummarySelectDto),
+					response: createPaginatedResponseDto(StockSummarySelectDto),
 					auth: true,
 					detail: { tags: ['Inventory Summary'] },
 				},
@@ -44,7 +44,7 @@ export function initStockSummaryRoute(s: StockSummaryService) {
 				},
 				{
 					query: StockLedgerFilterDto,
-					response: createPaginatedResponseSchema(StockLedgerSelectDto),
+					response: createPaginatedResponseDto(StockLedgerSelectDto),
 					auth: true,
 					detail: { tags: ['Inventory Ledger'] },
 				},
@@ -59,7 +59,7 @@ export function initStockSummaryRoute(s: StockSummaryService) {
 				},
 				{
 					body: GenerateSummaryDto,
-					response: createSuccessResponseSchema(z.object({ generatedCount: z.number() })),
+					response: createSuccessResponseDto(z.object({ generatedCount: z.number() })),
 					auth: true,
 					detail: { tags: ['Inventory Summary'] },
 				},
@@ -74,7 +74,7 @@ export function initStockSummaryRoute(s: StockSummaryService) {
 				},
 				{
 					query: zc.RecordId,
-					response: createSuccessResponseSchema(zc.RecordId),
+					response: createSuccessResponseDto(zc.RecordId),
 					auth: true,
 					detail: { tags: ['Inventory Summary'] },
 				},

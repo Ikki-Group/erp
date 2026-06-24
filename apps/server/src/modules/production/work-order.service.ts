@@ -13,10 +13,10 @@ import type { RecipeService } from '@/modules/recipe'
 
 import { WorkOrderRepo } from './work-order.repo'
 import type {
-	WorkOrderCompleteSchema,
-	WorkOrderCreateSchema,
-	WorkOrderSchema,
-	WorkOrderFilterSchema,
+	WorkOrderCompleteDto,
+	WorkOrderCreateDto,
+	WorkOrderDto,
+	WorkOrderFilterDto,
 } from './work-order.contract'
 
 export class WorkOrderService {
@@ -34,7 +34,7 @@ export class WorkOrderService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<WorkOrderSchema> {
+	async getById(id: number): Promise<WorkOrderDto> {
 		const key = `byId:${id}`
 		const wo = await this.cache.getOrSetWithSkip({
 			key,
@@ -46,7 +46,7 @@ export class WorkOrderService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: WorkOrderFilterSchema): Promise<WithPaginationResult<WorkOrderSchema>> {
+	async handleList(filter: WorkOrderFilterDto): Promise<WithPaginationResult<WorkOrderDto>> {
 		const key = `list.${JSON.stringify(filter)}`
 		return this.cache.getOrSet({
 			key,
@@ -54,11 +54,11 @@ export class WorkOrderService {
 		})
 	}
 
-	async handleDetail(id: number): Promise<WorkOrderSchema> {
+	async handleDetail(id: number): Promise<WorkOrderDto> {
 		return this.getById(id)
 	}
 
-	async handleCreate(data: WorkOrderCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: WorkOrderCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const result = await this.repo.create(data, actorId)
 		await this.cache.deleteMany({ keys: ['list', 'count'] })
 		return result
@@ -79,7 +79,7 @@ export class WorkOrderService {
 
 	async handleComplete(
 		id: number,
-		data: WorkOrderCompleteSchema,
+		data: WorkOrderCompleteDto,
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		const wo = await this.getById(id)

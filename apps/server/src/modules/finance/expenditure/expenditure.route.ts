@@ -1,5 +1,5 @@
 import { zc } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -19,7 +19,7 @@ export function initExpenditureRoute(s: ExpenditureService) {
 			},
 			{
 				query: ExpenditureFilterDto,
-				response: createPaginatedResponseSchema(ExpenditureDto),
+				response: createPaginatedResponseDto(ExpenditureDto),
 				auth: true,
 			},
 		)
@@ -31,7 +31,7 @@ export function initExpenditureRoute(s: ExpenditureService) {
 			},
 			{
 				body: ExpenditureCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

@@ -1,5 +1,5 @@
 import { zc } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -35,7 +35,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					body: PurchaseTransactionDto,
-					response: createSuccessResponseSchema(TransactionResultDto),
+					response: createSuccessResponseDto(TransactionResultDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -50,7 +50,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					body: TransferTransactionDto,
-					response: createSuccessResponseSchema(TransactionResultDto),
+					response: createSuccessResponseDto(TransactionResultDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -65,7 +65,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					body: AdjustmentTransactionDto,
-					response: createSuccessResponseSchema(TransactionResultDto),
+					response: createSuccessResponseDto(TransactionResultDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -80,7 +80,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					body: StockOpnameDto,
-					response: createSuccessResponseSchema(TransactionResultDto),
+					response: createSuccessResponseDto(TransactionResultDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -95,7 +95,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					body: UsageTransactionDto,
-					response: createSuccessResponseSchema(TransactionResultDto),
+					response: createSuccessResponseDto(TransactionResultDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -110,7 +110,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					body: SellTransactionDto,
-					response: createSuccessResponseSchema(TransactionResultDto),
+					response: createSuccessResponseDto(TransactionResultDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -125,7 +125,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					body: ProductionInTransactionDto,
-					response: createSuccessResponseSchema(TransactionResultDto),
+					response: createSuccessResponseDto(TransactionResultDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -140,7 +140,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					body: ProductionOutTransactionDto,
-					response: createSuccessResponseSchema(TransactionResultDto),
+					response: createSuccessResponseDto(TransactionResultDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -155,7 +155,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					query: StockTransactionFilterDto,
-					response: createPaginatedResponseSchema(StockTransactionSelectDto),
+					response: createPaginatedResponseDto(StockTransactionSelectDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -170,7 +170,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					query: zc.RecordId,
-					response: createSuccessResponseSchema(StockTransactionDto),
+					response: createSuccessResponseDto(StockTransactionDto),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},
@@ -185,7 +185,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 				},
 				{
 					query: zc.RecordId,
-					response: createSuccessResponseSchema(zc.RecordId),
+					response: createSuccessResponseDto(zc.RecordId),
 					auth: true,
 					detail: { tags: ['Inventory Transaction'] },
 				},

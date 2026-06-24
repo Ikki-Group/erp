@@ -7,10 +7,10 @@ import type { DbClient } from '@/infra/database'
 import { AuditLogRepo } from './audit-log.repo'
 import { initAuditLogRoute } from './audit-log.route'
 import type {
-	AuditLogSchema,
-	AuditActionSchema,
-	AuditLogCreateSchema,
-	AuditLogFilterSchema,
+	AuditLogDto,
+	AuditActionDto,
+	AuditLogCreateDto,
+	AuditLogFilterDto,
 } from './audit-log.contract'
 import { AuditLogService } from './audit-log.service'
 
@@ -29,5 +29,5 @@ export function initAuditRouteModule(service: AuditServiceModule) {
 	return new Elysia({ prefix: '/audit' }).use(auditLogRouter)
 }
 
-export type { AuditLogSchema, AuditActionSchema, AuditLogCreateSchema, AuditLogFilterSchema }
+export type { AuditLogDto, AuditActionDto, AuditLogCreateDto, AuditLogFilterDto }
 export type { AuditLogService } from './audit-log.service'

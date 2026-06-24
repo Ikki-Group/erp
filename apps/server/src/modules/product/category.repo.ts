@@ -16,9 +16,9 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
 	ProductCategoryDto,
-	type ProductCategoryFilterSchema,
-	type ProductCategoryCreateSchema,
-	type ProductCategoryUpdateSchema,
+	type ProductCategoryFilterDto,
+	type ProductCategoryCreateDto,
+	type ProductCategoryUpdateDto,
 } from './category.contract'
 
 export class ProductCategoryRepo {
@@ -36,7 +36,7 @@ export class ProductCategoryRepo {
 	}
 
 	async getListPaginated(
-		filter: ProductCategoryFilterSchema,
+		filter: ProductCategoryFilterDto,
 	): Promise<WithPaginationResult<ProductCategoryDto>> {
 		const { q, locationId, page, limit } = filter
 
@@ -79,7 +79,7 @@ export class ProductCategoryRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: ProductCategoryCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: ProductCategoryCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const name = data.name.trim()
 
 		const [conflict] = await this.db
@@ -114,7 +114,7 @@ export class ProductCategoryRepo {
 
 	async update(
 		id: number,
-		data: ProductCategoryUpdateSchema,
+		data: ProductCategoryUpdateDto,
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		const name = data.name ? data.name.trim() : undefined

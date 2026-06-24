@@ -2,7 +2,7 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/shared/schema'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import { UserDetailDto, UserFilterDto } from './composed/composed.contract'
 import type { IamModule } from './iam.module'
@@ -25,7 +25,7 @@ function roleRoute(svc: IamModule) {
 			},
 			{
 				query: RoleFilterDto,
-				response: createPaginatedResponseSchema(RoleDto),
+				response: createPaginatedResponseDto(RoleDto),
 				auth: true,
 			},
 		)
@@ -37,7 +37,7 @@ function roleRoute(svc: IamModule) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(RoleDto),
+				response: createSuccessResponseDto(RoleDto),
 				auth: true,
 			},
 		)
@@ -49,7 +49,7 @@ function roleRoute(svc: IamModule) {
 			},
 			{
 				body: RoleCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -61,7 +61,7 @@ function roleRoute(svc: IamModule) {
 			},
 			{
 				body: RoleUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -73,7 +73,7 @@ function roleRoute(svc: IamModule) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -90,7 +90,7 @@ function userRoute(svc: IamModule) {
 			},
 			{
 				query: UserFilterDto,
-				response: createPaginatedResponseSchema(UserDetailDto),
+				response: createPaginatedResponseDto(UserDetailDto),
 				auth: true,
 			},
 		)
@@ -102,7 +102,7 @@ function userRoute(svc: IamModule) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(UserDetailDto),
+				response: createSuccessResponseDto(UserDetailDto),
 				auth: true,
 			},
 		)
@@ -114,7 +114,7 @@ function userRoute(svc: IamModule) {
 			},
 			{
 				body: UserCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -126,7 +126,7 @@ function userRoute(svc: IamModule) {
 			},
 			{
 				body: UserUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -138,7 +138,7 @@ function userRoute(svc: IamModule) {
 			},
 			{
 				body: UserChangePasswordDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -150,7 +150,7 @@ function userRoute(svc: IamModule) {
 			},
 			{
 				body: UserAdminUpdatePasswordDto,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -162,7 +162,7 @@ function userRoute(svc: IamModule) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(zc.RecordId),
+				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
 		)

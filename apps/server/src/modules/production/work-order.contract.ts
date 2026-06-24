@@ -8,7 +8,7 @@ export type WorkOrderStatus = z.infer<typeof WorkOrderStatusEnum>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const WorkOrderSchema = z.object({
+export const WorkOrderDto = z.object({
 	...zc.RecordId.shape,
 	recipeId: zp.id,
 	locationId: zp.id,
@@ -22,54 +22,54 @@ export const WorkOrderSchema = z.object({
 	...zc.AuditBasic.shape,
 })
 
-export type WorkOrderSchema = z.infer<typeof WorkOrderSchema>
+export type WorkOrderDto = z.infer<typeof WorkOrderDto>
 
 /* ---------------------------------- READ ---------------------------------- */
 
-export const WorkOrderSelectSchema = z.object({
-	...WorkOrderSchema.shape,
+export const WorkOrderSelectDto = z.object({
+	...WorkOrderDto.shape,
 	recipeName: zp.str.optional(),
 	productName: zp.str.optional(),
 	locationName: zp.str.optional(),
 })
 
-export type WorkOrderSelectSchema = z.infer<typeof WorkOrderSelectSchema>
+export type WorkOrderSelectDto = z.infer<typeof WorkOrderSelectDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const WorkOrderFilterSchema = z.object({
+export const WorkOrderFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	locationId: zq.id.optional(),
 	status: WorkOrderStatusEnum.optional(),
 })
 
-export type WorkOrderFilterSchema = z.infer<typeof WorkOrderFilterSchema>
+export type WorkOrderFilterDto = z.infer<typeof WorkOrderFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const WorkOrderCreateSchema = z.object({
+export const WorkOrderCreateDto = z.object({
 	recipeId: zp.id,
 	locationId: zp.id,
 	expectedQty: zp.decimal.refine((v) => Number(v) > 0, 'Must be greater than 0'),
 	note: zc.strTrimNullable,
 })
 
-export type WorkOrderCreateSchema = z.infer<typeof WorkOrderCreateSchema>
+export type WorkOrderCreateDto = z.infer<typeof WorkOrderCreateDto>
 
-export const WorkOrderUpdateSchema = z.object({
+export const WorkOrderUpdateDto = z.object({
 	...zc.RecordId.shape,
 	expectedQty: zp.decimal.refine((v) => Number(v) > 0, 'Must be greater than 0').optional(),
 	status: WorkOrderStatusEnum.optional(),
 	note: zc.strTrimNullable,
 })
 
-export type WorkOrderUpdateSchema = z.infer<typeof WorkOrderUpdateSchema>
+export type WorkOrderUpdateDto = z.infer<typeof WorkOrderUpdateDto>
 
-export const WorkOrderCompleteSchema = z.object({
+export const WorkOrderCompleteDto = z.object({
 	...zc.RecordId.shape,
 	actualQty: zp.decimal.refine((v) => Number(v) > 0, 'Must be greater than 0'),
 	note: zc.strTrimNullable,
 })
 
-export type WorkOrderCompleteSchema = z.infer<typeof WorkOrderCompleteSchema>
+export type WorkOrderCompleteDto = z.infer<typeof WorkOrderCompleteDto>

@@ -11,8 +11,8 @@ import { zc, zp } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const MaterialTypeSchema = z.enum(['raw', 'semi', 'packaging'])
-export type MaterialType = z.infer<typeof MaterialTypeSchema>
+export const MaterialTypeDto = z.enum(['raw', 'semi', 'packaging'])
+export type MaterialType = z.infer<typeof MaterialTypeDto>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -21,7 +21,7 @@ export const MaterialEntity = z.object({
 	name: zp.str,
 	description: zp.strNullable,
 	sku: zp.str,
-	type: MaterialTypeSchema,
+	type: MaterialTypeDto,
 	categoryId: zp.id,
 	baseUomId: zp.id,
 	...zc.AuditBasic.shape,

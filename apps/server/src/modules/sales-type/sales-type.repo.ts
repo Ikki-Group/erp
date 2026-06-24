@@ -9,10 +9,10 @@ import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
-	SalesTypeCreateSchema,
-	SalesTypeFilterSchema,
+	SalesTypeCreateDto,
+	SalesTypeFilterDto,
 	SalesTypeDto,
-	SalesTypeUpdateSchema,
+	SalesTypeUpdateDto,
 } from './sales-type.contract'
 
 export class SalesTypeRepo {
@@ -43,7 +43,7 @@ export class SalesTypeRepo {
 	}
 
 	async getListPaginated(
-		filter: SalesTypeFilterSchema,
+		filter: SalesTypeFilterDto,
 	): Promise<WithPaginationResult<SalesTypeDto>> {
 		const { q } = filter
 		const where = searchFilter(salesTypesTable.name, q)
@@ -90,7 +90,7 @@ export class SalesTypeRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async seed(data: (SalesTypeCreateSchema & { id?: number; createdBy: ActorId })[]): Promise<void> {
+	async seed(data: (SalesTypeCreateDto & { id?: number; createdBy: ActorId })[]): Promise<void> {
 		for (const d of data) {
 			const metadata = stampCreate(d.createdBy)
 			const { isSystem, ...rest } = d
@@ -101,7 +101,7 @@ export class SalesTypeRepo {
 		}
 	}
 
-	async create(data: SalesTypeCreateSchema, actorId: ActorId): Promise<EntityRef | undefined> {
+	async create(data: SalesTypeCreateDto, actorId: ActorId): Promise<EntityRef | undefined> {
 		const metadata = stampCreate(actorId)
 		const { isSystem, ...rest } = data
 		const [res] = await this.db
@@ -114,7 +114,7 @@ export class SalesTypeRepo {
 
 	async update(
 		id: number,
-		data: Partial<SalesTypeUpdateSchema>,
+		data: Partial<SalesTypeUpdateDto>,
 		actorId: ActorId,
 	): Promise<EntityRef | undefined> {
 		const metadata = stampUpdate(actorId)

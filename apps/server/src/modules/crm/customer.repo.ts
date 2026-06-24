@@ -14,12 +14,12 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
 	CustomerDto,
-	type CustomerFilterSchema,
-	type CustomerCreateSchema,
-	type CustomerUpdateSchema,
-	type CustomerAddPointsSchema,
-	type CustomerRedeemPointsSchema,
-	type CustomerLoyaltyTransactionSchema,
+	type CustomerFilterDto,
+	type CustomerCreateDto,
+	type CustomerUpdateDto,
+	type CustomerAddPointsDto,
+	type CustomerRedeemPointsDto,
+	type CustomerLoyaltyTransactionDto,
 } from './customer.contract'
 
 export class CustomerRepo {
@@ -28,7 +28,7 @@ export class CustomerRepo {
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getListPaginated(
-		filter: CustomerFilterSchema,
+		filter: CustomerFilterDto,
 	): Promise<WithPaginationResult<CustomerDto>> {
 		const { q, page, limit, tier, phone } = filter
 		const where = and(
@@ -76,7 +76,7 @@ export class CustomerRepo {
 		return res ? CustomerDto.parse(res) : undefined
 	}
 
-	async getLoyaltyHistory(customerId: number): Promise<CustomerLoyaltyTransactionSchema[]> {
+	async getLoyaltyHistory(customerId: number): Promise<CustomerLoyaltyTransactionDto[]> {
 		return this.db
 			.select()
 			.from(customerLoyaltyTransactionsTable)
@@ -86,7 +86,7 @@ export class CustomerRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: CustomerCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: CustomerCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const metadata = stampCreate(actorId)
 		const [res] = await this.db
 			.insert(customersTable)
@@ -96,7 +96,7 @@ export class CustomerRepo {
 		return { id: res?.id ?? 0 }
 	}
 
-	async update(data: CustomerUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async update(data: CustomerUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const metadata = stampUpdate(actorId)
 		const [res] = await this.db
 			.update(customersTable)
@@ -116,7 +116,7 @@ export class CustomerRepo {
 		return { id: res?.id ?? 0 }
 	}
 
-	async addPoints(data: CustomerAddPointsSchema, actorId: ActorId): Promise<EntityRef> {
+	async addPoints(data: CustomerAddPointsDto, actorId: ActorId): Promise<EntityRef> {
 		// Get current customer
 		const customer = await this.getById(data.customerId)
 		if (!customer) return { id: 0 }
@@ -155,7 +155,7 @@ export class CustomerRepo {
 		return { id: res?.id ?? 0 }
 	}
 
-	async redeemPoints(data: CustomerRedeemPointsSchema, actorId: ActorId): Promise<EntityRef> {
+	async redeemPoints(data: CustomerRedeemPointsDto, actorId: ActorId): Promise<EntityRef> {
 		// Get current customer
 		const customer = await this.getById(data.customerId)
 		if (!customer) return { id: 0 }

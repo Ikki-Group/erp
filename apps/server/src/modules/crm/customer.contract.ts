@@ -28,7 +28,7 @@ export const CustomerDto = z.object({
 })
 export type CustomerDto = z.infer<typeof CustomerDto>
 
-export const CustomerCreateSchema = z.object({
+export const CustomerCreateDto = z.object({
 	code: zc.strTrim.transform((v) => v.toUpperCase()).min(3).max(20),
 	name: zc.strTrim.min(2).max(100),
 	email: zc.strTrim.email().optional().or(z.literal('')), // eslint-disable-line @typescript-eslint/no-deprecated
@@ -37,9 +37,9 @@ export const CustomerCreateSchema = z.object({
 	taxId: zc.strTrim.min(10).max(30).optional().or(z.literal('')),
 	dateOfBirth: zp.date.optional(),
 })
-export type CustomerCreateSchema = z.infer<typeof CustomerCreateSchema>
+export type CustomerCreateDto = z.infer<typeof CustomerCreateDto>
 
-export const CustomerUpdateSchema = z.object({
+export const CustomerUpdateDto = z.object({
 	...zc.RecordId.shape,
 	name: zc.strTrim.min(2).max(100).optional(),
 	email: zc.strTrim.email().optional().or(z.literal('')), // eslint-disable-line @typescript-eslint/no-deprecated
@@ -49,18 +49,18 @@ export const CustomerUpdateSchema = z.object({
 	dateOfBirth: zp.date.optional(),
 	tier: CustomerTierEnum.optional(),
 })
-export type CustomerUpdateSchema = z.infer<typeof CustomerUpdateSchema>
+export type CustomerUpdateDto = z.infer<typeof CustomerUpdateDto>
 
-export const CustomerFilterSchema = z.object({
+export const CustomerFilterDto = z.object({
 	q: zq.search,
 	tier: CustomerTierEnum.optional(),
 	phone: zc.strTrim.optional(),
 	...zq.pagination.shape,
 })
-export type CustomerFilterSchema = z.infer<typeof CustomerFilterSchema>
+export type CustomerFilterDto = z.infer<typeof CustomerFilterDto>
 
 /** Loyalty transaction DTO */
-export const CustomerLoyaltyTransactionSchema = z.object({
+export const CustomerLoyaltyTransactionDto = z.object({
 	...zc.RecordId.shape,
 	customerId: zp.id,
 	type: LoyaltyTransactionTypeEnum,
@@ -71,30 +71,30 @@ export const CustomerLoyaltyTransactionSchema = z.object({
 	description: zp.strNullable,
 	...zc.AuditBasic.shape,
 })
-export type CustomerLoyaltyTransactionSchema = z.infer<typeof CustomerLoyaltyTransactionSchema>
+export type CustomerLoyaltyTransactionDto = z.infer<typeof CustomerLoyaltyTransactionDto>
 
 /** Add points to customer */
-export const CustomerAddPointsSchema = z.object({
+export const CustomerAddPointsDto = z.object({
 	customerId: zp.id,
 	points: zp.id.min(1).max(100000),
 	description: zc.strTrim.min(5).max(255),
 	referenceType: zp.str.optional(),
 	referenceId: zp.id.optional(),
 })
-export type CustomerAddPointsSchema = z.infer<typeof CustomerAddPointsSchema>
+export type CustomerAddPointsDto = z.infer<typeof CustomerAddPointsDto>
 
 /** Redeem points for discount */
-export const CustomerRedeemPointsSchema = z.object({
+export const CustomerRedeemPointsDto = z.object({
 	customerId: zp.id,
 	points: zp.id.min(1).max(100000),
 	description: zc.strTrim.min(5).max(255),
 	referenceType: zp.str.optional(),
 	referenceId: zp.id.optional(),
 })
-export type CustomerRedeemPointsSchema = z.infer<typeof CustomerRedeemPointsSchema>
+export type CustomerRedeemPointsDto = z.infer<typeof CustomerRedeemPointsDto>
 
 /** Get customer by phone */
-export const CustomerGetByPhoneSchema = z.object({
+export const CustomerGetByPhoneDto = z.object({
 	phone: zc.strTrim.min(10).max(20),
 })
-export type CustomerGetByPhoneSchema = z.infer<typeof CustomerGetByPhoneSchema>
+export type CustomerGetByPhoneDto = z.infer<typeof CustomerGetByPhoneDto>

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createSuccessResponseSchema } from '@/shared/schema/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -21,7 +21,7 @@ export function initGeneralLedgerRoute(s: GeneralLedgerService) {
 		},
 		{
 			query: GetEntryQuery,
-			response: createSuccessResponseSchema(z.any()),
+			response: createSuccessResponseDto(z.any()),
 			auth: true,
 		},
 	)

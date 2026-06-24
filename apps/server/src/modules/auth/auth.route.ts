@@ -3,11 +3,11 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { UnauthorizedError } from '@/shared/errors/http-error'
 import { res } from '@/shared/http/response'
-import { createSuccessResponseSchema } from '@/shared/schema'
+import { createSuccessResponseDto } from '@/shared/schema'
 
 import { UserDto } from '@/modules/iam'
 
-import { AuthLoginSchema, AuthOutputSchema } from './auth.contract'
+import { AuthLoginDto, AuthOutputDto } from './auth.contract'
 import type { AuthService } from './auth.service'
 
 export function createAuthRoute(svc: AuthService) {
@@ -19,7 +19,7 @@ export function createAuthRoute(svc: AuthService) {
 				const { user, token } = await svc.login(body)
 				return res.ok({ token, user }, 'AUTH_LOGIN_SUCCESS')
 			},
-			{ body: AuthLoginSchema, response: createSuccessResponseSchema(AuthOutputSchema) },
+			{ body: AuthLoginDto, response: createSuccessResponseDto(AuthOutputDto) },
 		)
 		.get(
 			'/me',
@@ -30,6 +30,6 @@ export function createAuthRoute(svc: AuthService) {
 				}
 				return res.ok(userWithDetails, 'AUTH_ME_SUCCESS')
 			},
-			{ response: createSuccessResponseSchema(UserDto), auth: true },
+			{ response: createSuccessResponseDto(UserDto), auth: true },
 		)
 }

@@ -1,5 +1,5 @@
 import { zc } from '@/shared/schema'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -25,7 +25,7 @@ export function initPayrollRoute(s: PayrollService) {
 			},
 			{
 				query: PayrollBatchFilterDto,
-				response: createPaginatedResponseSchema(PayrollBatchDto),
+				response: createPaginatedResponseDto(PayrollBatchDto),
 				auth: true,
 			},
 		)
@@ -37,7 +37,7 @@ export function initPayrollRoute(s: PayrollService) {
 			},
 			{
 				body: PayrollBatchCreateDto,
-				response: createSuccessResponseSchema(PayrollBatchDto),
+				response: createSuccessResponseDto(PayrollBatchDto),
 				auth: true,
 			},
 		)
@@ -49,7 +49,7 @@ export function initPayrollRoute(s: PayrollService) {
 			},
 			{
 				body: PayrollAdjustmentCreateDto,
-				response: createSuccessResponseSchema(PayrollAdjustmentDto),
+				response: createSuccessResponseDto(PayrollAdjustmentDto),
 				auth: true,
 			},
 		)
@@ -59,6 +59,6 @@ export function initPayrollRoute(s: PayrollService) {
 				const result = await s.handleFinalizeBatch(body.id, auth.userId)
 				return res.ok(result)
 			},
-			{ body: zc.RecordId, response: createSuccessResponseSchema(PayrollBatchDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseDto(PayrollBatchDto), auth: true },
 		)
 }

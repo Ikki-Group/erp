@@ -11,9 +11,9 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
-	WorkOrderCreateSchema,
-	WorkOrderSchema,
-	WorkOrderFilterSchema,
+	WorkOrderCreateDto,
+	WorkOrderDto,
+	WorkOrderFilterDto,
 } from './work-order.contract'
 
 export class WorkOrderRepo {
@@ -21,19 +21,19 @@ export class WorkOrderRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<WorkOrderSchema | undefined> {
+	async getById(id: number): Promise<WorkOrderDto | undefined> {
 		const [wo] = await this.db
 			.select()
 			.from(workOrdersTable)
 			.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
 
 		if (!wo) return undefined
-		return wo as unknown as WorkOrderSchema
+		return wo as unknown as WorkOrderDto
 	}
 
 	async getListPaginated(
-		filter: WorkOrderFilterSchema,
-	): Promise<WithPaginationResult<WorkOrderSchema>> {
+		filter: WorkOrderFilterDto,
+	): Promise<WithPaginationResult<WorkOrderDto>> {
 		const { locationId, status, page, limit } = filter
 
 		const where = and(
@@ -53,12 +53,12 @@ export class WorkOrderRepo {
 					.offset(offset),
 			pq: { page, limit },
 			countQuery: () => this.db.select({ count: count() }).from(workOrdersTable).where(where),
-		}) as unknown as WithPaginationResult<WorkOrderSchema>
+		}) as unknown as WithPaginationResult<WorkOrderDto>
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: WorkOrderCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async create(data: WorkOrderCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const [result] = await this.db
 			.insert(workOrdersTable)
 			.values({

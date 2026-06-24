@@ -12,7 +12,7 @@ import { zc, zp, zq } from '@/shared/schema'
 
 import { MaterialCategoryEntity } from '../domain/material-category.entity'
 import { MaterialConversionEntity } from '../domain/material-conversion.entity'
-import { MaterialEntity, MaterialTypeSchema } from '../domain/material.entity'
+import { MaterialEntity, MaterialTypeDto } from '../domain/material.entity'
 
 /* -------------------------------- RESPONSE -------------------------------- */
 
@@ -36,7 +36,7 @@ export const MaterialCreateDto = z.object({
 	name: zc.strTrim.min(3).max(100),
 	description: zc.strTrimNullable,
 	sku: zc.strTrim.min(3).max(50).transform((v) => v.toUpperCase()),
-	type: MaterialTypeSchema,
+	type: MaterialTypeDto,
 	categoryId: zp.id,
 	baseUomId: zp.id,
 	locationIds: z.array(zp.id).default([]),
@@ -60,7 +60,7 @@ export type MaterialUpdateDto = z.infer<typeof MaterialUpdateDto>
 export const MaterialFilterDto = z.object({
 	...zq.pagination.shape,
 	search: zq.search,
-	type: MaterialTypeSchema.optional(),
+	type: MaterialTypeDto.optional(),
 	categoryId: zq.id.optional(),
 	locationIds: zq.ids.optional(),
 	excludeLocationIds: zq.ids.optional(),
