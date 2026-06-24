@@ -17,14 +17,14 @@ interface UserRelations {
 	assignments: Awaited<ReturnType<UserAssignmentService['getRecordByUserId']>>
 	superadmin: Awaited<ReturnType<RoleService['getSuperadmin']>>
 	rolesMap: Awaited<ReturnType<RoleService['toRelationMap']>>
-	locationsMap: Awaited<ReturnType<LocationModule['location']['toRelationMap']>>
+	locationsMap: Awaited<ReturnType<LocationModule['toRelationMap']>>
 }
 
 interface ServiceDeps {
 	role: RoleService
 	assignment: UserAssignmentService
 	user: UserService
-	location: LocationModule['location']
+	location: LocationModule
 }
 
 export class IamComposedService {

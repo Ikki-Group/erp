@@ -7,13 +7,13 @@ import type { DbClient } from '@/infra/database'
 import { RecipeRepo } from './recipe.repo'
 import { initRecipeRoute } from './recipe.route'
 import type {
-	RecipeSchema,
-	RecipeSelectSchema,
-	RecipeFilterSchema,
-	RecipeCreateSchema,
-	RecipeUpdateSchema,
-	RecipeItemSchema,
-	RecipeCostSchema,
+	RecipeDto,
+	RecipeSelectDto,
+	RecipeFilterDto,
+	RecipeCreateDto,
+	RecipeUpdateDto,
+	RecipeItemDto,
+	RecipeCostDto,
 } from './recipe.contract'
 import { RecipeService } from './recipe.service'
 

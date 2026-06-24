@@ -4,16 +4,16 @@ import type { CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 
-import type { FinanceServiceModule } from '@/modules/finance'
-import type { IamServiceModule } from '@/modules/iam'
-import type { LocationServiceModule } from '@/modules/location'
-import type { SalesServiceModule } from '@/modules/sales'
+import type { FinanceModule } from '@/modules/finance'
+import type { IamModule } from '@/modules/iam'
+import type { LocationModule } from '@/modules/location'
+import type { SalesModule } from '@/modules/sales'
 
 interface DashboardServiceModuleDeps {
-	iam: IamServiceModule
-	location: LocationServiceModule
-	finance: FinanceServiceModule
-	sales: SalesServiceModule
+	iam: IamModule
+	location: LocationModule
+	finance: FinanceModule
+	sales: SalesModule
 }
 
 import { initAnalyticsRoute } from './analytics/analytics.route'

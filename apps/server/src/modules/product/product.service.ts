@@ -5,14 +5,14 @@ import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import type { ProductCategorySchema } from './category.contract'
+import type { ProductCategoryDto } from './category.contract'
 import type { ProductCategoryService } from './category.service'
 import { ProductRepo } from './product.repo'
 import type {
 	ProductDto,
-	ProductFilterSchema,
-	ProductMutationSchema,
-	ProductSelectSchema,
+	ProductFilterDto,
+	ProductMutationDto,
+	ProductSelectDto,
 } from './product.contract'
 
 export class ProductService {
@@ -47,8 +47,8 @@ export class ProductService {
 	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(
-		filter: ProductFilterSchema,
-	): Promise<WithPaginationResult<ProductSelectSchema>> {
+		filter: ProductFilterDto,
+	): Promise<WithPaginationResult<ProductSelectDto>> {
 		const result = await this.repo.getListPaginated(filter)
 
 		const allCategories = await this.categorySvc.handleList({
@@ -61,7 +61,7 @@ export class ProductService {
 			allCategories.data.map((cat) => [cat.id, cat]),
 		)
 
-		const data: ProductSelectSchema[] = result.data.map((p) => ({
+		const data: ProductSelectDto[] = result.data.map((p) => ({
 			...p,
 			category: p.categoryId ? (categoriesMap.get(p.categoryId) ?? null) : null,
 		}))
@@ -69,7 +69,7 @@ export class ProductService {
 		return { data, meta: result.meta }
 	}
 
-	async handleDetail(id: number): Promise<ProductSelectSchema> {
+	async handleDetail(id: number): Promise<ProductSelectDto> {
 		const product = await this.getById(id)
 		if (!product) throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
 

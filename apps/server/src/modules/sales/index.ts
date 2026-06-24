@@ -4,11 +4,11 @@ import type { CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 
-import type { CrmServiceModule } from '@/modules/crm'
-import type { LocationServiceModule } from '@/modules/location'
-import type { ProductServiceModule } from '@/modules/product'
+import type { CrmModule } from '@/modules/crm'
+import type { LocationModule } from '@/modules/location'
+import type { ProductModule } from '@/modules/product'
 
-import { initSalesTypeRouteModule, type SalesTypeServiceModule } from '../sales-type'
+import { initSalesTypeRouteModule, type SalesTypeModule } from '../sales-type'
 import { SalesInvoiceRepo } from './sales-invoice/sales-invoice.repo'
 import { initSalesInvoiceRoute } from './sales-invoice/sales-invoice.route'
 import { SalesInvoiceService } from './sales-invoice/sales-invoice.service'
@@ -17,13 +17,13 @@ import { initSalesOrderRoute } from './sales-order/sales-order.route'
 import { SalesOrderService } from './sales-order/sales-order.service'
 
 interface SalesServiceModuleDeps {
-	location: LocationServiceModule
-	crm: CrmServiceModule
-	product: ProductServiceModule
-	salesType: SalesTypeServiceModule
+	location: LocationModule
+	crm: CrmModule
+	product: ProductModule
+	salesType: SalesTypeModule
 }
 
-export class SalesServiceModule {
+export class SalesModule {
 	public readonly order: SalesOrderService
 	public readonly invoice: SalesInvoiceService
 

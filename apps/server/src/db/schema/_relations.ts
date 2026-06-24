@@ -35,4 +35,5 @@
  * - sales, sales-type, tax, uom, location_payment_method
  */
 
-// Empty for now - will be populated after exports are enabled
+// Empty stub - relations are optional and will be implemented when needed
+export const relations = {}

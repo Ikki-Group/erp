@@ -8,9 +8,9 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 import { ProductCategoryRepo } from './category.repo'
 import type {
 	ProductCategoryDto,
-	ProductCategoryFilterSchema,
-	ProductCategoryCreateSchema,
-	ProductCategoryUpdateSchema,
+	ProductCategoryFilterDto,
+	ProductCategoryCreateDto,
+	ProductCategoryUpdateDto,
 } from './category.contract'
 
 export class ProductCategoryService {
@@ -43,7 +43,7 @@ export class ProductCategoryService {
 	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(
-		filter: ProductCategoryFilterSchema,
+		filter: ProductCategoryFilterDto,
 	): Promise<WithPaginationResult<ProductCategoryDto>> {
 		return this.repo.getListPaginated(filter)
 	}
@@ -57,7 +57,7 @@ export class ProductCategoryService {
 		return result
 	}
 
-	async handleCreate(data: ProductCategoryCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: ProductCategoryCreateDto, actorId: ActorId): Promise<EntityRef> {
 		const result = await this.repo.create(data, actorId)
 
 		await this.cache.deleteMany({ keys: ['list', `list:location:${data.locationId}`, 'count'] })
@@ -67,7 +67,7 @@ export class ProductCategoryService {
 
 	async handleUpdate(
 		id: number,
-		data: ProductCategoryUpdateSchema,
+		data: ProductCategoryUpdateDto,
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		const existing = await this.getById(id)

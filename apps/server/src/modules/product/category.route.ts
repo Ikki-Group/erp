@@ -6,9 +6,9 @@ import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
 import {
-	ProductCategoryFilterSchema,
-	ProductCategoryCreateSchema,
-	ProductCategoryUpdateSchema,
+	ProductCategoryFilterDto,
+	ProductCategoryCreateDto,
+	ProductCategoryUpdateDto,
 	ProductCategoryDto,
 } from './category.contract'
 import type { ProductCategoryService } from './category.service'
@@ -23,7 +23,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				return res.paginated(result)
 			},
 			{
-				query: ProductCategoryFilterSchema,
+				query: ProductCategoryFilterDto,
 				response: createPaginatedResponseSchema(ProductCategoryDto),
 				auth: true,
 			},
@@ -47,7 +47,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				return res.created({ id })
 			},
 			{
-				body: ProductCategoryCreateSchema,
+				body: ProductCategoryCreateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -59,7 +59,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				return res.ok({ id })
 			},
 			{
-				body: ProductCategoryUpdateSchema,
+				body: ProductCategoryUpdateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},

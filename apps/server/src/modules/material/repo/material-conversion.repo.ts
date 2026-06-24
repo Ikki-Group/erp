@@ -100,7 +100,7 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 			})
 			.returning({ id: materialConversionsTable.id })
 
-		return res?.id
+		return res
 	}
 
 	async update(data: ConversionUpdateData, actorId: number): Promise<{ id: number } | undefined> {
@@ -116,7 +116,7 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 			.where(eq(materialConversionsTable.id, data.id))
 			.returning({ id: materialConversionsTable.id })
 
-		return res?.id
+		return res
 	}
 
 	async remove(id: number): Promise<{ id: number } | undefined> {
@@ -125,7 +125,7 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 			.where(eq(materialConversionsTable.id, id))
 			.returning({ id: materialConversionsTable.id })
 
-		return res?.id
+		return res
 	}
 
 	async batchCreate(

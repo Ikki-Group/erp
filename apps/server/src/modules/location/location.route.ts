@@ -23,7 +23,7 @@ export function createLocationRoute(m: LocationModule) {
 		.get(
 			'/list',
 			async ({ query }) => {
-				const result = await m.location.handleList(query)
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -35,7 +35,7 @@ export function createLocationRoute(m: LocationModule) {
 		.get(
 			'/detail',
 			async ({ query }) => {
-				const result = await m.location.handleGetById(query.id)
+				const result = await m.handleGetById(query.id)
 				return res.ok(result)
 			},
 			{
@@ -47,7 +47,7 @@ export function createLocationRoute(m: LocationModule) {
 		.post(
 			'/create',
 			async ({ body, auth }) => {
-				const result = await m.location.handleCreate(body, auth.userId)
+				const result = await m.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
 			{
@@ -59,7 +59,7 @@ export function createLocationRoute(m: LocationModule) {
 		.put(
 			'/update',
 			async ({ body, auth }) => {
-				const result = await m.location.handleUpdate(body, auth.userId)
+				const result = await m.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -71,7 +71,7 @@ export function createLocationRoute(m: LocationModule) {
 		.delete(
 			'/remove',
 			async ({ body }) => {
-				const result = await m.location.handleDelete(body.id)
+				const result = await m.handleDelete(body.id)
 				return res.ok(result)
 			},
 			{
