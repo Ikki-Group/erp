@@ -10,6 +10,7 @@ const bool = z.boolean()
 const boolCoerce = z.coerce.boolean()
 
 const date = z.coerce.date()
+const dateNullable = date.nullable()
 
 const id = z.number().int().positive()
 const uuid = z.uuid()
@@ -26,6 +27,7 @@ export const zp = {
 	bool,
 	boolCoerce,
 	date,
+	dateNullable,
 	id,
 	uuid,
 	decimal,

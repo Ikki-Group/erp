@@ -23,8 +23,8 @@ export function initStockSummaryRoute(s: StockSummaryService) {
 			/* ─────── Daily summaries by location (date range, paginated) ─────── */
 			.get(
 				'/by-location',
-				async function byLocation({ query }) {
-					const result = await s.handleByLocation(query)
+				async function byLocation(context) {
+					const result = await s.handleByLocation(context.query)
 					return res.paginated(result)
 				},
 				{
@@ -38,8 +38,8 @@ export function initStockSummaryRoute(s: StockSummaryService) {
 			/* ─────── Stock Ledger Aggregation (date range, paginated) ─────── */
 			.get(
 				'/ledger',
-				async function ledger({ query }) {
-					const result = await s.handleLedger(query)
+				async function ledger(context) {
+					const result = await s.handleLedger(context.query)
 					return res.paginated(result)
 				},
 				{
@@ -53,8 +53,8 @@ export function initStockSummaryRoute(s: StockSummaryService) {
 			/* ─────── Generate/regenerate daily summary ─────── */
 			.post(
 				'/generate',
-				async function generate({ body, auth }) {
-					const result = await s.handleGenerate(body, auth.userId)
+				async function generate(context) {
+					const result = await s.handleGenerate(context.body, context.auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -68,9 +68,9 @@ export function initStockSummaryRoute(s: StockSummaryService) {
 			/* ─────── Soft delete summary ─────── */
 			.post(
 				'/remove',
-				async function remove({ query, auth }) {
-					await s.handleRemove(query.id, auth.userId)
-					return res.ok({ id: query.id })
+				async function remove(context) {
+					await s.handleRemove(context.query.id, context.auth.userId)
+					return res.ok({ id: context.query.id })
 				},
 				{
 					query: zc.RecordId,

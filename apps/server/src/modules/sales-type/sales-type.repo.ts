@@ -34,7 +34,7 @@ export class SalesTypeRepo {
 			id: row.id,
 			code: row.code,
 			name: row.name,
-			isSystem: row.isBuiltIn,
+			isSystem: row.isSystem,
 			createdBy: row.createdBy,
 			updatedBy: row.updatedBy,
 			createdAt: row.createdAt,
@@ -62,7 +62,7 @@ export class SalesTypeRepo {
 					id: row.id,
 					code: row.code,
 					name: row.name,
-					isSystem: row.isBuiltIn,
+					isSystem: row.isSystem,
 					createdBy: row.createdBy,
 					updatedBy: row.updatedBy,
 					createdAt: row.createdAt,
@@ -80,7 +80,7 @@ export class SalesTypeRepo {
 			id: row.id,
 			code: row.code,
 			name: row.name,
-			isSystem: row.isBuiltIn,
+			isSystem: row.isSystem,
 			createdBy: row.createdBy,
 			updatedBy: row.updatedBy,
 			createdAt: row.createdAt,
@@ -96,7 +96,7 @@ export class SalesTypeRepo {
 			const { isSystem, ...rest } = d
 			await this.db
 				.insert(salesTypesTable)
-				.values({ ...rest, isBuiltIn: isSystem, ...metadata })
+				.values({ ...rest, isSystem, ...metadata })
 				.onConflictDoNothing()
 		}
 	}
@@ -106,7 +106,7 @@ export class SalesTypeRepo {
 		const { isSystem, ...rest } = data
 		const [res] = await this.db
 			.insert(salesTypesTable)
-			.values({ ...rest, isBuiltIn: isSystem, ...metadata })
+			.values({ ...rest, isSystem, ...metadata })
 			.returning({ id: salesTypesTable.id })
 
 		return res

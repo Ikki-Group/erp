@@ -17,8 +17,8 @@ export function initAuditLogRoute(service: AuditLogService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -29,8 +29,8 @@ export function initAuditLogRoute(service: AuditLogService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
+			async function detail(context) {
+				const result = await service.handleDetail(context.query.id)
 				return res.ok(result)
 			},
 			{
@@ -41,8 +41,8 @@ export function initAuditLogRoute(service: AuditLogService) {
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const result = await service.handleCreate(context.body, context.auth.userId)
 				return res.created(result)
 			},
 			{

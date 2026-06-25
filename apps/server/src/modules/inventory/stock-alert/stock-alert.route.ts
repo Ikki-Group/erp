@@ -14,8 +14,8 @@ export function initStockAlertRoute(s: StockAlertService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await s.handleAlerts(query)
+			async function list(context) {
+				const result = await s.handleAlerts(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -27,8 +27,8 @@ export function initStockAlertRoute(s: StockAlertService) {
 		)
 		.get(
 			'/count',
-			async function count({ query }) {
-				const result = await s.handleCount(query)
+			async function count(context) {
+				const result = await s.handleCount(context.query)
 				return res.ok(result)
 			},
 			{

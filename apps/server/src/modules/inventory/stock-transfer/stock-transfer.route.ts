@@ -13,8 +13,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -25,8 +25,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
+			async function detail(context) {
+				const result = await service.handleDetail(context.query.id)
 				return res.ok(result)
 			},
 			{
@@ -37,8 +37,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const result = await service.handleCreate(context.body, context.auth.userId)
 				return res.created(result)
 			},
 			{
@@ -49,8 +49,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.patch(
 			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body, auth.userId)
+			async function update(context) {
+				const result = await service.handleUpdate(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -61,16 +61,16 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ body, auth }) {
-				const result = await service.handleRemove(body.id, auth.userId)
+			async function remove(context) {
+				const result = await service.handleRemove(context.body.id, context.auth.userId)
 				return res.ok(result)
 			},
 			{ body: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/approve',
-			async function approve({ body, auth }) {
-				const result = await service.handleApprove(body, auth.userId)
+			async function approve(context) {
+				const result = await service.handleApprove(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -81,8 +81,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/reject',
-			async function reject({ body, auth }) {
-				const result = await service.handleReject(body, auth.userId)
+			async function reject(context) {
+				const result = await service.handleReject(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -93,8 +93,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/mark-in-transit',
-			async function markInTransit({ body, auth }) {
-				const result = await service.handleMarkInTransit(body, auth.userId)
+			async function markInTransit(context) {
+				const result = await service.handleMarkInTransit(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -105,8 +105,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/mark-completed',
-			async function markCompleted({ body, auth }) {
-				const result = await service.handleMarkCompleted(body, auth.userId)
+			async function markCompleted(context) {
+				const result = await service.handleMarkCompleted(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -117,8 +117,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/cancel',
-			async function cancel({ body, auth }) {
-				const result = await service.handleCancel(body, auth.userId)
+			async function cancel(context) {
+				const result = await service.handleCancel(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{

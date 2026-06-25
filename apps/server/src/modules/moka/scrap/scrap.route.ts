@@ -16,16 +16,16 @@ export function initMokaScrapRoute(
 		.use(authPluginMacro)
 		.post(
 			'/trigger',
-			async function trigger({ body, auth }) {
-				const result = await scrapSvc.handleTrigger(body, auth.userId)
+			async function trigger(context) {
+				const result = await scrapSvc.handleTrigger(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{ body: MokaTriggerInputDto, auth: true },
 		)
 		.get(
 			'/history',
-			async function history({ query }) {
-				const result = await historySvc.handleList(query.mokaConfigurationId)
+			async function history(context) {
+				const result = await historySvc.handleList(context.query.mokaConfigurationId)
 				return res.ok(result)
 			},
 			{ query: z.object({ mokaConfigurationId: z.coerce.number().optional() }), auth: true },

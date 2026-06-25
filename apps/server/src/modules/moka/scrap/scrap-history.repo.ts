@@ -5,7 +5,7 @@ import { desc, eq } from 'drizzle-orm'
 import { mokaScrapHistoriesTable } from '@/db/schema'
 
 import { type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { stampCreate } from '@/shared/audit/stamp'
 
 import type {
 	MokaProvider,

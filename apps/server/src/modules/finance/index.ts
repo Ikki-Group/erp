@@ -39,6 +39,8 @@ export class FinanceServiceModule {
 	}
 }
 
+export type FinanceModule = FinanceServiceModule
+
 export function initFinanceRouteModule(s: FinanceServiceModule) {
 	return new Elysia({ prefix: '/finance' })
 		.use(initAccountRoute(s.account))

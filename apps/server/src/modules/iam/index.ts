@@ -4,3 +4,7 @@ export * from './assignment/assignment.contract'
 export * from './composed/composed.contract'
 
 export * from './iam.module'
+export { createIamModule as IamServiceModule } from './iam.module'
+export type { RoleService } from './role/role.service'
+export type { UserService } from './user/user.service'
+export { UserService as UserReadService } from './user/user.service'

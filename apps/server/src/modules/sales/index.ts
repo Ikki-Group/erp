@@ -4,11 +4,11 @@ import type { CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 
-import type { CrmModule } from '@/modules/crm'
+import type { CrmServiceModule as CrmModule } from '@/modules/crm'
 import type { LocationModule } from '@/modules/location'
-import type { ProductModule } from '@/modules/product'
+import type { ProductServiceModule as ProductModule } from '@/modules/product'
 
-import { initSalesTypeRouteModule, type SalesTypeModule } from '../sales-type'
+import { initSalesTypeRouteModule, type SalesTypeServiceModule as SalesTypeModule } from '../sales-type'
 import { SalesInvoiceRepo } from './sales-invoice/sales-invoice.repo'
 import { initSalesInvoiceRoute } from './sales-invoice/sales-invoice.route'
 import { SalesInvoiceService } from './sales-invoice/sales-invoice.service'
@@ -40,7 +40,7 @@ export class SalesModule {
 	}
 }
 
-export function initSalesRouteModule(s: SalesServiceModule) {
+export function initSalesRouteModule(s: SalesModule) {
 	return new Elysia({ prefix: '/sales' })
 		.use(initSalesOrderRoute(s.order))
 		.use(initSalesInvoiceRoute(s.invoice))

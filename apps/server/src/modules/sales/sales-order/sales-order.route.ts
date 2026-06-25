@@ -19,8 +19,8 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -31,8 +31,8 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const order = await service.handleDetail(query.id)
+			async function detail(context) {
+				const order = await service.handleDetail(context.query.id)
 				return res.ok(order)
 			},
 			{
@@ -43,8 +43,8 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const { id } = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const { id } = await service.handleCreate(context.body, context.auth.userId)
 				return res.created({ id })
 			},
 			{
@@ -55,8 +55,8 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		)
 		.post(
 			'/add-batch',
-			async function addBatch({ query, body, auth }) {
-				const result = await service.handleAddBatch(query.id, body, auth.userId)
+			async function addBatch(context) {
+				const result = await service.handleAddBatch(context.query.id, context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -68,16 +68,16 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		)
 		.post(
 			'/close',
-			async function close({ query, auth }) {
-				const result = await service.handleClose(query.id, auth.userId)
+			async function close(context) {
+				const result = await service.handleClose(context.query.id, context.auth.userId)
 				return res.ok(result)
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/void',
-			async function voidOrder({ query, body, auth }) {
-				const result = await service.handleVoid(query.id, body, auth.userId)
+			async function voidOrder(context) {
+				const result = await service.handleVoid(context.query.id, context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{

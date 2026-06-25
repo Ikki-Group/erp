@@ -16,8 +16,8 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
 		.use(authPluginMacro)
 		.get(
 			'/by-location',
-			async function findByLocationId({ query }) {
-				const result = await service.findByLocationId(query.locationId)
+			async function findByLocationId(context) {
+				const result = await service.findByLocationId(context.query.locationId)
 				if (!result) return res.ok(null)
 				return res.ok(MokaConfigurationOutputDto.parse(result))
 			},
@@ -25,16 +25,16 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const result = await service.handleCreate(context.body, context.auth.userId)
 				return res.created(result)
 			},
 			{ body: MokaConfigurationCreateDto, auth: true },
 		)
 		.put(
 			'/update',
-			async function update({ query, body, auth }) {
-				const result = await service.handleUpdate(query.id, body, auth.userId)
+			async function update(context) {
+				const result = await service.handleUpdate(context.query.id, context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{ query: z.object({ id: z.coerce.number() }), body: MokaConfigurationUpdateDto, auth: true },

@@ -38,6 +38,7 @@ export class SessionService {
 
 		const session = await this.repo.create({
 			userId: user.id,
+			locationId: user.defaultLocationId || 1,
 			createdAt,
 			expiredAt,
 		})

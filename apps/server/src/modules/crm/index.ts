@@ -18,6 +18,8 @@ export class CrmServiceModule {
 	}
 }
 
+export type CrmModule = CrmServiceModule
+
 export function initCrmRouteModule(service: CrmServiceModule) {
 	const customerRouter = initCustomerRoute(service.customer)
 

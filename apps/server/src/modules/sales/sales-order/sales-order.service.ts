@@ -17,7 +17,7 @@ import type {
 import { SalesOrderRepo } from './sales-order.repo'
 
 interface SalesOrderServiceDeps {
-	location: import('@/modules/location').LocationServiceModule
+	location: import('@/modules/location').LocationModule
 	crm: import('@/modules/crm').CrmServiceModule
 	product: import('@/modules/product').ProductServiceModule
 	salesType: import('../../sales-type').SalesTypeServiceModule
@@ -38,7 +38,7 @@ export class SalesOrderService {
 
 	private async validateRelatedEntities(data: SalesOrderCreateDto) {
 		// Validate location exists
-		const location = await this.deps.location.location.getById(data.locationId)
+		const location = await this.deps.location.getById(data.locationId)
 		if (!location) {
 			throw new NotFoundError(`Location with ID ${data.locationId} not found`, { code: 'LOCATION_NOT_FOUND' })
 		}

@@ -97,7 +97,7 @@ export class MaterialConversionService {
 			if (!result) throw ConversionErrors.createFailed()
 
 			await this.invalidateCache(data.materialId)
-			return { id: result }
+			return result
 		})
 	}
 

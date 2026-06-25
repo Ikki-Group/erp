@@ -27,8 +27,8 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
+			async function detail(context) {
+				const result = await service.handleDetail(context.query.id)
 				return res.ok(result)
 			},
 			{
@@ -39,8 +39,8 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const result = await service.handleCreate(context.body, context.auth.userId)
 				return res.created(result)
 			},
 			{
@@ -51,8 +51,8 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 		)
 		.patch(
 			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body, auth.userId)
+			async function update(context) {
+				const result = await service.handleUpdate(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{

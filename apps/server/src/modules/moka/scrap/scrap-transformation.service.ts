@@ -16,7 +16,7 @@ import {
 } from '@/db/schema'
 
 import { takeFirst, type DbClient, type DbTx } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { stampCreate } from '@/shared/audit/stamp'
 
 import type { AccountService } from '@/modules/finance'
 import type { GeneralLedgerService } from '@/modules/finance'
@@ -99,7 +99,7 @@ export class MokaTransformationService {
 						// })
 					} else {
 						// Truly new — create category + mapping
-						const [newCat] = await this.db
+						const [_newCat] = await this.db
 							.insert(productCategoriesTable)
 							.values({ name: cat.name, description: cat.description, ...stampCreate(actorId) })
 							.returning({ id: productCategoriesTable.id })

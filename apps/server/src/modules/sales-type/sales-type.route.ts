@@ -18,8 +18,8 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -30,16 +30,16 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const salesType = await service.handleDetail(query.id)
+			async function detail(context) {
+				const salesType = await service.handleDetail(context.query.id)
 				return res.ok(salesType)
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(SalesTypeDto), auth: true },
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const { id } = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const { id } = await service.handleCreate(context.body, context.auth.userId)
 				return res.created({ id })
 			},
 			{
@@ -50,8 +50,8 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 		)
 		.put(
 			'/update',
-			async function update({ body, auth }) {
-				const { id } = await service.handleUpdate(body.id, body, auth.userId)
+			async function update(context) {
+				const { id } = await service.handleUpdate(context.body.id, context.body, context.auth.userId)
 				return res.ok({ id })
 			},
 			{
@@ -62,9 +62,9 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ query }) {
-				await service.handleRemove(query.id)
-				return res.ok({ id: query.id })
+			async function remove(context) {
+				await service.handleRemove(context.query.id)
+				return res.ok({ id: context.query.id })
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)

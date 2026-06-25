@@ -33,7 +33,8 @@ export const ShiftCreateDto = z.object({
 })
 export type ShiftCreateDto = z.infer<typeof ShiftCreateDto>
 
-export const ShiftUpdateDto = ShiftCreateDto.object({
+export const ShiftUpdateDto = z.object({
+	...ShiftCreateDto.shape,
 	...zc.RecordId.shape,
 })
 export type ShiftUpdateDto = z.infer<typeof ShiftUpdateDto>
@@ -54,7 +55,8 @@ export const AttendanceDto = z.object({
 })
 export type AttendanceDto = z.infer<typeof AttendanceDto>
 
-export const AttendanceSelectDto = AttendanceDto.object({
+export const AttendanceSelectDto = z.object({
+	...AttendanceDto.shape,
 	employeeName: zp.str.optional(),
 	employeeCode: zp.str.optional(),
 	locationName: zp.str.optional(),

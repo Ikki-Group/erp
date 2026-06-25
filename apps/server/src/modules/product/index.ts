@@ -44,6 +44,8 @@ export class ProductServiceModule {
 	}
 }
 
+export type ProductModule = ProductServiceModule
+
 export function initProductRouteModule(s: ProductServiceModule) {
 	return new Elysia({ prefix: '/product' })
 		.use(initProductCategoryRoute(s.category))

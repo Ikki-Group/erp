@@ -13,8 +13,8 @@ export function initEmployeeRoute(service: EmployeeService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -25,16 +25,16 @@ export function initEmployeeRoute(service: EmployeeService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
+			async function detail(context) {
+				const result = await service.handleDetail(context.query.id)
 				return res.ok(result)
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(dto.EmployeeDto), auth: true },
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const result = await service.handleCreate(context.body, context.auth.userId)
 				return res.created(result)
 			},
 			{
@@ -45,8 +45,8 @@ export function initEmployeeRoute(service: EmployeeService) {
 		)
 		.patch(
 			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body, auth.userId)
+			async function update(context) {
+				const result = await service.handleUpdate(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -57,8 +57,8 @@ export function initEmployeeRoute(service: EmployeeService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ query, auth }) {
-				const result = await service.handleRemove(query.id, auth.userId)
+			async function remove(context) {
+				const result = await service.handleRemove(context.query.id, context.auth.userId)
 				return res.ok(result)
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },

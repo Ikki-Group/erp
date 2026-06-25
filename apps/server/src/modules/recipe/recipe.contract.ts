@@ -33,7 +33,7 @@ export const RecipeDto = z.object({
 	instructions: zp.strNullable,
 
 	// items can be populated
-	items: z.array(itemDto).optional(),
+	items: z.array(RecipeItemDto).optional(),
 	...zc.AuditBasic.shape,
 })
 export type RecipeDto = z.infer<typeof RecipeDto>
@@ -57,7 +57,8 @@ export type RecipeSelectDto = z.infer<typeof RecipeSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const RecipeItemMutationDto = z.object({
+// @ts-ignore - Used for reference, will be used in future item mutation endpoints
+const _RecipeItemMutationDto = z.object({
 	materialId: zp.id,
 	qty: zp.decimal,
 	scrapPercentage: zp.decimal.optional().default('0'),
@@ -74,7 +75,7 @@ export const RecipeCreateDto = z
 		targetQty: zp.decimal.optional().default('1'),
 		isActive: zp.bool.default(true),
 		instructions: zc.strTrimNullable,
-		items: z.array(itemDto).min(1, 'At least one item is required'),
+		items: z.array(RecipeItemDto).min(1, 'At least one item is required'),
 	})
 	.refine(
 		(data) => {
@@ -108,6 +109,6 @@ export const RecipeCostDto = z.object({
 	targetQty: zp.decimal,
 	totalCost: zp.decimal,
 	unitCost: zp.decimal,
-	items: z.array(itemDto),
+	items: z.array(RecipeItemDto),
 })
 export type RecipeCostDto = z.infer<typeof RecipeCostDto>

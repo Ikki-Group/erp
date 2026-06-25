@@ -32,7 +32,8 @@ const EmployeeMutationDto = z.object({
 export const EmployeeCreateDto = EmployeeMutationDto
 export type EmployeeCreateDto = z.infer<typeof EmployeeCreateDto>
 
-export const EmployeeUpdateDto = EmployeeMutationDto.object({
+export const EmployeeUpdateDto = z.object({
+	...EmployeeMutationDto.shape,
 	...zc.RecordId.shape,
 })
 export type EmployeeUpdateDto = z.infer<typeof EmployeeUpdateDto>

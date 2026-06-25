@@ -2,6 +2,9 @@ import { z } from 'zod'
 
 import { zc } from './common'
 
+export { zc } from './common'
+export { zq } from './query'
+
 /**
  * Standard Success Response Schema.
  * Wraps any schema into { success: true, code: string, data: T }

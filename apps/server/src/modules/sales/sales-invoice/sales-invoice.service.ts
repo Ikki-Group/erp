@@ -3,11 +3,11 @@ import { record } from '@elysiajs/opentelemetry'
 import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { RecordId } from '@/shared/schema'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import * as dto from './sales-invoice.contract'
 import { SalesInvoiceRepo } from './sales-invoice.repo'
-import type { EntityRef } from '@/shared/types/utils'
 
 const err = {
 	notFound: (id: number) =>

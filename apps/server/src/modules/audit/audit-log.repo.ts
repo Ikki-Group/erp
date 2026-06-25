@@ -10,7 +10,7 @@ import {
 	takeFirst,
 	type DbClient} from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { stampCreate } from '@/shared/audit/stamp'
 
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 

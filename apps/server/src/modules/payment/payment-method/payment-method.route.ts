@@ -15,8 +15,8 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -27,8 +27,8 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
+			async function detail(context) {
+				const result = await service.handleDetail(context.query.id)
 				return res.ok(result)
 			},
 			{
@@ -55,8 +55,8 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const result = await service.handleCreate(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -67,8 +67,8 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.put(
 			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body, auth.userId)
+			async function update(context) {
+				const result = await service.handleUpdate(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -79,16 +79,16 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ query }) {
-				const result = await service.handleRemove(query.id)
+			async function remove(context) {
+				const result = await service.handleRemove(context.query.id)
 				return res.ok(result)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/seed',
-			async function seed({ auth }) {
-				await service.seedDefault(auth.userId)
+			async function seed(context) {
+				await service.seedDefault(context.auth.userId)
 				return res.ok({ message: 'Payment methods seeded successfully' })
 			},
 			{ response: createSuccessResponseDto(z.object({ message: z.string() })), auth: true },

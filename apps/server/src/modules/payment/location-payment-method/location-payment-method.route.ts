@@ -20,8 +20,8 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -32,8 +32,8 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const locationPaymentMethod = await service.handleDetail(query.id)
+			async function detail(context) {
+				const locationPaymentMethod = await service.handleDetail(context.query.id)
 				return res.ok(locationPaymentMethod)
 			},
 			{
@@ -44,8 +44,8 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		)
 		.get(
 			'/by-location',
-			async function byLocation({ query }) {
-				const result = await service.getByLocation(query.locationId)
+			async function byLocation(context) {
+				const result = await service.getByLocation(context.query.locationId)
 				return res.ok(result)
 			},
 			{
@@ -56,8 +56,8 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const { id } = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const { id } = await service.handleCreate(context.body, context.auth.userId)
 				return res.created({ id })
 			},
 			{
@@ -68,8 +68,8 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		)
 		.put(
 			'/update',
-			async function update({ body, auth }) {
-				const { id } = await service.handleUpdate(body.id, body, auth.userId)
+			async function update(context) {
+				const { id } = await service.handleUpdate(context.body.id, context.body, context.auth.userId)
 				return res.ok({ id })
 			},
 			{
@@ -80,9 +80,9 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		)
 		.delete(
 			'/remove',
-			async function remove({ query }) {
-				await service.handleRemove(query.id)
-				return res.ok({ id: query.id })
+			async function remove(context) {
+				await service.handleRemove(context.query.id)
+				return res.ok({ id: context.query.id })
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)

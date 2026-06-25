@@ -10,7 +10,6 @@ import {
 	WorkOrderCreateDto,
 	WorkOrderFilterDto,
 	WorkOrderDto,
-	WorkOrderSelectDto,
 } from './work-order.contract'
 import type { WorkOrderService } from './work-order.service'
 

@@ -6,9 +6,8 @@ import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
 import {
-	GoodsReceiptNoteFilterDto,
-	GoodsReceiptNoteSelectDto,
 	GoodsReceiptNoteDto,
+	GoodsReceiptNoteFilterDto,
 	GoodsReceiptNoteCreateDto,
 } from './goods-receipt.contract'
 import type { GoodsReceiptService } from './goods-receipt.service'
@@ -18,32 +17,32 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
 				query: GoodsReceiptNoteFilterDto,
-				response: createPaginatedResponseDto(GoodsReceiptDto),
+				response: createPaginatedResponseDto(GoodsReceiptNoteDto),
 				auth: true,
 			},
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
+			async function detail(context) {
+				const result = await service.handleDetail(context.query.id)
 				return res.ok(result)
 			},
 			{
 				query: zc.RecordId,
-				response: createSuccessResponseDto(GoodsReceiptDto),
+				response: createSuccessResponseDto(GoodsReceiptNoteDto),
 				auth: true,
 			},
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const result = await service.handleCreate(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -54,24 +53,24 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 		)
 		.post(
 			'/complete',
-			async function complete({ body, auth }) {
-				const result = await service.handleComplete(body.id, auth.userId)
+			async function complete(context) {
+				const result = await service.handleComplete(context.body.id, context.auth.userId)
 				return res.ok(result)
 			},
 			{ body: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/remove',
-			async function remove({ query, auth }) {
-				const result = await service.handleRemove(query.id, auth.userId)
+			async function remove(context) {
+				const result = await service.handleRemove(context.query.id, context.auth.userId)
 				return res.ok(result)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
-			async function hardRemove({ query }) {
-				const result = await service.handleHardRemove(query.id)
+			async function hardRemove(context) {
+				const result = await service.handleHardRemove(context.query.id)
 				return res.ok(result)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },

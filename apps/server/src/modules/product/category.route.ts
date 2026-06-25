@@ -18,8 +18,8 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await s.handleList(query)
+			async function list(context) {
+				const result = await s.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -30,8 +30,8 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const category = await s.handleDetail(query.id)
+			async function detail(context) {
+				const category = await s.handleDetail(context.query.id)
 				return res.ok(category)
 			},
 			{
@@ -42,8 +42,8 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const { id } = await s.handleCreate(body, auth.userId)
+			async function create(context) {
+				const { id } = await s.handleCreate(context.body, context.auth.userId)
 				return res.created({ id })
 			},
 			{
@@ -54,8 +54,8 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 		)
 		.put(
 			'/update',
-			async function update({ body, auth }) {
-				const { id } = await s.handleUpdate(body.id, body, auth.userId)
+			async function update(context) {
+				const { id } = await s.handleUpdate(context.body.id, context.body, context.auth.userId)
 				return res.ok({ id })
 			},
 			{
@@ -66,17 +66,17 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ query }) {
-				await s.handleRemove(query.id)
-				return res.ok({ id: query.id })
+			async function remove(context) {
+				await s.handleRemove(context.query.id)
+				return res.ok({ id: context.query.id })
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
-			async function hardRemove({ query }) {
-				await s.handleHardRemove(query.id)
-				return res.ok({ id: query.id })
+			async function hardRemove(context) {
+				await s.handleHardRemove(context.query.id)
+				return res.ok({ id: context.query.id })
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)

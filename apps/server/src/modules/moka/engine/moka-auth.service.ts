@@ -1,9 +1,4 @@
-import axios, {
-	type AxiosError,
-	type AxiosInstance,
-	type InternalAxiosRequestConfig,
-	type RawAxiosRequestHeaders,
-} from 'axios'
+import { create as createAxios, type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig, type RawAxiosRequestHeaders } from 'axios'
 
 import type { MokaLoginResponse } from '../scrap/scrap-raw.types'
 import type { Logger } from '@logtape/logtape'
@@ -33,7 +28,7 @@ export class MokaAuthEngine {
 		private readonly logger: Logger,
 		private readonly credentials: { email: string; password: string },
 	) {
-		this.api = axios.create({ baseURL: BASE_URL })
+		this.api = createAxios({ baseURL: BASE_URL })
 
 		// Add 401 interceptor for auto-relogin
 		this.api.interceptors.response.use(
@@ -73,8 +68,9 @@ export class MokaAuthEngine {
 		this.logger.info('Logging into Moka', { email: this.credentials.email })
 
 		try {
-			const response = await axios.post<MokaLoginResponse>(
-				`${AUTH_URL}/account/v2/login`,
+			const loginClient = createAxios({ baseURL: AUTH_URL })
+			const response = await loginClient.post<MokaLoginResponse>(
+				'/account/v2/login',
 				{ session: this.credentials },
 				{ headers: BASE_HEADERS },
 			)

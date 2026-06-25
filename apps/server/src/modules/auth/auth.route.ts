@@ -15,16 +15,16 @@ export function createAuthRoute(svc: AuthService) {
 		.use(authPluginMacro)
 		.post(
 			'/login',
-			async function login({ body }) {
-				const { user, token } = await svc.login(body)
+			async function login(context) {
+				const { user, token } = await svc.login(context.body)
 				return res.ok({ token, user }, 'AUTH_LOGIN_SUCCESS')
 			},
 			{ body: AuthLoginDto, response: createSuccessResponseDto(AuthOutputDto) },
 		)
 		.get(
 			'/me',
-			async function me({ auth }) {
-				const userWithDetails = await svc.getById(auth.user!.id)
+			async function me(context) {
+				const userWithDetails = await svc.getById(context.auth.user!.id)
 				if (!userWithDetails) {
 					throw new UnauthorizedError('User not found', { code: 'AUTH_USER_NOT_FOUND' })
 				}

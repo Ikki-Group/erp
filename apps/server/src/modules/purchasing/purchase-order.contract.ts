@@ -42,7 +42,7 @@ export const PurchaseOrderDto = z.object({
 	discountAmount: zp.decimal,
 	taxAmount: zp.decimal,
 	notes: zp.strNullable,
-	items: z.array(itemDto),
+	items: z.array(PurchaseOrderItemDto),
 	...zc.AuditBasic.shape,
 })
 export type PurchaseOrderDto = z.infer<typeof PurchaseOrderDto>

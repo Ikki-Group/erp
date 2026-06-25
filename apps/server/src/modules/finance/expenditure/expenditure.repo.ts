@@ -10,7 +10,7 @@ import {
 	searchFilter,
 	type DbClient} from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { stampCreate } from '@/shared/audit/stamp'
 
 import {  ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto  } from './expenditure.contract'
 

@@ -31,7 +31,7 @@ export const GoodsReceiptNoteDto = z.object({
 	status: GoodsReceiptStatusEnum,
 	referenceNumber: zp.strNullable,
 	notes: zp.strNullable,
-	items: z.array(itemDto),
+	items: z.array(GoodsReceiptNoteItemDto),
 	...zc.AuditBasic.shape,
 })
 export type GoodsReceiptNoteDto = z.infer<typeof GoodsReceiptNoteDto>
@@ -40,7 +40,8 @@ export type GoodsReceiptNoteSelectDto = z.infer<typeof GoodsReceiptNoteSelectDto
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const GoodsReceiptNoteItemMutationDto = z.object({
+// @ts-ignore - Used for reference, will be used in future item creation endpoints
+const _GoodsReceiptNoteItemMutationDto = z.object({
 	purchaseOrderItemId: zp.id,
 	materialId: zp.id.optional().nullable(),
 	itemName: zc.strTrim.min(1).max(255),
@@ -56,7 +57,7 @@ const GoodsReceiptNoteMutationDto = z.object({
 	status: GoodsReceiptStatusEnum.default('open'),
 	referenceNumber: zc.strTrimNullable,
 	notes: zc.strTrimNullable,
-	items: z.array(itemDto).min(1),
+	items: z.array(GoodsReceiptNoteItemDto).min(1),
 })
 
 export const GoodsReceiptNoteCreateDto = GoodsReceiptNoteMutationDto

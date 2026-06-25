@@ -67,8 +67,8 @@ export interface IMaterialCategoryRepo {
 	getById(id: number): Promise<MaterialCategory | undefined>
 	getListPaginated(filter: CategoryFilter): Promise<WithPaginationResult<MaterialCategory>>
 	count(): Promise<number>
-	create(data: CategoryInsertData): Promise<{ id: number }>
-	update(id: number, data: CategoryUpdateData): Promise<{ id: number }>
+	create(data: CategoryInsertData): Promise<{ id: number } | undefined>
+	update(id: number, data: CategoryUpdateData): Promise<{ id: number } | undefined>
 	remove(id: number): Promise<{ id: number } | undefined>
 }
 
@@ -101,9 +101,9 @@ export interface IMaterialConversionRepo {
 	getByMaterialAndUom(materialId: number, uomId: number): Promise<MaterialConversion | undefined>
 	getListPaginated(filter: ConversionFilter): Promise<WithPaginationResult<MaterialConversion>>
 	count(materialId?: number): Promise<number>
-	create(data: ConversionInsertData, actorId: number): Promise<number | undefined>
-	update(data: ConversionUpdateData, actorId: number): Promise<number | undefined>
-	remove(id: number): Promise<number | undefined>
+	create(data: ConversionInsertData, actorId: number): Promise<{ id: number } | undefined>
+	update(data: ConversionUpdateData, actorId: number): Promise<{ id: number } | undefined>
+	remove(id: number): Promise<{ id: number } | undefined>
 	batchCreate(
 		materialId: number,
 		conversions: { uomId: number; toBaseFactor: string }[],

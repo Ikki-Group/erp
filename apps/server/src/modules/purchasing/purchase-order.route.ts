@@ -7,7 +7,6 @@ import { res } from '@/shared/http/response'
 
 import {
 	PurchaseOrderFilterDto,
-	PurchaseOrderSelectDto,
 	PurchaseOrderDto,
 	PurchaseOrderCreateDto,
 	PurchaseOrderUpdateDto,
@@ -22,8 +21,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -34,8 +33,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
+			async function detail(context) {
+				const result = await service.handleDetail(context.query.id)
 				return res.ok(result)
 			},
 			{
@@ -46,8 +45,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const result = await service.handleCreate(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -58,8 +57,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.patch(
 			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body, auth.userId)
+			async function update(context) {
+				const result = await service.handleUpdate(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -70,24 +69,24 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ query, auth }) {
-				const result = await service.handleRemove(query.id, auth.userId)
+			async function remove(context) {
+				const result = await service.handleRemove(context.query.id, context.auth.userId)
 				return res.ok(result)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
-			async function hardRemove({ query }) {
-				const result = await service.handleHardRemove(query.id)
+			async function hardRemove(context) {
+				const result = await service.handleHardRemove(context.query.id)
 				return res.ok(result)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/submit-for-approval',
-			async function submitForApproval({ body, auth }) {
-				const result = await service.handleSubmitForApproval(body, auth.userId)
+			async function submitForApproval(context) {
+				const result = await service.handleSubmitForApproval(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -98,8 +97,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.post(
 			'/approve',
-			async function approve({ body, auth }) {
-				const result = await service.handleApprove(body, auth.userId)
+			async function approve(context) {
+				const result = await service.handleApprove(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -110,8 +109,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.post(
 			'/reject',
-			async function reject({ body, auth }) {
-				const result = await service.handleReject(body, auth.userId)
+			async function reject(context) {
+				const result = await service.handleReject(context.body, context.auth.userId)
 				return res.ok(result)
 			},
 			{

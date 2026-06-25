@@ -6,9 +6,9 @@ import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
 import {
+	RecipeDto,
 	RecipeCreateDto,
 	RecipeFilterDto,
-	RecipeSelectDto,
 	RecipeUpdateDto,
 	RecipeCostDto,
 } from './recipe.contract'
@@ -19,8 +19,8 @@ export function initRecipeRoute(service: RecipeService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
+			async function list(context) {
+				const result = await service.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -31,24 +31,24 @@ export function initRecipeRoute(service: RecipeService) {
 		)
 		.get(
 			'/detail',
-			async function detail({ query }) {
-				const recipe = await service.handleDetail(query.id)
+			async function detail(context) {
+				const recipe = await service.handleDetail(context.query.id)
 				return res.ok(recipe)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(RecipeDto), auth: true },
 		)
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const { id } = await service.handleCreate(body, auth.userId)
+			async function create(context) {
+				const { id } = await service.handleCreate(context.body, context.auth.userId)
 				return res.created({ id })
 			},
 			{ body: RecipeCreateDto, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.put(
 			'/update',
-			async function update({ body, auth }) {
-				const { id } = await service.handleUpdate(body, auth.userId)
+			async function update(context) {
+				const { id } = await service.handleUpdate(context.body, context.auth.userId)
 				return res.ok({ id })
 			},
 			{
@@ -59,24 +59,24 @@ export function initRecipeRoute(service: RecipeService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ query, auth }) {
-				await service.handleRemove(query.id, auth.userId)
-				return res.ok({ id: query.id })
+			async function remove(context) {
+				await service.handleRemove(context.query.id, context.auth.userId)
+				return res.ok({ id: context.query.id })
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/hard-remove',
-			async function hardRemove({ query }) {
-				await service.handleHardRemove(query.id)
-				return res.ok({ id: query.id })
+			async function hardRemove(context) {
+				await service.handleHardRemove(context.query.id)
+				return res.ok({ id: context.query.id })
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.get(
 			'/cost',
-			async function calculateCost({ query }) {
-				const result = await service.handleCalculateCost(query.id)
+			async function calculateCost(context) {
+				const result = await service.handleCalculateCost(context.query.id)
 				return res.ok(result)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(RecipeCostDto), auth: true },

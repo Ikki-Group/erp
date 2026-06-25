@@ -27,7 +27,8 @@ export const LeaveRequestDto = z.object({
 })
 export type LeaveRequestDto = z.infer<typeof LeaveRequestDto>
 
-export const LeaveRequestSelectDto = LeaveRequestDto.object({
+export const LeaveRequestSelectDto = z.object({
+	...LeaveRequestDto.shape,
 	employeeName: zp.str.optional(),
 	employeeCode: zp.str.optional(),
 })
@@ -45,7 +46,8 @@ export const LeaveRequestCreateDto = z.object({
 })
 export type LeaveRequestCreateDto = z.infer<typeof LeaveRequestCreateDto>
 
-export const LeaveRequestUpdateDto = LeaveRequestCreateDto.object({
+export const LeaveRequestUpdateDto = z.object({
+	...LeaveRequestCreateDto.shape,
 	...zc.RecordId.shape,
 })
 export type LeaveRequestUpdateDto = z.infer<typeof LeaveRequestUpdateDto>

@@ -5,6 +5,7 @@ import { zc, zp } from '@/shared/schema'
 export const SessionDto = z.object({
 	...zc.RecordId.shape,
 	userId: zp.id,
+	locationId: zp.id,
 	createdAt: zp.date,
 	expiredAt: zp.date,
 })

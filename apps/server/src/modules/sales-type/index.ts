@@ -26,6 +26,8 @@ export class SalesTypeServiceModule {
 	}
 }
 
+export type SalesTypeModule = SalesTypeServiceModule
+
 export function initSalesTypeRouteModule(s: SalesTypeServiceModule) {
 	return new Elysia().use(initSalesTypeRoute(s.salesType))
 }

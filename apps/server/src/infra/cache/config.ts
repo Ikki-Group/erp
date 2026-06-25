@@ -41,5 +41,7 @@ export type ConfigNamespace =
 	| 'hr.leave-request'
 	| 'analytics'
 	| 'payment-method-config'
+	| 'payment-method'
 	| 'payment'
+	| 'uom'
 	| 'system.audit'

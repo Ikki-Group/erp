@@ -29,8 +29,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Record purchases (multiple materials) ─────── */
 			.post(
 				'/purchase',
-				async function purchase({ body, auth }) {
-					const result = await s.handlePurchase(body, auth.userId)
+				async function purchase(context) {
+					const result = await s.handlePurchase(context.body, context.auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -44,8 +44,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Transfer stock between locations (multiple materials) ─────── */
 			.post(
 				'/transfer',
-				async function transfer({ body, auth }) {
-					const result = await s.handleTransfer(body, auth.userId)
+				async function transfer(context) {
+					const result = await s.handleTransfer(context.body, context.auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -59,8 +59,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Record stock adjustments (multiple materials) ─────── */
 			.post(
 				'/adjustment',
-				async function adjustment({ body, auth }) {
-					const result = await s.handleAdjustment(body, auth.userId)
+				async function adjustment(context) {
+					const result = await s.handleAdjustment(context.body, context.auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -74,8 +74,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Record stock opname (multiple materials) ─────── */
 			.post(
 				'/opname',
-				async function opname({ body, auth }) {
-					const result = await s.handleOpname(body, auth.userId)
+				async function opname(context) {
+					const result = await s.handleOpname(context.body, context.auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -89,8 +89,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Record material usage (multiple materials) ─────── */
 			.post(
 				'/usage',
-				async function usage({ body, auth }) {
-					const result = await s.handleUsage(body, auth.userId)
+				async function usage(context) {
+					const result = await s.handleUsage(context.body, context.auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -104,8 +104,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Record direct sell (multiple materials) ─────── */
 			.post(
 				'/sell',
-				async function sell({ body, auth }) {
-					const result = await s.handleSell(body, auth.userId)
+				async function sell(context) {
+					const result = await s.handleSell(context.body, context.auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -119,8 +119,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Record production input (multiple materials) ─────── */
 			.post(
 				'/production-in',
-				async function productionIn({ body, auth }) {
-					const result = await s.handleProductionIn(body, auth.userId)
+				async function productionIn(context) {
+					const result = await s.handleProductionIn(context.body, context.auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -134,8 +134,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Record production output/consume (multiple materials) ─────── */
 			.post(
 				'/production-out',
-				async function productionOut({ body, auth }) {
-					const result = await s.handleProductionOut(body, auth.userId)
+				async function productionOut(context) {
+					const result = await s.handleProductionOut(context.body, context.auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -149,8 +149,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── List transactions (paginated) ─────── */
 			.get(
 				'/list',
-				async function list({ query }) {
-					const result = await s.handleList(query)
+				async function list(context) {
+					const result = await s.handleList(context.query)
 					return res.paginated(result)
 				},
 				{
@@ -164,8 +164,8 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Get transaction detail ─────── */
 			.get(
 				'/detail',
-				async function detail({ query }) {
-					const data = await s.handleDetail(query.id)
+				async function detail(context) {
+					const data = await s.handleDetail(context.query.id)
 					return res.ok(data)
 				},
 				{
@@ -179,9 +179,9 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			/* ─────── Soft delete transaction ─────── */
 			.delete(
 				'/remove',
-				async function remove({ query, auth }) {
-					await s.handleRemove(query.id, auth.userId)
-					return res.ok({ id: query.id })
+				async function remove(context) {
+					await s.handleRemove(context.query.id, context.auth.userId)
+					return res.ok({ id: context.query.id })
 				},
 				{
 					query: zc.RecordId,

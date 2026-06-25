@@ -23,7 +23,8 @@ const password = z.string().min(8).max(100)
 
 const fullname = z.string().trim().min(3).max(100)
 
-const RecordId = z.object({ id: zp.id })
+export const RecordId = z.object({ id: zp.id })
+export type RecordId = z.infer<typeof RecordId>
 
 const Timestamps = z.object({
 	createdAt: zp.date,
@@ -91,7 +92,7 @@ export const zc = {
 	username,
 	password,
 	fullname,
-	RecordId,
+	RecordId: RecordId,
 	Timestamps,
 	Actors,
 	SoftDelete,
