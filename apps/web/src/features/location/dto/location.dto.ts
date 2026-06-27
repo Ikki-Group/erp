@@ -1,15 +1,23 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
 
-/** Types of operational location. */
-export const LocationTypeDto = z.enum(['store', 'warehouse'])
-export type LocationTypeDto = z.infer<typeof LocationTypeDto>
+import { zc, zp, zq } from '@/lib/validation'
 
+/* --------------------------------- ENTITY --------------------------------- */
+
+/** Types of operational locations. */
+export const LocationTypeEnum = z.enum([
+	/** Retail storefront for customers. */
+	'store',
+	/** Storage facility for inventory. */
+	'warehouse',
+])
+export type LocationTypeEnum = z.infer<typeof LocationTypeEnum>
 
 export const LocationDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	code: zp.str,
 	name: zp.str,
-	type: LocationTypeDto,
+	type: LocationTypeEnum,
 	description: zp.str.nullable(),
 	address: zp.str.nullable(),
 	phone: zp.str.nullable(),
@@ -18,25 +26,31 @@ export const LocationDto = z.object({
 })
 export type LocationDto = z.infer<typeof LocationDto>
 
-export const LocationCreateDto = z.object({
+/* ---------------------------------- HTTP ---------------------------------- */
+
+export const LocationFilterDto = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
+	type: LocationTypeEnum.optional(),
+})
+export type LocationFilterDto = z.infer<typeof LocationFilterDto>
+
+// Reusable mutation shape
+const LocationMutationDto = z.object({
 	code: zc.strTrim,
-	name: zc.strTrim,
-	type: LocationTypeDto,
+	name: zc.strTrim.min(3).max(100),
+	type: LocationTypeEnum,
 	description: zc.strTrimNullable,
 	address: zc.strTrimNullable,
 	phone: zc.strTrimNullable,
-	isActive: zp.bool,
+	isActive: zp.bool.default(true),
 })
+
+export const LocationCreateDto = LocationMutationDto
 export type LocationCreateDto = z.infer<typeof LocationCreateDto>
 
 export const LocationUpdateDto = z.object({
-	...zc.RecordId.shape,
-	...LocationCreateDto.shape
+	id: zp.id,
+	...LocationMutationDto.shape,
 })
 export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
-
-export const LocationFilterDto = z.object({
-	q: zq.search,
-	...zq.pagination.shape,
-})
-export type LocationFilterDto = z.infer<typeof LocationFilterDto>
