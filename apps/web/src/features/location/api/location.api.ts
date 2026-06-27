@@ -7,10 +7,14 @@ import {
 import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
-
 import { apiFactory, createQueryKeys } from '@/lib/api'
 
-import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from '../dto'
+import {
+	LocationCreateDto,
+	LocationDto,
+	LocationFilterDto,
+	LocationUpdateDto,
+} from '../dto'
 
 const locationKeys = createQueryKeys('location', 'master')
 
@@ -36,10 +40,6 @@ export const locationApi = {
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [
 			locationKeys.lists(),
-			// Invalidate inventory when location changes (stock is per location)
-			endpoint.inventory.summary.byLocation,
-			endpoint.inventory.summary.ledger,
-			endpoint.inventoryAlert.count,
 		],
 	}),
 	update: apiFactory({
@@ -50,10 +50,6 @@ export const locationApi = {
 		invalidates: [
 			locationKeys.lists(),
 			({ body }) => locationKeys.detail(body.id),
-			// Invalidate inventory when location changes (stock is per location)
-			endpoint.inventory.summary.byLocation,
-			endpoint.inventory.summary.ledger,
-			endpoint.inventoryAlert.count,
 		],
 	}),
 	remove: apiFactory({
@@ -64,10 +60,6 @@ export const locationApi = {
 		invalidates: [
 			locationKeys.lists(),
 			({ body }) => locationKeys.detail(body.id),
-			// Invalidate inventory when location changes (stock is per location)
-			endpoint.inventory.summary.byLocation,
-			endpoint.inventory.summary.ledger,
-			endpoint.inventoryAlert.count,
 		],
 	}),
 }

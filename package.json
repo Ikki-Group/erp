@@ -32,6 +32,8 @@
 		"knip": "bunx knip",
 		"check-deps": "bun --filter @ikki/server check-deps",
 		"check": "bun run lint && bun run format:check && bun run knip",
+		"generate:web": "bun scripts/generate-web-from-server.ts",
+		"generate:web:preview": "bun scripts/preview-generation.ts",
 		"clean": "rm -rf node_modules apps/web/node_modules apps/server/node_modules packages/api-contract/node_modules"
 	},
 	"devDependencies": {
