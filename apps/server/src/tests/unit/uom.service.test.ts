@@ -1,0 +1,190 @@
+/**
+ * Unit tests for UomService.
+ *
+ * These run WITHOUT a database. The service depends on the `IUomRepo`
+ * port, so we pass a typed in-memory fake (no `as any`). The only infra seam
+ * that still touches a `db` is `checkConflict`, so the fake repo exposes a
+ * tiny `db` stub whose `select(...).from(...).where(...).limit(...)` resolves
+ * to "no conflict".
+ */
+
+import type { DbContext } from '@/infra/database'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
+
+import type { UomDto, UomFilterDto, UomUpdateDto } from '@/modules/uom/uom.contract'
+import type { IUomRepo } from '@/modules/uom/uom.repo'
+import { UomService } from '@/modules/uom/uom.service'
+
+import { createMockCacheClient } from '../helpers/mock-db'
+import { beforeEach, describe, expect, test } from 'bun:test'
+
+async function expectReject(promise: Promise<unknown>): Promise<void> {
+	let threw = false
+	try {
+		await promise
+	} catch {
+		threw = true
+	}
+	expect(threw).toBe(true)
+}
+
+const noConflictDb = {
+	select: () => ({
+		from: () => ({
+			where: () => ({
+				limit: async () => [] as { id: number }[],
+			}),
+		}),
+	}),
+} as unknown as DbContext
+
+class FakeUomRepo implements IUomRepo {
+	readonly db = noConflictDb
+	store = new Map<number, UomDto>()
+	private seq = 0
+
+	seed(rows: UomDto[]): void {
+		for (const r of rows) {
+			this.store.set(r.id, r)
+			this.seq = Math.max(this.seq, r.id)
+		}
+	}
+
+	async findMany(_filter?: Partial<Pick<UomFilterDto, 'q'>>): Promise<UomDto[]> {
+		return [...this.store.values()]
+	}
+
+	async findPage(filter: UomFilterDto): Promise<WithPaginationResult<UomDto>> {
+		const data = [...this.store.values()]
+		const limit = filter.limit ?? 10
+		return {
+			data,
+			meta: {
+				total: data.length,
+				page: filter.page ?? 1,
+				limit,
+				totalPages: Math.max(1, Math.ceil(data.length / limit)),
+			},
+		}
+	}
+
+	async findById(id: number): Promise<UomDto | undefined> {
+		return this.store.get(id)
+	}
+
+	async count(): Promise<number> {
+		return this.store.size
+	}
+
+	async insert(data: Parameters<IUomRepo['insert']>[0]): Promise<EntityRef | undefined> {
+		const id = ++this.seq
+		this.store.set(id, { ...(data as unknown as UomDto), id })
+		return { id }
+	}
+
+	async insertMany(items: Parameters<IUomRepo['insertMany']>[0]): Promise<void> {
+		for (const item of items) await this.insert(item)
+	}
+
+	async update(id: number, data: Parameters<IUomRepo['update']>[1]): Promise<EntityRef | undefined> {
+		const existing = this.store.get(id)
+		if (!existing) return undefined
+		this.store.set(id, { ...existing, ...(data as Partial<UomDto>), id })
+		return { id }
+	}
+
+	async remove(id: number): Promise<EntityRef | undefined> {
+		if (!this.store.has(id)) return undefined
+		this.store.delete(id)
+		return { id }
+	}
+}
+
+function makeUom(overrides: Partial<UomDto> = {}): UomDto {
+	return {
+		id: 1,
+		code: 'KG',
+		createdBy: 1,
+		updatedBy: 1,
+		createdAt: new Date(),
+		updatedAt: new Date(),
+		...overrides,
+	}
+}
+
+describe('UomService (unit)', () => {
+	let repo: FakeUomRepo
+	let service: UomService
+
+	beforeEach(() => {
+		repo = new FakeUomRepo()
+		service = new UomService(repo, createMockCacheClient() as never)
+	})
+
+	describe('handleGetById', () => {
+		test('returns the uom when it exists', async () => {
+			repo.seed([makeUom({ id: 1 })])
+			const result = await service.handleGetById(1)
+			expect(result.id).toBe(1)
+			expect(result.code).toBe('KG')
+		})
+
+		test('throws NotFound when missing', async () => {
+			await expectReject(service.handleGetById(999))
+		})
+	})
+
+	describe('handleCreate', () => {
+		test('creates and returns a ref, applying the audit stamp', async () => {
+			const actor = 7
+			const result = await service.handleCreate({ code: 'LTR' }, actor)
+
+			expect(result.id).toBeDefined()
+			const stored = await repo.findById(result.id)
+			expect(stored?.code).toBe('LTR')
+			expect(stored?.createdBy).toBe(actor)
+		})
+	})
+
+	describe('handleUpdate', () => {
+		test('updates an existing uom and stamps updatedBy', async () => {
+			repo.seed([makeUom({ id: 1, code: 'KG' })])
+
+			const dto: UomUpdateDto = { id: 1, code: 'LB' }
+			const result = await service.handleUpdate(dto, 9)
+
+			expect(result.id).toBe(1)
+			const stored = await repo.findById(1)
+			expect(stored?.code).toBe('LB')
+			expect(stored?.updatedBy).toBe(9)
+		})
+
+		test('throws NotFound when updating a missing uom', async () => {
+			const dto: UomUpdateDto = { id: 404, code: 'X' }
+			await expectReject(service.handleUpdate(dto, 1))
+		})
+	})
+
+	describe('handleDelete', () => {
+		test('removes an existing uom', async () => {
+			repo.seed([makeUom({ id: 1 })])
+			const result = await service.handleDelete(1)
+			expect(result.id).toBe(1)
+			expect(await repo.findById(1)).toBeUndefined()
+		})
+
+		test('throws NotFound when deleting a missing uom', async () => {
+			await expectReject(service.handleDelete(999))
+		})
+	})
+
+	describe('handleList', () => {
+		test('returns a paginated list', async () => {
+			repo.seed([makeUom({ id: 1 }), makeUom({ id: 2, code: 'LTR' })])
+			const result = await service.handleList({ page: 1, limit: 10, q: undefined })
+			expect(result.data.length).toBe(2)
+			expect(result.meta.total).toBe(2)
+		})
+	})
+})

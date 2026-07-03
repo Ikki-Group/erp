@@ -1,103 +1,105 @@
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, SQL } from 'drizzle-orm'
 
 import { uomsTable } from '@/db/schema'
 
 import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
 import type { UomDto, UomFilterDto } from './uom.contract'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
-export class UomRepo {
+type UomInsert = typeof uomsTable.$inferInsert
+type UomUpdate = PgUpdateSetSource<typeof uomsTable>
+
+/**
+ * Repository port for the UOM module. Services depend on this interface
+ * (not the concrete class) so they can be unit-tested with plain in-memory
+ * fakes and no database. Not-found reads return `undefined`; writes return the
+ * affected `EntityRef` or `undefined`. Repos never throw for "not found" — the
+ * service decides error semantics. Every write accepts an optional `db`
+ * override so it can participate in a caller's transaction.
+ */
+export interface IUomRepo {
+	readonly db: DbContext
+	findMany(filter?: Partial<Pick<UomFilterDto, 'q'>>, db?: DbContext): Promise<UomDto[]>
+	findPage(filter: UomFilterDto, db?: DbContext): Promise<WithPaginationResult<UomDto>>
+	findById(id: number, db?: DbContext): Promise<UomDto | undefined>
+	count(db?: DbContext): Promise<number>
+	insert(data: UomInsert, db?: DbContext): Promise<EntityRef | undefined>
+	insertMany(items: UomInsert[], db?: DbContext): Promise<void>
+	update(id: number, data: UomUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
+
+export class UomRepo implements IUomRepo {
 	constructor(readonly db: DbContext) {}
 
-	async getList(): Promise<UomDto[]> {
-		return this.db.select().from(uomsTable).orderBy(uomsTable.code)
+	#buildWhere(filter: Partial<Pick<UomFilterDto, 'q'>>): SQL | undefined {
+		const { q } = filter
+		return and(q === undefined ? undefined : searchFilter(uomsTable.code, q))
 	}
 
-	async getListPaginated(filter: UomFilterDto): Promise<WithPaginationResult<UomDto>> {
-		const { q, page, limit } = filter
-		const where = and(searchFilter(uomsTable.code, q))
+	async findMany(
+		filter: Partial<Pick<UomFilterDto, 'q'>> = {},
+		db: DbContext = this.db,
+	): Promise<UomDto[]> {
+		const where = this.#buildWhere(filter)
+		return db.select().from(uomsTable).where(where).orderBy(uomsTable.code)
+	}
+
+	async findPage(filter: UomFilterDto, db: DbContext = this.db): Promise<WithPaginationResult<UomDto>> {
+		const where = this.#buildWhere(filter)
 
 		return paginate<UomDto>({
-			data: ({ limit: l, offset }) =>
-				this.db
+			data: ({ limit, offset }) =>
+				db
 					.select()
 					.from(uomsTable)
 					.where(where)
 					.orderBy(sortBy(uomsTable.updatedAt, 'desc'))
-					.limit(l)
+					.limit(limit)
 					.offset(offset),
-			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(uomsTable).where(where),
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(uomsTable).where(where),
 		})
 	}
 
-	async getById(id: number): Promise<UomDto | undefined> {
-		return this.db.select().from(uomsTable).where(eq(uomsTable.id, id)).limit(1).then(takeFirst)
+	async findById(id: number, db: DbContext = this.db): Promise<UomDto | undefined> {
+		return db.select().from(uomsTable).where(eq(uomsTable.id, id)).limit(1).then(takeFirst)
 	}
 
-	async count(): Promise<number> {
-		return this.db
+	async count(db: DbContext = this.db): Promise<number> {
+		return db
 			.select({ count: count() })
 			.from(uomsTable)
 			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	async create(data: { code: string; createdBy: number }): Promise<EntityRef | undefined> {
-		const metadata = stampCreate(data.createdBy)
-		const [res] = await this.db
-			.insert(uomsTable)
-			.values({
-				code: data.code,
-				name: data.code,
-				...metadata,
-			})
-			.returning({ id: uomsTable.id })
+	async insert(data: UomInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db.insert(uomsTable).values({ ...data }).returning({ id: uomsTable.id })
 
 		return res
 	}
 
-	async update(
-		id: number,
-		data: { code: string; updatedBy: number },
-	): Promise<EntityRef | undefined> {
-		const metadata = stampUpdate(data.updatedBy)
-		const [res] = await this.db
+	async insertMany(items: UomInsert[], db: DbContext = this.db): Promise<void> {
+		await db.insert(uomsTable).values(items).onConflictDoNothing()
+	}
+
+	async update(id: number, data: UomUpdate, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.update(uomsTable)
-			.set({
-				code: data.code,
-				name: data.code,
-				...metadata,
-			})
+			.set({ ...data })
 			.where(eq(uomsTable.id, id))
 			.returning({ id: uomsTable.id })
-
 		return res
 	}
 
-	async remove(id: number): Promise<EntityRef | undefined> {
-		const [res] = await this.db
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.delete(uomsTable)
 			.where(eq(uomsTable.id, id))
 			.returning({ id: uomsTable.id })
-
 		return res
-	}
-
-	async seed(data: { code: string; createdBy: number }[]): Promise<void> {
-		const existing = await this.db.select({ code: uomsTable.code }).from(uomsTable)
-		const existingCodes = new Set(existing.map((e) => e.code))
-
-		const newUoms = data
-			.map((d) => ({ ...d, code: d.code.toUpperCase().trim(), name: d.code }))
-			.filter((d) => !existingCodes.has(d.code))
-
-		if (newUoms.length === 0) return
-
-		await this.db
-			.insert(uomsTable)
-			.values(newUoms.map((d) => Object.assign({}, d, stampCreate(d.createdBy))))
 	}
 }
