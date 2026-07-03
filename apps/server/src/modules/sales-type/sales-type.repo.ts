@@ -4,7 +4,6 @@ import { salesTypesTable } from '@/db/schema'
 
 import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
@@ -16,7 +15,7 @@ import type {
 } from './sales-type.contract'
 
 export class SalesTypeRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -42,9 +41,7 @@ export class SalesTypeRepo {
 		}
 	}
 
-	async getListPaginated(
-		filter: SalesTypeFilterDto,
-	): Promise<WithPaginationResult<SalesTypeDto>> {
+	async getListPaginated(filter: SalesTypeFilterDto): Promise<WithPaginationResult<SalesTypeDto>> {
 		const { q } = filter
 		const where = searchFilter(salesTypesTable.name, q)
 

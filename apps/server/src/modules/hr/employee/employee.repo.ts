@@ -3,23 +3,19 @@ import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
 import { employeesTable } from '@/db/schema/hr'
 
-import {
-	paginate,
-	sortBy,
-	takeFirst,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, sortBy, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import { 
+import {
 	EmployeeCreateDto,
 	EmployeeDto,
 	EmployeeFilterDto,
 	EmployeeUpdateDto,
- } from './employee.contract'
+} from './employee.contract'
 
 export class EmployeeRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 

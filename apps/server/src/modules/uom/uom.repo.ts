@@ -4,14 +4,13 @@ import { uomsTable } from '@/db/schema'
 
 import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
 import type { UomDto, UomFilterDto } from './uom.contract'
 
 export class UomRepo {
-	constructor(private readonly db: DbContext) {}
+	constructor(readonly db: DbContext) {}
 
 	async getList(): Promise<UomDto[]> {
 		return this.db.select().from(uomsTable).orderBy(uomsTable.code)
@@ -60,7 +59,10 @@ export class UomRepo {
 		return res
 	}
 
-	async update(id: number, data: { code: string; updatedBy: number }): Promise<EntityRef | undefined> {
+	async update(
+		id: number,
+		data: { code: string; updatedBy: number },
+	): Promise<EntityRef | undefined> {
 		const metadata = stampUpdate(data.updatedBy)
 		const [res] = await this.db
 			.update(uomsTable)
@@ -76,7 +78,10 @@ export class UomRepo {
 	}
 
 	async remove(id: number): Promise<EntityRef | undefined> {
-		const [res] = await this.db.delete(uomsTable).where(eq(uomsTable.id, id)).returning({ id: uomsTable.id })
+		const [res] = await this.db
+			.delete(uomsTable)
+			.where(eq(uomsTable.id, id))
+			.returning({ id: uomsTable.id })
 
 		return res
 	}

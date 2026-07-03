@@ -2,14 +2,8 @@ import { count, eq, inArray } from 'drizzle-orm'
 
 import { materialLocationsTable, materialsTable } from '@/db/schema'
 
-import {
-	paginate,
-	sortBy,
-	takeFirst,
-	type DbClient,
-} from '@/infra/database'
+import { paginate, sortBy, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { Material } from '../domain/material.entity'
@@ -21,7 +15,7 @@ import type {
 } from '../domain/ports'
 
 export class MaterialRepo implements IMaterialRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 

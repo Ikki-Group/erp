@@ -1,12 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { employeesTable } from '@/db/schema/hr'
 
-import { checkConflict, type ConflictField} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type {
 	EmployeeCreateDto,
@@ -28,7 +27,8 @@ const employeeConflictFields: ConflictField<any>[] = [
 const err = {
 	notFound: (id: number) =>
 		new NotFoundError(`Employee with ID ${id} not found`, { code: 'EMPLOYEE_NOT_FOUND' }),
-	createFailed: () => new InternalServerError('Employee creation failed', { code: 'EMPLOYEE_CREATE_FAILED' }),
+	createFailed: () =>
+		new InternalServerError('Employee creation failed', { code: 'EMPLOYEE_CREATE_FAILED' }),
 }
 
 export class EmployeeService {
@@ -71,6 +71,7 @@ export class EmployeeService {
 	async handleCreate(data: EmployeeCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('EmployeeService.handleCreate', async () => {
 			await checkConflict({
+				db: this.repo.db,
 				table: employeesTable,
 				pkColumn: employeesTable.id,
 				fields: employeeConflictFields,
@@ -94,6 +95,7 @@ export class EmployeeService {
 			if (!existing) throw err.notFound(id)
 
 			await checkConflict({
+				db: this.repo.db,
 				table: employeesTable,
 				pkColumn: employeesTable.id,
 				fields: employeeConflictFields,

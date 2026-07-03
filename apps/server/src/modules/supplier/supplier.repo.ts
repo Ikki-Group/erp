@@ -2,14 +2,9 @@ import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
 import { suppliersTable } from '@/db/schema/supplier'
 
-import {
-	paginate,
-	sortBy,
-	takeFirst,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, sortBy, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
@@ -20,13 +15,11 @@ import type {
 } from './supplier.contract'
 
 export class SupplierRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getListPaginated(
-		filter: SupplierFilterDto,
-	): Promise<WithPaginationResult<SupplierDto>> {
+	async getListPaginated(filter: SupplierFilterDto): Promise<WithPaginationResult<SupplierDto>> {
 		const { q, page, limit } = filter
 
 		const searchCondition = q

@@ -5,17 +5,16 @@ import { suppliersTable } from '@/db/schema/supplier'
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import { SupplierRepo } from './supplier.repo'
 import type {
 	SupplierCreateDto,
 	SupplierDto,
 	SupplierFilterDto,
 	SupplierUpdateDto,
 } from './supplier.contract'
+import { SupplierRepo } from './supplier.repo'
 
 const supplierConflictFields: ConflictField<{ code: string }>[] = [
 	{
@@ -29,7 +28,8 @@ const supplierConflictFields: ConflictField<{ code: string }>[] = [
 const err = {
 	notFound: (id: number) =>
 		new NotFoundError(`Supplier with ID ${id} not found`, { code: 'SUPPLIER_NOT_FOUND' }),
-	createFailed: () => new InternalServerError('Supplier creation failed', { code: 'SUPPLIER_CREATE_FAILED' }),
+	createFailed: () =>
+		new InternalServerError('Supplier creation failed', { code: 'SUPPLIER_CREATE_FAILED' }),
 }
 
 export class SupplierService {
@@ -70,6 +70,7 @@ export class SupplierService {
 	async handleCreate(data: SupplierCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('SupplierService.handleCreate', async () => {
 			await checkConflict({
+				db: this.repo.db,
 				table: suppliersTable,
 				pkColumn: suppliersTable.id,
 				fields: supplierConflictFields,
@@ -93,6 +94,7 @@ export class SupplierService {
 			if (!existing) throw err.notFound(id)
 
 			await checkConflict({
+				db: this.repo.db,
 				table: suppliersTable,
 				pkColumn: suppliersTable.id,
 				fields: supplierConflictFields,

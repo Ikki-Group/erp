@@ -2,15 +2,8 @@ import { and, count, eq } from 'drizzle-orm'
 
 import { materialCategoriesTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	sortBy,
-	takeFirst,
-	type DbClient,
-} from '@/infra/database'
+import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { MaterialCategory } from '../domain/material-category.entity'
@@ -22,7 +15,7 @@ import type {
 } from '../domain/ports'
 
 export class MaterialCategoryRepo implements IMaterialCategoryRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(readonly db: DbClient) {}
 
 	async getList(): Promise<MaterialCategory[]> {
 		return this.db.select().from(materialCategoriesTable).orderBy(materialCategoriesTable.name)
@@ -42,7 +35,8 @@ export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 					.limit(l)
 					.offset(offset),
 			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(materialCategoriesTable).where(where),
+			countQuery: () =>
+				this.db.select({ count: count() }).from(materialCategoriesTable).where(where),
 		})
 	}
 
@@ -63,7 +57,10 @@ export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 
 	async create(data: CategoryInsertData): Promise<{ id: number } | undefined> {
 		const metadata = stampCreate(data.createdBy)
-		const code = data.name.toUpperCase().trim().replace(/[^A-Z0-9]+/g, '_')
+		const code = data.name
+			.toUpperCase()
+			.trim()
+			.replace(/[^A-Z0-9]+/g, '_')
 		const [result] = await this.db
 			.insert(materialCategoriesTable)
 			.values({
@@ -79,7 +76,12 @@ export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 
 	async update(id: number, data: CategoryUpdateData): Promise<{ id: number } | undefined> {
 		const metadata = stampUpdate(data.updatedBy)
-		const code = data.name ? data.name.toUpperCase().trim().replace(/[^A-Z0-9]+/g, '_') : undefined
+		const code = data.name
+			? data.name
+					.toUpperCase()
+					.trim()
+					.replace(/[^A-Z0-9]+/g, '_')
+			: undefined
 		const [result] = await this.db
 			.update(materialCategoriesTable)
 			.set({

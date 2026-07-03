@@ -7,7 +7,6 @@
  */
 
 import type { DbClient, DbTx } from '@/infra/database'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { UomDto } from '@/modules/uom'
@@ -20,6 +19,7 @@ import type { Material, MaterialType } from './material.entity'
 /* -------------------------------- MATERIAL -------------------------------- */
 
 export interface IMaterialRepo {
+	readonly db: DbClient
 	getList(): Promise<Material[]>
 	getById(id: number): Promise<Material | undefined>
 	getByIds(ids: number[]): Promise<Material[]>
@@ -63,6 +63,7 @@ export interface MaterialUpdateData {
 /* ------------------------------ CATEGORY ---------------------------------- */
 
 export interface IMaterialCategoryRepo {
+	readonly db: DbClient
 	getList(): Promise<MaterialCategory[]>
 	getById(id: number): Promise<MaterialCategory | undefined>
 	getListPaginated(filter: CategoryFilter): Promise<WithPaginationResult<MaterialCategory>>

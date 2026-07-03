@@ -2,14 +2,9 @@ import { and, count, desc, eq, or } from 'drizzle-orm'
 
 import { customersTable, customerLoyaltyTransactionsTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	takeFirst,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, searchFilter, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
@@ -23,13 +18,11 @@ import {
 } from './customer.contract'
 
 export class CustomerRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getListPaginated(
-		filter: CustomerFilterDto,
-	): Promise<WithPaginationResult<CustomerDto>> {
+	async getListPaginated(filter: CustomerFilterDto): Promise<WithPaginationResult<CustomerDto>> {
 		const { q, page, limit, tier, phone } = filter
 		const where = and(
 			q === undefined

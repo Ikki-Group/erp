@@ -1,17 +1,14 @@
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 
-import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { customersTable } from '@/db/schema'
 
-import { checkConflict, type ConflictField} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import { CustomerRepo } from './customer.repo'
 import type {
 	CustomerDto,
 	CustomerCreateDto,
@@ -21,6 +18,7 @@ import type {
 	CustomerRedeemPointsDto,
 	CustomerLoyaltyTransactionDto,
 } from './customer.contract'
+import { CustomerRepo } from './customer.repo'
 
 const uniqueFields: ConflictField<'code' | 'name' | 'phone'>[] = [
 	{
@@ -48,7 +46,8 @@ const err = {
 		new NotFoundError(`Customer with ID ${id} not found`, { code: 'CUSTOMER_NOT_FOUND' }),
 	notFoundByPhone: (phone: string) =>
 		new NotFoundError(`Customer with phone ${phone} not found`, { code: 'CUSTOMER_NOT_FOUND' }),
-	createFailed: () => new InternalServerError('Customer creation failed', { code: 'CUSTOMER_CREATE_FAILED' }),
+	createFailed: () =>
+		new InternalServerError('Customer creation failed', { code: 'CUSTOMER_CREATE_FAILED' }),
 	insufficientPoints: () =>
 		new InternalServerError('Insufficient points balance', { code: 'INSUFFICIENT_POINTS' }),
 }
@@ -101,6 +100,7 @@ export class CustomerService {
 
 	async handleCreate(data: CustomerCreateDto, actorId: ActorId): Promise<EntityRef> {
 		await checkConflict({
+			db: this.repo.db,
 			table: customersTable,
 			pkColumn: customersTable.id,
 			fields: uniqueFields,
@@ -123,6 +123,7 @@ export class CustomerService {
 		if (!existing) throw err.notFound(id)
 
 		await checkConflict({
+			db: this.repo.db,
 			table: customersTable,
 			pkColumn: customersTable.id,
 			fields: uniqueFields,

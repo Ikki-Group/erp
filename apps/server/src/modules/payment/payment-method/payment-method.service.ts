@@ -1,13 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { paymentMethodsTable } from '@/db/schema'
+
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { RelationMap } from '@/shared/utils'
 import { checkConflict, type ConflictField } from '@/infra/database'
+import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
-import { paymentMethodsTable } from '@/db/schema'
+import { RelationMap } from '@/shared/utils'
 
 import * as dto from './payment-method.contract'
 import { PaymentMethodRepo } from './payment-method.repo'
@@ -23,9 +23,13 @@ const uniqueFields: ConflictField<{ name: string }>[] = [
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Payment method with ID ${id} not found`, { code: 'PAYMENT_METHOD_NOT_FOUND' }),
+		new NotFoundError(`Payment method with ID ${id} not found`, {
+			code: 'PAYMENT_METHOD_NOT_FOUND',
+		}),
 	createFailed: () =>
-		new InternalServerError('Payment method creation failed', { code: 'PAYMENT_METHOD_CREATE_FAILED' }),
+		new InternalServerError('Payment method creation failed', {
+			code: 'PAYMENT_METHOD_CREATE_FAILED',
+		}),
 }
 
 export class PaymentMethodService {
@@ -58,7 +62,7 @@ export class PaymentMethodService {
 	async getGlobal(): Promise<dto.PaymentMethodDto[]> {
 		return record('PaymentMethodService.getGlobal', async () => {
 			return this.cache.getOrSet({
-				key: 'global',  // Custom key (not in default keys)
+				key: 'global', // Custom key (not in default keys)
 				factory: () => this.repo.getGlobal(),
 			})
 		})
@@ -111,6 +115,7 @@ export class PaymentMethodService {
 	async handleCreate(data: dto.PaymentMethodCreateDto, actorId: number): Promise<EntityRef> {
 		return record('PaymentMethodService.handleCreate', async () => {
 			await checkConflict({
+				db: this.repo.db,
 				table: paymentMethodsTable,
 				pkColumn: paymentMethodsTable.id,
 				fields: uniqueFields,
@@ -131,6 +136,7 @@ export class PaymentMethodService {
 			if (!existing) throw err.notFound(id)
 
 			await checkConflict({
+				db: this.repo.db,
 				table: paymentMethodsTable,
 				pkColumn: paymentMethodsTable.id,
 				fields: uniqueFields,

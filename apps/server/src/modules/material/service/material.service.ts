@@ -1,13 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/infra/cache'
-import { RelationMap } from '@/shared/utils'
-
 import { materialsTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField, type DbClient, type DbTx } from '@/infra/database'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
+import { RelationMap } from '@/shared/utils'
 
 import type { Material, MaterialType } from '../domain/material.entity'
 import type { IMaterialRepo, MaterialListFilter } from '../domain/ports'
@@ -16,7 +15,6 @@ import { MATERIAL_CACHE_NS } from '../material.constants'
 import { MasterErrors } from '../material.errors'
 import type { MaterialCategoryService } from './material-category.service'
 import type { MaterialConversionService } from './material-conversion.service'
-import type { EntityRef } from '@/shared/types/utils'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -138,6 +136,7 @@ export class MaterialService {
 			const { sku, name, conversions } = input
 
 			await checkConflict({
+				db: this.deps.db,
 				table: materialsTable,
 				pkColumn: materialsTable.id,
 				fields: UNIQUE_FIELDS,
@@ -183,6 +182,7 @@ export class MaterialService {
 			if (!existing) throw MasterErrors.notFound(id)
 
 			await checkConflict({
+				db: this.deps.db,
 				table: materialsTable,
 				pkColumn: materialsTable.id,
 				fields: UNIQUE_FIELDS,
@@ -243,6 +243,10 @@ export class MaterialService {
 	}
 
 	private async invalidateItemCache(id: number): Promise<void> {
-		await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, this.cache.keys.byId(id)])
+		await this.cache.deleteFromKeys([
+			this.cache.keys.list,
+			this.cache.keys.count,
+			this.cache.keys.byId(id),
+		])
 	}
 }

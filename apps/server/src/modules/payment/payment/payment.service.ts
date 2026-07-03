@@ -1,18 +1,18 @@
 // @ts-nocheck
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/infra/cache'
 import { RelationMap } from '@/core/utils/relation-map'
 
 import { paymentsTable } from '@/db/schema'
 
-import { checkConflict, type ConflictField} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
 import * as dto from './payment.contract'
 import { PaymentRepo } from './payment.repo'
-import type { EntityRef } from '@/shared/types/utils'
 
 const uniqueFields: ConflictField<any>[] = [
 	{
@@ -26,7 +26,8 @@ const uniqueFields: ConflictField<any>[] = [
 const err = {
 	notFound: (id: number) =>
 		new NotFoundError(`Payment with ID ${id} not found`, { code: 'PAYMENT_NOT_FOUND' }),
-	createFailed: () => new InternalServerError('Payment creation failed', { code: 'PAYMENT_CREATE_FAILED' }),
+	createFailed: () =>
+		new InternalServerError('Payment creation failed', { code: 'PAYMENT_CREATE_FAILED' }),
 }
 
 export class PaymentService {
@@ -101,6 +102,7 @@ export class PaymentService {
 	async handleCreate(data: dto.PaymentCreateDto, actorId: number): Promise<EntityRef> {
 		return record('PaymentService.handleCreate', async () => {
 			await checkConflict({
+				db: this.repo.db,
 				table: paymentsTable,
 				pkColumn: paymentsTable.id,
 				fields: uniqueFields,
@@ -121,6 +123,7 @@ export class PaymentService {
 			if (!existing) throw err.notFound(id)
 
 			await checkConflict({
+				db: this.repo.db,
 				table: paymentsTable,
 				pkColumn: paymentsTable.id,
 				fields: uniqueFields,

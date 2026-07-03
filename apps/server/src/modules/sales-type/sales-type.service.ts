@@ -5,17 +5,16 @@ import { salesTypesTable } from '@/db/schema'
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import type { SalesTypeRepo } from './sales-type.repo'
 import type {
 	SalesTypeCreateDto,
 	SalesTypeDto,
 	SalesTypeFilterDto,
 	SalesTypeUpdateDto,
 } from './sales-type.contract'
+import type { SalesTypeRepo } from './sales-type.repo'
 
 const uniqueFields: ConflictField<{ code: string }>[] = [
 	{
@@ -66,9 +65,7 @@ export class SalesTypeService {
 	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(filter: SalesTypeFilterDto): Promise<WithPaginationResult<SalesTypeDto>> {
-		return record('SalesTypeService.handleList', async () =>
-			this.repo.getListPaginated(filter),
-		)
+		return record('SalesTypeService.handleList', async () => this.repo.getListPaginated(filter))
 	}
 
 	async handleDetail(id: number): Promise<SalesTypeDto> {
@@ -86,6 +83,7 @@ export class SalesTypeService {
 			const input = { ...data, code, name }
 
 			await checkConflict({
+				db: this.repo.db,
 				table: salesTypesTable,
 				pkColumn: salesTypesTable.id,
 				fields: uniqueFields,
@@ -118,6 +116,7 @@ export class SalesTypeService {
 			const input = { ...data, code, name }
 
 			await checkConflict({
+				db: this.repo.db,
 				table: salesTypesTable,
 				pkColumn: salesTypesTable.id,
 				fields: uniqueFields,

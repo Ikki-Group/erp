@@ -1,13 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/infra/cache'
-import { RelationMap } from '@/shared/utils'
-
 import { materialCategoriesTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import { RelationMap } from '@/shared/utils'
 
 import type { MaterialCategory } from '../domain/material-category.entity'
 import type { CategoryFilter, IMaterialCategoryRepo } from '../domain/ports'
@@ -101,6 +99,7 @@ export class MaterialCategoryService {
 			const name = data.name.trim()
 
 			await checkConflict({
+				db: this.deps.repo.db,
 				table: materialCategoriesTable,
 				pkColumn: materialCategoriesTable.id,
 				fields: UNIQUE_FIELDS,
@@ -131,6 +130,7 @@ export class MaterialCategoryService {
 			const name = data.name ? data.name.trim() : existing.name
 
 			await checkConflict({
+				db: this.deps.repo.db,
 				table: materialCategoriesTable,
 				pkColumn: materialCategoriesTable.id,
 				fields: UNIQUE_FIELDS,
@@ -141,7 +141,11 @@ export class MaterialCategoryService {
 			const result = await this.deps.repo.update(id, { ...data, name, updatedBy: actorId })
 			if (!result) throw CategoryErrors.notFound(id)
 
-			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, this.cache.keys.byId(id)])
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
 			return result
 		})
 	}
@@ -154,7 +158,11 @@ export class MaterialCategoryService {
 			const result = await this.deps.repo.remove(id)
 			if (!result) throw CategoryErrors.notFound(id)
 
-			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, this.cache.keys.byId(id)])
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
 			return result
 		})
 	}

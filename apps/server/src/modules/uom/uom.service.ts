@@ -4,10 +4,9 @@ import { uomsTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
-import { RelationMap } from '@/shared/utils'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
+import { RelationMap } from '@/shared/utils'
 
 import type { UomDto, UomFilterDto, UomCreateDto, UomUpdateDto } from './uom.contract'
 import { UomError } from './uom.internal'
@@ -80,6 +79,7 @@ export class UomService {
 	async handleCreate(data: UomCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('UomService.handleCreate', async () => {
 			await checkConflict({
+				db: this.repo.db,
 				table: uomsTable,
 				pkColumn: uomsTable.id,
 				fields: uomConflictFields,
@@ -102,6 +102,7 @@ export class UomService {
 			if (!existing) throw UomError.notFound(id)
 
 			await checkConflict({
+				db: this.repo.db,
 				table: uomsTable,
 				pkColumn: uomsTable.id,
 				fields: uomConflictFields,

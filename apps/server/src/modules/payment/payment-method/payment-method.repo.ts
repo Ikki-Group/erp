@@ -3,18 +3,14 @@ import { and, count, eq } from 'drizzle-orm'
 
 import { paymentMethodsTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	takeFirst,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, searchFilter, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import * as dto from './payment-method.contract'
 
 export class PaymentMethodRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
