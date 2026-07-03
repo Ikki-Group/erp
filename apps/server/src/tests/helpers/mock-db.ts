@@ -32,9 +32,9 @@ export function createMockDb(): MockDbClient {
 		_mockReset: () => mockData.clear(),
 
 		// Mock query builder
-		select: (fields?: any) => ({
-			from: (table: any) => ({
-				where: (condition: any) => ({
+		select: (_fields?: any) => ({
+			from: (_table: any) => ({
+				where: (_condition: any) => ({
 					then: (resolve: Function) => resolve([]),
 				}),
 				then: (resolve: Function) => resolve([]),
@@ -42,7 +42,7 @@ export function createMockDb(): MockDbClient {
 		}),
 
 		// Mock insert
-		insert: (table: any) => ({
+		insert: (_table: any) => ({
 			values: (values: any) => ({
 				returning: () => ({
 					then: (resolve: Function) => resolve([{ id: 1, ...values }]),
@@ -52,9 +52,9 @@ export function createMockDb(): MockDbClient {
 		}),
 
 		// Mock update
-		update: (table: any) => ({
+		update: (_table: any) => ({
 			set: (values: any) => ({
-				where: (condition: any) => ({
+				where: (_condition: any) => ({
 					returning: () => ({
 						then: (resolve: Function) => resolve([{ id: 1, ...values }]),
 					}),
@@ -64,8 +64,8 @@ export function createMockDb(): MockDbClient {
 		}),
 
 		// Mock delete
-		delete: (table: any) => ({
-			where: (condition: any) => ({
+		delete: (_table: any) => ({
+			where: (_condition: any) => ({
 				returning: () => ({
 					then: (resolve: Function) => resolve([{ id: 1 }]),
 				}),
@@ -74,7 +74,7 @@ export function createMockDb(): MockDbClient {
 		}),
 
 		// Mock execute (for raw SQL)
-		execute: async (sql: any) => {
+		execute: async (_sql: any) => {
 			return { rows: [] }
 		},
 	} as unknown as MockDbClient
@@ -112,7 +112,13 @@ export function createMockCacheClient() {
 					keys.forEach((key) => store.delete(key))
 					return true
 				},
-				getOrSet: async ({ key, factory }: { key: string; factory: (ctx: any) => Promise<any> }) => {
+				getOrSet: async ({
+					key,
+					factory,
+				}: {
+					key: string
+					factory: (ctx: any) => Promise<any>
+				}) => {
 					if (store.has(key)) return store.get(key)
 					const ctx = { skip: () => undefined }
 					const value = await factory(ctx)
@@ -129,83 +135,5 @@ export function createMockCacheClient() {
 		},
 		_namespaces: namespaces, // For test inspection
 		_reset: () => namespaces.clear(),
-	}
-}
-
-/**
- * Create mock repository with common CRUD operations.
- *
- * Usage:
- * ```typescript
- * const mockRepo = createMockRepo<User>()
- * mockRepo.findById.mockResolvedValue({ id: 1, email: 'test@test.com' })
- * ```
- */
-export function createMockRepo<T extends { id: number }>() {
-	const store = new Map<number, T>()
-
-	return {
-		_store: store,
-		_reset: () => store.clear(),
-
-		findById: async (id: number): Promise<T | null> => {
-			return store.get(id) ?? null
-		},
-
-		findByIds: async (ids: number[]): Promise<T[]> => {
-			return ids.map((id) => store.get(id)).filter(Boolean) as T[]
-		},
-
-		findAll: async (): Promise<T[]> => {
-			return Array.from(store.values())
-		},
-
-		findPage: async (filter: any): Promise<any> => {
-			const data = Array.from(store.values())
-			return {
-				data,
-				meta: {
-					total: data.length,
-					page: filter.page ?? 1,
-					limit: filter.limit ?? 10,
-				},
-			}
-		},
-
-		create: async (data: Omit<T, 'id'>): Promise<T> => {
-			const id = store.size + 1
-			const record = { id, ...data } as T
-			store.set(id, record)
-			return record
-		},
-
-		insert: async (data: Omit<T, 'id'>): Promise<T> => {
-			const id = store.size + 1
-			const record = { id, ...data } as T
-			store.set(id, record)
-			return record
-		},
-
-		update: async (id: number, data: Partial<T>): Promise<T | null> => {
-			const existing = store.get(id)
-			if (!existing) return null
-			const updated = { ...existing, ...data }
-			store.set(id, updated)
-			return updated
-		},
-
-		delete: async (id: number): Promise<T | null> => {
-			const existing = store.get(id)
-			if (!existing) return null
-			store.delete(id)
-			return existing
-		},
-
-		remove: async (id: number): Promise<{ id: number }> => {
-			const existing = store.get(id)
-			if (!existing) return { id }
-			store.delete(id)
-			return { id }
-		},
 	}
 }
