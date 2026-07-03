@@ -1,7 +1,7 @@
-import { Redis } from 'ioredis'
 import { BentoCache, BentoStore, bentostore } from 'bentocache'
 import { memoryDriver } from 'bentocache/drivers/memory'
 import { redisBusDriver, redisDriver } from 'bentocache/drivers/redis'
+import { Redis } from 'ioredis'
 
 export type CacheClient = BentoCache<{
 	cache: BentoStore

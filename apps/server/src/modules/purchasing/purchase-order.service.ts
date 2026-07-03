@@ -1,11 +1,8 @@
 import { CacheService, type CacheClient } from '@/infra/cache'
-
-import type { WithPaginationResult } from '@/shared/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import { PurchaseOrderRepo } from './purchase-order.repo'
 import type {
 	PurchaseOrderDto,
 	PurchaseOrderFilterDto,
@@ -16,14 +13,17 @@ import type {
 	PurchaseOrderApproveDto,
 	PurchaseOrderRejectDto,
 } from './purchase-order.contract'
+import { PurchaseOrderRepo } from './purchase-order.repo'
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Purchase Order with ID ${id} not found`, { code: 'PURCHASE_ORDER_NOT_FOUND' }),
+		new NotFoundError(`Purchase Order with ID ${id} not found`, {
+			code: 'PURCHASE_ORDER_NOT_FOUND',
+		}),
 	invalidStatus: (currentStatus: string) =>
-		new InternalServerError(
-			`Cannot approve/reject PO with status ${currentStatus}`,
-			{ code: 'INVALID_PO_STATUS' }),
+		new InternalServerError(`Cannot approve/reject PO with status ${currentStatus}`, {
+			code: 'INVALID_PO_STATUS',
+		}),
 }
 
 export class PurchaseOrderService {

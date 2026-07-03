@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-import { zc, zp } from '@/shared/schema'
-
 import { payrollAdjustmentTypeEnum, payrollStatusEnum } from '@/db/schema'
+
+import { zc, zp } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

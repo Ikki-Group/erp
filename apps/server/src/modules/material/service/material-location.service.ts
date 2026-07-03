@@ -1,9 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import type { DbTx } from '@/infra/database'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { LocationModule } from '@/modules/location'

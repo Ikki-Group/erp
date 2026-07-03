@@ -4,20 +4,17 @@ import { and, count, eq } from 'drizzle-orm'
 
 import { locationPaymentMethodsTable, locationsTable, paymentMethodsTable } from '@/db/schema'
 
-import {
-	paginate,
-	sortBy,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, sortBy, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import { 
+import {
 	LocationPaymentMethodCreateDto,
 	LocationPaymentMethodDto,
 	LocationPaymentMethodFilterDto,
 	LocationPaymentMethodUpdateDto,
- } from './location-payment-method.contract'
+} from './location-payment-method.contract'
 
 export class LocationPaymentMethodRepo {
 	constructor(private readonly db: DbClient) {}
@@ -93,14 +90,14 @@ export class LocationPaymentMethodRepo {
 				.from(locationsTable)
 				.where(eq(locationsTable.id, data.locationId))
 			if (location.length === 0) {
-				throw new NotFoundError(
-					`Location with ID ${data.locationId} not found`,
-					{ code: 'LOCATION_NOT_FOUND' })
+				throw new NotFoundError(`Location with ID ${data.locationId} not found`, {
+					code: 'LOCATION_NOT_FOUND',
+				})
 			}
 			if (location[0].type !== 'store') {
-				throw new BadRequestError(
-					'Payment methods can only be configured for store locations',
-					{ code: 'INVALID_LOCATION_TYPE' })
+				throw new BadRequestError('Payment methods can only be configured for store locations', {
+					code: 'INVALID_LOCATION_TYPE',
+				})
 			}
 
 			// Validate payment method exists
@@ -109,9 +106,9 @@ export class LocationPaymentMethodRepo {
 				.from(paymentMethodsTable)
 				.where(eq(paymentMethodsTable.id, data.paymentMethodId))
 			if (paymentMethod.length === 0) {
-				throw new NotFoundError(
-					`Payment method with ID ${data.paymentMethodId} not found`,
-					{ code: 'PAYMENT_METHOD_NOT_FOUND' })
+				throw new NotFoundError(`Payment method with ID ${data.paymentMethodId} not found`, {
+					code: 'PAYMENT_METHOD_NOT_FOUND',
+				})
 			}
 
 			// If setting as default, unset other defaults for this location
@@ -137,9 +134,9 @@ export class LocationPaymentMethodRepo {
 				.returning({ id: locationPaymentMethodsTable.id })
 
 			if (!inserted)
-				throw new InternalServerError(
-					'Location payment method creation failed',
-					{ code: 'LOCATION_PAYMENT_METHOD_CREATE_FAILED' })
+				throw new InternalServerError('Location payment method creation failed', {
+					code: 'LOCATION_PAYMENT_METHOD_CREATE_FAILED',
+				})
 
 			return inserted
 		})
@@ -153,9 +150,9 @@ export class LocationPaymentMethodRepo {
 		return record('LocationPaymentMethodRepo.update', async () => {
 			const existing = await this.getById(id)
 			if (!existing)
-				throw new NotFoundError(
-					`Location payment method with ID ${id} not found`,
-					{ code: 'LOCATION_PAYMENT_METHOD_NOT_FOUND' })
+				throw new NotFoundError(`Location payment method with ID ${id} not found`, {
+					code: 'LOCATION_PAYMENT_METHOD_NOT_FOUND',
+				})
 
 			// If setting as default, unset other defaults for this location
 			if (data.isDefault === true && !existing.isDefault) {
@@ -189,9 +186,9 @@ export class LocationPaymentMethodRepo {
 		return record('LocationPaymentMethodRepo.delete', async () => {
 			const existing = await this.getById(id)
 			if (!existing)
-				throw new NotFoundError(
-					`Location payment method with ID ${id} not found`,
-					{ code: 'LOCATION_PAYMENT_METHOD_NOT_FOUND' })
+				throw new NotFoundError(`Location payment method with ID ${id} not found`, {
+					code: 'LOCATION_PAYMENT_METHOD_NOT_FOUND',
+				})
 
 			await this.db
 				.delete(locationPaymentMethodsTable)

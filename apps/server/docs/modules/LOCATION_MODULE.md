@@ -24,6 +24,7 @@
 ## 🎯 Review Checklist
 
 ### 1. Contract (`location.contract.ts`)
+
 - [x] DTO schemas use spread-shape (NOT `.extend()`)
 - [x] Proper validation rules (strTrim, min/max)
 - [x] Reusable mutation shape (LocationMutationDto)
@@ -32,6 +33,7 @@
 - [x] Enums properly defined (LocationTypeEnum)
 
 ### 2. Repository (`location.repo.ts`)
+
 - [x] All methods return `undefined` for not found (NOT throw)
 - [x] Batch operations use proper patterns (insertMany)
 - [x] Empty array guards not needed (single operations)
@@ -40,6 +42,7 @@
 - [x] No N+1 queries
 
 ### 3. Service (`location.service.ts`)
+
 - [x] Public methods use `handleX` naming
 - [x] Private methods have no prefix (create, update, remove)
 - [x] Conflict checks before CREATE/UPDATE (name, code)
@@ -51,6 +54,7 @@
 - [x] OpenTelemetry tracing (`record()`)
 
 ### 4. Routes (`location.route.ts`)
+
 - [x] Thin wrappers (delegate to service.handleX)
 - [x] Zod validation on body/query/params
 - [x] Proper HTTP methods (GET/POST/PUT/DELETE)
@@ -60,17 +64,20 @@
 - [x] Authorization checks not needed (simple CRUD)
 
 ### 5. Module (`location.module.ts`)
+
 - [x] Factory function pattern (createLocationModule)
 - [x] Dependency injection (db, cacheClient)
 - [x] Proper cleanup on shutdown (not needed - stateless)
 - [x] Cache client passed correctly
 
 ### 6. Internal (`location.internal.ts`)
+
 - [x] Custom error classes (LocationError)
 - [x] Error codes properly defined (LOCATION_NOT_FOUND, etc.)
 - [x] Error messages clear
 
 ### 7. Index (`index.ts`)
+
 - [x] Only public API exported (contract, module type)
 - [x] No internal exports leaked
 
@@ -79,26 +86,31 @@
 ## 🔍 Code Quality Checks
 
 ### Type Safety
+
 - [ ] No `any` types
 - [ ] Proper generic usage
 - [ ] Return types explicit
 
 ### Error Handling
+
 - [ ] All errors properly thrown
 - [ ] Error context included
 - [ ] No silent failures
 
 ### Performance
+
 - [ ] Batch operations where needed
 - [ ] Cache strategy correct
 - [ ] No obvious bottlenecks
 
 ### Documentation
+
 - [ ] JSDoc on public methods
 - [ ] Complex logic commented
 - [ ] TODOs tracked (if any)
 
 ### Testing
+
 - [ ] Unit tests exist
 - [ ] Integration tests exist
 - [ ] Edge cases covered
@@ -108,12 +120,15 @@
 ## 🐛 Issues Found
 
 ### Critical Issues
+
 - [ ] None
 
 ### Medium Issues
+
 - [ ] None
 
 ### Minor Issues
+
 - [ ] None
 
 ---
@@ -143,6 +158,7 @@
 ## 📝 Notes
 
 Location module characteristics:
+
 - **Zero dependencies** - Perfect first module
 - **Simple CRUD** - Create, Read, Update, Delete
 - **Master data** - Referenced by many modules
@@ -150,6 +166,7 @@ Location module characteristics:
 - **Key fields:** code, name, type, isActive
 
 Critical patterns to verify:
+
 1. Conflict checker on code/name (unique)
 2. Cache invalidation strategy
 3. Soft delete not used (isActive flag instead)

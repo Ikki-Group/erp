@@ -9,16 +9,16 @@
 
 ### Public Method Inventory
 
-| Module | Method | Pattern | Status | Action |
-|--------|--------|---------|--------|--------|
-| **iam/role** | `handleDetail` | ❌ Inconsistent | Non-standard | → `handleGetById` |
-| **iam/role** | `handleRemove` | ❌ Inconsistent | Non-standard | → `handleDelete` |
-| **iam/user** | `handleRemove` | ❌ Inconsistent | Non-standard | → `handleDelete` |
-| **iam/user** | `getListAll` | ⚠️ Non-standard | Public, no `handle` | → Make private or `handleGetAll` |
-| **iam/user** | `getRelationMap` | ⚠️ Non-standard | Public, no `handle` | → Make private or keep (helper) |
-| **location** | `handleDetail` | ❌ Inconsistent | Non-standard | → `handleGetById` |
-| **location** | `handleRemove` | ❌ Inconsistent | Non-standard | → `handleDelete` |
-| **location** | `getListAll` | ⚠️ Non-standard | Public, no `handle` | → Make private or `handleGetAll` |
+| Module       | Method           | Pattern         | Status              | Action                           |
+| ------------ | ---------------- | --------------- | ------------------- | -------------------------------- |
+| **iam/role** | `handleDetail`   | ❌ Inconsistent | Non-standard        | → `handleGetById`                |
+| **iam/role** | `handleRemove`   | ❌ Inconsistent | Non-standard        | → `handleDelete`                 |
+| **iam/user** | `handleRemove`   | ❌ Inconsistent | Non-standard        | → `handleDelete`                 |
+| **iam/user** | `getListAll`     | ⚠️ Non-standard | Public, no `handle` | → Make private or `handleGetAll` |
+| **iam/user** | `getRelationMap` | ⚠️ Non-standard | Public, no `handle` | → Make private or keep (helper)  |
+| **location** | `handleDetail`   | ❌ Inconsistent | Non-standard        | → `handleGetById`                |
+| **location** | `handleRemove`   | ❌ Inconsistent | Non-standard        | → `handleDelete`                 |
+| **location** | `getListAll`     | ⚠️ Non-standard | Public, no `handle` | → Make private or `handleGetAll` |
 
 ---
 
@@ -59,12 +59,14 @@ async getById(id): Promise<Dto | undefined>  // For internal use
 ### Change 1: `handleDetail` → `handleGetById`
 
 **Affected Files:**
+
 - `src/modules/iam/role/role.service.ts`
 - `src/modules/location/location.service.ts`
 
 **Occurrences:** 2
 
 **Pattern:**
+
 ```typescript
 // Before
 async handleDetail(id: number): Promise<RoleDto> {
@@ -90,6 +92,7 @@ async handleGetById(id: number): Promise<RoleDto> {
 ### Change 2: `handleRemove` → `handleDelete`
 
 **Affected Files:**
+
 - `src/modules/iam/role/role.service.ts`
 - `src/modules/iam/user/user.service.ts`
 - `src/modules/location/location.service.ts`
@@ -97,6 +100,7 @@ async handleGetById(id: number): Promise<RoleDto> {
 **Occurrences:** 3
 
 **Pattern:**
+
 ```typescript
 // Before
 async handleRemove(id: number): Promise<EntityRef> {
@@ -120,6 +124,7 @@ async handleDelete(id: number): Promise<EntityRef> {
 **All routes that call renamed methods must be updated:**
 
 **iam/role/role.route.ts:**
+
 ```typescript
 // Before
 .get('/:id', async ({ params }) => {
@@ -163,6 +168,7 @@ async getById(id): Promise<Dto | undefined>
 ```
 
 **Rationale:**
+
 - Only HTTP-facing methods need `handleX` prefix
 - Helper methods for service-to-service communication can use simpler names
 - Reduces verbosity for internal APIs
@@ -172,20 +178,24 @@ async getById(id): Promise<Dto | undefined>
 ## 🔄 Migration Strategy
 
 ### Step 1: Update Service Methods
+
 1. Rename `handleDetail` → `handleGetById` (2 files)
 2. Rename `handleRemove` → `handleDelete` (3 files)
 3. Update OTEL trace names in `record()` calls
 
 ### Step 2: Update Route Files
+
 1. Update `iam/role/role.route.ts` (2 call sites)
 2. Update `iam/user/user.route.ts` (1 call site)
 3. Update `location/location.route.ts` (2 call sites)
 
 ### Step 3: Update Tests (if any)
+
 1. Search for test files calling old methods
 2. Update test assertions
 
 ### Step 4: Verify
+
 1. Type check passes
 2. Lint passes
 3. Tests pass (if any)
@@ -195,14 +205,17 @@ async getById(id): Promise<Dto | undefined>
 ## 📊 Impact Analysis
 
 ### Breaking Changes
+
 **None** - These are internal method renames, not public API changes
 
 ### Files Affected
+
 - **Services:** 3 files (role, user, location)
 - **Routes:** 3 files (role, user, location)
 - **Total:** 6 files, ~10 call sites
 
 ### Risk Level
+
 **Low** - Compile-time safe (TypeScript will catch all usages)
 
 ---
@@ -210,6 +223,7 @@ async getById(id): Promise<Dto | undefined>
 ## ✅ Validation Checklist
 
 After changes:
+
 - [ ] All services use `handleGetById` (not `handleDetail`)
 - [ ] All services use `handleDelete` (not `handleRemove`)
 - [ ] All routes updated to call new method names

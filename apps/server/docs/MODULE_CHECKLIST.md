@@ -40,6 +40,7 @@ touch index.ts
 ```
 
 **Checklist:**
+
 - [ ] Create module directory
 - [ ] Create `{module}.module.ts`
 - [ ] Create `{module}.contract.ts`
@@ -70,6 +71,7 @@ touch {submodule-1}.service.ts
 ```
 
 **Checklist:**
+
 - [ ] Create module directory
 - [ ] Create `{module}.module.ts` (factory)
 - [ ] Create `{module}.route.ts` (aggregate routes)
@@ -104,16 +106,16 @@ touch {submodule-1}.service.ts
 import { pgTable, serial, varchar, timestamp, integer } from 'drizzle-orm/pg-core'
 
 export const locationsTable = pgTable('locations', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  code: varchar('code', { length: 50 }).notNull().unique(),
-  type: varchar('type', { length: 50 }).notNull(),
-  
-  // Audit fields
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  createdBy: integer('created_by').notNull(),
-  updatedBy: integer('updated_by').notNull(),
+	id: serial('id').primaryKey(),
+	name: varchar('name', { length: 255 }).notNull(),
+	code: varchar('code', { length: 50 }).notNull().unique(),
+	type: varchar('type', { length: 50 }).notNull(),
+
+	// Audit fields
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+	createdBy: integer('created_by').notNull(),
+	updatedBy: integer('updated_by').notNull(),
 })
 ```
 
@@ -193,21 +195,22 @@ export const locationsTable = pgTable('locations', {
 - [ ] Define constants (if needed)
 
 **Template:**
+
 ```ts
 import { NotFoundError, ConflictError } from '@/shared/errors/http-error'
 
 export const LocationError = {
-  notFound: (id: number) =>
-    new NotFoundError('Location not found', {
-      code: 'LOCATION_NOT_FOUND',
-      context: { id },
-    }),
-  
-  nameExists: (name: string) =>
-    new ConflictError('Location name already exists', {
-      code: 'LOCATION_NAME_ALREADY_EXISTS',
-      context: { name },
-    }),
+	notFound: (id: number) =>
+		new NotFoundError('Location not found', {
+			code: 'LOCATION_NOT_FOUND',
+			context: { id },
+		}),
+
+	nameExists: (name: string) =>
+		new ConflictError('Location name already exists', {
+			code: 'LOCATION_NAME_ALREADY_EXISTS',
+			context: { name },
+		}),
 }
 ```
 
@@ -250,6 +253,7 @@ export const LocationError = {
 - [ ] Do NOT export repo/service classes directly
 
 **Template:**
+
 ```ts
 export type { LocationModule } from './location.module'
 export { createLocationModule } from './location.module'
@@ -270,20 +274,21 @@ export type { LocationDto, LocationCreateDto, LocationUpdateDto } from './locati
 - [ ] Return in module object
 
 **Example:**
+
 ```ts
 // modules/_registry.ts
 import { createLocationModule, type LocationModule } from '@/modules/location'
 
 export interface Modules {
-  location: LocationModule
-  // ... other modules
+	location: LocationModule
+	// ... other modules
 }
 
 export function createModules(db: DbContext, cacheClient: CacheClient): Modules {
-  const location = createLocationModule(db, cacheClient)
-  const iam = createIamModule(db, cacheClient, { location })  // Pass as dep
-  
-  return { location, iam }
+	const location = createLocationModule(db, cacheClient)
+	const iam = createIamModule(db, cacheClient, { location }) // Pass as dep
+
+	return { location, iam }
 }
 ```
 
@@ -296,14 +301,14 @@ export function createModules(db: DbContext, cacheClient: CacheClient): Modules 
 - [ ] Add to route composition
 
 **Example:**
+
 ```ts
 // modules/_routes.ts
 import { locationRoutes } from '@/modules/location/location.route'
 
 export function registerRoutes(app: Elysia, modules: Modules) {
-  return app
-    .use((app) => locationRoutes(app, modules))
-    // ... other routes
+	return app.use((app) => locationRoutes(app, modules))
+	// ... other routes
 }
 ```
 
@@ -401,18 +406,18 @@ export function registerRoutes(app: Elysia, modules: Modules) {
 
 ## 📊 Quick Reference
 
-| Phase | Files | Key Actions |
-|-------|-------|-------------|
-| **Design** | - | Define entities, dependencies, business rules |
-| **Schema** | `db/schema/*.ts` | Create tables, run migration |
-| **Contract** | `*.contract.ts` | Define Zod schemas, export types |
-| **Repo** | `*.repo.ts` | Implement CRUD, return `null` for not found |
-| **Service** | `*.service.ts` | Business logic, cache, conflict checks |
-| **Factory** | `*.module.ts` | DI container, inject dependencies |
-| **Routes** | `*.route.ts` | HTTP endpoints, validate input |
-| **Integration** | `_registry.ts`, `_routes.ts` | Register module, register routes |
-| **Testing** | `*.test.ts`, `*.integration.test.ts` | Unit + integration tests |
-| **Verification** | - | Type check, lint, check deps |
+| Phase            | Files                                | Key Actions                                   |
+| ---------------- | ------------------------------------ | --------------------------------------------- |
+| **Design**       | -                                    | Define entities, dependencies, business rules |
+| **Schema**       | `db/schema/*.ts`                     | Create tables, run migration                  |
+| **Contract**     | `*.contract.ts`                      | Define Zod schemas, export types              |
+| **Repo**         | `*.repo.ts`                          | Implement CRUD, return `null` for not found   |
+| **Service**      | `*.service.ts`                       | Business logic, cache, conflict checks        |
+| **Factory**      | `*.module.ts`                        | DI container, inject dependencies             |
+| **Routes**       | `*.route.ts`                         | HTTP endpoints, validate input                |
+| **Integration**  | `_registry.ts`, `_routes.ts`         | Register module, register routes              |
+| **Testing**      | `*.test.ts`, `*.integration.test.ts` | Unit + integration tests                      |
+| **Verification** | -                                    | Type check, lint, check deps                  |
 
 ---
 

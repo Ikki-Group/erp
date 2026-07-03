@@ -1,4 +1,10 @@
-import { create as createAxios, type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig, type RawAxiosRequestHeaders } from 'axios'
+import {
+	create as createAxios,
+	type AxiosError,
+	type AxiosInstance,
+	type InternalAxiosRequestConfig,
+	type RawAxiosRequestHeaders,
+} from 'axios'
 
 import type { MokaLoginResponse } from '../scrap/scrap-raw.types'
 import type { Logger } from '@logtape/logtape'

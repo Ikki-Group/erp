@@ -1,9 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type * as dto from './stock-transfer.contract'
@@ -11,12 +9,13 @@ import { StockTransferRepo } from './stock-transfer.repo'
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Stock transfer with ID ${id} not found`, { code: 'STOCK_TRANSFER_NOT_FOUND' }),
+		new NotFoundError(`Stock transfer with ID ${id} not found`, {
+			code: 'STOCK_TRANSFER_NOT_FOUND',
+		}),
 	invalidStatus: (currentStatus: string) =>
-		new InternalServerError(
-			`Cannot approve/reject/cancel transfer with status ${currentStatus}`,
-			{ code: 'INVALID_TRANSFER_STATUS' },
-		),
+		new InternalServerError(`Cannot approve/reject/cancel transfer with status ${currentStatus}`, {
+			code: 'INVALID_TRANSFER_STATUS',
+		}),
 }
 
 export class StockTransferService {

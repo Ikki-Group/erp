@@ -3,13 +3,9 @@ import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
 import { salesInvoicesTable, salesInvoiceItemsTable, salesOrderItemsTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	takeFirst,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, searchFilter, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import * as dto from './sales-invoice.contract'
 

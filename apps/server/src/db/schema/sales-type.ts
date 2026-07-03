@@ -49,9 +49,7 @@ export const salesTypesTable = pgTable(
 	},
 	(t) => [
 		// Global sales types: code unique across all global rows
-		uniqueIndex('sales_types_global_code_idx')
-			.on(t.code)
-			.where(isNull(t.locationId)),
+		uniqueIndex('sales_types_global_code_idx').on(t.code).where(isNull(t.locationId)),
 
 		// Per-location sales types: code unique within a location
 		uniqueIndex('sales_types_location_code_idx')
@@ -59,9 +57,7 @@ export const salesTypesTable = pgTable(
 			.where(isNotNull(t.locationId)),
 
 		// Global sales types: name unique across all global rows
-		uniqueIndex('sales_types_global_name_idx')
-			.on(t.name)
-			.where(isNull(t.locationId)),
+		uniqueIndex('sales_types_global_name_idx').on(t.name).where(isNull(t.locationId)),
 
 		// Per-location sales types: name unique within a location
 		uniqueIndex('sales_types_location_name_idx')

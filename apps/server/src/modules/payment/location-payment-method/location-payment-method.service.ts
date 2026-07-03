@@ -2,9 +2,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type {
@@ -35,9 +33,9 @@ export class LocationPaymentMethodService {
 				factory: () => this.repo.getById(id),
 			})
 			if (!locationPaymentMethod)
-				throw new NotFoundError(
-					`Location payment method with ID ${id} not found`,
-					{ code: 'LOCATION_PAYMENT_METHOD_NOT_FOUND' })
+				throw new NotFoundError(`Location payment method with ID ${id} not found`, {
+					code: 'LOCATION_PAYMENT_METHOD_NOT_FOUND',
+				})
 			return locationPaymentMethod
 		})
 	}

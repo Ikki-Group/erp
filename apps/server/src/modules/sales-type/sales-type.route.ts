@@ -1,9 +1,9 @@
-import { zc, zq } from '@/shared/schema'
-import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { zc, zq } from '@/shared/schema'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 
 import {
 	SalesTypeDto,
@@ -51,7 +51,11 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 		.put(
 			'/update',
 			async function update(context) {
-				const { id } = await service.handleUpdate(context.body.id, context.body, context.auth.userId)
+				const { id } = await service.handleUpdate(
+					context.body.id,
+					context.body,
+					context.auth.userId,
+				)
 				return res.ok({ id })
 			},
 			{

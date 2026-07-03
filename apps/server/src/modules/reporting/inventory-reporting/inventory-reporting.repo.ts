@@ -1,6 +1,11 @@
 import { and, eq, gte, isNull, lte, or, sql } from 'drizzle-orm'
 
-import { materialLocationsTable, materialsTable, uomsTable, materialStockSnapshotsTable } from '@/db/schema'
+import {
+	materialLocationsTable,
+	materialsTable,
+	uomsTable,
+	materialStockSnapshotsTable,
+} from '@/db/schema'
 import {
 	stockTransactionsTable,
 	stockAdjustmentsTable,
@@ -10,7 +15,7 @@ import { locationsTable } from '@/db/schema/location'
 
 import type { DbClient } from '@/infra/database'
 
-import {  InventoryReportRequestDto  } from './inventory-reporting.contract'
+import { InventoryReportRequestDto } from './inventory-reporting.contract'
 
 export class InventoryReportingRepo {
 	constructor(private readonly db: DbClient) {}

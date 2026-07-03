@@ -2,9 +2,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
-
 import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
 
 import type {
@@ -64,9 +62,9 @@ export class HRService {
 		return record('HRService.handleClockIn', async () => {
 			const existing = await this.repo.findOpenAttendance(data.employeeId)
 			if (existing)
-				throw new ConflictError(
-					`Employee with ID ${data.employeeId} is already clocked in`,
-					{ code: 'ALREADY_CLOCKED_IN' })
+				throw new ConflictError(`Employee with ID ${data.employeeId} is already clocked in`, {
+					code: 'ALREADY_CLOCKED_IN',
+				})
 
 			const result = await this.repo.clockIn(data, actorId)
 			await this.cache.deleteMany({ keys: ['list', 'count'] })
@@ -78,14 +76,18 @@ export class HRService {
 		return record('HRService.handleClockOut', async () => {
 			const attendance = await this.repo.getAttendanceById(data.id)
 			if (!attendance)
-				throw new NotFoundError(`Attendance with ID ${data.id} not found`, { code: 'ATTENDANCE_NOT_FOUND' })
+				throw new NotFoundError(`Attendance with ID ${data.id} not found`, {
+					code: 'ATTENDANCE_NOT_FOUND',
+				})
 
 			if (!attendance.clockIn)
-				throw new ConflictError(`Attendance with ID ${data.id} is not clocked in`, { code: 'NOT_CLOCKED_IN' })
+				throw new ConflictError(`Attendance with ID ${data.id} is not clocked in`, {
+					code: 'NOT_CLOCKED_IN',
+				})
 			if (attendance.clockOut)
-				throw new ConflictError(
-					`Attendance with ID ${data.id} is already clocked out`,
-					{ code: 'ALREADY_CLOCKED_OUT' })
+				throw new ConflictError(`Attendance with ID ${data.id} is already clocked out`, {
+					code: 'ALREADY_CLOCKED_OUT',
+				})
 
 			const result = await this.repo.clockOut(
 				data.id,

@@ -6,7 +6,7 @@ import { accountsTable } from '@/db/schema/finance'
 import { paginate, sortBy, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import {  AccountCreateDto, AccountFilterDto, AccountUpdateDto  } from './account.contract'
+import { AccountCreateDto, AccountFilterDto, AccountUpdateDto } from './account.contract'
 
 export class AccountRepo {
 	constructor(private readonly db: DbClient) {}
@@ -32,7 +32,8 @@ export class AccountRepo {
 				q
 					? or(ilike(accountsTable.name, `%${q}%`), ilike(accountsTable.code, `%${q}%`))
 					: undefined,
-				isNull(accountsTable.deletedAt), type ? eq(accountsTable.type, type) : undefined,
+				isNull(accountsTable.deletedAt),
+				type ? eq(accountsTable.type, type) : undefined,
 				parentId !== undefined ? eq(accountsTable.parentId, parentId) : undefined,
 			)
 

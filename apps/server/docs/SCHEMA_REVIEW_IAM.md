@@ -12,20 +12,20 @@
 
 ```typescript
 export const rolesTable = pgTable(
-  'roles',
-  {
-    ...pk,
-    code: text('code').notNull(),
-    name: text('name').notNull(),
-    description: text('description'),
-    permissions: text('permissions')
-      .array()
-      .notNull()
-      .default(sql`'{}'::text[]`),
-    isSystem: boolean('is_built_in').notNull().default(false),
-    ...auditBasicColumns,
-  },
-  (t) => [uniqueIndex('roles_code_idx').on(t.code)],
+	'roles',
+	{
+		...pk,
+		code: text('code').notNull(),
+		name: text('name').notNull(),
+		description: text('description'),
+		permissions: text('permissions')
+			.array()
+			.notNull()
+			.default(sql`'{}'::text[]`),
+		isSystem: boolean('is_built_in').notNull().default(false),
+		...auditBasicColumns,
+	},
+	(t) => [uniqueIndex('roles_code_idx').on(t.code)],
 )
 ```
 
@@ -33,27 +33,28 @@ export const rolesTable = pgTable(
 
 ```typescript
 export const usersTable = pgTable(
-  'users',
-  {
-    ...pk,
-    email: text('email').notNull(),
-    username: text('username').notNull(),
-    fullname: text('fullname').notNull(),
-    pinCode: text('pin_code'),
-    passwordHash: text('password_hash'),
-    isRoot: boolean('is_root').notNull().default(false),
-    isSystem: boolean('is_built_in').notNull().default(false),
-    isActive: boolean('is_active').notNull().default(true),
-    defaultLocationId: integer('default_location_id')
-      .references(() => locationsTable.id, { onDelete: 'set null' }),
-    lastLoginAt: timestamp('last_login_at', { mode: 'date', withTimezone: true }),
-    ...auditBasicColumns,
-  },
-  (t) => [
-    uniqueIndex('users_email_idx').on(t.email),
-    uniqueIndex('users_username_idx').on(t.username),
-    index('users_default_location_idx').on(t.defaultLocationId),
-  ],
+	'users',
+	{
+		...pk,
+		email: text('email').notNull(),
+		username: text('username').notNull(),
+		fullname: text('fullname').notNull(),
+		pinCode: text('pin_code'),
+		passwordHash: text('password_hash'),
+		isRoot: boolean('is_root').notNull().default(false),
+		isSystem: boolean('is_built_in').notNull().default(false),
+		isActive: boolean('is_active').notNull().default(true),
+		defaultLocationId: integer('default_location_id').references(() => locationsTable.id, {
+			onDelete: 'set null',
+		}),
+		lastLoginAt: timestamp('last_login_at', { mode: 'date', withTimezone: true }),
+		...auditBasicColumns,
+	},
+	(t) => [
+		uniqueIndex('users_email_idx').on(t.email),
+		uniqueIndex('users_username_idx').on(t.username),
+		index('users_default_location_idx').on(t.defaultLocationId),
+	],
 )
 ```
 
@@ -61,30 +62,27 @@ export const usersTable = pgTable(
 
 ```typescript
 export const userAssignmentsTable = pgTable(
-  'user_assignments',
-  {
-    ...pk,
-    userId: integer('user_id')
-      .notNull()
-      .references(() => usersTable.id, { onDelete: 'cascade' }),
-    roleId: integer('role_id')
-      .notNull()
-      .references(() => rolesTable.id, { onDelete: 'restrict' }),
-    locationId: integer('location_id')
-      .notNull()
-      .references(() => locationsTable.id, { onDelete: 'restrict' }),
-    addedAt: timestamp('added_at', { mode: 'date', withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    addedBy: integer('added_by')
-      .references(() => usersTable.id, { onDelete: 'set null' }),
-  },
-  (t) => [
-    index('user_assignments_user_idx').on(t.userId),
-    index('user_assignments_role_idx').on(t.roleId),
-    index('user_assignments_location_idx').on(t.locationId),
-    uniqueIndex('user_assignments_user_location_idx').on(t.userId, t.locationId),
-  ],
+	'user_assignments',
+	{
+		...pk,
+		userId: integer('user_id')
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		roleId: integer('role_id')
+			.notNull()
+			.references(() => rolesTable.id, { onDelete: 'restrict' }),
+		locationId: integer('location_id')
+			.notNull()
+			.references(() => locationsTable.id, { onDelete: 'restrict' }),
+		addedAt: timestamp('added_at', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		addedBy: integer('added_by').references(() => usersTable.id, { onDelete: 'set null' }),
+	},
+	(t) => [
+		index('user_assignments_user_idx').on(t.userId),
+		index('user_assignments_role_idx').on(t.roleId),
+		index('user_assignments_location_idx').on(t.locationId),
+		uniqueIndex('user_assignments_user_location_idx').on(t.userId, t.locationId),
+	],
 )
 ```
 
@@ -93,6 +91,7 @@ export const userAssignmentsTable = pgTable(
 ## ✅ Strengths
 
 ### 1. **Excellent Documentation** ⭐⭐⭐⭐⭐
+
 ```typescript
 /**
  * Roles Table
@@ -115,11 +114,13 @@ export const userAssignmentsTable = pgTable(
 ### 2. **LBAC (Location-Based Access Control) Design** ⭐⭐⭐⭐⭐
 
 **Core Concept:**
+
 - Users granted roles **per location**
 - One role per user per location
 - Root users have implicit superadmin access everywhere
 
 **Well Designed:**
+
 ```typescript
 // Natural key: userId + locationId
 uniqueIndex('user_assignments_user_location_idx').on(t.userId, t.locationId)
@@ -133,16 +134,13 @@ uniqueIndex('user_assignments_user_location_idx').on(t.userId, t.locationId)
 
 ```typescript
 // Users deleted → assignments deleted
-userId: integer('user_id')
-  .references(() => usersTable.id, { onDelete: 'cascade' })
+userId: integer('user_id').references(() => usersTable.id, { onDelete: 'cascade' })
 
 // Role deleted → prevent if in use
-roleId: integer('role_id')
-  .references(() => rolesTable.id, { onDelete: 'restrict' })
+roleId: integer('role_id').references(() => rolesTable.id, { onDelete: 'restrict' })
 
 // Location deleted → prevent if has assignments
-locationId: integer('location_id')
-  .references(() => locationsTable.id, { onDelete: 'restrict' })
+locationId: integer('location_id').references(() => locationsTable.id, { onDelete: 'restrict' })
 ```
 
 **✅ Perfect:** Protects data integrity while allowing cleanup
@@ -153,8 +151,7 @@ locationId: integer('location_id')
 
 ```typescript
 // Who added this assignment
-addedBy: integer('added_by')
-  .references(() => usersTable.id, { onDelete: 'set null' })
+addedBy: integer('added_by').references(() => usersTable.id, { onDelete: 'set null' })
 ```
 
 **✅ Good:** Tracks assignment creator without blocking user deletion
@@ -179,21 +176,24 @@ index('user_assignments_location_idx').on(t.locationId), // Get location users
 ### **CRITICAL: Field Name Mismatch** 🔴
 
 **Problem:**
+
 ```typescript
 // Schema uses:
-isSystem: boolean('is_built_in')  // ❌ Column name: is_built_in
+isSystem: boolean('is_built_in') // ❌ Column name: is_built_in
 
 // Contract uses:
-isSystem: zp.bool  // ✅ Field name: isSystem
+isSystem: zp.bool // ✅ Field name: isSystem
 ```
 
 **Impact:**
+
 - Code uses `isSystem` but DB column is `is_built_in`
 - **THIS IS THE SCHEMA BLOCKER** we identified earlier!
 - Causes test failures
 - Migration drift
 
 **Affected Tables:**
+
 - `rolesTable.isSystem` → column `is_built_in`
 - `usersTable.isSystem` → column `is_built_in`
 
@@ -202,31 +202,37 @@ isSystem: zp.bool  // ✅ Field name: isSystem
 **Solution:**
 
 #### Option A: Rename DB Column (Recommended)
+
 ```typescript
 // Change schema to match code
 isSystem: boolean('is_system').notNull().default(false)
 ```
 
 **Pros:**
+
 - ✅ Consistent naming (camelCase → snake_case)
 - ✅ Matches contract expectations
 - ✅ Fixes test failures
 
 **Cons:**
+
 - Requires migration (simple ALTER COLUMN)
 
 ---
 
 #### Option B: Change Code to Match DB
+
 ```typescript
 // Change contract to match DB
-isBuiltIn: zp.bool  // Rename everywhere in code
+isBuiltIn: zp.bool // Rename everywhere in code
 ```
 
 **Pros:**
+
 - No migration needed
 
 **Cons:**
+
 - ❌ More code changes
 - ❌ Breaking change in API
 - ❌ `isBuiltIn` less clear than `isSystem`
@@ -234,6 +240,7 @@ isBuiltIn: zp.bool  // Rename everywhere in code
 ---
 
 **Recommendation:** **Option A** (Rename DB column to `is_system`)
+
 - Clearer naming (`isSystem` > `isBuiltIn`)
 - Matches modern convention
 - Aligns with contract layer
@@ -243,6 +250,7 @@ isBuiltIn: zp.bool  // Rename everywhere in code
 ### **MINOR: Missing Index on Active Users** 🟡
 
 **Common Query Pattern:**
+
 ```sql
 -- Get active users
 SELECT * FROM users WHERE is_active = TRUE;
@@ -256,25 +264,29 @@ WHERE u.is_active = TRUE AND ua.location_id = ?;
 **Current:** No index on `is_active`
 
 **Recommendation:**
+
 ```typescript
 index('users_active_idx').on(t.isActive),
 ```
 
 **Benefit:**
+
 - Faster "list active users" queries
 - Small overhead (boolean, low cardinality)
 
 **Trade-off:**
+
 - Boolean indexes can be inefficient (2 values only)
 - Partial index might be better: `WHERE is_active = TRUE`
 
 **Better Solution (if needed):**
+
 ```typescript
 import { eq } from 'drizzle-orm'
 
 index('users_active_idx')
-  .on(t.id)  // or relevant columns
-  .where(eq(t.isActive, true))
+	.on(t.id) // or relevant columns
+	.where(eq(t.isActive, true))
 ```
 
 ---
@@ -282,14 +294,16 @@ index('users_active_idx')
 ### **MINOR: No Validation on Permissions Array** 🟡
 
 **Current:**
+
 ```typescript
 permissions: text('permissions')
-  .array()
-  .notNull()
-  .default(sql`'{}'::text[]`)
+	.array()
+	.notNull()
+	.default(sql`'{}'::text[]`)
 ```
 
 **Issue:**
+
 - No format validation at DB level
 - Can store invalid permission strings
 - Example: `["iam.user.read", "invalid_garbage"]`
@@ -297,10 +311,12 @@ permissions: text('permissions')
 **Solutions:**
 
 #### Option A: Check Constraint (DB-level)
+
 ```typescript
 // Add in table definition:
-check('roles_permissions_format_chk',
-  sql`permissions <@ ARRAY['iam.user.read', 'iam.user.write', ...]::text[]`
+check(
+	'roles_permissions_format_chk',
+	sql`permissions <@ ARRAY['iam.user.read', 'iam.user.write', ...]::text[]`,
 )
 ```
 
@@ -310,27 +326,30 @@ check('roles_permissions_format_chk',
 ---
 
 #### Option B: Application-Level Validation (Recommended)
+
 ```typescript
 // role.contract.ts
 const PermissionEnum = z.enum([
-  'iam.user.read',
-  'iam.user.write',
-  'iam.role.read',
-  // ... etc
+	'iam.user.read',
+	'iam.user.write',
+	'iam.role.read',
+	// ... etc
 ])
 
 export const RoleCreateDto = z.object({
-  permissions: z.array(PermissionEnum).default([])
+	permissions: z.array(PermissionEnum).default([]),
 })
 ```
 
 **Pros:**
+
 - ✅ Easy to maintain
 - ✅ Type-safe
 - ✅ Clear error messages
 - ✅ Flexible (add permissions without migration)
 
 **Cons:**
+
 - No DB-level enforcement (rely on application)
 
 **Recommendation:** **Option B** (Application-level)
@@ -340,6 +359,7 @@ export const RoleCreateDto = z.object({
 ### **MINOR: Missing Composite Index for Common Query** 🟡
 
 **Common Query Pattern:**
+
 ```sql
 -- Get user's assignments at specific location
 SELECT * FROM user_assignments
@@ -347,6 +367,7 @@ WHERE user_id = ? AND location_id = ?;
 ```
 
 **Current Index:**
+
 ```typescript
 uniqueIndex('user_assignments_user_location_idx').on(t.userId, t.locationId)
 ```
@@ -358,6 +379,7 @@ uniqueIndex('user_assignments_user_location_idx').on(t.userId, t.locationId)
 ### **DESIGN: lastLoginAt on Users Table** 🟡
 
 **Current:**
+
 ```typescript
 lastLoginAt: timestamp('last_login_at', { mode: 'date', withTimezone: true })
 ```
@@ -370,12 +392,13 @@ lastLoginAt: timestamp('last_login_at', { mode: 'date', withTimezone: true })
 
 **Trade-offs:**
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **In users (current)** | Quick access, simple | Write contention on login, not session-specific |
-| **In sessions** | Per-session tracking, no contention | Need JOIN to get last login |
+| Approach               | Pros                                | Cons                                            |
+| ---------------------- | ----------------------------------- | ----------------------------------------------- |
+| **In users (current)** | Quick access, simple                | Write contention on login, not session-specific |
+| **In sessions**        | Per-session tracking, no contention | Need JOIN to get last login                     |
 
 **Recommendation:** **Keep in users table**
+
 - Common use case: "when did user last login?"
 - Acceptable write contention (login is not high-frequency)
 - Simpler queries
@@ -384,15 +407,15 @@ lastLoginAt: timestamp('last_login_at', { mode: 'date', withTimezone: true })
 
 ## 📝 Summary
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| **Documentation** | ⭐⭐⭐⭐⭐ | Excellent business rules |
-| **LBAC Design** | ⭐⭐⭐⭐⭐ | Perfect implementation |
-| **Foreign Keys** | ⭐⭐⭐⭐⭐ | Correct cascades |
-| **Indexing** | ⭐⭐⭐⭐ | Good, minor optimization possible |
-| **Naming** | ⭐⭐⭐ | **CRITICAL: is_built_in vs isSystem** |
-| **Constraints** | ⭐⭐⭐⭐ | Good, validation in app layer |
-| **Overall** | ⭐⭐⭐⭐ | Excellent design, one critical naming issue |
+| Category          | Rating     | Notes                                       |
+| ----------------- | ---------- | ------------------------------------------- |
+| **Documentation** | ⭐⭐⭐⭐⭐ | Excellent business rules                    |
+| **LBAC Design**   | ⭐⭐⭐⭐⭐ | Perfect implementation                      |
+| **Foreign Keys**  | ⭐⭐⭐⭐⭐ | Correct cascades                            |
+| **Indexing**      | ⭐⭐⭐⭐   | Good, minor optimization possible           |
+| **Naming**        | ⭐⭐⭐     | **CRITICAL: is_built_in vs isSystem**       |
+| **Constraints**   | ⭐⭐⭐⭐   | Good, validation in app layer               |
+| **Overall**       | ⭐⭐⭐⭐   | Excellent design, one critical naming issue |
 
 ---
 
@@ -403,11 +426,13 @@ lastLoginAt: timestamp('last_login_at', { mode: 'date', withTimezone: true })
 **Action:** Rename DB columns from `is_built_in` to `is_system`
 
 **Files to Change:**
+
 1. `iam.ts` schema file
+
    ```typescript
    // roles table
    isSystem: boolean('is_system').notNull().default(false)
-   
+
    // users table
    isSystem: boolean('is_system').notNull().default(false)
    ```

@@ -10,27 +10,24 @@
 
 ```typescript
 export const sessionsTable = pgTable(
-  'sessions',
-  {
-    ...pk,
-    userId: integer('user_id')
-      .notNull()
-      .references(() => usersTable.id, { onDelete: 'cascade' }),
+	'sessions',
+	{
+		...pk,
+		userId: integer('user_id')
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
 
-    ipAddress: text('ip_address'),
-    userAgent: text('user_agent'),
+		ipAddress: text('ip_address'),
+		userAgent: text('user_agent'),
 
-    revokedAt: timestamp('revoked_at', { mode: 'date', withTimezone: true }),
-    createdAt: timestamp('created_at', { mode: 'date', withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    expiredAt: timestamp('expired_at', { mode: 'date', withTimezone: true })
-      .notNull(),
-  },
-  (t) => [
-    index('sessions_expired_at_idx').on(t.expiredAt),
-    index('sessions_user_revoked_idx').on(t.userId, t.revokedAt),
-  ],
+		revokedAt: timestamp('revoked_at', { mode: 'date', withTimezone: true }),
+		createdAt: timestamp('created_at', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		expiredAt: timestamp('expired_at', { mode: 'date', withTimezone: true }).notNull(),
+	},
+	(t) => [
+		index('sessions_expired_at_idx').on(t.expiredAt),
+		index('sessions_user_revoked_idx').on(t.userId, t.revokedAt),
+	],
 )
 ```
 
@@ -74,8 +71,7 @@ export const sessionsTable = pgTable(
 ### 2. **Proper Cascade Behavior** ⭐⭐⭐⭐⭐
 
 ```typescript
-userId: integer('user_id')
-  .references(() => usersTable.id, { onDelete: 'cascade' })
+userId: integer('user_id').references(() => usersTable.id, { onDelete: 'cascade' })
 ```
 
 **✅ Perfect:** User deleted → sessions auto-deleted
@@ -121,6 +117,7 @@ index('sessions_user_revoked_idx').on(t.userId, t.revokedAt),
 ### **CRITICAL: Missing locationId Column** 🔴
 
 **Documentation Says:**
+
 ```typescript
 /**
  * `locationId` — the location context this session is active in.
@@ -130,11 +127,13 @@ index('sessions_user_revoked_idx').on(t.userId, t.revokedAt),
 ```
 
 **But Schema Has:**
+
 ```typescript
 // ❌ NO locationId column defined!
 ```
 
 **Impact:**
+
 - **LBAC broken** - Can't resolve permissions per location
 - Documentation describes feature that doesn't exist
 - Business logic expects locationId but schema missing
@@ -145,38 +144,40 @@ index('sessions_user_revoked_idx').on(t.userId, t.revokedAt),
 
 ```typescript
 export const sessionsTable = pgTable(
-  'sessions',
-  {
-    ...pk,
-    userId: integer('user_id')
-      .notNull()
-      .references(() => usersTable.id, { onDelete: 'cascade' }),
-    
-    // ✅ ADD THIS:
-    locationId: integer('location_id')
-      .notNull()
-      .references(() => locationsTable.id, { onDelete: 'restrict' }),
+	'sessions',
+	{
+		...pk,
+		userId: integer('user_id')
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
 
-    ipAddress: text('ip_address'),
-    userAgent: text('user_agent'),
-    // ...
-  },
-  (t) => [
-    index('sessions_expired_at_idx').on(t.expiredAt),
-    index('sessions_user_revoked_idx').on(t.userId, t.revokedAt),
-    
-    // ✅ ADD INDEX:
-    index('sessions_location_idx').on(t.locationId),
-  ],
+		// ✅ ADD THIS:
+		locationId: integer('location_id')
+			.notNull()
+			.references(() => locationsTable.id, { onDelete: 'restrict' }),
+
+		ipAddress: text('ip_address'),
+		userAgent: text('user_agent'),
+		// ...
+	},
+	(t) => [
+		index('sessions_expired_at_idx').on(t.expiredAt),
+		index('sessions_user_revoked_idx').on(t.userId, t.revokedAt),
+
+		// ✅ ADD INDEX:
+		index('sessions_location_idx').on(t.locationId),
+	],
 )
 ```
 
 **Why `notNull`:**
+
 - LBAC requires location context for every session
 - Permission checks need (user, location) pair
 - No valid use case for session without location
 
 **Why `onDelete: 'restrict'`:**
+
 - Matches documentation: "retiring a location must clear its sessions first"
 - Prevents orphaned sessions
 - Forces explicit cleanup
@@ -186,11 +187,12 @@ export const sessionsTable = pgTable(
 ### **MINOR: Missing Composite Index for Common Query** 🟡
 
 **Common Query Pattern:**
+
 ```sql
 -- Get user's active sessions
 SELECT * FROM sessions
-WHERE user_id = ? 
-  AND revoked_at IS NULL 
+WHERE user_id = ?
+  AND revoked_at IS NULL
   AND expired_at > NOW();
 
 -- Cleanup expired sessions
@@ -199,6 +201,7 @@ WHERE expired_at < NOW();
 ```
 
 **Current Indexes:**
+
 ```typescript
 index('sessions_expired_at_idx').on(t.expiredAt),
 index('sessions_user_revoked_idx').on(t.userId, t.revokedAt),
@@ -211,14 +214,17 @@ index('sessions_user_revoked_idx').on(t.userId, t.revokedAt),
 ### **MINOR: userAgent Field Size Limit** 🟡
 
 **Documentation Says:**
+
 > "raw UA string at session creation. Truncated to 512 chars"
 
 **But Schema Has:**
+
 ```typescript
 userAgent: text('user_agent'),  // No size limit!
 ```
 
 **Issue:**
+
 - `text` type = unlimited storage
 - Malicious client could send huge UA string
 - Documentation claims truncation but schema doesn't enforce
@@ -226,6 +232,7 @@ userAgent: text('user_agent'),  // No size limit!
 **Solutions:**
 
 #### Option A: Database Constraint
+
 ```typescript
 userAgent: varchar('user_agent', { length: 512 })
 ```
@@ -236,6 +243,7 @@ userAgent: varchar('user_agent', { length: 512 })
 ---
 
 #### Option B: Application-Level (Current)
+
 ```typescript
 // In service layer
 userAgent: text('user_agent')
@@ -250,6 +258,7 @@ userAgent: z.string().max(512)
 ---
 
 **Recommendation:** **Option A** (varchar constraint)
+
 - Prevents malicious payloads at DB level
 - Matches documentation
 - 512 chars is sufficient for any real UA
@@ -259,6 +268,7 @@ userAgent: z.string().max(512)
 ### **DESIGN: Session Expiry Strategy** 🟢
 
 **Current Schema:**
+
 ```typescript
 expiredAt: timestamp('expired_at').notNull()
 ```
@@ -277,21 +287,24 @@ expiredAt: timestamp('expired_at').notNull()
 **Recommendations:**
 
 #### For Fixed Expiry (Simple)
+
 ```typescript
 // Set at creation:
 expiredAt = createdAt + 24h
 ```
 
 **Cleanup Job:**
+
 ```sql
 -- Delete sessions expired >30 days ago
-DELETE FROM sessions 
+DELETE FROM sessions
 WHERE expired_at < NOW() - INTERVAL '30 days';
 ```
 
 ---
 
 #### For Sliding Window (Complex)
+
 ```typescript
 // Add lastActivityAt column
 lastActivityAt: timestamp('last_activity_at')
@@ -299,8 +312,8 @@ lastActivityAt: timestamp('last_activity_at')
   .defaultNow()
 
 // Update on each request
-UPDATE sessions 
-SET last_activity_at = NOW() 
+UPDATE sessions
+SET last_activity_at = NOW()
 WHERE id = ?;
 
 // Expire if inactive >30min
@@ -319,22 +332,26 @@ WHERE last_activity_at < NOW() - INTERVAL '30 minutes';
 ### **DESIGN: Revocation Pattern** ⭐⭐⭐⭐⭐
 
 **Current:**
+
 ```typescript
-revokedAt: timestamp('revoked_at')  // Soft revoke
+revokedAt: timestamp('revoked_at') // Soft revoke
 ```
 
 **✅ Excellent pattern:**
+
 - Preserves audit trail
 - Can analyze revocation patterns
 - "Unrevoke" is possible (set to null)
 
 **Alternative (not recommended):**
+
 ```typescript
 // Hard delete on revoke
 DELETE FROM sessions WHERE id = ?;
 ```
 
 **Why soft revoke is better:**
+
 - Security audit ("when was this session revoked?")
 - Forensics (suspicious activity analysis)
 - Rollback capability
@@ -343,14 +360,14 @@ DELETE FROM sessions WHERE id = ?;
 
 ## 📝 Summary
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| **Documentation** | ⭐⭐⭐⭐⭐ | Excellent security & LBAC notes |
-| **Security Fields** | ⭐⭐⭐⭐⭐ | IP, UA, revocation complete |
-| **Performance** | ⭐⭐⭐⭐ | Good indexes for cleanup |
-| **Design** | ⭐⭐⭐⭐⭐ | High-churn optimization |
-| **Completeness** | ⭐⭐ | **CRITICAL: Missing locationId!** |
-| **Overall** | ⭐⭐⭐ | Excellent design, one critical field missing |
+| Category            | Rating     | Notes                                        |
+| ------------------- | ---------- | -------------------------------------------- |
+| **Documentation**   | ⭐⭐⭐⭐⭐ | Excellent security & LBAC notes              |
+| **Security Fields** | ⭐⭐⭐⭐⭐ | IP, UA, revocation complete                  |
+| **Performance**     | ⭐⭐⭐⭐   | Good indexes for cleanup                     |
+| **Design**          | ⭐⭐⭐⭐⭐ | High-churn optimization                      |
+| **Completeness**    | ⭐⭐       | **CRITICAL: Missing locationId!**            |
+| **Overall**         | ⭐⭐⭐     | Excellent design, one critical field missing |
 
 ---
 
@@ -392,6 +409,7 @@ userAgent: varchar('user_agent', { length: 512 })
 **Action:** Document expiry and cleanup approach
 
 **Questions to answer:**
+
 1. When to delete expired sessions? (immediately, 30d retention, never?)
 2. Background job needed? (cron, pg_cron, application?)
 3. Audit requirements? (security team needs retention?)
@@ -415,13 +433,16 @@ userAgent: varchar('user_agent', { length: 512 })
 ## 🔗 LBAC Design Context
 
 **From IAM Schema Review:**
+
 > "Users are granted roles **per location**. Permission checks resolve against (user, location) pair."
 
 **Session Must Include:**
+
 - `userId` - WHO is authenticated ✅
 - `locationId` - WHERE they are authenticated ❌ **MISSING!**
 
 **Without locationId:**
+
 - Can't determine user's permissions at current location
 - LBAC system incomplete
 - Security boundary unclear
@@ -431,6 +452,7 @@ userAgent: varchar('user_agent', { length: 512 })
 ## 🎯 Example Use Case
 
 **Login Flow (Expected):**
+
 ```typescript
 // User logs in to specific location
 POST /auth/login
@@ -451,12 +473,13 @@ const session = await sessionRepo.create({
 ```
 
 **Permission Check:**
+
 ```typescript
 // Check if user can read products at current location
 const canRead = await authz.check({
-  userId: session.userId,
-  locationId: session.locationId,  // ❌ Currently undefined!
-  permission: 'product.read'
+	userId: session.userId,
+	locationId: session.locationId, // ❌ Currently undefined!
+	permission: 'product.read',
 })
 ```
 

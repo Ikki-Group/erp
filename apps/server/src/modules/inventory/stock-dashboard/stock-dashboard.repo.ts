@@ -1,11 +1,15 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, sql } from 'drizzle-orm'
 
-import { materialLocationsTable, materialsTable, materialStockSnapshotsTable } from '@/db/schema/material'
+import {
+	materialLocationsTable,
+	materialsTable,
+	materialStockSnapshotsTable,
+} from '@/db/schema/material'
 
 import type { DbClient } from '@/infra/database'
 
-import {  DashboardKpiFilterDto  } from './stock-dashboard.contract'
+import { DashboardKpiFilterDto } from './stock-dashboard.contract'
 
 export class StockDashboardRepo {
 	constructor(private readonly db: DbClient) {}

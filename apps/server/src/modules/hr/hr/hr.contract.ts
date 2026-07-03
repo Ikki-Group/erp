@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/shared/schema'
-
 import { attendanceStatusEnum } from '@/db/schema'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

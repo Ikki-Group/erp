@@ -57,6 +57,7 @@ erDiagram
 ```
 
 Notes:
+
 - `user_assignments` is the LBAC join table: one row = "this user has this
   role at this location". Unique on `(userId, locationId)` — one role per
   user per location.
@@ -94,6 +95,7 @@ erDiagram
 ```
 
 Notes:
+
 - No `auditFullColumns` — sessions are high-churn and system-managed, not
   user-mutated, so `createdBy`/`updatedBy` don't apply. Only `createdAt` (no
   `updatedAt` either — sessions are immutable except `revokedAt`).
@@ -123,6 +125,7 @@ erDiagram
 ```
 
 Notes:
+
 - `userId` is a plain `integer`, **not** a Drizzle `.references()` FK —
   deliberately, so that deleting a user never blocks or cascades into audit
   history. Treat it as a soft reference to `users.id` at the application
@@ -130,6 +133,6 @@ Notes:
 - `entityId` is `text`, not `integer` — audit logs describe actions across
   many entity types with different PK types, so the column is untyped by
   design (store `String(id)`).
-- No audit columns on this table — it *is* the audit trail; adding
+- No audit columns on this table — it _is_ the audit trail; adding
   `createdBy`/`updatedBy` to it would be circular. Use `actionAt` for
   ordering/filtering.

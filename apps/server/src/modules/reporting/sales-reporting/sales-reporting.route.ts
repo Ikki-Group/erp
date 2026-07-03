@@ -1,8 +1,8 @@
-import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 
 import * as dto from './sales-reporting.contract'
 import type { SalesReportingService } from './sales-reporting.service'

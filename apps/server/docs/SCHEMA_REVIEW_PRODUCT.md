@@ -9,6 +9,7 @@
 ## 📊 Current Schema
 
 The product.ts file contains **5 tables**:
+
 1. `productCategoriesTable` - Per-location product classification
 2. `productsTable` - Master product catalog (per-location)
 3. `productPricesTable` - Per-sales-type pricing (non-variant products)
@@ -22,6 +23,7 @@ The product.ts file contains **5 tables**:
 ### 1. **Outstanding Documentation** ⭐⭐⭐⭐⭐
 
 Every table has comprehensive JSDoc explaining:
+
 - Scope and ownership (per-location design)
 - Field semantics and business rules
 - Pricing hierarchy and fallback logic
@@ -29,6 +31,7 @@ Every table has comprehensive JSDoc explaining:
 - Foreign key behaviors
 
 **Example - Pricing Hierarchy:**
+
 ```typescript
 /**
  * Lookup priority (non-variant products):
@@ -44,24 +47,27 @@ Every table has comprehensive JSDoc explaining:
 ### 2. **Per-Location Scoping** ⭐⭐⭐⭐⭐
 
 **Design Pattern:**
+
 ```typescript
 // Categories are per-location (NOT shared)
 productCategoriesTable: {
-  locationId, code, name  // Unique per location
+	;(locationId, code, name) // Unique per location
 }
 
 // Products are per-location
 productsTable: {
-  locationId, sku, name  // Unique per location
+	;(locationId, sku, name) // Unique per location
 }
 ```
 
 **Benefits:**
+
 - ✅ Each location has independent product catalog
 - ✅ No cross-location conflicts (same SKU can exist in different locations)
 - ✅ Allows location-specific pricing/categories
 
 **Comparison with Materials:**
+
 - Materials: Global (shared across locations)
 - Products: Per-location (independent catalogs)
 
@@ -74,11 +80,12 @@ productsTable: {
 ```typescript
 // Exactly one default variant per product — DB-enforced
 uniqueIndex('product_variants_default_idx')
-  .on(t.productId)
-  .where(sql`is_default = TRUE`)
+	.on(t.productId)
+	.where(sql`is_default = TRUE`)
 ```
 
 **Business Rule Enforced:**
+
 - Each product can have only ONE default variant
 - Non-default variants don't participate in uniqueness check
 - DB-level enforcement (cannot be bypassed)
@@ -148,15 +155,17 @@ salesTypeId: references(..., { onDelete: 'restrict' })
 ### 7. **Status Lifecycle** ⭐⭐⭐⭐⭐
 
 ```typescript
-status: productStatusEnum('status')  // active → inactive → archived
+status: productStatusEnum('status') // active → inactive → archived
 ```
 
 **Better than simple `isActive`:**
+
 - ✅ Three-state lifecycle (active, inactive, archived)
 - ✅ Archived products excluded from new transactions
 - ✅ Audit trail preserved
 
 **Documentation explains:**
+
 > "Archived products must not appear in new transactions."
 
 ✅ **Excellent:** Clear lifecycle management
@@ -168,29 +177,31 @@ status: productStatusEnum('status')  // active → inactive → archived
 ### **CRITICAL: Non-Type-Safe Partial Index** 🔴
 
 **Current Implementation:**
+
 ```typescript
 // ❌ Using sql template (not type-safe)
 uniqueIndex('product_variants_default_idx')
-  .on(t.productId)
-  .where(sql`is_default = TRUE`)
+	.on(t.productId)
+	.where(sql`is_default = TRUE`)
 ```
 
 **Should Use Type-Safe Pattern:**
+
 ```typescript
 import { eq } from 'drizzle-orm'
 
 // ✅ Type-safe with eq() operator
-uniqueIndex('product_variants_default_idx')
-  .on(t.productId)
-  .where(eq(t.isDefault, true))
+uniqueIndex('product_variants_default_idx').on(t.productId).where(eq(t.isDefault, true))
 ```
 
 **Why This Matters:**
+
 - ✅ Type checking catches errors at compile time
 - ✅ Consistent with project patterns (location, material)
 - ✅ Drizzle v1.0.0-rc.4+ supports `.where(eq(...))`
 
 **Files to Update:**
+
 - Import `eq` from `drizzle-orm`
 - Update partial index in `productVariantsTable`
 
@@ -201,6 +212,7 @@ uniqueIndex('product_variants_default_idx')
 ### **MINOR: Missing Check Constraint on Variant Price** 🟡
 
 **Current Schema:**
+
 ```typescript
 // productsTable has check constraint
 check('products_base_price_chk', sql`base_price >= 0`)
@@ -216,6 +228,7 @@ price: numeric('price', { precision: 18, scale: 6 })
 ```
 
 **Inconsistency:**
+
 - Products have non-negative price constraint
 - Variants/price tables don't have same constraint
 - All prices should be non-negative
@@ -240,15 +253,16 @@ check('variant_prices_price_chk', sql`price >= 0`)
 ### **DESIGN: Product Status vs Variant isActive** 🟢
 
 **Current Design:**
+
 ```typescript
 // Products: Enum status (active, inactive, archived)
 productsTable: {
-  status: productStatusEnum
+	status: productStatusEnum
 }
 
 // Variants: Boolean flag
 productVariantsTable: {
-  isActive: boolean
+	isActive: boolean
 }
 ```
 
@@ -256,14 +270,15 @@ productVariantsTable: {
 
 **Analysis:**
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **Current (boolean)** | ✅ Simpler for variants | ⚠️ Inconsistent with products |
+| Approach              | Pros                    | Cons                                |
+| --------------------- | ----------------------- | ----------------------------------- |
+| **Current (boolean)** | ✅ Simpler for variants | ⚠️ Inconsistent with products       |
 | **Enum for variants** | ✅ Consistent lifecycle | ⚠️ Overkill? (variants are simpler) |
 
 **Recommendation:** **Keep current design**
 
 **Rationale:**
+
 - Products need full lifecycle (active → inactive → archived)
 - Variants are simpler: just active/inactive
 - No need for "archived" variants (product archival covers all variants)
@@ -276,6 +291,7 @@ productVariantsTable: {
 ### **DESIGN: Trigger-Enforced Category Location Guard** 🟢
 
 **Documentation Says:**
+
 ```typescript
 /**
  * Cross-location assignment guard:
@@ -287,23 +303,27 @@ productVariantsTable: {
 ```
 
 **Current Limitation:**
+
 - Drizzle ORM can't express composite FK: `FOREIGN KEY (categoryId, locationId)`
 - Workaround: Postgres trigger enforces the rule
 
 **Ideal Schema (if supported):**
+
 ```sql
-FOREIGN KEY (category_id, location_id) 
+FOREIGN KEY (category_id, location_id)
   REFERENCES product_categories (id, location_id)
 ```
 
 **Recommendation:** **Keep current trigger approach**
 
 **Rationale:**
+
 - Trigger works correctly
 - No good alternative in Drizzle ORM
 - Documentation clearly explains the constraint
 
 **Note for Future:**
+
 - If Drizzle adds composite FK support, migrate to schema-level constraint
 - Trigger is documented (easy to find and maintain)
 
@@ -313,15 +333,15 @@ FOREIGN KEY (category_id, location_id)
 
 ## 📝 Summary
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| **Documentation** | ⭐⭐⭐⭐⭐ | Outstanding clarity, pricing logic explained |
-| **Per-Location Design** | ⭐⭐⭐⭐⭐ | Perfect for multi-store retail |
-| **Pricing Flexibility** | ⭐⭐⭐⭐⭐ | Three-tier system handles all cases |
-| **Foreign Keys** | ⭐⭐⭐⭐⭐ | Well-reasoned cascade/restrict |
-| **Partial Indexes** | ⭐⭐⭐⭐ | **Use type-safe eq()** |
-| **Check Constraints** | ⭐⭐⭐ | **Add to variant/price tables** |
-| **Overall** | ⭐⭐⭐⭐⭐ | Excellent (after minor fixes) |
+| Category                | Rating     | Notes                                        |
+| ----------------------- | ---------- | -------------------------------------------- |
+| **Documentation**       | ⭐⭐⭐⭐⭐ | Outstanding clarity, pricing logic explained |
+| **Per-Location Design** | ⭐⭐⭐⭐⭐ | Perfect for multi-store retail               |
+| **Pricing Flexibility** | ⭐⭐⭐⭐⭐ | Three-tier system handles all cases          |
+| **Foreign Keys**        | ⭐⭐⭐⭐⭐ | Well-reasoned cascade/restrict               |
+| **Partial Indexes**     | ⭐⭐⭐⭐   | **Use type-safe eq()**                       |
+| **Check Constraints**   | ⭐⭐⭐     | **Add to variant/price tables**              |
+| **Overall**             | ⭐⭐⭐⭐⭐ | Excellent (after minor fixes)                |
 
 ---
 
@@ -336,13 +356,11 @@ import { eq, sql } from 'drizzle-orm' // ✅ Add eq import
 
 // BEFORE:
 uniqueIndex('product_variants_default_idx')
-  .on(t.productId)
-  .where(sql`is_default = TRUE`)
+	.on(t.productId)
+	.where(sql`is_default = TRUE`)
 
 // AFTER:
-uniqueIndex('product_variants_default_idx')
-  .on(t.productId)
-  .where(eq(t.isDefault, true))
+uniqueIndex('product_variants_default_idx').on(t.productId).where(eq(t.isDefault, true))
 ```
 
 **Effort:** 1 minute  
@@ -382,6 +400,7 @@ uniqueIndex('product_variants_default_idx')
 ### **Priority 3: No Other Changes Needed** ✅
 
 **Schema is excellent as-is:**
+
 - ✅ Per-location design perfect for use case
 - ✅ Flexible pricing strategy
 - ✅ Trigger-enforced category guard documented
@@ -409,6 +428,7 @@ uniqueIndex('product_variants_default_idx')
 **Purpose:** Per-location product classification
 
 **Strengths:**
+
 - ✅ Per-location scoping (code + name unique per location)
 - ✅ Trigger-enforced cross-location guard
 - ✅ Full audit columns
@@ -416,6 +436,7 @@ uniqueIndex('product_variants_default_idx')
 **No Changes Needed** ✅
 
 **Example Data:**
+
 ```sql
 -- Jakarta Store categories
 INSERT INTO product_categories (location_id, code, name) VALUES
@@ -435,6 +456,7 @@ INSERT INTO product_categories (location_id, code, name) VALUES
 **Purpose:** Master product catalog (per-location)
 
 **Strengths:**
+
 - ✅ Per-location scoping (SKU + name unique per location)
 - ✅ Flexible pricing flags (hasVariants, hasSalesTypePricing)
 - ✅ Check constraint: basePrice >= 0
@@ -443,6 +465,7 @@ INSERT INTO product_categories (location_id, code, name) VALUES
 **No Changes Needed** ✅
 
 **Example Data:**
+
 ```sql
 -- Simple product: no variants, no sales type pricing
 INSERT INTO products (location_id, sku, name, base_price, has_variants, has_sales_type_pricing) VALUES
@@ -460,14 +483,17 @@ INSERT INTO products (location_id, sku, name, base_price, has_variants, has_sale
 **Purpose:** Per-sales-type pricing (non-variant products)
 
 **Strengths:**
+
 - ✅ Unique on (productId, salesTypeId)
 - ✅ Cascade delete with product
 - ✅ Restrict delete on sales type
 
 **Improvements:**
+
 - ⚠️ Add check constraint: price >= 0
 
 **Example Data:**
+
 ```sql
 -- Coca Cola pricing by sales type
 INSERT INTO product_prices (product_id, sales_type_id, price) VALUES
@@ -483,16 +509,19 @@ INSERT INTO product_prices (product_id, sales_type_id, price) VALUES
 **Purpose:** Product variations (size, color, etc.)
 
 **Strengths:**
+
 - ✅ Partial unique index: exactly one default per product
 - ✅ Unique on (productId, name)
 - ✅ Unique on (productId, sku)
 - ✅ Soft delete with isActive
 
 **Improvements:**
+
 - ⚠️ Use `eq()` for type-safe partial index
 - ⚠️ Add check constraint: basePrice >= 0
 
 **Example Data:**
+
 ```sql
 -- T-Shirt variants
 INSERT INTO product_variants (product_id, name, sku, base_price, is_default) VALUES
@@ -508,14 +537,17 @@ INSERT INTO product_variants (product_id, name, sku, base_price, is_default) VAL
 **Purpose:** Per-sales-type pricing (variant products)
 
 **Strengths:**
+
 - ✅ Unique on (variantId, salesTypeId)
 - ✅ Cascade delete with variant
 - ✅ Restrict delete on sales type
 
 **Improvements:**
+
 - ⚠️ Add check constraint: price >= 0
 
 **Example Data:**
+
 ```sql
 -- T-Shirt Medium pricing by sales type
 INSERT INTO product_variant_prices (variant_id, sales_type_id, price) VALUES
@@ -539,15 +571,18 @@ uniqueIndex('products_name_location_idx').on(t.name, t.locationId)
 ```
 
 **Use Case:**
+
 - **Jakarta Store:** SKU "COKE-330" = Coca Cola 330ml
 - **Bali Store:** SKU "COKE-330" = Different supplier/pricing
 
 **Benefits:**
+
 - ✅ Each location manages independent catalog
 - ✅ No cross-location SKU conflicts
 - ✅ Location-specific pricing/categories
 
 **Comparison:**
+
 - Materials: Global (sugar is sugar everywhere)
 - Products: Per-location (retail catalog varies by store)
 
@@ -621,34 +656,36 @@ Q: Does product have variants?
 ### Pattern 3: Partial Index for Business Rule ⭐⭐⭐⭐⭐
 
 **Business Rule:**
+
 > "Exactly one variant per product must be the default."
 
 **Implementation:**
+
 ```typescript
-uniqueIndex('product_variants_default_idx')
-  .on(t.productId)
-  .where(eq(t.isDefault, true))  // ✅ After fix
+uniqueIndex('product_variants_default_idx').on(t.productId).where(eq(t.isDefault, true)) // ✅ After fix
 ```
 
 **How It Works:**
+
 ```sql
 -- ✅ Allowed: First default variant for product 1
-INSERT INTO product_variants (product_id, name, is_default) 
+INSERT INTO product_variants (product_id, name, is_default)
 VALUES (1, 'Small', true);
 
 -- ❌ Rejected: Second default variant for product 1
-INSERT INTO product_variants (product_id, name, is_default) 
+INSERT INTO product_variants (product_id, name, is_default)
 VALUES (1, 'Medium', true);
 -- ERROR: duplicate key value violates unique constraint "product_variants_default_idx"
 
 -- ✅ Allowed: Non-default variants don't conflict
-INSERT INTO product_variants (product_id, name, is_default) 
+INSERT INTO product_variants (product_id, name, is_default)
 VALUES (1, 'Medium', false);
-INSERT INTO product_variants (product_id, name, is_default) 
+INSERT INTO product_variants (product_id, name, is_default)
 VALUES (1, 'Large', false);
 ```
 
 **Benefits:**
+
 - ✅ DB-level enforcement (cannot be bypassed)
 - ✅ No application code needed for validation
 - ✅ Clear error on violation
@@ -658,12 +695,14 @@ VALUES (1, 'Large', false);
 ## 🔗 Cross-Schema Dependencies
 
 **Depends On:**
+
 - ✅ `locationsTable` - Per-location scoping
 - ✅ `salesTypesTable` - Per-sales-type pricing
 - ✅ `productStatusEnum` (from `_enums.ts`) - Status lifecycle
 - ⚠️ `taxesTable` - Commented out (future use)
 
 **Used By:**
+
 - Sales module (order line items)
 - Inventory module (stock tracking per product)
 - POS module (retail transactions)
@@ -673,8 +712,9 @@ VALUES (1, 'Large', false);
 ## 🧪 Example Queries
 
 ### Query 1: Get Product with Variants
+
 ```sql
-SELECT 
+SELECT
   p.sku,
   p.name,
   p.base_price,
@@ -696,13 +736,14 @@ GROUP BY p.id;
 ---
 
 ### Query 2: Get Price for Sales Type
+
 ```sql
 -- Get retail price for product (with fallback)
-SELECT 
+SELECT
   COALESCE(pp.price, p.base_price) as final_price
 FROM products p
-LEFT JOIN product_prices pp 
-  ON p.id = pp.product_id 
+LEFT JOIN product_prices pp
+  ON p.id = pp.product_id
   AND pp.sales_type_id = 1  -- Retail
 WHERE p.id = 1;
 ```
@@ -710,8 +751,9 @@ WHERE p.id = 1;
 ---
 
 ### Query 3: Active Products by Category
+
 ```sql
-SELECT 
+SELECT
   c.name as category,
   COUNT(*) as product_count,
   AVG(p.base_price) as avg_price
@@ -728,16 +770,19 @@ ORDER BY product_count DESC;
 ## 📊 Numeric Precision Analysis
 
 **All Price Fields:**
+
 ```typescript
 precision: 18, scale: 6
 ```
 
 **Consistent with Materials:**
+
 - Materials use same precision (18, 6)
 - Prevents precision loss in calculations
 - Handles fractional pricing (e.g., 4999.995000)
 
 **Examples:**
+
 ```
 999,999,999,999.999999  // Max value
 0.000001                 // Min non-zero value
@@ -752,11 +797,13 @@ precision: 18, scale: 6
 ### 1. **Per-Location vs Global Design**
 
 **When to use Per-Location:**
+
 - Products (SKUs vary by store)
 - Categories (classification differs)
 - Pricing (location-specific)
 
 **When to use Global:**
+
 - Materials (raw materials are universal)
 - UOMs (KG is KG everywhere)
 - Roles (permissions are system-wide)
@@ -766,6 +813,7 @@ precision: 18, scale: 6
 ### 2. **Trigger for Complex Constraints**
 
 **When Drizzle Can't Express:**
+
 - Composite foreign keys
 - Cross-table business rules
 - Complex conditional constraints
@@ -777,11 +825,13 @@ precision: 18, scale: 6
 ### 3. **Flexible Pricing Architecture**
 
 **Design Decision:**
+
 - Flags: `hasVariants`, `hasSalesTypePricing`
 - Fallback: `basePrice` always available
 - Override tables: Optional complexity
 
 **Benefits:**
+
 - ✅ Start simple, add complexity as needed
 - ✅ No over-engineering
 - ✅ Clear upgrade path

@@ -9,10 +9,10 @@
 
 ### Two Testing Approaches
 
-| Type | Purpose | Uses | Speed | Isolation |
-|------|---------|------|-------|-----------|
-| **Unit Tests** | Test service logic | Mock repo + cache | ⚡ Fast | ✅ Full |
-| **Integration Tests** | Test full flow | Real DB + real cache | 🐢 Slower | ❌ Shared |
+| Type                  | Purpose            | Uses                 | Speed     | Isolation |
+| --------------------- | ------------------ | -------------------- | --------- | --------- |
+| **Unit Tests**        | Test service logic | Mock repo + cache    | ⚡ Fast   | ✅ Full   |
+| **Integration Tests** | Test full flow     | Real DB + real cache | 🐢 Slower | ❌ Shared |
 
 ---
 
@@ -107,54 +107,54 @@ import { LocationService } from '@/modules/location/location.service'
 import { createMockRepo, createMockCache } from '../helpers/mock-db'
 
 describe('LocationService (Unit)', () => {
-  let service: LocationService
-  let mockRepo: ReturnType<typeof createMockRepo>
-  let mockCache: ReturnType<typeof createMockCache>
+	let service: LocationService
+	let mockRepo: ReturnType<typeof createMockRepo>
+	let mockCache: ReturnType<typeof createMockCache>
 
-  beforeEach(() => {
-    mockRepo = createMockRepo()
-    mockCache = createMockCache()
-    service = new LocationService(mockRepo as any, mockCache as any)
-  })
+	beforeEach(() => {
+		mockRepo = createMockRepo()
+		mockCache = createMockCache()
+		service = new LocationService(mockRepo as any, mockCache as any)
+	})
 
-  test('handleGetById - cache hit', async () => {
-    // Arrange
-    const mockLocation = { id: 1, code: 'WH-001', name: 'Warehouse' }
-    mockCache._store.set('location:1', mockLocation)
+	test('handleGetById - cache hit', async () => {
+		// Arrange
+		const mockLocation = { id: 1, code: 'WH-001', name: 'Warehouse' }
+		mockCache._store.set('location:1', mockLocation)
 
-    // Act
-    const result = await service.handleGetById(1)
+		// Act
+		const result = await service.handleGetById(1)
 
-    // Assert
-    expect(result).toEqual(mockLocation)
-    expect(mockRepo._store.size).toBe(0) // Repo not touched
-  })
+		// Assert
+		expect(result).toEqual(mockLocation)
+		expect(mockRepo._store.size).toBe(0) // Repo not touched
+	})
 
-  test('handleGetById - cache miss, fetch from repo', async () => {
-    // Arrange
-    const mockLocation = { id: 1, code: 'WH-001', name: 'Warehouse' }
-    mockRepo._store.set(1, mockLocation)
+	test('handleGetById - cache miss, fetch from repo', async () => {
+		// Arrange
+		const mockLocation = { id: 1, code: 'WH-001', name: 'Warehouse' }
+		mockRepo._store.set(1, mockLocation)
 
-    // Act
-    const result = await service.handleGetById(1)
+		// Act
+		const result = await service.handleGetById(1)
 
-    // Assert
-    expect(result).toEqual(mockLocation)
-    expect(mockCache._store.has('location:1')).toBe(true) // Cache populated
-  })
+		// Assert
+		expect(result).toEqual(mockLocation)
+		expect(mockCache._store.has('location:1')).toBe(true) // Cache populated
+	})
 
-  test('handleCreate - invalidates cache', async () => {
-    // Arrange
-    const createDto = { code: 'WH-NEW', name: 'New Warehouse', type: 'warehouse' }
+	test('handleCreate - invalidates cache', async () => {
+		// Arrange
+		const createDto = { code: 'WH-NEW', name: 'New Warehouse', type: 'warehouse' }
 
-    // Act
-    const result = await service.handleCreate(createDto, 1)
+		// Act
+		const result = await service.handleCreate(createDto, 1)
 
-    // Assert
-    expect(result.id).toBeDefined()
-    expect(mockRepo._store.size).toBe(1)
-    // In real test, verify cache.deleteAll() was called
-  })
+		// Assert
+		expect(result.id).toBeDefined()
+		expect(mockRepo._store.size).toBe(1)
+		// In real test, verify cache.deleteAll() was called
+	})
 })
 ```
 
@@ -165,33 +165,37 @@ describe('LocationService (Unit)', () => {
 ### Use Unit Tests (Mocks) When:
 
 ✅ **Testing business logic**
+
 ```typescript
 test('should calculate discount correctly', () => {
-  const discount = calculateDiscount(100, 0.1)
-  expect(discount).toBe(10)
+	const discount = calculateDiscount(100, 0.1)
+	expect(discount).toBe(10)
 })
 ```
 
 ✅ **Testing error handling**
+
 ```typescript
 test('should throw NotFoundError when user not found', async () => {
-  mockRepo._store.clear() // Empty repo
-  expect(async () => {
-    await service.handleGetById(999)
-  }).toThrow(NotFoundError)
+	mockRepo._store.clear() // Empty repo
+	expect(async () => {
+		await service.handleGetById(999)
+	}).toThrow(NotFoundError)
 })
 ```
 
 ✅ **Testing cache behavior**
+
 ```typescript
 test('should use cache on second call', async () => {
-  await service.handleGetById(1) // Cache miss
-  await service.handleGetById(1) // Cache hit
-  expect(mockRepo.findById).toHaveBeenCalledTimes(1)
+	await service.handleGetById(1) // Cache miss
+	await service.handleGetById(1) // Cache hit
+	expect(mockRepo.findById).toHaveBeenCalledTimes(1)
 })
 ```
 
 ✅ **Fast iteration during development**
+
 - No DB setup needed
 - Tests run in milliseconds
 - Easy to debug
@@ -201,22 +205,25 @@ test('should use cache on second call', async () => {
 ### Use Integration Tests (Real DB) When:
 
 ✅ **Testing database queries**
+
 ```typescript
 test('findByEmail should query users table', async () => {
-  const user = await repo.findByEmail('test@test.com')
-  expect(user).toBeDefined()
+	const user = await repo.findByEmail('test@test.com')
+	expect(user).toBeDefined()
 })
 ```
 
 ✅ **Testing complex joins/relations**
+
 ```typescript
 test('should load user with roles', async () => {
-  const user = await userReadService.handleDetail(1)
-  expect(user.roles).toBeInstanceOf(Array)
+	const user = await userReadService.handleDetail(1)
+	expect(user.roles).toBeInstanceOf(Array)
 })
 ```
 
 ✅ **Testing full HTTP flow**
+
 ```typescript
 test('POST /locations should create location', async () => {
   const res = await client.post('/locations', { code: 'WH-001', ... })
@@ -225,6 +232,7 @@ test('POST /locations should create location', async () => {
 ```
 
 ✅ **Testing transactions/race conditions**
+
 ```typescript
 test('concurrent updates should handle conflicts', async () => {
   await Promise.all([
@@ -242,8 +250,8 @@ test('concurrent updates should handle conflicts', async () => {
 
 ```typescript
 beforeEach(() => {
-  mockRepo._reset()   // Clear repo data
-  mockCache._reset()  // Clear cache data
+	mockRepo._reset() // Clear repo data
+	mockCache._reset() // Clear cache data
 })
 ```
 
@@ -252,14 +260,14 @@ beforeEach(() => {
 ```typescript
 // ✅ GOOD: Test cache hit
 test('cache hit should not call repo', async () => {
-  mockCache._store.set('user:1', mockUser)
-  await service.handleGetById(1)
-  expect(mockRepo._store.size).toBe(0)
+	mockCache._store.set('user:1', mockUser)
+	await service.handleGetById(1)
+	expect(mockRepo._store.size).toBe(0)
 })
 
 // ❌ BAD: Test multiple concerns
 test('should work', async () => {
-  // Tests cache, repo, error handling, and validation
+	// Tests cache, repo, error handling, and validation
 })
 ```
 
@@ -277,16 +285,16 @@ test('create test', ...)
 
 ```typescript
 test('handleUpdate should update and invalidate cache', async () => {
-  // Arrange
-  const existing = { id: 1, code: 'WH-001' }
-  mockRepo._store.set(1, existing)
+	// Arrange
+	const existing = { id: 1, code: 'WH-001' }
+	mockRepo._store.set(1, existing)
 
-  // Act
-  const result = await service.handleUpdate({ id: 1, code: 'WH-002' }, 1)
+	// Act
+	const result = await service.handleUpdate({ id: 1, code: 'WH-002' }, 1)
 
-  // Assert
-  expect(result.code).toBe('WH-002')
-  expect(mockCache._store.size).toBe(0) // Cache cleared
+	// Assert
+	expect(result.code).toBe('WH-002')
+	expect(mockCache._store.size).toBe(0) // Cache cleared
 })
 ```
 
@@ -295,26 +303,31 @@ test('handleUpdate should update and invalidate cache', async () => {
 ## 🚀 Running Tests
 
 ### Unit Tests Only (Fast)
+
 ```bash
 bun test src/tests/unit/
 ```
 
 ### Integration Tests Only (Slower)
+
 ```bash
 bun test src/tests/services/
 ```
 
 ### All Tests
+
 ```bash
 bun test
 ```
 
 ### Watch Mode
+
 ```bash
 bun test --watch
 ```
 
 ### With Coverage
+
 ```bash
 bun test --coverage
 ```
@@ -323,12 +336,12 @@ bun test --coverage
 
 ## 📊 Coverage Targets
 
-| Layer | Target | Why |
-|-------|--------|-----|
-| **Services** | 80%+ | Core business logic |
-| **Repos** | 70%+ | DB queries critical |
-| **Routes** | 60%+ | Thin wrappers |
-| **Utils** | 90%+ | Pure functions |
+| Layer        | Target | Why                 |
+| ------------ | ------ | ------------------- |
+| **Services** | 80%+   | Core business logic |
+| **Repos**    | 70%+   | DB queries critical |
+| **Routes**   | 60%+   | Thin wrappers       |
+| **Utils**    | 90%+   | Pure functions      |
 
 ---
 
@@ -340,10 +353,10 @@ bun test --coverage
 // src/tests/services/iam.test.ts
 // Uses real DB - good for full flow testing
 describe('services/iam', () => {
-  test('role CRUD', async () => {
-    const created = await roleSvc.handleCreate(mockRole, 1)
-    expect(created.id).toBeDefined()
-  })
+	test('role CRUD', async () => {
+		const created = await roleSvc.handleCreate(mockRole, 1)
+		expect(created.id).toBeDefined()
+	})
 })
 ```
 
@@ -353,10 +366,10 @@ describe('services/iam', () => {
 // src/tests/unit/role.service.test.ts
 // Uses mocks - fast isolated testing
 describe('RoleService (Unit)', () => {
-  test('handleCreate should validate and call repo', async () => {
-    const result = await service.handleCreate(mockRole, 1)
-    expect(mockRepo._store.size).toBe(1)
-  })
+	test('handleCreate should validate and call repo', async () => {
+		const result = await service.handleCreate(mockRole, 1)
+		expect(mockRepo._store.size).toBe(1)
+	})
 })
 ```
 
@@ -368,30 +381,30 @@ describe('RoleService (Unit)', () => {
 
 ```typescript
 describe('UserService', () => {
-  // Unit test: Business logic
-  describe('validatePassword (Unit)', () => {
-    test('should accept strong passwords', () => {
-      expect(validatePassword('Pass123!')).toBe(true)
-    })
-  })
+	// Unit test: Business logic
+	describe('validatePassword (Unit)', () => {
+		test('should accept strong passwords', () => {
+			expect(validatePassword('Pass123!')).toBe(true)
+		})
+	})
 
-  // Unit test: Service logic with mocks
-  describe('handleGetById (Unit)', () => {
-    test('should return user from cache', async () => {
-      mockCache._store.set('user:1', mockUser)
-      const result = await service.handleGetById(1)
-      expect(result).toEqual(mockUser)
-    })
-  })
+	// Unit test: Service logic with mocks
+	describe('handleGetById (Unit)', () => {
+		test('should return user from cache', async () => {
+			mockCache._store.set('user:1', mockUser)
+			const result = await service.handleGetById(1)
+			expect(result).toEqual(mockUser)
+		})
+	})
 
-  // Integration test: Full flow with DB
-  describe('handleCreate (Integration)', () => {
-    test('should create user in database', async () => {
-      const result = await service.handleCreate(createDto, 1)
-      const fromDb = await testCtx.db.query.users.findFirst({ where: eq(users.id, result.id) })
-      expect(fromDb).toBeDefined()
-    })
-  })
+	// Integration test: Full flow with DB
+	describe('handleCreate (Integration)', () => {
+		test('should create user in database', async () => {
+			const result = await service.handleCreate(createDto, 1)
+			const fromDb = await testCtx.db.query.users.findFirst({ where: eq(users.id, result.id) })
+			expect(fromDb).toBeDefined()
+		})
+	})
 })
 ```
 
@@ -400,17 +413,20 @@ describe('UserService', () => {
 ## 🎉 Summary
 
 **Created:**
+
 - ✅ `mock-db.ts` - Mock utilities (createMockDb, createMockRepo, createMockCache)
 - ✅ `location.service.test.ts` - Example unit test with mocks
 - ✅ `DRIZZLE_MOCK_GUIDE.md` - This guide
 
 **Benefits:**
+
 - ⚡ Fast unit tests without DB
 - 🔒 Isolated testing (no DB conflicts)
 - 🧪 Test edge cases easily
 - 🚀 Faster development cycle
 
 **Next Steps:**
+
 1. Add unit tests for location/, iam/user, iam/role
 2. Keep integration tests for full flow validation
 3. Set up coverage reporting

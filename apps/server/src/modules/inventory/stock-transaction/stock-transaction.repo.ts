@@ -5,15 +5,15 @@ import { z } from 'zod'
 
 import { materialsTable, stockTransactionsTable } from '@/db/schema'
 
-import type { WithPaginationResult } from '@/shared/types/pagination'
 import { paginate, takeFirst, type DbClient } from '@/infra/database'
 import { NotFoundError } from '@/shared/errors/http-error'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import { 
+import {
 	StockTransactionFilterDto,
 	StockTransactionSelectDto,
 	StockTransactionDto,
- } from './stock-transaction.contract'
+} from './stock-transaction.contract'
 
 export class StockTransactionRepo {
 	constructor(private readonly db: DbClient) {}

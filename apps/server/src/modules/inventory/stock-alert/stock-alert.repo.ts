@@ -11,7 +11,7 @@ import {
 
 import type { DbClient } from '@/infra/database'
 
-import {  StockAlertFilterDto  } from './stock-alert.contract'
+import { StockAlertFilterDto } from './stock-alert.contract'
 
 export class StockAlertRepo {
 	constructor(private readonly db: DbClient) {}
@@ -29,9 +29,13 @@ export class StockAlertRepo {
 			]
 
 			if (filter.type === 'below_min') {
-				conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock))
+				conditions.push(
+					lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock),
+				)
 			} else if (filter.type === 'below_reorder') {
-				conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint))
+				conditions.push(
+					lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint),
+				)
 			} else {
 				conditions.push(
 					or(
@@ -98,9 +102,13 @@ export class StockAlertRepo {
 			]
 
 			if (filter.type === 'below_min') {
-				conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock))
+				conditions.push(
+					lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock),
+				)
 			} else if (filter.type === 'below_reorder') {
-				conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint))
+				conditions.push(
+					lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint),
+				)
 			} else {
 				conditions.push(
 					or(

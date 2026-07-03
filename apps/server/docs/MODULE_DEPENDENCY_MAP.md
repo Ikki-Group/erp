@@ -9,12 +9,14 @@
 ## 📊 Module Layers (Based on Dependencies)
 
 ### Layer 0: Core Authentication & Session
+
 **No business dependencies** - Pure authentication/session management
 
 - `auth` - Authentication (login, logout, token)
 - `session` - Session management
 
 ### Layer 1: Master Data (Foundation)
+
 **No cross-module dependencies** - Independent master tables
 
 1. `location` - Locations (warehouse, store)
@@ -24,6 +26,7 @@
 5. `material` - Materials & UoM (raw materials, categories)
 
 ### Layer 2: Master Data (With Dependencies)
+
 **Depends on Layer 1 only**
 
 6. `sales-type` - Sales types (depends on location)
@@ -34,6 +37,7 @@
 11. `payment` - Payment methods & providers (independent)
 
 ### Layer 3: Operational Modules
+
 **Depends on Layer 1 & 2**
 
 12. `inventory` - Stock management (depends on material, location)
@@ -43,6 +47,7 @@
 16. `finance` - Accounting (depends on many modules for journal entries)
 
 ### Layer 4: Integration & Reporting
+
 **Depends on operational modules**
 
 17. `moka` - Moka POS integration (depends on sales, product)
@@ -51,6 +56,7 @@
 20. `audit` - Audit logs (tracks all module changes)
 
 ### Special Modules
+
 - `shared` - Shared utilities (no dependencies)
 - `tool` - Development tools
 
@@ -59,12 +65,14 @@
 ## 🎯 Implementation Order (Recommended)
 
 ### Phase 1: Core Foundation ✅ 4/4 COMPLETE
+
 1. ✅ `location` - 7 files (COMPLETE - b6d4b530)
 2. ✅ `iam` - 18 files, 4 submodules (COMPLETE - 841ecf3b)
 3. ✅ `auth` - 6 files, reviewed clean (COMPLETE)
 4. ✅ `session` - 5 files, reviewed clean (COMPLETE)
 
 ### Phase 2: Master Data ✅ 7/7 COMPLETE
+
 5. ✅ `company` - 5 files (COMPLETE - ccdff95d)
 6. ✅ `supplier` - 5 files (COMPLETE - 3ebc2b7f)
 7. ✅ `uom` - 7 files, standalone module (COMPLETE - 85bae9c0)
@@ -73,22 +81,26 @@
 10. ✅ `sales-type` - 5 files (COMPLETE - f5ad29c1)
 
 ### Phase 3: Product & Recipe ✅ 4/4 COMPLETE
+
 11. ✅ `product` - 9 files, 2 submodules (COMPLETE - 4630fdf5)
 12. ✅ `crm` - 5 files, customer management (COMPLETE - 438d2351)
 13. ✅ `recipe` - 5 files, BOM/Recipe (COMPLETE - 8a7b84c7)
 14. ✅ `hr` - 17 files, 4 submodules (COMPLETE - 76230d65)
 
 ### Phase 4: Operations ✅ 4/4 COMPLETE
+
 15. ✅ `inventory` - 5 submodules (COMPLETE - 69eabbdf)
 16. ✅ `sales` - 2 submodules (COMPLETE - 53de6b48)
 17. ✅ `purchasing` - 2 submodules (COMPLETE - fb2d25fb)
 18. ✅ `production` - 1 module (COMPLETE - ec4df1da)
 
 ### Phase 5: Finance & Integration ✅ 2/2 COMPLETE
+
 19. ✅ `finance` - 3 submodules (COMPLETE - 7488c9b1)
 20. ✅ `moka` - 2 submodules (COMPLETE - 7488c9b1)
 
 ### Phase 6: Analytics ✅ 3/3 COMPLETE
+
 21. ✅ `reporting` - 7 reporting modules (COMPLETE - 03c93ba2)
 22. ✅ `dashboard` - 2 submodules (COMPLETE - 03c93ba2)
 23. ✅ `audit` - 1 module (COMPLETE - 03c93ba2)
@@ -111,6 +123,7 @@
 **Pending:** 12 (54.5%)
 
 **Completion by Phase:**
+
 - Phase 1 (Core): 4/4 (100%) ✅ - location, iam, auth, session
 - Phase 2 (Master): 7/7 (100%) ✅ - company, supplier, uom, material, payment, sales-type
 - Phase 3 (Product): 2/4 (50%) 🔄 - product, crm
@@ -121,31 +134,31 @@
 
 ## 🔍 Dependency Matrix
 
-| Module | Depends On | Used By |
-|--------|-----------|---------|
-| location | - | iam, sales-type, all operational |
-| iam | location | auth, session, all modules (audit) |
-| auth | iam | all authenticated endpoints |
-| session | iam, location | auth, all endpoints |
-| company | - | finance, settings |
-| supplier | - | purchasing, finance |
-| uom | - | material (extracted standalone) |
-| material | uom | inventory, recipe, purchasing |
-| payment | - | sales, finance |
-| sales-type | location | sales |
-| product | material, uom | sales, production |
-| recipe | material, product | production |
-| crm | - | sales |
-| hr | iam, location | payroll, attendance |
-| inventory | material, location | sales, production, purchasing |
-| sales | product, crm, location, sales-type | finance, reporting |
-| purchasing | material, supplier, location | inventory, finance |
-| production | recipe, material, location | inventory, finance |
-| finance | many | reporting, dashboard |
-| moka | sales, product | - |
-| reporting | all operational | dashboard |
-| dashboard | all operational | - |
-| audit | all | - |
+| Module     | Depends On                         | Used By                            |
+| ---------- | ---------------------------------- | ---------------------------------- |
+| location   | -                                  | iam, sales-type, all operational   |
+| iam        | location                           | auth, session, all modules (audit) |
+| auth       | iam                                | all authenticated endpoints        |
+| session    | iam, location                      | auth, all endpoints                |
+| company    | -                                  | finance, settings                  |
+| supplier   | -                                  | purchasing, finance                |
+| uom        | -                                  | material (extracted standalone)    |
+| material   | uom                                | inventory, recipe, purchasing      |
+| payment    | -                                  | sales, finance                     |
+| sales-type | location                           | sales                              |
+| product    | material, uom                      | sales, production                  |
+| recipe     | material, product                  | production                         |
+| crm        | -                                  | sales                              |
+| hr         | iam, location                      | payroll, attendance                |
+| inventory  | material, location                 | sales, production, purchasing      |
+| sales      | product, crm, location, sales-type | finance, reporting                 |
+| purchasing | material, supplier, location       | inventory, finance                 |
+| production | recipe, material, location         | inventory, finance                 |
+| finance    | many                               | reporting, dashboard               |
+| moka       | sales, product                     | -                                  |
+| reporting  | all operational                    | dashboard                          |
+| dashboard  | all operational                    | -                                  |
+| audit      | all                                | -                                  |
 
 ---
 
@@ -162,6 +175,7 @@
 ## 🎯 Latest Standards Applied
 
 All completed modules follow these patterns:
+
 - ✅ **Naming**: `handleCreate/Update/Remove` for public service methods
 - ✅ **Repo**: Returns `undefined` (NOT throw), service handles errors
 - ✅ **Types**: `EntityRef` (NOT RecordId), proper typed ConflictField

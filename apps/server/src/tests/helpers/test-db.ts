@@ -1,8 +1,8 @@
 import { SQL } from 'bun'
 import { drizzle } from 'drizzle-orm/bun-sql'
 
-import { relations } from '@/db/schema/_relations'
 import * as schema from '@/db/schema'
+import { relations } from '@/db/schema/_relations'
 
 import type { DbClient } from '@/infra/database'
 

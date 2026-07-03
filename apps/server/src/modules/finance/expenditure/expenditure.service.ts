@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
 import {

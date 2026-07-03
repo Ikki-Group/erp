@@ -8,7 +8,6 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
 import type { LocationModule } from '@/modules/location'

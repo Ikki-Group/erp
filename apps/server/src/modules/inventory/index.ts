@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
 import type { MaterialModule } from '@/modules/material'
@@ -68,7 +67,10 @@ export function initInventoryRouteModule(s: InventoryServiceModule) {
 export type { StockTransactionService } from './stock-transaction/stock-transaction.service'
 
 export { StockAlertFilterDto, StockAlertSelectDto } from './stock-alert/stock-alert.contract'
-export { DashboardKpiFilterDto, DashboardKpiSelectDto } from './stock-dashboard/stock-dashboard.contract'
+export {
+	DashboardKpiFilterDto,
+	DashboardKpiSelectDto,
+} from './stock-dashboard/stock-dashboard.contract'
 export { StockSummaryDto, StockSummaryFilterDto } from './stock-summary/stock-summary.contract'
 export {
 	StockTransactionDto,

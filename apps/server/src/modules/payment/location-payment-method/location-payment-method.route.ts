@@ -1,11 +1,10 @@
-import { z } from 'zod'
-
-import { zc, zp, zq } from '@/shared/schema'
-import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
+import { z } from 'zod'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { zc, zp, zq } from '@/shared/schema'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 
 import {
 	LocationPaymentMethodDto,
@@ -69,7 +68,11 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		.put(
 			'/update',
 			async function update(context) {
-				const { id } = await service.handleUpdate(context.body.id, context.body, context.auth.userId)
+				const { id } = await service.handleUpdate(
+					context.body.id,
+					context.body,
+					context.auth.userId,
+				)
 				return res.ok({ id })
 			},
 			{

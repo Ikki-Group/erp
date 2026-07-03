@@ -1,9 +1,9 @@
-import { z, zc, zq } from '@/shared/schema'
-import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { z, zc, zq } from '@/shared/schema'
+import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
 
 import {
 	SalesOrderAddBatchDto,
@@ -56,7 +56,11 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		.post(
 			'/add-batch',
 			async function addBatch(context) {
-				const result = await service.handleAddBatch(context.query.id, context.body, context.auth.userId)
+				const result = await service.handleAddBatch(
+					context.query.id,
+					context.body,
+					context.auth.userId,
+				)
 				return res.ok(result)
 			},
 			{

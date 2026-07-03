@@ -40,6 +40,6 @@
 	"js/ts.tsserver.tracing.enabled": false,
 	// "js/ts.tsserver.maxMemory": 4096,
 	"js/ts.suggest.autoImports": true,
-	"js/ts.preferences.importModuleSpecifier": "non-relative",
+	"js/ts.preferences.importModuleSpecifier": "non-relative"
 	// "js/ts.tsdk.path": "node_modules/typescript/lib",
 }

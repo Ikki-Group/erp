@@ -1,10 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
-import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { RecordId } from '@/shared/schema'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import type { RecordId } from '@/shared/schema'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import * as dto from './sales-invoice.contract'
 import { SalesInvoiceRepo } from './sales-invoice.repo'
@@ -15,7 +14,9 @@ const err = {
 	orderNotFound: (id: number) =>
 		new NotFoundError(`Sales order with ID ${id} not found`, { code: 'SALES_ORDER_NOT_FOUND' }),
 	createFailed: () =>
-		new InternalServerError('Sales invoice creation failed', { code: 'SALES_INVOICE_CREATE_FAILED' }),
+		new InternalServerError('Sales invoice creation failed', {
+			code: 'SALES_INVOICE_CREATE_FAILED',
+		}),
 }
 
 export class SalesInvoiceService {
@@ -108,10 +109,9 @@ export class SalesInvoiceService {
 			// Check if invoice already exists for this order
 			const existing = await this.repo.getByOrderId(data.orderId)
 			if (existing) {
-				throw new InternalServerError(
-					'Invoice already exists for this order',
-					{ code: 'INVOICE_ALREADY_EXISTS' }
-				)
+				throw new InternalServerError('Invoice already exists for this order', {
+					code: 'INVOICE_ALREADY_EXISTS',
+				})
 			}
 
 			const result = await this.repo.generateFromOrder(data.orderId, data, actorId)
@@ -131,10 +131,9 @@ export class SalesInvoiceService {
 
 			// Prevent updating status from paid/void
 			if (existing.status === 'paid' || existing.status === 'void') {
-				throw new InternalServerError(
-					'Cannot update a paid or voided invoice',
-					{ code: 'CANNOT_UPDATE_PAID_OR_VOIDED_INVOICE' }
-				)
+				throw new InternalServerError('Cannot update a paid or voided invoice', {
+					code: 'CANNOT_UPDATE_PAID_OR_VOIDED_INVOICE',
+				})
 			}
 
 			const result = await this.repo.update(data, actorId)
@@ -152,10 +151,9 @@ export class SalesInvoiceService {
 
 			// Prevent deleting paid or open invoices
 			if (existing.status === 'paid' || existing.status === 'open') {
-				throw new InternalServerError(
-					'Cannot delete a paid or open invoice',
-					{ code: 'CANNOT_DELETE_PAID_OR_OPEN_INVOICE' }
-				)
+				throw new InternalServerError('Cannot delete a paid or open invoice', {
+					code: 'CANNOT_DELETE_PAID_OR_OPEN_INVOICE',
+				})
 			}
 
 			const result = await this.repo.remove(id)

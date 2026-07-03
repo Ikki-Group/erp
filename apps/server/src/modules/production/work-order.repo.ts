@@ -3,18 +3,12 @@ import { and, count, desc, eq, isNull } from 'drizzle-orm'
 import { workOrdersTable } from '@/db/schema/production'
 
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/require-await */
-import {
-	paginate, type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import type {
-	WorkOrderCreateDto,
-	WorkOrderDto,
-	WorkOrderFilterDto,
-} from './work-order.contract'
+import type { WorkOrderCreateDto, WorkOrderDto, WorkOrderFilterDto } from './work-order.contract'
 
 export class WorkOrderRepo {
 	constructor(private readonly db: DbClient) {}
@@ -31,9 +25,7 @@ export class WorkOrderRepo {
 		return wo as unknown as WorkOrderDto
 	}
 
-	async getListPaginated(
-		filter: WorkOrderFilterDto,
-	): Promise<WithPaginationResult<WorkOrderDto>> {
+	async getListPaginated(filter: WorkOrderFilterDto): Promise<WithPaginationResult<WorkOrderDto>> {
 		const { locationId, status, page, limit } = filter
 
 		const where = and(

@@ -1,12 +1,15 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.contract'
+import {
+	AccountDto,
+	AccountCreateDto,
+	AccountUpdateDto,
+	AccountFilterDto,
+} from './account.contract'
 import { AccountRepo } from './account.repo'
 
 export class AccountService {
@@ -27,7 +30,8 @@ export class AccountService {
 				key: `byId:${id}`,
 				factory: () => this.repo.getById(id),
 			})
-			if (!account) throw new NotFoundError(`Account ${id} not found`, { code: 'ACCOUNT_NOT_FOUND' })
+			if (!account)
+				throw new NotFoundError(`Account ${id} not found`, { code: 'ACCOUNT_NOT_FOUND' })
 			return account
 		})
 	}

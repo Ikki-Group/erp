@@ -9,6 +9,7 @@
 ## 📊 Current Schema
 
 The sales-type.ts file contains **1 table**:
+
 1. `salesTypesTable` - Sales channel/pricing context (Dine In, Takeaway, Delivery, etc.)
 
 ---
@@ -47,6 +48,7 @@ The sales-type.ts file contains **1 table**:
 ### 2. **Two-Tier Architecture** ⭐⭐⭐⭐⭐
 
 **Global Sales Types (locationId = null):**
+
 ```typescript
 // System-wide, shared across all locations
 { code: 'DINE_IN', name: 'Dine In', isBuiltIn: true, locationId: null }
@@ -55,6 +57,7 @@ The sales-type.ts file contains **1 table**:
 ```
 
 **Per-Location Sales Types (locationId IS NOT NULL):**
+
 ```typescript
 // Jakarta-specific
 { code: 'WHOLESALE', name: 'Wholesale Jakarta', isBuiltIn: false, locationId: 1 }
@@ -70,25 +73,27 @@ The sales-type.ts file contains **1 table**:
 ### 3. **Clever Partial Indexes** ⭐⭐⭐⭐⭐
 
 **Global Uniqueness:**
+
 ```typescript
 uniqueIndex('sales_types_global_code_idx')
-  .on(t.code)
-  .where(sql`location_id IS NULL`)
+	.on(t.code)
+	.where(sql`location_id IS NULL`)
 
 uniqueIndex('sales_types_global_name_idx')
-  .on(t.name)
-  .where(sql`location_id IS NULL`)
+	.on(t.name)
+	.where(sql`location_id IS NULL`)
 ```
 
 **Per-Location Uniqueness:**
+
 ```typescript
 uniqueIndex('sales_types_location_code_idx')
-  .on(t.locationId, t.code)
-  .where(sql`location_id IS NOT NULL`)
+	.on(t.locationId, t.code)
+	.where(sql`location_id IS NOT NULL`)
 
 uniqueIndex('sales_types_location_name_idx')
-  .on(t.locationId, t.name)
-  .where(sql`location_id IS NOT NULL`)
+	.on(t.locationId, t.name)
+	.where(sql`location_id IS NOT NULL`)
 ```
 
 ✅ **Excellent:** Prevents conflicts at both global and location level
@@ -103,6 +108,7 @@ check('sales_types_built_in_global_chk', sql`NOT is_built_in OR location_id IS N
 ```
 
 **Enforces Invariant:**
+
 - If `isBuiltIn = true`, then `locationId` MUST be `null`
 - Prevents invalid state (built-in + location-specific)
 
@@ -115,21 +121,25 @@ check('sales_types_built_in_global_chk', sql`NOT is_built_in OR location_id IS N
 ### **CRITICAL: Field Name Mismatch** 🔴
 
 **Current:**
+
 ```typescript
 isBuiltIn: boolean('is_built_in').notNull().default(false)
 ```
 
 **Should Be (Consistency):**
+
 ```typescript
 isSystem: boolean('is_system').notNull().default(false)
 ```
 
 **Why:**
+
 - All other tables use `isSystem` (roles, users, uoms)
 - "System-seeded" more accurate than "built-in"
 - Consistency across codebase
 
 **Update Documentation:**
+
 ```typescript
 /**
  * `isSystem` — true for seeder-created global sales types. Protected from
@@ -141,6 +151,7 @@ isSystem: boolean('is_system').notNull().default(false)
 ```
 
 **Update Check Constraint:**
+
 ```typescript
 check('sales_types_system_global_chk', sql`NOT is_system OR location_id IS NULL`)
 ```
@@ -152,37 +163,37 @@ check('sales_types_system_global_chk', sql`NOT is_system OR location_id IS NULL`
 ### **CRITICAL: Non-Type-Safe Partial Indexes** 🔴
 
 **Current Implementation:**
+
 ```typescript
 // ❌ Using sql template (not type-safe)
 uniqueIndex('sales_types_global_code_idx')
-  .on(t.code)
-  .where(sql`location_id IS NULL`)
+	.on(t.code)
+	.where(sql`location_id IS NULL`)
 
 uniqueIndex('sales_types_location_code_idx')
-  .on(t.locationId, t.code)
-  .where(sql`location_id IS NOT NULL`)
+	.on(t.locationId, t.code)
+	.where(sql`location_id IS NOT NULL`)
 ```
 
 **Should Use Type-Safe Pattern:**
+
 ```typescript
 import { isNull, isNotNull } from 'drizzle-orm'
 
 // ✅ Type-safe with isNull() and isNotNull()
-uniqueIndex('sales_types_global_code_idx')
-  .on(t.code)
-  .where(isNull(t.locationId))
+uniqueIndex('sales_types_global_code_idx').on(t.code).where(isNull(t.locationId))
 
-uniqueIndex('sales_types_location_code_idx')
-  .on(t.locationId, t.code)
-  .where(isNotNull(t.locationId))
+uniqueIndex('sales_types_location_code_idx').on(t.locationId, t.code).where(isNotNull(t.locationId))
 ```
 
 **Why This Matters:**
+
 - ✅ Type checking catches errors at compile time
 - ✅ Consistent with project patterns (all other schemas)
 - ✅ Drizzle v1.0.0-rc.4+ supports `.where(isNull(...))`
 
 **Files to Update:**
+
 - Import `isNull`, `isNotNull` from `drizzle-orm`
 - Update all 4 partial indexes
 
@@ -193,11 +204,13 @@ uniqueIndex('sales_types_location_code_idx')
 ### **DESIGN: Check Constraint Update** 🟡
 
 **Current:**
+
 ```typescript
 check('sales_types_built_in_global_chk', sql`NOT is_built_in OR location_id IS NULL`)
 ```
 
 **After Rename:**
+
 ```typescript
 check('sales_types_system_global_chk', sql`NOT is_system OR location_id IS NULL`)
 ```
@@ -208,14 +221,14 @@ check('sales_types_system_global_chk', sql`NOT is_system OR location_id IS NULL`
 
 ## 📝 Summary
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| **Documentation** | ⭐⭐⭐⭐⭐ | Outstanding clarity |
-| **Two-Tier Architecture** | ⭐⭐⭐⭐⭐ | Perfect design |
-| **Partial Indexes** | ⭐⭐⭐⭐ | **Use type-safe isNull()/isNotNull()** |
-| **Check Constraint** | ⭐⭐⭐⭐⭐ | Business rule enforced |
-| **Naming** | ⭐⭐⭐ | **isBuiltIn → isSystem** |
-| **Overall** | ⭐⭐⭐⭐⭐ | Excellent (after fixes) |
+| Category                  | Rating     | Notes                                  |
+| ------------------------- | ---------- | -------------------------------------- |
+| **Documentation**         | ⭐⭐⭐⭐⭐ | Outstanding clarity                    |
+| **Two-Tier Architecture** | ⭐⭐⭐⭐⭐ | Perfect design                         |
+| **Partial Indexes**       | ⭐⭐⭐⭐   | **Use type-safe isNull()/isNotNull()** |
+| **Check Constraint**      | ⭐⭐⭐⭐⭐ | Business rule enforced                 |
+| **Naming**                | ⭐⭐⭐     | **isBuiltIn → isSystem**               |
+| **Overall**               | ⭐⭐⭐⭐⭐ | Excellent (after fixes)                |
 
 ---
 
@@ -234,6 +247,7 @@ isSystem: boolean('is_system').notNull().default(false)
 ```
 
 **Update Check Constraint:**
+
 ```typescript
 // BEFORE:
 check('sales_types_built_in_global_chk', sql`NOT is_built_in OR location_id IS NULL`)
@@ -243,6 +257,7 @@ check('sales_types_system_global_chk', sql`NOT is_system OR location_id IS NULL`
 ```
 
 **Update Documentation:**
+
 - Replace all `isBuiltIn` references with `isSystem`
 - Update comments to match roles/users/uoms pattern
 
@@ -268,6 +283,7 @@ import { isNull, isNotNull, sql } from 'drizzle-orm'
 ```
 
 **Affected Indexes:**
+
 - `sales_types_global_code_idx`
 - `sales_types_global_name_idx`
 - `sales_types_location_code_idx`
@@ -281,6 +297,7 @@ import { isNull, isNotNull, sql } from 'drizzle-orm'
 ### **Priority 3: No Other Changes Needed** ✅
 
 **Schema is excellent as-is:**
+
 - ✅ Two-tier architecture perfect
 - ✅ Check constraint enforces business rule
 - ✅ Documentation outstanding
@@ -306,18 +323,21 @@ import { isNull, isNotNull, sql } from 'drizzle-orm'
 **Purpose:** Sales channel/pricing context definitions
 
 **Strengths:**
+
 - ✅ Two-tier design (global + per-location)
 - ✅ 4 partial unique indexes (code/name x global/location)
 - ✅ Check constraint enforces invariant
 - ✅ Full audit columns
 
 **Improvements:**
+
 - ⚠️ Rename `isBuiltIn` → `isSystem`
 - ⚠️ Use type-safe partial indexes
 
 **Example Data:**
 
 **Global Sales Types:**
+
 ```sql
 INSERT INTO sales_types (code, name, is_system, location_id) VALUES
   ('DINE_IN', 'Dine In', true, NULL),
@@ -326,6 +346,7 @@ INSERT INTO sales_types (code, name, is_system, location_id) VALUES
 ```
 
 **Per-Location Sales Types:**
+
 ```sql
 -- Jakarta custom sales type
 INSERT INTO sales_types (code, name, is_system, location_id) VALUES
@@ -345,23 +366,27 @@ INSERT INTO sales_types (code, name, is_system, location_id) VALUES
 ### Pattern 1: Two-Tier Reference Data ⭐⭐⭐⭐⭐
 
 **Global Tier (Shared):**
+
 ```typescript
-locationId: null  // Shared across all locations
-isSystem: true    // Protected, seeded
+locationId: null // Shared across all locations
+isSystem: true // Protected, seeded
 ```
 
 **Per-Location Tier (Custom):**
+
 ```typescript
-locationId: 1     // Specific to Jakarta
-isSystem: false   // Custom, editable
+locationId: 1 // Specific to Jakarta
+isSystem: false // Custom, editable
 ```
 
 **Benefits:**
+
 - ✅ Consistency: Standard sales types shared
 - ✅ Flexibility: Locations can create custom types
 - ✅ No duplication: Global types used by all
 
 **Use Cases:**
+
 - Global: DINE_IN, TAKEAWAY, DELIVERY (standard)
 - Per-location: WHOLESALE_VIP, CORPORATE_DEAL (custom)
 
@@ -370,23 +395,22 @@ isSystem: false   // Custom, editable
 ### Pattern 2: Partial Indexes for Two Tiers ⭐⭐⭐⭐⭐
 
 **Global Uniqueness:**
+
 ```typescript
 // Among global types (locationId IS NULL), code must be unique
-uniqueIndex('sales_types_global_code_idx')
-  .on(t.code)
-  .where(isNull(t.locationId))  // ✅ After fix
+uniqueIndex('sales_types_global_code_idx').on(t.code).where(isNull(t.locationId)) // ✅ After fix
 ```
 
 **Per-Location Uniqueness:**
+
 ```typescript
 // Within same location, code must be unique
 // But different locations CAN have same code
-uniqueIndex('sales_types_location_code_idx')
-  .on(t.locationId, t.code)
-  .where(isNotNull(t.locationId))  // ✅ After fix
+uniqueIndex('sales_types_location_code_idx').on(t.locationId, t.code).where(isNotNull(t.locationId)) // ✅ After fix
 ```
 
 **Example:**
+
 ```sql
 -- ✅ Allowed: Same code in different locations
 INSERT INTO sales_types (code, name, location_id) VALUES
@@ -409,23 +433,26 @@ INSERT INTO sales_types (code, name, location_id) VALUES
 ### Pattern 3: Check Constraint for Invariant ⭐⭐⭐⭐⭐
 
 **Business Rule:**
+
 > "System-seeded sales types are always global (not location-specific)"
 
 **SQL Expression:**
+
 ```sql
 NOT is_system OR location_id IS NULL
 ```
 
 **Truth Table:**
 
-| isSystem | locationId | Valid? | Reason |
-|----------|------------|--------|--------|
-| false | NULL | ✅ Yes | Custom global (unusual but allowed) |
-| false | 1 | ✅ Yes | Custom per-location (typical) |
-| true | NULL | ✅ Yes | System global (typical) |
-| true | 1 | ❌ NO | System types cannot be location-specific |
+| isSystem | locationId | Valid? | Reason                                   |
+| -------- | ---------- | ------ | ---------------------------------------- |
+| false    | NULL       | ✅ Yes | Custom global (unusual but allowed)      |
+| false    | 1          | ✅ Yes | Custom per-location (typical)            |
+| true     | NULL       | ✅ Yes | System global (typical)                  |
+| true     | 1          | ❌ NO  | System types cannot be location-specific |
 
 **Database Enforcement:**
+
 ```sql
 -- ✅ Allowed: System global
 INSERT INTO sales_types (code, name, is_system, location_id) VALUES
@@ -442,9 +469,11 @@ INSERT INTO sales_types (code, name, is_system, location_id) VALUES
 ## 🔗 Cross-Schema Dependencies
 
 **Depends On:**
+
 - ✅ `locationsTable` - Per-location sales types
 
 **Used By:**
+
 - ✅ `salesOrdersTable` - Which sales type was used
 - ✅ `productPricesTable` - Per-sales-type pricing (non-variant)
 - ✅ `productVariantPricesTable` - Per-sales-type pricing (variant)
@@ -454,13 +483,14 @@ INSERT INTO sales_types (code, name, is_system, location_id) VALUES
 ## 🧪 Example Queries
 
 ### Query 1: Get All Sales Types for Location
+
 ```sql
 -- Get all available sales types for Jakarta (ID=1)
 -- Includes both global types and Jakarta-specific types
-SELECT 
+SELECT
   code,
   name,
-  CASE 
+  CASE
     WHEN location_id IS NULL THEN 'Global'
     ELSE 'Location-Specific'
   END as tier
@@ -473,9 +503,10 @@ ORDER BY tier, code;
 ---
 
 ### Query 2: Check for Duplicate Codes
+
 ```sql
 -- Find locations with same sales type codes
-SELECT 
+SELECT
   code,
   COUNT(*) as location_count,
   array_agg(location_id ORDER BY location_id) as locations
@@ -488,9 +519,10 @@ HAVING COUNT(*) > 1;
 ---
 
 ### Query 3: System vs Custom Types
+
 ```sql
-SELECT 
-  CASE 
+SELECT
+  CASE
     WHEN is_system THEN 'System'
     ELSE 'Custom'
   END as type_category,
@@ -507,11 +539,13 @@ ORDER BY is_system DESC;
 ### 1. **Two-Tier Reference Data Pattern**
 
 **When to Use:**
+
 - Reference data needs both standard and custom values
 - Standard values shared across entities (locations, tenants)
 - Custom values specific to entity
 
 **Examples in This Codebase:**
+
 - ✅ `salesTypesTable` - Global + per-location
 - ❓ Could apply to: categories, tags, custom fields
 
@@ -520,6 +554,7 @@ ORDER BY is_system DESC;
 ### 2. **Partial Indexes for Tiered Uniqueness**
 
 **Pattern:**
+
 ```typescript
 // Tier 1: Global uniqueness
 uniqueIndex().on(t.code).where(isNull(t.scopeField))
@@ -529,6 +564,7 @@ uniqueIndex().on(t.scopeField, t.code).where(isNotNull(t.scopeField))
 ```
 
 **Benefits:**
+
 - ✅ Enforces uniqueness at correct level
 - ✅ Allows same code in different scopes
 - ✅ Database-level enforcement
@@ -538,12 +574,14 @@ uniqueIndex().on(t.scopeField, t.code).where(isNotNull(t.scopeField))
 ### 3. **Check Constraints for Cross-Field Rules**
 
 **Pattern:**
+
 ```typescript
 // "If A is true, then B must be null"
 check('name', sql`NOT field_a OR field_b IS NULL`)
 ```
 
 **Benefits:**
+
 - ✅ Enforces complex business rules
 - ✅ Cannot be bypassed
 - ✅ Self-documenting schema
@@ -552,15 +590,16 @@ check('name', sql`NOT field_a OR field_b IS NULL`)
 
 ## 📊 Comparison with Other Schemas
 
-| Schema | Architecture | isSystem Field | Notes |
-|--------|--------------|----------------|-------|
-| **salesTypes** | Two-tier (global + per-location) | ✅ Yes (after fix) | Flexible pricing |
-| **roles** | Global only | ✅ Yes | System-wide permissions |
-| **uoms** | Global only | ✅ Yes | Universal measurements |
-| **productCategories** | Per-location only | ❌ No | Location-specific catalog |
-| **materialCategories** | Global only | ❌ No (should add?) | Universal classification |
+| Schema                 | Architecture                     | isSystem Field      | Notes                     |
+| ---------------------- | -------------------------------- | ------------------- | ------------------------- |
+| **salesTypes**         | Two-tier (global + per-location) | ✅ Yes (after fix)  | Flexible pricing          |
+| **roles**              | Global only                      | ✅ Yes              | System-wide permissions   |
+| **uoms**               | Global only                      | ✅ Yes              | Universal measurements    |
+| **productCategories**  | Per-location only                | ❌ No               | Location-specific catalog |
+| **materialCategories** | Global only                      | ❌ No (should add?) | Universal classification  |
 
 **Design Decision Rationale:**
+
 - Sales types need flexibility (global standards + local customization)
 - UOMs are universal (KG is KG everywhere)
 - Product categories are local (each store has unique catalog)

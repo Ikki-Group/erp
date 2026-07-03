@@ -1,11 +1,8 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
-import { RecipeRepo } from './recipe.repo'
-import { initRecipeRoute } from './recipe.route'
 import type {
 	RecipeDto,
 	RecipeSelectDto,
@@ -15,6 +12,8 @@ import type {
 	RecipeItemDto,
 	RecipeCostDto,
 } from './recipe.contract'
+import { RecipeRepo } from './recipe.repo'
+import { initRecipeRoute } from './recipe.route'
 import { RecipeService } from './recipe.service'
 
 export class RecipeServiceModule {

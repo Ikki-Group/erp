@@ -1,8 +1,7 @@
-import { createCache } from '@/infra/cache'
-
 import { db } from '@/db'
 
 import { env } from '@/config/env'
+import { createCache } from '@/infra/cache'
 
 import { createModules, type Modules } from '@/modules/_registry'
 

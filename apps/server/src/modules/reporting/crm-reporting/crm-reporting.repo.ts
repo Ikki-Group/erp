@@ -5,7 +5,7 @@ import { customersTable, customerLoyaltyTransactionsTable, salesOrdersTable } fr
 
 import type { DbClient } from '@/infra/database'
 
-import {  CrmReportRequestDto  } from './crm-reporting.contract'
+import { CrmReportRequestDto } from './crm-reporting.contract'
 
 export class CrmReportingRepo {
 	constructor(private readonly db: DbClient) {}

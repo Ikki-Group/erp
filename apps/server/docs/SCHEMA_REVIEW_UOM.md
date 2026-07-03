@@ -10,21 +10,21 @@
 
 ```typescript
 export const uomsTable = pgTable(
-  'uoms',
-  {
-    ...pk,
-    code: text('code').notNull(),
-    name: text('name').notNull(),
-    isBuiltIn: boolean('is_built_in').notNull().default(false),
-    ...auditBasicColumns,
-  },
-  (t) => [
-    uniqueIndex('uoms_code_idx').on(t.code),
-    uniqueIndex('uoms_name_idx').on(t.name),
-    
-    // Prevent 'kg' vs 'KG' duplicate drift — code must always be uppercase
-    check('uoms_code_uppercase_chk', sql`code = upper(code)`),
-  ],
+	'uoms',
+	{
+		...pk,
+		code: text('code').notNull(),
+		name: text('name').notNull(),
+		isBuiltIn: boolean('is_built_in').notNull().default(false),
+		...auditBasicColumns,
+	},
+	(t) => [
+		uniqueIndex('uoms_code_idx').on(t.code),
+		uniqueIndex('uoms_name_idx').on(t.name),
+
+		// Prevent 'kg' vs 'KG' duplicate drift — code must always be uppercase
+		check('uoms_code_uppercase_chk', sql`code = upper(code)`),
+	],
 )
 ```
 
@@ -74,6 +74,7 @@ check('uoms_code_uppercase_chk', sql`code = upper(code)`)
 ```
 
 **✅ Excellent pattern:**
+
 - Prevents case drift ('kg' vs 'KG')
 - Database-level enforcement (not just app-level)
 - Matches documentation perfectly
@@ -83,9 +84,11 @@ check('uoms_code_uppercase_chk', sql`code = upper(code)`)
 ### 3. **Global Reference Design** ⭐⭐⭐⭐⭐
 
 **Documentation:**
+
 > "Global reference table — UOMs are shared across all locations"
 
 **✅ Perfect for UOM:**
+
 - KG is KG everywhere (not location-specific)
 - Simplifies inventory, recipes, conversions
 - Avoids duplication across locations
@@ -100,6 +103,7 @@ uniqueIndex('uoms_name_idx').on(t.name),
 ```
 
 **✅ Good:**
+
 - Code unique (machine identifier)
 - Name unique (prevents UI ambiguity)
 
@@ -108,6 +112,7 @@ uniqueIndex('uoms_name_idx').on(t.name),
 ### 5. **Deletion Strategy** ⭐⭐⭐⭐⭐
 
 **Two-Layer Protection:**
+
 1. **FK Restrict:** Materials/conversions reference UOMs with `onDelete: 'restrict'`
 2. **isBuiltIn Flag:** Service layer prevents deletion of seeded UOMs
 
@@ -123,16 +128,17 @@ uniqueIndex('uoms_name_idx').on(t.name),
 
 ```typescript
 // Schema uses:
-isBuiltIn: boolean('is_built_in')  // ❌ Column: is_built_in
+isBuiltIn: boolean('is_built_in') // ❌ Column: is_built_in
 
 // Documentation uses:
-isBuiltIn  // Field name: isBuiltIn
+isBuiltIn // Field name: isBuiltIn
 
 // Should be:
-isSystem: boolean('is_system')  // ✅ Consistent with roles/users
+isSystem: boolean('is_system') // ✅ Consistent with roles/users
 ```
 
 **Why `isSystem` is Better:**
+
 - Matches IAM naming (`roles.isSystem`, `users.isSystem`)
 - More accurate: "system-seeded" not "built-in"
 - Consistent across codebase
@@ -146,6 +152,7 @@ isSystem: boolean('is_system').notNull().default(false)
 ```
 
 **Update Documentation:**
+
 ```typescript
 /**
  * `isSystem` — true for UOMs created by the system seeder (e.g. KG, PCS, LTR).
@@ -159,6 +166,7 @@ isSystem: boolean('is_system').notNull().default(false)
 ### **MINOR: Check Constraint Could Be More Efficient** 🟡
 
 **Current:**
+
 ```typescript
 check('uoms_code_uppercase_chk', sql`code = upper(code)`)
 ```
@@ -168,6 +176,7 @@ check('uoms_code_uppercase_chk', sql`code = upper(code)`)
 **Alternative Pattern:**
 
 #### Option A: Application-Level (Recommended)
+
 ```typescript
 // In contract:
 code: z.string().trim().toUpperCase()
@@ -176,27 +185,33 @@ code: z.string().trim().toUpperCase()
 ```
 
 **Pros:**
+
 - ✅ Faster (no DB check on every write)
 - ✅ Clear validation message
 - ✅ Zod already transforms to uppercase
 
 **Cons:**
+
 - ⚠️ No DB-level enforcement (relies on app)
 
 ---
 
 #### Option B: Keep DB Constraint (Current)
+
 **Pros:**
+
 - ✅ Defense-in-depth
 - ✅ Protects against direct SQL inserts
 - ✅ Explicit in schema
 
 **Cons:**
+
 - ⚠️ Slight overhead on writes
 
 ---
 
 **Recommendation:** **Keep DB constraint** for defense-in-depth
+
 - UOMs are low-churn (write once, read many)
 - Overhead negligible
 - Extra safety layer worth it
@@ -206,6 +221,7 @@ code: z.string().trim().toUpperCase()
 ### **DESIGN: Audit Columns on Reference Table** 🟢
 
 **Current:**
+
 ```typescript
 ...auditBasicColumns,  // createdBy, updatedBy, createdAt, updatedAt
 ```
@@ -214,19 +230,21 @@ code: z.string().trim().toUpperCase()
 
 **Considerations:**
 
-| Need | Reason |
-|------|--------|
-| ✅ `createdAt` | When was UOM added (useful for system changes) |
-| ✅ `createdBy` | Who added custom UOM (accountability) |
+| Need           | Reason                                           |
+| -------------- | ------------------------------------------------ |
+| ✅ `createdAt` | When was UOM added (useful for system changes)   |
+| ✅ `createdBy` | Who added custom UOM (accountability)            |
 | ❓ `updatedAt` | UOMs rarely updated (code/name should be stable) |
-| ❓ `updatedBy` | Updates discouraged (rename = new UOM better) |
+| ❓ `updatedBy` | Updates discouraged (rename = new UOM better)    |
 
 **Current Design:** **Keep audit columns**
+
 - ✅ Small overhead (reference table, low volume)
 - ✅ Useful for custom UOMs (who added "SACK"?)
 - ✅ Consistent with other tables
 
 **Alternative:** Could use simplified audit
+
 ```typescript
 createdAt: timestamp('created_at').notNull().defaultNow(),
 createdBy: integer('created_by').notNull(),
@@ -239,15 +257,15 @@ createdBy: integer('created_by').notNull(),
 
 ## 📝 Summary
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| **Documentation** | ⭐⭐⭐⭐⭐ | Outstanding clarity |
-| **Check Constraint** | ⭐⭐⭐⭐⭐ | Perfect uppercase enforcement |
-| **Global Design** | ⭐⭐⭐⭐⭐ | Correct for UOM |
-| **Unique Constraints** | ⭐⭐⭐⭐⭐ | Code + name unique |
-| **Deletion Protection** | ⭐⭐⭐⭐⭐ | Two-layer defense |
-| **Naming** | ⭐⭐⭐ | **isBuiltIn → isSystem** |
-| **Overall** | ⭐⭐⭐⭐⭐ | Excellent (after naming fix) |
+| Category                | Rating     | Notes                         |
+| ----------------------- | ---------- | ----------------------------- |
+| **Documentation**       | ⭐⭐⭐⭐⭐ | Outstanding clarity           |
+| **Check Constraint**    | ⭐⭐⭐⭐⭐ | Perfect uppercase enforcement |
+| **Global Design**       | ⭐⭐⭐⭐⭐ | Correct for UOM               |
+| **Unique Constraints**  | ⭐⭐⭐⭐⭐ | Code + name unique            |
+| **Deletion Protection** | ⭐⭐⭐⭐⭐ | Two-layer defense             |
+| **Naming**              | ⭐⭐⭐     | **isBuiltIn → isSystem**      |
+| **Overall**             | ⭐⭐⭐⭐⭐ | Excellent (after naming fix)  |
 
 ---
 
@@ -262,6 +280,7 @@ isSystem: boolean('is_system').notNull().default(false)
 ```
 
 **Update Documentation:**
+
 - Change all `isBuiltIn` references to `isSystem`
 - Update comments to match IAM pattern
 
@@ -273,6 +292,7 @@ isSystem: boolean('is_system').notNull().default(false)
 ### **Priority 2: No Other Changes Needed** ✅
 
 **Schema is excellent as-is:**
+
 - ✅ Check constraint working perfectly
 - ✅ Global reference design correct
 - ✅ Audit columns appropriate
@@ -295,11 +315,11 @@ isSystem: boolean('is_system').notNull().default(false)
 
 **Field Name Pattern:**
 
-| Table | Current | Should Be | Status |
-|-------|---------|-----------|--------|
-| roles | `is_built_in` → `is_system` | ✅ FIXED | Commit: 3c8fef2e |
-| users | `is_built_in` → `is_system` | ✅ FIXED | Commit: 3c8fef2e |
-| uoms | `is_built_in` | ❌ `is_system` | **THIS SCHEMA** |
+| Table | Current                     | Should Be      | Status           |
+| ----- | --------------------------- | -------------- | ---------------- |
+| roles | `is_built_in` → `is_system` | ✅ FIXED       | Commit: 3c8fef2e |
+| users | `is_built_in` → `is_system` | ✅ FIXED       | Commit: 3c8fef2e |
+| uoms  | `is_built_in`               | ❌ `is_system` | **THIS SCHEMA**  |
 
 **After Fix:** All tables use consistent `is_system` naming ✅
 
@@ -308,6 +328,7 @@ isSystem: boolean('is_system').notNull().default(false)
 ## 📊 Example UOMs
 
 **System UOMs (isSystem = true):**
+
 ```sql
 INSERT INTO uoms (code, name, is_system) VALUES
   ('KG', 'Kilogram', true),
@@ -318,6 +339,7 @@ INSERT INTO uoms (code, name, is_system) VALUES
 ```
 
 **Custom UOMs (isSystem = false):**
+
 ```sql
 INSERT INTO uoms (code, name, is_system, created_by) VALUES
   ('SACK', 'Sack (25kg)', false, 1),      -- Business-specific
@@ -329,6 +351,7 @@ INSERT INTO uoms (code, name, is_system, created_by) VALUES
 ## 🎯 Usage Pattern
 
 **In Materials:**
+
 ```typescript
 // Material has base UOM
 material: {
@@ -345,6 +368,7 @@ conversions: [
 ```
 
 **In Inventory:**
+
 ```typescript
 // Transaction in any UOM
 transaction: {
@@ -355,6 +379,7 @@ transaction: {
 ```
 
 **Check Constraint in Action:**
+
 ```sql
 -- ✅ Allowed
 INSERT INTO uoms (code, name) VALUES ('KG', 'Kilogram');

@@ -1,9 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type {
@@ -40,26 +38,26 @@ export class SalesOrderService {
 		// Validate location exists
 		const location = await this.deps.location.getById(data.locationId)
 		if (!location) {
-			throw new NotFoundError(`Location with ID ${data.locationId} not found`, { code: 'LOCATION_NOT_FOUND' })
+			throw new NotFoundError(`Location with ID ${data.locationId} not found`, {
+				code: 'LOCATION_NOT_FOUND',
+			})
 		}
 
 		// Validate sales type exists
 		const salesType = await this.deps.salesType.salesType.getById(data.salesTypeId)
 		if (!salesType) {
-			throw new NotFoundError(
-				`Sales type with ID ${data.salesTypeId} not found`,
-				{ code: 'SALES_TYPE_NOT_FOUND' }
-			)
+			throw new NotFoundError(`Sales type with ID ${data.salesTypeId} not found`, {
+				code: 'SALES_TYPE_NOT_FOUND',
+			})
 		}
 
 		// Validate customer exists if provided
 		if (data.customerId) {
 			const customer = await this.deps.crm.customer.getById(data.customerId)
 			if (!customer) {
-				throw new NotFoundError(
-					`Customer with ID ${data.customerId} not found`,
-					{ code: 'CUSTOMER_NOT_FOUND' }
-				)
+				throw new NotFoundError(`Customer with ID ${data.customerId} not found`, {
+					code: 'CUSTOMER_NOT_FOUND',
+				})
 			}
 		}
 
@@ -69,10 +67,9 @@ export class SalesOrderService {
 				if (item.productId) {
 					const product = await this.deps.product.product.getById(item.productId)
 					if (!product) {
-						throw new NotFoundError(
-							`Product with ID ${item.productId} not found`,
-							{ code: 'PRODUCT_NOT_FOUND' }
-						)
+						throw new NotFoundError(`Product with ID ${item.productId} not found`, {
+							code: 'PRODUCT_NOT_FOUND',
+						})
 					}
 				}
 			}
@@ -88,7 +85,8 @@ export class SalesOrderService {
 				key,
 				factory: () => this.repo.getById(id),
 			})
-			if (!order) throw new NotFoundError(`Sales Order ${id} not found`, { code: 'SALES_ORDER_NOT_FOUND' })
+			if (!order)
+				throw new NotFoundError(`Sales Order ${id} not found`, { code: 'SALES_ORDER_NOT_FOUND' })
 			return order
 		})
 	}

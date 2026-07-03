@@ -1,9 +1,9 @@
-import { zc, zq } from '@/shared/schema'
-import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { zc, zq } from '@/shared/schema'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 
 import {
 	MaterialConversionCreateDto,
@@ -26,11 +26,15 @@ export function initMaterialConversionRoute(s: MaterialConversionService) {
 			response: createSuccessResponseDto(MaterialConversionDto),
 			auth: true,
 		})
-		.post('/create', async ({ body, auth }) => res.created(await s.handleCreate(body, auth.userId)), {
-			body: MaterialConversionCreateDto,
-			response: createSuccessResponseDto(zc.RecordId),
-			auth: true,
-		})
+		.post(
+			'/create',
+			async ({ body, auth }) => res.created(await s.handleCreate(body, auth.userId)),
+			{
+				body: MaterialConversionCreateDto,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
+		)
 		.put('/update', async ({ body, auth }) => res.ok(await s.handleUpdate(body, auth.userId)), {
 			body: MaterialConversionUpdateDto,
 			response: createSuccessResponseDto(zc.RecordId),

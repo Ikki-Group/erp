@@ -2,23 +2,28 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import { CompanySettingsRepo } from './company-settings.repo'
 import type {
 	CompanySettingsDto,
 	CompanySettingsCreateDto,
 	CompanySettingsUpdateDto,
 } from './company-settings.contract'
+import { CompanySettingsRepo } from './company-settings.repo'
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Company settings with ID ${id} not found`, { code: 'COMPANY_SETTINGS_NOT_FOUND' }),
+		new NotFoundError(`Company settings with ID ${id} not found`, {
+			code: 'COMPANY_SETTINGS_NOT_FOUND',
+		}),
 	notConfigured: () =>
-		new InternalServerError('Company settings not configured', { code: 'COMPANY_SETTINGS_NOT_CONFIGURED' }),
+		new InternalServerError('Company settings not configured', {
+			code: 'COMPANY_SETTINGS_NOT_CONFIGURED',
+		}),
 	createFailed: () =>
-		new InternalServerError('Company settings creation failed', { code: 'COMPANY_SETTINGS_CREATE_FAILED' }),
+		new InternalServerError('Company settings creation failed', {
+			code: 'COMPANY_SETTINGS_CREATE_FAILED',
+		}),
 }
 
 export class CompanySettingsService {

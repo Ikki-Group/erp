@@ -1,5 +1,5 @@
-import { z } from 'zod'
 import Elysia from 'elysia'
+import { z } from 'zod'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
@@ -34,7 +34,11 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
 		.put(
 			'/update',
 			async function update(context) {
-				const result = await service.handleUpdate(context.query.id, context.body, context.auth.userId)
+				const result = await service.handleUpdate(
+					context.query.id,
+					context.body,
+					context.auth.userId,
+				)
 				return res.ok(result)
 			},
 			{ query: z.object({ id: z.coerce.number() }), body: MokaConfigurationUpdateDto, auth: true },

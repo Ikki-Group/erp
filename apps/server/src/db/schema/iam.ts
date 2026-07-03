@@ -25,10 +25,7 @@ export const rolesTable = pgTable(
 		code: text('code').notNull(),
 		name: text('name').notNull(),
 		description: text('description'),
-		permissions: text('permissions')
-			.array()
-			.notNull()
-			.default([]),
+		permissions: text('permissions').array().notNull().default([]),
 		isSystem: boolean('is_system').notNull().default(false),
 		...auditBasicColumns,
 	},

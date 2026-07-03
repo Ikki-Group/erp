@@ -9,6 +9,7 @@
 ## 📊 Current Schema
 
 The sales.ts file contains **8 tables**:
+
 1. `salesOrdersTable` - Sales order header
 2. `salesOrderBatchesTable` - Batch delivery tracking
 3. `salesOrderItemsTable` - Order line items
@@ -28,13 +29,14 @@ The sales.ts file contains **8 tables**:
 salesOrderItemsTable: {
   // Immutable History: Item name must always be stored
   itemName: text().notNull(),
-  
+
   // Even if product is deleted, order history preserved
   productId: integer().references(() => productsTable.id, { onDelete: 'set null' })
 }
 ```
 
 **Benefits:**
+
 - ✅ Order history never breaks (even if product deleted/renamed)
 - ✅ Audit trail complete
 - ✅ Financial reporting accurate
@@ -50,13 +52,14 @@ salesOrderItemsTable: {
   // Optional: Support custom items (no product link)
   productId: integer().references(..., { onDelete: 'set null' }),
   variantId: integer().references(..., { onDelete: 'set null' }),
-  
+
   // Always required: Store display name
   itemName: text().notNull()
 }
 ```
 
 **Use Cases:**
+
 - ✅ Regular products (productId set)
 - ✅ Product variants (variantId set)
 - ✅ Custom items (both null, itemName only)
@@ -68,18 +71,22 @@ salesOrderItemsTable: {
 ### 3. **Comprehensive Financial Tracking** ⭐⭐⭐⭐⭐
 
 **Order Level:**
+
 ```typescript
 salesOrdersTable: {
-  totalAmount, discountAmount, taxAmount,
-  gratuityAmount,  // Tips/service charge
-  refundAmount     // Total refunded
+	;(totalAmount,
+		discountAmount,
+		taxAmount,
+		gratuityAmount, // Tips/service charge
+		refundAmount) // Total refunded
 }
 ```
 
 **Item Level:**
+
 ```typescript
 salesOrderItemsTable: {
-  quantity, unitPrice, discountAmount, taxAmount, subtotal
+	;(quantity, unitPrice, discountAmount, taxAmount, subtotal)
 }
 ```
 
@@ -91,15 +98,16 @@ salesOrderItemsTable: {
 
 ```typescript
 salesOrderBatchesTable: {
-  orderId, batchNumber, status  // pending, prepared, delivered
+	;(orderId, batchNumber, status) // pending, prepared, delivered
 }
 
 salesOrderItemsTable: {
-  batchId  // Link item to batch
+	batchId // Link item to batch
 }
 ```
 
 **Use Case:**
+
 - Order placed: 10 items
 - Batch 1 (5 items): prepared
 - Batch 2 (5 items): pending
@@ -111,17 +119,19 @@ salesOrderItemsTable: {
 ### 5. **Void vs Refund Separation** ⭐⭐⭐⭐⭐
 
 **Void (Pre-Payment):**
+
 ```typescript
 salesVoidsTable: {
-  orderId, itemId, reason, voidedBy
-  // No amount field: void before payment
+	;(orderId, itemId, reason, voidedBy)
+	// No amount field: void before payment
 }
 ```
 
 **Refund (Post-Payment):**
+
 ```typescript
 salesRefundsTable: {
-  orderId, itemId, amount, reason, refundedBy, refundedAt
+	;(orderId, itemId, amount, reason, refundedBy, refundedAt)
 }
 ```
 
@@ -133,13 +143,12 @@ salesRefundsTable: {
 
 ```typescript
 salesExternalRefsTable: {
-  externalSource: 'Grab', 'Shopee', 'Moka',
-  externalOrderId,
-  rawPayload  // Full JSON for debugging
+	externalSource: ('Grab', 'Shopee', 'Moka', externalOrderId, rawPayload) // Full JSON for debugging
 }
 ```
 
 **Benefits:**
+
 - ✅ Link to third-party platforms
 - ✅ Unique constraint prevents duplicate imports
 - ✅ Raw payload preserved for audit
@@ -152,11 +161,12 @@ salesExternalRefsTable: {
 
 ```typescript
 salesOrdersTable: {
-  metadata: jsonb()  // split_payment_details, payment_type, etc.
+	metadata: jsonb() // split_payment_details, payment_type, etc.
 }
 ```
 
 **Benefits:**
+
 - ✅ Flexible schema for integration data
 - ✅ No schema changes for new fields
 - ✅ PostgreSQL JSONB indexable/queryable
@@ -168,16 +178,23 @@ salesOrdersTable: {
 ### 8. **Invoice Separation** ⭐⭐⭐⭐⭐
 
 **Order (Operational):**
+
 ```typescript
-salesOrdersTable: { locationId, customerId, status }
+salesOrdersTable: {
+	;(locationId, customerId, status)
+}
 ```
 
 **Invoice (Financial):**
+
 ```typescript
-salesInvoicesTable: { orderId, invoiceDate, dueDate, status }
+salesInvoicesTable: {
+	;(orderId, invoiceDate, dueDate, status)
+}
 ```
 
 **Benefits:**
+
 - ✅ One order can have multiple invoices (installments)
 - ✅ Order ≠ invoice (payment terms)
 - ✅ Clear accounting separation
@@ -191,27 +208,27 @@ salesInvoicesTable: { orderId, invoiceDate, dueDate, status }
 ### **CRITICAL: Missing Explicit Column Names** 🔴
 
 **Current Schema (ALL tables affected):**
+
 ```typescript
 // ❌ Missing column names
 locationId: integer()
-  .notNull()
-  .references(() => locationsTable.id, { onDelete: 'restrict' })
+	.notNull()
+	.references(() => locationsTable.id, { onDelete: 'restrict' })
 
-customerId: integer()
-  .references(() => customersTable.id, { onDelete: 'set null' })
+customerId: integer().references(() => customersTable.id, { onDelete: 'set null' })
 
 source: salesOrderSourceEnum().notNull().default('web')
 ```
 
 **Should Have:**
+
 ```typescript
 // ✅ Explicit column names
 locationId: integer('location_id')
-  .notNull()
-  .references(() => locationsTable.id, { onDelete: 'restrict' })
+	.notNull()
+	.references(() => locationsTable.id, { onDelete: 'restrict' })
 
-customerId: integer('customer_id')
-  .references(() => customersTable.id, { onDelete: 'set null' })
+customerId: integer('customer_id').references(() => customersTable.id, { onDelete: 'set null' })
 
 source: salesOrderSourceEnum('source').notNull().default('web')
 ```
@@ -223,6 +240,7 @@ source: salesOrderSourceEnum('source').notNull().default('web')
 ### **MINOR: Quantity Precision (Scale 4 vs 6)** 🟡
 
 **Current:**
+
 ```typescript
 // sales.ts uses scale 4
 quantity: numeric({ precision: 18, scale: 4 })
@@ -235,15 +253,16 @@ qty: numeric('qty', { precision: 18, scale: 6 })
 
 **Analysis:**
 
-| Use Case | Scale 4 | Scale 6 |
-|----------|---------|---------|
+| Use Case               | Scale 4   | Scale 6     |
+| ---------------------- | --------- | ----------- |
 | Regular products (PCS) | ✅ 1.0000 | ✅ 1.000000 |
-| Weight-based (KG) | ✅ 0.1250 | ✅ 0.125000 |
-| High precision (mg) | ⚠️ 0.0001 | ✅ 0.000001 |
+| Weight-based (KG)      | ✅ 0.1250 | ✅ 0.125000 |
+| High precision (mg)    | ⚠️ 0.0001 | ✅ 0.000001 |
 
 **Recommendation:** **Change to scale 6 for consistency**
 
 **Rationale:**
+
 - Inventory uses scale 6 (after review)
 - Sales quantities derive from inventory
 - Prevents precision loss in conversions
@@ -256,6 +275,7 @@ qty: numeric('qty', { precision: 18, scale: 6 })
 ### **MINOR: Missing Check Constraints** 🟡
 
 **Current:**
+
 ```typescript
 // No check constraints for:
 // - totalAmount, discountAmount, taxAmount (should be non-negative)
@@ -287,17 +307,19 @@ check('sales_refunds_amount_pos_chk', sql`amount > 0`)
 ### **DESIGN: Batch Status (text vs enum)** 🟢
 
 **Current:**
+
 ```typescript
 salesOrderBatchesTable: {
-  status: text().notNull().default('pending')  // No enum!
+	status: text().notNull().default('pending') // No enum!
 }
 ```
 
 **Comparison:**
+
 ```typescript
 // Other tables use enums
 salesOrdersTable: {
-  status: salesOrderStatusEnum().notNull()  // ✅ Enum
+	status: salesOrderStatusEnum().notNull() // ✅ Enum
 }
 ```
 
@@ -306,7 +328,10 @@ salesOrdersTable: {
 ```typescript
 // In _enums.ts
 export const batchStatusEnum = pgEnum('batch_status', [
-  'pending', 'prepared', 'delivered', 'cancelled'
+	'pending',
+	'prepared',
+	'delivered',
+	'cancelled',
 ])
 
 // In sales.ts
@@ -320,6 +345,7 @@ status: batchStatusEnum('status').notNull().default('pending')
 ### **DESIGN: Invoice Items Link to Order Items** 🟢
 
 **Current:**
+
 ```typescript
 salesInvoiceItemsTable: {
   salesOrderItemId: integer().references(..., { onDelete: 'set null' })
@@ -330,15 +356,16 @@ salesInvoiceItemsTable: {
 
 **Analysis:**
 
-| Scenario | salesOrderItemId |
-|----------|------------------|
-| Invoice from order | ✅ Set (link preserved) |
-| Manual invoice (no order) | ⚠️ Null (allowed) |
-| Order item deleted | ⚠️ Null (onDelete: 'set null') |
+| Scenario                  | salesOrderItemId               |
+| ------------------------- | ------------------------------ |
+| Invoice from order        | ✅ Set (link preserved)        |
+| Manual invoice (no order) | ⚠️ Null (allowed)              |
+| Order item deleted        | ⚠️ Null (onDelete: 'set null') |
 
 **Recommendation:** **Keep current design (nullable)**
 
 **Rationale:**
+
 - Supports manual invoices (no order)
 - History preserved even if order item deleted
 - Flexibility for edge cases
@@ -350,6 +377,7 @@ salesInvoiceItemsTable: {
 ### **MINOR: Missing Documentation** 🟡
 
 **Current:**
+
 - Some inline comments (e.g., "Immutable History")
 - No table-level JSDoc like material.ts/product.ts
 
@@ -361,19 +389,19 @@ salesInvoiceItemsTable: {
 
 ## 📝 Summary
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| **Immutable History** | ⭐⭐⭐⭐⭐ | Perfect for audit trail |
-| **Flexible Products** | ⭐⭐⭐⭐⭐ | Regular, variants, custom items |
-| **Financial Tracking** | ⭐⭐⭐⭐⭐ | Complete breakdown |
-| **Batch Delivery** | ⭐⭐⭐⭐⭐ | Partial fulfillment support |
-| **Void vs Refund** | ⭐⭐⭐⭐⭐ | Clear accounting separation |
-| **External Integration** | ⭐⭐⭐⭐⭐ | Multi-channel ready |
-| **Column Names** | ⭐⭐⭐ | **Add explicit names** |
-| **Precision** | ⭐⭐⭐⭐ | **Change qty to scale 6** |
-| **Check Constraints** | ⭐⭐⭐ | **Add for amounts** |
-| **Batch Status** | ⭐⭐⭐⭐ | **Use enum instead of text** |
-| **Overall** | ⭐⭐⭐⭐⭐ | Excellent (after fixes) |
+| Category                 | Rating     | Notes                           |
+| ------------------------ | ---------- | ------------------------------- |
+| **Immutable History**    | ⭐⭐⭐⭐⭐ | Perfect for audit trail         |
+| **Flexible Products**    | ⭐⭐⭐⭐⭐ | Regular, variants, custom items |
+| **Financial Tracking**   | ⭐⭐⭐⭐⭐ | Complete breakdown              |
+| **Batch Delivery**       | ⭐⭐⭐⭐⭐ | Partial fulfillment support     |
+| **Void vs Refund**       | ⭐⭐⭐⭐⭐ | Clear accounting separation     |
+| **External Integration** | ⭐⭐⭐⭐⭐ | Multi-channel ready             |
+| **Column Names**         | ⭐⭐⭐     | **Add explicit names**          |
+| **Precision**            | ⭐⭐⭐⭐   | **Change qty to scale 6**       |
+| **Check Constraints**    | ⭐⭐⭐     | **Add for amounts**             |
+| **Batch Status**         | ⭐⭐⭐⭐   | **Use enum instead of text**    |
+| **Overall**              | ⭐⭐⭐⭐⭐ | Excellent (after fixes)         |
 
 ---
 
@@ -403,6 +431,7 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 ```
 
 **Affected Tables:**
+
 - `salesOrderItemsTable.quantity`
 - `salesInvoiceItemsTable.quantity`
 
@@ -424,7 +453,7 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 
 **Action:** Move from `text` to enum for batch status
 
-**Effort:** 3 minutes (requires _enums.ts update)  
+**Effort:** 3 minutes (requires \_enums.ts update)  
 **Impact:** ⭐⭐⭐ Type safety
 
 ---
@@ -461,12 +490,14 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 **Purpose:** Sales order header
 
 **Strengths:**
+
 - ✅ Complete financial fields
 - ✅ Source enum (web, pos, api, etc.)
 - ✅ Status enum (open, completed, cancelled)
 - ✅ JSONB metadata for integrations
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Add check constraints (amounts >= 0)
 
@@ -477,10 +508,12 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 **Purpose:** Batch delivery tracking
 
 **Strengths:**
+
 - ✅ Supports partial fulfillment
 - ✅ Batch number sequence
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Use enum for status (not text)
 
@@ -491,12 +524,14 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 **Purpose:** Order line items
 
 **Strengths:**
+
 - ✅ Immutable history (itemName always stored)
 - ✅ Optional product/variant links
 - ✅ Complete financial breakdown
 - ✅ Batch tracking support
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Change quantity to scale 6
 - ⚠️ Add check constraints
@@ -508,12 +543,14 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 **Purpose:** Invoice header
 
 **Strengths:**
+
 - ✅ Separate from orders (proper accounting)
 - ✅ Status enum (draft, sent, paid, overdue, cancelled)
 - ✅ Due date tracking
 - ✅ Links to order
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Add check constraints
 
@@ -524,11 +561,13 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 **Purpose:** Invoice line items
 
 **Strengths:**
+
 - ✅ Links to order items (optional)
 - ✅ Immutable history (itemName stored)
 - ✅ Complete financial breakdown
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Change quantity to scale 6
 - ⚠️ Add check constraints
@@ -540,12 +579,14 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 **Purpose:** Void tracking (pre-payment)
 
 **Strengths:**
+
 - ✅ Order-level or item-level voids
 - ✅ Reason tracking
 - ✅ User accountability (voidedBy)
 - ✅ JSONB metadata
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 
 ---
@@ -555,12 +596,14 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 **Purpose:** Refund tracking (post-payment)
 
 **Strengths:**
+
 - ✅ Amount tracking (unlike voids)
 - ✅ Order-level or item-level refunds
 - ✅ Timestamp tracking (refundedAt)
 - ✅ User accountability (refundedBy)
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Add check constraint (amount > 0)
 
@@ -571,11 +614,13 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 **Purpose:** Third-party integration
 
 **Strengths:**
+
 - ✅ Unique constraint prevents duplicate imports
 - ✅ Raw payload preserved
 - ✅ Multiple sources supported
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 
 ---
@@ -587,6 +632,7 @@ quantity: numeric('quantity', { precision: 18, scale: 6 })
 **Problem:** Product renamed/deleted → order history broken
 
 **Solution:**
+
 ```typescript
 salesOrderItemsTable: {
   productId: integer().references(..., { onDelete: 'set null' }),
@@ -595,6 +641,7 @@ salesOrderItemsTable: {
 ```
 
 **Example:**
+
 ```sql
 -- T0: Create order
 INSERT INTO sales_order_items (product_id, item_name, unit_price)
@@ -649,6 +696,7 @@ SELECT item_name FROM sales_order_items;
 ### Pattern 3: Void vs Refund ⭐⭐⭐⭐⭐
 
 **Void (Before Payment):**
+
 ```sql
 -- Customer changes mind before paying
 INSERT INTO sales_voids (order_id, item_id, reason, voided_by)
@@ -658,6 +706,7 @@ VALUES (1, 5, 'Customer changed order', 10);
 ```
 
 **Refund (After Payment):**
+
 ```sql
 -- Customer returns item after payment
 INSERT INTO sales_refunds (order_id, item_id, amount, reason, refunded_by, refunded_at)
@@ -667,6 +716,7 @@ VALUES (1, 5, 5000, 'Item defective', 10, NOW());
 ```
 
 **Accounting:**
+
 - Void: No financial impact (transaction cancelled)
 - Refund: Financial impact (revenue reversal)
 
@@ -675,12 +725,13 @@ VALUES (1, 5, 5000, 'Item defective', 10, NOW());
 ### Pattern 4: External Integration ⭐⭐⭐⭐⭐
 
 **Prevent Duplicate Import:**
+
 ```typescript
-uniqueIndex('sales_external_refs_source_ext_id_idx')
-  .on(t.externalSource, t.externalOrderId)
+uniqueIndex('sales_external_refs_source_ext_id_idx').on(t.externalSource, t.externalOrderId)
 ```
 
 **Example:**
+
 ```sql
 -- First import from Grab
 INSERT INTO sales_external_refs (order_id, external_source, external_order_id)
@@ -700,6 +751,7 @@ VALUES (2, 'Grab', 'GR-2024-001');
 ## 🔗 Cross-Schema Dependencies
 
 **Depends On:**
+
 - ✅ `locationsTable` - Where sale occurred
 - ✅ `customersTable` - Who purchased
 - ✅ `productsTable`, `productVariantsTable` - What was sold
@@ -708,6 +760,7 @@ VALUES (2, 'Grab', 'GR-2024-001');
 - ✅ Enums: `salesOrderSourceEnum`, `salesOrderStatusEnum`, `invoiceStatusEnum`
 
 **Used By:**
+
 - Inventory module (stock deduction on sale)
 - Finance module (revenue recognition)
 - Reporting module (sales analytics)
@@ -717,8 +770,9 @@ VALUES (2, 'Grab', 'GR-2024-001');
 ## 🧪 Example Queries
 
 ### Query 1: Order with Items
+
 ```sql
-SELECT 
+SELECT
   so.id,
   so.transaction_date,
   so.total_amount,
@@ -739,8 +793,9 @@ GROUP BY so.id;
 ---
 
 ### Query 2: Total Refunds by Date
+
 ```sql
-SELECT 
+SELECT
   DATE(refunded_at) as refund_date,
   COUNT(*) as refund_count,
   SUM(amount) as total_refunded
@@ -753,8 +808,9 @@ ORDER BY refund_date;
 ---
 
 ### Query 3: External Orders
+
 ```sql
-SELECT 
+SELECT
   so.id,
   so.total_amount,
   ser.external_source,

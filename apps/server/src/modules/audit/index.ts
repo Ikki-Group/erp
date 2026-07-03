@@ -1,17 +1,16 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
-import { AuditLogRepo } from './audit-log.repo'
-import { initAuditLogRoute } from './audit-log.route'
 import type {
 	AuditLogDto,
 	AuditActionDto,
 	AuditLogCreateDto,
 	AuditLogFilterDto,
 } from './audit-log.contract'
+import { AuditLogRepo } from './audit-log.repo'
+import { initAuditLogRoute } from './audit-log.route'
 import { AuditLogService } from './audit-log.service'
 
 export class AuditServiceModule {

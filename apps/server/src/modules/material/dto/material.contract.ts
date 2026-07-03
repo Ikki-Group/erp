@@ -20,8 +20,6 @@ import { MaterialEntity, MaterialTypeDto } from '../domain/material.entity'
 export const MaterialDto = MaterialEntity
 export type MaterialDto = z.infer<typeof MaterialDto>
 
-
-
 /** Detail response — entity + resolved relations */
 export const MaterialDetailDto = z.object({
 	...MaterialEntity.shape,
@@ -35,7 +33,10 @@ export type MaterialDetailDto = z.infer<typeof MaterialDetailDto>
 export const MaterialCreateDto = z.object({
 	name: zc.strTrim.min(3).max(100),
 	description: zc.strTrimNullable,
-	sku: zc.strTrim.min(3).max(50).transform((v) => v.toUpperCase()),
+	sku: zc.strTrim
+		.min(3)
+		.max(50)
+		.transform((v) => v.toUpperCase()),
 	type: MaterialTypeDto,
 	categoryId: zp.id,
 	baseUomId: zp.id,
@@ -66,5 +67,3 @@ export const MaterialFilterDto = z.object({
 	excludeLocationIds: zq.ids.optional(),
 })
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
-
-

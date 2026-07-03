@@ -214,9 +214,7 @@ export const productVariantsTable = pgTable(
 		uniqueIndex('product_variants_product_sku_idx').on(t.productId, t.sku),
 
 		// Exactly one default variant per product — DB-enforced
-		uniqueIndex('product_variants_default_idx')
-			.on(t.productId)
-			.where(eq(t.isDefault, true)),
+		uniqueIndex('product_variants_default_idx').on(t.productId).where(eq(t.isDefault, true)),
 
 		// basePrice must be non-negative
 		check('product_variants_base_price_chk', gte(t.basePrice, 0)),

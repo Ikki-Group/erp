@@ -28,13 +28,13 @@ Complete reference for common patterns in Ikki ERP Server.
 ```ts
 // ❌ BAD: .extend() breaks type inference
 const UserUpdateDto = UserCreateDto.extend({
-  id: z.number(),
+	id: z.number(),
 })
 
 // ✅ GOOD: Use spread-shape
 const UserUpdateDto = z.object({
-  ...zc.RecordId.shape,      // { id: number }
-  ...UserMutationDto.shape,  // reusable mutation fields
+	...zc.RecordId.shape, // { id: number }
+	...UserMutationDto.shape, // reusable mutation fields
 })
 ```
 
@@ -47,35 +47,35 @@ import { zc, zp } from '@/shared/schema'
 
 // Entity DTO (output from DB)
 export const UserDto = z.object({
-  id: zp.id,
-  email: zp.str,
-  username: zp.str,
-  fullname: zp.str,
-  isActive: zp.bool,
-  ...zc.AuditBasic.shape,  // createdAt, updatedAt, createdBy, updatedBy
+	id: zp.id,
+	email: zp.str,
+	username: zp.str,
+	fullname: zp.str,
+	isActive: zp.bool,
+	...zc.AuditBasic.shape, // createdAt, updatedAt, createdBy, updatedBy
 })
 export type UserDto = z.infer<typeof UserDto>
 
 // Reusable mutation shape
 const UserMutationDto = z.object({
-  email: zc.email,
-  username: zc.username,
-  fullname: zc.fullname,
-  isActive: zp.bool.default(true),
+	email: zc.email,
+	username: zc.username,
+	fullname: zc.fullname,
+	isActive: zp.bool.default(true),
 })
 
 // Create DTO (HTTP POST)
 export const UserCreateDto = z.object({
-  ...UserMutationDto.shape,
-  password: zc.password,
+	...UserMutationDto.shape,
+	password: zc.password,
 })
 export type UserCreateDto = z.infer<typeof UserCreateDto>
 
 // Update DTO (HTTP PATCH)
 export const UserUpdateDto = z.object({
-  ...zc.RecordId.shape,       // { id: number }
-  ...UserMutationDto.shape,
-  password: zc.password.optional(),
+	...zc.RecordId.shape, // { id: number }
+	...UserMutationDto.shape,
+	password: zc.password.optional(),
 })
 export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 ```
@@ -85,9 +85,9 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 ```ts
 // location.contract.ts
 export const LocationFilterDto = z.object({
-  ...zc.PaginationQuery.shape,  // page, limit
-  type: z.enum(['WAREHOUSE', 'STORE', 'SUPPLIER']).optional(),
-  search: zp.str.optional(),
+	...zc.PaginationQuery.shape, // page, limit
+	type: z.enum(['WAREHOUSE', 'STORE', 'SUPPLIER']).optional(),
+	search: zp.str.optional(),
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>
 ```
@@ -106,35 +106,35 @@ import type { XxxRepo } from './xxx.repo'
 import type { XxxDto, XxxCreateDto, XxxUpdateDto } from './xxx.contract'
 
 export class XxxService {
-  private readonly cache: CacheService
+	private readonly cache: CacheService
 
-  constructor(
-    private readonly repo: XxxRepo,
-    cacheClient: CacheClient,
-  ) {
-    this.cache = CacheService.createWithDefaultKeys(cacheClient, 'xxx')
-  }
+	constructor(
+		private readonly repo: XxxRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'xxx')
+	}
 
-  // Public methods: handleX
-  @record('xxx.create')
-  async handleCreate(dto: XxxCreateDto, actor: ActorId): Promise<XxxDto> {
-    // Implementation
-  }
+	// Public methods: handleX
+	@record('xxx.create')
+	async handleCreate(dto: XxxCreateDto, actor: ActorId): Promise<XxxDto> {
+		// Implementation
+	}
 
-  @record('xxx.update')
-  async handleUpdate(dto: XxxUpdateDto, actor: ActorId): Promise<XxxDto> {
-    // Implementation
-  }
+	@record('xxx.update')
+	async handleUpdate(dto: XxxUpdateDto, actor: ActorId): Promise<XxxDto> {
+		// Implementation
+	}
 
-  @record('xxx.getById')
-  async handleGetById(id: number): Promise<XxxDto> {
-    // Implementation
-  }
+	@record('xxx.getById')
+	async handleGetById(id: number): Promise<XxxDto> {
+		// Implementation
+	}
 
-  // Private helpers: no prefix
-  private async validateBusinessRule(data: XxxDto): Promise<void> {
-    // Implementation
-  }
+	// Private helpers: no prefix
+	private async validateBusinessRule(data: XxxDto): Promise<void> {
+		// Implementation
+	}
 }
 ```
 
@@ -270,49 +270,46 @@ import { xxxTable } from '@/db/schema'
 import type { XxxDto, XxxCreateDto } from './xxx.contract'
 
 export class XxxRepo {
-  constructor(readonly db: DbContext) {}
+	constructor(readonly db: DbContext) {}
 
-  // Find by ID
-  async findById(id: number): Promise<XxxDto | null> {
-    return await this.db
-      .select()
-      .from(xxxTable)
-      .where(eq(xxxTable.id, id))
-      .then(rows => rows[0] ?? null)
-  }
+	// Find by ID
+	async findById(id: number): Promise<XxxDto | null> {
+		return await this.db
+			.select()
+			.from(xxxTable)
+			.where(eq(xxxTable.id, id))
+			.then((rows) => rows[0] ?? null)
+	}
 
-  // Find by IDs (batch)
-  async findByIds(ids: number[]): Promise<XxxDto[]> {
-    if (ids.length === 0) return []
-    return await this.db
-      .select()
-      .from(xxxTable)
-      .where(inArray(xxxTable.id, ids))
-  }
+	// Find by IDs (batch)
+	async findByIds(ids: number[]): Promise<XxxDto[]> {
+		if (ids.length === 0) return []
+		return await this.db.select().from(xxxTable).where(inArray(xxxTable.id, ids))
+	}
 
-  // Create
-  async create(data: XxxCreateDto): Promise<XxxDto> {
-    return await this.db
-      .insert(xxxTable)
-      .values(data)
-      .returning()
-      .then(rows => rows[0])
-  }
+	// Create
+	async create(data: XxxCreateDto): Promise<XxxDto> {
+		return await this.db
+			.insert(xxxTable)
+			.values(data)
+			.returning()
+			.then((rows) => rows[0])
+	}
 
-  // Update
-  async update(id: number, data: Partial<XxxDto>): Promise<XxxDto> {
-    return await this.db
-      .update(xxxTable)
-      .set(data)
-      .where(eq(xxxTable.id, id))
-      .returning()
-      .then(rows => rows[0])
-  }
+	// Update
+	async update(id: number, data: Partial<XxxDto>): Promise<XxxDto> {
+		return await this.db
+			.update(xxxTable)
+			.set(data)
+			.where(eq(xxxTable.id, id))
+			.returning()
+			.then((rows) => rows[0])
+	}
 
-  // Delete
-  async delete(id: number): Promise<void> {
-    await this.db.delete(xxxTable).where(eq(xxxTable.id, id))
-  }
+	// Delete
+	async delete(id: number): Promise<void> {
+		await this.db.delete(xxxTable).where(eq(xxxTable.id, id))
+	}
 }
 ```
 
@@ -383,20 +380,20 @@ import { NotFoundError, ConflictError, BadRequestError } from '@/shared/errors/h
 
 // Not Found
 throw new NotFoundError('User not found', {
-  code: 'USER_NOT_FOUND',
-  context: { id },
+	code: 'USER_NOT_FOUND',
+	context: { id },
 })
 
 // Conflict
 throw new ConflictError('Email already exists', {
-  code: 'USER_EMAIL_ALREADY_EXISTS',
-  context: { email },
+	code: 'USER_EMAIL_ALREADY_EXISTS',
+	context: { email },
 })
 
 // Bad Request
 throw new BadRequestError('Invalid password', {
-  code: 'USER_INVALID_PASSWORD',
-  context: { reason: 'Too short' },
+	code: 'USER_INVALID_PASSWORD',
+	context: { reason: 'Too short' },
 })
 ```
 
@@ -407,23 +404,23 @@ throw new BadRequestError('Invalid password', {
 import { NotFoundError, ConflictError } from '@/shared/errors/http-error'
 
 export const LocationError = {
-  notFound: (id: number) =>
-    new NotFoundError('Location not found', {
-      code: 'LOCATION_NOT_FOUND',
-      context: { id },
-    }),
-  
-  nameExists: (name: string) =>
-    new ConflictError('Location name already exists', {
-      code: 'LOCATION_NAME_ALREADY_EXISTS',
-      context: { name },
-    }),
-  
-  hasUsers: (id: number, count: number) =>
-    new ConflictError('Cannot delete location with assigned users', {
-      code: 'LOCATION_HAS_USERS',
-      context: { id, userCount: count },
-    }),
+	notFound: (id: number) =>
+		new NotFoundError('Location not found', {
+			code: 'LOCATION_NOT_FOUND',
+			context: { id },
+		}),
+
+	nameExists: (name: string) =>
+		new ConflictError('Location name already exists', {
+			code: 'LOCATION_NAME_ALREADY_EXISTS',
+			context: { name },
+		}),
+
+	hasUsers: (id: number, count: number) =>
+		new ConflictError('Cannot delete location with assigned users', {
+			code: 'LOCATION_HAS_USERS',
+			context: { id, userCount: count },
+		}),
 }
 
 // Usage in service
@@ -439,7 +436,7 @@ throw LocationError.notFound(id)
 ```ts
 // Get or set
 const location = await this.cache.getOrSet(id, async () => {
-  return await this.repo.findById(id)
+	return await this.repo.findById(id)
 })
 
 // Set with TTL (5 minutes)
@@ -457,7 +454,7 @@ await this.cache.deleteAll()
 ```ts
 async handleList(filter: LocationFilterDto): Promise<WithPaginationResult<LocationDto>> {
   const cacheKey = `list:${JSON.stringify(filter)}`
-  
+
   return await this.cache.getOrSet(cacheKey, async () => {
     return await this.repo.findWithPagination(filter)
   })
@@ -466,10 +463,10 @@ async handleList(filter: LocationFilterDto): Promise<WithPaginationResult<Locati
 // Invalidate on mutation
 async handleCreate(dto: LocationCreateDto, actor: ActorId): Promise<LocationDto> {
   const location = await this.repo.create({ ...dto, ...stampCreate(actor) })
-  
+
   // Invalidate all list caches
   await this.cache.deleteAll()
-  
+
   return location
 }
 ```
@@ -485,14 +482,14 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 // Create
 const location = await this.repo.create({
-  ...dto,
-  ...stampCreate(actor),  // Adds: createdAt, createdBy
+	...dto,
+	...stampCreate(actor), // Adds: createdAt, createdBy
 })
 
 // Update
 const updated = await this.repo.update(id, {
-  ...dto,
-  ...stampUpdate(actor),  // Adds: updatedAt, updatedBy
+	...dto,
+	...stampUpdate(actor), // Adds: updatedAt, updatedBy
 })
 ```
 
@@ -503,17 +500,17 @@ const updated = await this.repo.update(id, {
 import { timestamp, integer } from 'drizzle-orm/pg-core'
 
 export const auditFields = {
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  createdBy: integer('created_by').notNull(),
-  updatedBy: integer('updated_by').notNull(),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+	createdBy: integer('created_by').notNull(),
+	updatedBy: integer('updated_by').notNull(),
 }
 
 // Usage in table
 export const locationsTable = pgTable('locations', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  ...auditFields,
+	id: serial('id').primaryKey(),
+	name: varchar('name', { length: 255 }).notNull(),
+	...auditFields,
 })
 ```
 
@@ -527,8 +524,8 @@ export const locationsTable = pgTable('locations', {
 // DON'T DO THIS
 const users = await this.userRepo.findAll()
 for (const user of users) {
-  const location = await this.locationRepo.findById(user.defaultLocationId)
-  user.location = location  // N queries!
+	const location = await this.locationRepo.findById(user.defaultLocationId)
+	user.location = location // N queries!
 }
 ```
 
@@ -539,16 +536,16 @@ for (const user of users) {
 const users = await this.userRepo.findAll()
 
 // Get unique location IDs
-const locationIds = [...new Set(users.map(u => u.defaultLocationId).filter(Boolean))]
+const locationIds = [...new Set(users.map((u) => u.defaultLocationId).filter(Boolean))]
 
 // Batch fetch locations
 const locations = await this.locationRepo.findByIds(locationIds)
-const locationMap = RelationMap.fromArray(locations, v => v.id)
+const locationMap = RelationMap.fromArray(locations, (v) => v.id)
 
 // Attach locations (in-memory JOIN)
-const result = users.map(user => ({
-  ...user,
-  location: user.defaultLocationId ? locationMap.get(user.defaultLocationId) : null,
+const result = users.map((user) => ({
+	...user,
+	location: user.defaultLocationId ? locationMap.get(user.defaultLocationId) : null,
 }))
 ```
 
@@ -624,10 +621,10 @@ import { RelationMap } from '@/shared/utils'
 
 // Create from array
 const locations = await this.locationRepo.findByIds([1, 2, 3])
-const locationMap = RelationMap.fromArray(locations, v => v.id)
+const locationMap = RelationMap.fromArray(locations, (v) => v.id)
 
 // Get by key
-const location = locationMap.get(1)  // LocationDto | undefined
+const location = locationMap.get(1) // LocationDto | undefined
 
 // Get or throw
 const location = locationMap.getOrThrow(1, () => LocationError.notFound(1))
@@ -638,10 +635,10 @@ const location = locationMap.getOrThrow(1, () => LocationError.notFound(1))
 ```ts
 // location.service.ts
 export class LocationService {
-  // Helper for other services
-  toRelationMap(items: LocationDto[]): RelationMap<number, LocationDto> {
-    return RelationMap.fromArray(items, (v) => v.id)
-  }
+	// Helper for other services
+	toRelationMap(items: LocationDto[]): RelationMap<number, LocationDto> {
+		return RelationMap.fromArray(items, (v) => v.id)
+	}
 }
 
 // Usage in another service
@@ -708,18 +705,18 @@ import { checkConflict, type ConflictField } from '@/infra/database'
 import { usersTable } from '@/db/schema'
 
 const uniqueFields: ConflictField<{ email: string; username: string }>[] = [
-  {
-    field: 'email',
-    column: usersTable.email,
-    message: 'Email already exists',
-    code: 'USER_EMAIL_ALREADY_EXISTS',
-  },
-  {
-    field: 'username',
-    column: usersTable.username,
-    message: 'Username already exists',
-    code: 'USER_USERNAME_ALREADY_EXISTS',
-  },
+	{
+		field: 'email',
+		column: usersTable.email,
+		message: 'Email already exists',
+		code: 'USER_EMAIL_ALREADY_EXISTS',
+	},
+	{
+		field: 'username',
+		column: usersTable.username,
+		message: 'Username already exists',
+		code: 'USER_USERNAME_ALREADY_EXISTS',
+	},
 ]
 ```
 
@@ -764,17 +761,14 @@ async handleUpdate(dto: UserUpdateDto, actor: ActorId): Promise<UserDto> {
 ```ts
 // location.module.ts
 export interface LocationModule {
-  location: LocationService
+	location: LocationService
 }
 
-export function createLocationModule(
-  db: DbContext,
-  cacheClient: CacheClient,
-): LocationModule {
-  const repo = new LocationRepo(db)
-  const service = new LocationService(repo, cacheClient)
+export function createLocationModule(db: DbContext, cacheClient: CacheClient): LocationModule {
+	const repo = new LocationRepo(db)
+	const service = new LocationService(repo, cacheClient)
 
-  return { location: service }
+	return { location: service }
 }
 ```
 
@@ -783,43 +777,35 @@ export function createLocationModule(
 ```ts
 // iam.module.ts
 interface Deps {
-  location: LocationModule
+	location: LocationModule
 }
 
 export interface IamModule {
-  user: UserService
-  role: RoleService
-  assignment: UserAssignmentService
-  composed: IamComposedService
+	user: UserService
+	role: RoleService
+	assignment: UserAssignmentService
+	composed: IamComposedService
 }
 
-export function createIamModule(
-  db: DbContext,
-  cacheClient: CacheClient,
-  deps: Deps,
-): IamModule {
-  // 1. Create repos
-  const userRepo = new UserRepo(db)
-  const roleRepo = new RoleRepo(db)
-  const assignmentRepo = new UserAssignmentRepo(db)
-  const composedRepo = new IamComposedRepo(db)
+export function createIamModule(db: DbContext, cacheClient: CacheClient, deps: Deps): IamModule {
+	// 1. Create repos
+	const userRepo = new UserRepo(db)
+	const roleRepo = new RoleRepo(db)
+	const assignmentRepo = new UserAssignmentRepo(db)
+	const composedRepo = new IamComposedRepo(db)
 
-  // 2. Create services (resolve dependencies bottom-up)
-  const role = new RoleService(roleRepo, cacheClient)
-  const assignment = new UserAssignmentService(assignmentRepo, cacheClient)
-  
-  const user = new UserService(
-    { location: deps.location, assignment, role },
-    userRepo,
-    cacheClient,
-  )
-  
-  const composed = new IamComposedService(
-    { role, assignment, user, location: deps.location },
-    composedRepo,
-  )
+	// 2. Create services (resolve dependencies bottom-up)
+	const role = new RoleService(roleRepo, cacheClient)
+	const assignment = new UserAssignmentService(assignmentRepo, cacheClient)
 
-  return { user, role, assignment, composed }
+	const user = new UserService({ location: deps.location, assignment, role }, userRepo, cacheClient)
+
+	const composed = new IamComposedService(
+		{ role, assignment, user, location: deps.location },
+		composedRepo,
+	)
+
+	return { user, role, assignment, composed }
 }
 ```
 
@@ -835,62 +821,59 @@ import type { Modules } from '@/modules/_registry'
 import { XxxCreateDto, XxxUpdateDto } from './xxx.contract'
 
 export const xxxRoutes = (app: Elysia, modules: Modules) =>
-  app.group('/xxx', (app) =>
-    app
-      // List
-      .get('/', async ({ query }) => {
-        return await modules.xxx.handleList(query)
-      })
+	app.group('/xxx', (app) =>
+		app
+			// List
+			.get('/', async ({ query }) => {
+				return await modules.xxx.handleList(query)
+			})
 
-      // Detail
-      .get('/:id', async ({ params }) => {
-        return await modules.xxx.handleGetById(params.id)
-      })
+			// Detail
+			.get('/:id', async ({ params }) => {
+				return await modules.xxx.handleGetById(params.id)
+			})
 
-      // Create
-      .post(
-        '/',
-        async ({ body, user }) => {
-          return await modules.xxx.handleCreate(body, user.id)
-        },
-        { body: XxxCreateDto },
-      )
+			// Create
+			.post(
+				'/',
+				async ({ body, user }) => {
+					return await modules.xxx.handleCreate(body, user.id)
+				},
+				{ body: XxxCreateDto },
+			)
 
-      // Update
-      .patch(
-        '/:id',
-        async ({ params, body, user }) => {
-          return await modules.xxx.handleUpdate(
-            { ...body, id: params.id },
-            user.id,
-          )
-        },
-        { body: t.Omit(XxxUpdateDto, ['id']) },
-      )
+			// Update
+			.patch(
+				'/:id',
+				async ({ params, body, user }) => {
+					return await modules.xxx.handleUpdate({ ...body, id: params.id }, user.id)
+				},
+				{ body: t.Omit(XxxUpdateDto, ['id']) },
+			)
 
-      // Delete
-      .delete('/:id', async ({ params, user }) => {
-        await modules.xxx.handleDelete(params.id, user.id)
-        return { success: true }
-      })
-  )
+			// Delete
+			.delete('/:id', async ({ params, user }) => {
+				await modules.xxx.handleDelete(params.id, user.id)
+				return { success: true }
+			}),
+	)
 ```
 
 ---
 
 ## Quick Reference
 
-| Pattern | Use Case | Example |
-|---------|----------|---------|
-| `handleX` | Public service methods | `handleCreate`, `handleUpdate` |
-| `checkConflict` | Unique field validation | Before CREATE/UPDATE |
-| `stampCreate/Update` | Audit trail | All mutations |
-| `cache.getOrSet` | Read with cache | GET by ID |
-| `cache.deleteAll` | Invalidate cache | After CREATE/UPDATE/DELETE |
-| `RelationMap` | In-memory JOIN | Prevent N+1 queries |
-| `inArray()` | Batch queries | `findByIds()` |
-| `paginate()` | List with pagination | `handleList()` |
-| `@record` | OTEL tracing | All public methods |
+| Pattern              | Use Case                | Example                        |
+| -------------------- | ----------------------- | ------------------------------ |
+| `handleX`            | Public service methods  | `handleCreate`, `handleUpdate` |
+| `checkConflict`      | Unique field validation | Before CREATE/UPDATE           |
+| `stampCreate/Update` | Audit trail             | All mutations                  |
+| `cache.getOrSet`     | Read with cache         | GET by ID                      |
+| `cache.deleteAll`    | Invalidate cache        | After CREATE/UPDATE/DELETE     |
+| `RelationMap`        | In-memory JOIN          | Prevent N+1 queries            |
+| `inArray()`          | Batch queries           | `findByIds()`                  |
+| `paginate()`         | List with pagination    | `handleList()`                 |
+| `@record`            | OTEL tracing            | All public methods             |
 
 ---
 

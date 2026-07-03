@@ -4,12 +4,9 @@ import { and, count, eq, gte, isNull, lte, or } from 'drizzle-orm'
 
 import { employeesTable, leaveRequestsTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	sortBy, type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, searchFilter, sortBy, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import {
 	LeaveRequestCreateDto,
@@ -45,7 +42,8 @@ export class LeaveRequestRepo {
 			const where = and(
 				isNull(leaveRequestsTable.deletedAt),
 				q === undefined ? undefined : or(searchFilter(leaveRequestsTable.reason, q)),
-				employeeId === undefined ? undefined : eq(leaveRequestsTable.employeeId, employeeId), type === undefined ? undefined : eq(leaveRequestsTable.type, type),
+				employeeId === undefined ? undefined : eq(leaveRequestsTable.employeeId, employeeId),
+				type === undefined ? undefined : eq(leaveRequestsTable.type, type),
 				status === undefined ? undefined : eq(leaveRequestsTable.status, status),
 				dateFrom === undefined ? undefined : gte(leaveRequestsTable.dateStart, dateFrom),
 				dateTo === undefined ? undefined : lte(leaveRequestsTable.dateEnd, dateTo),
@@ -56,7 +54,8 @@ export class LeaveRequestRepo {
 					const rows = await this.db
 						.select({
 							id: leaveRequestsTable.id,
-							employeeId: leaveRequestsTable.employeeId, type: leaveRequestsTable.type,
+							employeeId: leaveRequestsTable.employeeId,
+							type: leaveRequestsTable.type,
 							status: leaveRequestsTable.status,
 							dateStart: leaveRequestsTable.dateStart,
 							dateEnd: leaveRequestsTable.dateEnd,

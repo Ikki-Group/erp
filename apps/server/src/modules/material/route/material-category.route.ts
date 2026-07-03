@@ -1,11 +1,10 @@
-import { z } from 'zod'
-
-import { zc, zq } from '@/shared/schema'
-import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
+import { z } from 'zod'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { zc, zq } from '@/shared/schema'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 
 import {
 	MaterialCategoryDto,
@@ -27,16 +26,24 @@ export function initMaterialCategoryRoute(s: MaterialCategoryService) {
 			response: createSuccessResponseDto(MaterialCategoryDto),
 			auth: true,
 		})
-		.post('/create', async ({ body, auth }) => res.created(await s.handleCreate(body, auth.userId)), {
-			body: MaterialCategoryMutationDto,
-			response: createSuccessResponseDto(zc.RecordId),
-			auth: true,
-		})
-		.put('/update', async ({ body, auth }) => res.ok(await s.handleUpdate(body.id, body, auth.userId)), {
-			body: z.object({ ...zc.RecordId.shape, ...MaterialCategoryMutationDto.shape }),
-			response: createSuccessResponseDto(zc.RecordId),
-			auth: true,
-		})
+		.post(
+			'/create',
+			async ({ body, auth }) => res.created(await s.handleCreate(body, auth.userId)),
+			{
+				body: MaterialCategoryMutationDto,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
+		)
+		.put(
+			'/update',
+			async ({ body, auth }) => res.ok(await s.handleUpdate(body.id, body, auth.userId)),
+			{
+				body: z.object({ ...zc.RecordId.shape, ...MaterialCategoryMutationDto.shape }),
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
+		)
 		.delete('/remove', async ({ query }) => res.ok(await s.handleRemove(query.id)), {
 			query: zq.recordId,
 			response: createSuccessResponseDto(zc.RecordId),

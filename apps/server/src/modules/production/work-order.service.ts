@@ -1,23 +1,21 @@
 import Decimal from 'decimal.js'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { StockTransactionService } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe'
 
-import { WorkOrderRepo } from './work-order.repo'
 import type {
 	WorkOrderCompleteDto,
 	WorkOrderCreateDto,
 	WorkOrderDto,
 	WorkOrderFilterDto,
 } from './work-order.contract'
+import { WorkOrderRepo } from './work-order.repo'
 
 export class WorkOrderService {
 	private readonly cache: CacheService
@@ -40,7 +38,10 @@ export class WorkOrderService {
 			key,
 			factory: () => this.repo.getById(id),
 		})
-		if (!wo) throw new NotFoundError(`Work Order with ID ${id} not found`, { code: 'WORK_ORDER_NOT_FOUND' })
+		if (!wo)
+			throw new NotFoundError(`Work Order with ID ${id} not found`, {
+				code: 'WORK_ORDER_NOT_FOUND',
+			})
 		return wo
 	}
 
@@ -84,9 +85,9 @@ export class WorkOrderService {
 	): Promise<EntityRef> {
 		const wo = await this.getById(id)
 		if (wo.status !== 'in_progress')
-			throw new ConflictError(
-				`Work Order with ID ${id} is not in progress`,
-				{ code: 'WORK_ORDER_STATUS_CONFLICT' })
+			throw new ConflictError(`Work Order with ID ${id} is not in progress`, {
+				code: 'WORK_ORDER_STATUS_CONFLICT',
+			})
 
 		const recipe = await this.recipeSvc.getById(wo.recipeId)
 		const actualQty = new Decimal(data.actualQty)

@@ -7,14 +7,10 @@ import {
 import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
+
 import { apiFactory, createQueryKeys } from '@/lib/api'
 
-import {
-	LocationCreateDto,
-	LocationDto,
-	LocationFilterDto,
-	LocationUpdateDto,
-} from '../dto'
+import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from '../dto'
 
 const locationKeys = createQueryKeys('location', 'master')
 
@@ -38,28 +34,20 @@ export const locationApi = {
 		url: endpoint.location.create,
 		body: LocationCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [
-			locationKeys.lists(),
-		],
+		invalidates: [locationKeys.lists()],
 	}),
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.location.update,
 		body: LocationUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [
-			locationKeys.lists(),
-			({ body }) => locationKeys.detail(body.id),
-		],
+		invalidates: [locationKeys.lists(), ({ body }) => locationKeys.detail(body.id)],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.location.remove,
 		body: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [
-			locationKeys.lists(),
-			({ body }) => locationKeys.detail(body.id),
-		],
+		invalidates: [locationKeys.lists(), ({ body }) => locationKeys.detail(body.id)],
 	}),
 }

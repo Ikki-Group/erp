@@ -26,7 +26,12 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
 	'production_in',
 	'production_out',
 ])
-export const stockAdjustmentTypeEnum = pgEnum('stock_adjustment_type', ['opname', 'found', 'waste', 'correction'])
+export const stockAdjustmentTypeEnum = pgEnum('stock_adjustment_type', [
+	'opname',
+	'found',
+	'waste',
+	'correction',
+])
 
 // ─── Stock Batches ────────────────────────────────────────────────────────────
 
@@ -191,18 +196,28 @@ export const stockSummariesTable = pgTable(
 		purchaseQty: numeric('purchase_qty', { precision: 18, scale: 6 }).notNull().default('0'),
 		purchaseValue: numeric('purchase_value', { precision: 18, scale: 2 }).notNull().default('0'),
 		transferInQty: numeric('transfer_in_qty', { precision: 18, scale: 6 }).notNull().default('0'),
-		transferInValue: numeric('transfer_in_value', { precision: 18, scale: 2 }).notNull().default('0'),
+		transferInValue: numeric('transfer_in_value', { precision: 18, scale: 2 })
+			.notNull()
+			.default('0'),
 		transferOutQty: numeric('transfer_out_qty', { precision: 18, scale: 6 }).notNull().default('0'),
-		transferOutValue: numeric('transfer_out_value', { precision: 18, scale: 2 }).notNull().default('0'),
+		transferOutValue: numeric('transfer_out_value', { precision: 18, scale: 2 })
+			.notNull()
+			.default('0'),
 		adjustmentQty: numeric('adjustment_qty', { precision: 18, scale: 6 }).notNull().default('0'),
-		adjustmentValue: numeric('adjustment_value', { precision: 18, scale: 2 }).notNull().default('0'),
+		adjustmentValue: numeric('adjustment_value', { precision: 18, scale: 2 })
+			.notNull()
+			.default('0'),
 		usageQty: numeric('usage_qty', { precision: 18, scale: 6 }).notNull().default('0'),
 		usageValue: numeric('usage_value', { precision: 18, scale: 2 }).notNull().default('0'),
-		productionInQty: numeric('production_in_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		productionInQty: numeric('production_in_qty', { precision: 18, scale: 6 })
+			.notNull()
+			.default('0'),
 		productionInValue: numeric('production_in_value', { precision: 18, scale: 2 })
 			.notNull()
 			.default('0'),
-		productionOutQty: numeric('production_out_qty', { precision: 18, scale: 6 }).notNull().default('0'),
+		productionOutQty: numeric('production_out_qty', { precision: 18, scale: 6 })
+			.notNull()
+			.default('0'),
 		productionOutValue: numeric('production_out_value', { precision: 18, scale: 2 })
 			.notNull()
 			.default('0'),
@@ -274,7 +289,10 @@ export const stockTransfersTable = pgTable(
 		index('stock_transfers_date_idx').on(t.transferDate),
 
 		// Source and destination cannot be the same
-		check('stock_transfers_different_locations_chk', ne(t.sourceLocationId, t.destinationLocationId)),
+		check(
+			'stock_transfers_different_locations_chk',
+			ne(t.sourceLocationId, t.destinationLocationId),
+		),
 	],
 )
 

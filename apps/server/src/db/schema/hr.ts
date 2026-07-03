@@ -1,5 +1,16 @@
-import { check, index, integer, numeric, pgEnum, pgTable, text, time, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 import { between, gte } from 'drizzle-orm'
+import {
+	check,
+	index,
+	integer,
+	numeric,
+	pgEnum,
+	pgTable,
+	text,
+	time,
+	timestamp,
+	uniqueIndex,
+} from 'drizzle-orm/pg-core'
 
 import { auditFullColumns, pk } from './_helpers'
 import { usersTable } from './iam'
@@ -37,7 +48,12 @@ export const employeesTable = pgTable(
 	],
 )
 
-export const attendanceStatusEnum = pgEnum('attendance_status', ['present', 'absent', 'late', 'on_leave'])
+export const attendanceStatusEnum = pgEnum('attendance_status', [
+	'present',
+	'absent',
+	'late',
+	'on_leave',
+])
 
 export const shiftsTable = pgTable('shifts', {
 	...pk,
@@ -77,8 +93,16 @@ export const attendancesTable = pgTable(
 	],
 )
 
-export const payrollStatusEnum = pgEnum('payroll_status', ['draft', 'approved', 'paid', 'cancelled'])
-export const payrollAdjustmentTypeEnum = pgEnum('payroll_adjustment_type', ['addition', 'deduction'])
+export const payrollStatusEnum = pgEnum('payroll_status', [
+	'draft',
+	'approved',
+	'paid',
+	'cancelled',
+])
+export const payrollAdjustmentTypeEnum = pgEnum('payroll_adjustment_type', [
+	'addition',
+	'deduction',
+])
 
 export const payrollBatchesTable = pgTable(
 	'payroll_batches',
@@ -115,8 +139,12 @@ export const payrollItemsTable = pgTable(
 			.references(() => employeesTable.id, { onDelete: 'restrict' }),
 
 		baseSalary: numeric('base_salary', { precision: 18, scale: 2 }).notNull().default('0'),
-		adjustmentsAmount: numeric('adjustments_amount', { precision: 18, scale: 2 }).notNull().default('0'),
-		serviceChargeAmount: numeric('service_charge_amount', { precision: 18, scale: 2 }).notNull().default('0'),
+		adjustmentsAmount: numeric('adjustments_amount', { precision: 18, scale: 2 })
+			.notNull()
+			.default('0'),
+		serviceChargeAmount: numeric('service_charge_amount', { precision: 18, scale: 2 })
+			.notNull()
+			.default('0'),
 		totalAmount: numeric('total_amount', { precision: 18, scale: 2 }).notNull().default('0'),
 
 		note: text('note'),
@@ -148,7 +176,12 @@ export const payrollAdjustmentsTable = pgTable(
 )
 
 export const leaveTypeEnum = pgEnum('leave_type', ['annual', 'sick', 'unpaid', 'other'])
-export const leaveStatusEnum = pgEnum('leave_status', ['pending', 'approved', 'rejected', 'cancelled'])
+export const leaveStatusEnum = pgEnum('leave_status', [
+	'pending',
+	'approved',
+	'rejected',
+	'cancelled',
+])
 
 export const leaveRequestsTable = pgTable(
 	'leave_requests',

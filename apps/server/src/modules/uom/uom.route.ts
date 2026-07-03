@@ -20,16 +20,24 @@ export function createUomRoute(service: UomService) {
 			response: createSuccessResponseDto(UomDto),
 			auth: true,
 		})
-		.post('/create', async ({ body, auth }) => res.created(await service.handleCreate(body, auth.userId)), {
-			body: UomCreateDto,
-			response: createSuccessResponseDto(zc.RecordId),
-			auth: true,
-		})
-		.put('/update', async ({ body, auth }) => res.ok(await service.handleUpdate(body, auth.userId)), {
-			body: UomUpdateDto,
-			response: createSuccessResponseDto(zc.RecordId),
-			auth: true,
-		})
+		.post(
+			'/create',
+			async ({ body, auth }) => res.created(await service.handleCreate(body, auth.userId)),
+			{
+				body: UomCreateDto,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
+		)
+		.put(
+			'/update',
+			async ({ body, auth }) => res.ok(await service.handleUpdate(body, auth.userId)),
+			{
+				body: UomUpdateDto,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
+		)
 		.delete('/remove', async ({ query }) => res.ok(await service.handleDelete(query.id)), {
 			query: zq.recordId,
 			response: createSuccessResponseDto(zc.RecordId),

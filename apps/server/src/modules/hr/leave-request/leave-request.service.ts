@@ -1,9 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type * as dto from './leave-request.contract'
@@ -15,7 +13,8 @@ const err = {
 	invalidStatus: (currentStatus: string) =>
 		new InternalServerError(
 			`Cannot approve/reject/cancel leave request with status ${currentStatus}`,
-			{ code: 'INVALID_LEAVE_STATUS' }),
+			{ code: 'INVALID_LEAVE_STATUS' },
+		),
 }
 
 export class LeaveRequestService {

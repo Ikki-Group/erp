@@ -83,19 +83,13 @@ export const recipesTable = pgTable(
 	},
 	(t) => [
 		// One recipe per material
-		uniqueIndex('recipes_material_idx')
-			.on(t.materialId)
-			.where(isNotNull(t.materialId)),
+		uniqueIndex('recipes_material_idx').on(t.materialId).where(isNotNull(t.materialId)),
 
 		// One recipe per product
-		uniqueIndex('recipes_product_idx')
-			.on(t.productId)
-			.where(isNotNull(t.productId)),
+		uniqueIndex('recipes_product_idx').on(t.productId).where(isNotNull(t.productId)),
 
 		// One recipe per variant
-		uniqueIndex('recipes_variant_idx')
-			.on(t.productVariantId)
-			.where(isNotNull(t.productVariantId)),
+		uniqueIndex('recipes_variant_idx').on(t.productVariantId).where(isNotNull(t.productVariantId)),
 
 		// XOR: exactly one target FK must be set — never zero, never more than one
 		check(
@@ -180,6 +174,9 @@ export const recipeItemsTable = pgTable(
 		check('recipe_items_qty_chk', gt(t.qty, 0)),
 
 		// scrapPercentage: [0, 100) — 100% loss is nonsensical
-		check('recipe_items_scrap_pct_chk', and(gte(t.scrapPercentage, 0), lt(t.scrapPercentage, 100))!),
+		check(
+			'recipe_items_scrap_pct_chk',
+			and(gte(t.scrapPercentage, 0), lt(t.scrapPercentage, 100))!,
+		),
 	],
 )

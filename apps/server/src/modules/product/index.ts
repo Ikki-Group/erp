@@ -1,20 +1,17 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
-import { ProductCategoryRepo } from './category.repo'
-import { initProductCategoryRoute } from './category.route'
 import type {
 	ProductCategoryDto,
 	ProductCategoryCreateDto,
 	ProductCategoryUpdateDto,
 	ProductCategoryFilterDto,
 } from './category.contract'
+import { ProductCategoryRepo } from './category.repo'
+import { initProductCategoryRoute } from './category.route'
 import { ProductCategoryService } from './category.service'
-import { ProductRepo } from './product.repo'
-import { initProductRoute } from './product.route'
 import type {
 	ProductDto,
 	ProductSelectDto,
@@ -26,6 +23,8 @@ import type {
 	VariantPriceDto,
 	ProductExternalMappingDto,
 } from './product.contract'
+import { ProductRepo } from './product.repo'
+import { initProductRoute } from './product.route'
 import { ProductService } from './product.service'
 
 export class ProductServiceModule {

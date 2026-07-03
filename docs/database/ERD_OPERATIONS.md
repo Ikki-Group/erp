@@ -42,6 +42,7 @@ erDiagram
 ```
 
 Notes:
+
 - `pointsBalance` on `customers` is a denormalized running total;
   `customer_loyalty_transactions.balanceAfter` is the append-only audit
   trail it was derived from — see [cache-friendliness](./SCHEMA_CONVENTIONS.md#cache-friendliness).
@@ -150,6 +151,7 @@ erDiagram
 ```
 
 Notes:
+
 - `shiftsTable`/`attendancesTable` correspond to the `modules/hr/hr`
   submodule (an unfortunately generic submodule name — flagged as a
   candidate rename, not yet done).
@@ -222,6 +224,7 @@ erDiagram
 ```
 
 Notes:
+
 - `journalEntries.sourceType`/`sourceId` is a polymorphic soft-reference
   (`'sales'`, `'payroll'`, `'purchasing'`, `'production'`, ...) — deliberately
   not a real FK since it can point at rows in any of several tables.
@@ -316,11 +319,12 @@ erDiagram
 ```
 
 Notes:
+
 - **Three distinct concepts, easy to conflate**: `payment_methods`
-  (which method *types* are configured — cash, bank transfer, ...),
-  `location_payment_methods` (which of those are *enabled per store*, with
+  (which method _types_ are configured — cash, bank transfer, ...),
+  `location_payment_methods` (which of those are _enabled per store_, with
   store-specific credentials), `payments`/`payment_invoices` (the actual
-  money *movement* — AR/AP settlement). These used to be split across
+  money _movement_ — AR/AP settlement). These used to be split across
   `finance_payment.ts` + 3 other files with `payments` mis-grouped under
   "finance" — fixed during the schema reorganization; owner is
   `modules/payment/payment`, not `modules/finance`.
@@ -438,6 +442,7 @@ erDiagram
 ```
 
 Notes:
+
 - `stockTransactions` is the append-only event log; `stockSummaries` is the
   daily-rollup projection; `material.materialStockSnapshots` (see
   [`02-master-data.md`](./ERD_MASTER_DATA.md)) is the current-state
@@ -587,6 +592,7 @@ erDiagram
 ```
 
 Notes:
+
 - **⚠ Two of four lifecycle stages are schema-only**: `purchase_requests`/
   `purchase_request_items` (PR stage) and `purchase_invoices`/
   `purchase_invoice_items` (AP invoicing stage) have no repo/service
@@ -670,6 +676,7 @@ erDiagram
 ```
 
 Notes:
+
 - `recipes` target is **XOR**-enforced: exactly one of `materialId`/
   `productId`/`productVariantId` is set. DB-enforced via a `check()` built
   from `and`/`or`/`isNull`/`isNotNull` combinations (no `CASE WHEN`
@@ -828,6 +835,7 @@ erDiagram
 ```
 
 Notes:
+
 - Owned by two submodules: `modules/sales/sales-order` (everything except
   invoices) and `modules/sales/sales-invoice` (`sales_invoices`,
   `sales_invoice_items`).

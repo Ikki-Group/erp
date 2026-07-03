@@ -10,13 +10,13 @@ links below for the specific thing you need.
 
 ## Start here
 
-| I need to... | Read |
-|---|---|
-| Understand a domain's tables/relationships before touching it | [`ERD_*.md`](#erd) — pick the file matching your domain |
-| Add a table, column, index, or constraint | [`SCHEMA_CONVENTIONS.md`](./SCHEMA_CONVENTIONS.md) — rules, not suggestions |
-| Understand how caching relates to schema design | [`SCHEMA_CONVENTIONS.md#cache-friendliness`](./SCHEMA_CONVENTIONS.md#cache-friendliness) |
-| Understand backend architecture beyond the DB | [`apps/server/docs/ARCHITECTURE.md`](../../apps/server/docs/ARCHITECTURE.md) |
-| Understand code patterns (services, repos, caching) | [`apps/server/docs/CODE_PATTERNS.md`](../../apps/server/docs/CODE_PATTERNS.md) |
+| I need to...                                                  | Read                                                                                     |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Understand a domain's tables/relationships before touching it | [`ERD_*.md`](#erd) — pick the file matching your domain                                  |
+| Add a table, column, index, or constraint                     | [`SCHEMA_CONVENTIONS.md`](./SCHEMA_CONVENTIONS.md) — rules, not suggestions              |
+| Understand how caching relates to schema design               | [`SCHEMA_CONVENTIONS.md#cache-friendliness`](./SCHEMA_CONVENTIONS.md#cache-friendliness) |
+| Understand backend architecture beyond the DB                 | [`apps/server/docs/ARCHITECTURE.md`](../../apps/server/docs/ARCHITECTURE.md)             |
+| Understand code patterns (services, repos, caching)           | [`apps/server/docs/CODE_PATTERNS.md`](../../apps/server/docs/CODE_PATTERNS.md)           |
 
 ## Quick facts
 
@@ -37,29 +37,29 @@ domain is **one file** — if a domain's owning module has submodules (e.g.
 `iam` has `role`/`user`/`assignment`), the tables for all of them still live
 in that one file, ordered by dependency.
 
-| Layer | Domain (schema file) | Owning module | Tables |
-|---|---|---|---|
-| Core | `audit.ts` | `modules/audit` | `audit_logs` |
-| Core | `session.ts` | `modules/session` | `sessions` |
-| Core | `iam.ts` | `modules/iam` (role, user, assignment) | `roles`, `users`, `user_assignments` |
-| Master data | `location.ts` | `modules/location` | `locations` |
-| Master data | `uom.ts` | `modules/uom` | `uoms` |
-| Master data | `tax.ts` | *(none yet — see file header)* | `taxes` |
-| Master data | `supplier.ts` | `modules/supplier` | `suppliers` |
-| Master data | `company.ts` | `modules/company` | `company_settings` |
-| Master data | `sales-type.ts` | `modules/sales-type` | `sales_types` |
-| Master data | `material.ts` | `modules/material` | `material_categories`, `materials`, `material_conversions`, `material_locations`, `material_stock_snapshots` |
-| Master data | `product.ts` | `modules/product` | `product_categories`, `products`, `product_prices`, `product_variants`, `product_variant_prices` |
-| Operations | `crm.ts` | `modules/crm` | `customers`, `customer_loyalty_transactions` |
-| Operations | `hr.ts` | `modules/hr` (employee, hr, payroll, leave-request) | `employees`, `shifts`, `attendances`, `payroll_batches`, `payroll_items`, `payroll_adjustments`, `leave_requests` |
-| Operations | `finance.ts` | `modules/finance` (account, general-ledger, expenditure) | `accounts`, `journal_entries`, `journal_items`, `expenditures` |
-| Operations | `payment.ts` | `modules/payment` (provider, method, location-payment-method, payment) | `payment_providers`, `payment_methods`, `location_payment_methods`, `payments`, `payment_invoices` |
-| Operations | `inventory.ts` | `modules/inventory` (stock-transaction, stock-summary, stock-transfer) | `stock_batches`, `stock_adjustments`, `stock_adjustment_items`, `stock_transactions`, `stock_summaries`, `stock_transfers`, `stock_transfer_items` |
-| Operations | `purchasing.ts` | `modules/purchasing` | `purchase_requests`\*, `purchase_request_items`\*, `purchase_orders`, `purchase_order_items`, `goods_receipt_notes`, `goods_receipt_note_items`, `purchase_invoices`\*, `purchase_invoice_items`\* |
-| Operations | `production.ts` | `modules/production` | `work_orders` |
-| Operations | `recipe.ts` | `modules/recipe` | `recipes`, `recipe_items` |
-| Operations | `sales.ts` | `modules/sales` (sales-order, sales-invoice) | `sales_orders`, `sales_order_batches`, `sales_order_items`, `sales_voids`, `sales_refunds`, `sales_external_refs`, `sales_invoices`, `sales_invoice_items` |
-| Integrations | `moka.ts` | `modules/moka` (configuration, scrap) | `moka_configurations`, `moka_scrap_histories`, `moka_sync_cursors` |
+| Layer        | Domain (schema file) | Owning module                                                          | Tables                                                                                                                                                                                             |
+| ------------ | -------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Core         | `audit.ts`           | `modules/audit`                                                        | `audit_logs`                                                                                                                                                                                       |
+| Core         | `session.ts`         | `modules/session`                                                      | `sessions`                                                                                                                                                                                         |
+| Core         | `iam.ts`             | `modules/iam` (role, user, assignment)                                 | `roles`, `users`, `user_assignments`                                                                                                                                                               |
+| Master data  | `location.ts`        | `modules/location`                                                     | `locations`                                                                                                                                                                                        |
+| Master data  | `uom.ts`             | `modules/uom`                                                          | `uoms`                                                                                                                                                                                             |
+| Master data  | `tax.ts`             | _(none yet — see file header)_                                         | `taxes`                                                                                                                                                                                            |
+| Master data  | `supplier.ts`        | `modules/supplier`                                                     | `suppliers`                                                                                                                                                                                        |
+| Master data  | `company.ts`         | `modules/company`                                                      | `company_settings`                                                                                                                                                                                 |
+| Master data  | `sales-type.ts`      | `modules/sales-type`                                                   | `sales_types`                                                                                                                                                                                      |
+| Master data  | `material.ts`        | `modules/material`                                                     | `material_categories`, `materials`, `material_conversions`, `material_locations`, `material_stock_snapshots`                                                                                       |
+| Master data  | `product.ts`         | `modules/product`                                                      | `product_categories`, `products`, `product_prices`, `product_variants`, `product_variant_prices`                                                                                                   |
+| Operations   | `crm.ts`             | `modules/crm`                                                          | `customers`, `customer_loyalty_transactions`                                                                                                                                                       |
+| Operations   | `hr.ts`              | `modules/hr` (employee, hr, payroll, leave-request)                    | `employees`, `shifts`, `attendances`, `payroll_batches`, `payroll_items`, `payroll_adjustments`, `leave_requests`                                                                                  |
+| Operations   | `finance.ts`         | `modules/finance` (account, general-ledger, expenditure)               | `accounts`, `journal_entries`, `journal_items`, `expenditures`                                                                                                                                     |
+| Operations   | `payment.ts`         | `modules/payment` (provider, method, location-payment-method, payment) | `payment_providers`, `payment_methods`, `location_payment_methods`, `payments`, `payment_invoices`                                                                                                 |
+| Operations   | `inventory.ts`       | `modules/inventory` (stock-transaction, stock-summary, stock-transfer) | `stock_batches`, `stock_adjustments`, `stock_adjustment_items`, `stock_transactions`, `stock_summaries`, `stock_transfers`, `stock_transfer_items`                                                 |
+| Operations   | `purchasing.ts`      | `modules/purchasing`                                                   | `purchase_requests`\*, `purchase_request_items`\*, `purchase_orders`, `purchase_order_items`, `goods_receipt_notes`, `goods_receipt_note_items`, `purchase_invoices`\*, `purchase_invoice_items`\* |
+| Operations   | `production.ts`      | `modules/production`                                                   | `work_orders`                                                                                                                                                                                      |
+| Operations   | `recipe.ts`          | `modules/recipe`                                                       | `recipes`, `recipe_items`                                                                                                                                                                          |
+| Operations   | `sales.ts`           | `modules/sales` (sales-order, sales-invoice)                           | `sales_orders`, `sales_order_batches`, `sales_order_items`, `sales_voids`, `sales_refunds`, `sales_external_refs`, `sales_invoices`, `sales_invoice_items`                                         |
+| Integrations | `moka.ts`            | `modules/moka` (configuration, scrap)                                  | `moka_configurations`, `moka_scrap_histories`, `moka_sync_cursors`                                                                                                                                 |
 
 \* Schema exists, no repo/service implements it yet — see the `⚠` comment in `purchasing.ts`.
 

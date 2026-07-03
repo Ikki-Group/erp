@@ -1,7 +1,7 @@
 # ERD — Overview & Domain Dependency Graph
 
 Part of [`docs/database/`](./README.md). This file shows how the 21 schema
-files relate to each other (which one imports which), *not* individual
+files relate to each other (which one imports which), _not_ individual
 table columns — see the layer files for actual entity diagrams:
 
 - [`01-core.md`](./ERD_CORE.md)
@@ -104,7 +104,7 @@ Notable things this graph makes visible:
   header). The dependency is legitimate regardless — a tax rule needs to know
   which account it posts to.
 - **`recipe.ts` bridges Master Data and a `productsTable`/`materialsTable`
-  target** — a recipe's output is *either* a material or a product/variant
+  target** — a recipe's output is _either_ a material or a product/variant
   (XOR-enforced), which is why it depends on both `material.ts` and
   `product.ts`.
 - **No cycles.** If you're about to add an import that would create one
@@ -114,27 +114,27 @@ Notable things this graph makes visible:
 
 ## Table count by domain
 
-| Domain file | Tables | Notes |
-|---|---|---|
-| `audit.ts` | 1 | |
-| `session.ts` | 1 | |
-| `iam.ts` | 3 | |
-| `location.ts` | 1 | |
-| `uom.ts` | 1 | |
-| `tax.ts` | 1 | No owning module yet |
-| `supplier.ts` | 1 | |
-| `company.ts` | 1 | |
-| `sales-type.ts` | 1 | |
-| `material.ts` | 5 | |
-| `product.ts` | 5 | |
-| `crm.ts` | 2 | |
-| `hr.ts` | 7 | |
-| `finance.ts` | 4 | |
-| `payment.ts` | 5 | |
-| `inventory.ts` | 7 | |
-| `purchasing.ts` | 8 | 4 tables unimplemented (see `⚠` comments) |
-| `production.ts` | 1 | |
-| `recipe.ts` | 2 | |
-| `sales.ts` | 8 | |
-| `moka.ts` | 3 | |
-| **Total** | **~68** | |
+| Domain file     | Tables  | Notes                                     |
+| --------------- | ------- | ----------------------------------------- |
+| `audit.ts`      | 1       |                                           |
+| `session.ts`    | 1       |                                           |
+| `iam.ts`        | 3       |                                           |
+| `location.ts`   | 1       |                                           |
+| `uom.ts`        | 1       |                                           |
+| `tax.ts`        | 1       | No owning module yet                      |
+| `supplier.ts`   | 1       |                                           |
+| `company.ts`    | 1       |                                           |
+| `sales-type.ts` | 1       |                                           |
+| `material.ts`   | 5       |                                           |
+| `product.ts`    | 5       |                                           |
+| `crm.ts`        | 2       |                                           |
+| `hr.ts`         | 7       |                                           |
+| `finance.ts`    | 4       |                                           |
+| `payment.ts`    | 5       |                                           |
+| `inventory.ts`  | 7       |                                           |
+| `purchasing.ts` | 8       | 4 tables unimplemented (see `⚠` comments) |
+| `production.ts` | 1       |                                           |
+| `recipe.ts`     | 2       |                                           |
+| `sales.ts`      | 8       |                                           |
+| `moka.ts`       | 3       |                                           |
+| **Total**       | **~68** |                                           |

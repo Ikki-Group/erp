@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { zp } from '@/shared/schema'
 
 import { MokaScrapType, MokaSyncTriggerMode } from '../shared.contract'

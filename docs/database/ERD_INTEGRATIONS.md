@@ -65,6 +65,7 @@ erDiagram
 ```
 
 Notes:
+
 - `provider` is currently a single-value enum (`'moka'` only) on every table
   here — modeled as an enum rather than a hardcoded column specifically so a
   second POS integration can be added later without a column rename, just a

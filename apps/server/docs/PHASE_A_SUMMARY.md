@@ -9,6 +9,7 @@
 ## 🎯 Objectives
 
 Fix critical structural issues in modules:
+
 1. Clarify `tool/` module purpose
 2. Add missing layers to `auth/` module
 
@@ -21,6 +22,7 @@ Fix critical structural issues in modules:
 **Finding:** `tool/` is a **database seeding utility**, not a feature module.
 
 **Structure:**
+
 ```
 tool/
 ├── tool.module.ts          ✅ Factory
@@ -30,16 +32,19 @@ tool/
 ```
 
 **Purpose:**
+
 - Orchestrates seeding across multiple modules (iam, location)
 - Used in development/testing only
 - Route not registered in production routes
 
 **Decision:** ✅ **KEEP AS-IS**
+
 - Structure is appropriate for utility module
 - No refactoring needed
 - Not a feature module, so different patterns are acceptable
 
 **Recommendation:**
+
 - Add documentation comment in `tool.module.ts`
 - Consider moving to `scripts/` if never exposed via HTTP
 
@@ -52,6 +57,7 @@ tool/
 **Finding:** `auth/` is an **orchestration module**, not a data module.
 
 **Before:**
+
 ```
 auth/
 ├── auth.module.ts          ✅
@@ -64,6 +70,7 @@ auth/
 ```
 
 **After:**
+
 ```
 auth/
 ├── auth.module.ts          ✅
@@ -77,6 +84,7 @@ auth/
 **Changes Made:**
 
 1. **Created `auth.internal.ts`** ✅
+
    ```typescript
    export const AuthError = {
      userNotFound: () => new UnauthorizedError(...),
@@ -104,19 +112,21 @@ auth/
 ## 🔍 Key Learnings
 
 ### 1. Not All Modules Need All Layers
+
 - **Feature modules** (location, iam): Need full stack (contract, repo, service, route)
 - **Orchestration modules** (auth): Only contract, service, route
 - **Utility modules** (tool): Flexible structure based on purpose
 
 ### 2. Module Patterns Identified
 
-| Pattern | Example | Layers Needed |
-|---------|---------|---------------|
-| **Data Module** | location, iam/user | contract, repo, service, route, internal |
-| **Orchestration Module** | auth | contract, service, route, internal |
-| **Utility Module** | tool (seed) | module, service, (optional route) |
+| Pattern                  | Example            | Layers Needed                            |
+| ------------------------ | ------------------ | ---------------------------------------- |
+| **Data Module**          | location, iam/user | contract, repo, service, route, internal |
+| **Orchestration Module** | auth               | contract, service, route, internal       |
+| **Utility Module**       | tool (seed)        | module, service, (optional route)        |
 
 ### 3. Error Helper Benefits
+
 - ✅ Centralized error definitions
 - ✅ Consistent error codes
 - ✅ Easier to update error messages
@@ -128,14 +138,17 @@ auth/
 ## 📈 Impact
 
 ### Before Phase A
+
 - ⚠️ `tool/` - 60% compliant (unclear purpose)
 - ⚠️ `auth/` - 70% compliant (missing components)
 
 ### After Phase A
+
 - ✅ `tool/` - 80% compliant (clarified as utility)
 - ✅ `auth/` - 95% compliant (standardized errors)
 
 ### Overall Project
+
 - Before: 75% avg compliance
 - After: 78% avg compliance (+3%)
 
@@ -144,6 +157,7 @@ auth/
 ## 🎯 Next Steps
 
 ### Phase B (P1) - Standardization
+
 1. Create `.internal.ts` for remaining modules:
    - [ ] `iam/user/user.internal.ts`
    - [ ] `iam/role/role.internal.ts`
@@ -152,6 +166,7 @@ auth/
 3. Extract inline error definitions
 
 ### Phase C (P2) - Polish
+
 1. Global method renames
 2. Documentation updates
 3. Final compliance verification
@@ -173,11 +188,11 @@ auth/
 
 ## 📊 Files Changed
 
-| File | Status | Lines | Change |
-|------|--------|-------|--------|
-| `auth/auth.internal.ts` | ✅ Created | 48 | New error helpers |
-| `auth/auth.service.ts` | ✅ Modified | 60 | Use AuthError |
-| `PHASE_A_SUMMARY.md` | ✅ Created | - | This doc |
+| File                    | Status      | Lines | Change            |
+| ----------------------- | ----------- | ----- | ----------------- |
+| `auth/auth.internal.ts` | ✅ Created  | 48    | New error helpers |
+| `auth/auth.service.ts`  | ✅ Modified | 60    | Use AuthError     |
+| `PHASE_A_SUMMARY.md`    | ✅ Created  | -     | This doc          |
 
 **Total:** 3 files, ~110 lines changed
 

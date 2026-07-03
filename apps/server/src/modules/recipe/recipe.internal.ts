@@ -6,5 +6,7 @@ export const RecipeError = {
 	targetMissing: () =>
 		new ConflictError('Recipe must have exactly one target', { code: 'RECIPE_MISSING_TARGET' }),
 	targetExists: () =>
-		new ConflictError('A recipe already exists for this target', { code: 'RECIPE_TARGET_ALREADY_EXISTS' }),
+		new ConflictError('A recipe already exists for this target', {
+			code: 'RECIPE_TARGET_ALREADY_EXISTS',
+		}),
 }

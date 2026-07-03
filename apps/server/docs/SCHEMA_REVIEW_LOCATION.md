@@ -12,22 +12,22 @@
 export const locationTypeEnum = pgEnum('location_type', ['store', 'warehouse'])
 
 export const locationsTable = pgTable(
-  'locations',
-  {
-    ...pk,                              // id: serial
-    code: text('code').notNull(),
-    name: text('name').notNull(),
-    type: locationTypeEnum('type').notNull(),
-    description: text('description'),
-    address: text('address'),           // ✅ PRESENT (contradicts comment)
-    phone: text('phone'),               // ✅ PRESENT (contradicts comment)
-    isActive: boolean('is_active').notNull().default(true),
-    ...auditBasicColumns,               // createdAt, updatedAt, createdBy, updatedBy
-  },
-  (t) => [
-    uniqueIndex('locations_code_active_idx').on(t.code),
-    uniqueIndex('locations_name_active_idx').on(t.name),
-  ],
+	'locations',
+	{
+		...pk, // id: serial
+		code: text('code').notNull(),
+		name: text('name').notNull(),
+		type: locationTypeEnum('type').notNull(),
+		description: text('description'),
+		address: text('address'), // ✅ PRESENT (contradicts comment)
+		phone: text('phone'), // ✅ PRESENT (contradicts comment)
+		isActive: boolean('is_active').notNull().default(true),
+		...auditBasicColumns, // createdAt, updatedAt, createdBy, updatedBy
+	},
+	(t) => [
+		uniqueIndex('locations_code_active_idx').on(t.code),
+		uniqueIndex('locations_name_active_idx').on(t.name),
+	],
 )
 ```
 
@@ -36,6 +36,7 @@ export const locationsTable = pgTable(
 ## ✅ Strengths
 
 ### 1. **Documentation Quality** ⭐⭐⭐⭐⭐
+
 ```typescript
 /**
  * Locations Table
@@ -59,6 +60,7 @@ export const locationsTable = pgTable(
 ---
 
 ### 2. **Proper Audit Trail** ⭐⭐⭐⭐⭐
+
 ```typescript
 ...auditBasicColumns,  // createdAt, updatedAt, createdBy, updatedBy
 ```
@@ -68,12 +70,14 @@ export const locationsTable = pgTable(
 ---
 
 ### 3. **Type Safety** ⭐⭐⭐⭐⭐
+
 ```typescript
 export const locationTypeEnum = pgEnum('location_type', ['store', 'warehouse'])
 type: locationTypeEnum('type').notNull(),
 ```
 
-**✅ Excellent:** 
+**✅ Excellent:**
+
 - PostgreSQL enum (database-level constraint)
 - Matches Zod enum in contract
 - Type-safe in TypeScript
@@ -82,6 +86,7 @@ type: locationTypeEnum('type').notNull(),
 ---
 
 ### 4. **Soft Delete Pattern** ⭐⭐⭐⭐⭐
+
 ```typescript
 isActive: boolean('is_active').notNull().default(true),
 ```
@@ -91,11 +96,13 @@ isActive: boolean('is_active').notNull().default(true),
 ---
 
 ### 5. **Serial PK** ⭐⭐⭐⭐⭐
+
 ```typescript
 ...pk,  // id: serial('id').primaryKey()
 ```
 
 **✅ Optimal for solo developer:**
+
 - Smaller indexes (4 bytes vs 16 for UUID)
 - Human-readable IDs
 - Simpler debugging
@@ -108,18 +115,21 @@ isActive: boolean('is_active').notNull().default(true),
 ### **RESOLVED: Simple Unique Indexes Sufficient** ✅
 
 **Current Implementation:**
+
 ```typescript
 uniqueIndex('locations_code_idx').on(t.code),
 uniqueIndex('locations_name_idx').on(t.name),
 ```
 
 **Design Decision:**
+
 - Unique constraint applies to **ALL rows** (active + inactive)
 - Location codes are **permanent identifiers** - never reused
 - Historical data integrity preserved
 - Simpler schema without partial indexes
 
 **Rationale:**
+
 - Location code represents physical site identity
 - Historical records (orders, inventory) reference location by code
 - Reusing codes would create ambiguity in reports
@@ -129,13 +139,14 @@ uniqueIndex('locations_name_idx').on(t.name),
 
 **Impact:**
 
-| Scenario | Behavior | Reason |
-|----------|----------|--------|
-| Close store "JKT-001" | `isActive = false` | ✅ Store deactivated |
-| Reopen store "JKT-001" | ❌ **Use new code** | Historical integrity |
-| Historical queries | ✅ Unambiguous | Each code = one location |
+| Scenario               | Behavior            | Reason                   |
+| ---------------------- | ------------------- | ------------------------ |
+| Close store "JKT-001"  | `isActive = false`  | ✅ Store deactivated     |
+| Reopen store "JKT-001" | ❌ **Use new code** | Historical integrity     |
+| Historical queries     | ✅ Unambiguous      | Each code = one location |
 
 **Business Benefits:**
+
 - Clear historical data (JKT-001 always refers to same physical site)
 - No confusion in reports/analytics
 - Audit trail preserved
@@ -152,8 +163,8 @@ Drizzle ORM **DOES support** partial indexes with `.where()` clause:
 import { sql } from 'drizzle-orm'
 
 uniqueIndex('locations_code_active_idx')
-  .on(t.code)
-  .where(sql`${t.isActive} = true`)
+	.on(t.code)
+	.where(sql`${t.isActive} = true`)
 ```
 
 ---
@@ -161,24 +172,26 @@ uniqueIndex('locations_code_active_idx')
 **Solution: Simple Global Unique Indexes** ⭐⭐⭐⭐⭐ (Implemented)
 
 **Implementation:**
+
 ```typescript
 export const locationsTable = pgTable(
-  'locations',
-  {
-    ...pk,
-    code: text('code').notNull(),
-    name: text('name').notNull(),
-    isActive: boolean('is_active').notNull().default(true),
-    // ...
-  },
-  (t) => [
-    uniqueIndex('locations_code_idx').on(t.code),
-    uniqueIndex('locations_name_idx').on(t.name),
-  ],
+	'locations',
+	{
+		...pk,
+		code: text('code').notNull(),
+		name: text('name').notNull(),
+		isActive: boolean('is_active').notNull().default(true),
+		// ...
+	},
+	(t) => [
+		uniqueIndex('locations_code_idx').on(t.code),
+		uniqueIndex('locations_name_idx').on(t.name),
+	],
 )
 ```
 
 **Pros:**
+
 - ✅ Simple schema design
 - ✅ Historical data integrity
 - ✅ No ambiguity in reports
@@ -190,12 +203,11 @@ Location codes are permanent identifiers. If a physical site reopens,
 use a new code (e.g., JKT-001 → JKT-001-V2) to maintain historical clarity.
 
 **Type-Safe Partial Index (if needed in future):**
+
 ```typescript
 import { eq } from 'drizzle-orm'
 
-uniqueIndex('locations_code_active_idx')
-  .on(t.code)
-  .where(eq(t.isActive, true))  // ✅ Type-safe with eq()
+uniqueIndex('locations_code_active_idx').on(t.code).where(eq(t.isActive, true)) // ✅ Type-safe with eq()
 ```
 
 ---
@@ -203,20 +215,23 @@ uniqueIndex('locations_code_active_idx')
 #### **Alternative: Composite Unique** ⭐⭐⭐ (Not Recommended)
 
 **Pros:**
+
 - ✅ Supported in Drizzle
 - ✅ Type-safe
 - ✅ Visible in schema
 
 **Cons:**
+
 - ❌ Changes data model
 - ❌ Requires `code + isActive` in uniqueness check
 - ❌ Weird semantics (`JKT-001-true` vs `JKT-001-false`)
 
 **Implementation:**
+
 ```typescript
-(t) => [
-  uniqueIndex('locations_code_active_idx').on(t.code, t.isActive),
-  uniqueIndex('locations_name_active_idx').on(t.name, t.isActive),
+;(t) => [
+	uniqueIndex('locations_code_active_idx').on(t.code, t.isActive),
+	uniqueIndex('locations_name_active_idx').on(t.name, t.isActive),
 ]
 ```
 
@@ -227,15 +242,18 @@ uniqueIndex('locations_code_active_idx')
 #### **Alternative: Accept Non-Partial Behavior** ⭐ (Not Recommended)
 
 **Pros:**
+
 - ✅ No changes needed
 - ✅ Simpler
 
 **Cons:**
+
 - ❌ **Contradicts documentation**
 - ❌ Cannot reuse location codes
 - ❌ Business limitation
 
 **Action:** Update documentation to match implementation:
+
 ```typescript
 /**
  * `code` — required, normalized identifier.
@@ -247,12 +265,14 @@ uniqueIndex('locations_code_active_idx')
 ---
 
 **✅ IMPLEMENTED:** Simple global unique indexes
+
 - Location codes are permanent (historical integrity)
 - Clean schema design
 - No partial index complexity needed
 - Type-safe and straightforward
 
 **Learning:** Drizzle supports type-safe partial indexes via `eq()`:
+
 ```typescript
 import { eq } from 'drizzle-orm'
 uniqueIndex().on(t.code).where(eq(t.isActive, true))
@@ -265,11 +285,13 @@ uniqueIndex().on(t.code).where(eq(t.isActive, true))
 **Issue:** No validation on `code` format
 
 **Current:**
+
 ```typescript
 code: text('code').notNull(),
 ```
 
 **Contract Validation:**
+
 ```typescript
 // location.contract.ts
 code: zc.strTrim,  // Just trims whitespace, no format validation
@@ -278,31 +300,33 @@ code: zc.strTrim,  // Just trims whitespace, no format validation
 **Recommendation:** Add constraint or validation
 
 #### Option A: Database Check Constraint
-```typescript
-code: text('code').notNull(),
 
-// Add in table definition:
-(t) => [
-  // ... indexes
-  check('locations_code_format_chk', 
-    sql`code ~ '^[A-Z0-9-]+$'`  // Alphanumeric + dash, uppercase
-  ),
-]
+```typescript
+code: (text('code').notNull(),
+	// Add in table definition:
+	(t) => [
+		// ... indexes
+		check(
+			'locations_code_format_chk',
+			sql`code ~ '^[A-Z0-9-]+$'`, // Alphanumeric + dash, uppercase
+		),
+	])
 ```
 
 #### Option B: Application-Level Validation (Simpler)
+
 ```typescript
 // location.contract.ts
 export const LocationCodeSchema = z
-  .string()
-  .trim()
-  .regex(/^[A-Z0-9-]+$/, 'Code must be uppercase alphanumeric with dashes')
-  .min(3)
-  .max(20)
+	.string()
+	.trim()
+	.regex(/^[A-Z0-9-]+$/, 'Code must be uppercase alphanumeric with dashes')
+	.min(3)
+	.max(20)
 
 export const LocationCreateDto = z.object({
-  code: LocationCodeSchema,
-  // ...
+	code: LocationCodeSchema,
+	// ...
 })
 ```
 
@@ -313,6 +337,7 @@ export const LocationCreateDto = z.object({
 ### **MINOR: Missing Indexes for Queries** 🟡
 
 **Common Queries:**
+
 ```sql
 -- Filter by type
 SELECT * FROM locations WHERE type = 'warehouse';
@@ -325,21 +350,24 @@ SELECT * FROM locations WHERE type = 'store' AND is_active = TRUE;
 ```
 
 **Current Indexes:**
+
 - ✅ `locations_code_active_idx` (unique on code)
 - ✅ `locations_name_active_idx` (unique on name)
 - ❌ No index on `type`
 - ❌ No index on `is_active`
 
 **Recommendation:** Add composite index
+
 ```typescript
-(t) => [
-  uniqueIndex('locations_code_active_idx').on(t.code),
-  uniqueIndex('locations_name_active_idx').on(t.name),
-  index('locations_type_active_idx').on(t.type, t.isActive),  // ✅ Add this
+;(t) => [
+	uniqueIndex('locations_code_active_idx').on(t.code),
+	uniqueIndex('locations_name_active_idx').on(t.name),
+	index('locations_type_active_idx').on(t.type, t.isActive), // ✅ Add this
 ]
 ```
 
 **Benefit:**
+
 - ✅ Faster filtered lists (warehouse filter, active filter)
 - ✅ Small overhead (only 2 columns, low cardinality)
 
@@ -347,15 +375,15 @@ SELECT * FROM locations WHERE type = 'store' AND is_active = TRUE;
 
 ## 📝 Summary
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| **Documentation** | ⭐⭐⭐⭐⭐ | Excellent, clear business rules |
-| **Type Safety** | ⭐⭐⭐⭐⭐ | Enum + Zod validation |
-| **Audit Trail** | ⭐⭐⭐⭐⭐ | Full audit columns |
-| **Soft Delete** | ⭐⭐⭐⭐⭐ | isActive pattern |
-| **Indexing** | ⭐⭐⭐ | Missing partial unique, query index |
-| **Constraints** | ⭐⭐⭐⭐ | Good, could add code format |
-| **Overall** | ⭐⭐⭐⭐ | Solid foundation, minor issues |
+| Category          | Rating     | Notes                               |
+| ----------------- | ---------- | ----------------------------------- |
+| **Documentation** | ⭐⭐⭐⭐⭐ | Excellent, clear business rules     |
+| **Type Safety**   | ⭐⭐⭐⭐⭐ | Enum + Zod validation               |
+| **Audit Trail**   | ⭐⭐⭐⭐⭐ | Full audit columns                  |
+| **Soft Delete**   | ⭐⭐⭐⭐⭐ | isActive pattern                    |
+| **Indexing**      | ⭐⭐⭐     | Missing partial unique, query index |
+| **Constraints**   | ⭐⭐⭐⭐   | Good, could add code format         |
+| **Overall**       | ⭐⭐⭐⭐   | Solid foundation, minor issues      |
 
 ---
 
@@ -366,6 +394,7 @@ SELECT * FROM locations WHERE type = 'store' AND is_active = TRUE;
 **Action:** Replace Drizzle indexes with manual migration
 
 **Files to Change:**
+
 1. `location.ts` - Remove index definitions, add comment
 2. New migration - Create partial unique indexes via SQL
 
@@ -392,7 +421,11 @@ index('locations_type_active_idx').on(t.type, t.isActive),
 **Action:** Add regex validation in contract
 
 ```typescript
-code: z.string().trim().regex(/^[A-Z0-9-]+$/).min(3).max(20)
+code: z.string()
+	.trim()
+	.regex(/^[A-Z0-9-]+$/)
+	.min(3)
+	.max(20)
 ```
 
 **Effort:** 5 minutes  

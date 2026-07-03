@@ -1,11 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, gte, lte, sql, sum } from 'drizzle-orm'
 
-import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { accountsTable, journalItemsTable } from '@/db/schema/finance'
 import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema/sales'
 
+import { CacheService, type CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 
 export interface PnLData {

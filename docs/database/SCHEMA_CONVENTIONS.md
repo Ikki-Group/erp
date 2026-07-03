@@ -51,18 +51,18 @@ the code-organization level, and made cross-domain imports noisier
 
 ## Naming
 
-| What | Convention | Example |
-|---|---|---|
-| Table variable (TS) | `{name}Table`, camelCase, singular-ish per Drizzle convention | `purchaseOrdersTable` |
-| Table name (SQL) | snake_case, plural | `purchase_orders` |
-| Column variable (TS) | camelCase | `locationId` |
-| Column name (SQL) | snake_case | `location_id` |
-| Enum variable (TS) | `{name}Enum` | `paymentMethodEnum` |
-| Enum name (SQL) | snake_case | `payment_method` |
-| Index name | `{table}_{columns}_idx` | `sales_orders_location_idx` |
-| Unique index name | `{table}_{columns}_idx` (no separate suffix — `uniqueIndex()` vs `index()` already disambiguates) | `users_email_idx` |
-| Check constraint name | `{table}_{column-or-rule}_chk` | `expenditures_amount_pos_chk` |
-| FK column | `{referencedSingular}Id` | `materialId`, `locationId` |
+| What                  | Convention                                                                                        | Example                       |
+| --------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Table variable (TS)   | `{name}Table`, camelCase, singular-ish per Drizzle convention                                     | `purchaseOrdersTable`         |
+| Table name (SQL)      | snake_case, plural                                                                                | `purchase_orders`             |
+| Column variable (TS)  | camelCase                                                                                         | `locationId`                  |
+| Column name (SQL)     | snake_case                                                                                        | `location_id`                 |
+| Enum variable (TS)    | `{name}Enum`                                                                                      | `paymentMethodEnum`           |
+| Enum name (SQL)       | snake_case                                                                                        | `payment_method`              |
+| Index name            | `{table}_{columns}_idx`                                                                           | `sales_orders_location_idx`   |
+| Unique index name     | `{table}_{columns}_idx` (no separate suffix — `uniqueIndex()` vs `index()` already disambiguates) | `users_email_idx`             |
+| Check constraint name | `{table}_{column-or-rule}_chk`                                                                    | `expenditures_amount_pos_chk` |
+| FK column             | `{referencedSingular}Id`                                                                          | `materialId`, `locationId`    |
 
 Rename nothing casually — `code` columns in particular (`locations.code`,
 `materials.sku`, `uoms.code`, ...) are treated as stable external identifiers
@@ -77,8 +77,8 @@ are a breaking schema change; adding new columns/tables is not.
 import { pk } from './_helpers'
 
 export const fooTable = pgTable('foo', {
-  ...pk,   // { id: serial('id').primaryKey() }
-  // ...
+	...pk, // { id: serial('id').primaryKey() }
+	// ...
 })
 ```
 
@@ -153,8 +153,8 @@ check('stock_transfers_different_locations_chk', ne(t.sourceLocationId, t.destin
 
 // Conditional (nullable column)
 check(
-  'material_locations_stock_range_chk',
-  or(isNull(t.maxStock), and(gte(t.maxStock, t.minStock), gte(t.maxStock, t.reorderPoint)))!,
+	'material_locations_stock_range_chk',
+	or(isNull(t.maxStock), and(gte(t.maxStock, t.minStock), gte(t.maxStock, t.reorderPoint)))!,
 )
 
 // NOT + OR
@@ -226,7 +226,7 @@ Other index rules already established in this schema, follow them:
 ## Enums
 
 Enum lives **next to its primary table** in the same domain file, unless it
-is genuinely shared by two *unrelated* domains — then it goes in `_enums.ts`.
+is genuinely shared by two _unrelated_ domains — then it goes in `_enums.ts`.
 
 ```ts
 // Colocated (normal case) — payment.ts
@@ -239,7 +239,7 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [...])
 ```
 
 Before adding to `_enums.ts`, ask: does moving this here avoid one domain
-importing the other *purely* to reuse a type? If a real FK/data dependency
+importing the other _purely_ to reuse a type? If a real FK/data dependency
 already exists between the domains, just colocate the enum with whichever
 table is more "the owner" of the concept — don't reflexively centralize.
 
@@ -247,11 +247,11 @@ table is more "the owner" of the concept — don't reflexively centralize.
 
 Two scales are used throughout, pick based on what the number represents:
 
-| Kind | Precision/scale | Used for |
-|---|---|---|
-| Money / currency amounts | `numeric(18, 2)` | prices, totals, taxes, discounts, GL debit/credit |
-| Quantities / conversion factors | `numeric(18, 6)` | stock qty, recipe qty, UOM conversion factors |
-| Percentages | `numeric(5, 2)` | tax rate, scrap percentage (max 100.00) |
+| Kind                            | Precision/scale  | Used for                                          |
+| ------------------------------- | ---------------- | ------------------------------------------------- |
+| Money / currency amounts        | `numeric(18, 2)` | prices, totals, taxes, discounts, GL debit/credit |
+| Quantities / conversion factors | `numeric(18, 6)` | stock qty, recipe qty, UOM conversion factors     |
+| Percentages                     | `numeric(5, 2)`  | tax rate, scrap percentage (max 100.00)           |
 
 Quantities use scale 6 (not 2) because UOM conversions can produce small
 fractional results (e.g. grams → kg) that scale-2 would truncate. Never mix
@@ -307,7 +307,7 @@ introduce an upward or circular dependency.
 
 Note this is about **schema file imports** (which table definitions
 reference which), not module/service imports — a table having an FK to
-`locationsTable` doesn't make the *module* that owns that table depend on
+`locationsTable` doesn't make the _module_ that owns that table depend on
 the location module's service layer; that's a separate, looser rule.
 
 ## Relations — don't use `db.query...with()`

@@ -1,9 +1,9 @@
-import { zc, zq } from '@/shared/schema'
-import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { zc, zq } from '@/shared/schema'
+import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 
 import {
 	PaymentProviderDto,
@@ -51,7 +51,11 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 		.put(
 			'/update',
 			async function update(context) {
-				const { id } = await service.handleUpdate(context.body.id.toString(), context.body, context.auth.userId.toString())
+				const { id } = await service.handleUpdate(
+					context.body.id.toString(),
+					context.body,
+					context.auth.userId.toString(),
+				)
 				return res.ok({ id: Number(id) })
 			},
 			{

@@ -1,17 +1,15 @@
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import { ProductCategoryRepo } from './category.repo'
 import type {
 	ProductCategoryDto,
 	ProductCategoryFilterDto,
 	ProductCategoryCreateDto,
 	ProductCategoryUpdateDto,
 } from './category.contract'
+import { ProductCategoryRepo } from './category.repo'
 
 export class ProductCategoryService {
 	private readonly cache: CacheService
@@ -51,9 +49,9 @@ export class ProductCategoryService {
 	async handleDetail(id: number): Promise<ProductCategoryDto> {
 		const result = await this.getById(id)
 		if (!result)
-			throw new NotFoundError(
-				`Product category with ID ${id} not found`,
-				{ code: 'PRODUCT_CATEGORY_NOT_FOUND' })
+			throw new NotFoundError(`Product category with ID ${id} not found`, {
+				code: 'PRODUCT_CATEGORY_NOT_FOUND',
+			})
 		return result
 	}
 
@@ -72,9 +70,9 @@ export class ProductCategoryService {
 	): Promise<EntityRef> {
 		const existing = await this.getById(id)
 		if (!existing)
-			throw new NotFoundError(
-				`Product category with ID ${id} not found`,
-				{ code: 'PRODUCT_CATEGORY_NOT_FOUND' })
+			throw new NotFoundError(`Product category with ID ${id} not found`, {
+				code: 'PRODUCT_CATEGORY_NOT_FOUND',
+			})
 
 		await this.repo.update(id, data, actorId)
 

@@ -29,15 +29,15 @@ bun test
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Runtime** | [Bun](https://bun.sh) |
-| **Framework** | [Elysia](https://elysiajs.com) |
-| **Database** | PostgreSQL with [Drizzle ORM](https://orm.drizzle.team) |
-| **Caching** | [BentoCache](https://bentocache.dev) |
-| **Validation** | [Zod](https://zod.dev) v4 |
-| **Logging** | [LogTape](https://logtape.org) |
-| **Observability** | OpenTelemetry |
+| Layer             | Technology                                              |
+| ----------------- | ------------------------------------------------------- |
+| **Runtime**       | [Bun](https://bun.sh)                                   |
+| **Framework**     | [Elysia](https://elysiajs.com)                          |
+| **Database**      | PostgreSQL with [Drizzle ORM](https://orm.drizzle.team) |
+| **Caching**       | [BentoCache](https://bentocache.dev)                    |
+| **Validation**    | [Zod](https://zod.dev) v4                               |
+| **Logging**       | [LogTape](https://logtape.org)                          |
+| **Observability** | OpenTelemetry                                           |
 
 ---
 
@@ -176,12 +176,12 @@ modules/iam/
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|-----------|---------|
-| Functions | camelCase | `handleCreate`, `findById` |
-| Classes | PascalCase | `UserService`, `LocationRepo` |
-| Constants | UPPERCASE | `MAX_RETRIES`, `DEFAULT_LIMIT` |
-| Files | kebab-case | `user.service.ts`, `location.repo.ts` |
+| Type      | Convention | Example                               |
+| --------- | ---------- | ------------------------------------- |
+| Functions | camelCase  | `handleCreate`, `findById`            |
+| Classes   | PascalCase | `UserService`, `LocationRepo`         |
+| Constants | UPPERCASE  | `MAX_RETRIES`, `DEFAULT_LIMIT`        |
+| Files     | kebab-case | `user.service.ts`, `location.repo.ts` |
 
 ---
 

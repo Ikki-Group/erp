@@ -1,19 +1,17 @@
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { ProductCategoryDto } from './category.contract'
 import type { ProductCategoryService } from './category.service'
-import { ProductRepo } from './product.repo'
 import type {
 	ProductDto,
 	ProductFilterDto,
 	ProductMutationDto,
 	ProductSelectDto,
 } from './product.contract'
+import { ProductRepo } from './product.repo'
 
 export class ProductService {
 	private readonly cache: CacheService
@@ -31,7 +29,9 @@ export class ProductService {
 	private validateDefaultVariant(variants: { isDefault?: boolean; name: string }[]) {
 		const defaults = variants.filter((v) => v.isDefault)
 		if (defaults.length > 1) {
-			throw new ConflictError('Only one variant can be set as default', { code: 'MULTIPLE_DEFAULT_VARIANTS' })
+			throw new ConflictError('Only one variant can be set as default', {
+				code: 'MULTIPLE_DEFAULT_VARIANTS',
+			})
 		}
 	}
 
@@ -46,9 +46,7 @@ export class ProductService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(
-		filter: ProductFilterDto,
-	): Promise<WithPaginationResult<ProductSelectDto>> {
+	async handleList(filter: ProductFilterDto): Promise<WithPaginationResult<ProductSelectDto>> {
 		const result = await this.repo.getListPaginated(filter)
 
 		const allCategories = await this.categorySvc.handleList({
@@ -71,7 +69,8 @@ export class ProductService {
 
 	async handleDetail(id: number): Promise<ProductSelectDto> {
 		const product = await this.getById(id)
-		if (!product) throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
+		if (!product)
+			throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
 
 		const category = product.categoryId
 			? ((await this.categorySvc.getById(product.categoryId)) ?? null)
@@ -96,13 +95,10 @@ export class ProductService {
 		return result
 	}
 
-	async handleUpdate(
-		id: number,
-		data: ProductMutationDto,
-		actorId: ActorId,
-	): Promise<EntityRef> {
+	async handleUpdate(id: number, data: ProductMutationDto, actorId: ActorId): Promise<EntityRef> {
 		const existing = await this.getById(id)
-		if (!existing) throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
+		if (!existing)
+			throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
 
 		const sku = data.sku ? data.sku.trim() : existing.sku
 		const name = data.name ? data.name.trim() : existing.name

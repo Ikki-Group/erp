@@ -11,15 +11,12 @@ import {
 	salesVoidsTable,
 } from '@/db/schema/sales'
 
-import {
-	paginate,
-	takeFirstOrThrow,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, takeFirstOrThrow, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { BadRequestError, NotFoundError } from '@/shared/errors/http-error'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import { 
+import {
 	SalesOrderAddBatchDto,
 	SalesOrderBatchDto,
 	SalesOrderCreateDto,
@@ -29,7 +26,7 @@ import {
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
 	SalesVoidDto,
- } from './sales-order.contract'
+} from './sales-order.contract'
 
 const err = {
 	notFound: (id: number) =>

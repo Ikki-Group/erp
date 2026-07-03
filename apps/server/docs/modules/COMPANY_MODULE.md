@@ -22,6 +22,7 @@
 ## 🎯 Review Checklist
 
 ### 1. Schema (`company-settings.schema.ts`) ✅
+
 - [x] Import path fixed (@ikki/api-contract → @/shared/schema)
 - [x] Removed .extend() (Zod v4 deprecated)
 - [x] Renamed Schema → Dto (consistency)
@@ -30,19 +31,22 @@
 - [x] Type exports
 
 ### 2. Repository (`company-settings.repo.ts`) ✅
+
 - [x] Returns undefined for not found
 - [x] Audit stamps (stampCreate, stampUpdate)
 - [x] Proper EntityRef return
 
 ### 3. Service (`company-settings.service.ts`) ✅
+
 - [x] OpenTelemetry tracing (all methods)
 - [x] handleX naming for public methods
-- [x] Cache keys use cache.keys.* (not string literals)
+- [x] Cache keys use cache.keys.\* (not string literals)
 - [x] Cache invalidation proper
 - [x] Custom errors (err helper object)
 - [x] Single instance check (handleCreate)
 
 ### 4. Routes (`company-settings.route.ts`) ✅
+
 - [x] Import path fixed
 - [x] Thin wrappers (delegate to service)
 - [x] Zod validation
@@ -50,6 +54,7 @@
 - [x] Standard responses
 
 ### 5. Index (`index.ts`) ✅
+
 - [x] Public API only (module, service type, DTOs)
 - [x] No internal leaks
 
@@ -58,13 +63,16 @@
 ## 🐛 Issues Found & Fixed
 
 ### Critical Issues
+
 - None
 
 ### Medium Issues
+
 1. ✅ Wrong import path (@ikki/api-contract)
 2. ✅ Deprecated .extend() method (Zod v4)
 
 ### Minor Issues
+
 1. ✅ Schema → Dto naming inconsistency
 2. ✅ No OpenTelemetry tracing
 3. ✅ Cache keys as string literals
@@ -109,12 +117,14 @@
 ## 📝 Notes
 
 Company module characteristics:
+
 - **Zero dependencies** - Independent master data
 - **Single instance** - One company settings record
 - **Settings singleton** - Prevents multiple entries
 - **Key fields:** name, address, email, taxId, taxRate, currency
 
 Critical patterns verified:
+
 1. Single instance check in handleCreate
 2. Cache invalidation on writes
 3. Audit stamps on mutations

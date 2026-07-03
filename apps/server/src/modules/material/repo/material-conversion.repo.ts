@@ -2,14 +2,8 @@ import { and, count, eq } from 'drizzle-orm'
 
 import { materialConversionsTable } from '@/db/schema'
 
-import {
-	paginate,
-	takeFirst,
-	type DbClient,
-	type DbTx,
-} from '@/infra/database'
+import { paginate, takeFirst, type DbClient, type DbTx } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { MaterialConversion } from '../domain/material-conversion.entity'
@@ -42,7 +36,8 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 					.limit(limit)
 					.offset(offset),
 			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(materialConversionsTable).where(where),
+			countQuery: () =>
+				this.db.select({ count: count() }).from(materialConversionsTable).where(where),
 		})
 	}
 

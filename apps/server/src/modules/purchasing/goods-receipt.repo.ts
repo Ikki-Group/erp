@@ -2,20 +2,17 @@ import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { goodsReceiptNoteItemsTable, goodsReceiptNotesTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	sortBy, type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, searchFilter, sortBy, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
 	GoodsReceiptNoteCreateDto,
 	GoodsReceiptNoteDto,
 	GoodsReceiptNoteFilterDto,
-	GoodsReceiptNoteSelectDto, type GoodsReceiptStatus,
+	GoodsReceiptNoteSelectDto,
+	type GoodsReceiptStatus,
 } from './goods-receipt.contract'
 
 export class GoodsReceiptRepo {
@@ -71,7 +68,8 @@ export class GoodsReceiptRepo {
 				return rows.map((r) => GoodsReceiptNoteSelectDto.parse(r))
 			},
 			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(goodsReceiptNotesTable).where(where),
+			countQuery: () =>
+				this.db.select({ count: count() }).from(goodsReceiptNotesTable).where(where),
 		})
 	}
 

@@ -1,3 +1,4 @@
+import { gt, gte } from 'drizzle-orm'
 import {
 	check,
 	index,
@@ -10,10 +11,9 @@ import {
 	timestamp,
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
-import { gt, gte } from 'drizzle-orm'
 
-import { auditBasicColumns, pk } from './_helpers'
 import { invoiceStatusEnum } from './_enums'
+import { auditBasicColumns, pk } from './_helpers'
 import { customersTable } from './crm'
 import { usersTable } from './iam'
 import { locationsTable } from './location'
@@ -21,8 +21,18 @@ import { productsTable, productVariantsTable } from './product'
 import { salesTypesTable } from './sales-type'
 
 export const salesOrderStatusEnum = pgEnum('sales_order_status', ['open', 'closed', 'void'])
-export const salesOrderSourceEnum = pgEnum('sales_order_source', ['web', 'moka', 'upload', 'machine_fetch'])
-export const batchStatusEnum = pgEnum('batch_status', ['pending', 'prepared', 'delivered', 'cancelled'])
+export const salesOrderSourceEnum = pgEnum('sales_order_source', [
+	'web',
+	'moka',
+	'upload',
+	'machine_fetch',
+])
+export const batchStatusEnum = pgEnum('batch_status', [
+	'pending',
+	'prepared',
+	'delivered',
+	'cancelled',
+])
 
 // ─── Sales Orders ─────────────────────────────────────────────────────────────
 
@@ -34,7 +44,9 @@ export const salesOrdersTable = pgTable(
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
 		// CRM Integration
-		customerId: integer('customer_id').references(() => customersTable.id, { onDelete: 'set null' }),
+		customerId: integer('customer_id').references(() => customersTable.id, {
+			onDelete: 'set null',
+		}),
 		salesTypeId: integer('sales_type_id')
 			.notNull()
 			.references(() => salesTypesTable.id, { onDelete: 'restrict' }),
@@ -99,11 +111,15 @@ export const salesOrderItemsTable = pgTable(
 		orderId: integer('order_id')
 			.notNull()
 			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-		batchId: integer('batch_id').references(() => salesOrderBatchesTable.id, { onDelete: 'set null' }),
+		batchId: integer('batch_id').references(() => salesOrderBatchesTable.id, {
+			onDelete: 'set null',
+		}),
 
 		// Custom Items: products/variants optional
 		productId: integer('product_id').references(() => productsTable.id, { onDelete: 'set null' }),
-		variantId: integer('variant_id').references(() => productVariantsTable.id, { onDelete: 'set null' }),
+		variantId: integer('variant_id').references(() => productVariantsTable.id, {
+			onDelete: 'set null',
+		}),
 
 		// Immutable History: Item name must always be stored
 		itemName: text('item_name').notNull(),
@@ -212,13 +228,17 @@ export const salesInvoicesTable = pgTable(
 		orderId: integer('order_id')
 			.notNull()
 			.references(() => salesOrdersTable.id, { onDelete: 'restrict' }),
-		customerId: integer('customer_id').references(() => customersTable.id, { onDelete: 'set null' }),
+		customerId: integer('customer_id').references(() => customersTable.id, {
+			onDelete: 'set null',
+		}),
 		locationId: integer('location_id')
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
 
 		status: invoiceStatusEnum('status').notNull().default('draft'),
-		invoiceDate: timestamp('invoice_date', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		invoiceDate: timestamp('invoice_date', { mode: 'date', withTimezone: true })
+			.notNull()
+			.defaultNow(),
 		dueDate: timestamp('due_date', { mode: 'date', withTimezone: true }),
 
 		totalAmount: numeric('total_amount', { precision: 18, scale: 2 }).notNull().default('0'),
@@ -253,7 +273,9 @@ export const salesInvoiceItemsTable = pgTable(
 			onDelete: 'set null',
 		}),
 		productId: integer('product_id').references(() => productsTable.id, { onDelete: 'set null' }),
-		variantId: integer('variant_id').references(() => productVariantsTable.id, { onDelete: 'set null' }),
+		variantId: integer('variant_id').references(() => productVariantsTable.id, {
+			onDelete: 'set null',
+		}),
 
 		itemName: text('item_name').notNull(),
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull().default('0'),

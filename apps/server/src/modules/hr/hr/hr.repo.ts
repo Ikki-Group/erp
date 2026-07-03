@@ -5,19 +5,18 @@ import { and, count, desc, eq, gte, ilike, isNull, lte, or } from 'drizzle-orm'
 
 import { attendancesTable, employeesTable, locationsTable, shiftsTable } from '@/db/schema'
 
-import {
-	paginate, type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import { 
+import {
 	AttendanceDto,
 	AttendanceFilterDto,
 	AttendanceSelectDto,
 	ClockInDto,
 	ShiftCreateDto,
 	ShiftDto,
- } from './hr.contract'
+} from './hr.contract'
 
 export class HRRepo {
 	constructor(private readonly db: DbClient) {}

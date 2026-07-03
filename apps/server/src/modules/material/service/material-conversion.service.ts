@@ -1,10 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import type { DbClient, DbTx } from '@/infra/database'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
 import type { MaterialConversion } from '../domain/material-conversion.entity'
 import type {
@@ -15,7 +14,6 @@ import type {
 } from '../domain/ports'
 import { MATERIAL_CACHE_NS } from '../material.constants'
 import { ConversionErrors } from '../material.errors'
-import type { EntityRef } from '@/shared/types/utils'
 
 export class MaterialConversionService {
 	private readonly cache: CacheService

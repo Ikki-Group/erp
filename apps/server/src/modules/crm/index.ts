@@ -1,12 +1,11 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
+import type { CustomerDto, CustomerLoyaltyTransactionDto } from './customer.contract'
 import { CustomerRepo } from './customer.repo'
 import { initCustomerRoute } from './customer.route'
-import type { CustomerDto, CustomerLoyaltyTransactionDto } from './customer.contract'
 import { CustomerService } from './customer.service'
 
 export class CrmServiceModule {

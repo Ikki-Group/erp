@@ -2,9 +2,8 @@ import Elysia from 'elysia'
 import { treeifyError, ZodError } from 'zod'
 
 import { env } from '@/config/env'
-import { HttpError } from '@/shared/errors/http-error'
-
 import { logger } from '@/infra/logger'
+import { HttpError } from '@/shared/errors/http-error'
 
 const isDev = env.NODE_ENV === 'development'
 

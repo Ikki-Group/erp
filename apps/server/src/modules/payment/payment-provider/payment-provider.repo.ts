@@ -10,17 +10,18 @@ import {
 	searchFilter,
 	sortBy,
 	type ConflictField,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+	type DbClient,
+} from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import { 
+import {
 	PaymentProviderCreateDto,
 	PaymentProviderDto,
 	PaymentProviderFilterDto,
 	PaymentProviderUpdateDto,
- } from './payment-provider.contract'
+} from './payment-provider.contract'
 
 const uniqueFields: ConflictField<any>[] = [
 	{
@@ -77,7 +78,8 @@ export class PaymentProviderRepo {
 					return rows.map((r) => PaymentProviderDto.parse(r))
 				},
 				pq: { page, limit },
-				countQuery: () => this.db.select({ count: count() }).from(paymentProvidersTable).where(where),
+				countQuery: () =>
+					this.db.select({ count: count() }).from(paymentProvidersTable).where(where),
 			})
 		})
 	}
@@ -110,9 +112,9 @@ export class PaymentProviderRepo {
 				.returning({ id: paymentProvidersTable.id })
 
 			if (!inserted)
-				throw new InternalServerError(
-					'Payment provider creation failed',
-					{ code: 'PAYMENT_PROVIDER_CREATE_FAILED' })
+				throw new InternalServerError('Payment provider creation failed', {
+					code: 'PAYMENT_PROVIDER_CREATE_FAILED',
+				})
 
 			return inserted
 		})
@@ -126,13 +128,13 @@ export class PaymentProviderRepo {
 		return record('PaymentProviderRepo.update', async () => {
 			const existing = await this.getById(id)
 			if (!existing)
-				throw new NotFoundError(
-					`Payment provider with ID ${id} not found`,
-					{ code: 'PAYMENT_PROVIDER_NOT_FOUND' })
+				throw new NotFoundError(`Payment provider with ID ${id} not found`, {
+					code: 'PAYMENT_PROVIDER_NOT_FOUND',
+				})
 			if (existing.isSystem)
-				throw new BadRequestError(
-					'Cannot mutate a system payment provider',
-					{ code: 'PAYMENT_PROVIDER_IS_SYSTEM' })
+				throw new BadRequestError('Cannot mutate a system payment provider', {
+					code: 'PAYMENT_PROVIDER_IS_SYSTEM',
+				})
 
 			if (data.code) {
 				await checkConflict({
@@ -157,13 +159,13 @@ export class PaymentProviderRepo {
 		return record('PaymentProviderRepo.delete', async () => {
 			const existing = await this.getById(id)
 			if (!existing)
-				throw new NotFoundError(
-					`Payment provider with ID ${id} not found`,
-					{ code: 'PAYMENT_PROVIDER_NOT_FOUND' })
+				throw new NotFoundError(`Payment provider with ID ${id} not found`, {
+					code: 'PAYMENT_PROVIDER_NOT_FOUND',
+				})
 			if (existing.isSystem)
-				throw new BadRequestError(
-					'Cannot delete a system payment provider',
-					{ code: 'PAYMENT_PROVIDER_IS_SYSTEM' })
+				throw new BadRequestError('Cannot delete a system payment provider', {
+					code: 'PAYMENT_PROVIDER_IS_SYSTEM',
+				})
 
 			await this.db.delete(paymentProvidersTable).where(eq(paymentProvidersTable.id, id))
 

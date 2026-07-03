@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { MokaProvider, MokaScrapType } from '../shared.contract'

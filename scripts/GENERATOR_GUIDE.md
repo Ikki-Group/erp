@@ -5,6 +5,7 @@ Automated code generation dari server contract ke web layer untuk mengurangi man
 ## 🎯 What It Does
 
 Generator ini **parse server contract** dan **auto-generate**:
+
 1. **Web DTO** (`apps/web/src/features/[module]/dto/[module].dto.ts`) - Zod schemas untuk web
 2. **Web API** (`apps/web/src/features/[module]/api/[module].api.ts`) - API endpoints & query keys
 
@@ -35,6 +36,7 @@ bun scripts/preview-generation.ts location
 ## 📖 How It Works
 
 ### Parsing Phase
+
 ```
 location.contract.ts
     ↓
@@ -48,12 +50,14 @@ ParsedContract
 ### Generation Phase
 
 **DTO Generation:**
+
 - Convert enums: `Enum` → `Dto`
 - Extract entity fields dari `LocationDto`
 - Extract mutation fields dari `LocationCreateDto`
 - Generate web Dto, CreateDto, UpdateDto, FilterDto dengan proper validators
 
 **API Generation:**
+
 - Create query keys
 - Generate 5 standard endpoints:
   - `list` - with pagination + filter
@@ -65,35 +69,37 @@ ParsedContract
 ## 📋 Example: Location Module
 
 ### Server Contract (input)
+
 ```typescript
 // apps/server/src/modules/location/location.contract.ts
 
 export const LocationTypeEnum = z.enum(['store', 'warehouse'])
 
 export const LocationDto = z.object({
-  id: zp.id,
-  code: zp.str,
-  name: zp.str,
-  type: LocationTypeEnum,
-  description: zp.str.nullable(),
-  address: zp.str.nullable(),
-  phone: zp.str.nullable(),
-  isActive: zp.bool,
-  ...zc.AuditBasic.shape,
+	id: zp.id,
+	code: zp.str,
+	name: zp.str,
+	type: LocationTypeEnum,
+	description: zp.str.nullable(),
+	address: zp.str.nullable(),
+	phone: zp.str.nullable(),
+	isActive: zp.bool,
+	...zc.AuditBasic.shape,
 })
 
 const LocationMutationDto = z.object({
-  code: zc.strTrim,
-  name: zc.strTrim.min(3).max(100),
-  type: LocationTypeEnum,
-  description: zc.strTrimNullable,
-  address: zc.strTrimNullable,
-  phone: zc.strTrimNullable,
-  isActive: zp.bool.default(true),
+	code: zc.strTrim,
+	name: zc.strTrim.min(3).max(100),
+	type: LocationTypeEnum,
+	description: zc.strTrimNullable,
+	address: zc.strTrimNullable,
+	phone: zc.strTrimNullable,
+	isActive: zp.bool.default(true),
 })
 ```
 
 ### Generated Web DTO (output)
+
 ```typescript
 // apps/web/src/features/location/dto/location.dto.ts
 
@@ -103,43 +109,44 @@ export const LocationTypeDto = z.enum(['store', 'warehouse'])
 export type LocationTypeDto = z.infer<typeof LocationTypeDto>
 
 export const LocationDto = z.object({
-  ...zc.RecordId.shape,
-  code: zp.str,
-  name: zp.str,
-  type: LocationTypeDto,
-  description: zp.strNullable,
-  address: zp.strNullable,
-  phone: zp.strNullable,
-  isActive: zp.bool,
-  ...zc.AuditBasic.shape,
+	...zc.RecordId.shape,
+	code: zp.str,
+	name: zp.str,
+	type: LocationTypeDto,
+	description: zp.strNullable,
+	address: zp.strNullable,
+	phone: zp.strNullable,
+	isActive: zp.bool,
+	...zc.AuditBasic.shape,
 })
 export type LocationDto = z.infer<typeof LocationDto>
 
 export const LocationCreateDto = z.object({
-  code: zc.strTrim,
-  name: zc.strTrim.min(3).max(100),
-  type: LocationTypeDto,
-  description: zc.strTrimNullable,
-  address: zc.strTrimNullable,
-  phone: zc.strTrimNullable,
-  isActive: zp.bool.default(true),
+	code: zc.strTrim,
+	name: zc.strTrim.min(3).max(100),
+	type: LocationTypeDto,
+	description: zc.strTrimNullable,
+	address: zc.strTrimNullable,
+	phone: zc.strTrimNullable,
+	isActive: zp.bool.default(true),
 })
 export type LocationCreateDto = z.infer<typeof LocationCreateDto>
 
 export const LocationUpdateDto = z.object({
-  ...zc.RecordId.shape,
-  ...LocationCreateDto.shape
+	...zc.RecordId.shape,
+	...LocationCreateDto.shape,
 })
 export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
 
 export const LocationFilterDto = z.object({
-  q: zq.search,
-  ...zq.pagination.shape,
+	q: zq.search,
+	...zq.pagination.shape,
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>
 ```
 
 ### Generated Web API (output)
+
 ```typescript
 // apps/web/src/features/location/api/location.api.ts
 
@@ -222,18 +229,19 @@ bun scripts/generate-web-from-server.ts product
 
 Generator maps server types → web validators automatically:
 
-| Server | Web | Notes |
-|--------|-----|-------|
-| `z.enum()` | `z.enum()` | Converted to Dto suffix |
-| `zp.id` | `zc.RecordId` | Auto-mapped |
-| `zp.str` | `zp.str` | Direct mapping |
-| `zc.strTrim` | `zc.strTrim` | Reusable validators |
-| `.nullable()` | `.nullable()` | Preserved |
-| `.optional()` | `.optional()` | Preserved |
+| Server        | Web           | Notes                   |
+| ------------- | ------------- | ----------------------- |
+| `z.enum()`    | `z.enum()`    | Converted to Dto suffix |
+| `zp.id`       | `zc.RecordId` | Auto-mapped             |
+| `zp.str`      | `zp.str`      | Direct mapping          |
+| `zc.strTrim`  | `zc.strTrim`  | Reusable validators     |
+| `.nullable()` | `.nullable()` | Preserved               |
+| `.optional()` | `.optional()` | Preserved               |
 
 ## ⚙️ Configuration
 
 ### Project Structure Expected
+
 ```
 Server:
   apps/server/src/modules/[module]/[module].contract.ts
@@ -246,6 +254,7 @@ Web:
 ### Customization
 
 Edit `scripts/generate-web-from-server.ts` untuk:
+
 - Change endpoint pattern
 - Adjust CRUD operations
 - Add custom invalidation rules
@@ -253,12 +262,14 @@ Edit `scripts/generate-web-from-server.ts` untuk:
 ## 🐛 Troubleshooting
 
 ### "Server contract not found"
+
 ```bash
 ✗ Buat server module dulu sebelum generate web
 ✓ Pastikan file ada di apps/server/src/modules/[module]/[module].contract.ts
 ```
 
 ### "Generated file looks wrong"
+
 ```bash
 # 1. Review dengan dry-run dulu
 bun scripts/generate-web-from-server.ts [module] --dry-run
@@ -270,6 +281,7 @@ bun scripts/preview-generation.ts [module]
 ```
 
 ### Type mapping tidak akurat
+
 - Update `mapServerTypeToWeb()` di generator
 - Atau manually fix web DTO setelah generate
 

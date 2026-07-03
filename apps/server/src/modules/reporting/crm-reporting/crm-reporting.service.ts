@@ -25,7 +25,8 @@ export class CrmReportingService {
 			const dataWithTotal = data.map((d) => {
 				cumulative += d.newCustomers
 				runningTotal.push(cumulative)
-				return { // @ts-ignore
+				return {
+					// @ts-ignore
 
 					date: String(d.date),
 					newCustomers: d.newCustomers,
@@ -33,7 +34,8 @@ export class CrmReportingService {
 				}
 			})
 
-			return { // @ts-ignore
+			return {
+				// @ts-ignore
 
 				chartType: 'line' as const,
 				data: dataWithTotal,
@@ -53,7 +55,8 @@ export class CrmReportingService {
 			const data = await this.repo.getCustomersByTier(query)
 			const totalCustomers = data.reduce((sum, d) => sum + d.customerCount, 0)
 
-			return { // @ts-ignore
+			return {
+				// @ts-ignore
 
 				chartType: 'pie' as const,
 				data: data.map((d) => ({
@@ -79,7 +82,8 @@ export class CrmReportingService {
 			const totalSpent = data.reduce((sum, d) => sum + Number(d.totalSpent), 0)
 			const avgSpent = data.length > 0 ? totalSpent / data.length : 0
 
-			return { // @ts-ignore
+			return {
+				// @ts-ignore
 
 				chartType: 'bar' as const,
 				data: data
@@ -111,7 +115,8 @@ export class CrmReportingService {
 			const pointsRedeemed = data[0]?.pointsRedeemed ?? 0
 			const pointsBalance = pointsIssued - pointsRedeemed
 
-			return { // @ts-ignore
+			return {
+				// @ts-ignore
 
 				data: {
 					totalPointsIssued: String(pointsIssued),

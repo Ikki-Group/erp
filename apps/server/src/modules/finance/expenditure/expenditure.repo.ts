@@ -5,14 +5,11 @@ import { and, count, desc, eq, isNull, or } from 'drizzle-orm'
 
 import { expendituresTable } from '@/db/schema/finance'
 
-import {
-	paginate,
-	searchFilter,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, searchFilter, type DbClient } from '@/infra/database'
 import { stampCreate } from '@/shared/audit/stamp'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import {  ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto  } from './expenditure.contract'
+import { ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto } from './expenditure.contract'
 
 export class ExpenditureRepo {
 	constructor(private readonly db: DbClient) {}

@@ -15,8 +15,18 @@ import { locationsTable } from './location'
 
 export const integrationProviderEnum = pgEnum('integration_provider', ['moka'])
 export const mokaScrapTypeEnum = pgEnum('moka_scrap_type', ['sales', 'product', 'category'])
-export const mokaScrapStatusEnum = pgEnum('moka_scrap_status', ['pending', 'processing', 'completed', 'failed'])
-export const mokaSyncTriggerModeEnum = pgEnum('moka_sync_trigger_mode', ['manual', 'cron', 'upload', 'machine_fetch'])
+export const mokaScrapStatusEnum = pgEnum('moka_scrap_status', [
+	'pending',
+	'processing',
+	'completed',
+	'failed',
+])
+export const mokaSyncTriggerModeEnum = pgEnum('moka_sync_trigger_mode', [
+	'manual',
+	'cron',
+	'upload',
+	'machine_fetch',
+])
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -39,7 +49,10 @@ export const mokaConfigurationsTable = pgTable(
 		lastSyncedAt: timestamp('last_synced_at', { mode: 'date', withTimezone: true }),
 		lastSalesSyncedAt: timestamp('last_sales_synced_at', { mode: 'date', withTimezone: true }),
 		lastProductSyncedAt: timestamp('last_product_synced_at', { mode: 'date', withTimezone: true }),
-		lastCategorySyncedAt: timestamp('last_category_synced_at', { mode: 'date', withTimezone: true }),
+		lastCategorySyncedAt: timestamp('last_category_synced_at', {
+			mode: 'date',
+			withTimezone: true,
+		}),
 		...auditBasicColumns,
 	},
 	(t) => [

@@ -9,6 +9,7 @@
 ## 📊 Current Schema
 
 The inventory.ts file contains **5 tables**:
+
 1. `stockBatchesTable` - Batch/lot tracking with expiry dates
 2. `stockAdjustmentsTable` - Stock opname header (adjustments)
 3. `stockAdjustmentItemsTable` - Adjustment line items
@@ -22,6 +23,7 @@ The inventory.ts file contains **5 tables**:
 ### 1. **Event Sourcing Pattern** ⭐⭐⭐⭐⭐
 
 **Architecture:**
+
 ```typescript
 // Event log (immutable, append-only)
 stockTransactionsTable: {
@@ -37,6 +39,7 @@ stockSummariesTable: {
 ```
 
 **Benefits:**
+
 - ✅ Complete audit trail (every movement tracked)
 - ✅ Recalculate from events if projection corrupted
 - ✅ Running totals for quick queries
@@ -49,16 +52,17 @@ stockSummariesTable: {
 
 ```typescript
 stockBatchesTable: {
-  materialId, batchNo, expiryDate, productionDate
+	;(materialId, batchNo, expiryDate, productionDate)
 }
 
 // Linked to transactions
 stockTransactionsTable: {
-  batchId  // Optional batch tracking
+	batchId // Optional batch tracking
 }
 ```
 
 **Use Cases:**
+
 - ✅ Pharmaceutical (expiry tracking)
 - ✅ Food & beverage (production date, FIFO/FEFO)
 - ✅ Manufacturing (lot traceability)
@@ -70,21 +74,31 @@ stockTransactionsTable: {
 ### 3. **Comprehensive Movement Tracking** ⭐⭐⭐⭐⭐
 
 **Transaction Types:**
+
 ```typescript
-type: transactionTypeEnum  // purchase, transfer_in, transfer_out, adjustment, usage, production_in, production_out, sell
+type: transactionTypeEnum // purchase, transfer_in, transfer_out, adjustment, usage, production_in, production_out, sell
 ```
 
 **Daily Summary Breakdown:**
+
 ```typescript
 stockSummariesTable: {
-  purchaseQty, purchaseValue,
-  transferInQty, transferInValue,
-  transferOutQty, transferOutValue,
-  adjustmentQty, adjustmentValue,
-  usageQty, usageValue,
-  productionInQty, productionInValue,
-  productionOutQty, productionOutValue,
-  sellQty, sellValue
+	;(purchaseQty,
+		purchaseValue,
+		transferInQty,
+		transferInValue,
+		transferOutQty,
+		transferOutValue,
+		adjustmentQty,
+		adjustmentValue,
+		usageQty,
+		usageValue,
+		productionInQty,
+		productionInValue,
+		productionOutQty,
+		productionOutValue,
+		sellQty,
+		sellValue)
 }
 ```
 
@@ -96,12 +110,16 @@ stockSummariesTable: {
 
 ```typescript
 stockTransactionsTable: {
-  qty, unitCost, totalCost,         // This transaction
-  runningQty, runningAvgCost        // After this transaction
+	;(qty,
+		unitCost,
+		totalCost, // This transaction
+		runningQty,
+		runningAvgCost) // After this transaction
 }
 ```
 
 **Benefits:**
+
 - ✅ Quick "current stock" query (last transaction's runningQty)
 - ✅ Audit trail (can verify calculations)
 - ✅ No need to replay all events for current state
@@ -114,12 +132,13 @@ stockTransactionsTable: {
 
 ```typescript
 stockTransactionsTable: {
-  counterpartLocationId,  // Where transfer came from/went to
-  transferId              // Link both sides of transfer
+	;(counterpartLocationId, // Where transfer came from/went to
+		transferId) // Link both sides of transfer
 }
 ```
 
 **Pattern:**
+
 ```sql
 -- Transfer from Jakarta (locationId=1) to Bali (locationId=2)
 -- Transaction 1: Transfer OUT from Jakarta
@@ -149,6 +168,7 @@ uniqueIndex('stock_summaries_material_location_date_idx')
 ```
 
 **Benefits:**
+
 - ✅ Recalculate daily summary without violating unique constraint
 - ✅ Keep history of corrections
 - ✅ Audit trail of recalculations
@@ -160,17 +180,20 @@ uniqueIndex('stock_summaries_material_location_date_idx')
 ### 7. **Numeric Precision Strategy** ⭐⭐⭐⭐⭐
 
 **Quantity Fields:**
+
 ```typescript
-qty: numeric({ precision: 18, scale: 4 })  // 0.0125 kg precision
+qty: numeric({ precision: 18, scale: 4 }) // 0.0125 kg precision
 ```
 
 **Cost/Value Fields:**
+
 ```typescript
-unitCost: numeric({ precision: 18, scale: 2 })   // IDR precision
-totalCost: numeric({ precision: 18, scale: 2 })  // IDR precision
+unitCost: numeric({ precision: 18, scale: 2 }) // IDR precision
+totalCost: numeric({ precision: 18, scale: 2 }) // IDR precision
 ```
 
 **Rationale:**
+
 - ✅ Quantity scale: 4 (handles fractional UOM conversions)
 - ✅ Cost scale: 2 (standard currency precision)
 - ✅ Different precision for different purposes
@@ -182,6 +205,7 @@ totalCost: numeric({ precision: 18, scale: 2 })  // IDR precision
 ### 8. **Performance Indexes** ⭐⭐⭐⭐⭐
 
 **Hot Queries Covered:**
+
 ```typescript
 // Get all transactions for material at location
 index('stock_txn_material_location_date_idx').on(t.materialId, t.locationId, t.date)
@@ -205,29 +229,33 @@ index('stock_batches_expiry_idx').on(t.expiryDate)
 ### **CRITICAL: Non-Type-Safe Partial Index** 🔴
 
 **Current Implementation:**
+
 ```typescript
 // ❌ Using sql template (not type-safe)
 uniqueIndex('stock_summaries_material_location_date_idx')
-  .on(t.materialId, t.locationId, t.date)
-  .where(sql`${t.deletedAt} IS NULL`)
+	.on(t.materialId, t.locationId, t.date)
+	.where(sql`${t.deletedAt} IS NULL`)
 ```
 
 **Should Use Type-Safe Pattern:**
+
 ```typescript
 import { eq, isNull } from 'drizzle-orm'
 
 // ✅ Type-safe with isNull() operator
 uniqueIndex('stock_summaries_material_location_date_idx')
-  .on(t.materialId, t.locationId, t.date)
-  .where(isNull(t.deletedAt))
+	.on(t.materialId, t.locationId, t.date)
+	.where(isNull(t.deletedAt))
 ```
 
 **Why This Matters:**
+
 - ✅ Type checking catches errors at compile time
 - ✅ Consistent with project patterns (location, material, product)
 - ✅ Drizzle v1.0.0-rc.4+ supports `.where(isNull(...))`
 
 **Files to Update:**
+
 - Import `isNull` from `drizzle-orm`
 - Update partial index in `stockSummariesTable`
 
@@ -238,6 +266,7 @@ uniqueIndex('stock_summaries_material_location_date_idx')
 ### **CRITICAL: Missing Column Names** 🔴
 
 **Current Schema:**
+
 ```typescript
 stockBatchesTable: {
   materialId: integer()  // ❌ Missing column name!
@@ -276,6 +305,7 @@ stockSummariesTable: {
 ```
 
 **Problem:**
+
 - Drizzle ORM should infer column names from object keys
 - BUT explicit column names are best practice for clarity
 - Inconsistent with other schemas (location.ts, material.ts, product.ts all use explicit names)
@@ -285,13 +315,13 @@ stockSummariesTable: {
 ```typescript
 // BEFORE:
 materialId: integer()
-  .notNull()
-  .references(() => materialsTable.id, { onDelete: 'cascade' })
+	.notNull()
+	.references(() => materialsTable.id, { onDelete: 'cascade' })
 
 // AFTER:
 materialId: integer('material_id')
-  .notNull()
-  .references(() => materialsTable.id, { onDelete: 'cascade' })
+	.notNull()
+	.references(() => materialsTable.id, { onDelete: 'cascade' })
 ```
 
 **Impact:** ⭐⭐⭐⭐⭐ Consistency + explicitness + migration safety
@@ -301,6 +331,7 @@ materialId: integer('material_id')
 ### **MINOR: Missing Check Constraints** 🟡
 
 **Current Schema:**
+
 ```typescript
 // No check constraints for:
 // - qty (should be non-zero? or allow zero?)
@@ -324,14 +355,15 @@ check('stock_adj_items_unit_cost_nonneg_chk', sql`unit_cost >= 0`),
 
 **Considerations:**
 
-| Constraint | Valid? | Reason |
-|------------|--------|--------|
-| `qty <> 0` | ✅ Maybe | Zero-quantity transactions are meaningless |
-| `qty_diff <> 0` | ✅ Maybe | Zero-diff adjustments are no-ops |
-| `unitCost >= 0` | ✅ Yes | Negative costs don't make sense |
+| Constraint        | Valid?   | Reason                                                    |
+| ----------------- | -------- | --------------------------------------------------------- |
+| `qty <> 0`        | ✅ Maybe | Zero-quantity transactions are meaningless                |
+| `qty_diff <> 0`   | ✅ Maybe | Zero-diff adjustments are no-ops                          |
+| `unitCost >= 0`   | ✅ Yes   | Negative costs don't make sense                           |
 | `runningQty >= 0` | ⚠️ Maybe | Negative stock = oversell (might be allowed temporarily?) |
 
 **Recommendation:** **Add at minimum:**
+
 - `unitCost >= 0` (always valid)
 - `totalCost >= 0` (always valid)
 
@@ -342,6 +374,7 @@ check('stock_adj_items_unit_cost_nonneg_chk', sql`unit_cost >= 0`),
 ### **DESIGN: Precision Difference (Scale 4 vs Scale 6)** 🟢
 
 **Current:**
+
 ```typescript
 // inventory.ts uses scale 4 for quantities
 qty: numeric({ precision: 18, scale: 4 })
@@ -355,14 +388,15 @@ currentQty: numeric({ precision: 18, scale: 6 })
 
 **Analysis:**
 
-| Scale | Pros | Cons |
-|-------|------|------|
+| Scale       | Pros                             | Cons                             |
+| ----------- | -------------------------------- | -------------------------------- |
 | **Scale 4** | ✅ Sufficient for most use cases | ⚠️ Less precision than materials |
-| **Scale 6** | ✅ Consistent with materials | ⚠️ Overkill for stock movements? |
+| **Scale 6** | ✅ Consistent with materials     | ⚠️ Overkill for stock movements? |
 
 **Recommendation:** **Change to scale 6 for consistency**
 
 **Rationale:**
+
 - Material conversions use scale 6
 - Stock transactions derive from materials
 - Prevents precision loss in UOM conversions
@@ -375,23 +409,25 @@ currentQty: numeric({ precision: 18, scale: 6 })
 ### **DESIGN: Cost Precision (Scale 2)** 🟢
 
 **Current:**
+
 ```typescript
-unitCost: numeric({ precision: 18, scale: 2 })  // IDR precision
+unitCost: numeric({ precision: 18, scale: 2 }) // IDR precision
 ```
 
 **Question:** Is scale 2 sufficient for cost calculations?
 
 **Analysis:**
 
-| Currency | Scale Needed | Example |
-|----------|--------------|---------|
-| IDR (Rupiah) | 0-2 | Rp 10,500.00 |
-| USD | 2 | $10.50 |
-| Crypto | 8+ | 0.00000123 BTC |
+| Currency     | Scale Needed | Example        |
+| ------------ | ------------ | -------------- |
+| IDR (Rupiah) | 0-2          | Rp 10,500.00   |
+| USD          | 2            | $10.50         |
+| Crypto       | 8+           | 0.00000123 BTC |
 
 **Recommendation:** **Keep scale 2 for cost**
 
 **Rationale:**
+
 - IDR doesn't use sub-rupiah precision
 - Standard accounting precision
 - Matches financial reporting standards
@@ -403,6 +439,7 @@ unitCost: numeric({ precision: 18, scale: 2 })  // IDR precision
 ### **MINOR: Documentation Missing** 🟡
 
 **Current:**
+
 - `stockBatchesTable` has minimal documentation
 - `stockTransactionsTable` has good inline comments
 - No table-level JSDoc like material.ts/product.ts
@@ -410,6 +447,7 @@ unitCost: numeric({ precision: 18, scale: 2 })  // IDR precision
 **Recommendation:** **Add comprehensive JSDoc for each table**
 
 **Example:**
+
 ```typescript
 /**
  * Stock Batches Table
@@ -440,18 +478,18 @@ unitCost: numeric({ precision: 18, scale: 2 })  // IDR precision
 
 ## 📝 Summary
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| **Event Sourcing** | ⭐⭐⭐⭐⭐ | Perfect architecture |
-| **Batch Tracking** | ⭐⭐⭐⭐⭐ | Enterprise-grade feature |
-| **Movement Types** | ⭐⭐⭐⭐⭐ | Comprehensive coverage |
-| **Running Totals** | ⭐⭐⭐⭐⭐ | Performance + audit |
-| **Partial Indexes** | ⭐⭐⭐⭐ | **Use type-safe isNull()** |
-| **Column Names** | ⭐⭐⭐ | **Add explicit names** |
-| **Check Constraints** | ⭐⭐⭐ | **Add for cost fields** |
-| **Precision** | ⭐⭐⭐⭐ | **Change qty to scale 6** |
-| **Documentation** | ⭐⭐⭐ | **Add JSDoc comments** |
-| **Overall** | ⭐⭐⭐⭐⭐ | Excellent (after fixes) |
+| Category              | Rating     | Notes                      |
+| --------------------- | ---------- | -------------------------- |
+| **Event Sourcing**    | ⭐⭐⭐⭐⭐ | Perfect architecture       |
+| **Batch Tracking**    | ⭐⭐⭐⭐⭐ | Enterprise-grade feature   |
+| **Movement Types**    | ⭐⭐⭐⭐⭐ | Comprehensive coverage     |
+| **Running Totals**    | ⭐⭐⭐⭐⭐ | Performance + audit        |
+| **Partial Indexes**   | ⭐⭐⭐⭐   | **Use type-safe isNull()** |
+| **Column Names**      | ⭐⭐⭐     | **Add explicit names**     |
+| **Check Constraints** | ⭐⭐⭐     | **Add for cost fields**    |
+| **Precision**         | ⭐⭐⭐⭐   | **Change qty to scale 6**  |
+| **Documentation**     | ⭐⭐⭐     | **Add JSDoc comments**     |
+| **Overall**           | ⭐⭐⭐⭐⭐ | Excellent (after fixes)    |
 
 ---
 
@@ -464,16 +502,17 @@ unitCost: numeric({ precision: 18, scale: 2 })  // IDR precision
 **Affected Tables:** ALL (5 tables need updates)
 
 **Example:**
+
 ```typescript
 // BEFORE:
 materialId: integer()
-  .notNull()
-  .references(() => materialsTable.id, { onDelete: 'cascade' })
+	.notNull()
+	.references(() => materialsTable.id, { onDelete: 'cascade' })
 
 // AFTER:
 materialId: integer('material_id')
-  .notNull()
-  .references(() => materialsTable.id, { onDelete: 'cascade' })
+	.notNull()
+	.references(() => materialsTable.id, { onDelete: 'cascade' })
 ```
 
 **Effort:** 10 minutes (many fields to update)  
@@ -513,6 +552,7 @@ qty: numeric({ precision: 18, scale: 6 })
 ```
 
 **Affected Fields:**
+
 - `stockAdjustmentItemsTable.qtyDiff`
 - `stockTransactionsTable.qty`, `runningQty`
 - `stockSummariesTable.*Qty` (all 12 quantity fields)
@@ -570,15 +610,18 @@ check('stock_adj_items_unit_cost_nonneg_chk', sql`unit_cost >= 0`),
 **Purpose:** Batch/lot tracking with expiry dates
 
 **Strengths:**
+
 - ✅ Unique on (materialId, batchNo)
 - ✅ Expiry date indexed for FEFO queries
 - ✅ Full audit columns
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Add table-level JSDoc
 
 **Example Data:**
+
 ```sql
 INSERT INTO stock_batches (material_id, batch_no, expiry_date, production_date) VALUES
   (1, 'LOT-2024-001', '2025-12-31', '2024-01-15'),
@@ -592,14 +635,17 @@ INSERT INTO stock_batches (material_id, batch_no, expiry_date, production_date) 
 **Purpose:** Stock opname/adjustment header
 
 **Strengths:**
+
 - ✅ Type enum (opname, waste, found, correction)
 - ✅ Per-location scoping
 - ✅ Reference number for traceability
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 
 **Example Data:**
+
 ```sql
 INSERT INTO stock_adjustments (location_id, type, adjustment_date, reason, reference_no) VALUES
   (1, 'opname', '2024-12-31', 'Monthly stock count', 'ADJ-2024-12-001');
@@ -612,16 +658,19 @@ INSERT INTO stock_adjustments (location_id, type, adjustment_date, reason, refer
 **Purpose:** Adjustment line items
 
 **Strengths:**
+
 - ✅ qtyDiff (positive/negative)
 - ✅ unitCost snapshot
 - ✅ Optional batch tracking
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Change qtyDiff to scale 6
 - ⚠️ Add check constraint: unitCost >= 0
 
 **Example Data:**
+
 ```sql
 -- Found 5kg sugar (positive adjustment)
 INSERT INTO stock_adjustment_items (adjustment_id, material_id, qty_diff, unit_cost) VALUES
@@ -639,26 +688,29 @@ INSERT INTO stock_adjustment_items (adjustment_id, material_id, qty_diff, unit_c
 **Purpose:** Event log (all stock movements)
 
 **Strengths:**
+
 - ✅ Running totals (runningQty, runningAvgCost)
 - ✅ Transfer support (counterpartLocationId, transferId)
 - ✅ Batch support (batchId)
 - ✅ Comprehensive indexes
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Change qty/runningQty to scale 6
 - ⚠️ Add check constraints (unitCost >= 0, totalCost >= 0)
 
 **Example Data:**
+
 ```sql
 -- Purchase 100kg sugar @ 10,500/kg
-INSERT INTO stock_transactions 
+INSERT INTO stock_transactions
   (material_id, location_id, type, date, reference_no, qty, unit_cost, total_cost, running_qty, running_avg_cost)
 VALUES
   (1, 1, 'purchase', '2024-01-15', 'PO-001', 100.0, 10500.00, 1050000.00, 100.0, 10500.00);
 
 -- Transfer out 25kg to Bali
-INSERT INTO stock_transactions 
+INSERT INTO stock_transactions
   (material_id, location_id, type, date, reference_no, qty, unit_cost, total_cost, running_qty, running_avg_cost, counterpart_location_id, transfer_id)
 VALUES
   (1, 1, 'transfer_out', '2024-01-20', 'TRF-001', -25.0, 10500.00, -262500.00, 75.0, 10500.00, 2, 1);
@@ -671,20 +723,23 @@ VALUES
 **Purpose:** Daily snapshot/aggregation
 
 **Strengths:**
+
 - ✅ Opening/closing balances
 - ✅ Movement breakdown by type
 - ✅ Soft delete with partial unique index
 - ✅ Unique per (material, location, date)
 
 **Improvements:**
+
 - ⚠️ Add explicit column names
 - ⚠️ Use type-safe isNull() for partial index
-- ⚠️ Change all *Qty fields to scale 6
+- ⚠️ Change all \*Qty fields to scale 6
 
 **Example Data:**
+
 ```sql
 -- Daily summary for sugar at Jakarta on 2024-01-15
-INSERT INTO stock_summaries 
+INSERT INTO stock_summaries
   (material_id, location_id, date, opening_qty, purchase_qty, closing_qty, opening_avg_cost, closing_avg_cost)
 VALUES
   (1, 1, '2024-01-15', 0.0, 100.0, 100.0, 0.0, 10500.00);
@@ -697,14 +752,16 @@ VALUES
 ### Pattern 1: Event Sourcing + Projection ⭐⭐⭐⭐⭐
 
 **Event Log (Source of Truth):**
+
 ```typescript
 stockTransactionsTable: {
-  // Every stock movement recorded immutably
-  materialId, locationId, type, qty, unitCost
+	// Every stock movement recorded immutably
+	;(materialId, locationId, type, qty, unitCost)
 }
 ```
 
 **Projection (Query Optimization):**
+
 ```typescript
 stockSummariesTable: {
   // Daily aggregation for fast reporting
@@ -714,6 +771,7 @@ stockSummariesTable: {
 ```
 
 **Benefits:**
+
 - ✅ Complete audit trail
 - ✅ Can rebuild projection from events
 - ✅ Fast queries on aggregated data
@@ -723,6 +781,7 @@ stockSummariesTable: {
 ### Pattern 2: Running Totals ⭐⭐⭐⭐⭐
 
 **In Event Log:**
+
 ```typescript
 stockTransactionsTable: {
   qty: 10,               // This transaction
@@ -732,6 +791,7 @@ stockTransactionsTable: {
 ```
 
 **Query Current Stock:**
+
 ```sql
 -- Fast: Just get the latest transaction
 SELECT running_qty, running_avg_cost
@@ -751,19 +811,21 @@ WHERE material_id = 1 AND location_id = 1;
 ### Pattern 3: Transfer Linking ⭐⭐⭐⭐⭐
 
 **Both Sides Recorded:**
+
 ```sql
 -- Location A: Transfer OUT
-INSERT INTO stock_transactions 
+INSERT INTO stock_transactions
   (location_id, type, qty, counterpart_location_id, transfer_id)
 VALUES (1, 'transfer_out', -25, 2, 123);
 
 -- Location B: Transfer IN
-INSERT INTO stock_transactions 
+INSERT INTO stock_transactions
   (location_id, type, qty, counterpart_location_id, transfer_id)
 VALUES (2, 'transfer_in', 25, 1, 123);
 ```
 
 **Reconciliation Query:**
+
 ```sql
 -- Find unmatched transfers
 SELECT transfer_id, COUNT(*) as sides
@@ -778,11 +840,13 @@ HAVING COUNT(*) <> 2;
 ## 🔗 Cross-Schema Dependencies
 
 **Depends On:**
+
 - ✅ `materialsTable` - What is being moved
 - ✅ `locationsTable` - Where movements occur
 - ✅ `transactionTypeEnum`, `stockAdjustmentTypeEnum` (from `_enums.ts`)
 
 **Used By:**
+
 - Purchasing module (receive goods → purchase transaction)
 - Production module (consume materials → usage transaction)
 - Sales module (sell products → sell transaction)
@@ -793,8 +857,9 @@ HAVING COUNT(*) <> 2;
 ## 🧪 Example Queries
 
 ### Query 1: Current Stock by Location
+
 ```sql
-SELECT 
+SELECT
   m.sku,
   m.name,
   st.running_qty as current_qty,
@@ -815,8 +880,9 @@ ORDER BY m.sku;
 ---
 
 ### Query 2: Movement Report (Daily)
+
 ```sql
-SELECT 
+SELECT
   m.sku,
   m.name,
   ss.opening_qty,
@@ -836,8 +902,9 @@ ORDER BY m.sku;
 ---
 
 ### Query 3: Expiring Batches
+
 ```sql
-SELECT 
+SELECT
   m.sku,
   m.name,
   sb.batch_no,

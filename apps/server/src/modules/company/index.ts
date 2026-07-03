@@ -1,16 +1,15 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
-import { CompanySettingsRepo } from './company-settings.repo'
-import { initCompanySettingsRoute } from './company-settings.route'
 import type {
 	CompanySettingsDto,
 	CompanySettingsCreateDto,
 	CompanySettingsUpdateDto,
 } from './company-settings.contract'
+import { CompanySettingsRepo } from './company-settings.repo'
+import { initCompanySettingsRoute } from './company-settings.route'
 import { CompanySettingsService } from './company-settings.service'
 
 export class CompanyServiceModule {

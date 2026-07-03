@@ -2,12 +2,7 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import {
-	createPaginatedResponseDto,
-	createSuccessResponseDto,
-	zc,
-	zq,
-} from '@/shared/schema'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import {
 	LocationCreateDto,

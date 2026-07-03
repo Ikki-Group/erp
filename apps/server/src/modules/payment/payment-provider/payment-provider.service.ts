@@ -2,9 +2,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import { NotFoundError } from '@/shared/errors/http-error'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type {
@@ -35,9 +33,9 @@ export class PaymentProviderService {
 				factory: () => this.repo.getById(id),
 			})
 			if (!provider)
-				throw new NotFoundError(
-					`Payment provider with ID ${id} not found`,
-					{ code: 'PAYMENT_PROVIDER_NOT_FOUND' })
+				throw new NotFoundError(`Payment provider with ID ${id} not found`, {
+					code: 'PAYMENT_PROVIDER_NOT_FOUND',
+				})
 			return provider
 		})
 	}

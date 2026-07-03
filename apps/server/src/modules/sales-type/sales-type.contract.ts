@@ -26,7 +26,10 @@ export type SalesTypeFilterDto = z.infer<typeof SalesTypeFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const SalesTypeMutationDto = z.object({
-	code: zc.strTrim.min(1).max(20).transform((v) => v.toUpperCase()),
+	code: zc.strTrim
+		.min(1)
+		.max(20)
+		.transform((v) => v.toUpperCase()),
 	name: zc.strTrim.min(1).max(100),
 	isSystem: zp.bool.default(false),
 })

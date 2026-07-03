@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
 import { LocationPaymentMethodRepo } from './location-payment-method/location-payment-method.repo'

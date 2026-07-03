@@ -4,30 +4,19 @@ import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
 import { auditLogsTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	takeFirst,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, searchFilter, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate } from '@/shared/audit/stamp'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import {
-	AuditLogDto,
-	type AuditLogFilterDto,
-	type AuditLogCreateDto,
-} from './audit-log.contract'
+import { AuditLogDto, type AuditLogFilterDto, type AuditLogCreateDto } from './audit-log.contract'
 
 export class AuditLogRepo {
 	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getListPaginated(
-		filter: AuditLogFilterDto,
-	): Promise<WithPaginationResult<AuditLogDto>> {
+	async getListPaginated(filter: AuditLogFilterDto): Promise<WithPaginationResult<AuditLogDto>> {
 		const { q, page, limit, action, entityType, userId, fromDate, toDate } = filter
 		const where = and(
 			q === undefined ? undefined : searchFilter(auditLogsTable.description, q),

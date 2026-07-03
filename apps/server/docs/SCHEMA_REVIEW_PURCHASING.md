@@ -9,6 +9,7 @@
 ## 📊 Current Schema
 
 The purchasing.ts file contains **8 tables**:
+
 1. `purchaseRequestsTable` - Purchase request header (PR)
 2. `purchaseRequestItemsTable` - PR line items
 3. `purchaseOrdersTable` - Purchase order header (PO)
@@ -25,6 +26,7 @@ The purchasing.ts file contains **8 tables**:
 ### 1. **Complete Procurement Flow** ⭐⭐⭐⭐⭐
 
 **PR → PO → GRN → Invoice:**
+
 ```
 Purchase Request (need to buy)
     ↓
@@ -57,12 +59,12 @@ purchaseOrderItemsTable: {
 ```typescript
 // PR → PO link
 purchaseOrdersTable: {
-  requestId: integer().references(() => purchaseRequestsTable.id)
+	requestId: integer().references(() => purchaseRequestsTable.id)
 }
 
 // PO → GRN link
 goodsReceiptNotesTable: {
-  orderId: integer().references(() => purchaseOrdersTable.id)
+	orderId: integer().references(() => purchaseOrdersTable.id)
 }
 ```
 
@@ -74,8 +76,8 @@ goodsReceiptNotesTable: {
 
 ```typescript
 purchaseOrderItemsTable: {
-  // Financial lock (Price Lock)
-  unitPrice, discountAmount, taxAmount, subtotal
+	// Financial lock (Price Lock)
+	;(unitPrice, discountAmount, taxAmount, subtotal)
 }
 ```
 
@@ -88,11 +90,12 @@ purchaseOrderItemsTable: {
 ### **CRITICAL: Missing Explicit Column Names** 🔴
 
 **Current (ALL tables affected):**
+
 ```typescript
 // ❌ Missing column names
 locationId: integer()
-  .notNull()
-  .references(() => locationsTable.id, { onDelete: 'restrict' })
+	.notNull()
+	.references(() => locationsTable.id, { onDelete: 'restrict' })
 
 requestedBy: integer().notNull()
 status: purchaseRequestStatusEnum().notNull().default('open')
@@ -100,11 +103,12 @@ notes: text()
 ```
 
 **Should Have:**
+
 ```typescript
 // ✅ Explicit column names
 locationId: integer('location_id')
-  .notNull()
-  .references(() => locationsTable.id, { onDelete: 'restrict' })
+	.notNull()
+	.references(() => locationsTable.id, { onDelete: 'restrict' })
 
 requestedBy: integer('requested_by').notNull()
 status: purchaseRequestStatusEnum('status').notNull().default('open')
@@ -118,6 +122,7 @@ notes: text('notes')
 ### **MINOR: Quantity Precision (Scale 4 vs 6)** 🟡
 
 **Current:**
+
 ```typescript
 // purchasing.ts uses scale 4
 quantity: numeric({ precision: 18, scale: 4 })
@@ -129,6 +134,7 @@ qty: numeric('qty', { precision: 18, scale: 6 })
 **Recommendation:** **Change to scale 6 for consistency**
 
 **Affected Fields:**
+
 - `purchaseRequestItemsTable.quantity`
 - `purchaseOrderItemsTable.quantity`
 - `goodsReceiptNoteItemsTable.quantityReceived`
@@ -141,6 +147,7 @@ qty: numeric('qty', { precision: 18, scale: 6 })
 ### **MINOR: Missing Check Constraints** 🟡
 
 **Current:**
+
 ```typescript
 // No check constraints for:
 // - totalAmount, discountAmount, taxAmount (should be >= 0)
@@ -169,16 +176,16 @@ check('purchase_order_items_unit_price_nonneg_chk', sql`unit_price >= 0`)
 
 ## 📝 Summary
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| **Procurement Flow** | ⭐⭐⭐⭐⭐ | Complete PR→PO→GRN→Invoice |
-| **Immutable History** | ⭐⭐⭐⭐⭐ | Item names preserved |
-| **Document Linking** | ⭐⭐⭐⭐⭐ | Traceability complete |
-| **Financial Lock** | ⭐⭐⭐⭐⭐ | Prices locked at PO |
-| **Column Names** | ⭐⭐⭐ | **Add explicit names** |
-| **Precision** | ⭐⭐⭐⭐ | **Change qty to scale 6** |
-| **Check Constraints** | ⭐⭐⭐ | **Add for amounts** |
-| **Overall** | ⭐⭐⭐⭐⭐ | Excellent (after fixes) |
+| Category              | Rating     | Notes                      |
+| --------------------- | ---------- | -------------------------- |
+| **Procurement Flow**  | ⭐⭐⭐⭐⭐ | Complete PR→PO→GRN→Invoice |
+| **Immutable History** | ⭐⭐⭐⭐⭐ | Item names preserved       |
+| **Document Linking**  | ⭐⭐⭐⭐⭐ | Traceability complete      |
+| **Financial Lock**    | ⭐⭐⭐⭐⭐ | Prices locked at PO        |
+| **Column Names**      | ⭐⭐⭐     | **Add explicit names**     |
+| **Precision**         | ⭐⭐⭐⭐   | **Change qty to scale 6**  |
+| **Check Constraints** | ⭐⭐⭐     | **Add for amounts**        |
+| **Overall**           | ⭐⭐⭐⭐⭐ | Excellent (after fixes)    |
 
 ---
 

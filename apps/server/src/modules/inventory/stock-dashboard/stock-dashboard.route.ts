@@ -1,8 +1,8 @@
-import { createSuccessResponseDto } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
+import { createSuccessResponseDto } from '@/shared/schema/response'
 
 import { DashboardKpiFilterDto, DashboardKpiSelectDto } from './stock-dashboard.contract'
 import type { StockDashboardService } from './stock-dashboard.service'

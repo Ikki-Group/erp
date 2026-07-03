@@ -1,15 +1,15 @@
 import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
-import { locationsTable, materialLocationsTable, materialStockSnapshotsTable, materialsTable, uomsTable } from '@/db/schema'
-
 import {
-	paginate,
-	sortBy,
-	type DbClient,
-	type DbTx,
-} from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+	locationsTable,
+	materialLocationsTable,
+	materialStockSnapshotsTable,
+	materialsTable,
+	uomsTable,
+} from '@/db/schema'
 
+import { paginate, sortBy, type DbClient, type DbTx } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { MaterialLocation } from '../domain/material-location.entity'

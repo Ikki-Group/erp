@@ -12,13 +12,13 @@ import {
 import { takeFirstOrThrow, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import { 
+import {
 	PayrollBatchCreateDto,
 	PayrollBatchDto,
 	PayrollBatchFilterDto,
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
- } from './payroll.contract'
+} from './payroll.contract'
 
 export class PayrollRepo {
 	constructor(private readonly db: DbClient) {}

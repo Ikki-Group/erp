@@ -44,7 +44,10 @@ const Env = z.object({
 	// NOT the REST URL/token pair — those are for the HTTP API, unusable by ioredis).
 	// Optional: when unset, cache runs L1-memory-only (fine for local dev/tests, NOT
 	// recommended for production on Fly.io with scale-to-zero — see docs/CACHING.md).
-	REDIS_URL: z.string().optional().describe('Redis/Upstash connection string (redis:// or rediss://)'),
+	REDIS_URL: z
+		.string()
+		.optional()
+		.describe('Redis/Upstash connection string (redis:// or rediss://)'),
 })
 
 const _env = Env.safeParse(Bun.env) // eslint-disable-line no-underscore-dangle

@@ -2,7 +2,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
@@ -71,7 +70,8 @@ export class PayrollService {
 		return record('PayrollService.handleFinalizeBatch', async () => {
 			return this.db.transaction(async () => {
 				const batch = await this.repo.getBatchById(batchId)
-				if (!batch) throw new NotFoundError('Payroll batch not found', { code: 'PAYROLL_BATCH_NOT_FOUND' })
+				if (!batch)
+					throw new NotFoundError('Payroll batch not found', { code: 'PAYROLL_BATCH_NOT_FOUND' })
 
 				if (batch.status !== 'draft') {
 					throw new ConflictError('Only draft batches can be finalized')

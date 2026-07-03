@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { zc, zp, zq } from '@/shared/schema'
 
 /** Sales invoice status */

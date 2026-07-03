@@ -10,12 +10,9 @@ import {
 	uomsTable,
 } from '@/db/schema'
 
-import {
-	paginate,
-	sortBy, type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, sortBy, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
@@ -82,9 +79,7 @@ export class RecipeRepo {
 		return result[0]?.val ?? 0
 	}
 
-	async getListPaginated(
-		filter: RecipeFilterDto,
-	): Promise<WithPaginationResult<RecipeSelectDto>> {
+	async getListPaginated(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeSelectDto>> {
 		const { materialId, productId, productVariantId, isActive, page, limit } = filter
 
 		const where = and(

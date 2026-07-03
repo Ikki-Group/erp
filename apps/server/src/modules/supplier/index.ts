@@ -1,17 +1,16 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
-import { SupplierRepo } from './supplier.repo'
-import { initSupplierRoute } from './supplier.route'
 import type {
 	SupplierDto,
 	SupplierFilterDto,
 	SupplierCreateDto,
 	SupplierUpdateDto,
 } from './supplier.contract'
+import { SupplierRepo } from './supplier.repo'
+import { initSupplierRoute } from './supplier.route'
 import { SupplierService } from './supplier.service'
 
 export class SupplierServiceModule {

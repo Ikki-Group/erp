@@ -17,7 +17,13 @@ import { auditFullColumns, pk } from './_helpers'
 import { locationsTable } from './location'
 import { suppliersTable } from './supplier'
 
-export const accountTypeEnum = pgEnum('account_type', ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'])
+export const accountTypeEnum = pgEnum('account_type', [
+	'ASSET',
+	'LIABILITY',
+	'EQUITY',
+	'REVENUE',
+	'EXPENSE',
+])
 
 export const accountsTable = pgTable(
 	'accounts',
@@ -76,7 +82,12 @@ export const journalItemsTable = pgTable(
 	],
 )
 
-export const expenditureStatusEnum = pgEnum('expenditure_status', ['PENDING', 'PAID', 'VOID', 'REFUNDED'])
+export const expenditureStatusEnum = pgEnum('expenditure_status', [
+	'PENDING',
+	'PAID',
+	'VOID',
+	'REFUNDED',
+])
 export const expenditureTypeEnum = pgEnum('expenditure_type', ['BILLS', 'ASSET', 'PURCHASES'])
 
 export const expendituresTable = pgTable(

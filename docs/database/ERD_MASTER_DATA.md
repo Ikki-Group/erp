@@ -61,6 +61,7 @@ erDiagram
 ```
 
 Notes:
+
 - `locations.code`/`name` are globally unique **forever**, even after
   deactivation — a retired code is never reused (no partial/soft-delete
   exception on this unique index, unlike `suppliers`).
@@ -69,7 +70,7 @@ Notes:
   table despite having a normal serial PK.
 - `suppliers.taxId` and `company_settings.taxId` are plain text fields for
   the entity's own tax ID (NPWP in Indonesia) — unrelated to the `taxes`
-  table below, which models tax *rates*, not tax *identities*.
+  table below, which models tax _rates_, not tax _identities_.
 
 ## `tax.ts` — taxes
 
@@ -92,6 +93,7 @@ erDiagram
 ```
 
 Notes:
+
 - **Layering exception**: `tax.ts` is Master Data but depends on
   `finance.ts` (Operations) for the GL account mapping — this is a real,
   intentional upward dependency, not an oversight. A tax rate needs to know
@@ -121,6 +123,7 @@ erDiagram
 ```
 
 Notes:
+
 - Two-tier uniqueness via partial indexes: `code`/`name` unique among
   **global** rows (`locationId IS NULL`) and separately unique **within a
   location** (`locationId IS NOT NULL`) — two different locations may both
@@ -196,6 +199,7 @@ erDiagram
 ```
 
 Notes:
+
 - **`material_locations` (config) vs `material_stock_snapshots` (projection)**
   is the canonical example of the [cache-friendliness](./SCHEMA_CONVENTIONS.md#cache-friendliness)
   split-by-write-frequency pattern in this schema. Same composite key
@@ -279,16 +283,17 @@ erDiagram
 ```
 
 Notes:
+
 - Pricing lookup priority (service-layer logic, not DB-enforced):
   1. Non-variant product: `product_prices` row for the current sales type →
      fall back to `products.basePrice`.
   2. Variant product: `product_variant_prices` row for
      `(variantId, salesTypeId)` → fall back to `product_variants.basePrice`.
-  `hasVariants`/`hasSalesTypePricing` flags on `products` select which path
-  applies; both flag combinations are valid, enforced at the service layer.
+     `hasVariants`/`hasSalesTypePricing` flags on `products` select which path
+     applies; both flag combinations are valid, enforced at the service layer.
 - `productCategoriesTable` and `productsTable` are **per-location** — a
   category belongs to exactly one location, and a product must reference a
-  category from the *same* location. Drizzle can't express that composite
+  category from the _same_ location. Drizzle can't express that composite
   FK, so it's enforced by a Postgres trigger (see the comment in
   `product.ts` for the migration file reference), not a `check()` constraint.
 - `taxId` on `products` is commented out — depends on `tax.ts` gaining an

@@ -1,12 +1,10 @@
 import { CacheService, type CacheClient } from '@/infra/cache'
-
-import type { WithPaginationResult } from '@/shared/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import { AuditLogRepo } from './audit-log.repo'
 import type { AuditLogDto, AuditLogCreateDto, AuditLogFilterDto } from './audit-log.contract'
+import { AuditLogRepo } from './audit-log.repo'
 
 const err = {
 	notFound: (id: number) =>

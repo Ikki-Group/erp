@@ -3,15 +3,10 @@ import { and, count, eq, not } from 'drizzle-orm'
 
 import { productCategoriesTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	sortBy,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, searchFilter, sortBy, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
@@ -59,7 +54,8 @@ export class ProductCategoryRepo {
 				return rows.map((r) => ProductCategoryDto.parse(r))
 			},
 			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(productCategoriesTable).where(where),
+			countQuery: () =>
+				this.db.select({ count: count() }).from(productCategoriesTable).where(where),
 		})
 	}
 
@@ -94,9 +90,9 @@ export class ProductCategoryRepo {
 			.limit(1)
 
 		if (conflict) {
-			throw new InternalServerError(
-				'Product category name already exists in this location',
-				{ code: 'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS' })
+			throw new InternalServerError('Product category name already exists in this location', {
+				code: 'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS',
+			})
 		}
 
 		const [inserted] = await this.db
@@ -105,18 +101,14 @@ export class ProductCategoryRepo {
 			.returning({ id: productCategoriesTable.id })
 
 		if (!inserted)
-			throw new InternalServerError(
-				'Product category creation failed',
-				{ code: 'PRODUCT_CATEGORY_CREATE_FAILED' })
+			throw new InternalServerError('Product category creation failed', {
+				code: 'PRODUCT_CATEGORY_CREATE_FAILED',
+			})
 
 		return { id: inserted.id }
 	}
 
-	async update(
-		id: number,
-		data: ProductCategoryUpdateDto,
-		actorId: ActorId,
-	): Promise<EntityRef> {
+	async update(id: number, data: ProductCategoryUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const name = data.name ? data.name.trim() : undefined
 
 		if (name && data.locationId) {
@@ -133,9 +125,9 @@ export class ProductCategoryRepo {
 				.limit(1)
 
 			if (conflict) {
-				throw new InternalServerError(
-					'Product category name already exists in this location',
-					{ code: 'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS' })
+				throw new InternalServerError('Product category name already exists in this location', {
+					code: 'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS',
+				})
 			}
 		}
 
@@ -154,9 +146,9 @@ export class ProductCategoryRepo {
 			.returning({ id: productCategoriesTable.id })
 
 		if (!result)
-			throw new NotFoundError(
-				`Product category with ID ${id} not found`,
-				{ code: 'PRODUCT_CATEGORY_NOT_FOUND' })
+			throw new NotFoundError(`Product category with ID ${id} not found`, {
+				code: 'PRODUCT_CATEGORY_NOT_FOUND',
+			})
 
 		return { id: result.id }
 	}
@@ -168,9 +160,9 @@ export class ProductCategoryRepo {
 			.returning({ id: productCategoriesTable.id })
 
 		if (!result)
-			throw new NotFoundError(
-				`Product category with ID ${id} not found`,
-				{ code: 'PRODUCT_CATEGORY_NOT_FOUND' })
+			throw new NotFoundError(`Product category with ID ${id} not found`, {
+				code: 'PRODUCT_CATEGORY_NOT_FOUND',
+			})
 
 		return { id: result.id }
 	}

@@ -8,13 +8,13 @@
 
 ## 📊 Executive Summary
 
-| Module | Compliance | Files | Structure | Patterns | Issues |
-|--------|-----------|-------|-----------|----------|--------|
-| **location** | ✅ 95% | 7/7 | ✅ Excellent | ✅ All good | 1 minor |
-| **iam** | ⚠️ 85% | 16/16 | ✅ Good | ⚠️ Mixed | 3 moderate |
-| **auth** | ⚠️ 70% | 5/5 | ⚠️ Incomplete | ⚠️ Missing repo | 2 major |
-| **session** | ⚠️ 75% | 5/5 | ⚠️ Incomplete | ✅ Good | 2 moderate |
-| **tool** | ⚠️ 60% | 4/4 | ⚠️ Incomplete | ❌ Non-standard | 3 major |
+| Module       | Compliance | Files | Structure     | Patterns        | Issues     |
+| ------------ | ---------- | ----- | ------------- | --------------- | ---------- |
+| **location** | ✅ 95%     | 7/7   | ✅ Excellent  | ✅ All good     | 1 minor    |
+| **iam**      | ⚠️ 85%     | 16/16 | ✅ Good       | ⚠️ Mixed        | 3 moderate |
+| **auth**     | ⚠️ 70%     | 5/5   | ⚠️ Incomplete | ⚠️ Missing repo | 2 major    |
+| **session**  | ⚠️ 75%     | 5/5   | ⚠️ Incomplete | ✅ Good         | 2 moderate |
+| **tool**     | ⚠️ 60%     | 4/4   | ⚠️ Incomplete | ❌ Non-standard | 3 major    |
 
 **Overall Project Health:** ⚠️ **75%** - Good foundation, needs standardization
 
@@ -25,6 +25,7 @@
 ### 1. `location/` Module ✅ **EXCELLENT** (95%)
 
 **Structure:**
+
 ```
 location/
 ├── location.module.ts      ✅
@@ -37,6 +38,7 @@ location/
 ```
 
 **Compliance Checklist:**
+
 - [x] Module factory pattern (`createLocationModule`)
 - [x] Zod contracts with spread-shape
 - [x] Repository with `null` return (not throw)
@@ -49,6 +51,7 @@ location/
 - [x] OTEL tracing (`@record`)
 
 **Issues Found:**
+
 1. **Minor:** Some methods use `handleDetail` instead of `handleGetById` (naming inconsistency)
 
 **Recommendation:** ✅ **Use as reference implementation**
@@ -58,6 +61,7 @@ location/
 ### 2. `iam/` Module ⚠️ **GOOD** (85%)
 
 **Structure:**
+
 ```
 iam/
 ├── iam.module.ts           ✅
@@ -83,6 +87,7 @@ iam/
 ```
 
 **Compliance Checklist:**
+
 - [x] Complex module with submodules
 - [x] Module factory with dependencies
 - [x] Zod contracts (some use spread-shape)
@@ -96,6 +101,7 @@ iam/
 - [ ] **Some services have non-standard public methods** (e.g., `getListAll`, `getRelationMap`)
 
 **Issues Found:**
+
 1. **Moderate:** Missing `user.internal.ts`, `role.internal.ts` - error helpers defined inline in services
 2. **Moderate:** Inconsistent public method naming:
    - `handleCreate`, `handleUpdate`, `handleRemove` ✅
@@ -110,6 +116,7 @@ iam/
 ### 3. `auth/` Module ⚠️ **NEEDS WORK** (70%)
 
 **Structure:**
+
 ```
 auth/
 ├── auth.module.ts          ✅
@@ -122,6 +129,7 @@ auth/
 ```
 
 **Compliance Checklist:**
+
 - [x] Module factory pattern
 - [x] Zod contracts
 - [x] Service with business logic
@@ -133,6 +141,7 @@ auth/
 - [x] Cache usage
 
 **Issues Found:**
+
 1. **Major:** No repository layer - DB queries mixed with business logic in service
 2. **Major:** No error helper file - errors defined inline
 3. **Moderate:** Unclear if module needs repo (auth might be stateless, but verify)
@@ -144,6 +153,7 @@ auth/
 ### 4. `session/` Module ⚠️ **ACCEPTABLE** (75%)
 
 **Structure:**
+
 ```
 session/
 ├── session.module.ts       ✅
@@ -156,6 +166,7 @@ session/
 ```
 
 **Compliance Checklist:**
+
 - [x] Module factory pattern
 - [x] Zod contracts
 - [x] Repository layer exists
@@ -166,6 +177,7 @@ session/
 - [ ] Routes might not be needed (internal use only)
 
 **Issues Found:**
+
 1. **Moderate:** Missing `session.internal.ts` - error helpers inline
 2. **Moderate:** No routes (acceptable if session is internal-only)
 
@@ -176,6 +188,7 @@ session/
 ### 5. `tool/` Module ❌ **NON-STANDARD** (60%)
 
 **Structure:**
+
 ```
 tool/
 ├── tool.module.ts          ✅
@@ -189,6 +202,7 @@ tool/
 ```
 
 **Compliance Checklist:**
+
 - [x] Module factory pattern
 - [ ] **Missing `tool.contract.ts`**
 - [ ] **Missing `tool.repo.ts`** (if DB operations exist)
@@ -197,6 +211,7 @@ tool/
 - [ ] Non-standard file naming (`seed.*` instead of `tool.*`)
 
 **Issues Found:**
+
 1. **Major:** Incomplete module structure - missing standard files
 2. **Major:** Non-standard naming (`seed.service.ts` instead of `tool.service.ts`)
 3. **Major:** Unclear purpose - is this a seed utility or a feature module?
@@ -208,45 +223,51 @@ tool/
 ## 🎯 Common Issues Across Modules
 
 ### 1. Missing `.internal.ts` Files (4/5 modules)
+
 **Impact:** Error helpers scattered, inconsistent error codes
 
 **Affected Modules:**
+
 - `iam/` - errors defined inline in services
 - `auth/` - errors defined inline
 - `session/` - errors defined inline
 - `tool/` - no error handling visible
 
 **Fix:**
+
 ```typescript
 // Example: iam/user/user.internal.ts
 import { NotFoundError, ConflictError } from '@/shared/errors/http-error'
 
 export const UserError = {
-  notFound: (id: number) =>
-    new NotFoundError('User not found', {
-      code: 'USER_NOT_FOUND',
-      context: { id },
-    }),
-  emailExists: (email: string) =>
-    new ConflictError('Email already exists', {
-      code: 'USER_EMAIL_ALREADY_EXISTS',
-      context: { email },
-    }),
+	notFound: (id: number) =>
+		new NotFoundError('User not found', {
+			code: 'USER_NOT_FOUND',
+			context: { id },
+		}),
+	emailExists: (email: string) =>
+		new ConflictError('Email already exists', {
+			code: 'USER_EMAIL_ALREADY_EXISTS',
+			context: { email },
+		}),
 }
 ```
 
 ---
 
 ### 2. Inconsistent Public Method Naming (2/5 modules)
+
 **Impact:** Confusing API, harder for AI to understand patterns
 
 **Patterns Found:**
+
 - ✅ `handleCreate`, `handleUpdate`, `handleDelete` (consistent)
 - ⚠️ `handleDetail` vs `handleGetById` (inconsistent)
 - ⚠️ `handleRemove` vs `handleDelete` (inconsistent)
 - ❌ `getListAll`, `getRelationMap` (not `handleX` pattern)
 
 **Recommendation:**
+
 ```typescript
 // Standard naming
 async handleCreate()        // CREATE
@@ -263,9 +284,11 @@ toRelationMap()             // Utility for other services
 ---
 
 ### 3. Missing Repository Layer (2/5 modules)
+
 **Impact:** Business logic mixed with data access, harder to test
 
 **Affected Modules:**
+
 - `auth/` - queries inline in service
 - `tool/` - unclear structure
 
@@ -275,20 +298,21 @@ toRelationMap()             // Utility for other services
 
 ## 📋 Refactor Priority Matrix
 
-| Priority | Module | Task | Effort | Impact |
-|----------|--------|------|--------|--------|
-| **P0** | `tool/` | Clarify purpose & restructure | High | High |
-| **P0** | `auth/` | Add repo layer (if needed) | Medium | High |
-| **P1** | All | Create `.internal.ts` for errors | Low | Medium |
-| **P1** | `iam/` | Standardize method naming | Low | Medium |
-| **P2** | All | Rename `handleDetail` → `handleGetById` | Low | Low |
-| **P2** | All | Rename `handleRemove` → `handleDelete` | Low | Low |
+| Priority | Module  | Task                                    | Effort | Impact |
+| -------- | ------- | --------------------------------------- | ------ | ------ |
+| **P0**   | `tool/` | Clarify purpose & restructure           | High   | High   |
+| **P0**   | `auth/` | Add repo layer (if needed)              | Medium | High   |
+| **P1**   | All     | Create `.internal.ts` for errors        | Low    | Medium |
+| **P1**   | `iam/`  | Standardize method naming               | Low    | Medium |
+| **P2**   | All     | Rename `handleDetail` → `handleGetById` | Low    | Low    |
+| **P2**   | All     | Rename `handleRemove` → `handleDelete`  | Low    | Low    |
 
 ---
 
 ## ✅ Refactor Action Plan
 
 ### Phase A: Critical Fixes (P0)
+
 1. **tool/ module** - Decide: Refactor or remove
    - If seed utility → Move to `scripts/`
    - If feature → Restructure to standard format
@@ -298,6 +322,7 @@ toRelationMap()             // Utility for other services
    - Add `auth.internal.ts`
 
 ### Phase B: Standardization (P1)
+
 1. **Create `.internal.ts` for all modules**
    - Extract error helpers
    - Standardize error codes
@@ -308,6 +333,7 @@ toRelationMap()             // Utility for other services
    - Document naming convention
 
 ### Phase C: Polish (P2)
+
 1. **Global method rename**
    - `handleDetail` → `handleGetById`
    - `handleRemove` → `handleDelete`
@@ -319,12 +345,12 @@ toRelationMap()             // Utility for other services
 
 ## 📊 Estimated Effort
 
-| Phase | Modules | Tasks | Time | Complexity |
-|-------|---------|-------|------|------------|
-| Phase A | 2 | 4 | 2-3h | High |
-| Phase B | 4 | 8 | 3-4h | Medium |
-| Phase C | 5 | 10 | 2-3h | Low |
-| **Total** | **5** | **22** | **7-10h** | **Medium** |
+| Phase     | Modules | Tasks  | Time      | Complexity |
+| --------- | ------- | ------ | --------- | ---------- |
+| Phase A   | 2       | 4      | 2-3h      | High       |
+| Phase B   | 4       | 8      | 3-4h      | Medium     |
+| Phase C   | 5       | 10     | 2-3h      | Low        |
+| **Total** | **5**   | **22** | **7-10h** | **Medium** |
 
 ---
 

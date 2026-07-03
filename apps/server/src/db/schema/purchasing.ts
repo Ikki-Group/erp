@@ -1,13 +1,27 @@
-import { check, index, integer, numeric, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { gt, gte } from 'drizzle-orm'
+import {
+	check,
+	index,
+	integer,
+	numeric,
+	pgEnum,
+	pgTable,
+	text,
+	timestamp,
+} from 'drizzle-orm/pg-core'
 
-import { auditFullColumns, pk } from './_helpers'
 import { invoiceStatusEnum } from './_enums'
+import { auditFullColumns, pk } from './_helpers'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 import { suppliersTable } from './supplier'
 
-export const purchaseRequestStatusEnum = pgEnum('purchase_request_status', ['open', 'approved', 'rejected', 'void'])
+export const purchaseRequestStatusEnum = pgEnum('purchase_request_status', [
+	'open',
+	'approved',
+	'rejected',
+	'void',
+])
 
 /**
  * ⚠ Schema-only for now: no repo/service implements this table yet
@@ -29,7 +43,9 @@ export const purchaseRequestsTable = pgTable(
 		requestedBy: integer('requested_by').notNull(),
 		status: purchaseRequestStatusEnum('status').notNull().default('open'),
 
-		requestDate: timestamp('request_date', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		requestDate: timestamp('request_date', { mode: 'date', withTimezone: true })
+			.notNull()
+			.defaultNow(),
 		expectedDate: timestamp('expected_date', { mode: 'date', withTimezone: true }),
 		notes: text('notes'),
 
@@ -48,7 +64,9 @@ export const purchaseRequestItemsTable = pgTable(
 		requestId: integer('request_id')
 			.notNull()
 			.references(() => purchaseRequestsTable.id, { onDelete: 'cascade' }),
-		materialId: integer('material_id').references(() => materialsTable.id, { onDelete: 'set null' }),
+		materialId: integer('material_id').references(() => materialsTable.id, {
+			onDelete: 'set null',
+		}),
 
 		itemName: text('item_name').notNull(),
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull().default('1'),
@@ -81,7 +99,9 @@ export const purchaseOrdersTable = pgTable(
 	{
 		...pk,
 		// PR -> PO link
-		requestId: integer('request_id').references(() => purchaseRequestsTable.id, { onDelete: 'set null' }),
+		requestId: integer('request_id').references(() => purchaseRequestsTable.id, {
+			onDelete: 'set null',
+		}),
 		locationId: integer('location_id')
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
@@ -128,7 +148,9 @@ export const purchaseOrderItemsTable = pgTable(
 			onDelete: 'set null',
 		}),
 
-		materialId: integer('material_id').references(() => materialsTable.id, { onDelete: 'set null' }),
+		materialId: integer('material_id').references(() => materialsTable.id, {
+			onDelete: 'set null',
+		}),
 
 		// Immutable History: Item name must always be stored
 		itemName: text('item_name').notNull(),
@@ -177,7 +199,9 @@ export const goodsReceiptNotesTable = pgTable(
 			.notNull()
 			.references(() => suppliersTable.id, { onDelete: 'restrict' }),
 
-		receiveDate: timestamp('receive_date', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		receiveDate: timestamp('receive_date', { mode: 'date', withTimezone: true })
+			.notNull()
+			.defaultNow(),
 		status: goodsReceiptStatusEnum('status').notNull().default('open'),
 
 		// External reference (e.g., supplier's delivery note number)
@@ -205,10 +229,14 @@ export const goodsReceiptNoteItemsTable = pgTable(
 			.notNull()
 			.references(() => purchaseOrderItemsTable.id, { onDelete: 'restrict' }),
 
-		materialId: integer('material_id').references(() => materialsTable.id, { onDelete: 'set null' }),
+		materialId: integer('material_id').references(() => materialsTable.id, {
+			onDelete: 'set null',
+		}),
 
 		itemName: text('item_name').notNull(),
-		quantityReceived: numeric('quantity_received', { precision: 18, scale: 6 }).notNull().default('0'),
+		quantityReceived: numeric('quantity_received', { precision: 18, scale: 6 })
+			.notNull()
+			.default('0'),
 
 		notes: text('notes'),
 
@@ -246,7 +274,9 @@ export const purchaseInvoicesTable = pgTable(
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
 
 		status: invoiceStatusEnum('status').notNull().default('draft'),
-		invoiceDate: timestamp('invoice_date', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		invoiceDate: timestamp('invoice_date', { mode: 'date', withTimezone: true })
+			.notNull()
+			.defaultNow(),
 		dueDate: timestamp('due_date', { mode: 'date', withTimezone: true }),
 
 		// Supplier's Invoice Number
@@ -278,10 +308,15 @@ export const purchaseInvoiceItemsTable = pgTable(
 		invoiceId: integer('invoice_id')
 			.notNull()
 			.references(() => purchaseInvoicesTable.id, { onDelete: 'cascade' }),
-		purchaseOrderItemId: integer('purchase_order_item_id').references(() => purchaseOrderItemsTable.id, {
+		purchaseOrderItemId: integer('purchase_order_item_id').references(
+			() => purchaseOrderItemsTable.id,
+			{
+				onDelete: 'set null',
+			},
+		),
+		materialId: integer('material_id').references(() => materialsTable.id, {
 			onDelete: 'set null',
 		}),
-		materialId: integer('material_id').references(() => materialsTable.id, { onDelete: 'set null' }),
 
 		itemName: text('item_name').notNull(),
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull().default('0'),

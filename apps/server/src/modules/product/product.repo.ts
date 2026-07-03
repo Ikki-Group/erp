@@ -8,14 +8,10 @@ import {
 	variantPricesTable,
 } from '@/db/schema'
 
-import {
-	paginate,
-	sortBy,
-	type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/shared/types/pagination'
+import { paginate, sortBy, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
-
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
@@ -108,9 +104,7 @@ export class ProductRepo {
 		}
 	}
 
-	async getListPaginated(
-		filter: ProductFilterDto,
-	): Promise<WithPaginationResult<ProductDto>> {
+	async getListPaginated(filter: ProductFilterDto): Promise<WithPaginationResult<ProductDto>> {
 		const { search, status, categoryId, locationId, page, limit } = filter
 
 		const conditions = [
@@ -169,13 +163,13 @@ export class ProductRepo {
 
 		if (conflict) {
 			if (conflict.sku === input.sku)
-				throw new ConflictError(
-					'Product SKU already exists in this location',
-					{ code: 'PRODUCT_SKU_ALREADY_EXISTS' })
+				throw new ConflictError('Product SKU already exists in this location', {
+					code: 'PRODUCT_SKU_ALREADY_EXISTS',
+				})
 			if (conflict.name === input.name)
-				throw new ConflictError(
-					'Product name already exists in this location',
-					{ code: 'PRODUCT_NAME_ALREADY_EXISTS' })
+				throw new ConflictError('Product name already exists in this location', {
+					code: 'PRODUCT_NAME_ALREADY_EXISTS',
+				})
 		}
 	}
 
@@ -326,7 +320,8 @@ export class ProductRepo {
 			.delete(productsTable)
 			.where(eq(productsTable.id, id))
 			.returning({ id: productsTable.id })
-		if (!result) throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
+		if (!result)
+			throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
 		return { id: result.id }
 	}
 
@@ -335,7 +330,8 @@ export class ProductRepo {
 			.delete(productsTable)
 			.where(eq(productsTable.id, id))
 			.returning({ id: productsTable.id })
-		if (!result) throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
+		if (!result)
+			throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
 		return { id: result.id }
 	}
 }
