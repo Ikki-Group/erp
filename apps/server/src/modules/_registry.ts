@@ -14,71 +14,31 @@ export interface Modules {
 	session: SessionModule
 	auth: AuthModule
 	tool: ToolModule
-	// salesType: SalesTypeServiceModule
-	// session: SessionServiceModule
-	// auth: AuthServiceModule
-	// tool: ToolServiceModule
-	// material: MaterialModule
-	// inventory: InventoryServiceModule
-
-	// location: LocationServiceModule
-	// product: ProductServiceModule
-	// session: SessionServiceModule
-
-	// // material: MaterialModule
-	// supplier: SupplierServiceModule
-	// hr: HRServiceModule
-	// finance: FinanceServiceModule
-	// crm: CrmServiceModule
-	// company: CompanyServiceModule
-	// audit: AuditServiceModule
-
-	// auth: AuthServiceModule
-
-	// inventory: InventoryServiceModule
-	// recipe: RecipeServiceModule
-	// sales: SalesServiceModule
-	// purchasing: PurchasingServiceModule
-
-	// moka: MokaServiceModule
-
-	// production: ProductionServiceModule
-	// dashboard: DashboardServiceModule
-	// payment: PaymentServiceModule
-	// reporting: ReportingServiceModule
 }
 
+/**
+ * Composition root — the single place where the whole module graph is wired.
+ *
+ * This is intentionally a plain, explicit factory (no DI container / magic):
+ * each `create*Module` receives exactly the dependencies it needs. Because
+ * dependencies are constructor args, the declaration order below is a manual
+ * topological sort — a module must be created AFTER everything it depends on:
+ *
+ *   Layer 0 (core):    session
+ *   Layer 1 (master):  location  →  iam (needs location)
+ *   Layer 0 (core):    auth (needs iam + session)
+ *   Tooling:           tool (needs iam + location)
+ *
+ * When adding a module: create it below in dependency order, add it to the
+ * returned object, and add its field to the `Modules` interface above. If it
+ * has HTTP routes, also register it in `_routes.ts`.
+ */
 export function createModules(db: DbContext, cacheClient: CacheClient): Modules {
-	// const location = new LocationServiceModule(db, cacheClient)
-	// const iam = new IamService(db, cacheClient, { location: location.location })
-	// const salesType = new SalesTypeServiceModule(db, cacheClient)
-	// const session = new SessionServiceModule(db, cacheClient)
-	// const auth = new AuthServiceModule({ session, iam })
-	// const tool = new ToolServiceModule(db, { iam, salesType })
-	// const material = new MaterialModule(db, cacheClient, { location: location.location })
-	// const inventory = new InventoryServiceModule(db, cacheClient, { material })
-	// return {
-	// 	location,
-	// 	iam,
-	// 	salesType,
-	// 	session,
-	// 	auth,
-	// 	tool,
-	// 	material,
-	// 	inventory,
-	// }
-
-	const location = createLocationModule(db, cacheClient)
-	const iam = createIamModule(db, cacheClient, { location: location })
 	const session = createSessionModule(db, cacheClient)
-	const auth = createAuthModule(db, cacheClient, {
-		iam,
-		session,
-	})
-	const tool = createToolModule(db, {
-		iam,
-		location,
-	})
+	const location = createLocationModule(db, cacheClient)
+	const iam = createIamModule(db, cacheClient, { location })
+	const auth = createAuthModule(db, cacheClient, { iam, session })
+	const tool = createToolModule(db, { iam, location })
 
 	return {
 		location,

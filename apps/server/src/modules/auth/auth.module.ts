@@ -17,5 +17,10 @@ export function createAuthModule(
 	_cacheClient: CacheClient,
 	deps: Deps,
 ): AuthModule {
-	return new AuthService(deps.iam, deps.session)
+	// Adapt the full IamModule down to the narrow surface AuthService needs.
+	const iamAuthPort = {
+		getByIdentifier: (identifier: string) => deps.iam.user.getByIdentifier(identifier),
+		getUserDetail: (userId: number) => deps.iam.composed.getDetailById(userId),
+	}
+	return new AuthService(iamAuthPort, deps.session)
 }

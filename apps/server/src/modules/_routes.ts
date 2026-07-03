@@ -5,31 +5,14 @@ import { createLocationRoute } from '@/modules/location/location.route'
 import type { Modules } from './_registry'
 import type Elysia from 'elysia'
 
+/**
+ * Aggregates the HTTP routes for every module that exposes an API.
+ *
+ * Not every module in `Modules` has routes (e.g. `session`, `tool` are used
+ * internally), so this list is a deliberate subset. When adding a module with
+ * HTTP endpoints: add its `create*Route(m.<module>)` here.
+ */
 export function createRoutes(m: Modules) {
-	// const routes = [
-	// 	createLocationRouteModule(m.location),
-	// 	createIamRoute(m.iam),
-	// 	// createAuthRouteModule(m.auth),
-	// 	// initDashboardRouteModule(m.dashboard),
-	// 	initInventoryRouteModule(m.inventory),
-	// 	initMaterialRoutes(m.material),
-	// 	// initProductRouteModule(m.product),
-	// 	// initRecipeRouteModule(m.recipe),
-	// 	// initToolRouteModule(m.tool),
-	// 	// initMokaRouteModule(m.moka),
-	// 	// initSalesRouteModule(m.sales),
-	// 	// initSupplierRouteModule(m.supplier),
-	// 	// initFinanceRouteModule(m.finance),
-	// 	// initCrmRouteModule(m.crm),
-	// 	// initCompanyRouteModule(m.company),
-	// 	// initAuditRouteModule(m.audit),
-	// 	// initPurchasingRouteModule(m.purchasing),
-	// 	// initProductionRouteModule(m.production),
-	// 	// initHRRouteModule(m.hr),
-	// 	// initPaymentRouteModule(m.payment),
-	// 	// initReportingRouteModule(m.reporting),
-	// ]
-
 	const routes = [createLocationRoute(m.location), createIamRoute(m.iam), createAuthRoute(m.auth)]
 
 	return {
