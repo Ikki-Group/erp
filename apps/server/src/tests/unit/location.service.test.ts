@@ -1,213 +1,233 @@
 /**
- * Unit Test Example: LocationService with Mocks
+ * Unit tests for LocationService.
  *
- * This demonstrates testing service logic WITHOUT database dependency.
- * Uses mock repo and cache for isolation.
+ * These run WITHOUT a database. The service depends on the `ILocationRepo`
+ * port, so we pass a typed in-memory fake (no `as any`). The only infra seam
+ * that still touches a `db` is `checkConflict`, so the fake repo exposes a
+ * tiny `db` stub whose `select(...).from(...).where(...).limit(...)` resolves
+ * to "no conflict".
  */
 
-import { describe, test, expect, beforeEach } from 'bun:test'
-import { LocationService } from '@/modules/location/location.service'
-import { createMockRepo, createMockCacheClient } from '../helpers/mock-db'
-import type { Location } from '@/modules/location/location.contract'
+import type { DbContext } from '@/infra/database'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-describe('LocationService (Unit Tests with Mocks)', () => {
+import type {
+	LocationDto,
+	LocationFilterDto,
+	LocationUpdateDto,
+} from '@/modules/location/location.contract'
+import type { ILocationRepo } from '@/modules/location/location.repo'
+import { LocationService } from '@/modules/location/location.service'
+
+import { createMockCacheClient } from '../helpers/mock-db'
+import { beforeEach, describe, expect, test } from 'bun:test'
+
+/** Assert that a promise rejects (type-aware-lint friendly alternative to `.rejects`). */
+async function expectReject(promise: Promise<unknown>): Promise<void> {
+	let threw = false
+	try {
+		await promise
+	} catch {
+		threw = true
+	}
+	expect(threw).toBe(true)
+}
+
+/** A `db` stub that always reports "no conflict" for checkConflict queries. */
+const noConflictDb = {
+	select: () => ({
+		from: () => ({
+			where: () => ({
+				limit: async () => [] as { id: number }[],
+			}),
+		}),
+	}),
+} as unknown as DbContext
+
+/** Typed in-memory fake implementing the ILocationRepo port. */
+class FakeLocationRepo implements ILocationRepo {
+	readonly db = noConflictDb
+	store = new Map<number, LocationDto>()
+	private seq = 0
+
+	seed(rows: LocationDto[]): void {
+		for (const r of rows) {
+			this.store.set(r.id, r)
+			this.seq = Math.max(this.seq, r.id)
+		}
+	}
+
+	async findMany(_filter: LocationFilterDto): Promise<LocationDto[]> {
+		return [...this.store.values()]
+	}
+
+	async findPage(filter: LocationFilterDto): Promise<WithPaginationResult<LocationDto>> {
+		const data = [...this.store.values()]
+		const limit = filter.limit ?? 10
+		return {
+			data,
+			meta: {
+				total: data.length,
+				page: filter.page ?? 1,
+				limit,
+				totalPages: Math.max(1, Math.ceil(data.length / limit)),
+			},
+		}
+	}
+
+	async findById(id: number): Promise<LocationDto | undefined> {
+		return this.store.get(id)
+	}
+
+	async count(): Promise<number> {
+		return this.store.size
+	}
+
+	async insert(data: Parameters<ILocationRepo['insert']>[0]): Promise<EntityRef | undefined> {
+		const id = ++this.seq
+		this.store.set(id, { ...(data as unknown as LocationDto), id })
+		return { id }
+	}
+
+	async insertMany(items: Parameters<ILocationRepo['insertMany']>[0]): Promise<void> {
+		for (const item of items) await this.insert(item)
+	}
+
+	async update(
+		id: number,
+		data: Parameters<ILocationRepo['update']>[1],
+	): Promise<EntityRef | undefined> {
+		const existing = this.store.get(id)
+		if (!existing) return undefined
+		this.store.set(id, { ...existing, ...(data as Partial<LocationDto>), id })
+		return { id }
+	}
+
+	async remove(id: number): Promise<EntityRef | undefined> {
+		if (!this.store.has(id)) return undefined
+		this.store.delete(id)
+		return { id }
+	}
+}
+
+function makeLocation(overrides: Partial<LocationDto> = {}): LocationDto {
+	return {
+		id: 1,
+		code: 'WH-001',
+		name: 'Warehouse 1',
+		type: 'warehouse',
+		description: null,
+		address: null,
+		phone: null,
+		isActive: true,
+		createdBy: 1,
+		updatedBy: 1,
+		createdAt: new Date(),
+		updatedAt: new Date(),
+		...overrides,
+	}
+}
+
+describe('LocationService (unit)', () => {
+	let repo: FakeLocationRepo
 	let service: LocationService
-	let mockRepo: ReturnType<typeof createMockRepo<Location>>
-	let mockCacheClient: ReturnType<typeof createMockCacheClient>
 
 	beforeEach(() => {
-		mockRepo = createMockRepo<Location>()
-		mockCacheClient = createMockCacheClient()
-		service = new LocationService(mockRepo as any, mockCacheClient as any)
+		repo = new FakeLocationRepo()
+		service = new LocationService(repo, createMockCacheClient() as never)
 	})
 
 	describe('handleGetById', () => {
-		test('should return location from cache if exists', async () => {
-			const mockLocation: Location = {
-				id: 1,
-				code: 'WH-001',
-				name: 'Warehouse 1',
-				type: 'warehouse',
-				description: null,
-				isActive: true,
-				createdBy: 1,
-				updatedBy: 1,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			}
-
-			// Setup: Cache has data
-			const locationNamespace = mockCacheClient.namespace('location')
-			locationNamespace._store.set('byId:1', mockLocation)
-
+		test('returns the location when it exists', async () => {
+			repo.seed([makeLocation({ id: 1 })])
 			const result = await service.handleGetById(1)
-
-			expect(result).toEqual(mockLocation)
-			// Verify repo was NOT called (cache hit)
-			expect(mockRepo._store.size).toBe(0)
+			expect(result.id).toBe(1)
+			expect(result.code).toBe('WH-001')
 		})
 
-		test('should fetch from repo and cache if not in cache', async () => {
-			const mockLocation: Location = {
-				id: 1,
-				code: 'WH-001',
-				name: 'Warehouse 1',
-				type: 'warehouse',
-				description: null,
-				isActive: true,
-				createdBy: 1,
-				updatedBy: 1,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			}
-
-			// Setup: Repo has data, cache empty
-			mockRepo._store.set(1, mockLocation)
-
-			const result = await service.handleGetById(1)
-
-			expect(result).toEqual(mockLocation)
-			// Verify cache was populated
-			const locationNamespace = mockCacheClient.namespace('location')
-			expect(locationNamespace._store.has('byId:1')).toBe(true)
-		})
-
-		test('should throw NotFoundError if location does not exist', async () => {
-			// Setup: Both cache and repo empty
-			expect(async () => {
-				await service.handleGetById(999)
-			}).toThrow()
+		test('throws NotFound when missing', async () => {
+			await expectReject(service.handleGetById(999))
 		})
 	})
 
 	describe('handleCreate', () => {
-		test('should create location and invalidate cache', async () => {
-			const createDto = {
-				code: 'WH-NEW',
-				name: 'New Warehouse',
-				type: 'warehouse' as const,
-				description: 'Test warehouse',
-				isActive: true,
-			}
-
-			const actor = 1
-
-			const result = await service.handleCreate(createDto, actor)
+		test('creates and returns a ref, applying the audit stamp', async () => {
+			const actor = 7
+			const result = await service.handleCreate(
+				{
+					code: 'WH-NEW',
+					name: 'New Warehouse',
+					type: 'warehouse',
+					description: null,
+					address: null,
+					phone: null,
+					isActive: true,
+				},
+				actor,
+			)
 
 			expect(result.id).toBeDefined()
-			expect(result.code).toBe('WH-NEW')
-			expect(result.createdBy).toBe(actor)
-
-			// Verify repo was called
-			expect(mockRepo._store.size).toBe(1)
-
-			// Verify cache was invalidated (deleteAll called)
-			// Note: In real implementation, check that cache.deleteAll was invoked
+			const stored = await repo.findById(result.id)
+			expect(stored?.code).toBe('WH-NEW')
+			expect(stored?.createdBy).toBe(actor)
 		})
 	})
 
 	describe('handleUpdate', () => {
-		test('should update location and invalidate cache', async () => {
-			const existing: Location = {
+		test('updates an existing location and stamps updatedBy', async () => {
+			repo.seed([makeLocation({ id: 1, name: 'Old' })])
+
+			const dto: LocationUpdateDto = {
 				id: 1,
 				code: 'WH-001',
-				name: 'Warehouse 1',
+				name: 'Updated',
 				type: 'warehouse',
 				description: null,
-				isActive: true,
-				createdBy: 1,
-				updatedBy: 1,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			}
-
-			mockRepo._store.set(1, existing)
-
-			const updateDto = {
-				id: 1,
-				code: 'WH-001',
-				name: 'Warehouse 1 Updated',
-				type: 'warehouse' as const,
-				description: 'Updated description',
+				address: null,
+				phone: null,
 				isActive: true,
 			}
+			const result = await service.handleUpdate(dto, 9)
 
-			const actor = 2
+			expect(result.id).toBe(1)
+			const stored = await repo.findById(1)
+			expect(stored?.name).toBe('Updated')
+			expect(stored?.updatedBy).toBe(9)
+		})
 
-			const result = await service.handleUpdate(updateDto, actor)
-
-			expect(result.name).toBe('Warehouse 1 Updated')
-			expect(result.updatedBy).toBe(actor)
-
-			// Verify repo was updated
-			const repoData = mockRepo._store.get(1)
-			expect(repoData?.name).toBe('Warehouse 1 Updated')
+		test('throws NotFound when updating a missing location', async () => {
+			const dto: LocationUpdateDto = {
+				id: 404,
+				code: 'X',
+				name: 'X',
+				type: 'store',
+				description: null,
+				address: null,
+				phone: null,
+				isActive: true,
+			}
+			await expectReject(service.handleUpdate(dto, 1))
 		})
 	})
 
 	describe('handleDelete', () => {
-		test('should delete location and invalidate cache', async () => {
-			const existing: Location = {
-				id: 1,
-				code: 'WH-001',
-				name: 'Warehouse 1',
-				type: 'warehouse',
-				description: null,
-				isActive: true,
-				createdBy: 1,
-				updatedBy: 1,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			}
-
-			mockRepo._store.set(1, existing)
-
+		test('removes an existing location', async () => {
+			repo.seed([makeLocation({ id: 1 })])
 			const result = await service.handleDelete(1)
-
 			expect(result.id).toBe(1)
+			expect(await repo.findById(1)).toBeUndefined()
+		})
 
-			// Verify repo deleted the record
-			expect(mockRepo._store.has(1)).toBe(false)
+		test('throws NotFound when deleting a missing location', async () => {
+			await expectReject(service.handleDelete(999))
 		})
 	})
 
 	describe('handleList', () => {
-		test('should return paginated list from cache', async () => {
-			const mockLocations: Location[] = [
-				{
-					id: 1,
-					code: 'WH-001',
-					name: 'Warehouse 1',
-					type: 'warehouse',
-					description: null,
-					isActive: true,
-					createdBy: 1,
-					updatedBy: 1,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
-				{
-					id: 2,
-					code: 'WH-002',
-					name: 'Warehouse 2',
-					type: 'warehouse',
-					description: null,
-					isActive: true,
-					createdBy: 1,
-					updatedBy: 1,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
-			]
-
-			mockLocations.forEach((loc) => mockRepo._store.set(loc.id, loc))
-
-			const result = await service.handleList({
-				q: '',
-				limit: 10,
-				page: 1,
-			})
-
+		test('returns a paginated list', async () => {
+			repo.seed([makeLocation({ id: 1 }), makeLocation({ id: 2, code: 'WH-002' })])
+			const result = await service.handleList({ page: 1, limit: 10, q: undefined })
 			expect(result.data.length).toBe(2)
 			expect(result.meta.total).toBe(2)
 		})

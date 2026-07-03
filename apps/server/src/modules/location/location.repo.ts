@@ -3,29 +3,40 @@ import { and, count, eq, or, SQL } from 'drizzle-orm'
 import { locationsTable } from '@/db/schema'
 
 import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
-
-import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
-import type { LocationDto, LocationTypeEnum } from './location.contract'
+import type { LocationDto, LocationFilterDto } from './location.contract'
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
-
-interface LocationFilter {
-	q?: string | undefined
-	type?: LocationTypeEnum | undefined
-}
 
 type LocationInsert = typeof locationsTable.$inferInsert
 type LocationUpdate = PgUpdateSetSource<typeof locationsTable>
 
-export class LocationRepo {
-	constructor(private readonly db: DbContext) {}
+/**
+ * Repository port for the location module. Services depend on this interface
+ * (not the concrete class) so they can be unit-tested with plain in-memory
+ * fakes and no database. Not-found reads return `undefined`; writes return the
+ * affected `EntityRef` or `undefined`. Repos never throw for "not found" — the
+ * service decides error semantics. Every write accepts an optional `db`
+ * override so it can participate in a caller's transaction.
+ */
+export interface ILocationRepo {
+	/** The default database context this repo is bound to (client or tx). */
+	readonly db: DbContext
+	findMany(filter?: LocationFilterDto, db?: DbContext): Promise<LocationDto[]>
+	findPage(filter: LocationFilterDto, db?: DbContext): Promise<WithPaginationResult<LocationDto>>
+	findById(id: number, db?: DbContext): Promise<LocationDto | undefined>
+	count(db?: DbContext): Promise<number>
+	insert(data: LocationInsert, db?: DbContext): Promise<EntityRef | undefined>
+	insertMany(items: LocationInsert[], db?: DbContext): Promise<void>
+	update(id: number, data: LocationUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	static use(db: DbContext) {
-		return new LocationRepo(db)
-	}
+export class LocationRepo implements ILocationRepo {
+	constructor(readonly db: DbContext) {}
 
-	#buildWhere(filter: LocationFilter): SQL | undefined {
+	#buildWhere(filter: Partial<Pick<LocationFilterDto, 'q' | 'type'>>): SQL | undefined {
 		const { q, type } = filter
 		return and(
 			q === undefined
@@ -35,13 +46,16 @@ export class LocationRepo {
 		)
 	}
 
-	async findMany(filter: LocationFilter, db: DbContext = this.db): Promise<LocationDto[]> {
+	async findMany(
+		filter: Partial<Pick<LocationFilterDto, 'q' | 'type'>> = {},
+		db: DbContext = this.db,
+	): Promise<LocationDto[]> {
 		const where = this.#buildWhere(filter)
 		return db.select().from(locationsTable).where(where)
 	}
 
 	async findPage(
-		filter: LocationFilter & PaginationQuery,
+		filter: LocationFilterDto,
 		db: DbContext = this.db,
 	): Promise<WithPaginationResult<LocationDto>> {
 		const where = this.#buildWhere(filter)
@@ -85,6 +99,10 @@ export class LocationRepo {
 		return res
 	}
 
+	async insertMany(items: LocationInsert[], db: DbContext = this.db): Promise<void> {
+		await db.insert(locationsTable).values(items).onConflictDoNothing()
+	}
+
 	async update(
 		id: number,
 		data: LocationUpdate,
@@ -96,10 +114,6 @@ export class LocationRepo {
 			.where(eq(locationsTable.id, id))
 			.returning({ id: locationsTable.id })
 		return res
-	}
-
-	async insertMany(items: (typeof locationsTable.$inferInsert)[], db: DbContext) {
-		await db.insert(locationsTable).values(items).onConflictDoNothing()
 	}
 
 	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {

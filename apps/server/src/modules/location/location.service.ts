@@ -5,10 +5,9 @@ import { locationsTable } from '@/db/schema'
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { RelationMap } from '@/shared/utils'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
+import { RelationMap } from '@/shared/utils'
 
 import type {
 	LocationCreateDto,
@@ -17,7 +16,7 @@ import type {
 	LocationUpdateDto,
 } from './location.contract'
 import { LocationError } from './location.internal'
-import type { LocationRepo } from './location.repo'
+import type { ILocationRepo } from './location.repo'
 
 const uniqueFields: ConflictField<{ name: string; code: string }>[] = [
 	{
@@ -38,7 +37,7 @@ export class LocationService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: LocationRepo,
+		private readonly repo: ILocationRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'location')
@@ -48,11 +47,20 @@ export class LocationService {
 		return RelationMap.fromArray(items, (v) => v.id)
 	}
 
+	/** Invalidate list/count caches, plus the byId cache when an id is given. */
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
+	}
+
+	/* --------------------------------- READ ---------------------------------- */
+
 	async getListAll(): Promise<LocationDto[]> {
 		return record('LocationService.getListAll', async () =>
 			this.cache.getOrSet({
 				key: this.cache.keys.list,
-				factory: () => this.repo.findMany({}),
+				factory: () => this.repo.findMany(),
 			}),
 		)
 	}
@@ -65,6 +73,8 @@ export class LocationService {
 			}),
 		)
 	}
+
+	/* -------------------------------- MUTATE ---------------------------------- */
 
 	async seed(
 		items: Pick<LocationDto, 'id' | 'code' | 'name' | 'isActive' | 'type' | 'createdBy'>[],
@@ -80,71 +90,60 @@ export class LocationService {
 	}
 
 	async create(data: LocationCreateDto, actorId: ActorId): Promise<EntityRef> {
-		return record('LocationService.create', async () => {
-			await checkConflict({
-				table: locationsTable,
-				pkColumn: locationsTable.id,
-				fields: uniqueFields,
-				input: data,
-			})
-
-			const result = await this.repo.insert({
-				...data,
-				...stampCreate(actorId),
-			})
-			if (!result) throw LocationError.createFailed()
-
-			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
-			return result
+		await checkConflict({
+			db: this.repo.db,
+			table: locationsTable,
+			pkColumn: locationsTable.id,
+			fields: uniqueFields,
+			input: data,
 		})
+
+		const result = await this.repo.insert({
+			...data,
+			...stampCreate(actorId),
+		})
+		if (!result) throw LocationError.createFailed()
+
+		await this.invalidate()
+		return result
 	}
 
-	async update(data: LocationUpdateDto, actorId: ActorId): Promise<{ id: number }> {
-		return record('LocationService.update', async () => {
-			const { id } = data
-			const existing = await this.getById(id)
-			if (!existing) throw LocationError.notFound(id)
+	async update(data: LocationUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		const { id } = data
+		const existing = await this.getById(id)
+		if (!existing) throw LocationError.notFound(id)
 
-			await checkConflict({
-				table: locationsTable,
-				pkColumn: locationsTable.id,
-				fields: uniqueFields,
-				input: data,
-				existing,
-			})
-
-			const result = await this.repo.update(id, {
-				...data,
-				...stampUpdate(actorId),
-			})
-			if (!result) throw LocationError.notFound(id)
-
-			await this.cache.deleteFromKeys([
-				this.cache.keys.list,
-				this.cache.keys.count,
-				this.cache.keys.byId(id),
-			])
-
-			return result
+		await checkConflict({
+			db: this.repo.db,
+			table: locationsTable,
+			pkColumn: locationsTable.id,
+			fields: uniqueFields,
+			input: data,
+			existing,
 		})
+
+		const result = await this.repo.update(id, {
+			...data,
+			...stampUpdate(actorId),
+		})
+		if (!result) throw LocationError.notFound(id)
+
+		await this.invalidate(id)
+		return result
 	}
 
 	async remove(id: number): Promise<EntityRef> {
-		return record('LocationService.remove', async () => {
-			const result = await this.repo.remove(id)
-			if (!result) throw LocationError.notFound(id)
+		const result = await this.repo.remove(id)
+		if (!result) throw LocationError.notFound(id)
 
-			await this.cache.deleteFromKeys([
-				this.cache.keys.list,
-				this.cache.keys.count,
-				this.cache.keys.byId(id),
-			])
-
-			return result
-		})
+		await this.invalidate(id)
+		return result
 	}
 
 	/* --------------------------------- HANDLE --------------------------------- */
+	// `handleX` are the HTTP entrypoints (routes call ONLY these). They own the
+	// telemetry span; the internal reuse methods above are called directly by
+	// sibling services and are not re-wrapped here to avoid double spans.
 
 	async handleList(filter: LocationFilterDto): Promise<WithPaginationResult<LocationDto>> {
 		return record('LocationService.handleList', async () => this.repo.findPage(filter))
