@@ -1,8 +1,8 @@
 import { index, integer, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 
 import { pk } from './_helpers'
-import { locationsTable } from './location.ts'
-import { usersTable } from './iam.ts'
+import { locationsTable } from './location'
+import { usersTable } from './iam'
 
 /**
  * Sessions Table

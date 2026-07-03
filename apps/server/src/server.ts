@@ -9,7 +9,7 @@ import { createRoutes } from '@/modules/_routes'
 
 import { createApp } from './app'
 
-const cacheClient = createCache()
+const cacheClient = createCache({ redisUrl: env.REDIS_URL })
 const modules = createModules(db, cacheClient)
 const routes = createRoutes(modules)
 

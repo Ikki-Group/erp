@@ -39,9 +39,12 @@ const Env = z.object({
 		.transform((v) => v === 'true'),
 	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
 
-	// Upstash
-	UPSTASH_REDIS_REST_URL: z.url().describe('Upstash Redis REST URL'),
-	UPSTASH_REDIS_REST_TOKEN: z.string().describe('Upstash Redis REST token'),
+	// Cache (Redis / Upstash) — L2 distributed cache + cross-instance bus.
+	// Standard `redis://` or `rediss://` connection string (Upstash "Redis Connect" tab,
+	// NOT the REST URL/token pair — those are for the HTTP API, unusable by ioredis).
+	// Optional: when unset, cache runs L1-memory-only (fine for local dev/tests, NOT
+	// recommended for production on Fly.io with scale-to-zero — see docs/CACHING.md).
+	REDIS_URL: z.string().optional().describe('Redis/Upstash connection string (redis:// or rediss://)'),
 })
 
 const _env = Env.safeParse(Bun.env) // eslint-disable-line no-underscore-dangle

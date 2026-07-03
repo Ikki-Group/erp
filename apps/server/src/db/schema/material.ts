@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, gt, gte, isNull, or } from 'drizzle-orm'
 import {
 	boolean,
 	check,
@@ -13,10 +13,8 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from './_helpers'
-import { locationsTable } from './location.ts'
-import { uomsTable } from './uom.ts'
-
-export const materialTypeEnum = pgEnum('material_type', ['raw', 'semi', 'packaging'])
+import { locationsTable } from './location'
+import { uomsTable } from './uom'
 
 /**
  * Material Categories Table
@@ -42,6 +40,8 @@ export const materialCategoriesTable = pgTable(
 		uniqueIndex('material_categories_name_idx').on(t.name),
 	],
 )
+
+export const materialTypeEnum = pgEnum('material_type', ['raw', 'semi', 'packaging'])
 
 /**
  * Materials Table
@@ -97,8 +97,6 @@ export const materialsTable = pgTable(
 	],
 )
 
-// ─── Material Conversions ─────────────────────────────────────────────────────
-
 /**
  * Material Conversions Table
  *
@@ -139,11 +137,9 @@ export const materialConversionsTable = pgTable(
 		index('material_conversions_uom_idx').on(t.uomId),
 
 		// Conversion factor must be strictly positive
-		check('material_conversions_factor_chk', sql`to_base_factor > 0`),
+		check('material_conversions_factor_chk', gt(t.toBaseFactor, 0)),
 	],
 )
-
-// ─── Material Locations (Config) ──────────────────────────────────────────────
 
 /**
  * Material Locations Table  — configuration layer
@@ -152,7 +148,7 @@ export const materialConversionsTable = pgTable(
  * per-location stock control thresholds.
  *
  * This table is config-only. Stock quantity and cost figures live in
- * materialStockSnapshotsTable (the projection layer), which is rebuilt
+ * `materialStockSnapshotsTable` below (the projection layer), which is rebuilt
  * from the inventory event log independently of this table.
  *
  * `minStock`     — lower bound for stock alerts. Default 0.
@@ -188,12 +184,10 @@ export const materialLocationsTable = pgTable(
 		// When maxStock is set: minStock ≤ reorderPoint ≤ maxStock
 		check(
 			'material_locations_stock_range_chk',
-			sql`max_stock IS NULL OR (max_stock >= min_stock AND max_stock >= reorder_point)`,
+			or(isNull(t.maxStock), and(gte(t.maxStock, t.minStock), gte(t.maxStock, t.reorderPoint)))!,
 		),
 	],
 )
-
-// ─── Material Stock Snapshots (Projection) ────────────────────────────────────
 
 /**
  * Material Stock Snapshots Table  — projection layer
@@ -203,7 +197,7 @@ export const materialLocationsTable = pgTable(
  * by business logic.
  *
  * Separation rationale:
- *   - Config (materialLocationsTable) changes rarely, owned by operators.
+ *   - Config (materialLocationsTable above) changes rarely, owned by operators.
  *   - Snapshots change on every stock movement, owned by the inventory
  *     event handler. Keeping them separate eliminates row-level lock
  *     contention between config edits and high-churn stock updates.
@@ -247,8 +241,11 @@ export const materialStockSnapshotsTable = pgTable(
 		index('material_stock_snapshots_snapshot_at_idx').on(t.snapshotAt),
 
 		// currentQty can never be negative (physical stock constraint)
-		check('material_stock_snapshots_qty_chk', sql`current_qty >= 0`),
+		check('material_stock_snapshots_qty_chk', gte(t.currentQty, 0)),
 		// Cost and value are non-negative
-		check('material_stock_snapshots_cost_chk', sql`current_avg_cost >= 0 AND current_value >= 0`),
+		check(
+			'material_stock_snapshots_cost_chk',
+			and(gte(t.currentAvgCost, 0), gte(t.currentValue, 0))!,
+		),
 	],
 )

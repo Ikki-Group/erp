@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import { employeesTable } from '@/db/schema/employee'
+import { employeesTable } from '@/db/schema/hr'
 
 import { checkConflict, type ConflictField} from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'

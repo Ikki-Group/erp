@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { between } from 'drizzle-orm'
 import { check, pgTable, text, numeric, jsonb } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from './_helpers'
@@ -38,8 +38,8 @@ export const companySettingsTable = pgTable(
 		settings: jsonb('settings'),
 		...auditBasicColumns,
 	},
-	() => [
+	(t) => [
 		// Tax rate must be between 0 and 100%
-		check('company_settings_tax_rate_range_chk', sql`tax_rate >= 0 AND tax_rate <= 100`),
+		check('company_settings_tax_rate_range_chk', between(t.taxRate, 0, 100)),
 	],
 )

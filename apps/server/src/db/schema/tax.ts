@@ -1,5 +1,5 @@
-import { isNull, sql } from 'drizzle-orm'
-import { check, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
+import { between, isNull } from 'drizzle-orm'
+import { check, index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { auditFullColumns, pk } from './_helpers'
 import { accountsTable } from './finance'
@@ -8,6 +8,11 @@ import { accountsTable } from './finance'
  * Taxes Table
  *
  * Defines tax rates (e.g., PPN, Service Charge) and their associated accounting mappings.
+ *
+ * ⚠ No owning module yet — `products.taxId` (see `product/core.ts`) is commented
+ * out pending this. Kept flat at schema root (not nested under a domain
+ * folder) since there is no `modules/tax/` to mirror. Move it under a real
+ * domain folder once a module claims it.
  */
 export const taxesTable = pgTable(
 	'taxes',
@@ -24,8 +29,9 @@ export const taxesTable = pgTable(
 	},
 	(t) => [
 		uniqueIndex('taxes_code_idx').on(t.code).where(isNull(t.deletedAt)),
+		index('taxes_account_idx').on(t.accountId),
 
 		// Tax rate must be between 0 and 100%
-		check('taxes_rate_range_chk', sql`rate >= 0 AND rate <= 100`),
+		check('taxes_rate_range_chk', between(t.rate, 0, 100)),
 	],
 )

@@ -1,5 +1,5 @@
 import { check, index, integer, numeric, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { sql } from 'drizzle-orm'
+import { gt, gte } from 'drizzle-orm'
 
 import { auditFullColumns, pk } from './_helpers'
 import { locationsTable } from './location'
@@ -41,10 +41,10 @@ export const workOrdersTable = pgTable(
 		index('work_orders_status_idx').on(t.status),
 
 		// Quantities must be positive
-		check('work_orders_expected_qty_pos_chk', sql`expected_qty > 0`),
-		check('work_orders_actual_qty_nonneg_chk', sql`actual_qty >= 0`),
+		check('work_orders_expected_qty_pos_chk', gt(t.expectedQty, 0)),
+		check('work_orders_actual_qty_nonneg_chk', gte(t.actualQty, 0)),
 		// Total cost must be non-negative
-		check('work_orders_total_cost_nonneg_chk', sql`total_cost >= 0`),
+		check('work_orders_total_cost_nonneg_chk', gte(t.totalCost, 0)),
 	],
 )
 

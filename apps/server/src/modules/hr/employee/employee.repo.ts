@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
-import { employeesTable } from '@/db/schema/employee'
+import { employeesTable } from '@/db/schema/hr'
 
 import {
 	paginate,

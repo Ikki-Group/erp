@@ -1,13 +1,20 @@
 /**
  * Drizzle Relations Definitions
  *
- * TODO: Implement relations after all schema tables are exported in index.ts
+ * TODO: Implement relations if/when needed for Drizzle Studio browsing or
+ * ad-hoc scripts.
  *
- * Relations are optional and only provide query convenience for relational queries.
- * They don't affect the database schema or migrations.
+ * Relations are optional and only provide query convenience for relational
+ * queries (`db.query.x.findMany({ with: ... })`). They don't affect the
+ * database schema or migrations.
  *
- * Currently most tables are NOT exported in index.ts (commented out).
- * Uncomment exports in index.ts first, then define relations here.
+ * ⚠ Do NOT use `db.query...with()` in repo/service hot paths. Every relational
+ * query executes a live join against Postgres — it bypasses the entire cache
+ * layer (see `infra/cache/`). The codebase deliberately uses manual
+ * `.select()` + `RelationMap` (see `shared/utils/relation-map.ts`) instead,
+ * so each piece of a composed read can be cached and invalidated
+ * independently. Keep using that pattern; only reach for `relations()` here
+ * for tooling/scripts that don't go through the cache anyway.
  *
  * Drizzle Relations API (v1.0.0-rc.4+):
  * ```typescript
@@ -26,13 +33,8 @@
  * - Parent table: many(childTable)
  * - Child table: one(parentTable, { fields, references })
  *
- * Pending exports to enable relations:
- * - audit, company, customer, employee
- * - finance, finance_payment, hr
- * - inventory, inventory_transfer
- * - material, moka, payment_methods, payment_provider
- * - product, production, purchasing, recipe
- * - sales, sales-type, tax, uom, location_payment_method
+ * All tables are exported via `db/schema/index.ts` (see that file's grouping
+ * comment for the folder-per-domain layout) — nothing pending here anymore.
  */
 
 // Empty stub - relations are optional and will be implemented when needed

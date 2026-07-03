@@ -1,8 +1,7 @@
-import { sql } from 'drizzle-orm'
 import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from './_helpers'
-import { locationsTable } from './location.ts'
+import { locationsTable } from './location'
 
 /**
  * Roles Table
@@ -29,7 +28,7 @@ export const rolesTable = pgTable(
 		permissions: text('permissions')
 			.array()
 			.notNull()
-			.default(sql`'{}'::text[]`),
+			.default([]),
 		isSystem: boolean('is_system').notNull().default(false),
 		...auditBasicColumns,
 	},
@@ -157,6 +156,7 @@ export const userAssignmentsTable = pgTable(
 		index('user_assignments_user_idx').on(t.userId),
 		index('user_assignments_role_idx').on(t.roleId),
 		index('user_assignments_location_idx').on(t.locationId),
+		index('user_assignments_added_by_idx').on(t.addedBy),
 
 		// One role per location per user — natural key of this table.
 		uniqueIndex('user_assignments_user_location_idx').on(t.userId, t.locationId),

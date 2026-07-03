@@ -1,8 +1,8 @@
-import { isNotNull, isNull, sql } from 'drizzle-orm'
+import { isNotNull, isNull, not, or } from 'drizzle-orm'
 import { boolean, check, index, integer, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from './_helpers'
-import { locationsTable } from './location.ts'
+import { locationsTable } from './location'
 
 /**
  * Sales Types Table
@@ -71,6 +71,6 @@ export const salesTypesTable = pgTable(
 		index('sales_types_location_idx').on(t.locationId),
 
 		// isSystem types are always global — locationId must be null
-		check('sales_types_system_global_chk', sql`NOT is_system OR location_id IS NULL`),
+		check('sales_types_system_global_chk', or(not(t.isSystem), isNull(t.locationId))!),
 	],
 )

@@ -1,25 +1,23 @@
 import { check, index, integer, numeric, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { sql } from 'drizzle-orm'
+import { gt, gte } from 'drizzle-orm'
 
 import { auditFullColumns, pk } from './_helpers'
+import { invoiceStatusEnum } from './_enums'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 import { suppliersTable } from './supplier'
 
 export const purchaseRequestStatusEnum = pgEnum('purchase_request_status', ['open', 'approved', 'rejected', 'void'])
-export const purchaseOrderStatusEnum = pgEnum('purchase_order_status', [
-	'pending_approval',
-	'approved',
-	'rejected',
-	'open',
-	'closed',
-	'void',
-])
-export const goodsReceiptStatusEnum = pgEnum('goods_receipt_status', ['open', 'completed', 'void'])
-export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'open', 'paid', 'void'])
 
-// ─── Purchase Requests ────────────────────────────────────────────────────────
-
+/**
+ * ⚠ Schema-only for now: no repo/service implements this table yet
+ * (see `purchaseOrdersTable` below — purchase orders have an optional
+ * `requestId` FK for when this workflow stage is built, but nothing creates
+ * purchase requests today). Kept because the FK already exists on
+ * `purchase_orders` and dropping it would be a breaking schema change for no
+ * reason — just don't build a repo against this until the PR workflow is
+ * actually wired up in the modules layer.
+ */
 export const purchaseRequestsTable = pgTable(
 	'purchase_requests',
 	{
@@ -43,8 +41,6 @@ export const purchaseRequestsTable = pgTable(
 	],
 )
 
-// ─── Purchase Request Items ───────────────────────────────────────────────────
-
 export const purchaseRequestItemsTable = pgTable(
 	'purchase_request_items',
 	{
@@ -65,11 +61,20 @@ export const purchaseRequestItemsTable = pgTable(
 		index('purchase_request_items_material_idx').on(t.materialId),
 
 		// Quantity must be positive
-		check('purchase_request_items_qty_pos_chk', sql`quantity > 0`),
+		check('purchase_request_items_qty_pos_chk', gt(t.quantity, 0)),
 	],
 )
 
 // ─── Purchase Orders ──────────────────────────────────────────────────────────
+
+export const purchaseOrderStatusEnum = pgEnum('purchase_order_status', [
+	'pending_approval',
+	'approved',
+	'rejected',
+	'open',
+	'closed',
+	'void',
+])
 
 export const purchaseOrdersTable = pgTable(
 	'purchase_orders',
@@ -106,13 +111,11 @@ export const purchaseOrdersTable = pgTable(
 		index('purchase_orders_request_idx').on(t.requestId),
 
 		// Financial amounts must be non-negative
-		check('purchase_orders_total_nonneg_chk', sql`total_amount >= 0`),
-		check('purchase_orders_discount_nonneg_chk', sql`discount_amount >= 0`),
-		check('purchase_orders_tax_nonneg_chk', sql`tax_amount >= 0`),
+		check('purchase_orders_total_nonneg_chk', gte(t.totalAmount, 0)),
+		check('purchase_orders_discount_nonneg_chk', gte(t.discountAmount, 0)),
+		check('purchase_orders_tax_nonneg_chk', gte(t.taxAmount, 0)),
 	],
 )
-
-// ─── Purchase Order Items ─────────────────────────────────────────────────────
 
 export const purchaseOrderItemsTable = pgTable(
 	'purchase_order_items',
@@ -144,17 +147,21 @@ export const purchaseOrderItemsTable = pgTable(
 	(t) => [
 		index('purchase_order_items_order_idx').on(t.orderId),
 		index('purchase_order_items_material_idx').on(t.materialId),
+		index('purchase_order_items_request_item_idx').on(t.requestItemId),
 
 		// Quantity must be positive
-		check('purchase_order_items_qty_pos_chk', sql`quantity > 0`),
+		check('purchase_order_items_qty_pos_chk', gt(t.quantity, 0)),
 		// Financial fields must be non-negative
-		check('purchase_order_items_unit_price_nonneg_chk', sql`unit_price >= 0`),
-		check('purchase_order_items_discount_nonneg_chk', sql`discount_amount >= 0`),
-		check('purchase_order_items_tax_nonneg_chk', sql`tax_amount >= 0`),
-		check('purchase_order_items_subtotal_nonneg_chk', sql`subtotal >= 0`),
+		check('purchase_order_items_unit_price_nonneg_chk', gte(t.unitPrice, 0)),
+		check('purchase_order_items_discount_nonneg_chk', gte(t.discountAmount, 0)),
+		check('purchase_order_items_tax_nonneg_chk', gte(t.taxAmount, 0)),
+		check('purchase_order_items_subtotal_nonneg_chk', gte(t.subtotal, 0)),
 	],
 )
+
 // ─── Goods Receipt Notes ──────────────────────────────────────────────────────
+
+export const goodsReceiptStatusEnum = pgEnum('goods_receipt_status', ['open', 'completed', 'void'])
 
 export const goodsReceiptNotesTable = pgTable(
 	'goods_receipt_notes',
@@ -187,8 +194,6 @@ export const goodsReceiptNotesTable = pgTable(
 	],
 )
 
-// ─── Goods Receipt Note Items ─────────────────────────────────────────────────
-
 export const goodsReceiptNoteItemsTable = pgTable(
 	'goods_receipt_note_items',
 	{
@@ -215,12 +220,17 @@ export const goodsReceiptNoteItemsTable = pgTable(
 		index('goods_receipt_note_items_material_idx').on(t.materialId),
 
 		// Quantity received must be positive
-		check('goods_receipt_note_items_qty_pos_chk', sql`quantity_received > 0`),
+		check('goods_receipt_note_items_qty_pos_chk', gt(t.quantityReceived, 0)),
 	],
 )
 
 // ─── Purchase Invoices ────────────────────────────────────────────────────────
 
+/**
+ * ⚠ Schema-only for now: no repo/service implements this table yet.
+ * PO/GRN stages are wired up; invoicing (AP) is not — the
+ * `paymentInvoicesTable` FK to this table exists in anticipation of it.
+ */
 export const purchaseInvoicesTable = pgTable(
 	'purchase_invoices',
 	{
@@ -255,13 +265,11 @@ export const purchaseInvoicesTable = pgTable(
 		index('purchase_invoices_status_idx').on(t.status),
 
 		// Financial amounts must be non-negative
-		check('purchase_invoices_total_nonneg_chk', sql`total_amount >= 0`),
-		check('purchase_invoices_tax_nonneg_chk', sql`tax_amount >= 0`),
-		check('purchase_invoices_discount_nonneg_chk', sql`discount_amount >= 0`),
+		check('purchase_invoices_total_nonneg_chk', gte(t.totalAmount, 0)),
+		check('purchase_invoices_tax_nonneg_chk', gte(t.taxAmount, 0)),
+		check('purchase_invoices_discount_nonneg_chk', gte(t.discountAmount, 0)),
 	],
 )
-
-// ─── Purchase Invoice Items ───────────────────────────────────────────────────
 
 export const purchaseInvoiceItemsTable = pgTable(
 	'purchase_invoice_items',
@@ -287,13 +295,14 @@ export const purchaseInvoiceItemsTable = pgTable(
 	(t) => [
 		index('purchase_invoice_items_invoice_idx').on(t.invoiceId),
 		index('purchase_invoice_items_po_item_idx').on(t.purchaseOrderItemId),
+		index('purchase_invoice_items_material_idx').on(t.materialId),
 
 		// Quantity must be positive
-		check('purchase_invoice_items_qty_pos_chk', sql`quantity > 0`),
+		check('purchase_invoice_items_qty_pos_chk', gt(t.quantity, 0)),
 		// Financial fields must be non-negative
-		check('purchase_invoice_items_unit_price_nonneg_chk', sql`unit_price >= 0`),
-		check('purchase_invoice_items_tax_nonneg_chk', sql`tax_amount >= 0`),
-		check('purchase_invoice_items_discount_nonneg_chk', sql`discount_amount >= 0`),
-		check('purchase_invoice_items_subtotal_nonneg_chk', sql`subtotal >= 0`),
+		check('purchase_invoice_items_unit_price_nonneg_chk', gte(t.unitPrice, 0)),
+		check('purchase_invoice_items_tax_nonneg_chk', gte(t.taxAmount, 0)),
+		check('purchase_invoice_items_discount_nonneg_chk', gte(t.discountAmount, 0)),
+		check('purchase_invoice_items_subtotal_nonneg_chk', gte(t.subtotal, 0)),
 	],
 )

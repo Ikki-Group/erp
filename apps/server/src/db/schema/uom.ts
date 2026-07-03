@@ -1,5 +1,4 @@
-import { sql } from 'drizzle-orm'
-import { boolean, check, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
+import { boolean, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from './_helpers'
 
@@ -28,6 +27,14 @@ import { auditBasicColumns, pk } from './_helpers'
  *   A UOM in active use cannot be deleted regardless of isSystem.
  *   isSystem adds a second layer of protection for seeded UOMs
  *   even before any material references them.
+ *
+ * No DB-level uppercase check: enforcing `code = upper(code)` requires a SQL
+ * function call (`upper()`), which Drizzle's query builder has no non-`sql`
+ * equivalent for — every other constraint on this table (and everywhere else
+ * in the schema) is expressed with `eq`/`gte`/`and`/`or`/etc. instead of raw
+ * SQL, so this one invariant is enforced once, at the boundary, via Zod
+ * (`zc.code` transform → `.toUpperCase()` in `uom.contract.ts`) rather than
+ * carved out as the sole `sql`-based exception in an otherwise sql-free schema.
  */
 export const uomsTable = pgTable(
 	'uoms',
@@ -38,11 +45,5 @@ export const uomsTable = pgTable(
 		isSystem: boolean('is_system').notNull().default(false),
 		...auditBasicColumns,
 	},
-	(t) => [
-		uniqueIndex('uoms_code_idx').on(t.code),
-		uniqueIndex('uoms_name_idx').on(t.name),
-
-		// Prevent 'kg' vs 'KG' duplicate drift — code must always be uppercase
-		check('uoms_code_uppercase_chk', sql`code = upper(code)`),
-	],
+	(t) => [uniqueIndex('uoms_code_idx').on(t.code), uniqueIndex('uoms_name_idx').on(t.name)],
 )

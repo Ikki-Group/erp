@@ -1,5 +1,14 @@
-import { check, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
-import { sql } from 'drizzle-orm'
+import { gte } from 'drizzle-orm'
+import {
+	check,
+	index,
+	integer,
+	pgEnum,
+	pgTable,
+	text,
+	timestamp,
+	uniqueIndex,
+} from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from './_helpers'
 
@@ -16,6 +25,9 @@ export const loyaltyTransactionTypeEnum = pgEnum('loyalty_transaction_type', [
  * Customers Table
  *
  * Stores customer data for CRM and Sales including loyalty information.
+ *
+ * File is named `crm.ts` (not `customer.ts`) to match the owning module
+ * (`modules/crm/`) — table export name (`customersTable`) is unchanged.
  */
 export const customersTable = pgTable(
 	'customers',
@@ -47,8 +59,8 @@ export const customersTable = pgTable(
 		uniqueIndex('customers_name_idx').on(t.name),
 
 		// Points must be non-negative
-		check('customers_points_balance_nonneg_chk', sql`points_balance >= 0`),
-		check('customers_total_points_earned_nonneg_chk', sql`total_points_earned >= 0`),
+		check('customers_points_balance_nonneg_chk', gte(t.pointsBalance, 0)),
+		check('customers_total_points_earned_nonneg_chk', gte(t.totalPointsEarned, 0)),
 	],
 )
 
@@ -79,6 +91,6 @@ export const customerLoyaltyTransactionsTable = pgTable(
 		index('customer_loyalty_txn_type_idx').on(t.type),
 
 		// Balance after must be non-negative
-		check('customer_loyalty_txn_balance_nonneg_chk', sql`balance_after >= 0`),
+		check('customer_loyalty_txn_balance_nonneg_chk', gte(t.balanceAfter, 0)),
 	],
 )

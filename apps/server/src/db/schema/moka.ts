@@ -18,7 +18,7 @@ export const mokaScrapTypeEnum = pgEnum('moka_scrap_type', ['sales', 'product', 
 export const mokaScrapStatusEnum = pgEnum('moka_scrap_status', ['pending', 'processing', 'completed', 'failed'])
 export const mokaSyncTriggerModeEnum = pgEnum('moka_sync_trigger_mode', ['manual', 'cron', 'upload', 'machine_fetch'])
 
-// ─── Tables ───────────────────────────────────────────────────────────────────
+// ─── Configuration ────────────────────────────────────────────────────────────
 
 export const mokaConfigurationsTable = pgTable(
 	'moka_configurations',
@@ -49,6 +49,8 @@ export const mokaConfigurationsTable = pgTable(
 		index('moka_config_active_idx').on(t.isActive),
 	],
 )
+
+// ─── Scrap ────────────────────────────────────────────────────────────────────
 
 export const mokaScrapHistoriesTable = pgTable(
 	'moka_scrap_histories',

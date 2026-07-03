@@ -1,7 +1,8 @@
-import { isNull, sql } from 'drizzle-orm'
+import { gt, gte, isNull } from 'drizzle-orm'
 import {
 	boolean,
 	check,
+	index,
 	integer,
 	numeric,
 	pgEnum,
@@ -9,7 +10,6 @@ import {
 	text,
 	timestamp,
 	uniqueIndex,
-	index,
 	type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 
@@ -18,8 +18,6 @@ import { locationsTable } from './location'
 import { suppliersTable } from './supplier'
 
 export const accountTypeEnum = pgEnum('account_type', ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'])
-export const expenditureStatusEnum = pgEnum('expenditure_status', ['PENDING', 'PAID', 'VOID', 'REFUNDED'])
-export const expenditureTypeEnum = pgEnum('expenditure_type', ['BILLS', 'ASSET', 'PURCHASES'])
 
 export const accountsTable = pgTable(
 	'accounts',
@@ -73,10 +71,13 @@ export const journalItemsTable = pgTable(
 		index('journal_items_account_idx').on(t.accountId),
 
 		// Debit and credit must be non-negative
-		check('journal_items_debit_nonneg_chk', sql`debit >= 0`),
-		check('journal_items_credit_nonneg_chk', sql`credit >= 0`),
+		check('journal_items_debit_nonneg_chk', gte(t.debit, 0)),
+		check('journal_items_credit_nonneg_chk', gte(t.credit, 0)),
 	],
 )
+
+export const expenditureStatusEnum = pgEnum('expenditure_status', ['PENDING', 'PAID', 'VOID', 'REFUNDED'])
+export const expenditureTypeEnum = pgEnum('expenditure_type', ['BILLS', 'ASSET', 'PURCHASES'])
 
 export const expendituresTable = pgTable(
 	'expenditures',
@@ -115,8 +116,12 @@ export const expendituresTable = pgTable(
 		index('expenditures_location_idx').on(t.locationId),
 		index('expenditures_type_idx').on(t.type),
 		index('expenditures_status_idx').on(t.status),
+		index('expenditures_source_account_idx').on(t.sourceAccountId),
+		index('expenditures_target_account_idx').on(t.targetAccountId),
+		index('expenditures_liability_account_idx').on(t.liabilityAccountId),
+		index('expenditures_supplier_idx').on(t.supplierId),
 
 		// Amount must be positive
-		check('expenditures_amount_pos_chk', sql`amount > 0`),
+		check('expenditures_amount_pos_chk', gt(t.amount, 0)),
 	],
 )

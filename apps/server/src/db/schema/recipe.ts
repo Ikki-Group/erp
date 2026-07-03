@@ -1,4 +1,4 @@
-import { isNotNull, sql } from 'drizzle-orm'
+import { and, gt, isNotNull, isNull, lt, gte, or } from 'drizzle-orm'
 import {
 	boolean,
 	check,
@@ -11,9 +11,9 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { auditFullColumns, pk } from './_helpers'
-import { materialsTable } from './material.ts'
-import { productsTable, productVariantsTable } from './product.ts'
-import { uomsTable } from './uom.ts'
+import { materialsTable } from './material'
+import { productsTable, productVariantsTable } from './product'
+import { uomsTable } from './uom'
 
 /**
  * Recipes Table
@@ -100,15 +100,15 @@ export const recipesTable = pgTable(
 		// XOR: exactly one target FK must be set — never zero, never more than one
 		check(
 			'recipes_target_xor_chk',
-			sql`(
-				(CASE WHEN material_id IS NOT NULL THEN 1 ELSE 0 END) +
-				(CASE WHEN product_id IS NOT NULL THEN 1 ELSE 0 END) +
-				(CASE WHEN product_variant_id IS NOT NULL THEN 1 ELSE 0 END)
-			) = 1`,
+			or(
+				and(isNotNull(t.materialId), isNull(t.productId), isNull(t.productVariantId)),
+				and(isNull(t.materialId), isNotNull(t.productId), isNull(t.productVariantId)),
+				and(isNull(t.materialId), isNull(t.productId), isNotNull(t.productVariantId)),
+			)!,
 		),
 
 		// Yield must be strictly positive — zero or negative has no physical meaning
-		check('recipes_target_qty_chk', sql`target_qty > 0`),
+		check('recipes_target_qty_chk', gt(t.targetQty, 0)),
 	],
 )
 
@@ -177,9 +177,9 @@ export const recipeItemsTable = pgTable(
 		index('recipe_items_material_idx').on(t.materialId),
 
 		// qty must be strictly positive
-		check('recipe_items_qty_chk', sql`qty > 0`),
+		check('recipe_items_qty_chk', gt(t.qty, 0)),
 
 		// scrapPercentage: [0, 100) — 100% loss is nonsensical
-		check('recipe_items_scrap_pct_chk', sql`scrap_percentage >= 0 AND scrap_percentage < 100`),
+		check('recipe_items_scrap_pct_chk', and(gte(t.scrapPercentage, 0), lt(t.scrapPercentage, 100))!),
 	],
 )

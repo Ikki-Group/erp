@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm'
+import { eq, gte } from 'drizzle-orm'
 import {
 	boolean,
 	check,
@@ -12,12 +12,9 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from './_helpers'
-import { locationsTable } from './location.ts'
-import { salesTypesTable } from './sales-type.ts'
-// import { taxesTable } from './tax.ts'
-
-export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'archived'])
-
+import { locationsTable } from './location'
+import { salesTypesTable } from './sales-type'
+// import { taxesTable } from './tax'
 
 /**
  * Product Categories Table
@@ -59,6 +56,8 @@ export const productCategoriesTable = pgTable(
 	],
 )
 
+export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'archived'])
+
 /**
  * Products Table
  *
@@ -91,6 +90,7 @@ export const productCategoriesTable = pgTable(
  *                Per-variant tax is not supported; all variants share this tax.
  *                onDelete: 'set null' — removing a tax rule does not remove products;
  *                caller must handle null taxId (e.g. treat as tax-exempt).
+ *                Currently commented out — see `tax.ts`, no owning module yet.
  *
  * `categoryId` — optional classification. onDelete: 'set null' — removing a
  *                category uncategorizes products rather than deleting them.
@@ -130,7 +130,7 @@ export const productsTable = pgTable(
 		// index('products_tax_idx').on(t.taxId),
 
 		// basePrice must be non-negative in all modes
-		check('products_base_price_chk', sql`base_price >= 0`),
+		check('products_base_price_chk', gte(t.basePrice, 0)),
 	],
 )
 
@@ -166,7 +166,7 @@ export const productPricesTable = pgTable(
 		index('product_prices_sales_type_idx').on(t.salesTypeId),
 
 		// Price must be non-negative
-		check('product_prices_price_chk', sql`price >= 0`),
+		check('product_prices_price_chk', gte(t.price, 0)),
 	],
 )
 
@@ -219,7 +219,7 @@ export const productVariantsTable = pgTable(
 			.where(eq(t.isDefault, true)),
 
 		// basePrice must be non-negative
-		check('product_variants_base_price_chk', sql`base_price >= 0`),
+		check('product_variants_base_price_chk', gte(t.basePrice, 0)),
 	],
 )
 
@@ -254,6 +254,6 @@ export const productVariantPricesTable = pgTable(
 		index('variant_prices_sales_type_idx').on(t.salesTypeId),
 
 		// Price must be non-negative
-		check('variant_prices_price_chk', sql`price >= 0`),
+		check('variant_prices_price_chk', gte(t.price, 0)),
 	],
 )

@@ -10,19 +10,19 @@ import {
 	timestamp,
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
-import { sql } from 'drizzle-orm'
+import { gt, gte } from 'drizzle-orm'
 
 import { auditBasicColumns, pk } from './_helpers'
-import { customersTable } from './customer'
-import { invoiceStatusEnum } from './purchasing'
-
-export const salesOrderStatusEnum = pgEnum('sales_order_status', ['open', 'closed', 'void'])
-export const salesOrderSourceEnum = pgEnum('sales_order_source', ['web', 'moka', 'upload', 'machine_fetch'])
-export const batchStatusEnum = pgEnum('batch_status', ['pending', 'prepared', 'delivered', 'cancelled'])
+import { invoiceStatusEnum } from './_enums'
+import { customersTable } from './crm'
 import { usersTable } from './iam'
 import { locationsTable } from './location'
 import { productsTable, productVariantsTable } from './product'
 import { salesTypesTable } from './sales-type'
+
+export const salesOrderStatusEnum = pgEnum('sales_order_status', ['open', 'closed', 'void'])
+export const salesOrderSourceEnum = pgEnum('sales_order_source', ['web', 'moka', 'upload', 'machine_fetch'])
+export const batchStatusEnum = pgEnum('batch_status', ['pending', 'prepared', 'delivered', 'cancelled'])
 
 // ─── Sales Orders ─────────────────────────────────────────────────────────────
 
@@ -63,13 +63,14 @@ export const salesOrdersTable = pgTable(
 		index('sales_orders_status_idx').on(t.status),
 		index('sales_orders_transaction_date_idx').on(t.transactionDate),
 		index('sales_orders_customer_idx').on(t.customerId),
+		index('sales_orders_sales_type_idx').on(t.salesTypeId),
 
 		// Financial amounts must be non-negative
-		check('sales_orders_total_nonneg_chk', sql`total_amount >= 0`),
-		check('sales_orders_discount_nonneg_chk', sql`discount_amount >= 0`),
-		check('sales_orders_tax_nonneg_chk', sql`tax_amount >= 0`),
-		check('sales_orders_gratuity_nonneg_chk', sql`gratuity_amount >= 0`),
-		check('sales_orders_refund_nonneg_chk', sql`refund_amount >= 0`),
+		check('sales_orders_total_nonneg_chk', gte(t.totalAmount, 0)),
+		check('sales_orders_discount_nonneg_chk', gte(t.discountAmount, 0)),
+		check('sales_orders_tax_nonneg_chk', gte(t.taxAmount, 0)),
+		check('sales_orders_gratuity_nonneg_chk', gte(t.gratuityAmount, 0)),
+		check('sales_orders_refund_nonneg_chk', gte(t.refundAmount, 0)),
 	],
 )
 
@@ -125,87 +126,12 @@ export const salesOrderItemsTable = pgTable(
 		index('sales_order_items_batch_idx').on(t.batchId),
 
 		// Quantity must be positive
-		check('sales_order_items_qty_pos_chk', sql`quantity > 0`),
+		check('sales_order_items_qty_pos_chk', gt(t.quantity, 0)),
 		// Financial fields must be non-negative
-		check('sales_order_items_unit_price_nonneg_chk', sql`unit_price >= 0`),
-		check('sales_order_items_discount_nonneg_chk', sql`discount_amount >= 0`),
-		check('sales_order_items_tax_nonneg_chk', sql`tax_amount >= 0`),
-		check('sales_order_items_subtotal_nonneg_chk', sql`subtotal >= 0`),
-	],
-)
-
-// ─── Sales Invoices ───────────────────────────────────────────────────────────
-
-export const salesInvoicesTable = pgTable(
-	'sales_invoices',
-	{
-		...pk,
-		orderId: integer('order_id')
-			.notNull()
-			.references(() => salesOrdersTable.id, { onDelete: 'restrict' }),
-		customerId: integer('customer_id').references(() => customersTable.id, { onDelete: 'set null' }),
-		locationId: integer('location_id')
-			.notNull()
-			.references(() => locationsTable.id, { onDelete: 'restrict' }),
-
-		status: invoiceStatusEnum('status').notNull().default('draft'),
-		invoiceDate: timestamp('invoice_date', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
-		dueDate: timestamp('due_date', { mode: 'date', withTimezone: true }),
-
-		totalAmount: numeric('total_amount', { precision: 18, scale: 2 }).notNull().default('0'),
-		taxAmount: numeric('tax_amount', { precision: 18, scale: 2 }).notNull().default('0'),
-		discountAmount: numeric('discount_amount', { precision: 18, scale: 2 }).notNull().default('0'),
-
-		notes: text('notes'),
-		...auditBasicColumns,
-	},
-	(t) => [
-		index('sales_invoices_order_idx').on(t.orderId),
-		index('sales_invoices_customer_idx').on(t.customerId),
-		index('sales_invoices_status_idx').on(t.status),
-
-		// Financial amounts must be non-negative
-		check('sales_invoices_total_nonneg_chk', sql`total_amount >= 0`),
-		check('sales_invoices_tax_nonneg_chk', sql`tax_amount >= 0`),
-		check('sales_invoices_discount_nonneg_chk', sql`discount_amount >= 0`),
-	],
-)
-
-// ─── Sales Invoice Items ──────────────────────────────────────────────────────
-
-export const salesInvoiceItemsTable = pgTable(
-	'sales_invoice_items',
-	{
-		...pk,
-		invoiceId: integer('invoice_id')
-			.notNull()
-			.references(() => salesInvoicesTable.id, { onDelete: 'cascade' }),
-		salesOrderItemId: integer('sales_order_item_id').references(() => salesOrderItemsTable.id, {
-			onDelete: 'set null',
-		}),
-		productId: integer('product_id').references(() => productsTable.id, { onDelete: 'set null' }),
-		variantId: integer('variant_id').references(() => productVariantsTable.id, { onDelete: 'set null' }),
-
-		itemName: text('item_name').notNull(),
-		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull().default('0'),
-		unitPrice: numeric('unit_price', { precision: 18, scale: 2 }).notNull().default('0'),
-		taxAmount: numeric('tax_amount', { precision: 18, scale: 2 }).notNull().default('0'),
-		discountAmount: numeric('discount_amount', { precision: 18, scale: 2 }).notNull().default('0'),
-		subtotal: numeric('subtotal', { precision: 18, scale: 2 }).notNull().default('0'),
-
-		...auditBasicColumns,
-	},
-	(t) => [
-		index('sales_invoice_items_invoice_idx').on(t.invoiceId),
-		index('sales_invoice_items_so_item_idx').on(t.salesOrderItemId),
-
-		// Quantity must be positive
-		check('sales_invoice_items_qty_pos_chk', sql`quantity > 0`),
-		// Financial fields must be non-negative
-		check('sales_invoice_items_unit_price_nonneg_chk', sql`unit_price >= 0`),
-		check('sales_invoice_items_tax_nonneg_chk', sql`tax_amount >= 0`),
-		check('sales_invoice_items_discount_nonneg_chk', sql`discount_amount >= 0`),
-		check('sales_invoice_items_subtotal_nonneg_chk', sql`subtotal >= 0`),
+		check('sales_order_items_unit_price_nonneg_chk', gte(t.unitPrice, 0)),
+		check('sales_order_items_discount_nonneg_chk', gte(t.discountAmount, 0)),
+		check('sales_order_items_tax_nonneg_chk', gte(t.taxAmount, 0)),
+		check('sales_order_items_subtotal_nonneg_chk', gte(t.subtotal, 0)),
 	],
 )
 
@@ -252,7 +178,7 @@ export const salesRefundsTable = pgTable(
 		index('sales_refunds_date_idx').on(t.refundedAt),
 
 		// Refund amount must be positive
-		check('sales_refunds_amount_pos_chk', sql`amount > 0`),
+		check('sales_refunds_amount_pos_chk', gt(t.amount, 0)),
 	],
 )
 
@@ -274,5 +200,82 @@ export const salesExternalRefsTable = pgTable(
 	(t) => [
 		uniqueIndex('sales_external_refs_source_ext_id_idx').on(t.externalSource, t.externalOrderId),
 		index('sales_external_refs_order_idx').on(t.orderId),
+	],
+)
+
+// ─── Sales Invoices ───────────────────────────────────────────────────────────
+
+export const salesInvoicesTable = pgTable(
+	'sales_invoices',
+	{
+		...pk,
+		orderId: integer('order_id')
+			.notNull()
+			.references(() => salesOrdersTable.id, { onDelete: 'restrict' }),
+		customerId: integer('customer_id').references(() => customersTable.id, { onDelete: 'set null' }),
+		locationId: integer('location_id')
+			.notNull()
+			.references(() => locationsTable.id, { onDelete: 'restrict' }),
+
+		status: invoiceStatusEnum('status').notNull().default('draft'),
+		invoiceDate: timestamp('invoice_date', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		dueDate: timestamp('due_date', { mode: 'date', withTimezone: true }),
+
+		totalAmount: numeric('total_amount', { precision: 18, scale: 2 }).notNull().default('0'),
+		taxAmount: numeric('tax_amount', { precision: 18, scale: 2 }).notNull().default('0'),
+		discountAmount: numeric('discount_amount', { precision: 18, scale: 2 }).notNull().default('0'),
+
+		notes: text('notes'),
+		...auditBasicColumns,
+	},
+	(t) => [
+		index('sales_invoices_order_idx').on(t.orderId),
+		index('sales_invoices_customer_idx').on(t.customerId),
+		index('sales_invoices_status_idx').on(t.status),
+
+		// Financial amounts must be non-negative
+		check('sales_invoices_total_nonneg_chk', gte(t.totalAmount, 0)),
+		check('sales_invoices_tax_nonneg_chk', gte(t.taxAmount, 0)),
+		check('sales_invoices_discount_nonneg_chk', gte(t.discountAmount, 0)),
+	],
+)
+
+// ─── Sales Invoice Items ──────────────────────────────────────────────────────
+
+export const salesInvoiceItemsTable = pgTable(
+	'sales_invoice_items',
+	{
+		...pk,
+		invoiceId: integer('invoice_id')
+			.notNull()
+			.references(() => salesInvoicesTable.id, { onDelete: 'cascade' }),
+		salesOrderItemId: integer('sales_order_item_id').references(() => salesOrderItemsTable.id, {
+			onDelete: 'set null',
+		}),
+		productId: integer('product_id').references(() => productsTable.id, { onDelete: 'set null' }),
+		variantId: integer('variant_id').references(() => productVariantsTable.id, { onDelete: 'set null' }),
+
+		itemName: text('item_name').notNull(),
+		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull().default('0'),
+		unitPrice: numeric('unit_price', { precision: 18, scale: 2 }).notNull().default('0'),
+		taxAmount: numeric('tax_amount', { precision: 18, scale: 2 }).notNull().default('0'),
+		discountAmount: numeric('discount_amount', { precision: 18, scale: 2 }).notNull().default('0'),
+		subtotal: numeric('subtotal', { precision: 18, scale: 2 }).notNull().default('0'),
+
+		...auditBasicColumns,
+	},
+	(t) => [
+		index('sales_invoice_items_invoice_idx').on(t.invoiceId),
+		index('sales_invoice_items_so_item_idx').on(t.salesOrderItemId),
+		index('sales_invoice_items_product_idx').on(t.productId),
+		index('sales_invoice_items_variant_idx').on(t.variantId),
+
+		// Quantity must be positive
+		check('sales_invoice_items_qty_pos_chk', gt(t.quantity, 0)),
+		// Financial fields must be non-negative
+		check('sales_invoice_items_unit_price_nonneg_chk', gte(t.unitPrice, 0)),
+		check('sales_invoice_items_tax_nonneg_chk', gte(t.taxAmount, 0)),
+		check('sales_invoice_items_discount_nonneg_chk', gte(t.discountAmount, 0)),
+		check('sales_invoice_items_subtotal_nonneg_chk', gte(t.subtotal, 0)),
 	],
 )
