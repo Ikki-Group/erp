@@ -4,6 +4,13 @@ Ikki ERP is a TypeScript + Bun monorepo optimized for **solo developer productiv
 
 **Tech Stack:** Bun, TypeScript, Elysia, Drizzle ORM, Zod v4, BentoCache, PostgreSQL (Neon)
 
+> **📌 See [AGENTS.md](AGENTS.md) first for commands & toolchain.**
+> `AGENTS.md` is the source of truth for the monorepo layout, exact commands
+> (which are **per-app**, not root — see note there), toolchain quirks
+> (oxlint/oxfmt, path aliases), codegen, and deploy/CI. `CLAUDE.md` (this file)
+> covers the deeper server architecture & code patterns. If a command in this
+> file disagrees with `AGENTS.md`, trust `AGENTS.md`.
+
 ---
 
 ## 🎯 Project Philosophy
@@ -18,25 +25,31 @@ Ikki ERP is a TypeScript + Bun monorepo optimized for **solo developer productiv
 
 ## 🚀 Quick Commands
 
+> Full & authoritative command reference is in **[AGENTS.md](AGENTS.md)**.
+> Key thing to remember: most commands (`verify`, `typecheck`, `test`, `db:*`)
+> are **per-app**, run them from `apps/server` (or via `bun --filter @ikki/server <script>`),
+> NOT from the repo root.
+
 ### Development
 ```bash
-# Core
+# Root
 bun run dev:server      # Start dev server (apps/server)
 bun run dev:web         # Start Vite dev server (apps/web)
-bun run build           # Production build
-bun run verify          # Lint + typecheck + tests
+bun run lint            # oxlint across repo
+bun run format          # oxfmt
+
+# Server (run from apps/server)
+cd apps/server
+bun run verify          # lint + typecheck + knip + check-deps (the real gate)
+bun run typecheck       # tsc --noEmit
+bun run test            # NODE_ENV=test bun test --bail
+bun run check-deps      # Circular dependency check (dpdm)
 
 # Database (run from apps/server)
-cd apps/server
 bun run db:generate     # Generate migration from schema changes
 bun run db:migrate      # Apply pending migrations
 bun run db:studio       # Open Drizzle Studio (DB GUI)
 bun run db:seed         # Seed database with sample data
-
-# Testing
-bun test                # Run all tests
-bun test --coverage     # Run with coverage report
-bun run check-deps      # Check circular dependencies
 ```
 
 ---
@@ -61,8 +74,10 @@ ikki/erp/
 │   │
 │   └── web/            # Frontend (React + Vite)
 │
-├── docs/               # Product documentation
-└── CLAUDE.md           # This file (project overview)
+├── docs/               # Product + database documentation
+│   └── database/       # DB schema docs (ERDs, conventions) — see below
+├── AGENTS.md           # **Commands, toolchain, codegen, deploy (read first)**
+└── CLAUDE.md           # This file (architecture & code patterns)
 ```
 
 ### Module Anatomy (Vertical Slice)
@@ -200,11 +215,18 @@ bun test --coverage               # With coverage
 
 ## 📚 Documentation (AI Agent Priority Order)
 
+### Before Anything
+- **[AGENTS.md](AGENTS.md)** - Commands (per-app), toolchain (oxlint/oxfmt), codegen, deploy/CI
+
 ### When Building Features
 1. **[apps/server/docs/ARCHITECTURE.md](apps/server/docs/ARCHITECTURE.md)** - Understand the system design first
 2. **[apps/server/docs/CODE_PATTERNS.md](apps/server/docs/CODE_PATTERNS.md)** - Reference implementation patterns
 3. **[apps/server/docs/MODULE_CHECKLIST.md](apps/server/docs/MODULE_CHECKLIST.md)** - Follow step-by-step guide
 4. **[apps/server/docs/MODULE_TEMPLATE.md](apps/server/docs/MODULE_TEMPLATE.md)** - Copy templates for new modules
+
+### When Touching the Database
+- **[docs/database/README.md](docs/database/README.md)** - Index: domain map, ERDs, schema conventions
+- **[docs/database/SCHEMA_CONVENTIONS.md](docs/database/SCHEMA_CONVENTIONS.md)** - Rules for writing/reviewing schema (naming, constraints, indexing, caching)
 
 ### When Reviewing Code
 - Check against patterns in `CODE_PATTERNS.md`
@@ -374,11 +396,13 @@ const users = await Promise.all([1, 2, 3].map(id => this.repo.findById(id)))
 
 ## 📞 Getting Help
 
-1. **For architecture questions:** Read `apps/server/docs/ARCHITECTURE.md`
-2. **For implementation patterns:** Read `apps/server/docs/CODE_PATTERNS.md`
-3. **For step-by-step guide:** Read `apps/server/docs/MODULE_CHECKLIST.md`
-4. **For templates:** Read `apps/server/docs/MODULE_TEMPLATE.md`
-5. **For examples:** Check `iam/user/` or `location/` modules
+1. **For commands / toolchain / deploy:** Read `AGENTS.md`
+2. **For architecture questions:** Read `apps/server/docs/ARCHITECTURE.md`
+3. **For implementation patterns:** Read `apps/server/docs/CODE_PATTERNS.md`
+4. **For step-by-step guide:** Read `apps/server/docs/MODULE_CHECKLIST.md`
+5. **For templates:** Read `apps/server/docs/MODULE_TEMPLATE.md`
+6. **For database schema/ERDs:** Read `docs/database/README.md`
+7. **For examples:** Check `iam/user/` or `location/` modules
 
 ---
 

@@ -43,6 +43,15 @@ Contains templates to standardize our documentation.
 
 - `FEATURE_ENHANCEMENT_PLAN.md`: Ideas and planned improvements for phase 2 and beyond.
 
+### 6. `/database`
+
+Contains everything about the database schema — written primarily for AI
+agents to read before touching `apps/server/src/db/schema/`.
+
+- `README.md`: Index — start here. Domain map, quick facts, links to everything below.
+- `SCHEMA_CONVENTIONS.md`: Rules for writing/reviewing schema changes (naming, constraints, indexing, caching).
+- `ERD_*.md`: Mermaid ER diagrams, one file per architecture layer (core, master data, operations, integrations) plus a domain dependency graph.
+
 ## 🎯 Documentation Principles
 
 1. **Keep it simple**: Use clear, good English. Avoid unnecessary jargon.
