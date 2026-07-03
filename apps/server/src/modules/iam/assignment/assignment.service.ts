@@ -1,18 +1,18 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-
+import type { DbContext } from '@/infra/database'
 import type { ActorId } from '@/shared/types/utils'
 
 import { IAM_CONFIG, SYSTEM_ROLES } from '../constants'
 import type { UserAssignmentDto } from './assignment.contract'
-import { UserAssignmentRepo } from './assignment.repo'
+import type { IUserAssignmentRepo } from './assignment.repo'
 
 export class UserAssignmentService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: UserAssignmentRepo,
+		private readonly repo: IUserAssignmentRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.user.assignment')
@@ -39,10 +39,23 @@ export class UserAssignmentService {
 		)
 	}
 
+	/**
+	 * Batch-load assignments for many users in a single query (no N+1), grouped
+	 * by userId. Every requested id is present in the result (empty array when
+	 * the user has no assignments).
+	 */
 	async getRecordByUserId(userIds: number[]): Promise<Record<number, UserAssignmentDto[]>> {
-		const result: Record<number, UserAssignmentDto[]> = {}
-		await Promise.all(userIds.map((id) => this.getByUserId(id).then((r) => (result[id] = r))))
-		return result
+		return record('UserAssignmentService.getRecordByUserId', async () => {
+			const result: Record<number, UserAssignmentDto[]> = {}
+			for (const id of userIds) result[id] = []
+			if (userIds.length === 0) return result
+
+			const rows = await this.repo.findMany({ userIds })
+			for (const row of rows) {
+				;(result[row.userId] ??= []).push(row)
+			}
+			return result
+		})
 	}
 
 	async replaceByUserId(
@@ -52,6 +65,7 @@ export class UserAssignmentService {
 			locationId: number
 		}[],
 		actorId: ActorId,
+		db?: DbContext,
 	): Promise<void> {
 		return record('UserAssignmentService.replaceByUserId', async () => {
 			const now = new Date()
@@ -63,6 +77,7 @@ export class UserAssignmentService {
 					addedAt: now,
 					addedBy: actorId,
 				})),
+				db,
 			)
 
 			// Invalidate cache for this user's assignments

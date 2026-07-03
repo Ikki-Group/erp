@@ -3,17 +3,20 @@ import { record } from '@elysiajs/opentelemetry'
 import { usersTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
+import {
+	checkConflict,
+	withTransaction,
+	type ConflictField,
+	type DbContext,
+} from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 import { RelationMap } from '@/shared/utils'
 import { hashPassword, verifyPassword } from '@/shared/utils/password'
-
-import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { LocationModule } from '@/modules/location'
 
 import type { UserAssignmentService } from '../assignment/assignment.service'
-import type { RoleService } from '../role/role.service'
 import type {
 	UserDto,
 	UserCreateDto,
@@ -23,7 +26,7 @@ import type {
 	UserWithPasswordDto,
 } from './user.contract'
 import { UserError } from './user.internal'
-import { UserRepo } from './user.repo'
+import type { IUserRepo } from './user.repo'
 
 const userConflictFields: ConflictField<{ email: string; username: string }>[] = [
 	{
@@ -41,20 +44,32 @@ const userConflictFields: ConflictField<{ email: string; username: string }>[] =
 ]
 
 interface ServiceDeps {
-	role: RoleService
 	assignment: UserAssignmentService
 	location: LocationModule
+}
+
+/** Strip the password hash before a user record leaves the service boundary. */
+function toUserDto(user: UserWithPasswordDto): UserDto {
+	const { passwordHash: _passwordHash, ...rest } = user
+	return rest
 }
 
 export class UserService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly s: ServiceDeps,
-		private readonly r: UserRepo,
+		private readonly deps: ServiceDeps,
+		private readonly repo: IUserRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.user')
+	}
+
+	/** Invalidate list/count caches, plus the byId cache when an id is given. */
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
 	}
 
 	/* --------------------------------- PUBLIC -------------------------------- */
@@ -63,7 +78,7 @@ export class UserService {
 		return record('UserService.getListAll', async () =>
 			this.cache.getOrSet({
 				key: this.cache.keys.list,
-				factory: () => this.r.getList(),
+				factory: () => this.repo.getList(),
 			}),
 		)
 	}
@@ -91,21 +106,22 @@ export class UserService {
 				})
 			}
 
-			await this.r.insertMany(parsed, db)
+			await this.repo.insertMany(parsed, db)
 		})
 	}
 
 	async getById(id: number): Promise<UserDto | undefined> {
-		return record('UserService.getById', async () =>
-			this.cache.getOrSetWithSkip({
+		return record('UserService.getById', async () => {
+			const user = await this.cache.getOrSetWithSkip({
 				key: this.cache.keys.byId(id),
-				factory: () => this.r.getById(id),
-			}),
-		)
+				factory: () => this.repo.getById(id).then((u) => (u ? toUserDto(u) : undefined)),
+			})
+			return user
+		})
 	}
 
-	async getByIdentifier(identifier: string): Promise<UserWithPasswordDto | null> {
-		return record('UserService.getByIdentifier', () => this.r.getByIdentifier(identifier))
+	async getByIdentifier(identifier: string): Promise<UserWithPasswordDto | undefined> {
+		return record('UserService.getByIdentifier', () => this.repo.getByIdentifier(identifier))
 	}
 
 	async create(
@@ -116,32 +132,31 @@ export class UserService {
 			const { assignments, isRoot } = data
 
 			await checkConflict({
+				db: this.repo.db,
 				table: usersTable,
 				pkColumn: usersTable.id,
 				fields: userConflictFields,
 				input: data,
 			})
 
-			const result = await this.r.insert({
-				...data,
-				...stampCreate(actorId),
+			// User row + assignments must commit together.
+			const result = await withTransaction(this.repo.db, async (tx) => {
+				const created = await this.repo.insert({ ...data, ...stampCreate(actorId) }, tx)
+				if (!created) throw UserError.createFailed()
+
+				if (!isRoot && assignments.length > 0) {
+					await this.deps.assignment.replaceByUserId(
+						created.id,
+						assignments.map((a) => ({ roleId: a.roleId, locationId: a.locationId })),
+						actorId,
+						tx,
+					)
+				}
+
+				return created
 			})
-			if (!result) throw UserError.createFailed()
 
-			if (assignments && assignments.length > 0 && !isRoot) {
-				await this.s.assignment.replaceByUserId(
-					result.id,
-					assignments.map((a) => ({
-						userId: result.id,
-						roleId: a.roleId,
-						locationId: a.locationId,
-					})),
-					actorId,
-				)
-			}
-
-			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
-
+			await this.invalidate()
 			return result
 		})
 	}
@@ -154,40 +169,35 @@ export class UserService {
 		return record('UserService.update', async () => {
 			const { assignments, isRoot } = data
 
-			const existing = await this.r.getById(id)
+			const existing = await this.repo.getById(id)
 			if (!existing) throw UserError.notFound(id)
 
 			await checkConflict({
+				db: this.repo.db,
 				table: usersTable,
 				pkColumn: usersTable.id,
 				fields: userConflictFields,
-				input: {
-					email: data.email,
-					username: data.username,
-				},
+				input: { email: data.email, username: data.username },
 				existing,
 			})
 
-			const result = await this.r.update(id, {
-				...data,
-				...stampUpdate(actorId),
+			const result = await withTransaction(this.repo.db, async (tx) => {
+				const updated = await this.repo.update(id, { ...data, ...stampUpdate(actorId) }, tx)
+				if (!updated) throw UserError.notFound(id)
+
+				if (!isRoot) {
+					await this.deps.assignment.replaceByUserId(
+						id,
+						assignments.map((a) => ({ roleId: a.roleId, locationId: a.locationId })),
+						actorId,
+						tx,
+					)
+				}
+
+				return updated
 			})
-			if (!result) throw UserError.notFound(id)
 
-			if (assignments && assignments.length >= 0 && !isRoot) {
-				await this.s.assignment.replaceByUserId(
-					id,
-					assignments.map((a) => ({ userId: id, roleId: a.roleId, locationId: a.locationId })),
-					actorId,
-				)
-			}
-
-			await this.cache.deleteFromKeys([
-				this.cache.keys.list,
-				this.cache.keys.count,
-				this.cache.keys.byId(id),
-			])
-
+			await this.invalidate(id)
 			return result
 		})
 	}
@@ -196,9 +206,7 @@ export class UserService {
 
 	async handleCreate(data: UserCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('UserService.handleCreate', async () => {
-			const { password } = data
-			const passwordHash = await hashPassword(password)
-
+			const passwordHash = await hashPassword(data.password)
 			return this.create({ ...data, passwordHash }, actorId)
 		})
 	}
@@ -211,26 +219,16 @@ export class UserService {
 			if (!existing) throw UserError.notFound(id)
 
 			const passwordHash = password ? await hashPassword(password) : undefined
-			const result = await this.update(
-				id,
-				{ ...data, ...(passwordHash ? { passwordHash } : {}) },
-				actorId,
-			)
-			return result
+			return this.update(id, { ...data, ...(passwordHash ? { passwordHash } : {}) }, actorId)
 		})
 	}
 
 	async handleDelete(id: number): Promise<EntityRef> {
 		return record('UserService.handleDelete', async () => {
-			const result = await this.r.remove(id)
+			const result = await this.repo.remove(id)
 			if (!result) throw UserError.notFound(id)
 
-			await this.cache.deleteFromKeys([
-				this.cache.keys.list,
-				this.cache.keys.count,
-				this.cache.keys.byId(id),
-			])
-
+			await this.invalidate(id)
 			return result
 		})
 	}
@@ -241,14 +239,14 @@ export class UserService {
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('UserService.handleChangePassword', async () => {
-			const passwordHash = await this.r.getById(id).then((u) => u?.passwordHash)
+			const passwordHash = await this.repo.getById(id).then((u) => u?.passwordHash)
 			if (!passwordHash) throw UserError.notFound(id)
 
 			const isMatch = await verifyPassword(data.oldPassword, passwordHash)
 			if (!isMatch) throw UserError.passwordMismatch()
 
 			const newPasswordHash = await hashPassword(data.newPassword)
-			const result = await this.r.update(id, {
+			const result = await this.repo.update(id, {
 				passwordHash: newPasswordHash,
 				...stampUpdate(actorId),
 			})
@@ -267,7 +265,7 @@ export class UserService {
 		return record('UserService.handleAdminUpdatePassword', async () => {
 			const { id, password } = data
 			const passwordHash = await hashPassword(password)
-			const result = await this.r.update(id, {
+			const result = await this.repo.update(id, {
 				passwordHash,
 				...stampUpdate(actorId),
 			})

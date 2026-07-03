@@ -13,10 +13,25 @@ interface FindManyOpts {
 	locationIds?: number | number[]
 }
 
-export class UserAssignmentRepo {
-	constructor(private readonly db: DbContext) {}
+/**
+ * Repository port for user-role-location assignments. Services depend on this
+ * interface for unit testing. Writes accept an optional `db` override to join a
+ * caller's transaction.
+ */
+export interface IUserAssignmentRepo {
+	readonly db: DbContext
+	findMany(opts?: FindManyOpts, db?: DbContext): Promise<UserAssignmentDto[]>
+	replaceByUserId(
+		userId: number,
+		assignments: Omit<UserAssignmentDto, 'id'>[],
+		db?: DbContext,
+	): Promise<void>
+}
 
-	async findMany(opts: FindManyOpts = {}, db = this.db): Promise<UserAssignmentDto[]> {
+export class UserAssignmentRepo implements IUserAssignmentRepo {
+	constructor(readonly db: DbContext) {}
+
+	async findMany(opts: FindManyOpts = {}, db: DbContext = this.db): Promise<UserAssignmentDto[]> {
 		const { userIds, roleIds, locationIds } = opts
 		const where: SQL[] = []
 
@@ -36,7 +51,7 @@ export class UserAssignmentRepo {
 	async replaceByUserId(
 		userId: number,
 		assignments: Omit<UserAssignmentDto, 'id'>[],
-		db = this.db,
+		db: DbContext = this.db,
 	): Promise<void> {
 		await db.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
 

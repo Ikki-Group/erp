@@ -35,7 +35,6 @@ export function createIamModule(db: DbContext, cacheClient: CacheClient, deps: D
 		{
 			location: deps.location,
 			assignment,
-			role,
 		},
 		userRepo,
 		cacheClient,

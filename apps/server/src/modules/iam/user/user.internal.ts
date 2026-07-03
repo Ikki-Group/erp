@@ -17,16 +17,6 @@ export const UserError = {
 		}),
 
 	/**
-	 * User not found by identifier (email or username)
-	 * @param identifier - Email or username that was not found
-	 */
-	notFoundByIdentifier: (identifier: string) =>
-		new NotFoundError('User not found', {
-			code: 'USER_NOT_FOUND',
-			context: { identifier },
-		}),
-
-	/**
 	 * User creation failed (database or system error)
 	 */
 	createFailed: () =>
@@ -40,15 +30,5 @@ export const UserError = {
 	passwordMismatch: () =>
 		new BadRequestError('Old password does not match', {
 			code: 'USER_PASSWORD_MISMATCH',
-		}),
-
-	/**
-	 * User is inactive and cannot perform action
-	 * @param id - Inactive user ID
-	 */
-	userInactive: (id: number) =>
-		new BadRequestError('User is inactive', {
-			code: 'USER_INACTIVE',
-			context: { id },
 		}),
 }

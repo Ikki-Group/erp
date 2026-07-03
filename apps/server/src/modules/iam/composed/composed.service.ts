@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { NotFoundError } from '@/shared/errors/http-error'
-
+import { logger } from '@/infra/logger'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { LocationModule } from '@/modules/location'
@@ -9,9 +8,10 @@ import type { LocationModule } from '@/modules/location'
 import type { UserAssignmentService } from '../assignment/assignment.service'
 import type { RoleService } from '../role/role.service'
 import type { UserDto } from '../user/user.contract'
+import { UserError } from '../user/user.internal'
 import type { UserService } from '../user/user.service'
 import type { UserDetailDto, UserFilterDto } from './composed.contract'
-import type { IamComposedRepo } from './composed.repo'
+import type { IIamComposedRepo } from './composed.repo'
 
 interface UserRelations {
 	assignments: Awaited<ReturnType<UserAssignmentService['getRecordByUserId']>>
@@ -30,7 +30,7 @@ interface ServiceDeps {
 export class IamComposedService {
 	constructor(
 		private readonly deps: ServiceDeps,
-		private readonly repo: IamComposedRepo,
+		private readonly repo: IIamComposedRepo,
 	) {}
 
 	async #loadRelations(userIds: number[]): Promise<UserRelations> {
@@ -66,11 +66,25 @@ export class IamComposedService {
 		} else {
 			const uas = relations.assignments[user.id]
 			if (uas && uas.length > 0) {
-				user.assignments = uas.map((ua) => ({
-					...ua,
-					role: relations.rolesMap.getRequired(ua.roleId),
-					location: relations.locationsMap.getRequired(ua.locationId),
-				}))
+				user.assignments = uas.flatMap((ua) => {
+					const role = relations.rolesMap.get(ua.roleId)
+					const location = relations.locationsMap.get(ua.locationId)
+					// Degrade gracefully on a dangling FK (e.g. removed role/location)
+					// instead of crashing the entire list page.
+					if (!role || !location) {
+						logger.warn(
+							'Skipping assignment {assignmentId} for user {userId}: missing role/location',
+							{
+								assignmentId: ua.id,
+								userId: user.id,
+								roleId: ua.roleId,
+								locationId: ua.locationId,
+							},
+						)
+						return []
+					}
+					return [{ ...ua, role, location }]
+				})
 			}
 		}
 
@@ -99,7 +113,7 @@ export class IamComposedService {
 	async getDetailById(id: number): Promise<UserDetailDto> {
 		return record('IamComposedService.getDetailById', async () => {
 			const user = await this.deps.user.getById(id)
-			if (!user) throw NotFoundError.fromEntity('User', id)
+			if (!user) throw UserError.notFound(id)
 			return this.#mapUserDetail(user, await this.#loadRelations([user.id]))
 		})
 	}

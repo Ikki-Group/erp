@@ -5,10 +5,9 @@ import { rolesTable } from '@/db/schema'
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { RelationMap } from '@/shared/utils'
-
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
+import { RelationMap } from '@/shared/utils'
 
 import type {
 	RoleCreateDto,
@@ -19,7 +18,7 @@ import type {
 
 import { SYSTEM_ROLES } from '../constants'
 import { RoleError } from './role.internal'
-import { RoleRepo } from './role.repo'
+import type { IRoleRepo } from './role.repo'
 
 const roleConflictFields: ConflictField<{ code: string; name: string }>[] = [
 	{
@@ -40,7 +39,7 @@ export class RoleService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: RoleRepo,
+		private readonly repo: IRoleRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.role')
@@ -51,7 +50,7 @@ export class RoleService {
 	}
 
 	async getAll(): Promise<RoleDto[]> {
-		return record('RoleService.getListAll', async () =>
+		return record('RoleService.getAll', async () =>
 			this.cache.getOrSet({
 				key: this.cache.keys.list,
 				factory: () => this.repo.findMany(),
@@ -108,6 +107,7 @@ export class RoleService {
 	async handleCreate(data: RoleCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('RoleService.handleCreate', async () => {
 			await checkConflict({
+				db: this.repo.db,
 				table: rolesTable,
 				pkColumn: rolesTable.id,
 				fields: roleConflictFields,
@@ -134,6 +134,7 @@ export class RoleService {
 			if (existing.isSystem) throw RoleError.updateSystemRole()
 
 			await checkConflict({
+				db: this.repo.db,
 				table: rolesTable,
 				pkColumn: rolesTable.id,
 				fields: roleConflictFields,
@@ -151,6 +152,10 @@ export class RoleService {
 
 	async handleDelete(id: number): Promise<EntityRef> {
 		return record('RoleService.handleDelete', async () => {
+			const existing = await this.repo.findById(id)
+			if (!existing) throw RoleError.notFound(id)
+			if (existing.isSystem) throw RoleError.deleteSystemRole()
+
 			const result = await this.repo.remove(id)
 			if (!result) throw RoleError.notFound(id)
 

@@ -1,4 +1,5 @@
-import type { IamServiceModule, RoleService, UserService, UserReadService } from '@/modules/iam'
+import type { RoleService, UserService } from '@/modules/iam'
+import type { IamModule } from '@/modules/iam/iam.module'
 
 import { testCtx } from '../setup'
 import { describe, test, expect, beforeAll } from 'bun:test'
@@ -28,76 +29,55 @@ function createMockRole(suffix: string): Parameters<RoleService['handleCreate']>
 }
 
 describe('services/iam', () => {
-	let iamSvc: IamServiceModule
-	let roleSvc: RoleService
-	let userSvc: UserService
-	let userReadSvc: UserReadService
+	let iamSvc: IamModule
+	const run = Date.now().toString(36)
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		iamSvc = testCtx.m.iam
-		roleSvc = iamSvc.role
-		userSvc = iamSvc.user
-		userReadSvc = iamSvc.userRead
 	})
 
 	test('role CRUD', async () => {
-		const mockRole = createMockRole('crud')
+		const mockRole = createMockRole(`crud-${run}`)
 
-		const created = await roleSvc.handleCreate(mockRole, 1)
+		const created = await iamSvc.role.handleCreate(mockRole, 1)
 		expect(created.id).toBeDefined()
 
-		const detail = await roleSvc.handleGetById(created.id)
+		const detail = await iamSvc.role.handleGetById(created.id)
 		expect(detail.id).toBe(created.id)
 
-		const updated = await roleSvc.handleUpdate(
-			{
-				id: created.id,
-				...mockRole,
-				name: `${mockRole.name} updated`,
-			},
+		const updated = await iamSvc.role.handleUpdate(
+			{ id: created.id, ...mockRole, name: `${mockRole.name} updated` },
 			1,
 		)
 		expect(updated.id).toBe(created.id)
 
-		const list = await roleSvc.handleList({
-			q: detail.code,
-			limit: 10,
-			page: 1,
-		})
+		const list = await iamSvc.role.handleList({ q: detail.name, limit: 10, page: 1 })
 		expect(
 			list.data.some((r) => r.code === detail.code),
 			`Role ${detail.code} not found`,
 		).toBe(true)
 
-		const removed = await roleSvc.handleDelete(updated.id)
+		const removed = await iamSvc.role.handleDelete(updated.id)
 		expect(removed.id).toBe(updated.id)
 	})
 
-	test('user - crud isRoot', async () => {
-		const mockUser = createMockUser('crud-isroot-001')
+	test('user CRUD (isRoot)', async () => {
+		const mockUser = createMockUser(`crud-isroot-${run}`)
 
-		const created = await userSvc.handleCreate(mockUser, 1)
+		const created = await iamSvc.user.handleCreate(mockUser, 1)
 		expect(created.id).toBeDefined()
 
-		const detail = await userReadSvc.handleDetail(created.id)
+		// User reads live on the composed submodule (joins roles/locations).
+		const detail = await iamSvc.composed.getDetailById(created.id)
 		expect(detail.id).toBe(created.id)
 
-		const updated = await userSvc.handleUpdate(
-			{
-				id: detail.id,
-				...mockUser,
-				fullname: `${detail.fullname} updated`,
-			},
+		const updated = await iamSvc.user.handleUpdate(
+			{ id: detail.id, ...mockUser, fullname: `${detail.fullname} updated` },
 			1,
 		)
 		expect(updated.id).toBe(created.id)
-		// const list = await userSvc.handleList({
-		// 	q: detail.email,
-		// 	limit: 10,
-		// 	page: 1,
-		// })
-		// expect(list.data.some((u) => u.email === detail.email)).toBe(true)
-		const removed = await userSvc.handleDelete(created.id)
+
+		const removed = await iamSvc.user.handleDelete(created.id)
 		expect(removed.id).toBe(created.id)
 	})
 })
