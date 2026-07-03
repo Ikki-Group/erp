@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { StockAlertFilterDto } from './stock-alert.contract'
+import type { StockAlertFilterDto, StockAlertCountFilterDto } from './stock-alert.contract'
 import { StockAlertRepo } from './stock-alert.repo'
 
 export class StockAlertService {
@@ -17,7 +17,7 @@ export class StockAlertService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleAlerts(filter: StockAlertFilterDto & { page?: number; limit?: number }) {
+	async handleAlerts(filter: StockAlertFilterDto) {
 		return record('StockAlertService.handleAlerts', async () => {
 			const key = `alerts.${JSON.stringify(filter)}`
 			return this.cache.getOrSet({
@@ -27,7 +27,7 @@ export class StockAlertService {
 		})
 	}
 
-	async handleCount(filter: StockAlertFilterDto) {
+	async handleCount(filter: StockAlertCountFilterDto) {
 		return record('StockAlertService.handleCount', async () => {
 			const key = `count.${JSON.stringify(filter)}`
 			return this.cache.getOrSet({

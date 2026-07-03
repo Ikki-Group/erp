@@ -7,6 +7,7 @@ import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/s
 
 import {
 	GoodsReceiptNoteDto,
+	GoodsReceiptNoteSelectDto,
 	GoodsReceiptNoteFilterDto,
 	GoodsReceiptNoteCreateDto,
 } from './goods-receipt.contract'
@@ -23,7 +24,7 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 			},
 			{
 				query: GoodsReceiptNoteFilterDto,
-				response: createPaginatedResponseDto(GoodsReceiptNoteDto),
+				response: createPaginatedResponseDto(GoodsReceiptNoteSelectDto),
 				auth: true,
 			},
 		)

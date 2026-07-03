@@ -8,6 +8,7 @@ import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/s
 import {
 	PurchaseOrderFilterDto,
 	PurchaseOrderDto,
+	PurchaseOrderSelectDto,
 	PurchaseOrderCreateDto,
 	PurchaseOrderUpdateDto,
 	PurchaseOrderSubmitForApprovalDto,
@@ -27,7 +28,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 			},
 			{
 				query: PurchaseOrderFilterDto,
-				response: createPaginatedResponseDto(PurchaseOrderDto),
+				response: createPaginatedResponseDto(PurchaseOrderSelectDto),
 				auth: true,
 			},
 		)

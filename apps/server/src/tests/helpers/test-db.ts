@@ -1,7 +1,6 @@
 import { SQL } from 'bun'
 import { drizzle } from 'drizzle-orm/bun-sql'
 
-import * as schema from '@/db/schema'
 import { relations } from '@/db/schema/_relations'
 
 import type { DbClient } from '@/infra/database'
@@ -27,7 +26,7 @@ export async function createTestContext(): Promise<TestContext> {
 	// // Start transaction on reserved connection
 	// await reserved`BEGIN`
 
-	const db = drizzle({ client, schema: { ...schema, relations } })
+	const db = drizzle({ client, relations })
 
 	return {
 		db,

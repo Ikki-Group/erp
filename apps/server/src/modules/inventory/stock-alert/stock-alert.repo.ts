@@ -11,14 +11,14 @@ import {
 
 import type { DbClient } from '@/infra/database'
 
-import { StockAlertFilterDto } from './stock-alert.contract'
+import type { StockAlertFilterDto, StockAlertCountFilterDto } from './stock-alert.contract'
 
 export class StockAlertRepo {
 	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getAlerts(filter: StockAlertFilterDto & { page?: number; limit?: number }) {
+	async getAlerts(filter: StockAlertFilterDto) {
 		return record('StockAlertRepo.getAlerts', async () => {
 			const page = filter.page ?? 1
 			const limit = filter.limit ?? 20
@@ -95,7 +95,7 @@ export class StockAlertRepo {
 		})
 	}
 
-	async getAlertCount(filter: StockAlertFilterDto) {
+	async getAlertCount(filter: StockAlertCountFilterDto) {
 		return record('StockAlertRepo.getAlertCount', async () => {
 			const conditions = [
 				filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
