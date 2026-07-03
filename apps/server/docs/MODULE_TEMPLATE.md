@@ -1,5 +1,11 @@
 # Module Templates & Standards
 
+> ⚠️ **Superseded by [MODULE_STANDARD.md](./MODULE_STANDARD.md).**
+> That file is the current single source of truth (repo ports, `undefined`
+> not-found, explicit-`db` `checkConflict`, `withTransaction` atomicity,
+> unit-first testing). Use the `location/` and `iam/` modules as references.
+> The content below predates the standardization and is kept for history only.
+
 **Version**: 2.0  
 **Last Updated**: 2026-06-24
 
@@ -8,6 +14,7 @@ Copy-paste ready templates for creating new modules following Ikki ERP standards
 ## 📐 Module Structure Standard
 
 ### Simple Module (< 3 features)
+
 ```
 modules/{module}/
 ├── {module}.contract.ts    # Zod schemas (validation)
@@ -20,6 +27,7 @@ modules/{module}/
 ```
 
 ### Complex Module (≥ 3 features or cross-cutting)
+
 ```
 modules/{module}/
 ├── {module}.module.ts      # Aggregate DI factory
@@ -36,6 +44,7 @@ modules/{module}/
 ```
 
 ### Key Conventions
+
 - **Contract**: Validation schemas (Zod)
 - **Internal**: Error definitions & internal types
 - **Repo**: Data access layer (Drizzle)
@@ -48,6 +57,7 @@ modules/{module}/
 ## 📋 Quick Start
 
 Replace `{module}` and `{Module}` with your module name:
+
 - `{module}` = lowercase, e.g., `location`, `user`, `product`
 - `{Module}` = PascalCase, e.g., `Location`, `User`, `Product`
 
@@ -169,11 +179,11 @@ export class {Module}Repo {
     const query = this.db.select().from({module}sTable)
 
     const conditions = []
-    
+
     if (filter.search) {
       conditions.push(like({module}sTable.name, `%${filter.search}%`))
     }
-    
+
     if (filter.isActive !== undefined) {
       conditions.push(eq({module}sTable.isActive, filter.isActive))
     }
@@ -544,13 +554,13 @@ import { pgTable, serial, varchar, boolean, timestamp, integer } from 'drizzle-o
 
 export const {module}sTable = pgTable('{module}s', {
   id: serial('id').primaryKey(),
-  
+
   // Business fields
   name: varchar('name', { length: 255 }).notNull(),
   code: varchar('code', { length: 50 }).notNull().unique(),
   description: varchar('description', { length: 500 }),
   isActive: boolean('is_active').notNull().default(true),
-  
+
   // Audit fields
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -814,7 +824,7 @@ export function create{Module}Module(
   // 2. Create services (resolve dependencies bottom-up)
   const {sub1} = new {Sub1}Service({sub1}Repo, cacheClient)
   const {sub2} = new {Sub2}Service({sub2}Repo, cacheClient)
-  
+
   const composed = new ComposedService(
     { {sub1}, {sub2} },
     composedRepo,
@@ -873,6 +883,7 @@ After copying a template, replace:
 ---
 
 **Tip:** Use find-and-replace in your editor:
+
 - Find: `{module}` → Replace: `product`
 - Find: `{Module}` → Replace: `Product`
 - Find: `{MODULE}` → Replace: `PRODUCT`
