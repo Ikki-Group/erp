@@ -1,12 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ne, type SQL } from 'drizzle-orm'
 
-import { db } from '@/db'
-
-import type { DbContext } from '@/infra/database'
 import { logger } from '@/infra/logger'
 import { ConflictError } from '@/shared/errors/http-error'
 
+import type { DbContext } from './types'
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
 /* -------------------------------------------------------------------------- */
@@ -25,7 +23,14 @@ export interface ConflictField<T extends Record<string, unknown> = Record<string
 }
 
 interface CheckConflictOptions<T extends Record<string, unknown> = Record<string, unknown>> {
-	db?: DbContext
+	/**
+	 * The database context to run conflict queries against. Pass the caller's
+	 * repo `db` (or an open transaction handle) so the uniqueness read runs in
+	 * the same scope as the subsequent write. Required — there is no implicit
+	 * global fallback, which prevents conflict reads from silently escaping a
+	 * caller's transaction.
+	 */
+	db: DbContext
 	/** The Drizzle table to query against. */
 	table: PgTable
 	/** The primary key column of the table (default serial `id`). */
@@ -58,6 +63,7 @@ interface CheckConflictOptions<T extends Record<string, unknown> = Record<string
  *
  * @example
  * await checkConflict({
+ *   db: this.repo.db, // caller's db / open transaction handle
  *   table: users,
  *   pkColumn: users.id,
  *   fields: [
@@ -72,7 +78,7 @@ export async function checkConflict<T extends Record<string, unknown>>(
 	opts: CheckConflictOptions<T>,
 ): Promise<void> {
 	return record('db.checkConflict', async () => {
-		const { db: dbOverride, table, pkColumn, fields, input, existing } = opts
+		const { db, table, pkColumn, fields, input, existing } = opts
 
 		// Determine which fields actually changed
 		const changedFields = fields.filter((f) => {
@@ -90,11 +96,7 @@ export async function checkConflict<T extends Record<string, unknown>>(
 			const fieldMatch = eq(f.column, input[f.field] as never)
 			const where: SQL = existing ? and(ne(pkColumn, existing.id), fieldMatch)! : fieldMatch
 
-			const [conflict] = await (dbOverride ?? db)
-				.select({ id: pkColumn })
-				.from(table)
-				.where(where)
-				.limit(1)
+			const [conflict] = await db.select({ id: pkColumn }).from(table).where(where).limit(1)
 
 			if (conflict) {
 				logger.warn('Conflict detected on field {field}', {

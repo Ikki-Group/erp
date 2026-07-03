@@ -1,5 +1,6 @@
 export * from './types'
 export * from './conflict-checker'
+export * from './transaction'
 export * from './utils'
 export * from './query-builder'
 export * from './pagination'
