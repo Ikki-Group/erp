@@ -21,7 +21,7 @@ import type {
 } from '../domain/ports'
 
 export class MaterialLocationRepo implements IMaterialLocationRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 

@@ -15,7 +15,7 @@ import type {
 } from '../domain/ports'
 
 export class MaterialConversionRepo implements IMaterialConversionRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(readonly db: DbClient) {}
 
 	async getListPaginated(
 		filter: ConversionFilter,

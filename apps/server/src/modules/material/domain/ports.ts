@@ -97,6 +97,7 @@ export interface CategoryUpdateData {
 /* ------------------------------- CONVERSION ------------------------------- */
 
 export interface IMaterialConversionRepo {
+	readonly db: DbClient
 	getList(materialId?: number): Promise<MaterialConversion[]>
 	getById(id: number): Promise<MaterialConversion | undefined>
 	getByMaterialAndUom(materialId: number, uomId: number): Promise<MaterialConversion | undefined>
@@ -142,6 +143,7 @@ export interface ConversionUpdateData {
 /* ------------------------------- LOCATION --------------------------------- */
 
 export interface IMaterialLocationRepo {
+	readonly db: DbClient
 	getOne(materialId: number, locationId: number): Promise<MaterialLocation | null>
 	getByMaterialId(materialId: number): Promise<MaterialLocation[]>
 	getByLocationId(locationId: number): Promise<MaterialLocation[]>
