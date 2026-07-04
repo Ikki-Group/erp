@@ -1,157 +1,160 @@
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, SQL } from 'drizzle-orm'
 
 import { paymentMethodsTable } from '@/db/schema'
 
-import { paginate, searchFilter, takeFirst, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-import * as dto from './payment-method.contract'
+import type {
+	PaymentMethodDto,
+	PaymentMethodFilterDto,
+} from './payment-method.contract'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
-export class PaymentMethodRepo {
-	constructor(readonly db: DbClient) {}
+export type PaymentMethodInsert = typeof paymentMethodsTable.$inferInsert
+export type PaymentMethodUpdate = PgUpdateSetSource<typeof paymentMethodsTable>
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export interface IPaymentMethodRepo {
+	readonly db: DbContext
+	findMany(filter?: Partial<Pick<PaymentMethodFilterDto, 'q' | 'category' | 'isEnabled' | 'isGlobal'>>, db?: DbContext): Promise<PaymentMethodDto[]>
+	findPage(filter: PaymentMethodFilterDto, db?: DbContext): Promise<WithPaginationResult<PaymentMethodDto>>
+	findById(id: number, db?: DbContext): Promise<PaymentMethodDto | undefined>
+	findEnabled(db?: DbContext): Promise<PaymentMethodDto[]>
+	findGlobal(db?: DbContext): Promise<PaymentMethodDto[]>
+	count(db?: DbContext): Promise<number>
+	insert(data: PaymentMethodInsert, db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: PaymentMethodUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+	insertMany(items: PaymentMethodInsert[], db?: DbContext): Promise<void>
+	seed(data: (PaymentMethodInsert & { createdBy: number })[], db?: DbContext): Promise<void>
+}
 
-	async getListPaginated(
-		filter: dto.PaymentMethodFilterDto,
-	): Promise<WithPaginationResult<dto.PaymentMethodDto>> {
-		return record('PaymentMethodRepo.getListPaginated', async () => {
-			const { q, page, limit, category, isEnabled, isGlobal } = filter
-			const where = and(
-				q === undefined ? undefined : searchFilter(paymentMethodsTable.name, q),
-				category === undefined ? undefined : eq(paymentMethodsTable.category, category),
-				isEnabled === undefined ? undefined : eq(paymentMethodsTable.isEnabled, isEnabled),
-				isGlobal === undefined ? undefined : eq(paymentMethodsTable.isGlobal, isGlobal),
-			)
+export class PaymentMethodRepo implements IPaymentMethodRepo {
+	constructor(readonly db: DbContext) {}
 
-			const result = await paginate({
-				data: ({ limit, offset }) =>
-					this.db
-						.select()
-						.from(paymentMethodsTable)
-						.where(where)
-						.orderBy(paymentMethodsTable.name)
-						.limit(limit)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: () => this.db.select({ count: count() }).from(paymentMethodsTable).where(where),
-			})
+	#buildWhere(filter?: Partial<Pick<PaymentMethodFilterDto, 'q' | 'category' | 'isEnabled' | 'isGlobal'>>): SQL | undefined {
+		if (!filter) return undefined
 
-			return {
-				...result,
-				data: result.data.map((item) => ({ ...item })),
-			}
+		const { q, category, isEnabled, isGlobal } = filter
+		return and(
+			q === undefined ? undefined : searchFilter(paymentMethodsTable.name, q),
+			category === undefined ? undefined : eq(paymentMethodsTable.category, category),
+			isEnabled === undefined ? undefined : eq(paymentMethodsTable.isEnabled, isEnabled),
+			isGlobal === undefined ? undefined : eq(paymentMethodsTable.isGlobal, isGlobal),
+		)
+	}
+
+	async findMany(
+		filter?: Partial<Pick<PaymentMethodFilterDto, 'q' | 'category' | 'isEnabled' | 'isGlobal'>>,
+		db: DbContext = this.db,
+	): Promise<PaymentMethodDto[]> {
+		const where = this.#buildWhere(filter)
+		return db.select().from(paymentMethodsTable).where(where)
+	}
+
+	async findPage(
+		filter: PaymentMethodFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<PaymentMethodDto>> {
+		const { q, page, limit, category, isEnabled, isGlobal } = filter
+		const where = this.#buildWhere({ q, category, isEnabled, isGlobal })
+
+		return paginate<PaymentMethodDto>({
+			data: ({ limit, offset }) =>
+				db
+					.select()
+					.from(paymentMethodsTable)
+					.where(where)
+					.orderBy(paymentMethodsTable.name)
+					.limit(limit)
+					.offset(offset),
+			pq: { page, limit },
+			countQuery: () => db.select({ count: count() }).from(paymentMethodsTable).where(where),
 		})
 	}
 
-	async getList(): Promise<dto.PaymentMethodDto[]> {
-		return record('PaymentMethodRepo.getList', async () => {
-			const data = await this.db.select().from(paymentMethodsTable)
-			return data.map((item) => ({ ...item }))
-		})
+	async findById(id: number, db: DbContext = this.db): Promise<PaymentMethodDto | undefined> {
+		return db
+			.select()
+			.from(paymentMethodsTable)
+			.where(eq(paymentMethodsTable.id, id))
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	async getEnabled(): Promise<dto.PaymentMethodDto[]> {
-		return record('PaymentMethodRepo.getEnabled', async () => {
-			const data = await this.db
-				.select()
-				.from(paymentMethodsTable)
-				.where(eq(paymentMethodsTable.isEnabled, true))
-			return data.map((item) => ({ ...item }))
-		})
+	async findEnabled(db: DbContext = this.db): Promise<PaymentMethodDto[]> {
+		return db
+			.select()
+			.from(paymentMethodsTable)
+			.where(eq(paymentMethodsTable.isEnabled, true))
 	}
 
-	async getGlobal(): Promise<dto.PaymentMethodDto[]> {
-		return record('PaymentMethodRepo.getGlobal', async () => {
-			const data = await this.db
-				.select()
-				.from(paymentMethodsTable)
-				.where(and(eq(paymentMethodsTable.isEnabled, true), eq(paymentMethodsTable.isGlobal, true)))
-			return data.map((item) => ({ ...item }))
-		})
+	async findGlobal(db: DbContext = this.db): Promise<PaymentMethodDto[]> {
+		return db
+			.select()
+			.from(paymentMethodsTable)
+			.where(and(
+				eq(paymentMethodsTable.isEnabled, true),
+				eq(paymentMethodsTable.isGlobal, true),
+			))
 	}
 
-	async getById(id: number): Promise<dto.PaymentMethodDto | undefined> {
-		return record('PaymentMethodRepo.getById', async () => {
-			const data = await this.db
-				.select()
-				.from(paymentMethodsTable)
-				.where(eq(paymentMethodsTable.id, id))
-				.limit(1)
-				.then(takeFirst)
-			return data
-		})
+	async count(db: DbContext = this.db): Promise<number> {
+		return db
+			.select({ count: count() })
+			.from(paymentMethodsTable)
+			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	async count(): Promise<number> {
-		return record('PaymentMethodRepo.count', async () => {
-			return this.db
-				.select({ count: count() })
-				.from(paymentMethodsTable)
-				.then((rows) => rows[0]?.count ?? 0)
-		})
+	async insert(data: PaymentMethodInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.insert(paymentMethodsTable)
+			.values({ ...data })
+			.returning({ id: paymentMethodsTable.id })
+
+		return res
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
+	async update(id: number, data: PaymentMethodUpdate, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(paymentMethodsTable)
+			.set({ ...data })
+			.where(eq(paymentMethodsTable.id, id))
+			.returning({ id: paymentMethodsTable.id })
+		return res
+	}
 
-	async create(data: dto.PaymentMethodCreateDto, actorId: number): Promise<number | undefined> {
-		return record('PaymentMethodRepo.create', async () => {
-			const metadata = stampCreate(actorId)
-			const [res] = await this.db
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.delete(paymentMethodsTable)
+			.where(eq(paymentMethodsTable.id, id))
+			.returning({ id: paymentMethodsTable.id })
+		return res
+	}
+
+	async insertMany(items: PaymentMethodInsert[], db: DbContext = this.db): Promise<void> {
+		await db.insert(paymentMethodsTable).values(items).onConflictDoNothing()
+	}
+
+	async seed(data: (PaymentMethodInsert & { createdBy: number })[], db: DbContext = this.db): Promise<void> {
+		for (const d of data) {
+			await db
 				.insert(paymentMethodsTable)
-				.values({ ...data, ...metadata })
-				.returning({ id: paymentMethodsTable.id })
-
-			return res?.id
-		})
-	}
-
-	async update(data: dto.PaymentMethodUpdateDto, actorId: number): Promise<number | undefined> {
-		return record('PaymentMethodRepo.update', async () => {
-			const metadata = stampUpdate(actorId)
-			const [res] = await this.db
-				.update(paymentMethodsTable)
-				.set({ ...data, ...metadata })
-				.where(eq(paymentMethodsTable.id, data.id))
-				.returning({ id: paymentMethodsTable.id })
-
-			return res?.id
-		})
-	}
-
-	async remove(id: number): Promise<number | undefined> {
-		return record('PaymentMethodRepo.remove', async () => {
-			const [res] = await this.db
-				.delete(paymentMethodsTable)
-				.where(eq(paymentMethodsTable.id, id))
-				.returning({ id: paymentMethodsTable.id })
-
-			return res?.id
-		})
-	}
-
-	async seed(data: (dto.PaymentMethodCreateDto & { createdBy: number })[]) {
-		return record('PaymentMethodRepo.seed', async () => {
-			for (const d of data) {
-				const metadata = stampCreate(d.createdBy)
-				await this.db
-					.insert(paymentMethodsTable)
-					.values({ ...d, ...metadata })
-					.onConflictDoUpdate({
-						target: paymentMethodsTable.name,
-						set: {
-							type: d.type,
-							category: d.category,
-							isEnabled: d.isEnabled,
-							isDefault: d.isDefault,
-							isGlobal: d.isGlobal,
-							updatedAt: metadata.updatedAt,
-							updatedBy: metadata.updatedBy,
-						},
-					})
-			}
-		})
+				.values({ ...d })
+				.onConflictDoUpdate({
+					target: paymentMethodsTable.name,
+					set: {
+						type: d.type,
+						category: d.category,
+						isEnabled: d.isEnabled,
+						isDefault: d.isDefault,
+						isGlobal: d.isGlobal,
+						paymentProviderId: d.paymentProviderId,
+						updatedAt: d.updatedAt,
+						updatedBy: d.updatedBy,
+					},
+				})
+		}
 	}
 }

@@ -6,9 +6,8 @@ import type { DbClient } from '@/infra/database'
 import { LocationPaymentMethodRepo } from './location-payment-method/location-payment-method.repo'
 import { initLocationPaymentMethodRoute } from './location-payment-method/location-payment-method.route'
 import { LocationPaymentMethodService } from './location-payment-method/location-payment-method.service'
-import { PaymentMethodRepo } from './payment-method/payment-method.repo'
+import { createPaymentMethodModule } from './payment-method/payment-method.module'
 import { initPaymentMethodRoute } from './payment-method/payment-method.route'
-import { PaymentMethodService } from './payment-method/payment-method.service'
 import { PaymentProviderRepo } from './payment-provider/payment-provider.repo'
 import { initPaymentProviderRoute } from './payment-provider/payment-provider.route'
 import { PaymentProviderService } from './payment-provider/payment-provider.service'
@@ -17,7 +16,7 @@ import { initPaymentRoute } from './payment/payment.route'
 import { PaymentService } from './payment/payment.service'
 
 export class PaymentServiceModule {
-	public readonly paymentMethod: PaymentMethodService
+	public readonly paymentMethod: ReturnType<typeof createPaymentMethodModule>
 	public readonly payment: PaymentService
 	public readonly paymentProvider: PaymentProviderService
 	public readonly locationPaymentMethod: LocationPaymentMethodService
@@ -26,8 +25,7 @@ export class PaymentServiceModule {
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
 	) {
-		const paymentMethodRepo = new PaymentMethodRepo(this.db)
-		this.paymentMethod = new PaymentMethodService(paymentMethodRepo, this.cacheClient)
+		this.paymentMethod = createPaymentMethodModule(this.db, this.cacheClient)
 
 		const paymentRepo = new PaymentRepo(this.db)
 		this.payment = new PaymentService(paymentRepo, this.cacheClient)
@@ -61,7 +59,8 @@ export {
 	PaymentMethodCategoryDto,
 	PaymentMethodTypeDto,
 } from './payment-method/payment-method.contract'
-export type { PaymentMethodService } from './payment-method/payment-method.service'
+export type { IPaymentMethodRepo } from './payment-method/payment-method.repo'
+export type { PaymentMethodModule } from './payment-method/payment-method.module'
 export {
 	PaymentProviderDto,
 	PaymentProviderCreateDto,

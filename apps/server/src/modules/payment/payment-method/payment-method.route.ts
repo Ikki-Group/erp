@@ -14,8 +14,8 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -26,8 +26,8 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const result = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const result = await service.handleGetById(query.id)
 				return res.ok(result)
 			},
 			{
@@ -38,25 +38,25 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.get(
 			'/enabled',
-			async function enabled() {
-				const result = await service.getEnabled()
+			async () => {
+				const result = await service.handleGetEnabled()
 				return res.ok(result)
 			},
 			{ response: createSuccessResponseDto(dto.PaymentMethodDto.array()), auth: true },
 		)
 		.get(
 			'/global',
-			async function global() {
-				const result = await service.getGlobal()
+			async () => {
+				const result = await service.handleGetGlobal()
 				return res.ok(result)
 			},
 			{ response: createSuccessResponseDto(dto.PaymentMethodDto.array()), auth: true },
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const result = await service.handleCreate(context.body, context.auth.userId)
-				return res.ok(result)
+			async ({ body, auth }) => {
+				const result = await service.handleCreate(body, auth.userId)
+				return res.created(result)
 			},
 			{
 				body: dto.PaymentMethodCreateDto,
@@ -66,8 +66,8 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.put(
 			'/update',
-			async function update(context) {
-				const result = await service.handleUpdate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -78,16 +78,20 @@ export function initPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				const result = await service.handleRemove(context.query.id)
+			async ({ body }) => {
+				const result = await service.handleDelete(body.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
+			{
+				body: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
 		)
 		.post(
 			'/seed',
-			async function seed(context) {
-				await service.seedDefault(context.auth.userId)
+			async ({ auth }) => {
+				await service.handleSeedDefault(auth.userId)
 				return res.ok({ message: 'Payment methods seeded successfully' })
 			},
 			{ response: createSuccessResponseDto(z.object({ message: z.string() })), auth: true },

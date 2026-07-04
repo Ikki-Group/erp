@@ -3,14 +3,20 @@ import { record } from '@elysiajs/opentelemetry'
 import { paymentMethodsTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { checkConflict, type ConflictField } from '@/infra/database'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { EntityRef } from '@/shared/types/utils'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 import { RelationMap } from '@/shared/utils'
 
-import * as dto from './payment-method.contract'
-import { PaymentMethodRepo } from './payment-method.repo'
+import type {
+	PaymentMethodCreateDto,
+	PaymentMethodDto,
+	PaymentMethodFilterDto,
+	PaymentMethodUpdateDto,
+} from './payment-method.contract'
+import { PaymentMethodError } from './payment-method.internal'
+import type { IPaymentMethodRepo } from './payment-method.repo'
 
 const uniqueFields: ConflictField<{ name: string }>[] = [
 	{
@@ -21,165 +27,182 @@ const uniqueFields: ConflictField<{ name: string }>[] = [
 	},
 ]
 
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError(`Payment method with ID ${id} not found`, {
-			code: 'PAYMENT_METHOD_NOT_FOUND',
-		}),
-	createFailed: () =>
-		new InternalServerError('Payment method creation failed', {
-			code: 'PAYMENT_METHOD_CREATE_FAILED',
-		}),
-}
-
 export class PaymentMethodService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: PaymentMethodRepo,
+		private readonly repo: IPaymentMethodRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'payment-method')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
+	toRelationMap(items: PaymentMethodDto[]): RelationMap<number, PaymentMethodDto> {
+		return RelationMap.fromArray(items, (v) => v.id)
+	}
 
-	async getList(): Promise<dto.PaymentMethodDto[]> {
-		return record('PaymentMethodService.getList', async () => {
-			return this.cache.getOrSet({
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count, 'global']
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
+	}
+
+	/* --------------------------------- READ ---------------------------------- */
+
+	async getListAll(): Promise<PaymentMethodDto[]> {
+		return record('PaymentMethodService.getListAll', async () =>
+			this.cache.getOrSet({
 				key: this.cache.keys.list,
-				factory: () => this.repo.getList(),
-			})
-		})
+				factory: () => this.repo.findMany(),
+			}),
+		)
 	}
 
-	async getEnabled(): Promise<dto.PaymentMethodDto[]> {
-		return record('PaymentMethodService.getEnabled', async () => {
-			return this.repo.getEnabled()
-		})
+	async getEnabled(): Promise<PaymentMethodDto[]> {
+		return record('PaymentMethodService.getEnabled', async () =>
+			this.repo.findEnabled(),
+		)
 	}
 
-	async getGlobal(): Promise<dto.PaymentMethodDto[]> {
-		return record('PaymentMethodService.getGlobal', async () => {
-			return this.cache.getOrSet({
-				key: 'global', // Custom key (not in default keys)
-				factory: () => this.repo.getGlobal(),
-			})
-		})
+	async getGlobal(): Promise<PaymentMethodDto[]> {
+		return record('PaymentMethodService.getGlobal', async () =>
+			this.cache.getOrSet({
+				key: 'global',
+				factory: () => this.repo.findGlobal(),
+			}),
+		)
 	}
 
-	async getRelationMap(): Promise<RelationMap<number, dto.PaymentMethodDto>> {
-		return record('PaymentMethodService.getRelationMap', async () => {
-			const methods = await this.getList()
-			return RelationMap.fromArray(methods, (c) => c.id)
-		})
-	}
-
-	async getById(id: number): Promise<dto.PaymentMethodDto | undefined> {
-		return record('PaymentMethodService.getById', async () => {
-			return this.cache.getOrSetWithSkip({
+	async getById(id: number): Promise<PaymentMethodDto | undefined> {
+		return record('PaymentMethodService.getById', async () =>
+			this.cache.getOrSetWithSkip({
 				key: this.cache.keys.byId(id),
-				factory: () => this.repo.getById(id),
-			})
-		})
+				factory: () => this.repo.findById(id),
+			}),
+		)
 	}
 
 	async count(): Promise<number> {
-		return record('PaymentMethodService.count', async () => {
-			return this.cache.getOrSet({
+		return record('PaymentMethodService.count', async () =>
+			this.cache.getOrSet({
 				key: this.cache.keys.count,
 				factory: () => this.repo.count(),
-			})
-		})
+			}),
+		)
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
+	/* -------------------------------- MUTATE ---------------------------------- */
 
-	async handleList(
-		filter: dto.PaymentMethodFilterDto,
-	): Promise<WithPaginationResult<dto.PaymentMethodDto>> {
-		return record('PaymentMethodService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
+	async seed(
+		data: (PaymentMethodCreateDto & { createdBy: number })[],
+		db: DbContext,
+	): Promise<void> {
+		return this.repo.seed(
+			data.map((x) => {
+				const stamps = stampCreate(x.createdBy)
+				return {
+					type: x.type,
+					category: x.category,
+					name: x.name,
+					isEnabled: x.isEnabled ?? true,
+					isDefault: x.isDefault ?? false,
+					isGlobal: x.isGlobal ?? false,
+					paymentProviderId: x.paymentProviderId ?? null,
+					...stamps,
+				}
+			}),
+			db,
+		)
+	}
+
+	async create(data: PaymentMethodCreateDto, actorId: ActorId): Promise<EntityRef> {
+		await checkConflict({
+			db: this.repo.db,
+			table: paymentMethodsTable,
+			pkColumn: paymentMethodsTable.id,
+			fields: uniqueFields,
+			input: data,
+		})
+
+		const result = await this.repo.insert({
+			...data,
+			...stampCreate(actorId),
+		})
+		if (!result) throw PaymentMethodError.createFailed()
+
+		await this.invalidate()
+		return result
+	}
+
+	async update(data: PaymentMethodUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		const { id } = data
+		const existing = await this.getById(id)
+		if (!existing) throw PaymentMethodError.notFound(id)
+
+		await checkConflict({
+			db: this.repo.db,
+			table: paymentMethodsTable,
+			pkColumn: paymentMethodsTable.id,
+			fields: uniqueFields,
+			input: data,
+			existing,
+		})
+
+		const result = await this.repo.update(id, {
+			...data,
+			...stampUpdate(actorId),
+		})
+		if (!result) throw PaymentMethodError.notFound(id)
+
+		await this.invalidate(id)
+		return result
+	}
+
+	async remove(id: number): Promise<EntityRef> {
+		const result = await this.repo.remove(id)
+		if (!result) throw PaymentMethodError.notFound(id)
+
+		await this.invalidate(id)
+		return result
+	}
+
+	/* --------------------------------- HANDLE --------------------------------- */
+
+	async handleList(filter: PaymentMethodFilterDto): Promise<WithPaginationResult<PaymentMethodDto>> {
+		return record('PaymentMethodService.handleList', async () => this.repo.findPage(filter))
+	}
+
+	async handleGetById(id: number): Promise<PaymentMethodDto> {
+		return record('PaymentMethodService.handleGetById', async () => {
+			const result = await this.getById(id)
+			if (!result) throw PaymentMethodError.notFound(id)
 			return result
 		})
 	}
 
-	async handleDetail(id: number): Promise<dto.PaymentMethodDto> {
-		return record('PaymentMethodService.handleDetail', async () => {
-			const result = await this.repo.getById(id)
-			if (!result) throw err.notFound(id)
-			return result
-		})
+	async handleGetEnabled(): Promise<PaymentMethodDto[]> {
+		return record('PaymentMethodService.handleGetEnabled', async () => this.getEnabled())
 	}
 
-	async handleCreate(data: dto.PaymentMethodCreateDto, actorId: number): Promise<EntityRef> {
-		return record('PaymentMethodService.handleCreate', async () => {
-			await checkConflict({
-				db: this.repo.db,
-				table: paymentMethodsTable,
-				pkColumn: paymentMethodsTable.id,
-				fields: uniqueFields,
-				input: data,
-			})
-			const result = await this.repo.create(data, actorId)
-			if (!result) throw err.createFailed()
-			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, 'global'])
-			return { id: result }
-		})
+	async handleGetGlobal(): Promise<PaymentMethodDto[]> {
+		return record('PaymentMethodService.handleGetGlobal', async () => this.getGlobal())
 	}
 
-	async handleUpdate(data: dto.PaymentMethodUpdateDto, actorId: number): Promise<EntityRef> {
-		return record('PaymentMethodService.handleUpdate', async () => {
-			const { id } = data
-
-			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
-
-			await checkConflict({
-				db: this.repo.db,
-				table: paymentMethodsTable,
-				pkColumn: paymentMethodsTable.id,
-				fields: uniqueFields,
-				input: data,
-				existing,
-			})
-
-			const result = await this.repo.update(data, actorId)
-			if (!result) throw err.notFound(id)
-			await this.cache.deleteFromKeys([
-				this.cache.keys.list,
-				this.cache.keys.count,
-				'global',
-				this.cache.keys.byId(id),
-			])
-			return { id }
-		})
+	async handleCreate(data: PaymentMethodCreateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('PaymentMethodService.handleCreate', async () => this.create(data, actorId))
 	}
 
-	async handleRemove(id: number): Promise<EntityRef> {
-		return record('PaymentMethodService.handleRemove', async () => {
-			const result = await this.repo.remove(id)
-			if (!result) throw err.notFound(id)
-			await this.cache.deleteFromKeys([
-				this.cache.keys.list,
-				this.cache.keys.count,
-				'global',
-				this.cache.keys.byId(id),
-			])
-			return { id }
-		})
+	async handleUpdate(data: PaymentMethodUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('PaymentMethodService.handleUpdate', async () => this.update(data, actorId))
 	}
 
-	async seed(data: (dto.PaymentMethodCreateDto & { createdBy: number })[]): Promise<void> {
-		return record('PaymentMethodService.seed', async () => {
-			await this.repo.seed(data)
-			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, 'global'])
-		})
+	async handleDelete(id: number): Promise<EntityRef> {
+		return record('PaymentMethodService.handleDelete', async () => this.remove(id))
 	}
 
-	async seedDefault(actorId: number): Promise<void> {
-		return record('PaymentMethodService.seedDefault', async () => {
-			const defaultPaymentMethods: (dto.PaymentMethodCreateDto & { createdBy: number })[] = [
+	async handleSeedDefault(actorId: number): Promise<void> {
+		return record('PaymentMethodService.handleSeedDefault', async () => {
+			const defaultPaymentMethods: (PaymentMethodCreateDto & { createdBy: number })[] = [
 				{
 					type: 'cash',
 					category: 'cash',
@@ -221,7 +244,8 @@ export class PaymentMethodService {
 					createdBy: actorId,
 				},
 			]
-			await this.seed(defaultPaymentMethods)
+			await this.seed(defaultPaymentMethods, this.repo.db)
+			await this.invalidate()
 		})
 	}
 }
