@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
+import type { EntityRef } from '@/shared/types/utils'
 
 import type {
 	MokaProvider,
@@ -9,13 +10,14 @@ import type {
 	MokaSyncTriggerMode,
 } from '../shared.contract'
 import * as dto from './scrap-history.contract'
-import { MokaScrapHistoryRepo } from './scrap-history.repo'
+import { MokaScrapHistoryError } from './scrap-history.internal'
+import type { IMokaScrapHistoryRepo } from './scrap-history.repo'
 
 export class MokaScrapHistoryService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: MokaScrapHistoryRepo,
+		private readonly repo: IMokaScrapHistoryRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'moka.scrap-history')
@@ -34,9 +36,10 @@ export class MokaScrapHistoryService {
 			status?: MokaScrapStatus
 		},
 		actorId: number,
-	): Promise<{ id: number }> {
+	): Promise<EntityRef> {
 		return record('MokaScrapHistoryService.create', async () => {
 			const result = await this.repo.create(data, actorId)
+			if (!result) throw MokaScrapHistoryError.createFailed()
 			await this.cache.deleteMany({ keys: ['list', 'count'] })
 			return result
 		})

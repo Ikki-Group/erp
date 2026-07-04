@@ -3,16 +3,29 @@ import { and, eq } from 'drizzle-orm'
 
 import { mokaSyncCursorsTable } from '@/db/schema'
 
-import { takeFirst, type DbClient } from '@/infra/database'
+import { takeFirst, type DbContext, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { MokaProvider, MokaScrapType } from '../shared.contract'
 
-export class MokaSyncCursorRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IMokaSyncCursorRepo {
+	readonly db: DbContext
+	getCursor(mokaConfigurationId: number, type: MokaScrapType, db?: DbContext): Promise<typeof mokaSyncCursorsTable.$inferSelect | undefined>
+	upsertCursor(data: {
+		mokaConfigurationId: number
+		type: MokaScrapType
+		provider?: MokaProvider
+		cursorDate?: Date | null
+		cursorToken?: string | null
+		lastHistoryId?: number | null
+	}, actorId: number, db?: DbContext): Promise<void>
+}
 
-	async getCursor(mokaConfigurationId: number, type: MokaScrapType) {
-		const result = await this.db
+export class MokaSyncCursorRepo implements IMokaSyncCursorRepo {
+	constructor(readonly db: DbClient) {}
+
+	async getCursor(mokaConfigurationId: number, type: MokaScrapType, db: DbContext = this.db) {
+		const result = await db
 			.select()
 			.from(mokaSyncCursorsTable)
 			.where(
@@ -34,10 +47,11 @@ export class MokaSyncCursorRepo {
 			lastHistoryId?: number | null
 		},
 		actorId: number,
+		db: DbContext = this.db,
 	): Promise<void> {
 		return record('MokaSyncCursorRepo.upsertCursor', async () => {
 			const provider = data.provider ?? 'moka'
-			const existing = await this.db
+			const existing = await db
 				.select()
 				.from(mokaSyncCursorsTable)
 				.where(
@@ -49,7 +63,7 @@ export class MokaSyncCursorRepo {
 				.then(takeFirst)
 
 			if (!existing) {
-				await this.db.insert(mokaSyncCursorsTable).values({
+				await db.insert(mokaSyncCursorsTable).values({
 					mokaConfigurationId: data.mokaConfigurationId,
 					type: data.type,
 					provider,
@@ -61,7 +75,7 @@ export class MokaSyncCursorRepo {
 				return
 			}
 
-			await this.db
+			await db
 				.update(mokaSyncCursorsTable)
 				.set({
 					provider,

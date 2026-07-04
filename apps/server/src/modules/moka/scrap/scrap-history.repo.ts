@@ -1,11 +1,11 @@
-// @ts-nocheck
 import { record } from '@elysiajs/opentelemetry'
 import { desc, eq } from 'drizzle-orm'
 
 import { mokaScrapHistoriesTable } from '@/db/schema'
 
-import { type DbClient } from '@/infra/database'
+import { type DbContext, type DbClient } from '@/infra/database'
 import { stampCreate } from '@/shared/audit/stamp'
+import type { EntityRef } from '@/shared/types/utils'
 
 import type {
 	MokaProvider,
@@ -15,16 +15,31 @@ import type {
 } from '../shared.contract'
 import * as dto from './scrap-history.contract'
 
-export class MokaScrapHistoryRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IMokaScrapHistoryRepo {
+	readonly db: DbContext
+	listByConfigId(configId?: number, db?: DbContext): Promise<dto.MokaScrapHistoryDto[]>
+	create(data: {
+		mokaConfigurationId: number
+		provider?: MokaProvider
+		type: MokaScrapType
+		triggerMode?: MokaSyncTriggerMode
+		dateFrom: Date
+		dateTo: Date
+		status?: MokaScrapStatus
+	}, actorId: number, db?: DbContext): Promise<EntityRef | undefined>
+	updateStatus(id: number, status: MokaScrapStatus, extra?: { rawPath?: string; errorMessage?: string; metadata?: any; recordsCount?: number }, db?: DbContext): Promise<void>
+}
+
+export class MokaScrapHistoryRepo implements IMokaScrapHistoryRepo {
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async listByConfigId(configId?: number): Promise<dto.MokaScrapHistoryDto[]> {
+	async listByConfigId(configId?: number, db: DbContext = this.db): Promise<dto.MokaScrapHistoryDto[]> {
 		return record('MokaScrapHistoryRepo.listByConfigId', async () => {
 			const where = configId ? eq(mokaScrapHistoriesTable.mokaConfigurationId, configId) : undefined
 
-			const rows = await this.db
+			const rows = await db
 				.select()
 				.from(mokaScrapHistoriesTable)
 				.where(where)
@@ -48,10 +63,11 @@ export class MokaScrapHistoryRepo {
 			status?: MokaScrapStatus
 		},
 		actorId: number,
-	): Promise<{ id: number }> {
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		return record('MokaScrapHistoryRepo.create', async () => {
 			const now = new Date()
-			const [result] = await this.db
+			const [result] = await db
 				.insert(mokaScrapHistoriesTable)
 				.values({
 					...data,
@@ -62,7 +78,6 @@ export class MokaScrapHistoryRepo {
 				})
 				.returning({ id: mokaScrapHistoriesTable.id })
 
-			if (!result) throw new Error('Failed to create scrap history')
 			return result
 		})
 	}
@@ -71,11 +86,12 @@ export class MokaScrapHistoryRepo {
 		id: number,
 		status: MokaScrapStatus,
 		extra?: { rawPath?: string; errorMessage?: string; metadata?: any; recordsCount?: number },
-	) {
+		db: DbContext = this.db,
+	): Promise<void> {
 		return record('MokaScrapHistoryRepo.updateStatus', async () => {
 			const now = new Date()
 			const terminal = status === 'completed' || status === 'failed'
-			await this.db
+			await db
 				.update(mokaScrapHistoriesTable)
 				.set({
 					status,

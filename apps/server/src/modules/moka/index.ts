@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { Elysia } from 'elysia'
 
-import { logger } from '@/core/logger'
+import { logger } from '@/infra/logger'
 
 import type { CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
@@ -80,3 +79,8 @@ export type { MokaConfigurationService } from './configuration/configuration.ser
 export type { MokaScrapHistoryService } from './scrap/scrap-history.service'
 export type { MokaSyncCursorService } from './scrap/scrap-sync-cursor.service'
 export type { MokaScrapService } from './scrap/scrap.service'
+
+// Export repo ports for testing
+export type { IMokaConfigurationRepo } from './configuration/configuration.repo'
+export type { IMokaScrapHistoryRepo } from './scrap/scrap-history.repo'
+export type { IMokaSyncCursorRepo } from './scrap/scrap-sync-cursor.repo'

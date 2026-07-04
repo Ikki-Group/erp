@@ -1,23 +1,17 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { MokaProvider, MokaScrapType } from '../shared.contract'
 import * as dto from './configuration.contract'
-import { MokaConfigurationRepo } from './configuration.repo'
-
-const err = {
-	notFound: (id: number) => new NotFoundError(`Moka configuration ${id} not found`),
-	locationAlreadyHasConfig: (locationId: number) =>
-		new ConflictError(`Location ${locationId} already has a Moka configuration`),
-}
+import { MokaConfigurationError } from './configuration.internal'
+import type { IMokaConfigurationRepo } from './configuration.repo'
 
 export class MokaConfigurationService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: MokaConfigurationRepo,
+		private readonly repo: IMokaConfigurationRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'moka.config')
@@ -28,7 +22,7 @@ export class MokaConfigurationService {
 	async findByLocationId(
 		locationId: number,
 		provider: MokaProvider = 'moka',
-	): Promise<dto.MokaConfigurationDto | null> {
+	): Promise<dto.MokaConfigurationDto | undefined> {
 		return record('MokaConfigurationService.findByLocationId', async () => {
 			const key = `by-location.${provider}.${locationId}`
 			return this.cache.getOrSet({
@@ -70,7 +64,7 @@ export class MokaConfigurationService {
 				key,
 				factory: () => this.repo.findById(id),
 			})
-			if (!result) throw err.notFound(id)
+			if (!result) throw MokaConfigurationError.notFound(id)
 			return result
 		})
 	}
@@ -81,10 +75,10 @@ export class MokaConfigurationService {
 	): Promise<{ id: number }> {
 		return record('MokaConfigurationService.handleCreate', async () => {
 			const existing = await this.findByLocationId(data.locationId, 'moka')
-			if (existing) throw err.locationAlreadyHasConfig(data.locationId)
+			if (existing) throw MokaConfigurationError.locationAlreadyHasConfig(data.locationId)
 
 			const result = await this.repo.create(data, actorId)
-			if (!result) throw new Error('Failed to create Moka configuration')
+			if (!result) throw MokaConfigurationError.createFailed()
 			await this.cache.deleteMany({
 				keys: ['list', 'count', `by-location.moka.${data.locationId}`],
 			})
@@ -102,11 +96,11 @@ export class MokaConfigurationService {
 
 			if (data.locationId && data.locationId !== existing.locationId) {
 				const other = await this.findByLocationId(data.locationId, existing.provider)
-				if (other) throw err.locationAlreadyHasConfig(data.locationId)
+				if (other) throw MokaConfigurationError.locationAlreadyHasConfig(data.locationId)
 			}
 
 			const result = await this.repo.update(id, data, actorId)
-			if (!result) throw err.notFound(id)
+			if (!result) throw MokaConfigurationError.updateFailed()
 			await this.cache.deleteMany({
 				keys: [
 					'list',
