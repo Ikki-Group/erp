@@ -6,6 +6,7 @@ import { zc, zp, zq } from '@/shared/schema'
 
 export const ProductCategoryDto = z.object({
 	...zc.RecordId.shape,
+	code: zp.str,
 	name: zp.str,
 	description: zp.strNullable,
 	locationId: zp.id,
@@ -27,6 +28,7 @@ export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 const ProductCategoryMutationDto = z.object({
+	code: zc.strTrim.min(1).max(50),
 	name: zc.strTrim.min(1).max(100),
 	description: zc.strTrimNullable,
 	locationId: zp.id,

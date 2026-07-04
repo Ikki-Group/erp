@@ -1,169 +1,111 @@
-// @ts-nocheck
-import { and, count, eq, not } from 'drizzle-orm'
+import { and, count, eq, type SQL } from 'drizzle-orm'
 
-import { productCategoriesTable } from '@/db/schema'
+import { productCategoriesTable } from '@/db/schema/product'
 
-import { paginate, searchFilter, sortBy, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import { paginate, sortBy, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { ActorId, EntityRef } from '@/shared/types/utils'
+import type { EntityRef } from '@/shared/types/utils'
 
-import {
+import type {
 	ProductCategoryDto,
-	type ProductCategoryFilterDto,
-	type ProductCategoryCreateDto,
-	type ProductCategoryUpdateDto,
+	ProductCategoryFilterDto,
 } from './category.contract'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
-export class ProductCategoryRepo {
-	constructor(private readonly db: DbClient) {}
+type CategoryInsert = typeof productCategoriesTable.$inferInsert
+type CategoryUpdate = PgUpdateSetSource<typeof productCategoriesTable>
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export interface IProductCategoryRepo {
+	readonly db: DbContext
+	findMany(locationId?: number, db?: DbContext): Promise<ProductCategoryDto[]>
+	findPage(filter: ProductCategoryFilterDto, db?: DbContext): Promise<WithPaginationResult<ProductCategoryDto>>
+	findById(id: number, db?: DbContext): Promise<ProductCategoryDto | undefined>
+	insert(data: CategoryInsert, db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: CategoryUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	async getById(id: number): Promise<ProductCategoryDto | undefined> {
-		const [result] = await this.db
-			.select()
-			.from(productCategoriesTable)
-			.where(eq(productCategoriesTable.id, id))
-			.limit(1)
-		return result ? ProductCategoryDto.parse(result) : undefined
+export class ProductCategoryRepo implements IProductCategoryRepo {
+	constructor(readonly db: DbContext) {}
+
+	#buildWhere(filter: Partial<Pick<ProductCategoryFilterDto, 'q' | 'locationId'>>): SQL | undefined {
+		const { q, locationId } = filter
+		const qFilter = q
+			? eq(productCategoriesTable.name, q)
+			: undefined
+		const locationFilter = locationId
+			? eq(productCategoriesTable.locationId, locationId)
+			: undefined
+		return and(qFilter, locationFilter)
 	}
 
-	async getListPaginated(
-		filter: ProductCategoryFilterDto,
-	): Promise<WithPaginationResult<ProductCategoryDto>> {
-		const { q, locationId, page, limit } = filter
-
-		const conditions = [
-			searchFilter(productCategoriesTable.name, q),
-			locationId ? eq(productCategoriesTable.locationId, locationId) : undefined,
-		].filter((c): c is NonNullable<typeof c> => c !== undefined)
-
-		const where = conditions.length > 0 ? and(...conditions) : undefined
-
-		return paginate<any>({
-			data: async ({ limit: l, offset }) => {
-				const rows = await this.db
-					.select()
-					.from(productCategoriesTable)
-					.where(where)
-					.orderBy(sortBy(productCategoriesTable.updatedAt, 'desc'))
-					.limit(l)
-					.offset(offset)
-				return rows.map((r) => ProductCategoryDto.parse(r))
-			},
-			pq: { page, limit },
-			countQuery: () =>
-				this.db.select({ count: count() }).from(productCategoriesTable).where(where),
-		})
-	}
-
-	async getAll(locationId?: number): Promise<ProductCategoryDto[]> {
-		const conditions = [
-			locationId ? eq(productCategoriesTable.locationId, locationId) : undefined,
-		].filter((c): c is NonNullable<typeof c> => c !== undefined)
-
-		const where = conditions.length > 0 ? and(...conditions) : undefined
-		const rows = await this.db
+	async findMany(locationId?: number, db: DbContext = this.db): Promise<ProductCategoryDto[]> {
+		const where = locationId
+			? eq(productCategoriesTable.locationId, locationId)
+			: undefined
+		return db
 			.select()
 			.from(productCategoriesTable)
 			.where(where)
 			.orderBy(productCategoriesTable.name)
-		return rows.map((r) => ProductCategoryDto.parse(r))
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
+	async findPage(
+		filter: ProductCategoryFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<ProductCategoryDto>> {
+		const where = this.#buildWhere(filter)
 
-	async create(data: ProductCategoryCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const name = data.name.trim()
+		return paginate<ProductCategoryDto>({
+			data: ({ limit, offset }) =>
+				db
+					.select()
+					.from(productCategoriesTable)
+					.where(where)
+					.orderBy(sortBy(productCategoriesTable.updatedAt, 'desc'))
+					.limit(limit)
+					.offset(offset),
+			pq: filter,
+			countQuery: () =>
+				db.select({ count: count() }).from(productCategoriesTable).where(where),
+		})
+	}
 
-		const [conflict] = await this.db
+	async findById(id: number, db: DbContext = this.db): Promise<ProductCategoryDto | undefined> {
+		return db
 			.select()
 			.from(productCategoriesTable)
-			.where(
-				and(
-					eq(productCategoriesTable.locationId, data.locationId),
-					eq(productCategoriesTable.name, name),
-				),
-			)
+			.where(eq(productCategoriesTable.id, id))
 			.limit(1)
+			.then(takeFirst)
+	}
 
-		if (conflict) {
-			throw new InternalServerError('Product category name already exists in this location', {
-				code: 'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS',
-			})
-		}
-
-		const [inserted] = await this.db
+	async insert(data: CategoryInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.insert(productCategoriesTable)
-			.values({ ...data, name, ...stampCreate(actorId) })
+			.values({ ...data })
 			.returning({ id: productCategoriesTable.id })
-
-		if (!inserted)
-			throw new InternalServerError('Product category creation failed', {
-				code: 'PRODUCT_CATEGORY_CREATE_FAILED',
-			})
-
-		return { id: inserted.id }
+		return res
 	}
 
-	async update(id: number, data: ProductCategoryUpdateDto, actorId: ActorId): Promise<EntityRef> {
-		const name = data.name ? data.name.trim() : undefined
-
-		if (name && data.locationId) {
-			const [conflict] = await this.db
-				.select()
-				.from(productCategoriesTable)
-				.where(
-					and(
-						eq(productCategoriesTable.locationId, data.locationId),
-						eq(productCategoriesTable.name, name),
-						not(eq(productCategoriesTable.id, id)),
-					),
-				)
-				.limit(1)
-
-			if (conflict) {
-				throw new InternalServerError('Product category name already exists in this location', {
-					code: 'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS',
-				})
-			}
-		}
-
-		await this.db
+	async update(
+		id: number,
+		data: CategoryUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.update(productCategoriesTable)
-			.set({ ...data, name, ...stampUpdate(actorId) })
+			.set({ ...data })
 			.where(eq(productCategoriesTable.id, id))
-
-		return { id }
+			.returning({ id: productCategoriesTable.id })
+		return res
 	}
 
-	async softDelete(id: number): Promise<EntityRef> {
-		const [result] = await this.db
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.delete(productCategoriesTable)
 			.where(eq(productCategoriesTable.id, id))
 			.returning({ id: productCategoriesTable.id })
-
-		if (!result)
-			throw new NotFoundError(`Product category with ID ${id} not found`, {
-				code: 'PRODUCT_CATEGORY_NOT_FOUND',
-			})
-
-		return { id: result.id }
-	}
-
-	async hardDelete(id: number): Promise<EntityRef> {
-		const [result] = await this.db
-			.delete(productCategoriesTable)
-			.where(eq(productCategoriesTable.id, id))
-			.returning({ id: productCategoriesTable.id })
-
-		if (!result)
-			throw new NotFoundError(`Product category with ID ${id} not found`, {
-				code: 'PRODUCT_CATEGORY_NOT_FOUND',
-			})
-
-		return { id: result.id }
+		return res
 	}
 }

@@ -1,5 +1,11 @@
+import { record } from '@elysiajs/opentelemetry'
+
+import { and, eq, not } from 'drizzle-orm'
+
+import { productCategoriesTable } from '@/db/schema/product'
+
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { NotFoundError } from '@/shared/errors/http-error'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
@@ -9,58 +15,94 @@ import type {
 	ProductCategoryCreateDto,
 	ProductCategoryUpdateDto,
 } from './category.contract'
-import { ProductCategoryRepo } from './category.repo'
+import { CategoryError } from './category.internal'
+import type { IProductCategoryRepo } from './category.repo'
 
 export class ProductCategoryService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: ProductCategoryRepo,
+		private readonly repo: IProductCategoryRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'product-category')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
+	private async invalidate(id?: number, locationId?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		if (locationId !== undefined) keys.push(`list:location:${locationId}`)
+		await this.cache.deleteFromKeys(keys)
+	}
 
 	async getById(id: number): Promise<ProductCategoryDto | undefined> {
-		return this.cache.getOrSetWithSkip({
-			key: `byId:${id}`,
-			factory: () => this.repo.getById(id),
-		})
+		return record('ProductCategoryService.getById', async () =>
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
+				factory: () => this.repo.findById(id),
+			}),
+		)
 	}
 
 	async getAll(locationId?: number): Promise<ProductCategoryDto[]> {
-		const cacheKey = locationId ? `list:location:${locationId}` : 'list'
-		return this.cache.getOrSet({
-			key: cacheKey,
-			factory: () => this.repo.getAll(locationId),
-		})
+		const cacheKey = locationId ? `list:location:${locationId}` : this.cache.keys.list
+		return record('ProductCategoryService.getAll', async () =>
+			this.cache.getOrSet({
+				key: cacheKey,
+				factory: () => this.repo.findMany(locationId),
+			}),
+		)
 	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(
 		filter: ProductCategoryFilterDto,
 	): Promise<WithPaginationResult<ProductCategoryDto>> {
-		return this.repo.getListPaginated(filter)
+		return record('ProductCategoryService.handleList', async () =>
+			this.repo.findPage(filter),
+		)
 	}
 
 	async handleDetail(id: number): Promise<ProductCategoryDto> {
-		const result = await this.getById(id)
-		if (!result)
-			throw new NotFoundError(`Product category with ID ${id} not found`, {
-				code: 'PRODUCT_CATEGORY_NOT_FOUND',
-			})
-		return result
+		return record('ProductCategoryService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw CategoryError.notFound(id)
+			return result
+		})
 	}
 
 	async handleCreate(data: ProductCategoryCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const result = await this.repo.create(data, actorId)
+		return record('ProductCategoryService.handleCreate', async () => {
+			const name = data.name.trim()
+			const code = data.code.trim()
+			const locationId = data.locationId
 
-		await this.cache.deleteMany({ keys: ['list', `list:location:${data.locationId}`, 'count'] })
+			const existingInLocation = await this.repo.db
+				.select()
+				.from(productCategoriesTable)
+				.where(
+					and(
+						eq(productCategoriesTable.locationId, locationId),
+						eq(productCategoriesTable.name, name),
+					),
+				)
+				.limit(1)
 
-		return result
+			if (existingInLocation.length > 0) {
+				throw CategoryError.nameConflict(locationId)
+			}
+
+			const result = await this.repo.insert({
+				code,
+				name,
+				description: data.description,
+				locationId,
+				...stampCreate(actorId),
+			})
+			if (!result) throw CategoryError.createFailed()
+
+			await this.invalidate(undefined, locationId)
+			return result
+		})
 	}
 
 	async handleUpdate(
@@ -68,37 +110,68 @@ export class ProductCategoryService {
 		data: ProductCategoryUpdateDto,
 		actorId: ActorId,
 	): Promise<EntityRef> {
-		const existing = await this.getById(id)
-		if (!existing)
-			throw new NotFoundError(`Product category with ID ${id} not found`, {
-				code: 'PRODUCT_CATEGORY_NOT_FOUND',
+		return record('ProductCategoryService.handleUpdate', async () => {
+			const existing = await this.repo.findById(id)
+			if (!existing) throw CategoryError.notFound(id)
+
+			const name = data.name.trim()
+			const code = data.code.trim()
+			const locationId = data.locationId
+
+			const conflictInLocation = await this.repo.db
+				.select()
+				.from(productCategoriesTable)
+				.where(
+					and(
+						eq(productCategoriesTable.locationId, locationId),
+						eq(productCategoriesTable.name, name),
+						not(eq(productCategoriesTable.id, id)),
+					),
+				)
+				.limit(1)
+
+			if (conflictInLocation.length > 0) {
+				throw CategoryError.nameConflict(locationId)
+			}
+
+			const result = await this.repo.update(id, {
+				code,
+				name,
+				description: data.description,
+				locationId,
+				...stampUpdate(actorId),
 			})
+			if (!result) throw CategoryError.notFound(id)
 
-		await this.repo.update(id, data, actorId)
-
-		const cacheKeys = ['list', 'count', `byId:${id}`]
-		if (data.locationId) {
-			cacheKeys.push(`list:location:${data.locationId}`)
-			cacheKeys.push(`list:location:${existing.locationId}`)
-		}
-		await this.cache.deleteMany({ keys: cacheKeys })
-
-		return { id }
+			await this.invalidate(id, locationId)
+			await this.invalidate(undefined, existing.locationId)
+			return result
+		})
 	}
 
 	async handleRemove(id: number): Promise<EntityRef> {
-		const result = await this.repo.softDelete(id)
+		return record('ProductCategoryService.handleRemove', async () => {
+			const existing = await this.repo.findById(id)
+			if (!existing) throw CategoryError.notFound(id)
 
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			const result = await this.repo.remove(id)
+			if (!result) throw CategoryError.notFound(id)
 
-		return result
+			await this.invalidate(id, existing.locationId)
+			return result
+		})
 	}
 
 	async handleHardRemove(id: number): Promise<EntityRef> {
-		const result = await this.repo.hardDelete(id)
+		return record('ProductCategoryService.handleHardRemove', async () => {
+			const existing = await this.repo.findById(id)
+			if (!existing) throw CategoryError.notFound(id)
 
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			const result = await this.repo.remove(id)
+			if (!result) throw CategoryError.notFound(id)
 
-		return result
+			await this.invalidate(id, existing.locationId)
+			return result
+		})
 	}
 }

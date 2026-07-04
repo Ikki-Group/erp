@@ -10,7 +10,7 @@ import type {
 	ProductCategoryFilterDto,
 } from './category.contract'
 import { ProductCategoryRepo } from './category.repo'
-import { initProductCategoryRoute } from './category.route'
+import { createCategoryRoute } from './category.route'
 import { ProductCategoryService } from './category.service'
 import type {
 	ProductDto,
@@ -47,7 +47,7 @@ export type ProductModule = ProductServiceModule
 
 export function initProductRouteModule(s: ProductServiceModule) {
 	return new Elysia({ prefix: '/product' })
-		.use(initProductCategoryRoute(s.category))
+		.use(createCategoryRoute(s.category))
 		.use(initProductRoute(s.product))
 }
 
@@ -66,5 +66,6 @@ export type {
 	VariantPriceDto,
 	ProductExternalMappingDto,
 }
+export type { IProductCategoryRepo } from './category.repo'
 export type { ProductCategoryService } from './category.service'
 export type { ProductService } from './product.service'
