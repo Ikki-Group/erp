@@ -64,7 +64,7 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
 				name: value.name,
 				type: value.type,
 				isActive: value.isActive,
-				code: value.code ?? null,
+				code: value.code ?? '',
 				address: value.address ?? null,
 				phone: value.phone ?? null,
 				description: value.description ?? null,

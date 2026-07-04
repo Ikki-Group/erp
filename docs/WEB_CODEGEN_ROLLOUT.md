@@ -93,6 +93,15 @@ For each feature (do `iam` first as the multi-entity reference):
   `@/modules/<x>` / cross-feature imports. Plan: for cross-feature DTO refs,
   rewrite to `@/features/<x>` on copy (add a rule when we hit `iam`).
 
+- **`zp.decimal` server↔web divergence.** Server `zp.decimal` outputs a
+  `string` (`union([string,number]).transform(String)`), so contracts write
+  `zp.decimal.default('0')`. Web `zp.decimal` is `z.coerce.number()` (outputs
+  `number`), so a string default is a type error. When migrating any feature
+  with decimal defaults (company, product, recipe, sales, purchasing, finance,
+  payment, inventory), the copier must rewrite `zp.decimal(...).default('<n>')`
+  → `.default(<n>)` (drop the quotes). Until the generator does this, fix the
+  generated DTO by hand (already done for company/product/recipe pre-migration).
+
 - **Custom endpoint query-keys.** The generator only special-cases `list` and
   `detail` for query keys and applies `invalidates: [<entity>Keys.lists()]` to all
   mutations. Hand-written code had richer invalidation (e.g. also invalidate
