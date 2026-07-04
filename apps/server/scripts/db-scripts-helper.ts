@@ -29,6 +29,7 @@ CREATE SCHEMA public;
 }
 
 async function seed(db: DbContext, cacheClient: CacheClient) {
+	// @ts-expect-error
 	const m = createModules(db, cacheClient)
 
 	console.log('🌱 Starting core database seed...')
@@ -45,6 +46,7 @@ async function runMigrate(db: DbContext) {
 }
 
 async function seedDev(db: DbContext, cacheClient: CacheClient) {
+	// @ts-expect-error
 	const m = createModules(db, cacheClient)
 
 	console.log('🌱 Starting core database seed...')

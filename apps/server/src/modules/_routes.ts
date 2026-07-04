@@ -1,5 +1,5 @@
-import { createAuthRoute } from '@/modules/auth/auth.route'
 import { createAuditLogRoute } from '@/modules/audit/audit-log.route'
+import { createAuthRoute } from '@/modules/auth/auth.route'
 import { createCompanyRoute } from '@/modules/company/company.route'
 import { createCrmRouteModule } from '@/modules/crm'
 import { initDashboardRouteModule } from '@/modules/dashboard'

@@ -14,7 +14,6 @@ const modules = createModules(db, cacheClient)
 const routes = createRoutes(modules)
 
 const app = createApp(modules)
-
 routes.register(app)
 
 app
