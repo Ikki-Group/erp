@@ -2,12 +2,13 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, gte, inArray, isNull, lt, sql, sum } from 'drizzle-orm'
 
-import { db } from '@/db'
 import { stockSummariesTable, stockTransactionsTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
+import { withTransaction } from '@/infra/database'
 import { stampCreate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 import { toWibDateKey, toWibDayBounds } from '@/shared/utils/date'
 
 import type { MaterialLocationService } from '@/modules/material'
@@ -19,24 +20,24 @@ import type {
 	StockSummaryFilterDto,
 	StockSummarySelectDto,
 } from './stock-summary.contract'
-import { StockSummaryRepo } from './stock-summary.repo'
+import { StockSummaryError } from './stock-summary.internal'
+import type { IStockSummaryRepo } from './stock-summary.repo'
 
 export class StockSummaryService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: StockSummaryRepo,
+		private readonly repo: IStockSummaryRepo,
 		private readonly mLocationSvc: MaterialLocationService,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory.summary')
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
+	private async invalidate(): Promise<void> {
+		await this.cache.deleteMany({ keys: ['list', 'by-location', 'ledger', 'count'] })
+	}
 
-	/**
-	 * List daily summaries for a location within a date range (paginated).
-	 */
 	async handleByLocation(
 		filter: StockSummaryFilterDto,
 	): Promise<WithPaginationResult<StockSummarySelectDto>> {
@@ -44,14 +45,11 @@ export class StockSummaryService {
 			const key = `by-location.${JSON.stringify(filter)}`
 			return this.cache.getOrSet({
 				key,
-				factory: () => this.repo.getByLocationPaginated(filter),
+				factory: () => this.repo.findByLocationPaginated(filter),
 			})
 		})
 	}
 
-	/**
-	 * Monitor materialized stock ledger (konsolidasi & harian)
-	 */
 	async handleLedger(
 		filter: StockLedgerFilterDto,
 	): Promise<WithPaginationResult<StockLedgerSelectDto>> {
@@ -59,18 +57,12 @@ export class StockSummaryService {
 			const key = `ledger.${JSON.stringify(filter)}`
 			return this.cache.getOrSet({
 				key,
-				factory: () => this.repo.getLedgerPaginated(filter),
+				factory: () => this.repo.findLedgerPaginated(filter),
 			})
 		})
 	}
 
-	/**
-	 * Generate or regenerate daily summary for all materials at a location.
-	 */
-	async handleGenerate(
-		data: GenerateSummaryDto,
-		actorId: number,
-	): Promise<{ generatedCount: number }> {
+	async handleGenerate(data: GenerateSummaryDto, actorId: ActorId): Promise<{ generatedCount: number }> {
 		return record('StockSummaryService.handleGenerate', async () => {
 			const { locationId, date } = data
 			const dateKey = toWibDateKey(date)
@@ -81,7 +73,7 @@ export class StockSummaryService {
 
 			const materialIds = assignments.map((a) => a.materialId)
 
-			return db.transaction(async (tx) => {
+			const result = await withTransaction(this.repo.db, async (tx) => {
 				const prevSummariesQuery = sql`
 					SELECT DISTINCT ON ("materialId") "materialId", "closingQty", "closingAvgCost"
 					FROM ${stockSummariesTable}
@@ -247,25 +239,31 @@ export class StockSummaryService {
 					)
 				})
 
-				const generatedCount = await this.repo.upsertMany(upsertData)
-				await this.cache.deleteMany({ keys: ['list', 'by-location', 'ledger', 'count'] })
+				const generatedCount = await this.repo.insertMany(upsertData, tx)
 				return { generatedCount }
 			})
-		})
-	}
 
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
-		return record('StockSummaryService.handleRemove', async () => {
-			const result = await this.repo.softDelete(id, actorId)
-			await this.cache.deleteMany({ keys: ['list', 'by-location', 'ledger', 'count'] })
+			await this.invalidate()
 			return result
 		})
 	}
 
-	async handleHardRemove(id: number): Promise<{ id: number }> {
+	async handleRemove(id: number, actorId: ActorId): Promise<EntityRef> {
+		return record('StockSummaryService.handleRemove', async () => {
+			const result = await this.repo.softDelete(id, actorId)
+			if (!result) throw StockSummaryError.notFound(id)
+
+			await this.invalidate()
+			return result
+		})
+	}
+
+	async handleHardRemove(id: number): Promise<EntityRef> {
 		return record('StockSummaryService.handleHardRemove', async () => {
-			const result = await this.repo.hardDelete(id)
-			await this.cache.deleteMany({ keys: ['list', 'by-location', 'ledger', 'count'] })
+			const result = await this.repo.remove(id)
+			if (!result) throw StockSummaryError.notFound(id)
+
+			await this.invalidate()
 			return result
 		})
 	}

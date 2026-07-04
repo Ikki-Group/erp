@@ -2,20 +2,16 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
 
-/* ---------------------------------- ENTITY ---------------------------------- */
-
 export const StockSummaryDto = z.object({
 	...zc.RecordId.shape,
 	materialId: zp.id,
 	locationId: zp.id,
 	date: zp.date,
 
-	// Opening balance
 	openingQty: zp.decimal,
 	openingAvgCost: zp.decimal,
 	openingValue: zp.decimal,
 
-	// Movements
 	purchaseQty: zp.decimal,
 	purchaseValue: zp.decimal,
 	transferInQty: zp.decimal,
@@ -33,7 +29,6 @@ export const StockSummaryDto = z.object({
 	sellQty: zp.decimal,
 	sellValue: zp.decimal,
 
-	// Closing balance
 	closingQty: zp.decimal,
 	closingAvgCost: zp.decimal,
 	closingValue: zp.decimal,
@@ -42,9 +37,6 @@ export const StockSummaryDto = z.object({
 
 export type StockSummaryDto = z.infer<typeof StockSummaryDto>
 
-/* --------------------------------- RESULT --------------------------------- */
-
-/** Summary enriched with material info for display */
 export const StockSummarySelectDto = z.object({
 	...StockSummaryDto.shape,
 	materialName: zp.str,
@@ -52,8 +44,6 @@ export const StockSummarySelectDto = z.object({
 })
 
 export type StockSummarySelectDto = z.infer<typeof StockSummarySelectDto>
-
-/* --------------------------------- FILTER --------------------------------- */
 
 export const StockSummaryFilterDto = z.object({
 	...zq.pagination.shape,
@@ -76,17 +66,12 @@ export const StockLedgerFilterDto = z.object({
 
 export type StockLedgerFilterDto = z.infer<typeof StockLedgerFilterDto>
 
-/* -------------------------------- MUTATION -------------------------------- */
-
-/** Generate daily summary for a specific date + location */
 export const GenerateSummaryDto = z.object({
 	locationId: zp.id,
 	date: zp.date,
 })
 
 export type GenerateSummaryDto = z.infer<typeof GenerateSummaryDto>
-
-/* --------------------------------- LEDGER --------------------------------- */
 
 export const StockLedgerSelectDto = z.object({
 	materialId: zp.id,

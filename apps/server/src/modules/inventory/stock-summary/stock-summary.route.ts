@@ -16,68 +16,58 @@ import {
 import type { StockSummaryService } from './stock-summary.service'
 
 export function initStockSummaryRoute(s: StockSummaryService) {
-	return (
-		new Elysia({ prefix: '/summary' })
-			.use(authPluginMacro)
-
-			/* ─────── Daily summaries by location (date range, paginated) ─────── */
-			.get(
-				'/by-location',
-				async function byLocation(context) {
-					const result = await s.handleByLocation(context.query)
-					return res.paginated(result)
-				},
-				{
-					query: StockSummaryFilterDto,
-					response: createPaginatedResponseDto(StockSummarySelectDto),
-					auth: true,
-					detail: { tags: ['Inventory Summary'] },
-				},
-			)
-
-			/* ─────── Stock Ledger Aggregation (date range, paginated) ─────── */
-			.get(
-				'/ledger',
-				async function ledger(context) {
-					const result = await s.handleLedger(context.query)
-					return res.paginated(result)
-				},
-				{
-					query: StockLedgerFilterDto,
-					response: createPaginatedResponseDto(StockLedgerSelectDto),
-					auth: true,
-					detail: { tags: ['Inventory Ledger'] },
-				},
-			)
-
-			/* ─────── Generate/regenerate daily summary ─────── */
-			.post(
-				'/generate',
-				async function generate(context) {
-					const result = await s.handleGenerate(context.body, context.auth.userId)
-					return res.ok(result)
-				},
-				{
-					body: GenerateSummaryDto,
-					response: createSuccessResponseDto(z.object({ generatedCount: z.number() })),
-					auth: true,
-					detail: { tags: ['Inventory Summary'] },
-				},
-			)
-
-			/* ─────── Soft delete summary ─────── */
-			.post(
-				'/remove',
-				async function remove(context) {
-					await s.handleRemove(context.query.id, context.auth.userId)
-					return res.ok({ id: context.query.id })
-				},
-				{
-					query: zc.RecordId,
-					response: createSuccessResponseDto(zc.RecordId),
-					auth: true,
-					detail: { tags: ['Inventory Summary'] },
-				},
-			)
-	)
+	return new Elysia({ prefix: '/summary' })
+		.use(authPluginMacro)
+		.get(
+			'/by-location',
+			async ({ query }) => {
+				const result = await s.handleByLocation(query)
+				return res.paginated(result)
+			},
+			{
+				query: StockSummaryFilterDto,
+				response: createPaginatedResponseDto(StockSummarySelectDto),
+				auth: true,
+				detail: { tags: ['Inventory Summary'] },
+			},
+		)
+		.get(
+			'/ledger',
+			async ({ query }) => {
+				const result = await s.handleLedger(query)
+				return res.paginated(result)
+			},
+			{
+				query: StockLedgerFilterDto,
+				response: createPaginatedResponseDto(StockLedgerSelectDto),
+				auth: true,
+				detail: { tags: ['Inventory Ledger'] },
+			},
+		)
+		.post(
+			'/generate',
+			async ({ body, auth }) => {
+				const result = await s.handleGenerate(body, auth.userId)
+				return res.ok(result)
+			},
+			{
+				body: GenerateSummaryDto,
+				response: createSuccessResponseDto(z.object({ generatedCount: z.number() })),
+				auth: true,
+				detail: { tags: ['Inventory Summary'] },
+			},
+		)
+		.post(
+			'/remove',
+			async ({ query, auth }) => {
+				const result = await s.handleRemove(query.id, auth.userId)
+				return res.ok(result)
+			},
+			{
+				query: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+				detail: { tags: ['Inventory Summary'] },
+			},
+		)
 }
