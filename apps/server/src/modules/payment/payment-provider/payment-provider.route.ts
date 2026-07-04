@@ -1,9 +1,8 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc, zq } from '@/shared/schema'
-import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import {
 	PaymentProviderDto,
@@ -18,8 +17,8 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -30,17 +29,21 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const provider = await service.handleDetail(context.query.id.toString())
-				return res.ok(provider)
+			async ({ query }) => {
+				const result = await service.handleGetById(query.id)
+				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseDto(PaymentProviderDto), auth: true },
+			{
+				query: zq.recordId,
+				response: createSuccessResponseDto(PaymentProviderDto),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const { id } = await service.handleCreate(context.body, context.auth.userId.toString())
-				return res.created({ id: Number(id) })
+			async ({ body, auth }) => {
+				const result = await service.handleCreate(body, auth.userId)
+				return res.created(result)
 			},
 			{
 				body: PaymentProviderCreateDto,
@@ -50,13 +53,9 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 		)
 		.put(
 			'/update',
-			async function update(context) {
-				const { id } = await service.handleUpdate(
-					context.body.id.toString(),
-					context.body,
-					context.auth.userId.toString(),
-				)
-				return res.ok({ id: Number(id) })
+			async ({ body, auth }) => {
+				const result = await service.handleUpdate(body, auth.userId)
+				return res.ok(result)
 			},
 			{
 				body: PaymentProviderUpdateDto,
@@ -66,10 +65,14 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				await service.handleRemove(context.query.id.toString())
-				return res.ok({ id: context.query.id })
+			async ({ body }) => {
+				const result = await service.handleRemove(body.id)
+				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
+			{
+				body: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
 		)
 }

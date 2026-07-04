@@ -73,5 +73,6 @@ export type ConfigNamespace =
 	| 'payment-method-config'
 	| 'payment-method'
 	| 'payment'
+	| 'payment.provider'
 	| 'uom'
 	| 'system.audit'

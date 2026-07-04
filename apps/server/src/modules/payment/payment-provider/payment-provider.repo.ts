@@ -1,175 +1,141 @@
-// @ts-nocheck
-import { record } from '@elysiajs/opentelemetry'
-import { count, eq } from 'drizzle-orm'
+import { and, count, eq, or, SQL } from 'drizzle-orm'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 import { paymentProvidersTable } from '@/db/schema'
 
-import {
-	checkConflict,
-	paginate,
-	searchFilter,
-	sortBy,
-	type ConflictField,
-	type DbClient,
-} from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-import {
-	PaymentProviderCreateDto,
+import type {
 	PaymentProviderDto,
 	PaymentProviderFilterDto,
-	PaymentProviderUpdateDto,
 } from './payment-provider.contract'
 
-const uniqueFields: ConflictField<any>[] = [
-	{
-		field: 'code',
-		column: paymentProvidersTable.code,
-		message: 'Payment provider code already exists',
-		code: 'PAYMENT_PROVIDER_CODE_ALREADY_EXISTS',
-	},
-]
+type PaymentProviderInsert = typeof paymentProvidersTable.$inferInsert
+type PaymentProviderUpdate = PgUpdateSetSource<typeof paymentProvidersTable>
 
-export class PaymentProviderRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IPaymentProviderRepo {
+	readonly db: DbContext
+	findMany(filter?: Partial<Pick<PaymentProviderFilterDto, 'q' | 'isActive' | 'isSystem'>>, db?: DbContext): Promise<PaymentProviderDto[]>
+	findPage(filter: PaymentProviderFilterDto, db?: DbContext): Promise<WithPaginationResult<PaymentProviderDto>>
+	findById(id: number, db?: DbContext): Promise<PaymentProviderDto | undefined>
+	findByCode(code: string, db?: DbContext): Promise<PaymentProviderDto | undefined>
+	count(db?: DbContext): Promise<number>
+	insert(data: PaymentProviderInsert, db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: PaymentProviderUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export class PaymentProviderRepo implements IPaymentProviderRepo {
+	constructor(readonly db: DbContext) {}
 
-	async getById(id: string): Promise<PaymentProviderDto | undefined> {
-		return record('PaymentProviderRepo.getById', async () => {
-			const result = await this.db
-				.select()
-				.from(paymentProvidersTable)
-				.where(eq(paymentProvidersTable.id, id))
-			if (result.length === 0) return undefined
-			return PaymentProviderDto.parse(result[0])
-		})
+	#buildWhere(
+		filter?: Partial<Pick<PaymentProviderFilterDto, 'q' | 'isActive' | 'isSystem'>>,
+	): SQL | undefined {
+		const { q, isActive, isSystem } = filter ?? {}
+		return and(
+			q === undefined
+				? undefined
+				: or(
+						searchFilter(paymentProvidersTable.name, q),
+						searchFilter(paymentProvidersTable.code, q),
+					),
+			isActive === undefined ? undefined : eq(paymentProvidersTable.isActive, isActive),
+			isSystem === undefined ? undefined : eq(paymentProvidersTable.isSystem, isSystem),
+		)
 	}
 
-	async getByCode(code: string): Promise<PaymentProviderDto | undefined> {
-		return record('PaymentProviderRepo.getByCode', async () => {
-			const result = await this.db
-				.select()
-				.from(paymentProvidersTable)
-				.where(eq(paymentProvidersTable.code, code))
-			if (result.length === 0) return undefined
-			return PaymentProviderDto.parse(result[0])
-		})
+	async findMany(
+		filter: Partial<Pick<PaymentProviderFilterDto, 'q' | 'isActive' | 'isSystem'>> = {},
+		db: DbContext = this.db,
+	): Promise<PaymentProviderDto[]> {
+		const where = this.#buildWhere(filter)
+		return db
+			.select()
+			.from(paymentProvidersTable)
+			.where(where)
+			.orderBy(paymentProvidersTable.name)
 	}
 
-	async getListPaginated(
+	async findPage(
 		filter: PaymentProviderFilterDto,
+		db: DbContext = this.db,
 	): Promise<WithPaginationResult<PaymentProviderDto>> {
-		return record('PaymentProviderRepo.getListPaginated', async () => {
-			const { q, page, limit } = filter
-			const where = searchFilter(paymentProvidersTable.name, q)
+		const where = this.#buildWhere(filter)
 
-			return paginate<any>({
-				data: async ({ limit: l, offset }) => {
-					const rows = await this.db
-						.select()
-						.from(paymentProvidersTable)
-						.where(where)
-						.orderBy(sortBy(paymentProvidersTable.createdAt, 'desc'))
-						.limit(l)
-						.offset(offset)
-					return rows.map((r) => PaymentProviderDto.parse(r))
-				},
-				pq: { page, limit },
-				countQuery: () =>
-					this.db.select({ count: count() }).from(paymentProvidersTable).where(where),
-			})
+		return paginate<PaymentProviderDto>({
+			data: ({ limit, offset }) =>
+				db
+					.select()
+					.from(paymentProvidersTable)
+					.where(where)
+					.orderBy(sortBy(paymentProvidersTable.createdAt, 'desc'))
+					.limit(limit)
+					.offset(offset),
+			pq: filter,
+			countQuery: () =>
+				db.select({ count: count() }).from(paymentProvidersTable).where(where),
 		})
 	}
 
-	async getAll(): Promise<PaymentProviderDto[]> {
-		return record('PaymentProviderRepo.getAll', async () => {
-			const rows = await this.db
-				.select()
-				.from(paymentProvidersTable)
-				.where(eq(paymentProvidersTable.isActive, true))
-				.orderBy(paymentProvidersTable.name)
-			return rows.map((r) => PaymentProviderDto.parse(r))
-		})
+	async findById(id: number, db: DbContext = this.db): Promise<PaymentProviderDto | undefined> {
+		return db
+			.select()
+			.from(paymentProvidersTable)
+			.where(eq(paymentProvidersTable.id, id))
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
+	async findByCode(
+		code: string,
+		db: DbContext = this.db,
+	): Promise<PaymentProviderDto | undefined> {
+		return db
+			.select()
+			.from(paymentProvidersTable)
+			.where(eq(paymentProvidersTable.code, code))
+			.limit(1)
+			.then(takeFirst)
+	}
 
-	async create(data: PaymentProviderCreateDto, actorId: string): Promise<{ id: string }> {
-		return record('PaymentProviderRepo.create', async () => {
-			await checkConflict({
-				table: paymentProvidersTable,
-				pkColumn: paymentProvidersTable.id,
-				fields: uniqueFields,
-				input: { code: data.code },
-			})
+	async count(db: DbContext = this.db): Promise<number> {
+		return db
+			.select({ count: count() })
+			.from(paymentProvidersTable)
+			.then((rows) => rows[0]?.count ?? 0)
+	}
 
-			const [inserted] = await this.db
-				.insert(paymentProvidersTable)
-				.values({ ...data, ...stampCreate(actorId) })
-				.returning({ id: paymentProvidersTable.id })
-
-			if (!inserted)
-				throw new InternalServerError('Payment provider creation failed', {
-					code: 'PAYMENT_PROVIDER_CREATE_FAILED',
-				})
-
-			return inserted
-		})
+	async insert(
+		data: PaymentProviderInsert,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.insert(paymentProvidersTable)
+			.values({ ...data })
+			.returning({ id: paymentProvidersTable.id })
+		return res
 	}
 
 	async update(
-		id: string,
-		data: Partial<PaymentProviderUpdateDto>,
-		actorId: string,
-	): Promise<{ id: string }> {
-		return record('PaymentProviderRepo.update', async () => {
-			const existing = await this.getById(id)
-			if (!existing)
-				throw new NotFoundError(`Payment provider with ID ${id} not found`, {
-					code: 'PAYMENT_PROVIDER_NOT_FOUND',
-				})
-			if (existing.isSystem)
-				throw new BadRequestError('Cannot mutate a system payment provider', {
-					code: 'PAYMENT_PROVIDER_IS_SYSTEM',
-				})
-
-			if (data.code) {
-				await checkConflict({
-					table: paymentProvidersTable,
-					pkColumn: paymentProvidersTable.id,
-					fields: uniqueFields,
-					input: { code: data.code },
-					existing,
-				})
-			}
-
-			await this.db
-				.update(paymentProvidersTable)
-				.set({ ...data, ...stampUpdate(actorId) })
-				.where(eq(paymentProvidersTable.id, id))
-
-			return { id }
-		})
+		id: number,
+		data: PaymentProviderUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(paymentProvidersTable)
+			.set({ ...data })
+			.where(eq(paymentProvidersTable.id, id))
+			.returning({ id: paymentProvidersTable.id })
+		return res
 	}
 
-	async delete(id: string): Promise<{ id: string }> {
-		return record('PaymentProviderRepo.delete', async () => {
-			const existing = await this.getById(id)
-			if (!existing)
-				throw new NotFoundError(`Payment provider with ID ${id} not found`, {
-					code: 'PAYMENT_PROVIDER_NOT_FOUND',
-				})
-			if (existing.isSystem)
-				throw new BadRequestError('Cannot delete a system payment provider', {
-					code: 'PAYMENT_PROVIDER_IS_SYSTEM',
-				})
-
-			await this.db.delete(paymentProvidersTable).where(eq(paymentProvidersTable.id, id))
-
-			return { id }
-		})
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.delete(paymentProvidersTable)
+			.where(eq(paymentProvidersTable.id, id))
+			.returning({ id: paymentProvidersTable.id })
+		return res
 	}
 }

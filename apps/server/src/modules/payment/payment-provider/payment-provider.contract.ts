@@ -3,18 +3,18 @@ import { z } from 'zod'
 import { zc, zp, zq } from '@/shared/schema'
 
 export const PaymentProviderDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	code: zp.str,
 	name: zp.str,
-	description: zp.strNullable,
-	websiteUrl: zp.strNullable,
+	description: zp.str.nullable(),
+	websiteUrl: zp.str.nullable(),
 	isActive: zp.bool,
 	isSystem: zp.bool,
 	...zc.AuditBasic.shape,
 })
 export type PaymentProviderDto = z.infer<typeof PaymentProviderDto>
 
-export const PaymentProviderCreateDto = z.object({
+const PaymentProviderMutationDto = z.object({
 	code: zc.strTrim
 		.min(2)
 		.max(20)
@@ -25,18 +25,20 @@ export const PaymentProviderCreateDto = z.object({
 	isActive: zp.bool.default(true),
 	isSystem: zp.bool.default(false),
 })
+
+export const PaymentProviderCreateDto = PaymentProviderMutationDto
 export type PaymentProviderCreateDto = z.infer<typeof PaymentProviderCreateDto>
 
 export const PaymentProviderUpdateDto = z.object({
-	...zc.RecordId.shape,
-	...PaymentProviderCreateDto.shape,
+	id: zp.id,
+	...PaymentProviderMutationDto.shape,
 })
 export type PaymentProviderUpdateDto = z.infer<typeof PaymentProviderUpdateDto>
 
 export const PaymentProviderFilterDto = z.object({
+	...zq.pagination.shape,
 	q: zq.search,
 	isActive: zp.bool.optional(),
 	isSystem: zp.bool.optional(),
-	...zq.pagination.shape,
 })
 export type PaymentProviderFilterDto = z.infer<typeof PaymentProviderFilterDto>
