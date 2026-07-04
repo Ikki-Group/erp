@@ -1,29 +1,28 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc } from '@/shared/schema'
-import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc } from '@/shared/schema'
 
 import {
-	PurchaseOrderFilterDto,
-	PurchaseOrderDto,
-	PurchaseOrderSelectDto,
-	PurchaseOrderCreateDto,
-	PurchaseOrderUpdateDto,
-	PurchaseOrderSubmitForApprovalDto,
 	PurchaseOrderApproveDto,
+	PurchaseOrderCreateDto,
+	PurchaseOrderDto,
+	PurchaseOrderFilterDto,
 	PurchaseOrderRejectDto,
+	PurchaseOrderSelectDto,
+	PurchaseOrderSubmitForApprovalDto,
+	PurchaseOrderUpdateDto,
 } from './purchase-order.contract'
-import type { PurchaseOrderService } from './purchase-order.service'
+import type { PurchaseOrderModule } from './purchase-order.module'
 
-export function initPurchaseOrderRoute(service: PurchaseOrderService) {
+export function createPurchaseOrderRoute(m: PurchaseOrderModule) {
 	return new Elysia({ prefix: '/purchase-order' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -34,8 +33,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const result = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const result = await m.handleGetById(query.id)
 				return res.ok(result)
 			},
 			{
@@ -46,9 +45,9 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const result = await service.handleCreate(context.body, context.auth.userId)
-				return res.ok(result)
+			async ({ body, auth }) => {
+				const result = await m.handleCreate(body, auth.userId)
+				return res.created(result)
 			},
 			{
 				body: PurchaseOrderCreateDto,
@@ -56,10 +55,10 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				auth: true,
 			},
 		)
-		.patch(
+		.put(
 			'/update',
-			async function update(context) {
-				const result = await service.handleUpdate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -70,24 +69,20 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				const result = await service.handleRemove(context.query.id, context.auth.userId)
+			async ({ body }) => {
+				const result = await m.handleRemove(body.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
-		)
-		.delete(
-			'/hard-remove',
-			async function hardRemove(context) {
-				const result = await service.handleHardRemove(context.query.id)
-				return res.ok(result)
+			{
+				body: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/submit-for-approval',
-			async function submitForApproval(context) {
-				const result = await service.handleSubmitForApproval(context.body, context.auth.userId)
+			async ({ body }) => {
+				const result = await m.handleSubmitForApproval(body)
 				return res.ok(result)
 			},
 			{
@@ -98,8 +93,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.post(
 			'/approve',
-			async function approve(context) {
-				const result = await service.handleApprove(context.body, context.auth.userId)
+			async ({ body }) => {
+				const result = await m.handleApprove(body)
 				return res.ok(result)
 			},
 			{
@@ -110,8 +105,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		)
 		.post(
 			'/reject',
-			async function reject(context) {
-				const result = await service.handleReject(context.body, context.auth.userId)
+			async ({ body }) => {
+				const result = await m.handleReject(body)
 				return res.ok(result)
 			},
 			{

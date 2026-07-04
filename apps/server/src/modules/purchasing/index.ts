@@ -8,46 +8,23 @@ import type { InventoryServiceModule } from '@/modules/inventory'
 import { GoodsReceiptRepo } from './goods-receipt.repo'
 import { initGoodsReceiptRoute } from './goods-receipt.route'
 import { GoodsReceiptService } from './goods-receipt.service'
-import { PurchaseOrderRepo } from './purchase-order.repo'
-import { initPurchaseOrderRoute } from './purchase-order.route'
-import { PurchaseOrderService } from './purchase-order.service'
+import { createPurchaseOrderModule, type PurchaseOrderModule } from './purchase-order.module'
+import { createPurchaseOrderRoute } from './purchase-order.route'
 
-export class PurchasingServiceModule {
-	public readonly purchaseOrder: PurchaseOrderService
-	public readonly goodsReceipt: GoodsReceiptService
-
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-		inventory: InventoryServiceModule,
-	) {
-		const purchaseOrderRepo = new PurchaseOrderRepo(this.db)
-		this.purchaseOrder = new PurchaseOrderService(purchaseOrderRepo, this.cacheClient)
-
-		const goodsReceiptRepo = new GoodsReceiptRepo(this.db)
-		this.goodsReceipt = new GoodsReceiptService(
-			goodsReceiptRepo,
-			inventory.transaction,
-			this.db,
-			this.cacheClient,
-		)
-	}
-}
-
-export function initPurchasingRouteModule(s: PurchasingServiceModule) {
-	return new Elysia({ prefix: '/purchasing' })
-		.use(initPurchaseOrderRoute(s.purchaseOrder))
-		.use(initGoodsReceiptRoute(s.goodsReceipt))
-}
-
-export {
+export type {
 	PurchaseOrderDto,
+	PurchaseOrderSelectDto,
 	PurchaseOrderCreateDto,
 	PurchaseOrderUpdateDto,
 	PurchaseOrderFilterDto,
-	PurchaseOrderStatusEnum,
-	type PurchaseOrderStatus,
+	PurchaseOrderApproveDto,
+	PurchaseOrderRejectDto,
+	PurchaseOrderSubmitForApprovalDto,
 } from './purchase-order.contract'
+export { PurchaseOrderStatusEnum, type PurchaseOrderStatus } from './purchase-order.contract'
+export type { IPurchaseOrderRepo } from './purchase-order.repo'
+export type { PurchaseOrderModule } from './purchase-order.module'
+
 export {
 	GoodsReceiptNoteDto,
 	GoodsReceiptNoteCreateDto,
@@ -56,5 +33,38 @@ export {
 	GoodsReceiptStatusEnum,
 	type GoodsReceiptStatus,
 } from './goods-receipt.contract'
-export type { PurchaseOrderService } from './purchase-order.service'
 export type { GoodsReceiptService } from './goods-receipt.service'
+
+export interface PurchasingDeps {
+	location: { getById: (id: number) => Promise<{ id: number; name: string } | undefined> }
+	supplier: { getById: (id: number) => Promise<{ id: number; name: string } | undefined> }
+	material: { getById: (id: number) => Promise<{ id: number; name: string } | undefined> }
+}
+
+export class PurchasingServiceModule {
+	public readonly purchaseOrder: PurchaseOrderModule
+	public readonly goodsReceipt: GoodsReceiptService
+
+	constructor(
+		db: DbClient,
+		cacheClient: CacheClient,
+		deps: PurchasingDeps,
+		inventory: InventoryServiceModule,
+	) {
+		this.purchaseOrder = createPurchaseOrderModule(db, cacheClient, deps)
+
+		const goodsReceiptRepo = new GoodsReceiptRepo(db)
+		this.goodsReceipt = new GoodsReceiptService(
+			goodsReceiptRepo,
+			inventory.transaction,
+			db,
+			cacheClient,
+		)
+	}
+}
+
+export function initPurchasingRouteModule(s: PurchasingServiceModule) {
+	return new Elysia({ prefix: '/purchasing' })
+		.use(createPurchaseOrderRoute(s.purchaseOrder))
+		.use(initGoodsReceiptRoute(s.goodsReceipt))
+}

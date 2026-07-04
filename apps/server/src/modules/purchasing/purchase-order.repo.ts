@@ -1,181 +1,147 @@
-import { and, count, eq, isNull, or } from 'drizzle-orm'
+import { and, count, eq, isNull, or, type SQL } from 'drizzle-orm'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 import { purchaseOrderItemsTable, purchaseOrdersTable } from '@/db/schema'
 
-import { paginate, searchFilter, sortBy, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, sortBy, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { ActorId, EntityRef } from '@/shared/types/utils'
+import type { EntityRef } from '@/shared/types/utils'
 
-import {
-	PurchaseOrderCreateDto,
-	PurchaseOrderDto,
-	PurchaseOrderFilterDto,
-	PurchaseOrderSelectDto,
-	type PurchaseOrderStatus,
-	PurchaseOrderUpdateDto,
-} from './purchase-order.contract'
+import type { PurchaseOrderDto, PurchaseOrderFilterDto, PurchaseOrderSelectDto, PurchaseOrderStatus } from './purchase-order.contract'
 
-export class PurchaseOrderRepo {
-	constructor(private readonly db: DbClient) {}
+type PurchaseOrderInsert = typeof purchaseOrdersTable.$inferInsert
+type PurchaseOrderUpdate = Omit<PgUpdateSetSource<typeof purchaseOrdersTable>, 'items'>
+type PurchaseOrderItemInsert = typeof purchaseOrderItemsTable.$inferInsert
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export interface IPurchaseOrderRepo {
+	readonly db: DbContext
+	findById(id: number, db?: DbContext): Promise<PurchaseOrderDto | undefined>
+	findPage(filter: PurchaseOrderFilterDto, db?: DbContext): Promise<WithPaginationResult<PurchaseOrderSelectDto>>
+	insert(data: PurchaseOrderInsert, items: PurchaseOrderItemInsert[], db?: DbContext): Promise<EntityRef | undefined>
+	update(
+		id: number,
+		data: PurchaseOrderUpdate,
+		items: PurchaseOrderItemInsert[],
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
+	updateStatus(id: number, status: PurchaseOrderStatus, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	async getById(id: number): Promise<PurchaseOrderDto | undefined> {
-		const [order] = await this.db
-			.select()
-			.from(purchaseOrdersTable)
-			.where(and(eq(purchaseOrdersTable.id, id), isNull(purchaseOrdersTable.deletedAt)))
+export class PurchaseOrderRepo implements IPurchaseOrderRepo {
+	constructor(readonly db: DbContext) {}
 
-		if (!order) return undefined
-
-		const items = await this.db
-			.select()
-			.from(purchaseOrderItemsTable)
-			.where(
-				and(eq(purchaseOrderItemsTable.orderId, id), isNull(purchaseOrderItemsTable.deletedAt)),
-			)
-
-		return PurchaseOrderDto.parse({ ...order, items })
-	}
-
-	async getListPaginated(
-		filter: PurchaseOrderFilterDto,
-	): Promise<WithPaginationResult<PurchaseOrderSelectDto>> {
-		const { q, page, limit, status, locationId, supplierId } = filter
-		const where = and(
+	#buildWhere(filter: Partial<Pick<PurchaseOrderFilterDto, 'q' | 'status' | 'locationId' | 'supplierId'>>): SQL | undefined {
+		const { q, status, locationId, supplierId } = filter
+		return and(
 			isNull(purchaseOrdersTable.deletedAt),
 			q === undefined ? undefined : or(searchFilter(purchaseOrdersTable.notes, q)),
 			status === undefined ? undefined : eq(purchaseOrdersTable.status, status),
 			locationId === undefined ? undefined : eq(purchaseOrdersTable.locationId, locationId),
 			supplierId === undefined ? undefined : eq(purchaseOrdersTable.supplierId, supplierId),
 		)
+	}
 
-		return paginate<any>({
-			data: async ({ limit: l, offset }) => {
-				const rows = await this.db
+	async findById(id: number, db: DbContext = this.db): Promise<PurchaseOrderDto | undefined> {
+		const [order] = await db
+			.select()
+			.from(purchaseOrdersTable)
+			.where(and(eq(purchaseOrdersTable.id, id), isNull(purchaseOrdersTable.deletedAt)))
+			.limit(1)
+
+		if (!order) return undefined
+
+		const items = await db
+			.select()
+			.from(purchaseOrderItemsTable)
+			.where(and(eq(purchaseOrderItemsTable.orderId, id), isNull(purchaseOrderItemsTable.deletedAt)))
+
+		return { ...order, items }
+	}
+
+	async findPage(
+		filter: PurchaseOrderFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<PurchaseOrderSelectDto>> {
+		const where = this.#buildWhere(filter)
+
+		return paginate<PurchaseOrderSelectDto>({
+			data: async ({ limit, offset }) => {
+				const rows = await db
 					.select()
 					.from(purchaseOrdersTable)
 					.where(where)
 					.orderBy(sortBy(purchaseOrdersTable.updatedAt, 'desc'))
-					.limit(l)
+					.limit(limit)
 					.offset(offset)
-				return rows.map((r) => PurchaseOrderSelectDto.parse(r))
+				return rows
 			},
-			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(purchaseOrdersTable).where(where),
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(purchaseOrdersTable).where(where),
 		})
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
+	async insert(
+		data: PurchaseOrderInsert,
+		items: PurchaseOrderItemInsert[],
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [insertedOrder] = await db
+			.insert(purchaseOrdersTable)
+			.values(data)
+			.returning({ id: purchaseOrdersTable.id })
 
-	async create(data: PurchaseOrderCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const result = await this.db.transaction(async (tx) => {
-			const { items, ...orderData } = data
-			const meta = stampCreate(actorId)
+		if (!insertedOrder) return undefined
 
-			const [insertedOrder] = await tx
-				.insert(purchaseOrdersTable)
-				.values({
-					...orderData,
-					totalAmount: orderData.totalAmount?.toString() ?? '0',
-					discountAmount: orderData.discountAmount?.toString() ?? '0',
-					taxAmount: orderData.taxAmount?.toString() ?? '0',
-					...meta,
-				})
-				.returning({ id: purchaseOrdersTable.id })
+		if (items.length > 0) {
+			await db.insert(purchaseOrderItemsTable).values(items)
+		}
 
-			if (!insertedOrder) throw new Error('Create PO failed')
-
-			const itemValues = items.map((item) => ({
-				materialId: item.materialId,
-				itemName: item.itemName,
-				quantity: item.quantity?.toString(),
-				unitPrice: item.unitPrice?.toString(),
-				discountAmount: item.discountAmount?.toString(),
-				taxAmount: item.taxAmount?.toString(),
-				subtotal: item.subtotal?.toString(),
-				orderId: insertedOrder.id,
-				...meta,
-			}))
-
-			await tx.insert(purchaseOrderItemsTable).values(itemValues)
-
-			return { id: insertedOrder.id }
-		})
-		return result
+		return { id: insertedOrder.id }
 	}
 
-	async update(data: PurchaseOrderUpdateDto, actorId: ActorId): Promise<EntityRef> {
-		const { id, items, ...orderData } = data
-		const updateMeta = stampUpdate(actorId)
-		const createMeta = stampCreate(actorId)
-
-		await this.db.transaction(async (tx) => {
-			await tx
-				.update(purchaseOrdersTable)
-				.set({
-					...orderData,
-					totalAmount: orderData.totalAmount?.toString(),
-					discountAmount: orderData.discountAmount?.toString(),
-					taxAmount: orderData.taxAmount?.toString(),
-					...updateMeta,
-				})
-				.where(eq(purchaseOrdersTable.id, id))
-
-			if (items) {
-				await tx.delete(purchaseOrderItemsTable).where(eq(purchaseOrderItemsTable.orderId, id))
-				if (items.length > 0) {
-					const itemValues = items.map((item) => ({
-						materialId: item.materialId,
-						itemName: item.itemName,
-						quantity: item.quantity?.toString(),
-						unitPrice: item.unitPrice?.toString(),
-						discountAmount: item.discountAmount?.toString(),
-						taxAmount: item.taxAmount?.toString(),
-						subtotal: item.subtotal?.toString(),
-						orderId: id,
-						...createMeta,
-					}))
-					await tx.insert(purchaseOrderItemsTable).values(itemValues)
-				}
-			}
-		})
-
-		return { id }
-	}
-
-	async softDelete(id: number, actorId: ActorId): Promise<EntityRef> {
-		const [result] = await this.db
+	async update(
+		id: number,
+		data: PurchaseOrderUpdate,
+		items: PurchaseOrderItemInsert[],
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [updated] = await db
 			.update(purchaseOrdersTable)
-			.set({ deletedAt: new Date(), deletedBy: actorId })
+			.set(data)
 			.where(eq(purchaseOrdersTable.id, id))
 			.returning({ id: purchaseOrdersTable.id })
-		if (!result) throw new Error('Purchase Order not found')
-		return { id: result.id }
-	}
 
-	async hardDelete(id: number): Promise<EntityRef> {
-		const [result] = await this.db
-			.delete(purchaseOrdersTable)
-			.where(eq(purchaseOrdersTable.id, id))
-			.returning({ id: purchaseOrdersTable.id })
-		if (!result) throw new Error('Purchase Order not found')
-		return { id: result.id }
+		if (!updated) return undefined
+
+		await db.delete(purchaseOrderItemsTable).where(eq(purchaseOrderItemsTable.orderId, id))
+
+		if (items.length > 0) {
+			await db.insert(purchaseOrderItemsTable).values(items)
+		}
+
+		return { id: updated.id }
 	}
 
 	async updateStatus(
 		id: number,
 		status: PurchaseOrderStatus,
-		actorId: ActorId,
-	): Promise<EntityRef> {
-		const updateMeta = stampUpdate(actorId)
-		const [result] = await this.db
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [result] = await db
 			.update(purchaseOrdersTable)
-			.set({ status, ...updateMeta })
+			.set({ status })
 			.where(eq(purchaseOrdersTable.id, id))
 			.returning({ id: purchaseOrdersTable.id })
-		if (!result) throw new Error('Purchase Order not found')
-		return { id: result.id }
+		return result
+	}
+
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [result] = await db
+			.update(purchaseOrdersTable)
+			.set({ deletedAt: new Date() })
+			.where(eq(purchaseOrdersTable.id, id))
+			.returning({ id: purchaseOrdersTable.id })
+		return result
 	}
 }
