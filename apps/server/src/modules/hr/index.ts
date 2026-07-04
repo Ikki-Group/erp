@@ -5,13 +5,8 @@ import type { DbClient } from '@/infra/database'
 
 import type { FinanceServiceModule } from '@/modules/finance'
 
-interface HRServiceModuleDeps {
-	finance: FinanceServiceModule
-}
-
-import { EmployeeRepo } from './employee/employee.repo'
-import { initEmployeeRoute } from './employee/employee.route'
-import { EmployeeService } from './employee/employee.service'
+import { createEmployeeModule, type EmployeeModule } from './employee/employee.module'
+import { createEmployeeRoute } from './employee/employee.route'
 import { HRRepo } from './hr/hr.repo'
 import { initHRRoute } from './hr/hr.route'
 import { HRService } from './hr/hr.service'
@@ -22,8 +17,12 @@ import { PayrollRepo } from './payroll/payroll.repo'
 import { initPayrollRoute } from './payroll/payroll.route'
 import { PayrollService } from './payroll/payroll.service'
 
+interface HRServiceModuleDeps {
+	finance: FinanceServiceModule
+}
+
 export class HRServiceModule {
-	public readonly employee: EmployeeService
+	public readonly employee: EmployeeModule
 	public readonly hr: HRService
 	public readonly payroll: PayrollService
 	public readonly leaveRequest: LeaveRequestService
@@ -33,8 +32,7 @@ export class HRServiceModule {
 		private readonly cacheClient: CacheClient,
 		private readonly deps: HRServiceModuleDeps,
 	) {
-		const employeeRepo = new EmployeeRepo(this.db)
-		this.employee = new EmployeeService(employeeRepo, this.cacheClient)
+		this.employee = createEmployeeModule(this.db, this.cacheClient)
 
 		const hrRepo = new HRRepo(this.db)
 		this.hr = new HRService(hrRepo, this.cacheClient)
@@ -55,14 +53,15 @@ export class HRServiceModule {
 
 export function initHRRouteModule(s: HRServiceModule) {
 	return new Elysia({ prefix: '/hr' })
-		.use(initEmployeeRoute(s.employee))
+		.use(createEmployeeRoute(s.employee))
 		.use(initHRRoute(s.hr))
 		.use(initPayrollRoute(s.payroll))
 		.use(initLeaveRequestRoute(s.leaveRequest))
 }
 
 export * from './employee/employee.contract'
-export type { EmployeeService } from './employee/employee.service'
+export type { IEmployeeRepo } from './employee/employee.repo'
+export type { EmployeeModule } from './employee/employee.module'
 export {
 	ShiftDto,
 	ShiftCreateDto,

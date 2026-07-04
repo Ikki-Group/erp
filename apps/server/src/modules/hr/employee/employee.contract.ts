@@ -13,7 +13,7 @@ export const EmployeeDto = z.object({
 	jobTitle: zp.strNullable,
 	department: zp.strNullable,
 	userId: zp.id.nullable(),
-	...zc.AuditBasic.shape,
+	...zc.AuditFull.shape,
 })
 export type EmployeeDto = z.infer<typeof EmployeeDto>
 

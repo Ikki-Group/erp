@@ -1,97 +1,121 @@
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
+import { and, count, eq, isNull, or, SQL } from 'drizzle-orm'
 
 import { employeesTable } from '@/db/schema/hr'
 
-import { paginate, sortBy, takeFirst, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-import {
-	EmployeeCreateDto,
-	EmployeeDto,
-	EmployeeFilterDto,
-	EmployeeUpdateDto,
-} from './employee.contract'
+import type { EmployeeDto, EmployeeFilterDto } from './employee.contract'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
-export class EmployeeRepo {
-	constructor(readonly db: DbClient) {}
+type EmployeeInsert = typeof employeesTable.$inferInsert
+type EmployeeUpdate = PgUpdateSetSource<typeof employeesTable>
 
-	/* ---------------------------------- QUERY --------------------------------- */
+/**
+ * Repository port for the employee module. Services depend on this interface
+ * (not the concrete class) so they can be unit-tested with plain in-memory
+ * fakes and no database. Not-found reads return `undefined`; writes return the
+ * affected `EntityRef` or `undefined`. Repos never throw for "not found" — the
+ * service decides error semantics. Every write accepts an optional `db`
+ * override so it can participate in a caller's transaction.
+ */
+export interface IEmployeeRepo {
+	readonly db: DbContext
+	findMany(filter?: EmployeeFilterDto, db?: DbContext): Promise<EmployeeDto[]>
+	findPage(filter: EmployeeFilterDto, db?: DbContext): Promise<WithPaginationResult<EmployeeDto>>
+	findById(id: number, db?: DbContext): Promise<EmployeeDto | undefined>
+	findByIds(ids: number[], db?: DbContext): Promise<EmployeeDto[]>
+	insert(data: EmployeeInsert, db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: EmployeeUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	async getListPaginated(filter: EmployeeFilterDto): Promise<WithPaginationResult<EmployeeDto>> {
-		return record('EmployeeRepo.getListPaginated', async () => {
-			const { q, page, limit } = filter
+export class EmployeeRepo implements IEmployeeRepo {
+	constructor(readonly db: DbContext) {}
 
-			const searchCondition = q
-				? or(ilike(employeesTable.name, `%${q}%`), ilike(employeesTable.code, `%${q}%`))
-				: undefined
+	#buildWhere(filter?: Partial<Pick<EmployeeFilterDto, 'q'>>): SQL | undefined {
+		const { q } = filter ?? {}
+		return and(
+			q === undefined
+				? undefined
+				: or(searchFilter(employeesTable.name, q), searchFilter(employeesTable.code, q)),
+		)
+	}
 
-			const where = and(isNull(employeesTable.deletedAt), searchCondition)
+	async findMany(
+		filter: Partial<Pick<EmployeeFilterDto, 'q'>> = {},
+		db: DbContext = this.db,
+	): Promise<EmployeeDto[]> {
+		const where = this.#buildWhere(filter)
+		return db.select().from(employeesTable).where(where)
+	}
 
-			return paginate<EmployeeDto>({
-				data: ({ limit: l, offset }) =>
-					this.db
-						.select()
-						.from(employeesTable)
-						.where(where)
-						.orderBy(sortBy(employeesTable.updatedAt, 'desc'))
-						.limit(l)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: () => this.db.select({ count: count() }).from(employeesTable).where(where),
-			})
+	async findPage(
+		filter: EmployeeFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<EmployeeDto>> {
+		const where = this.#buildWhere(filter)
+
+		return paginate<EmployeeDto>({
+			data: ({ limit, offset }) =>
+				db
+					.select()
+					.from(employeesTable)
+					.where(and(isNull(employeesTable.deletedAt), where))
+					.orderBy(sortBy(employeesTable.updatedAt, 'desc'))
+					.limit(limit)
+					.offset(offset),
+			pq: filter,
+			countQuery: () =>
+				db
+					.select({ count: count() })
+					.from(employeesTable)
+					.where(and(isNull(employeesTable.deletedAt), where)),
 		})
 	}
 
-	async getById(id: number): Promise<EmployeeDto | undefined> {
-		return record('EmployeeRepo.getById', async () => {
-			return this.db
-				.select()
-				.from(employeesTable)
-				.where(and(eq(employeesTable.id, id), isNull(employeesTable.deletedAt)))
-				.limit(1)
-				.then(takeFirst)
-		})
+	async findById(id: number, db: DbContext = this.db): Promise<EmployeeDto | undefined> {
+		return db
+			.select()
+			.from(employeesTable)
+			.where(and(eq(employeesTable.id, id), isNull(employeesTable.deletedAt)))
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: EmployeeCreateDto, actorId: number): Promise<number | undefined> {
-		return record('EmployeeRepo.create', async () => {
-			const metadata = stampCreate(actorId)
-			const [res] = await this.db
-				.insert(employeesTable)
-				.values({ ...data, ...metadata })
-				.returning({ id: employeesTable.id })
-
-			return res?.id
-		})
+	async findByIds(ids: number[], db: DbContext = this.db): Promise<EmployeeDto[]> {
+		if (ids.length === 0) return []
+		const { inArray } = await import('drizzle-orm')
+		return db
+			.select()
+			.from(employeesTable)
+			.where(and(inArray(employeesTable.id, ids), isNull(employeesTable.deletedAt)))
 	}
 
-	async update(data: EmployeeUpdateDto, actorId: number): Promise<number | undefined> {
-		return record('EmployeeRepo.update', async () => {
-			const { id, ...rest } = data
-			const metadata = stampUpdate(actorId)
-			const [res] = await this.db
-				.update(employeesTable)
-				.set({ ...rest, ...metadata })
-				.where(eq(employeesTable.id, id))
-				.returning({ id: employeesTable.id })
-
-			return res?.id
-		})
+	async insert(data: EmployeeInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db.insert(employeesTable).values({ ...data }).returning({ id: employeesTable.id })
+		return res
 	}
 
-	async remove(id: number, actorId: number): Promise<number | undefined> {
-		return record('EmployeeRepo.remove', async () => {
-			const [res] = await this.db
-				.update(employeesTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(employeesTable.id, id))
-				.returning({ id: employeesTable.id })
+	async update(
+		id: number,
+		data: EmployeeUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(employeesTable)
+			.set({ ...data })
+			.where(eq(employeesTable.id, id))
+			.returning({ id: employeesTable.id })
+		return res
+	}
 
-			return res?.id
-		})
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.delete(employeesTable)
+			.where(eq(employeesTable.id, id))
+			.returning({ id: employeesTable.id })
+		return res
 	}
 }
