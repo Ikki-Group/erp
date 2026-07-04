@@ -1,38 +1,24 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-import type { DbClient, DbContext } from '@/infra/database'
+import type { DbClient } from '@/infra/database'
 
 import { createAccountModule, type AccountModule } from './account/account.module'
 import { createAccountRoute } from './account/account.route'
-import { ExpenditureRepo } from './expenditure/expenditure.repo'
-import { initExpenditureRoute } from './expenditure/expenditure.route'
-import { ExpenditureService } from './expenditure/expenditure.service'
-import { GeneralLedgerRepo } from './general-ledger/general-ledger.repo'
-import { initGeneralLedgerRoute } from './general-ledger/general-ledger.route'
-import { GeneralLedgerService } from './general-ledger/general-ledger.service'
+import { createExpenditureModule, type ExpenditureModule } from './expenditure/expenditure.module'
+import { createExpenditureRoute } from './expenditure/expenditure.route'
+import { createGeneralLedgerModule, type GeneralLedgerModule } from './general-ledger/general-ledger.module'
+import { createGeneralLedgerRoute } from './general-ledger/general-ledger.route'
 
 export class FinanceServiceModule {
 	public readonly account: AccountModule
-	public readonly journal: GeneralLedgerService
-	public readonly expenditure: ExpenditureService
+	public readonly journal: GeneralLedgerModule
+	public readonly expenditure: ExpenditureModule
 
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-	) {
-		this.account = createAccountModule(db as DbContext, cacheClient)
-
-		const glRepo = new GeneralLedgerRepo(this.db)
-		this.journal = new GeneralLedgerService(glRepo, this.cacheClient)
-
-		const expenditureRepo = new ExpenditureRepo(this.db)
-		this.expenditure = new ExpenditureService(
-			this.db,
-			this.journal,
-			expenditureRepo,
-			this.cacheClient,
-		)
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.account = createAccountModule(db, cacheClient)
+		this.journal = createGeneralLedgerModule(db, cacheClient)
+		this.expenditure = createExpenditureModule(db, cacheClient, this.journal)
 	}
 }
 
@@ -41,8 +27,8 @@ export type FinanceModule = FinanceServiceModule
 export function createFinanceRoute(m: FinanceModule) {
 	return new Elysia({ prefix: '/finance' })
 		.use(createAccountRoute(m.account))
-		.use(initExpenditureRoute(m.expenditure))
-		.use(initGeneralLedgerRoute(m.journal))
+		.use(createExpenditureRoute(m.expenditure))
+		.use(createGeneralLedgerRoute(m.journal))
 }
 
 export function initFinanceRouteModule(s: FinanceServiceModule) {
@@ -50,7 +36,8 @@ export function initFinanceRouteModule(s: FinanceServiceModule) {
 }
 
 export type { AccountModule, AccountModule as AccountService } from './account/account.module'
-export type { GeneralLedgerService } from './general-ledger/general-ledger.service'
+export type { ExpenditureModule, ExpenditureModule as ExpenditureService } from './expenditure/expenditure.module'
+export type { GeneralLedgerModule } from './general-ledger/general-ledger.module'
 
 export {
 	AccountDto,
@@ -70,3 +57,10 @@ export {
 	type ExpenditureTypeEnum as ExpenditureType,
 	type ExpenditureStatusEnum as ExpenditureStatus,
 } from './expenditure/expenditure.contract'
+export {
+	JournalEntryDto,
+	JournalEntryWithItemsDto,
+	JournalItemDto,
+	JournalEntryCreateDto,
+	JournalEntryFilterDto,
+} from './general-ledger/general-ledger.contract'

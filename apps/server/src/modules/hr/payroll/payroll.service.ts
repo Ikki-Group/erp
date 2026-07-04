@@ -6,7 +6,7 @@ import type { DbClient } from '@/infra/database'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { AccountDto } from '@/modules/finance/account/account.contract'
-import type { GeneralLedgerService } from '@/modules/finance'
+import type { GeneralLedgerModule } from '@/modules/finance'
 
 import type {
 	PayrollBatchCreateDto,
@@ -26,7 +26,7 @@ export class PayrollService {
 
 	constructor(
 		private readonly accountSvc: AccountPayrollPort,
-		private readonly journalSvc: GeneralLedgerService,
+		private readonly journalSvc: GeneralLedgerModule,
 		private readonly repo: PayrollRepo,
 		private readonly db: DbClient,
 		cacheClient: CacheClient,

@@ -1,28 +1,41 @@
-import Elysia from 'elysia'
-import { z } from 'zod'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { createSuccessResponseDto } from '@/shared/schema/response'
+import { createSuccessResponseDto, zc } from '@/shared/schema'
 
-import type { GeneralLedgerService } from './general-ledger.service'
+import { JournalEntryCreateDto, JournalEntryWithItemsDto } from './general-ledger.contract'
+import type { GeneralLedgerModule } from './general-ledger.module'
 
-const GetEntryQuery = z.object({
-	sourceType: z.string(),
-	sourceId: z.coerce.number(),
+const GetEntryQuery = zc.RecordId.extend({
+	sourceType: JournalEntryWithItemsDto.shape.sourceType,
 })
 
-export function initGeneralLedgerRoute(s: GeneralLedgerService) {
-	return new Elysia({ prefix: '/general-ledger' }).use(authPluginMacro).get(
-		'/entry',
-		async ({ query }) => {
-			const entry = await s.getEntryBySource(query.sourceType, query.sourceId)
-			return res.ok(entry)
-		},
-		{
-			query: GetEntryQuery,
-			response: createSuccessResponseDto(z.any()),
-			auth: true,
-		},
-	)
+export function createGeneralLedgerRoute(m: GeneralLedgerModule) {
+	return new Elysia({ prefix: '/general-ledger' })
+		.use(authPluginMacro)
+		.get(
+			'/entry',
+			async ({ query }) => {
+				const result = await m.handleGetBySource(query.sourceType, query.id)
+				return res.ok(result)
+			},
+			{
+				query: GetEntryQuery,
+				response: createSuccessResponseDto(JournalEntryWithItemsDto),
+				auth: true,
+			},
+		)
+		.post(
+			'/create',
+			async ({ body, auth }) => {
+				const result = await m.handleCreate(body, auth.userId)
+				return res.created(result)
+			},
+			{
+				body: JournalEntryCreateDto,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
+		)
 }

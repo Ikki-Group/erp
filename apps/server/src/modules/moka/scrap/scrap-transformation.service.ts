@@ -19,7 +19,7 @@ import { takeFirst, type DbClient, type DbTx } from '@/infra/database'
 import { stampCreate } from '@/shared/audit/stamp'
 
 import type { AccountService } from '@/modules/finance'
-import type { GeneralLedgerService } from '@/modules/finance'
+import type { GeneralLedgerModule } from '@/modules/finance'
 
 import type {
 	MokaCategoryRaw,
@@ -33,7 +33,7 @@ export class MokaTransformationService {
 	constructor(
 		private readonly db: DbClient,
 		private readonly accountSvc: AccountService,
-		private readonly journalSvc: GeneralLedgerService,
+		private readonly journalSvc: GeneralLedgerModule,
 	) {}
 
 	/* ─── Category Sync ─────────────────────────────────────────────────────── */
