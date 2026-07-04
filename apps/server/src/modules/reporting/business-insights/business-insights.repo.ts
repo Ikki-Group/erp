@@ -11,12 +11,22 @@ import {
 } from '@/db/schema'
 import { stockTransactionsTable } from '@/db/schema/inventory'
 
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import { BusinessInsightsRequestDto } from './business-insights.contract'
 
-export class BusinessInsightsRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IBusinessInsightsRepo {
+	readonly db: DbContext
+	getRevenueRows(query: BusinessInsightsRequestDto): Promise<Array<{ date: Date; revenue: number }>>
+	getCogsRows(query: BusinessInsightsRequestDto): Promise<Array<{ date: Date; cogs: number }>>
+	getLocationPerformance(query: BusinessInsightsRequestDto): Promise<Array<{ locationId: number; locationName: string; totalSales: number; totalRevenue: number; totalCost: number }>>
+	getCogsRowsForInventoryTurnover(query: BusinessInsightsRequestDto): Promise<Array<{ materialId: number; cogs: number }>>
+	getAvgInventoryRows(query: BusinessInsightsRequestDto): Promise<Array<{ materialId: number; avgStock: number }>>
+	getMaterialName(materialId: number): Promise<Array<{ name: string }>>
+}
+
+export class BusinessInsightsRepo implements IBusinessInsightsRepo {
+	constructor(readonly db: DbContext) {}
 
 	async getRevenueRows(query: BusinessInsightsRequestDto) {
 		const { dateFrom, dateTo, locationId } = query

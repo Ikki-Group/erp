@@ -1,19 +1,19 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createSuccessResponseDto } from '@/shared/schema/response'
 
 import * as dto from './payment-reporting.contract'
-import type { PaymentReportingService } from './payment-reporting.service'
+import type { PaymentReportingModule } from './payment-reporting.module'
 
-export function initPaymentReportingRoute(service: PaymentReportingService) {
+export function createPaymentReportingRoute(m: PaymentReportingModule) {
 	return new Elysia({ prefix: '/payment' })
 		.use(authPluginMacro)
 		.get(
 			'/by-method',
-			async ({ query }: { query: dto.PaymentReportRequestDto }) => {
-				const result = await service.getPaymentsByMethod(query)
+			async ({ query }) => {
+				const result = await m.handleGetPaymentsByMethod(query)
 				return res.ok(result)
 			},
 			{
@@ -24,8 +24,8 @@ export function initPaymentReportingRoute(service: PaymentReportingService) {
 		)
 		.get(
 			'/over-time',
-			async ({ query }: { query: dto.PaymentReportRequestDto }) => {
-				const result = await service.getPaymentsOverTime(query)
+			async ({ query }) => {
+				const result = await m.handleGetPaymentsOverTime(query)
 				return res.ok(result)
 			},
 			{
@@ -36,8 +36,8 @@ export function initPaymentReportingRoute(service: PaymentReportingService) {
 		)
 		.get(
 			'/by-account',
-			async ({ query }: { query: dto.PaymentReportRequestDto }) => {
-				const result = await service.getPaymentsByAccount(query)
+			async ({ query }) => {
+				const result = await m.handleGetPaymentsByAccount(query)
 				return res.ok(result)
 			},
 			{

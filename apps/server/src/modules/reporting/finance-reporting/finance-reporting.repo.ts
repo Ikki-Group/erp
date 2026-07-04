@@ -2,12 +2,19 @@ import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
 import { accountsTable, expendituresTable } from '@/db/schema'
 
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import { FinanceReportRequestDto } from './finance-reporting.contract'
 
-export class FinanceReportingRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IFinanceReportingRepo {
+	readonly db: DbContext
+	getExpenditureByCategory(
+		query: FinanceReportRequestDto,
+	): Promise<Array<{ categoryId: number; categoryName: string; totalAmount: number }>>
+}
+
+export class FinanceReportingRepo implements IFinanceReportingRepo {
+	constructor(readonly db: DbContext) {}
 
 	async getExpenditureByCategory(query: FinanceReportRequestDto) {
 		const { dateFrom, dateTo, locationId, accountId } = query

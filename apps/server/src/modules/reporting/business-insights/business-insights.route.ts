@@ -1,19 +1,19 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createSuccessResponseDto } from '@/shared/schema/response'
 
 import * as dto from './business-insights.contract'
-import type { BusinessInsightsService } from './business-insights.service'
+import type { BusinessInsightsModule } from './business-insights.module'
 
-export function initBusinessInsightsRoute(service: BusinessInsightsService) {
+export function createBusinessInsightsRoute(m: BusinessInsightsModule) {
 	return new Elysia({ prefix: '/insights' })
 		.use(authPluginMacro)
 		.get(
 			'/profitability',
-			async ({ query }: { query: dto.BusinessInsightsRequestDto }) => {
-				const result = await service.getProfitability(query)
+			async ({ query }) => {
+				const result = await m.handleGetProfitability(query)
 				return res.ok(result)
 			},
 			{
@@ -24,8 +24,8 @@ export function initBusinessInsightsRoute(service: BusinessInsightsService) {
 		)
 		.get(
 			'/location',
-			async ({ query }: { query: dto.BusinessInsightsRequestDto }) => {
-				const result = await service.getLocationPerformance(query)
+			async ({ query }) => {
+				const result = await m.handleGetLocationPerformance(query)
 				return res.ok(result)
 			},
 			{
@@ -36,8 +36,8 @@ export function initBusinessInsightsRoute(service: BusinessInsightsService) {
 		)
 		.get(
 			'/turnover',
-			async ({ query }: { query: dto.BusinessInsightsRequestDto }) => {
-				const result = await service.getInventoryTurnover(query)
+			async ({ query }) => {
+				const result = await m.handleGetInventoryTurnover(query)
 				return res.ok(result)
 			},
 			{

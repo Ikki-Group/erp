@@ -1,21 +1,15 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { DbClient } from '@/infra/database'
-
 import * as dto from './procurement-reporting.contract'
-import { ProcurementReportingRepo } from './procurement-reporting.repo'
+import type { IProcurementReportingRepo } from './procurement-reporting.repo'
 
 export class ProcurementReportingService {
-	private readonly repo: ProcurementReportingRepo
+	constructor(private readonly repo: IProcurementReportingRepo) {}
 
-	constructor(db: DbClient) {
-		this.repo = new ProcurementReportingRepo(db)
-	}
-
-	async getPurchasesReport(
+	async handleGetPurchasesReport(
 		query: dto.ProcurementReportRequestDto,
 	): Promise<dto.PurchaseReportResponseDto> {
-		return record('ProcurementReportingService.getPurchasesReport', async () => {
+		return record('ProcurementReportingService.handleGetPurchasesReport', async () => {
 			const data = await this.repo.getPurchasesReport(query)
 
 			const totalAmount = data.reduce((s, d) => s + Number(d.totalAmount), 0)
@@ -38,10 +32,10 @@ export class ProcurementReportingService {
 		})
 	}
 
-	async getSuppliersReport(
+	async handleGetSuppliersReport(
 		query: dto.ProcurementReportRequestDto,
 	): Promise<dto.SupplierReportResponseDto> {
-		return record('ProcurementReportingService.getSuppliersReport', async () => {
+		return record('ProcurementReportingService.handleGetSuppliersReport', async () => {
 			const data = await this.repo.getSuppliersReport(query)
 
 			const totalAmount = data.reduce((s, d) => s + Number(d.totalAmount), 0)
@@ -63,10 +57,10 @@ export class ProcurementReportingService {
 		})
 	}
 
-	async getTransfersReport(
+	async handleGetTransfersReport(
 		query: dto.ProcurementReportRequestDto,
 	): Promise<dto.TransferReportResponseDto> {
-		return record('ProcurementReportingService.getTransfersReport', async () => {
+		return record('ProcurementReportingService.handleGetTransfersReport', async () => {
 			const data = await this.repo.getTransfersReport(query)
 
 			const totalCost = data.reduce((s, d) => s + Number(d.totalCost), 0)
@@ -89,8 +83,10 @@ export class ProcurementReportingService {
 		})
 	}
 
-	async getCostsReport(query: dto.ProcurementReportRequestDto): Promise<dto.CostReportResponseDto> {
-		return record('ProcurementReportingService.getCostsReport', async () => {
+	async handleGetCostsReport(
+		query: dto.ProcurementReportRequestDto,
+	): Promise<dto.CostReportResponseDto> {
+		return record('ProcurementReportingService.handleGetCostsReport', async () => {
 			const data = await this.repo.getCostsReport(query)
 
 			const totalCost = data.reduce((s, d) => s + Number(d.unitPrice) * Number(d.qty), 0)

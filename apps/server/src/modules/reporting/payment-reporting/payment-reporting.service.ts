@@ -1,21 +1,15 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { DbClient } from '@/infra/database'
-
 import * as dto from './payment-reporting.contract'
-import { PaymentReportingRepo } from './payment-reporting.repo'
+import type { IPaymentReportingRepo } from './payment-reporting.repo'
 
 export class PaymentReportingService {
-	private readonly repo: PaymentReportingRepo
+	constructor(private readonly repo: IPaymentReportingRepo) {}
 
-	constructor(db: DbClient) {
-		this.repo = new PaymentReportingRepo(db)
-	}
-
-	async getPaymentsByMethod(
+	async handleGetPaymentsByMethod(
 		query: dto.PaymentReportRequestDto,
 	): Promise<dto.PaymentByMethodResponseDto> {
-		return record('PaymentReportingService.getPaymentsByMethod', async () => {
+		return record('PaymentReportingService.handleGetPaymentsByMethod', async () => {
 			const data = await this.repo.getPaymentsByMethod(query)
 
 			const totalAmount = data.reduce((sum, d) => sum + Number(d.totalAmount), 0)
@@ -27,7 +21,8 @@ export class PaymentReportingService {
 					category: d.method === 'cash' ? 'cash' : 'cashless',
 					totalAmount: String(d.totalAmount),
 					count: d.count,
-					percentage: totalAmount > 0 ? String((Number(d.totalAmount) / totalAmount) * 100) : '0',
+					percentage:
+						totalAmount > 0 ? String((Number(d.totalAmount) / totalAmount) * 100) : '0',
 				})),
 				summary: {
 					total: String(totalAmount),
@@ -40,10 +35,10 @@ export class PaymentReportingService {
 		})
 	}
 
-	async getPaymentsOverTime(
+	async handleGetPaymentsOverTime(
 		query: dto.PaymentReportRequestDto,
 	): Promise<dto.PaymentOverTimeResponseDto> {
-		return record('PaymentReportingService.getPaymentsOverTime', async () => {
+		return record('PaymentReportingService.handleGetPaymentsOverTime', async () => {
 			const data = await this.repo.getPaymentsOverTime(query)
 
 			const totalPayable = data.reduce((sum, d) => sum + Number(d.payableAmount), 0)
@@ -72,10 +67,10 @@ export class PaymentReportingService {
 		})
 	}
 
-	async getPaymentsByAccount(
+	async handleGetPaymentsByAccount(
 		query: dto.PaymentReportRequestDto,
 	): Promise<dto.PaymentByAccountResponseDto> {
-		return record('PaymentReportingService.getPaymentsByAccount', async () => {
+		return record('PaymentReportingService.handleGetPaymentsByAccount', async () => {
 			const data = await this.repo.getPaymentsByAccount(query)
 
 			const totalAmount = data.reduce((sum, d) => sum + Number(d.totalAmount), 0)

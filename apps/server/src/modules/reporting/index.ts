@@ -1,51 +1,51 @@
 import { Elysia } from 'elysia'
 
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
-import { initBusinessInsightsRoute } from './business-insights/business-insights.route'
-import { BusinessInsightsService } from './business-insights/business-insights.service'
-import { initCrmReportingRoute } from './crm-reporting/crm-reporting.route'
-import { CrmReportingService } from './crm-reporting/crm-reporting.service'
-import { initFinanceReportingRoute } from './finance-reporting/finance-reporting.route'
-import { FinanceReportingService } from './finance-reporting/finance-reporting.service'
-import { initInventoryReportingRoute } from './inventory-reporting/inventory-reporting.route'
-import { InventoryReportingService } from './inventory-reporting/inventory-reporting.service'
-import { initPaymentReportingRoute } from './payment-reporting/payment-reporting.route'
-import { PaymentReportingService } from './payment-reporting/payment-reporting.service'
-import { initProcurementReportingRoute } from './procurement-reporting/procurement-reporting.route'
-import { ProcurementReportingService } from './procurement-reporting/procurement-reporting.service'
-import { initSalesReportingRoute } from './sales-reporting/sales-reporting.route'
-import { SalesReportingService } from './sales-reporting/sales-reporting.service'
+import { createBusinessInsightsModule } from './business-insights/business-insights.module'
+import { createBusinessInsightsRoute } from './business-insights/business-insights.route'
+import { createCrmReportingModule } from './crm-reporting/crm-reporting.module'
+import { createCrmReportingRoute } from './crm-reporting/crm-reporting.route'
+import { createFinanceReportingModule } from './finance-reporting/finance-reporting.module'
+import { createFinanceReportingRoute } from './finance-reporting/finance-reporting.route'
+import { createInventoryReportingModule } from './inventory-reporting/inventory-reporting.module'
+import { createInventoryReportingRoute } from './inventory-reporting/inventory-reporting.route'
+import { createPaymentReportingModule } from './payment-reporting/payment-reporting.module'
+import { createPaymentReportingRoute } from './payment-reporting/payment-reporting.route'
+import { createProcurementReportingModule } from './procurement-reporting/procurement-reporting.module'
+import { createProcurementReportingRoute } from './procurement-reporting/procurement-reporting.route'
+import { createSalesReportingModule } from './sales-reporting/sales-reporting.module'
+import { createSalesReportingRoute } from './sales-reporting/sales-reporting.route'
 
 export class ReportingServiceModule {
-	public readonly sales: SalesReportingService
-	public readonly finance: FinanceReportingService
-	public readonly inventory: InventoryReportingService
-	public readonly procurement: ProcurementReportingService
-	public readonly crm: CrmReportingService
-	public readonly payment: PaymentReportingService
-	public readonly insights: BusinessInsightsService
+	public readonly sales: ReturnType<typeof createSalesReportingModule>
+	public readonly finance: ReturnType<typeof createFinanceReportingModule>
+	public readonly inventory: ReturnType<typeof createInventoryReportingModule>
+	public readonly procurement: ReturnType<typeof createProcurementReportingModule>
+	public readonly crm: ReturnType<typeof createCrmReportingModule>
+	public readonly payment: ReturnType<typeof createPaymentReportingModule>
+	public readonly insights: ReturnType<typeof createBusinessInsightsModule>
 
-	constructor(private readonly db: DbClient) {
-		this.sales = new SalesReportingService(this.db)
-		this.finance = new FinanceReportingService(this.db)
-		this.inventory = new InventoryReportingService(this.db)
-		this.procurement = new ProcurementReportingService(this.db)
-		this.crm = new CrmReportingService(this.db)
-		this.payment = new PaymentReportingService(this.db)
-		this.insights = new BusinessInsightsService(this.db)
+	constructor(db: DbContext) {
+		this.sales = createSalesReportingModule(db)
+		this.finance = createFinanceReportingModule(db)
+		this.inventory = createInventoryReportingModule(db)
+		this.procurement = createProcurementReportingModule(db)
+		this.crm = createCrmReportingModule(db)
+		this.payment = createPaymentReportingModule(db)
+		this.insights = createBusinessInsightsModule(db)
 	}
 }
 
-export function initReportingRouteModule(s: ReportingServiceModule) {
+export function createReportingRouteModule(s: ReportingServiceModule) {
 	return new Elysia({ prefix: '/reporting' })
-		.use(initSalesReportingRoute(s.sales))
-		.use(initFinanceReportingRoute(s.finance))
-		.use(initInventoryReportingRoute(s.inventory))
-		.use(initProcurementReportingRoute(s.procurement))
-		.use(initBusinessInsightsRoute(s.insights))
-		.use(initCrmReportingRoute(s.crm))
-		.use(initPaymentReportingRoute(s.payment))
+		.use(createSalesReportingRoute(s.sales))
+		.use(createFinanceReportingRoute(s.finance))
+		.use(createInventoryReportingRoute(s.inventory))
+		.use(createProcurementReportingRoute(s.procurement))
+		.use(createBusinessInsightsRoute(s.insights))
+		.use(createCrmReportingRoute(s.crm))
+		.use(createPaymentReportingRoute(s.payment))
 }
 
 export * from './reporting.contract'

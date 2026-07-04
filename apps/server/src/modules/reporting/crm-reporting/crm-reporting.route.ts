@@ -1,19 +1,19 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createSuccessResponseDto } from '@/shared/schema/response'
 
 import * as dto from './crm-reporting.contract'
-import type { CrmReportingService } from './crm-reporting.service'
+import type { CrmReportingModule } from './crm-reporting.module'
 
-export function initCrmReportingRoute(service: CrmReportingService) {
+export function createCrmReportingRoute(m: CrmReportingModule) {
 	return new Elysia({ prefix: '/crm' })
 		.use(authPluginMacro)
 		.get(
 			'/customer-growth',
-			async ({ query }: { query: dto.CrmReportRequestDto }) => {
-				const result = await service.getCustomerGrowth(query)
+			async ({ query }) => {
+				const result = await m.handleGetCustomerGrowth(query)
 				return res.ok(result)
 			},
 			{
@@ -24,8 +24,8 @@ export function initCrmReportingRoute(service: CrmReportingService) {
 		)
 		.get(
 			'/customers-by-tier',
-			async ({ query }: { query: dto.CrmReportRequestDto }) => {
-				const result = await service.getCustomersByTier(query)
+			async ({ query }) => {
+				const result = await m.handleGetCustomersByTier(query)
 				return res.ok(result)
 			},
 			{
@@ -36,8 +36,8 @@ export function initCrmReportingRoute(service: CrmReportingService) {
 		)
 		.get(
 			'/top-customers',
-			async ({ query }: { query: dto.CrmReportRequestDto }) => {
-				const result = await service.getTopCustomers(query)
+			async ({ query }) => {
+				const result = await m.handleGetTopCustomers(query)
 				return res.ok(result)
 			},
 			{
@@ -48,8 +48,8 @@ export function initCrmReportingRoute(service: CrmReportingService) {
 		)
 		.get(
 			'/loyalty-points',
-			async ({ query }: { query: dto.CrmReportRequestDto }) => {
-				const result = await service.getLoyaltyPointsSummary(query)
+			async ({ query }) => {
+				const result = await m.handleGetLoyaltyPointsSummary(query)
 				return res.ok(result)
 			},
 			{

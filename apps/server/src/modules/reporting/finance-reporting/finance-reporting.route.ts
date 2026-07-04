@@ -1,19 +1,19 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createSuccessResponseDto } from '@/shared/schema/response'
 
 import * as dto from './finance-reporting.contract'
-import type { FinanceReportingService } from './finance-reporting.service'
+import type { FinanceReportingModule } from './finance-reporting.module'
 
-export function initFinanceReportingRoute(service: FinanceReportingService) {
+export function createFinanceReportingRoute(m: FinanceReportingModule) {
 	return new Elysia({ prefix: '/finance' })
 		.use(authPluginMacro)
 		.get(
 			'/cash-flow',
-			async ({ query }: { query: dto.FinanceReportRequestDto }) => {
-				const result = await service.getCashFlow(query)
+			async ({ query }) => {
+				const result = await m.handleGetCashFlow(query)
 				return res.ok(result)
 			},
 			{
@@ -24,8 +24,8 @@ export function initFinanceReportingRoute(service: FinanceReportingService) {
 		)
 		.get(
 			'/account-balances',
-			async ({ query }: { query: dto.FinanceReportRequestDto }) => {
-				const result = await service.getAccountBalances(query)
+			async ({ query }) => {
+				const result = await m.handleGetAccountBalances(query)
 				return res.ok(result)
 			},
 			{
@@ -36,8 +36,8 @@ export function initFinanceReportingRoute(service: FinanceReportingService) {
 		)
 		.get(
 			'/expenditure-by-category',
-			async ({ query }: { query: dto.FinanceReportRequestDto }) => {
-				const result = await service.getExpenditureByCategory(query)
+			async ({ query }) => {
+				const result = await m.handleGetExpenditureByCategory(query)
 				return res.ok(result)
 			},
 			{

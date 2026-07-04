@@ -1,42 +1,29 @@
-// @ts-nocheck
 import { record } from '@elysiajs/opentelemetry'
 
-import type { DbClient } from '@/infra/database'
-
 import * as dto from './crm-reporting.contract'
-import { CrmReportingRepo } from './crm-reporting.repo'
+import type { ICrmReportingRepo } from './crm-reporting.repo'
 
 export class CrmReportingService {
-	private readonly repo: CrmReportingRepo
+	constructor(private readonly repo: ICrmReportingRepo) {}
 
-	constructor(db: DbClient) {
-		this.repo = new CrmReportingRepo(db)
-	}
-
-	async getCustomerGrowth(
+	async handleGetCustomerGrowth(
 		query: dto.CrmReportRequestDto,
 	): Promise<dto.CustomerGrowthChartResponseDto> {
-		return record('CrmReportingService.getCustomerGrowth', async () => {
+		return record('CrmReportingService.handleGetCustomerGrowth', async () => {
 			const data = await this.repo.getCustomerGrowth(query)
 			const totalNewCustomers = data.reduce((sum, d) => sum + d.newCustomers, 0)
-			const runningTotal: number[] = []
 			let cumulative = 0
 
 			const dataWithTotal = data.map((d) => {
 				cumulative += d.newCustomers
-				runningTotal.push(cumulative)
 				return {
-					// @ts-ignore
-
-					date: String(d.date),
+					date: new Date(String(d.date)),
 					newCustomers: d.newCustomers,
 					totalCustomers: cumulative,
 				}
 			})
 
 			return {
-				// @ts-ignore
-
 				chartType: 'line' as const,
 				data: dataWithTotal,
 				summary: {
@@ -50,20 +37,21 @@ export class CrmReportingService {
 		})
 	}
 
-	async getCustomersByTier(query: dto.CrmReportRequestDto): Promise<dto.CustomerByTierResponseDto> {
-		return record('CrmReportingService.getCustomersByTier', async () => {
+	async handleGetCustomersByTier(
+		query: dto.CrmReportRequestDto,
+	): Promise<dto.CustomerByTierResponseDto> {
+		return record('CrmReportingService.handleGetCustomersByTier', async () => {
 			const data = await this.repo.getCustomersByTier(query)
 			const totalCustomers = data.reduce((sum, d) => sum + d.customerCount, 0)
 
 			return {
-				// @ts-ignore
-
 				chartType: 'pie' as const,
-				data: data.map((d) => ({
-					tierId: d.tier,
+				data: data.map((d, idx) => ({
+					tierId: idx + 1,
 					tierName: d.tierName,
 					customerCount: d.customerCount,
-					percentage: totalCustomers > 0 ? String((d.customerCount / totalCustomers) * 100) : '0',
+					percentage:
+						totalCustomers > 0 ? String((d.customerCount / totalCustomers) * 100) : '0',
 				})),
 				summary: {
 					total: String(totalCustomers),
@@ -76,20 +64,18 @@ export class CrmReportingService {
 		})
 	}
 
-	async getTopCustomers(query: dto.CrmReportRequestDto): Promise<dto.TopCustomersResponseDto> {
-		return record('CrmReportingService.getTopCustomers', async () => {
+	async handleGetTopCustomers(query: dto.CrmReportRequestDto): Promise<dto.TopCustomersResponseDto> {
+		return record('CrmReportingService.handleGetTopCustomers', async () => {
 			const data = await this.repo.getTopCustomers(query)
 			const totalSpent = data.reduce((sum, d) => sum + Number(d.totalSpent), 0)
 			const avgSpent = data.length > 0 ? totalSpent / data.length : 0
 
 			return {
-				// @ts-ignore
-
 				chartType: 'bar' as const,
 				data: data
 					.filter((d) => d.customerId !== null)
 					.map((d) => ({
-						customerId: d.customerId,
+						customerId: d.customerId!,
 						customerName: d.customerName,
 						email: d.email,
 						totalSpent: String(d.totalSpent),
@@ -106,18 +92,16 @@ export class CrmReportingService {
 		})
 	}
 
-	async getLoyaltyPointsSummary(
+	async handleGetLoyaltyPointsSummary(
 		query: dto.CrmReportRequestDto,
 	): Promise<dto.LoyaltyPointsResponseDto> {
-		return record('CrmReportingService.getLoyaltyPointsSummary', async () => {
+		return record('CrmReportingService.handleGetLoyaltyPointsSummary', async () => {
 			const data = await this.repo.getLoyaltyPointsSummary(query)
 			const pointsIssued = data[0]?.pointsIssued ?? 0
 			const pointsRedeemed = data[0]?.pointsRedeemed ?? 0
 			const pointsBalance = pointsIssued - pointsRedeemed
 
 			return {
-				// @ts-ignore
-
 				data: {
 					totalPointsIssued: String(pointsIssued),
 					totalPointsRedeemed: String(pointsRedeemed),

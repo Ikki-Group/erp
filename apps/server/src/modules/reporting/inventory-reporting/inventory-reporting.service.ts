@@ -1,24 +1,20 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { DbClient } from '@/infra/database'
-
 import * as dto from './inventory-reporting.contract'
-import { InventoryReportingRepo } from './inventory-reporting.repo'
+import type { IInventoryReportingRepo } from './inventory-reporting.repo'
 
 export class InventoryReportingService {
-	private readonly repo: InventoryReportingRepo
+	constructor(private readonly repo: IInventoryReportingRepo) {}
 
-	constructor(db: DbClient) {
-		this.repo = new InventoryReportingRepo(db)
-	}
-
-	async getStockLevels(query: dto.InventoryReportRequestDto): Promise<dto.StockLevelResponseDto> {
-		return record('InventoryReportingService.getStockLevels', async () => {
+	async handleGetStockLevels(
+		query: dto.InventoryReportRequestDto,
+	): Promise<dto.StockLevelResponseDto> {
+		return record('InventoryReportingService.handleGetStockLevels', async () => {
 			const { data, summary } = await this.repo.getStockLevels(query)
 			const s = summary
 
 			return {
-				data,
+				data: data.map((d) => ({ ...d, sku: d.sku ?? '' })),
 				summary: {
 					total: String(s?.total ?? 0),
 					average: String((s?.total ?? 0) / (s?.count ?? 1)),
@@ -30,13 +26,16 @@ export class InventoryReportingService {
 		})
 	}
 
-	async getStockValue(query: dto.InventoryReportRequestDto): Promise<dto.StockValueResponseDto> {
-		return record('InventoryReportingService.getStockValue', async () => {
+	async handleGetStockValue(
+		query: dto.InventoryReportRequestDto,
+	): Promise<dto.StockValueResponseDto> {
+		return record('InventoryReportingService.handleGetStockValue', async () => {
 			const { rows, summary } = await this.repo.getStockValue(query)
 			const s = summary
 
 			const data = rows.map((r) => ({
 				...r,
+				sku: r.sku ?? '',
 				unitCost: String(r.unitCost),
 				totalValue: String(r.totalValue),
 			}))
@@ -55,13 +54,15 @@ export class InventoryReportingService {
 		})
 	}
 
-	async getLowStockItems(query: dto.InventoryReportRequestDto): Promise<dto.LowStockResponseDto> {
-		return record('InventoryReportingService.getLowStockItems', async () => {
+	async handleGetLowStockItems(
+		query: dto.InventoryReportRequestDto,
+	): Promise<dto.LowStockResponseDto> {
+		return record('InventoryReportingService.handleGetLowStockItems', async () => {
 			const { data, summary } = await this.repo.getLowStockItems(query)
 			const s = summary
 
 			return {
-				data,
+				data: data.map((d) => ({ ...d, sku: d.sku ?? '' })),
 				summary: {
 					total: String(s?.count ?? 0),
 					average: '0',
@@ -73,10 +74,10 @@ export class InventoryReportingService {
 		})
 	}
 
-	async getInventoryMovements(
+	async handleGetInventoryMovements(
 		query: dto.InventoryReportRequestDto,
 	): Promise<dto.InventoryMovementChartResponseDto> {
-		return record('InventoryReportingService.getInventoryMovements', async () => {
+		return record('InventoryReportingService.handleGetInventoryMovements', async () => {
 			const movements = await this.repo.getInventoryMovements(query)
 
 			const data = movements.map((m) => ({
@@ -105,10 +106,10 @@ export class InventoryReportingService {
 		})
 	}
 
-	async getOpnameReport(
+	async handleGetOpnameReport(
 		query: dto.InventoryReportRequestDto,
 	): Promise<dto.OpnameVarianceResponseDto> {
-		return record('InventoryReportingService.getOpnameReport', async () => {
+		return record('InventoryReportingService.handleGetOpnameReport', async () => {
 			const data = await this.repo.getOpnameReport(query)
 			const totalVariance = data.reduce((s, d) => s + d.variance, 0)
 
@@ -132,10 +133,10 @@ export class InventoryReportingService {
 		})
 	}
 
-	async getConsumptionReport(
+	async handleGetConsumptionReport(
 		query: dto.InventoryReportRequestDto,
 	): Promise<dto.ConsumptionResponseDto> {
-		return record('InventoryReportingService.getConsumptionReport', async () => {
+		return record('InventoryReportingService.handleGetConsumptionReport', async () => {
 			const data = await this.repo.getConsumptionReport(query)
 			const totalQty = data.reduce((s, d) => s + d.quantity, 0)
 
@@ -158,8 +159,10 @@ export class InventoryReportingService {
 		})
 	}
 
-	async getWasteReport(query: dto.InventoryReportRequestDto): Promise<dto.WasteResponseDto> {
-		return record('InventoryReportingService.getWasteReport', async () => {
+	async handleGetWasteReport(
+		query: dto.InventoryReportRequestDto,
+	): Promise<dto.WasteResponseDto> {
+		return record('InventoryReportingService.handleGetWasteReport', async () => {
 			const data = await this.repo.getWasteReport(query)
 			const totalQty = data.reduce((s, d) => s + d.quantity, 0)
 

@@ -13,12 +13,105 @@ import {
 } from '@/db/schema/inventory'
 import { locationsTable } from '@/db/schema/location'
 
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import { InventoryReportRequestDto } from './inventory-reporting.contract'
 
-export class InventoryReportingRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IInventoryReportingRepo {
+	readonly db: DbContext
+	getStockLevels(query: InventoryReportRequestDto): Promise<{
+		data: Array<{
+			productId: number
+			productName: string
+			sku: string | null
+			currentStock: number
+			reorderLevel: number
+			unit: string
+		}>
+		summary: { total: number; count: number } | undefined
+	}>
+	getStockValue(query: InventoryReportRequestDto): Promise<{
+		rows: Array<{
+			productId: number
+			productName: string
+			sku: string | null
+			quantity: number
+			unitCost: number
+			totalValue: number
+		}>
+		summary: { total: number; count: number } | undefined
+	}>
+	getLowStockItems(query: InventoryReportRequestDto): Promise<{
+		data: Array<{
+			productId: number
+			productName: string
+			sku: string | null
+			currentStock: number
+			reorderLevel: number
+			shortage: number
+		}>
+		summary: { count: number } | undefined
+	}>
+	getInventoryMovements(
+		query: InventoryReportRequestDto,
+	): Promise<
+		Array<{
+			date: Date
+			quantityIn: number
+			quantityOut: number
+			netAdjustment: number
+		}>
+	>
+	getOpnameReport(
+		query: InventoryReportRequestDto,
+	): Promise<
+		Array<{
+			materialId: number
+			materialName: string
+			locationId: number
+			locationName: string
+			expectedQty: number
+			actualQty: number
+			variance: number
+			varianceCost: number
+			adjustmentType: string
+			date: Date
+		}>
+	>
+	getConsumptionReport(
+		query: InventoryReportRequestDto,
+	): Promise<
+		Array<{
+			materialId: number
+			materialName: string
+			materialType: string
+			locationId: number
+			locationName: string
+			quantity: number
+			unit: string | null
+			cost: number
+			date: Date
+		}>
+	>
+	getWasteReport(
+		query: InventoryReportRequestDto,
+	): Promise<
+		Array<{
+			materialId: number
+			materialName: string
+			locationId: number
+			locationName: string
+			quantity: number
+			unit: string | null
+			cost: number
+			reason: string | null
+			date: Date
+		}>
+	>
+}
+
+export class InventoryReportingRepo implements IInventoryReportingRepo {
+	constructor(readonly db: DbContext) {}
 
 	private buildBaseWhere(query: InventoryReportRequestDto) {
 		const { locationId, productId } = query

@@ -1,14 +1,21 @@
-// @ts-nocheck
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
 import { customersTable, customerLoyaltyTransactionsTable, salesOrdersTable } from '@/db/schema'
 
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import { CrmReportRequestDto } from './crm-reporting.contract'
 
-export class CrmReportingRepo {
-	constructor(private readonly db: DbClient) {}
+export interface ICrmReportingRepo {
+	readonly db: DbContext
+	getCustomerGrowth(query: CrmReportRequestDto): Promise<Array<{ date: unknown; newCustomers: number }>>
+	getCustomersByTier(query: CrmReportRequestDto): Promise<Array<{ tier: string | null; tierName: string; customerCount: number }>>
+	getTopCustomers(query: CrmReportRequestDto): Promise<Array<{ customerId: number | null; customerName: string; email: string; totalSpent: number; orderCount: number }>>
+	getLoyaltyPointsSummary(query: CrmReportRequestDto): Promise<Array<{ pointsIssued: number; pointsRedeemed: number }>>
+}
+
+export class CrmReportingRepo implements ICrmReportingRepo {
+	constructor(readonly db: DbContext) {}
 
 	async getCustomerGrowth(query: CrmReportRequestDto) {
 		const { dateFrom, dateTo, tierId, groupBy = 'day' } = query
@@ -17,7 +24,7 @@ export class CrmReportingRepo {
 			gte(customersTable.createdAt, dateFrom),
 			lte(customersTable.createdAt, dateTo),
 			tierId
-				? eq(customersTable.tier, tierId as 'bronze' | 'gold' | 'platinum' | 'silver')
+				? eq(customersTable.tier, String(tierId) as 'bronze' | 'gold' | 'platinum' | 'silver')
 				: undefined,
 		)
 

@@ -1,39 +1,33 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { DbClient } from '@/infra/database'
-
 import * as dto from './finance-reporting.contract'
-import { FinanceReportingRepo } from './finance-reporting.repo'
+import type { IFinanceReportingRepo } from './finance-reporting.repo'
 
 export class FinanceReportingService {
-	private readonly repo: FinanceReportingRepo
+	constructor(private readonly repo: IFinanceReportingRepo) {}
 
-	constructor(db: DbClient) {
-		this.repo = new FinanceReportingRepo(db)
-	}
-
-	async getCashFlow(_query: dto.FinanceReportRequestDto): Promise<dto.CashFlowChartResponseDto> {
-		return record('FinanceReportingService.getCashFlow', () => {
+	async handleGetCashFlow(_query: dto.FinanceReportRequestDto): Promise<dto.CashFlowChartResponseDto> {
+		return record('FinanceReportingService.handleGetCashFlow', () => {
 			throw new Error(
 				'Cash flow reporting not yet implemented - generalLedgerTable needs to be created',
 			)
 		})
 	}
 
-	async getAccountBalances(
+	async handleGetAccountBalances(
 		_query: dto.FinanceReportRequestDto,
 	): Promise<dto.AccountBalanceResponseDto> {
-		return record('FinanceReportingService.getAccountBalances', () => {
+		return record('FinanceReportingService.handleGetAccountBalances', () => {
 			throw new Error(
 				'Account balance reporting not yet implemented - requires journal entry aggregation',
 			)
 		})
 	}
 
-	async getExpenditureByCategory(
+	async handleGetExpenditureByCategory(
 		query: dto.FinanceReportRequestDto,
 	): Promise<dto.ExpenditureByCategoryResponseDto> {
-		return record('FinanceReportingService.getExpenditureByCategory', async () => {
+		return record('FinanceReportingService.handleGetExpenditureByCategory', async () => {
 			const data = await this.repo.getExpenditureByCategory(query)
 
 			const totalAmount = data.reduce((sum, d) => sum + Number(d.totalAmount), 0)
@@ -44,7 +38,8 @@ export class FinanceReportingService {
 					categoryId: d.categoryId,
 					categoryName: d.categoryName,
 					totalAmount: String(d.totalAmount),
-					percentage: totalAmount > 0 ? String((Number(d.totalAmount) / totalAmount) * 100) : '0',
+					percentage:
+						totalAmount > 0 ? String((Number(d.totalAmount) / totalAmount) * 100) : '0',
 				})),
 				summary: {
 					total: String(totalAmount),

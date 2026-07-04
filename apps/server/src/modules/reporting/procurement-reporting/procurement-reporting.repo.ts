@@ -10,17 +10,81 @@ import {
 	suppliersTable,
 } from '@/db/schema'
 
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import { ProcurementReportRequestDto } from './procurement-reporting.contract'
 
-export class ProcurementReportingRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IProcurementReportingRepo {
+	readonly db: DbContext
+	getPurchasesReport(query: ProcurementReportRequestDto): Promise<
+		Array<{
+			purchaseOrderId: number
+			date: Date
+			supplierId: number
+			supplierName: string
+			materialId: number
+			materialName: string
+			qty: number
+			unitPrice: number
+			totalAmount: number
+			status: string
+		}>
+	>
+	getSuppliersReport(query: ProcurementReportRequestDto): Promise<
+		Array<{
+			supplierId: number
+			supplierName: string
+			totalOrders: number
+			totalAmount: number
+			completedOrders: number
+			pendingOrders: number
+		}>
+	>
+	getTransfersReport(query: ProcurementReportRequestDto): Promise<
+		Array<{
+			transferId: number
+			date: Date
+			fromLocation: string
+			toLocation: string
+			materialId: number
+			materialName: string
+			qty: number
+			unitCost: number
+			totalCost: number
+			status: string
+		}>
+	>
+	getCostsReport(query: ProcurementReportRequestDto): Promise<
+		Array<{
+			materialId: number
+			materialName: string
+			date: Date
+			unitPrice: number
+			qty: number
+		}>
+	>
+}
 
-	async getPurchasesReport(query: ProcurementReportRequestDto) {
+export class ProcurementReportingRepo implements IProcurementReportingRepo {
+	constructor(readonly db: DbContext) {}
+
+	async getPurchasesReport(query: ProcurementReportRequestDto): Promise<
+		Array<{
+			purchaseOrderId: number
+			date: Date
+			supplierId: number
+			supplierName: string
+			materialId: number
+			materialName: string
+			qty: number
+			unitPrice: number
+			totalAmount: number
+			status: string
+		}>
+	> {
 		const { dateFrom, dateTo, locationId, supplierId } = query
 
-		return this.db
+		const rows = await this.db
 			.select({
 				purchaseOrderId: purchaseOrdersTable.id,
 				date: purchaseOrdersTable.transactionDate,
@@ -49,12 +113,34 @@ export class ProcurementReportingRepo {
 				),
 			)
 			.orderBy(purchaseOrdersTable.transactionDate)
+
+		return rows as unknown as Array<{
+			purchaseOrderId: number
+			date: Date
+			supplierId: number
+			supplierName: string
+			materialId: number
+			materialName: string
+			qty: number
+			unitPrice: number
+			totalAmount: number
+			status: string
+		}>
 	}
 
-	async getSuppliersReport(query: ProcurementReportRequestDto) {
+	async getSuppliersReport(query: ProcurementReportRequestDto): Promise<
+		Array<{
+			supplierId: number
+			supplierName: string
+			totalOrders: number
+			totalAmount: number
+			completedOrders: number
+			pendingOrders: number
+		}>
+	> {
 		const { dateFrom, dateTo } = query
 
-		return this.db
+		const rows = await this.db
 			.select({
 				supplierId: suppliersTable.id,
 				supplierName: suppliersTable.name,
@@ -73,12 +159,34 @@ export class ProcurementReportingRepo {
 			)
 			.groupBy(suppliersTable.id)
 			.orderBy(sql`totalAmount DESC`)
+
+		return rows as unknown as Array<{
+			supplierId: number
+			supplierName: string
+			totalOrders: number
+			totalAmount: number
+			completedOrders: number
+			pendingOrders: number
+		}>
 	}
 
-	async getTransfersReport(query: ProcurementReportRequestDto) {
+	async getTransfersReport(query: ProcurementReportRequestDto): Promise<
+		Array<{
+			transferId: number
+			date: Date
+			fromLocation: string
+			toLocation: string
+			materialId: number
+			materialName: string
+			qty: number
+			unitCost: number
+			totalCost: number
+			status: string
+		}>
+	> {
 		const { dateFrom, dateTo, locationId } = query
 
-		return this.db
+		const rows = await this.db
 			.select({
 				transferId: stockTransfersTable.id,
 				date: stockTransfersTable.transferDate,
@@ -106,12 +214,33 @@ export class ProcurementReportingRepo {
 				),
 			)
 			.orderBy(stockTransfersTable.transferDate)
+
+		return rows as unknown as Array<{
+			transferId: number
+			date: Date
+			fromLocation: string
+			toLocation: string
+			materialId: number
+			materialName: string
+			qty: number
+			unitCost: number
+			totalCost: number
+			status: string
+		}>
 	}
 
-	async getCostsReport(query: ProcurementReportRequestDto) {
+	async getCostsReport(query: ProcurementReportRequestDto): Promise<
+		Array<{
+			materialId: number
+			materialName: string
+			date: Date
+			unitPrice: number
+			qty: number
+		}>
+	> {
 		const { dateFrom, dateTo, materialId } = query
 
-		return this.db
+		const rows = await this.db
 			.select({
 				materialId: materialsTable.id,
 				materialName: materialsTable.name,
@@ -133,5 +262,13 @@ export class ProcurementReportingRepo {
 				),
 			)
 			.orderBy(purchaseOrdersTable.transactionDate)
+
+		return rows as unknown as Array<{
+			materialId: number
+			materialName: string
+			date: Date
+			unitPrice: number
+			qty: number
+		}>
 	}
 }

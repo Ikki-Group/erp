@@ -1,21 +1,15 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { DbClient } from '@/infra/database'
-
 import * as dto from './sales-reporting.contract'
-import { SalesReportingRepo } from './sales-reporting.repo'
+import type { ISalesReportingRepo } from './sales-reporting.repo'
 
 export class SalesReportingService {
-	private readonly repo: SalesReportingRepo
+	constructor(private readonly repo: ISalesReportingRepo) {}
 
-	constructor(db: DbClient) {
-		this.repo = new SalesReportingRepo(db)
-	}
-
-	async getRevenueOverTime(
+	async handleGetRevenueOverTime(
 		query: dto.SalesReportRequestDto,
 	): Promise<dto.SalesRevenueChartResponseDto> {
-		return record('SalesReportingService.getRevenueOverTime', async () => {
+		return record('SalesReportingService.handleGetRevenueOverTime', async () => {
 			const data = await this.repo.getRevenueOverTime(query)
 
 			const totalRevenue = data.reduce((sum, d) => sum + Number(d.revenue), 0)
@@ -39,8 +33,10 @@ export class SalesReportingService {
 		})
 	}
 
-	async getTopProducts(query: dto.SalesReportRequestDto): Promise<dto.TopProductsChartResponseDto> {
-		return record('SalesReportingService.getTopProducts', async () => {
+	async handleGetTopProducts(
+		query: dto.SalesReportRequestDto,
+	): Promise<dto.TopProductsChartResponseDto> {
+		return record('SalesReportingService.handleGetTopProducts', async () => {
 			const data = await this.repo.getTopProducts(query)
 
 			const totalRevenue = data.reduce((sum, d) => sum + Number(d.totalRevenue), 0)
@@ -65,10 +61,10 @@ export class SalesReportingService {
 		})
 	}
 
-	async getSalesByLocation(
+	async handleGetSalesByLocation(
 		query: dto.SalesReportRequestDto,
 	): Promise<dto.SalesByLocationChartResponseDto> {
-		return record('SalesReportingService.getSalesByLocation', async () => {
+		return record('SalesReportingService.handleGetSalesByLocation', async () => {
 			const data = await this.repo.getSalesByLocation(query)
 
 			const totalRevenue = data.reduce((sum, d) => sum + Number(d.revenue), 0)
@@ -92,8 +88,10 @@ export class SalesReportingService {
 		})
 	}
 
-	async getSalesByType(query: dto.SalesReportRequestDto): Promise<dto.SalesByTypeChartResponseDto> {
-		return record('SalesReportingService.getSalesByType', async () => {
+	async handleGetSalesByType(
+		query: dto.SalesReportRequestDto,
+	): Promise<dto.SalesByTypeChartResponseDto> {
+		return record('SalesReportingService.handleGetSalesByType', async () => {
 			const data = await this.repo.getSalesByType(query)
 
 			const totalRevenue = data.reduce((sum, d) => sum + Number(d.revenue), 0)
@@ -104,7 +102,8 @@ export class SalesReportingService {
 					salesTypeId: d.salesTypeId,
 					revenue: String(d.revenue),
 					orderCount: d.orderCount,
-					percentage: totalRevenue > 0 ? String((Number(d.revenue) / totalRevenue) * 100) : '0',
+					percentage:
+						totalRevenue > 0 ? String((Number(d.revenue) / totalRevenue) * 100) : '0',
 				})),
 				summary: {
 					total: String(totalRevenue),

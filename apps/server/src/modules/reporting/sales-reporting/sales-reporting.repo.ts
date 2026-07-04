@@ -2,12 +2,33 @@ import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 
 import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema'
 
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import { SalesReportRequestDto } from './sales-reporting.contract'
 
-export class SalesReportingRepo {
-	constructor(private readonly db: DbClient) {}
+export interface ISalesReportingRepo {
+	readonly db: DbContext
+	getRevenueOverTime(query: SalesReportRequestDto): Promise<
+		Array<{ date: unknown; revenue: number; orderCount: number }>
+	>
+	getTopProducts(query: SalesReportRequestDto): Promise<
+		Array<{
+			productId: number | null
+			itemName: string
+			totalQuantity: number
+			totalRevenue: number
+		}>
+	>
+	getSalesByLocation(query: SalesReportRequestDto): Promise<
+		Array<{ locationId: number; revenue: number; orderCount: number }>
+	>
+	getSalesByType(query: SalesReportRequestDto): Promise<
+		Array<{ salesTypeId: number; revenue: number; orderCount: number }>
+	>
+}
+
+export class SalesReportingRepo implements ISalesReportingRepo {
+	constructor(readonly db: DbContext) {}
 
 	private buildDateRangeWhere(query: SalesReportRequestDto) {
 		const { dateFrom, dateTo, locationId, salesTypeId } = query

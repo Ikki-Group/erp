@@ -2,12 +2,19 @@ import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 
 import { accountsTable, paymentsTable } from '@/db/schema'
 
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import { PaymentReportRequestDto } from './payment-reporting.contract'
 
-export class PaymentReportingRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IPaymentReportingRepo {
+	readonly db: DbContext
+	getPaymentsByMethod(query: PaymentReportRequestDto): Promise<Array<{ method: string; totalAmount: number; count: number }>>
+	getPaymentsOverTime(query: PaymentReportRequestDto): Promise<Array<{ date: unknown; payableAmount: number; receivableAmount: number }>>
+	getPaymentsByAccount(query: PaymentReportRequestDto): Promise<Array<{ accountId: number; accountName: string; accountCode: string; totalAmount: number; count: number }>>
+}
+
+export class PaymentReportingRepo implements IPaymentReportingRepo {
+	constructor(readonly db: DbContext) {}
 
 	private buildBaseWhere(query: PaymentReportRequestDto) {
 		const { dateFrom, dateTo, accountId, method, type } = query

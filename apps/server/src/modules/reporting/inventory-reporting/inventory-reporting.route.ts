@@ -1,19 +1,19 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createSuccessResponseDto } from '@/shared/schema/response'
 
 import * as dto from './inventory-reporting.contract'
-import type { InventoryReportingService } from './inventory-reporting.service'
+import type { InventoryReportingModule } from './inventory-reporting.module'
 
-export function initInventoryReportingRoute(service: InventoryReportingService) {
+export function createInventoryReportingRoute(m: InventoryReportingModule) {
 	return new Elysia({ prefix: '/inventory' })
 		.use(authPluginMacro)
 		.get(
 			'/stock-levels',
-			async ({ query }: { query: dto.InventoryReportRequestDto }) => {
-				const result = await service.getStockLevels(query)
+			async ({ query }) => {
+				const result = await m.handleGetStockLevels(query)
 				return res.ok(result)
 			},
 			{
@@ -24,8 +24,8 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 		)
 		.get(
 			'/stock-value',
-			async ({ query }: { query: dto.InventoryReportRequestDto }) => {
-				const result = await service.getStockValue(query)
+			async ({ query }) => {
+				const result = await m.handleGetStockValue(query)
 				return res.ok(result)
 			},
 			{
@@ -36,8 +36,8 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 		)
 		.get(
 			'/low-stock',
-			async ({ query }: { query: dto.InventoryReportRequestDto }) => {
-				const result = await service.getLowStockItems(query)
+			async ({ query }) => {
+				const result = await m.handleGetLowStockItems(query)
 				return res.ok(result)
 			},
 			{
@@ -48,8 +48,8 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 		)
 		.get(
 			'/movements',
-			async ({ query }: { query: dto.InventoryReportRequestDto }) => {
-				const result = await service.getInventoryMovements(query)
+			async ({ query }) => {
+				const result = await m.handleGetInventoryMovements(query)
 				return res.ok(result)
 			},
 			{
@@ -60,8 +60,8 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 		)
 		.get(
 			'/consumption',
-			async ({ query }: { query: dto.InventoryReportRequestDto }) => {
-				const result = await service.getConsumptionReport(query)
+			async ({ query }) => {
+				const result = await m.handleGetConsumptionReport(query)
 				return res.ok(result)
 			},
 			{
@@ -72,8 +72,8 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 		)
 		.get(
 			'/opname',
-			async ({ query }: { query: dto.InventoryReportRequestDto }) => {
-				const result = await service.getOpnameReport(query)
+			async ({ query }) => {
+				const result = await m.handleGetOpnameReport(query)
 				return res.ok(result)
 			},
 			{
@@ -84,8 +84,8 @@ export function initInventoryReportingRoute(service: InventoryReportingService) 
 		)
 		.get(
 			'/waste',
-			async ({ query }: { query: dto.InventoryReportRequestDto }) => {
-				const result = await service.getWasteReport(query)
+			async ({ query }) => {
+				const result = await m.handleGetWasteReport(query)
 				return res.ok(result)
 			},
 			{

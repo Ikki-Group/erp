@@ -1,19 +1,19 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createSuccessResponseDto } from '@/shared/schema/response'
 
 import * as dto from './procurement-reporting.contract'
-import type { ProcurementReportingService } from './procurement-reporting.service'
+import type { ProcurementReportingModule } from './procurement-reporting.module'
 
-export function initProcurementReportingRoute(service: ProcurementReportingService) {
+export function createProcurementReportingRoute(m: ProcurementReportingModule) {
 	return new Elysia({ prefix: '/procurement' })
 		.use(authPluginMacro)
 		.get(
 			'/purchases',
-			async ({ query }: { query: dto.ProcurementReportRequestDto }) => {
-				const result = await service.getPurchasesReport(query)
+			async ({ query }) => {
+				const result = await m.handleGetPurchasesReport(query)
 				return res.ok(result)
 			},
 			{
@@ -24,8 +24,8 @@ export function initProcurementReportingRoute(service: ProcurementReportingServi
 		)
 		.get(
 			'/suppliers',
-			async ({ query }: { query: dto.ProcurementReportRequestDto }) => {
-				const result = await service.getSuppliersReport(query)
+			async ({ query }) => {
+				const result = await m.handleGetSuppliersReport(query)
 				return res.ok(result)
 			},
 			{
@@ -36,8 +36,8 @@ export function initProcurementReportingRoute(service: ProcurementReportingServi
 		)
 		.get(
 			'/transfers',
-			async ({ query }: { query: dto.ProcurementReportRequestDto }) => {
-				const result = await service.getTransfersReport(query)
+			async ({ query }) => {
+				const result = await m.handleGetTransfersReport(query)
 				return res.ok(result)
 			},
 			{
@@ -48,8 +48,8 @@ export function initProcurementReportingRoute(service: ProcurementReportingServi
 		)
 		.get(
 			'/costs',
-			async ({ query }: { query: dto.ProcurementReportRequestDto }) => {
-				const result = await service.getCostsReport(query)
+			async ({ query }) => {
+				const result = await m.handleGetCostsReport(query)
 				return res.ok(result)
 			},
 			{

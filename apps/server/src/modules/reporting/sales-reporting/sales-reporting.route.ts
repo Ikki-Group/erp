@@ -1,19 +1,19 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createSuccessResponseDto } from '@/shared/schema/response'
 
 import * as dto from './sales-reporting.contract'
-import type { SalesReportingService } from './sales-reporting.service'
+import type { SalesReportingModule } from './sales-reporting.module'
 
-export function initSalesReportingRoute(service: SalesReportingService) {
+export function createSalesReportingRoute(m: SalesReportingModule) {
 	return new Elysia({ prefix: '/sales' })
 		.use(authPluginMacro)
 		.get(
 			'/revenue',
-			async ({ query }: { query: dto.SalesReportRequestDto }) => {
-				const result = await service.getRevenueOverTime(query)
+			async ({ query }) => {
+				const result = await m.handleGetRevenueOverTime(query)
 				return res.ok(result)
 			},
 			{
@@ -24,8 +24,8 @@ export function initSalesReportingRoute(service: SalesReportingService) {
 		)
 		.get(
 			'/top-products',
-			async ({ query }: { query: dto.SalesReportRequestDto }) => {
-				const result = await service.getTopProducts(query)
+			async ({ query }) => {
+				const result = await m.handleGetTopProducts(query)
 				return res.ok(result)
 			},
 			{
@@ -36,8 +36,8 @@ export function initSalesReportingRoute(service: SalesReportingService) {
 		)
 		.get(
 			'/by-location',
-			async ({ query }: { query: dto.SalesReportRequestDto }) => {
-				const result = await service.getSalesByLocation(query)
+			async ({ query }) => {
+				const result = await m.handleGetSalesByLocation(query)
 				return res.ok(result)
 			},
 			{
@@ -48,8 +48,8 @@ export function initSalesReportingRoute(service: SalesReportingService) {
 		)
 		.get(
 			'/by-type',
-			async ({ query }: { query: dto.SalesReportRequestDto }) => {
-				const result = await service.getSalesByType(query)
+			async ({ query }) => {
+				const result = await m.handleGetSalesByType(query)
 				return res.ok(result)
 			},
 			{

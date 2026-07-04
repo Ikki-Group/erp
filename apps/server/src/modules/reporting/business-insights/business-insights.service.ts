@@ -1,21 +1,15 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { DbClient } from '@/infra/database'
-
 import * as dto from './business-insights.contract'
-import { BusinessInsightsRepo } from './business-insights.repo'
+import type { IBusinessInsightsRepo } from './business-insights.repo'
 
 export class BusinessInsightsService {
-	private readonly repo: BusinessInsightsRepo
+	constructor(private readonly repo: IBusinessInsightsRepo) {}
 
-	constructor(db: DbClient) {
-		this.repo = new BusinessInsightsRepo(db)
-	}
-
-	async getProfitability(
+	async handleGetProfitability(
 		query: dto.BusinessInsightsRequestDto,
 	): Promise<dto.ProfitabilityResponseDto> {
-		return record('BusinessInsightsService.getProfitability', async () => {
+		return record('BusinessInsightsService.handleGetProfitability', async () => {
 			const revenueRows = await this.repo.getRevenueRows(query)
 			const cogsRows = await this.repo.getCogsRows(query)
 
@@ -49,10 +43,10 @@ export class BusinessInsightsService {
 		})
 	}
 
-	async getLocationPerformance(
+	async handleGetLocationPerformance(
 		query: dto.BusinessInsightsRequestDto,
 	): Promise<dto.LocationPerformanceResponseDto> {
-		return record('BusinessInsightsService.getLocationPerformance', async () => {
+		return record('BusinessInsightsService.handleGetLocationPerformance', async () => {
 			const data = await this.repo.getLocationPerformance(query)
 
 			const result = data.map((d) => {
@@ -81,10 +75,10 @@ export class BusinessInsightsService {
 		})
 	}
 
-	async getInventoryTurnover(
+	async handleGetInventoryTurnover(
 		query: dto.BusinessInsightsRequestDto,
 	): Promise<dto.InventoryTurnoverResponseDto> {
-		return record('BusinessInsightsService.getInventoryTurnover', async () => {
+		return record('BusinessInsightsService.handleGetInventoryTurnover', async () => {
 			const cogsRows = await this.repo.getCogsRowsForInventoryTurnover(query)
 			const avgInvRows = await this.repo.getAvgInventoryRows(query)
 
