@@ -1,12 +1,8 @@
-import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
+import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 export const SupplierError = {
 	notFound: (id: number) =>
-		new NotFoundError(`Supplier with ID ${id} not found`, { code: 'SUPPLIER_NOT_FOUND' }),
-	codeExists: (code: string) =>
-		new ConflictError(`Supplier with code ${code} already exists`, {
-			code: 'SUPPLIER_CODE_EXISTS',
-		}),
+		new NotFoundError('Supplier not found', { code: 'SUPPLIER_NOT_FOUND', context: { id } }),
 	createFailed: () =>
-		new NotFoundError('Supplier creation failed', { code: 'SUPPLIER_CREATE_FAILED' }),
+		new InternalServerError('Supplier creation failed', { code: 'SUPPLIER_CREATE_FAILED' }),
 }

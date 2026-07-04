@@ -2,7 +2,7 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { createPaginatedResponseDto, createSuccessResponseDto, zc } from '@/shared/schema'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import {
 	SupplierDto,
@@ -10,15 +10,15 @@ import {
 	SupplierCreateDto,
 	SupplierUpdateDto,
 } from './supplier.contract'
-import type { SupplierService } from './supplier.service'
+import type { SupplierModule } from './supplier.module'
 
-export function initSupplierRoute(service: SupplierService) {
-	return new Elysia()
+export function createSupplierRoute(m: SupplierModule) {
+	return new Elysia({ prefix: '/supplier' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -29,16 +29,20 @@ export function initSupplierRoute(service: SupplierService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const result = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const result = await m.handleGetById(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(SupplierDto), auth: true },
+			{
+				query: zq.recordId,
+				response: createSuccessResponseDto(SupplierDto),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const result = await service.handleCreate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
 			{
@@ -47,10 +51,10 @@ export function initSupplierRoute(service: SupplierService) {
 				auth: true,
 			},
 		)
-		.patch(
+		.put(
 			'/update',
-			async function update(context) {
-				const result = await service.handleUpdate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -61,10 +65,14 @@ export function initSupplierRoute(service: SupplierService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				const result = await service.handleRemove(context.query.id, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleDelete(body.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
+			{
+				body: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
 		)
 }

@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
 
-/* ---------------------------------- ENTITY ---------------------------------- */
+/* --------------------------------- ENTITY --------------------------------- */
 
 export const SupplierDto = z.object({
 	...zc.RecordId.shape,
@@ -36,7 +36,7 @@ export const SupplierUpdateDto = z.object({
 })
 export type SupplierUpdateDto = z.infer<typeof SupplierUpdateDto>
 
-/* ---------------------------------- FILTER ---------------------------------- */
+/* ---------------------------------- FILTER --------------------------------- */
 
 export const SupplierFilterDto = z.object({
 	...zq.pagination.shape,

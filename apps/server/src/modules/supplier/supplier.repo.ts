@@ -1,49 +1,72 @@
-import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
+import { and, count, eq, isNull, or, SQL } from 'drizzle-orm'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 import { suppliersTable } from '@/db/schema/supplier'
 
-import { paginate, sortBy, takeFirst, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { ActorId, EntityRef } from '@/shared/types/utils'
+import type { EntityRef } from '@/shared/types/utils'
 
-import type {
-	SupplierCreateDto,
-	SupplierDto,
-	SupplierFilterDto,
-	SupplierUpdateDto,
-} from './supplier.contract'
+import type { SupplierDto, SupplierFilterDto } from './supplier.contract'
 
-export class SupplierRepo {
-	constructor(readonly db: DbClient) {}
+type SupplierInsert = typeof suppliersTable.$inferInsert
+type SupplierUpdate = PgUpdateSetSource<typeof suppliersTable>
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export interface ISupplierRepo {
+	readonly db: DbContext
+	findMany(filter?: SupplierFilterDto, db?: DbContext): Promise<SupplierDto[]>
+	findPage(filter: SupplierFilterDto, db?: DbContext): Promise<WithPaginationResult<SupplierDto>>
+	findById(id: number, db?: DbContext): Promise<SupplierDto | undefined>
+	findByIds(ids: number[], db?: DbContext): Promise<SupplierDto[]>
+	insert(data: SupplierInsert, db?: DbContext): Promise<EntityRef | undefined>
+	insertMany(items: SupplierInsert[], db?: DbContext): Promise<void>
+	update(id: number, data: SupplierUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	async getListPaginated(filter: SupplierFilterDto): Promise<WithPaginationResult<SupplierDto>> {
-		const { q, page, limit } = filter
+export class SupplierRepo implements ISupplierRepo {
+	constructor(readonly db: DbContext) {}
 
-		const searchCondition = q
-			? or(ilike(suppliersTable.name, `%${q}%`), ilike(suppliersTable.code, `%${q}%`))
-			: undefined
+	#buildWhere(filter: Partial<Pick<SupplierFilterDto, 'q'>>): SQL | undefined {
+		const { q } = filter
+		return and(
+			isNull(suppliersTable.deletedAt),
+			q === undefined
+				? undefined
+				: or(searchFilter(suppliersTable.name, q), searchFilter(suppliersTable.code, q)),
+		)
+	}
 
-		const where = and(isNull(suppliersTable.deletedAt), searchCondition)
+	async findMany(
+		filter: Partial<Pick<SupplierFilterDto, 'q'>> = {},
+		db: DbContext = this.db,
+	): Promise<SupplierDto[]> {
+		const where = this.#buildWhere(filter)
+		return db.select().from(suppliersTable).where(where)
+	}
+
+	async findPage(
+		filter: SupplierFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<SupplierDto>> {
+		const where = this.#buildWhere(filter)
 
 		return paginate<SupplierDto>({
-			data: ({ limit: l, offset }) =>
-				this.db
+			data: ({ limit, offset }) =>
+				db
 					.select()
 					.from(suppliersTable)
 					.where(where)
 					.orderBy(sortBy(suppliersTable.updatedAt, 'desc'))
-					.limit(l)
+					.limit(limit)
 					.offset(offset),
-			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(suppliersTable).where(where),
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(suppliersTable).where(where),
 		})
 	}
 
-	async getById(id: number): Promise<SupplierDto | undefined> {
-		return this.db
+	async findById(id: number, db: DbContext = this.db): Promise<SupplierDto | undefined> {
+		return db
 			.select()
 			.from(suppliersTable)
 			.where(and(eq(suppliersTable.id, id), isNull(suppliersTable.deletedAt)))
@@ -51,37 +74,48 @@ export class SupplierRepo {
 			.then(takeFirst)
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
+	async findByIds(ids: number[], db: DbContext = this.db): Promise<SupplierDto[]> {
+		if (ids.length === 0) return []
+		const { inArray } = await import('drizzle-orm')
+		return db
+			.select()
+			.from(suppliersTable)
+			.where(and(inArray(suppliersTable.id, ids), isNull(suppliersTable.deletedAt)))
+	}
 
-	async create(data: SupplierCreateDto, actorId: ActorId): Promise<EntityRef | undefined> {
-		const metadata = stampCreate(actorId)
-		const [res] = await this.db
+	async insert(data: SupplierInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.insert(suppliersTable)
-			.values({ ...data, ...metadata })
+			.values({ ...data })
 			.returning({ id: suppliersTable.id })
 
 		return res
 	}
 
-	async update(data: SupplierUpdateDto, actorId: ActorId): Promise<EntityRef | undefined> {
-		const { id, ...rest } = data
-		const metadata = stampUpdate(actorId)
-		const [res] = await this.db
+	async insertMany(items: SupplierInsert[], db: DbContext = this.db): Promise<void> {
+		if (items.length === 0) return
+		await db.insert(suppliersTable).values(items).onConflictDoNothing()
+	}
+
+	async update(
+		id: number,
+		data: SupplierUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.update(suppliersTable)
-			.set({ ...rest, ...metadata })
+			.set({ ...data })
 			.where(eq(suppliersTable.id, id))
 			.returning({ id: suppliersTable.id })
-
 		return res
 	}
 
-	async remove(id: number, actorId: ActorId): Promise<EntityRef | undefined> {
-		const [res] = await this.db
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.update(suppliersTable)
-			.set({ deletedAt: new Date(), deletedBy: actorId })
+			.set({ deletedAt: new Date() })
 			.where(eq(suppliersTable.id, id))
 			.returning({ id: suppliersTable.id })
-
 		return res
 	}
 }
