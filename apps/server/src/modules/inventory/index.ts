@@ -5,13 +5,8 @@ import type { DbClient } from '@/infra/database'
 
 import type { MaterialModule } from '@/modules/material'
 
-interface InventoryServiceModuleDeps {
-	material: MaterialModule
-}
-
-import { StockAlertRepo } from './stock-alert/stock-alert.repo'
-import { initStockAlertRoute } from './stock-alert/stock-alert.route'
-import { StockAlertService } from './stock-alert/stock-alert.service'
+import { createStockAlertModule } from './stock-alert/stock-alert.module'
+import { createStockAlertRoute } from './stock-alert/stock-alert.route'
 import { StockDashboardRepo } from './stock-dashboard/stock-dashboard.repo'
 import { initStockDashboardRoute } from './stock-dashboard/stock-dashboard.route'
 import { StockDashboardService } from './stock-dashboard/stock-dashboard.service'
@@ -25,10 +20,14 @@ import { StockTransferRepo } from './stock-transfer/stock-transfer.repo'
 import { initStockTransferRoute } from './stock-transfer/stock-transfer.route'
 import { StockTransferService } from './stock-transfer/stock-transfer.service'
 
+interface InventoryServiceModuleDeps {
+	material: MaterialModule
+}
+
 export class InventoryServiceModule {
 	public readonly transaction: StockTransactionService
 	public readonly summary: StockSummaryService
-	public readonly alert: StockAlertService
+	public readonly alert: ReturnType<typeof createStockAlertModule>
 	public readonly dashboard: StockDashboardService
 	public readonly stockTransfer: StockTransferService
 
@@ -39,7 +38,6 @@ export class InventoryServiceModule {
 	) {
 		const transactionRepo = new StockTransactionRepo(this.db)
 		const summaryRepo = new StockSummaryRepo(this.db)
-		const alertRepo = new StockAlertRepo(this.db)
 		const dashboardRepo = new StockDashboardRepo(this.db)
 		const stockTransferRepo = new StockTransferRepo(this.db)
 
@@ -49,7 +47,7 @@ export class InventoryServiceModule {
 			this.deps.material.location,
 			this.cacheClient,
 		)
-		this.alert = new StockAlertService(alertRepo, this.cacheClient)
+		this.alert = createStockAlertModule(this.db, this.cacheClient)
 		this.dashboard = new StockDashboardService(dashboardRepo, this.cacheClient)
 		this.stockTransfer = new StockTransferService(stockTransferRepo, this.cacheClient)
 	}
@@ -59,7 +57,7 @@ export function initInventoryRouteModule(s: InventoryServiceModule) {
 	return new Elysia({ prefix: '/inventory' })
 		.use(initStockTransactionRoute(s.transaction))
 		.use(initStockSummaryRoute(s.summary))
-		.use(initStockAlertRoute(s.alert))
+		.use(createStockAlertRoute(s.alert))
 		.use(initStockDashboardRoute(s.dashboard))
 		.use(initStockTransferRoute(s.stockTransfer))
 }

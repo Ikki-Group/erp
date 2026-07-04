@@ -2,27 +2,25 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { StockAlertFilterDto, StockAlertCountFilterDto } from './stock-alert.contract'
-import { StockAlertRepo } from './stock-alert.repo'
+import type { StockAlertCountFilterDto, StockAlertFilterDto } from './stock-alert.contract'
+import type { IStockAlertRepo } from './stock-alert.repo'
 
 export class StockAlertService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: StockAlertRepo,
+		private readonly repo: IStockAlertRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory.alert')
 	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleAlerts(filter: StockAlertFilterDto) {
 		return record('StockAlertService.handleAlerts', async () => {
 			const key = `alerts.${JSON.stringify(filter)}`
 			return this.cache.getOrSet({
 				key,
-				factory: () => this.repo.getAlerts(filter),
+				factory: () => this.repo.findAlertsPage(filter),
 			})
 		})
 	}
@@ -32,7 +30,7 @@ export class StockAlertService {
 			const key = `count.${JSON.stringify(filter)}`
 			return this.cache.getOrSet({
 				key,
-				factory: () => this.repo.getAlertCount(filter),
+				factory: () => this.repo.findAlertCount(filter),
 			})
 		})
 	}

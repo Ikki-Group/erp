@@ -1,126 +1,86 @@
-import { record } from '@elysiajs/opentelemetry'
 import { and, eq, lte, or, sql } from 'drizzle-orm'
 
 import {
+	locationsTable,
 	materialLocationsTable,
 	materialsTable,
-	uomsTable,
-	locationsTable,
 	materialStockSnapshotsTable,
+	uomsTable,
 } from '@/db/schema'
 
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import type { StockAlertFilterDto, StockAlertCountFilterDto } from './stock-alert.contract'
+import type { StockAlertCountFilterDto, StockAlertFilterDto, StockAlertSelectDto } from './stock-alert.contract'
 
-export class StockAlertRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IStockAlertRepo {
+	readonly db: DbContext
+	findAlertsPage(filter: StockAlertFilterDto, db?: DbContext): Promise<WithPaginationResult<StockAlertSelectDto>>
+	findAlertCount(filter: StockAlertCountFilterDto, db?: DbContext): Promise<{ count: number }>
+}
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export class StockAlertRepo implements IStockAlertRepo {
+	constructor(readonly db: DbContext) {}
 
-	async getAlerts(filter: StockAlertFilterDto) {
-		return record('StockAlertRepo.getAlerts', async () => {
-			const page = filter.page ?? 1
-			const limit = filter.limit ?? 20
-			const offset = (page - 1) * limit
+	#buildAlertConditions(filter: StockAlertFilterDto | StockAlertCountFilterDto) {
+		const conditions = [
+			filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
+		]
 
-			const conditions = [
-				filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
-			]
-
-			if (filter.type === 'below_min') {
-				conditions.push(
+		if (filter.type === 'below_min') {
+			conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock))
+		} else if (filter.type === 'below_reorder') {
+			conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint))
+		} else {
+			conditions.push(
+				or(
 					lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock),
-				)
-			} else if (filter.type === 'below_reorder') {
-				conditions.push(
 					lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint),
-				)
-			} else {
-				conditions.push(
-					or(
-						lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock),
-						lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint),
-					),
-				)
-			}
+				),
+			)
+		}
 
-			const whereClause = and(...conditions.filter(Boolean))
-
-			const [data, countRes] = await Promise.all([
-				this.db
-					.select({
-						materialId: materialsTable.id,
-						materialName: materialsTable.name,
-						materialSku: materialsTable.sku,
-						locationId: locationsTable.id,
-						locationName: locationsTable.name,
-						uomCode: uomsTable.code,
-						currentQty: sql<number>`CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT)`,
-						minStock: sql<number>`CAST(${materialLocationsTable.minStock} AS FLOAT)`,
-						reorderPoint: sql<number>`CAST(${materialLocationsTable.reorderPoint} AS FLOAT)`,
-					})
-					.from(materialLocationsTable)
-					.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
-					.innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
-					.leftJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
-					.leftJoin(
-						materialStockSnapshotsTable,
-						and(
-							eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
-							eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
-						),
-					)
-					.where(whereClause)
-					.limit(limit)
-					.offset(offset)
-					.orderBy(materialStockSnapshotsTable.currentQty),
-				this.db
-					.select({ count: sql<number>`cast(count(*) as int)` })
-					.from(materialLocationsTable)
-					.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
-					.leftJoin(
-						materialStockSnapshotsTable,
-						and(
-							eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
-							eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
-						),
-					)
-					.where(whereClause),
-			])
-
-			const total = countRes[0]?.count ?? 0
-
-			return { data, meta: { page, limit, total: total, totalPages: Math.ceil(total / limit) } }
-		})
+		return and(...conditions.filter(Boolean))
 	}
 
-	async getAlertCount(filter: StockAlertCountFilterDto) {
-		return record('StockAlertRepo.getAlertCount', async () => {
-			const conditions = [
-				filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
-			]
+	async findAlertsPage(
+		filter: StockAlertFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<StockAlertSelectDto>> {
+		const page = filter.page ?? 1
+		const limit = filter.limit ?? 20
+		const offset = (page - 1) * limit
+		const whereClause = this.#buildAlertConditions(filter)
 
-			if (filter.type === 'below_min') {
-				conditions.push(
-					lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock),
-				)
-			} else if (filter.type === 'below_reorder') {
-				conditions.push(
-					lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint),
-				)
-			} else {
-				conditions.push(
-					or(
-						lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock),
-						lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint),
+		const [data, countRes] = await Promise.all([
+			db
+				.select({
+					materialId: materialsTable.id,
+					materialName: materialsTable.name,
+					materialSku: materialsTable.sku,
+					locationId: locationsTable.id,
+					locationName: locationsTable.name,
+					uomCode: uomsTable.code,
+					currentQty: sql<number>`CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT)`,
+					minStock: sql<number>`CAST(${materialLocationsTable.minStock} AS FLOAT)`,
+					reorderPoint: sql<number>`CAST(${materialLocationsTable.reorderPoint} AS FLOAT)`,
+				})
+				.from(materialLocationsTable)
+				.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+				.innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
+				.leftJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
+				.leftJoin(
+					materialStockSnapshotsTable,
+					and(
+						eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+						eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
 					),
 				)
-			}
-
-			const whereClause = and(...conditions.filter(Boolean))
-
-			const countRes = await this.db
+				.where(whereClause)
+				.limit(limit)
+				.offset(offset)
+				.orderBy(materialStockSnapshotsTable.currentQty),
+			db
 				.select({ count: sql<number>`cast(count(*) as int)` })
 				.from(materialLocationsTable)
 				.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
@@ -131,9 +91,36 @@ export class StockAlertRepo {
 						eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
 					),
 				)
-				.where(whereClause)
+				.where(whereClause),
+		])
 
-			return { count: countRes[0]?.count ?? 0 }
-		})
+		const total = countRes[0]?.count ?? 0
+
+		return {
+			data,
+			meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+		}
+	}
+
+	async findAlertCount(
+		filter: StockAlertCountFilterDto,
+		db: DbContext = this.db,
+	): Promise<{ count: number }> {
+		const whereClause = this.#buildAlertConditions(filter)
+
+		const countRes = await db
+			.select({ count: sql<number>`cast(count(*) as int)` })
+			.from(materialLocationsTable)
+			.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
+			.where(whereClause)
+
+		return { count: countRes[0]?.count ?? 0 }
 	}
 }
