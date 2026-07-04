@@ -1,12 +1,17 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import type { FinanceServiceModule as FinanceModule } from '@/modules/finance'
 import type { IamModule } from '@/modules/iam'
 import type { LocationModule } from '@/modules/location'
 import type { SalesModule } from '@/modules/sales'
+
+import { createAnalyticsModule, type AnalyticsModule } from './analytics/analytics.module'
+import { initAnalyticsRoute } from './analytics/analytics.route'
+import { initSettingsRoute } from './settings/settings.route'
+import { SettingsService } from './settings/settings.service'
 
 interface DashboardServiceModuleDeps {
 	iam: IamModule
@@ -15,22 +20,17 @@ interface DashboardServiceModuleDeps {
 	sales: SalesModule
 }
 
-import { initAnalyticsRoute } from './analytics/analytics.route'
-import { AnalyticsService } from './analytics/analytics.service'
-import { initSettingsRoute } from './settings/settings.route'
-import { SettingsService } from './settings/settings.service'
-
 export class DashboardServiceModule {
 	public readonly settings: SettingsService
-	public readonly analytics: AnalyticsService
+	public readonly analytics: AnalyticsModule
 
 	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-		private readonly deps: DashboardServiceModuleDeps,
+		db: DbContext,
+		cacheClient: CacheClient,
+		deps: DashboardServiceModuleDeps,
 	) {
-		this.settings = new SettingsService(this.deps.iam, this.deps.location)
-		this.analytics = new AnalyticsService(this.db, this.cacheClient)
+		this.settings = new SettingsService(deps.iam, deps.location)
+		this.analytics = createAnalyticsModule(db, cacheClient)
 	}
 }
 

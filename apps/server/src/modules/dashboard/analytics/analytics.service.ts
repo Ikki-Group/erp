@@ -1,85 +1,26 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, desc, eq, gte, lte, sql, sum } from 'drizzle-orm'
-
-import { accountsTable, journalItemsTable } from '@/db/schema/finance'
-import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema/sales'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import type { DbClient } from '@/infra/database'
 
-export interface PnLData {
-	revenue: number
-	cogs: number
-	operatingExpenses: number
-	netProfit: number
-	period: { start: Date; end: Date }
-}
-
-export interface TopSalesItem {
-	productId: number | null
-	itemName: string
-	totalQuantity: number
-	totalRevenue: number
-}
+import type { PnLData, TopSalesItem } from './analytics.contract'
+import type { IAnalyticsRepo } from './analytics.repo'
 
 export class AnalyticsService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly db: DbClient,
+		private readonly repo: IAnalyticsRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'analytics')
 	}
+
 	async getPnL(startDate: Date, endDate: Date): Promise<PnLData> {
 		return this.cache.getOrSet({
 			key: `pnl.${startDate.toISOString()}.${endDate.toISOString()}`,
 			ttl: '1h',
 			factory: async () => {
-				return record('AnalyticsService.getPnL', async () => {
-					const glItems = await this.db
-						.select({
-							accountCode: accountsTable.code,
-							debit: journalItemsTable.debit,
-							credit: journalItemsTable.credit,
-						})
-						.from(journalItemsTable)
-						.innerJoin(accountsTable, eq(journalItemsTable.accountId, accountsTable.id))
-						.innerJoin(
-							this.db
-								.select({ id: sql`id`, date: sql`date` })
-								.from(sql`journal_entries`)
-								.as('entries'),
-							eq(journalItemsTable.journalEntryId, sql`entries.id`),
-						)
-						.where(and(gte(sql`entries.date`, startDate), lte(sql`entries.date`, endDate)))
-
-					let revenue = 0
-					let cogs = 0
-					let operatingExpenses = 0
-
-					for (const item of glItems) {
-						const debit = Number(item.debit)
-						const credit = Number(item.credit)
-						const code = item.accountCode
-
-						if (code.startsWith('4')) {
-							revenue += credit - debit
-						} else if (code.startsWith('51')) {
-							cogs += debit - credit
-						} else if (code.startsWith('5')) {
-							operatingExpenses += debit - credit
-						}
-					}
-
-					return {
-						revenue,
-						cogs,
-						operatingExpenses,
-						netProfit: revenue - cogs - operatingExpenses,
-						period: { start: startDate, end: endDate },
-					}
-				})
+				return record('AnalyticsService.getPnL', async () => this.repo.findPnLData(startDate, endDate))
 			},
 		})
 	}
@@ -89,39 +30,16 @@ export class AnalyticsService {
 			key: `top_sales.${startDate.toISOString()}.${endDate.toISOString()}.${limit}`,
 			ttl: '30m',
 			factory: async () => {
-				return record('AnalyticsService.getTopSales', async () => {
-					const result = await this.db
-						.select({
-							productId: salesOrderItemsTable.productId,
-							itemName: salesOrderItemsTable.itemName,
-							totalQuantity: sum(sql`CAST(${salesOrderItemsTable.quantity} AS NUMERIC)`).as(
-								'total_qty',
-							),
-							totalRevenue: sum(sql`CAST(${salesOrderItemsTable.subtotal} AS NUMERIC)`).as(
-								'total_rev',
-							),
-						})
-						.from(salesOrderItemsTable)
-						.innerJoin(salesOrdersTable, eq(salesOrderItemsTable.orderId, salesOrdersTable.id))
-						.where(
-							and(
-								eq(salesOrdersTable.status, 'closed'),
-								gte(salesOrdersTable.transactionDate, startDate),
-								lte(salesOrdersTable.transactionDate, endDate),
-							),
-						)
-						.groupBy(salesOrderItemsTable.productId, salesOrderItemsTable.itemName)
-						.orderBy(desc(sql`total_rev`))
-						.limit(limit)
-
-					return result.map((r) => ({
-						productId: r.productId,
-						itemName: r.itemName,
-						totalQuantity: Number(r.totalQuantity),
-						totalRevenue: Number(r.totalRevenue),
-					}))
-				})
+				return record('AnalyticsService.getTopSales', async () => this.repo.findTopSales(startDate, endDate, limit))
 			},
 		})
+	}
+
+	async handleGetPnL(startDate: Date, endDate: Date): Promise<PnLData> {
+		return record('AnalyticsService.handleGetPnL', async () => this.getPnL(startDate, endDate))
+	}
+
+	async handleGetTopSales(startDate: Date, endDate: Date, limit: number): Promise<TopSalesItem[]> {
+		return record('AnalyticsService.handleGetTopSales', async () => this.getTopSales(startDate, endDate, limit))
 	}
 }

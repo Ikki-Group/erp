@@ -14,3 +14,18 @@ export const TopSalesRequestDto = z.object({
 	limit: zp.num.int().positive().optional().default(5),
 })
 export type TopSalesRequestDto = z.infer<typeof TopSalesRequestDto>
+
+export interface PnLData {
+	revenue: number
+	cogs: number
+	operatingExpenses: number
+	netProfit: number
+	period: { start: Date; end: Date }
+}
+
+export interface TopSalesItem {
+	productId: number | null
+	itemName: string
+	totalQuantity: number
+	totalRevenue: number
+}
