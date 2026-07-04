@@ -12,7 +12,7 @@ import {
 	salesRefundsTable,
 	salesTypesTable,
 	salesVoidsTable,
-	variantPricesTable,
+	productVariantPricesTable,
 } from '@/db/schema'
 
 import { takeFirst, type DbClient, type DbTx } from '@/infra/database'
@@ -300,7 +300,7 @@ export class MokaTransformationService {
 			if (variantId) {
 				// Variant-level pricing
 				await this.db
-					.insert(variantPricesTable)
+					.insert(productVariantPricesTable)
 					.values({
 						variantId,
 						salesTypeId: salesType.id,
@@ -308,7 +308,7 @@ export class MokaTransformationService {
 						...stampCreate(actorId),
 					})
 					.onConflictDoUpdate({
-						target: [variantPricesTable.variantId, variantPricesTable.salesTypeId],
+						target: [productVariantPricesTable.variantId, productVariantPricesTable.salesTypeId],
 						set: { price: String(st.sales_type_price), ...stampCreate(actorId) },
 					})
 			} else {

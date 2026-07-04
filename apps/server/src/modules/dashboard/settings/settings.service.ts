@@ -1,11 +1,17 @@
+import type { IamUserPort, IamRolePort } from '@/modules/iam'
+import type { LocationCountPort } from '@/modules/location'
+
 import type { SettingsSummaryDto } from './settings.contract'
-import type { SettingsDeps } from './settings.module'
 import { SettingsError } from './settings.internal'
 
+export interface SettingsDeps {
+	iamUser: IamUserPort
+	iamRole: IamRolePort
+	location: LocationCountPort
+}
+
 export class SettingsService {
-	constructor(
-		private readonly deps: SettingsDeps,
-	) {}
+	constructor(private readonly deps: SettingsDeps) {}
 
 	async getSummary(): Promise<SettingsSummaryDto> {
 		const [users, roles, locations] = await Promise.all([

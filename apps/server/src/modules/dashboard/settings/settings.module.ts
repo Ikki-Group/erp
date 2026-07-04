@@ -1,13 +1,6 @@
-import type { IamUserPort, IamRolePort } from '@/modules/iam'
-import type { LocationCountPort } from '@/modules/location'
+import { SettingsService, type SettingsDeps } from './settings.service'
 
-import { SettingsService } from './settings.service'
-
-export interface SettingsDeps {
-	iamUser: IamUserPort
-	iamRole: IamRolePort
-	location: LocationCountPort
-}
+export type { SettingsDeps } from './settings.service'
 
 export type SettingsModule = SettingsService
 
