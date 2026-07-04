@@ -2,15 +2,11 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
 
-/* ---------------------------------- ENUM ---------------------------------- */
-
 export const ExpenditureTypeEnum = z.enum(['BILLS', 'ASSET', 'PURCHASES'])
 export type ExpenditureTypeEnum = z.infer<typeof ExpenditureTypeEnum>
 
 export const ExpenditureStatusEnum = z.enum(['PENDING', 'PAID', 'VOID', 'REFUNDED'])
 export type ExpenditureStatusEnum = z.infer<typeof ExpenditureStatusEnum>
-
-/* ---------------------------------- ENTITY ---------------------------------- */
 
 export const ExpenditureDto = z.object({
 	...zc.RecordId.shape,
@@ -30,9 +26,7 @@ export const ExpenditureDto = z.object({
 })
 export type ExpenditureDto = z.infer<typeof ExpenditureDto>
 
-/* -------------------------------- MUTATION -------------------------------- */
-
-export const ExpenditureCreateDto = z.object({
+const ExpenditureMutationDto = z.object({
 	type: ExpenditureTypeEnum,
 	status: ExpenditureStatusEnum.default('PAID'),
 	title: zc.strTrim.min(3).max(100),
@@ -46,15 +40,15 @@ export const ExpenditureCreateDto = z.object({
 	locationId: zp.id,
 	isInstallment: zp.bool.default(false),
 })
+
+export const ExpenditureCreateDto = ExpenditureMutationDto
 export type ExpenditureCreateDto = z.infer<typeof ExpenditureCreateDto>
 
 export const ExpenditureUpdateDto = z.object({
 	...zc.RecordId.shape,
-	...ExpenditureCreateDto.shape,
+	...ExpenditureMutationDto.shape,
 })
 export type ExpenditureUpdateDto = z.infer<typeof ExpenditureUpdateDto>
-
-/* --------------------------------- FILTER --------------------------------- */
 
 export const ExpenditureFilterDto = z.object({
 	...zq.pagination.shape,

@@ -1,84 +1,151 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import type { DbClient } from '@/infra/database'
+import { withTransaction } from '@/infra/database'
+import { stampCreate } from '@/shared/audit/stamp'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import {
-	GeneralLedgerService,
-	type JournalItemInput,
-} from '../general-ledger/general-ledger.service'
-import type { ExpenditureCreateDto, ExpenditureFilterDto } from './expenditure.contract'
-import { ExpenditureRepo } from './expenditure.repo'
+import type {
+	ExpenditureCreateDto,
+	ExpenditureDto,
+	ExpenditureFilterDto,
+	ExpenditureUpdateDto,
+} from './expenditure.contract'
+import { ExpenditureError } from './expenditure.internal'
+import type { IExpenditureRepo } from './expenditure.repo'
+
+export type JournalItemInput = {
+	accountId: number
+	debit: string
+	credit: string
+}
+
+export type JournalEntryInput = {
+	date: Date
+	reference: string
+	sourceType: string
+	sourceId: number
+	note?: string
+	items: JournalItemInput[]
+}
+
+export interface JournalPostPort {
+	postEntry(input: JournalEntryInput, actorId: number): Promise<{ id: number }>
+}
 
 export class ExpenditureService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly db: DbClient,
-		private readonly journal: GeneralLedgerService,
-		private readonly repo: ExpenditureRepo,
+		private readonly journal: JournalPostPort,
+		private readonly repo: IExpenditureRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'finance.expenditure')
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
+	}
 
-	async createExpenditure(input: ExpenditureCreateDto, actorId: number) {
-		return record('ExpenditureService.createExpenditure', async () => {
-			return this.db.transaction(async () => {
-				// 1. Insert Expenditure Record
-				const expenditure = await this.repo.create(input, actorId)
+	async handleList(filter: ExpenditureFilterDto): Promise<WithPaginationResult<ExpenditureDto>> {
+		return record('ExpenditureService.handleList', async () => this.repo.findPage(filter))
+	}
 
-				// 2. Prepare Journal Items
+	async handleGetById(id: number): Promise<ExpenditureDto> {
+		return record('ExpenditureService.handleGetById', async () => {
+			const result = await this.repo.findById(id)
+			if (!result) throw ExpenditureError.notFound(id)
+			return result
+		})
+	}
+
+	async handleCreate(data: ExpenditureCreateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('ExpenditureService.handleCreate', async () => {
+			const result = await withTransaction(this.repo.db, async (tx) => {
+				const created = await this.repo.insert(
+					{
+						...data,
+						amount: data.amount.toString(),
+						...stampCreate(actorId),
+					},
+					tx,
+				)
+				if (!created) throw ExpenditureError.createFailed()
+
 				const items: JournalItemInput[] = [
 					{
-						accountId: input.targetAccountId,
-						debit: input.amount.toString(),
+						accountId: data.targetAccountId,
+						debit: data.amount.toString(),
 						credit: '0',
 					},
 				]
 
-				if (input.isInstallment && input.liabilityAccountId) {
+				if (data.isInstallment && data.liabilityAccountId) {
 					const creditAccountId =
-						input.status === 'PAID' ? input.sourceAccountId : input.liabilityAccountId
+						data.status === 'PAID' ? data.sourceAccountId : data.liabilityAccountId
 					items.push({
 						accountId: creditAccountId,
 						debit: '0',
-						credit: input.amount.toString(),
+						credit: data.amount.toString(),
 					})
 				} else {
 					items.push({
-						accountId: input.sourceAccountId,
+						accountId: data.sourceAccountId,
 						debit: '0',
-						credit: input.amount.toString(),
+						credit: data.amount.toString(),
 					})
 				}
 
-				// 3. Post to General Ledger
 				await this.journal.postEntry(
 					{
-						date: input.date,
-						reference: `EXP-${expenditure.id.toString().padStart(6, '0')}`,
+						date: data.date,
+						reference: `EXP-${created.id.toString().padStart(6, '0')}`,
 						sourceType: 'expenditure',
-						sourceId: expenditure.id,
-						note: input.description ?? input.title,
+						sourceId: created.id,
+						note: data.description ?? data.title,
 						items,
 					},
 					actorId,
 				)
 
-				// Invalidate cache
-				await this.cache.deleteMany({ keys: ['list'] })
-
-				return expenditure
+				return created
 			})
+
+			await this.invalidate()
+			return result
 		})
 	}
 
-	async listExpenditures(filter: ExpenditureFilterDto) {
-		return record('ExpenditureService.listExpenditures', async () => {
-			return this.repo.getListPaginated(filter)
+	async handleUpdate(data: ExpenditureUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('ExpenditureService.handleUpdate', async () => {
+			const { id } = data
+			const existing = await this.repo.findById(id)
+			if (!existing) throw ExpenditureError.notFound(id)
+
+			const result = await this.repo.update(id, {
+				...data,
+				amount: data.amount.toString(),
+				updatedBy: actorId,
+				updatedAt: new Date(),
+			})
+			if (!result) throw ExpenditureError.notFound(id)
+
+			await this.invalidate(id)
+			return result
+		})
+	}
+
+	async handleDelete(id: number, _actorId: ActorId): Promise<EntityRef> {
+		return record('ExpenditureService.handleDelete', async () => {
+			const result = await this.repo.remove(id)
+			if (!result) throw ExpenditureError.notFound(id)
+
+			await this.invalidate(id)
+			return result
 		})
 	}
 }
