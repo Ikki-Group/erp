@@ -1,31 +1,46 @@
 import { and, count, desc, eq, isNull } from 'drizzle-orm'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 import { workOrdersTable } from '@/db/schema/production'
-
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/require-await */
-import { paginate, type DbClient } from '@/infra/database'
+import { paginate, takeFirst, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import type { WorkOrderCreateDto, WorkOrderDto, WorkOrderFilterDto } from './work-order.contract'
+import type { WorkOrderDto, WorkOrderFilterDto } from './work-order.contract'
 
-export class WorkOrderRepo {
-	constructor(private readonly db: DbClient) {}
+type WorkOrderInsert = typeof workOrdersTable.$inferInsert
+type WorkOrderUpdate = PgUpdateSetSource<typeof workOrdersTable>
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export interface IWorkOrderRepo {
+	readonly db: DbContext
+	findById(id: number, db?: DbContext): Promise<WorkOrderDto | undefined>
+	findPage(filter: WorkOrderFilterDto, db?: DbContext): Promise<WithPaginationResult<WorkOrderDto>>
+	insert(data: WorkOrderInsert, actorId: ActorId, db?: DbContext): Promise<EntityRef | undefined>
+	update(
+		id: number,
+		data: WorkOrderUpdate,
+		actorId: ActorId,
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
+}
 
-	async getById(id: number): Promise<WorkOrderDto | undefined> {
-		const [wo] = await this.db
+export class WorkOrderRepo implements IWorkOrderRepo {
+	constructor(readonly db: DbContext) {}
+
+	async findById(id: number, db: DbContext = this.db): Promise<WorkOrderDto | undefined> {
+		return db
 			.select()
 			.from(workOrdersTable)
 			.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
-
-		if (!wo) return undefined
-		return wo as unknown as WorkOrderDto
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	async getListPaginated(filter: WorkOrderFilterDto): Promise<WithPaginationResult<WorkOrderDto>> {
+	async findPage(
+		filter: WorkOrderFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<WorkOrderDto>> {
 		const { locationId, status, page, limit } = filter
 
 		const where = and(
@@ -34,9 +49,9 @@ export class WorkOrderRepo {
 			status ? eq(workOrdersTable.status, status) : undefined,
 		)
 
-		return paginate<any>({
+		return paginate<WorkOrderDto>({
 			data: ({ limit: l, offset }) =>
-				this.db
+				db
 					.select()
 					.from(workOrdersTable)
 					.where(where)
@@ -44,49 +59,44 @@ export class WorkOrderRepo {
 					.limit(l)
 					.offset(offset),
 			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(workOrdersTable).where(where),
-		}) as unknown as WithPaginationResult<WorkOrderDto>
+			countQuery: () => db.select({ count: count() }).from(workOrdersTable).where(where),
+		})
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: WorkOrderCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const [result] = await this.db
+	async insert(
+		data: WorkOrderInsert,
+		actorId: ActorId,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [result] = await db
 			.insert(workOrdersTable)
 			.values({
 				...data,
-				expectedQty: data.expectedQty.toString(),
+				expectedQty: String(data.expectedQty ?? '0'),
 				actualQty: '0',
 				totalCost: '0',
 				...stampCreate(actorId),
 			})
 			.returning({ id: workOrdersTable.id })
 
-		if (!result) throw new Error('Create Work Order failed')
-		return { id: result.id }
+		return result
 	}
 
 	async update(
 		id: number,
-		data: Partial<{
-			expectedQty: string
-			status: 'draft' | 'in_progress' | 'completed' | 'cancelled'
-			actualQty: string
-			totalCost: string
-			startedAt: Date
-			completedAt: Date
-			note: string | null
-		}>,
+		data: WorkOrderUpdate,
 		actorId: ActorId,
-	): Promise<EntityRef> {
-		await this.db
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [result] = await db
 			.update(workOrdersTable)
 			.set({
 				...data,
 				...stampUpdate(actorId),
 			})
 			.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
+			.returning({ id: workOrdersTable.id })
 
-		return { id }
+		return result
 	}
 }

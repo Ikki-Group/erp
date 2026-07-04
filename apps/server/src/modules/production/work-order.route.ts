@@ -2,8 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc } from '@/shared/schema'
-import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc } from '@/shared/schema'
 
 import {
 	WorkOrderCompleteDto,
@@ -11,15 +10,15 @@ import {
 	WorkOrderFilterDto,
 	WorkOrderDto,
 } from './work-order.contract'
-import type { WorkOrderService } from './work-order.service'
+import type { WorkOrderModule } from './work-order.module'
 
-export function initWorkOrderRoute(service: WorkOrderService) {
+export function createWorkOrderRoute(m: WorkOrderModule) {
 	return new Elysia({ prefix: '/work-orders', detail: { tags: ['Production'] } })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async ({ query }) => {
-				const result = await service.handleList(query)
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -31,7 +30,7 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 		.get(
 			'/detail',
 			async ({ query }) => {
-				const wo = await service.handleDetail(query.id)
+				const wo = await m.handleDetail(query.id)
 				return res.ok(wo)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(WorkOrderDto), auth: true },
@@ -39,7 +38,7 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 		.post(
 			'/create',
 			async ({ body, auth }) => {
-				const result = await service.handleCreate(body, auth.userId)
+				const result = await m.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
 			{
@@ -51,7 +50,7 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 		.post(
 			'/start',
 			async ({ query, auth }) => {
-				const result = await service.handleStart(query.id, auth.userId)
+				const result = await m.handleStart(query.id, auth.userId)
 				return res.ok(result)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
@@ -59,7 +58,7 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 		.post(
 			'/complete',
 			async ({ body, auth }) => {
-				const result = await service.handleComplete(body.id, body, auth.userId)
+				const result = await m.handleComplete(body.id, body, auth.userId)
 				return res.ok(result)
 			},
 			{

@@ -1,13 +1,12 @@
 import Decimal from 'decimal.js'
+import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import type { DbClient } from '@/infra/database'
-import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
+import type { DbTx } from '@/infra/database'
+import { withTransaction } from '@/infra/database'
+import { stampCreate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
-
-import type { StockTransactionService } from '@/modules/inventory'
-import type { RecipeService } from '@/modules/recipe'
 
 import type {
 	WorkOrderCompleteDto,
@@ -15,67 +14,133 @@ import type {
 	WorkOrderDto,
 	WorkOrderFilterDto,
 } from './work-order.contract'
-import { WorkOrderRepo } from './work-order.repo'
+import { ProductionError } from './production.internal'
+import type { IWorkOrderRepo } from './work-order.repo'
+
+export interface RecipeItemForWorkOrder {
+	materialId: number
+	qty: string
+	scrapPercentage: string
+}
+
+export interface RecipeReadResult {
+	id: number
+	materialId: number | null
+	targetQty: string
+	items?: RecipeItemForWorkOrder[] | undefined
+}
+
+export interface RecipeReadPort {
+	getById(id: number): Promise<RecipeReadResult | undefined>
+	handleCalculateCost(recipeId: number): Promise<{ totalCost: string }>
+}
+
+export interface StockTransactionPort {
+	productionIn(
+		data: {
+			locationId: number
+			date: Date
+			referenceNo: string
+			notes: string | null
+			items: Array<{ materialId: number; qty: string; unitCost: string }>
+		},
+		actorId: number,
+		tx: DbTx,
+	): Promise<{ count: number; referenceNo: string }>
+	productionOut(
+		data: {
+			locationId: number
+			date: Date
+			referenceNo: string
+			notes: string | null
+			items: Array<{ materialId: number; qty: string }>
+		},
+		actorId: number,
+		tx: DbTx,
+	): Promise<{ count: number; referenceNo: string }>
+}
+
+export interface WorkOrderDeps {
+	recipe: RecipeReadPort
+	stockTransaction: StockTransactionPort
+}
 
 export class WorkOrderService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: WorkOrderRepo,
-		private readonly db: DbClient,
-		private readonly recipeSvc: RecipeService,
-		private readonly stockTransactionSvc: StockTransactionService,
+		private readonly deps: WorkOrderDeps,
+		private readonly repo: IWorkOrderRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'production.work-order')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
-
-	async getById(id: number): Promise<WorkOrderDto> {
-		const key = `byId:${id}`
-		const wo = await this.cache.getOrSetWithSkip({
-			key,
-			factory: () => this.repo.getById(id),
-		})
-		if (!wo)
-			throw new NotFoundError(`Work Order with ID ${id} not found`, {
-				code: 'WORK_ORDER_NOT_FOUND',
-			})
-		return wo
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
+	private async getById(id: number): Promise<WorkOrderDto | undefined> {
+		return this.cache.getOrSetWithSkip({
+			key: this.cache.keys.byId(id),
+			factory: () => this.repo.findById(id),
+		})
+	}
 
 	async handleList(filter: WorkOrderFilterDto): Promise<WithPaginationResult<WorkOrderDto>> {
-		const key = `list.${JSON.stringify(filter)}`
-		return this.cache.getOrSet({
-			key,
-			factory: () => this.repo.getListPaginated(filter),
-		})
+		return record('WorkOrderService.handleList', async () =>
+			this.cache.getOrSet({
+				key: `${this.cache.keys.list}.${JSON.stringify(filter)}`,
+				factory: () => this.repo.findPage(filter),
+			}),
+		)
 	}
 
 	async handleDetail(id: number): Promise<WorkOrderDto> {
-		return this.getById(id)
+		return record('WorkOrderService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw ProductionError.notFound(id)
+			return result
+		})
 	}
 
 	async handleCreate(data: WorkOrderCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const result = await this.repo.create(data, actorId)
-		await this.cache.deleteMany({ keys: ['list', 'count'] })
-		return result
+		return record('WorkOrderService.handleCreate', async () => {
+			const result = await this.repo.insert(
+				{
+					recipeId: data.recipeId,
+					locationId: data.locationId,
+					expectedQty: data.expectedQty,
+					note: data.note,
+					...stampCreate(actorId),
+				},
+				actorId,
+			)
+			if (!result) throw ProductionError.createFailed()
+
+			await this.invalidate()
+			return result
+		})
 	}
 
 	async handleStart(id: number, actorId: ActorId): Promise<EntityRef> {
-		const wo = await this.getById(id)
-		if (wo.status !== 'draft') throw new ConflictError(`Only draft Work Orders can be started`)
+		return record('WorkOrderService.handleStart', async () => {
+			const wo = await this.getById(id)
+			if (!wo) throw ProductionError.notFound(id)
+			if (wo.status !== 'draft') throw ProductionError.invalidStatus(id, wo.status)
 
-		const result = await this.repo.update(
-			id,
-			{ status: 'in_progress', startedAt: new Date() },
-			actorId,
-		)
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-		return result
+			const result = await this.repo.update(
+				id,
+				{ status: 'in_progress', startedAt: new Date() },
+				actorId,
+			)
+			if (!result) throw ProductionError.updateFailed()
+
+			await this.invalidate(id)
+			return result
+		})
 	}
 
 	async handleComplete(
@@ -83,77 +148,78 @@ export class WorkOrderService {
 		data: WorkOrderCompleteDto,
 		actorId: ActorId,
 	): Promise<EntityRef> {
-		const wo = await this.getById(id)
-		if (wo.status !== 'in_progress')
-			throw new ConflictError(`Work Order with ID ${id} is not in progress`, {
-				code: 'WORK_ORDER_STATUS_CONFLICT',
+		return record('WorkOrderService.handleComplete', async () => {
+			const wo = await this.getById(id)
+			if (!wo) throw ProductionError.notFound(id)
+			if (wo.status !== 'in_progress') throw ProductionError.notInProgress(id)
+
+			const recipe = await this.deps.recipe.getById(wo.recipeId)
+			if (!recipe) throw ProductionError.notFound(wo.recipeId)
+
+			const actualQty = new Decimal(data.actualQty)
+			const targetQty = new Decimal(recipe.targetQty)
+			const multiplier = actualQty.div(targetQty.isPositive() ? targetQty : 1)
+
+			const costRes = await this.deps.recipe.handleCalculateCost(wo.recipeId)
+			const actualTotalCost = new Decimal(costRes.totalCost).mul(multiplier)
+
+			const result = await withTransaction(this.repo.db, async (tx) => {
+				if (recipe.items) {
+					await this.deps.stockTransaction.productionOut(
+						{
+							locationId: wo.locationId,
+							date: new Date(),
+							referenceNo: `WO-OUT-${wo.id}`,
+							notes: `Consumed for Work Order #${wo.id}`,
+							items: recipe.items.map((item) => ({
+								materialId: item.materialId,
+								qty: new Decimal(item.qty)
+									.mul(multiplier)
+									.mul(new Decimal(1).plus(new Decimal(item.scrapPercentage).div(100)))
+									.toString(),
+							})),
+						},
+						actorId,
+						tx,
+					)
+				}
+
+				if (recipe.materialId) {
+					await this.deps.stockTransaction.productionIn(
+						{
+							locationId: wo.locationId,
+							date: new Date(),
+							referenceNo: `WO-IN-${wo.id}`,
+							notes: `Produced from Work Order #${wo.id}`,
+							items: [
+								{
+									materialId: recipe.materialId,
+									qty: actualQty.toString(),
+									unitCost: actualTotalCost.div(actualQty).toString(),
+								},
+							],
+						},
+						actorId,
+						tx,
+					)
+				}
+
+				const updated = await this.repo.update(
+					id,
+					{
+						status: 'completed',
+						actualQty: actualQty.toString(),
+						totalCost: actualTotalCost.toString(),
+						completedAt: new Date(),
+					},
+					actorId,
+					tx,
+				)
+				if (!updated) throw ProductionError.updateFailed()
+				return updated
 			})
 
-		const recipe = await this.recipeSvc.getById(wo.recipeId)
-		if (!recipe) throw new NotFoundError(`Recipe with ID ${wo.recipeId} not found`)
-
-		const actualQty = new Decimal(data.actualQty)
-		const targetQty = new Decimal(recipe.targetQty)
-		const multiplier = actualQty.div(targetQty.isPositive() ? targetQty : 1)
-
-		const costRes = await this.recipeSvc.handleCalculateCost(wo.recipeId)
-		const actualTotalCost = new Decimal(costRes.totalCost).mul(multiplier)
-
-		return this.db.transaction(async (tx) => {
-			// 1. Consume raw materials
-			if (recipe.items) {
-				await this.stockTransactionSvc.productionOut(
-					{
-						locationId: wo.locationId,
-						date: new Date(),
-						referenceNo: `WO-OUT-${wo.id}`,
-						notes: `Consumed for Work Order #${wo.id}`,
-						items: recipe.items.map((item) => ({
-							materialId: item.materialId,
-							qty: new Decimal(item.qty)
-								.mul(multiplier)
-								.mul(new Decimal(1).plus(new Decimal(item.scrapPercentage).div(100)))
-								.toString(),
-						})),
-					},
-					actorId,
-					tx,
-				)
-			}
-
-			// 2. Add finished good
-			if (recipe.materialId) {
-				await this.stockTransactionSvc.productionIn(
-					{
-						locationId: wo.locationId,
-						date: new Date(),
-						referenceNo: `WO-IN-${wo.id}`,
-						notes: `Produced from Work Order #${wo.id}`,
-						items: [
-							{
-								materialId: recipe.materialId,
-								qty: actualQty.toString(),
-								unitCost: actualTotalCost.div(actualQty).toString(),
-							},
-						],
-					},
-					actorId,
-					tx,
-				)
-			}
-
-			// 3. Finalize Work Order
-			const result = await this.repo.update(
-				id,
-				{
-					status: 'completed',
-					actualQty: actualQty.toString(),
-					totalCost: actualTotalCost.toString(),
-					completedAt: new Date(),
-				},
-				actorId,
-			)
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			await this.invalidate(id)
 			return result
 		})
 	}
