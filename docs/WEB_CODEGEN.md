@@ -40,15 +40,20 @@ of truth. No regex parsing, no hand-duplicated method/DTO declarations.
      `createPaginatedResponseSchema`.
    - `input.kind`: `query` → api-factory `params`, `body` → api-factory `body`.
 
-2. Register the contract in `scripts/generate-web.ts` (`loadContracts()`).
+2. Register the contract in `apps/server/scripts/generate-web.ts`
+   (`loadContracts()`).
 
-3. Run the generator:
+3. Run the generator (from the repo root, or from `apps/server`):
 
    ```sh
    bun run generate:web            # all registered contracts
    bun run generate:web location   # one feature
    bun run generate:web:preview    # dry-run, prints target paths
    ```
+
+   The generator lives in `apps/server/scripts/` so it is covered by the server
+   `tsconfig` (`scripts/**`) — full type-aware lint + `@/` alias resolution.
+   The root `generate:web` scripts delegate via `bun --filter @ikki/server`.
 
 ## Generated output — flat, per entity
 

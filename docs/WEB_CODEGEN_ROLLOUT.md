@@ -9,7 +9,7 @@ tooling works.
 **Done**
 
 - `defineContract` primitive (`apps/server/src/shared/contract/define-contract.ts`).
-- Generator `scripts/generate-web.ts` — emits **flat** `features/<feature>/<entity>.dto.ts`
+- Generator `apps/server/scripts/generate-web.ts` — emits **flat** `features/<feature>/<entity>.dto.ts`
   + `<entity>.api.ts` + a barrel `index.ts` (with a preserved manual block),
   and `apps/web/src/config/endpoint.gen.ts`.
 - POC: `location` fully migrated (contract + flat output + imports on barrel).
@@ -66,7 +66,7 @@ For each feature (do `iam` first as the multi-entity reference):
      `update`, `remove`, plus customs like `changePassword`, `approve`).
    - Custom endpoints: pick the right `method`, `path`, `input.kind`, `output.kind`.
 
-2. **Register** the contract file import in `scripts/generate-web.ts`
+2. **Register** the contract file import in `apps/server/scripts/generate-web.ts`
    → `loadContracts()`.
 
 3. **Delete** the old hand-written `features/<feature>/dto/` and `api/` folders
