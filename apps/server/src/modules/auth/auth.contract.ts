@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { defineContract, dto, endpoint } from '@/shared/contract/define-contract'
+import { defineContract } from '@/shared/contract/define-contract'
 import { zc, zp } from '@/shared/schema'
 
 import { UserDto } from '@/modules/iam'
@@ -22,21 +22,11 @@ export type AuthOutputDto = z.infer<typeof AuthOutputDto>
 export const authContract = defineContract({
 	feature: 'auth',
 	entity: 'auth',
-	prefix: '/location',
+	prefix: '/auth',
 	dtoSource: 'auth/auth.contract.ts',
-	endpoints: [
-		endpoint({
-			action: 'login',
-			method: 'post',
-			path: '/login',
-			input: { kind: 'body', ref: dto(AuthLoginDto, 'AuthLoginDto') },
-			output: { kind: 'single', ref: dto(AuthOutputDto, 'AuthOutputDto') },
-		}),
-		endpoint({
-			action: 'me',
-			method: 'get',
-			path: '/me',
-			output: { kind: 'single', ref: dto(UserDto, 'UserDto') },
-		}),
-	],
+	dtos: { AuthLoginDto, AuthOutputDto, UserDto },
+	endpoints: {
+		login: { post: '/login', body: AuthLoginDto, ok: AuthOutputDto },
+		me: { get: '/me', ok: UserDto },
+	},
 })

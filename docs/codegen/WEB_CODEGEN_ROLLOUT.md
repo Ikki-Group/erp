@@ -85,13 +85,15 @@ For each feature (do `iam` first as the multi-entity reference):
 
 ## Known gaps / decisions to make during rollout
 
-- **DTO copy fidelity.** The copier strips the `defineContract` import + the
-  `…Contract` export block and rewrites `@/shared/schema` → `@/lib/validation`.
-  It assumes DTOs reference only `z` + shared validation. Server-only imports in
-  a contract (e.g. cross-module DTO imports like `iam` importing `LocationDto`)
-  need a rewrite rule — the generator currently does NOT rewrite
-  `@/modules/<x>` / cross-feature imports. Plan: for cross-feature DTO refs,
-  rewrite to `@/features/<x>` on copy (add a rule when we hit `iam`).
+- **DTO copy fidelity.** ✅ Resolved. The copier strips the `defineContract`
+  import + the `…Contract` export block, rewrites `@/shared/schema` →
+  `@/lib/validation`, and rewrites `@/modules/<x>` → `@/features/<x>` (cross-feature
+  DTO imports are additionally re-exported so the merged `<feature>.dto.ts` is the
+  single import surface). All entities of a feature are merged into one
+  `<feature>.dto.ts`, with a `⚠️` warning on any duplicate exported name.
+  - Caveat: a borrowed DTO must exist on the source feature. When `auth` borrows
+    `UserDto`/`UserDetailDto` from `iam`, migrate `iam` first (rollout order) so
+    the referenced schema is defined server-side.
 
 - **`zp.decimal` is now aligned (no rewrite needed).** ✅ Resolved. Both server
   and web `zp.decimal` infer **`string`** (server: `union([string,number])

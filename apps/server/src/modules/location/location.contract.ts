@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { defineContract, dto, endpoint, shared } from '@/shared/contract/define-contract'
+import { defineContract } from '@/shared/contract/define-contract'
 import { zc, zp, zq } from '@/shared/schema'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -67,41 +67,12 @@ export const locationContract = defineContract({
 	entity: 'location',
 	prefix: '/location',
 	dtoSource: 'location/location.contract.ts',
-	endpoints: [
-		endpoint({
-			action: 'list',
-			method: 'get',
-			path: '/list',
-			input: { kind: 'query', ref: dto(LocationFilterDto, 'LocationFilterDto') },
-			output: { kind: 'paginated', ref: dto(LocationDto, 'LocationDto') },
-		}),
-		endpoint({
-			action: 'detail',
-			method: 'get',
-			path: '/detail',
-			input: { kind: 'query', ref: shared(zc.RecordId, 'zc.RecordId') },
-			output: { kind: 'single', ref: dto(LocationDto, 'LocationDto') },
-		}),
-		endpoint({
-			action: 'create',
-			method: 'post',
-			path: '/create',
-			input: { kind: 'body', ref: dto(LocationCreateDto, 'LocationCreateDto') },
-			output: { kind: 'single', ref: shared(zc.RecordId, 'zc.RecordId') },
-		}),
-		endpoint({
-			action: 'update',
-			method: 'put',
-			path: '/update',
-			input: { kind: 'body', ref: dto(LocationUpdateDto, 'LocationUpdateDto') },
-			output: { kind: 'single', ref: shared(zc.RecordId, 'zc.RecordId') },
-		}),
-		endpoint({
-			action: 'remove',
-			method: 'delete',
-			path: '/remove',
-			input: { kind: 'body', ref: shared(zc.RecordId, 'zc.RecordId') },
-			output: { kind: 'single', ref: shared(zc.RecordId, 'zc.RecordId') },
-		}),
-	],
+	dtos: { LocationDto, LocationFilterDto, LocationCreateDto, LocationUpdateDto },
+	endpoints: {
+		list: { get: '/list', query: LocationFilterDto, ok: [LocationDto] },
+		detail: { get: '/detail', query: zc.RecordId, ok: LocationDto },
+		create: { post: '/create', body: LocationCreateDto, ok: zc.RecordId },
+		update: { put: '/update', body: LocationUpdateDto, ok: zc.RecordId },
+		remove: { delete: '/remove', body: zc.RecordId, ok: zc.RecordId },
+	},
 })

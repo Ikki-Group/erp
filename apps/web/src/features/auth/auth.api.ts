@@ -11,16 +11,6 @@ import { AuthLoginDto, AuthOutputDto, UserDto } from './auth.dto'
 const authKeys = createQueryKeys('auth', 'auth')
 
 export const authApi = {
-	login: apiFactory({
-		method: 'post',
-		url: endpoint.auth.login,
-		body: AuthLoginDto,
-		result: createSuccessResponseSchema(AuthOutputDto),
-		invalidates: [authKeys.lists()],
-	}),
-	me: apiFactory({
-		method: 'get',
-		url: endpoint.auth.me,
-		result: createSuccessResponseSchema(UserDto),
-	}),
+	login: apiFactory({ method: 'post', url: endpoint.auth.login, body: AuthLoginDto, result: createSuccessResponseSchema(AuthOutputDto), invalidates: [authKeys.lists()] }),
+	me: apiFactory({ method: 'get', url: endpoint.auth.me, result: createSuccessResponseSchema(UserDto) }),
 }
