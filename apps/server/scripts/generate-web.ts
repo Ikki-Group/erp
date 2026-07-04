@@ -16,18 +16,19 @@
  * This is NOT regex parsing: it imports the actual contract objects, so method,
  * path, and input/output DTO refs come from a single typed source of truth.
  *
- * Usage:
- *   bun scripts/generate-web.ts                 # all registered contracts
- *   bun scripts/generate-web.ts location        # one feature
- *   bun scripts/generate-web.ts --dry-run
+ * Usage (from apps/server):
+ *   bun run generate:web                 # all registered contracts
+ *   bun run generate:web location        # one feature
+ *   bun run generate:web:preview         # dry-run
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 
-import type { ModuleContract } from '../apps/server/src/shared/contract/define-contract'
+import type { ModuleContract } from '@/shared/contract/define-contract'
 
-const REPO_ROOT = resolve(import.meta.dir, '..')
+// apps/server/scripts → apps/server → apps → <repo root>
+const REPO_ROOT = resolve(import.meta.dir, '../../..')
 const SERVER_MODULES = join(REPO_ROOT, 'apps/server/src/modules')
 const WEB_FEATURES = join(REPO_ROOT, 'apps/web/src/features')
 const ENDPOINT_GEN = join(REPO_ROOT, 'apps/web/src/config/endpoint.gen.ts')
@@ -41,12 +42,12 @@ const ENDPOINT_GEN = join(REPO_ROOT, 'apps/web/src/config/endpoint.gen.ts')
  * `defineContract(...)` export to its `*.contract.ts`.
  */
 async function loadContracts(): Promise<ModuleContract[]> {
-	const mods = await Promise.all([
-		import(join(SERVER_MODULES, 'location/location.contract.ts')),
-	])
+	const paths = ['location/location.contract.ts']
 
 	const contracts: ModuleContract[] = []
-	for (const mod of mods) {
+	for (const rel of paths) {
+		const mod: unknown = await import(join(SERVER_MODULES, rel))
+		if (typeof mod !== 'object' || mod === null) continue
 		for (const value of Object.values(mod)) {
 			if (isModuleContract(value)) contracts.push(value)
 		}
@@ -55,13 +56,12 @@ async function loadContracts(): Promise<ModuleContract[]> {
 }
 
 function isModuleContract(v: unknown): v is ModuleContract {
+	if (typeof v !== 'object' || v === null) return false
 	return (
-		typeof v === 'object' &&
-		v !== null &&
 		'feature' in v &&
 		'prefix' in v &&
 		'endpoints' in v &&
-		Array.isArray((v as ModuleContract).endpoints)
+		Array.isArray((v as { endpoints: unknown }).endpoints)
 	)
 }
 
@@ -81,12 +81,15 @@ function generateDto(contract: ModuleContract): { path: string; content: string 
 	// block, then rewrite the validation import path.
 	let out = src
 		// remove the define-contract import line
-		.replace(/^import\s+\{[^}]*\}\s+from\s+'@\/shared\/contract\/define-contract'\r?\n/m, '')
+		.replace(/^import\s+\{[^}]*\}\s+from\s+'@\/shared\/contract\/define-contract'\r?\n/mu, '')
 		// remove the contract export block (from `export const ...Contract = defineContract({`
 		// up to the matching closing `})` at column 0)
-		.replace(/\n\/\* -+ CONTRACT -+ \*\/[\s\S]*?\nexport const \w+Contract = defineContract\([\s\S]*?\n\}\)\n?/m, '\n')
+		.replace(
+			/\n\/\* -+ CONTRACT -+ \*\/[\s\S]*?\nexport const \w+Contract = defineContract\([\s\S]*?\n\}\)\n?/mu,
+			'\n',
+		)
 		// rewrite validation import
-		.replace(/from '@\/shared\/schema'/g, "from '@/lib/validation'")
+		.replace(/from '@\/shared\/schema'/gu, "from '@/lib/validation'")
 
 	out = `${GEN_HEADER}\n${out.trimEnd()}\n`
 
@@ -123,7 +126,7 @@ function generateApi(
 	}
 
 	const validationNamed = new Set<string>(wrapperImports)
-	for (const ref of validationRefs) validationNamed.add(ref.split('.')[0]) // zc, zp, zq
+	for (const ref of validationRefs) validationNamed.add(ref.split('.')[0] ?? ref) // zc, zp, zq
 
 	const lines: string[] = []
 	lines.push(GEN_HEADER)
@@ -201,6 +204,9 @@ function endpointConfigRef(contract: ModuleContract, action: string, multiEntity
 		: `endpoint.${contract.feature}.${action}`
 }
 
+/** A node in the endpoint URL tree: either a leaf URL or a nested group. */
+type EndpointNode = string | { [key: string]: EndpointNode }
+
 function generateEndpointConfig(contracts: ModuleContract[]): string {
 	const lines: string[] = []
 	lines.push(GEN_HEADER)
@@ -212,22 +218,25 @@ function generateEndpointConfig(contracts: ModuleContract[]): string {
 	const entityCount = new Map<string, number>()
 	for (const c of contracts) entityCount.set(c.feature, (entityCount.get(c.feature) ?? 0) + 1)
 
-	const tree: Record<string, Record<string, unknown>> = {}
+	const tree: Record<string, EndpointNode> = {}
 	for (const c of contracts) {
-		const actions: Record<string, string> = {}
+		const actions: Record<string, EndpointNode> = {}
 		for (const ep of c.endpoints) actions[ep.action] = joinUrl(c.prefix, ep.path)
 
 		if ((entityCount.get(c.feature) ?? 1) > 1) {
 			// multi-entity feature → endpoint.<feature>.<entity>.<action>
-			const node = (tree[c.feature] ??= {})
+			const existing = tree[c.feature]
+			const node: { [key: string]: EndpointNode } =
+				typeof existing === 'object' ? existing : {}
 			node[c.entity] = actions
+			tree[c.feature] = node
 		} else {
 			// single-entity feature → endpoint.<feature>.<action>
 			tree[c.feature] = actions
 		}
 	}
 
-	for (const [key, val] of Object.entries(tree).sort()) {
+	for (const [key, val] of Object.entries(tree).sort((a, b) => a[0].localeCompare(b[0]))) {
 		lines.push(`\t${key}: ${renderNode(val, 2)},`)
 	}
 
@@ -235,19 +244,17 @@ function generateEndpointConfig(contracts: ModuleContract[]): string {
 	return lines.join('\n') + '\n'
 }
 
-function renderNode(node: Record<string, unknown>, indent: number): string {
+function renderNode(node: EndpointNode, indent: number): string {
+	if (typeof node === 'string') return `'${node}'`
 	const pad = '\t'.repeat(indent)
 	const inner = Object.entries(node)
-		.map(([k, v]) => {
-			if (typeof v === 'string') return `${pad}${k}: '${v}',`
-			return `${pad}${k}: ${renderNode(v as Record<string, unknown>, indent + 1)},`
-		})
+		.map(([k, v]) => `${pad}${k}: ${renderNode(v, indent + 1)},`)
 		.join('\n')
 	return `{\n${inner}\n${'\t'.repeat(indent - 1)}}`
 }
 
 function joinUrl(prefix: string, path: string): string {
-	return `${prefix}${path}`.replace(/^\//, '')
+	return `${prefix}${path}`.replace(/^\//u, '')
 }
 
 /* -------------------------------------------------------------------------- */
@@ -257,7 +264,7 @@ function joinUrl(prefix: string, path: string): string {
 const GEN_HEADER = `// AUTO-GENERATED by scripts/generate-web.ts — DO NOT EDIT.`
 
 function camel(s: string): string {
-	return s.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
+	return s.replace(/-([a-z])/gu, (_, c: string) => c.toUpperCase())
 }
 
 function writeFile(path: string, content: string, dryRun: boolean) {
@@ -284,20 +291,20 @@ function writeFeatureBarrel(feature: string, entities: string[], dryRun: boolean
 	if (existsSync(barrelPath)) {
 		const existing = readFileSync(barrelPath, 'utf-8')
 		const idx = existing.indexOf(MANUAL_MARKER)
-		if (idx !== -1) {
-			manual = existing.slice(idx + MANUAL_MARKER.length).trim()
-		} else {
+		if (idx === -1) {
 			// First migration: keep any non-generated (dto/api) export lines.
 			manual = existing
 				.split('\n')
 				.filter(
 					(l) =>
 						l.startsWith('export') &&
-						!/\.\/[\w-]+\.(dto|api)'/.test(l) &&
-						!/\.\/(api|dto)'/.test(l),
+						!/\.\/[\w-]+\.(dto|api)'/u.test(l) &&
+						!/\.\/(api|dto)'/u.test(l),
 				)
 				.join('\n')
 				.trim()
+		} else {
+			manual = existing.slice(idx + MANUAL_MARKER.length).trim()
 		}
 	}
 
