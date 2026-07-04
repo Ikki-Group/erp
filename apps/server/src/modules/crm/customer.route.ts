@@ -1,9 +1,8 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import {
 	CustomerDto,
@@ -15,15 +14,15 @@ import {
 	CustomerLoyaltyTransactionDto,
 	CustomerGetByPhoneDto,
 } from './customer.contract'
-import type { CustomerService } from './customer.service'
+import type { CustomerModule } from './customer.module'
 
-export function initCustomerRoute(service: CustomerService) {
+export function createCustomerRoute(m: CustomerModule) {
 	return new Elysia({ prefix: '/customer' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -34,8 +33,8 @@ export function initCustomerRoute(service: CustomerService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const result = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const result = await m.handleGetById(query.id)
 				return res.ok(result)
 			},
 			{
@@ -46,8 +45,8 @@ export function initCustomerRoute(service: CustomerService) {
 		)
 		.post(
 			'/by-phone',
-			async function getByPhone(context) {
-				const result = await service.handleGetByPhone(context.body.phone)
+			async ({ body }) => {
+				const result = await m.handleGetByPhone(body.phone)
 				return res.ok(result)
 			},
 			{
@@ -58,8 +57,8 @@ export function initCustomerRoute(service: CustomerService) {
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const result = await service.handleCreate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
 			{
@@ -70,8 +69,8 @@ export function initCustomerRoute(service: CustomerService) {
 		)
 		.patch(
 			'/update',
-			async function update(context) {
-				const result = await service.handleUpdate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -82,8 +81,8 @@ export function initCustomerRoute(service: CustomerService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				const result = await service.handleRemove(context.query.id)
+			async ({ query }) => {
+				const result = await m.handleRemove(query.id)
 				return res.ok(result)
 			},
 			{
@@ -94,8 +93,8 @@ export function initCustomerRoute(service: CustomerService) {
 		)
 		.post(
 			'/points/add',
-			async function addPoints(context) {
-				const result = await service.handleAddPoints(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleAddPoints(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -106,8 +105,8 @@ export function initCustomerRoute(service: CustomerService) {
 		)
 		.post(
 			'/points/redeem',
-			async function redeemPoints(context) {
-				const result = await service.handleRedeemPoints(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleRedeemPoints(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -118,8 +117,8 @@ export function initCustomerRoute(service: CustomerService) {
 		)
 		.get(
 			'/loyalty-history',
-			async function loyaltyHistory(context) {
-				const result = await service.getLoyaltyHistory(context.query.id)
+			async ({ query }) => {
+				const result = await m.handleLoyaltyHistory(query.id)
 				return res.ok(result)
 			},
 			{

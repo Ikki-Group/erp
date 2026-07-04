@@ -1,11 +1,9 @@
-// @ts-nocheck
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+import { record } from '@elysiajs/opentelemetry'
 
 import { customersTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { checkConflict, type ConflictField } from '@/infra/database'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import { checkConflict, type ConflictField, withTransaction } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
@@ -18,9 +16,10 @@ import type {
 	CustomerRedeemPointsDto,
 	CustomerLoyaltyTransactionDto,
 } from './customer.contract'
-import { CustomerRepo } from './customer.repo'
+import { CustomerError } from './customer.internal'
+import type { ICustomerRepo } from './customer.repo'
 
-const uniqueFields: ConflictField<'code' | 'name' | 'phone'>[] = [
+const uniqueFields: ConflictField<{ code: string; name: string; phone: string | null }>[] = [
 	{
 		field: 'code',
 		column: customersTable.code,
@@ -41,136 +40,170 @@ const uniqueFields: ConflictField<'code' | 'name' | 'phone'>[] = [
 	},
 ]
 
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError(`Customer with ID ${id} not found`, { code: 'CUSTOMER_NOT_FOUND' }),
-	notFoundByPhone: (phone: string) =>
-		new NotFoundError(`Customer with phone ${phone} not found`, { code: 'CUSTOMER_NOT_FOUND' }),
-	createFailed: () =>
-		new InternalServerError('Customer creation failed', { code: 'CUSTOMER_CREATE_FAILED' }),
-	insufficientPoints: () =>
-		new InternalServerError('Insufficient points balance', { code: 'INSUFFICIENT_POINTS' }),
-}
-
 export class CustomerService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: CustomerRepo,
+		private readonly repo: ICustomerRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'customer')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
+	}
 
 	async getById(id: number): Promise<CustomerDto | undefined> {
-		return this.cache.getOrSetWithSkip({
-			key: `byId:${id}`,
-			factory: () => this.repo.getById(id),
-		})
+		return record('CustomerService.getById', async () =>
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
+				factory: () => this.repo.findById(id),
+			}),
+		)
 	}
 
 	async getByPhone(phone: string): Promise<CustomerDto | undefined> {
-		return this.repo.getByPhone(phone)
+		return this.repo.findByPhone(phone)
 	}
 
 	async getLoyaltyHistory(customerId: number): Promise<CustomerLoyaltyTransactionDto[]> {
-		return this.repo.getLoyaltyHistory(customerId)
+		return this.repo.findLoyaltyHistory(customerId)
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
+	async create(data: CustomerCreateDto, actorId: ActorId): Promise<EntityRef> {
+		await checkConflict({
+			db: this.repo.db,
+			table: customersTable,
+			pkColumn: customersTable.id,
+			fields: uniqueFields,
+			input: {
+				code: data.code,
+				name: data.name,
+				phone: data.phone ?? null,
+			},
+		})
+
+		const result = await this.repo.insert(data, actorId)
+		if (!result) throw CustomerError.createFailed()
+
+		await this.invalidate()
+		return result
+	}
+
+	async update(data: CustomerUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		const { id } = data
+		const existing = await this.repo.findById(id)
+		if (!existing) throw CustomerError.notFound(id)
+
+		await checkConflict({
+			db: this.repo.db,
+			table: customersTable,
+			pkColumn: customersTable.id,
+			fields: uniqueFields,
+			input: {
+				code: existing.code,
+				name: data.name ?? existing.name,
+				phone: data.phone ?? existing.phone,
+			},
+			existing,
+		})
+
+		const result = await this.repo.update(id, data, actorId)
+		if (!result) throw CustomerError.notFound(id)
+
+		await this.invalidate(id)
+		return result
+	}
+
+	async remove(id: number): Promise<EntityRef> {
+		const result = await this.repo.remove(id)
+		if (!result) throw CustomerError.notFound(id)
+
+		await this.invalidate(id)
+		return result
+	}
+
+	async addPoints(data: CustomerAddPointsDto, actorId: ActorId): Promise<EntityRef> {
+		const existing = await this.repo.findById(data.customerId)
+		if (!existing) throw CustomerError.notFound(data.customerId)
+
+		const result = await withTransaction(this.repo.db, async (tx) => {
+			await this.repo.updateLastVisit(data.customerId, tx)
+			const txnResult = await this.repo.addPoints(data, actorId, tx)
+			if (!txnResult) throw CustomerError.createFailed()
+			return txnResult
+		})
+
+		await this.invalidate(data.customerId)
+		return result
+	}
+
+	async redeemPoints(data: CustomerRedeemPointsDto, actorId: ActorId): Promise<EntityRef> {
+		const existing = await this.repo.findById(data.customerId)
+		if (!existing) throw CustomerError.notFound(data.customerId)
+
+		if (existing.pointsBalance < data.points) {
+			throw CustomerError.insufficientPoints()
+		}
+
+		const result = await withTransaction(this.repo.db, async (tx) => {
+			const txnResult = await this.repo.redeemPoints(data, actorId, tx)
+			if (!txnResult) throw CustomerError.insufficientPoints()
+			return txnResult
+		})
+
+		await this.invalidate(data.customerId)
+		return result
+	}
 
 	async handleList(filter: CustomerFilterDto): Promise<WithPaginationResult<CustomerDto>> {
-		const result = await this.repo.getListPaginated(filter)
-		return result
+		return record('CustomerService.handleList', async () => this.repo.findPage(filter))
 	}
 
-	async handleDetail(id: number): Promise<CustomerDto> {
-		const result = await this.repo.getById(id)
-		if (!result) throw err.notFound(id)
-		return result
+	async handleGetById(id: number): Promise<CustomerDto> {
+		return record('CustomerService.handleGetById', async () => {
+			const result = await this.getById(id)
+			if (!result) throw CustomerError.notFound(id)
+			return result
+		})
 	}
 
 	async handleGetByPhone(phone: string): Promise<CustomerDto> {
-		const result = await this.repo.getByPhone(phone)
-		if (!result) throw err.notFoundByPhone(phone)
-		return result
+		return record('CustomerService.handleGetByPhone', async () => {
+			const result = await this.repo.findByPhone(phone)
+			if (!result) throw CustomerError.notFoundByPhone(phone)
+			return result
+		})
 	}
 
 	async handleCreate(data: CustomerCreateDto, actorId: ActorId): Promise<EntityRef> {
-		await checkConflict({
-			db: this.repo.db,
-			table: customersTable,
-			pkColumn: customersTable.id,
-			fields: uniqueFields,
-			input: { code: data.code, name: data.name, phone: data.phone } as Record<
-				'code' | 'name' | 'phone',
-				unknown
-			>,
-		})
-		const result = await this.repo.create(data, actorId)
-
-		await this.cache.deleteMany({ keys: ['list', 'count'] })
-
-		return result
+		return record('CustomerService.handleCreate', async () => this.create(data, actorId))
 	}
 
 	async handleUpdate(data: CustomerUpdateDto, actorId: ActorId): Promise<EntityRef> {
-		const { id } = data
-
-		const existing = await this.getById(id)
-		if (!existing) throw err.notFound(id)
-
-		await checkConflict({
-			db: this.repo.db,
-			table: customersTable,
-			pkColumn: customersTable.id,
-			fields: uniqueFields,
-			input: data as unknown as Record<'code' | 'name' | 'phone', unknown>,
-			existing: existing as unknown as { id: number } & Record<'code' | 'name' | 'phone', unknown>,
-		})
-
-		const result = await this.repo.update(data, actorId)
-
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
-		return result
+		return record('CustomerService.handleUpdate', async () => this.update(data, actorId))
 	}
 
 	async handleRemove(id: number): Promise<EntityRef> {
-		const result = await this.repo.remove(id)
-		if (!result.id) throw err.notFound(id)
-
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
-		return result
+		return record('CustomerService.handleRemove', async () => this.remove(id))
 	}
 
 	async handleAddPoints(data: CustomerAddPointsDto, actorId: ActorId): Promise<EntityRef> {
-		const existing = await this.getById(data.customerId)
-		if (!existing) throw err.notFound(data.customerId)
-
-		// Update last visit when adding points (typically from a sale)
-		await this.repo.updateLastVisit(data.customerId)
-
-		const result = await this.repo.addPoints(data, actorId)
-		if (!result.id) throw err.createFailed()
-
-		await this.cache.deleteMany({ keys: [`byId:${data.customerId}`] })
-
-		return result
+		return record('CustomerService.handleAddPoints', async () => this.addPoints(data, actorId))
 	}
 
 	async handleRedeemPoints(data: CustomerRedeemPointsDto, actorId: ActorId): Promise<EntityRef> {
-		const existing = await this.getById(data.customerId)
-		if (!existing) throw err.notFound(data.customerId)
+		return record('CustomerService.handleRedeemPoints', async () =>
+			this.redeemPoints(data, actorId),
+		)
+	}
 
-		const result = await this.repo.redeemPoints(data, actorId)
-		if (!result.id) throw err.insufficientPoints()
-
-		await this.cache.deleteMany({ keys: [`byId:${data.customerId}`] })
-
-		return result
+	async handleLoyaltyHistory(customerId: number): Promise<CustomerLoyaltyTransactionDto[]> {
+		return record('CustomerService.handleLoyaltyHistory', async () =>
+			this.repo.findLoyaltyHistory(customerId),
+		)
 	}
 }

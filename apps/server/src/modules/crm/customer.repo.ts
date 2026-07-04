@@ -1,197 +1,259 @@
-import { and, count, desc, eq, or } from 'drizzle-orm'
+import { and, count, desc, eq, or, SQL } from 'drizzle-orm'
 
 import { customersTable, customerLoyaltyTransactionsTable } from '@/db/schema'
 
-import { paginate, searchFilter, takeFirst, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import {
+import type {
 	CustomerDto,
-	type CustomerFilterDto,
-	type CustomerCreateDto,
-	type CustomerUpdateDto,
-	type CustomerAddPointsDto,
-	type CustomerRedeemPointsDto,
-	type CustomerLoyaltyTransactionDto,
+	CustomerFilterDto,
+	CustomerCreateDto,
+	CustomerUpdateDto,
+	CustomerAddPointsDto,
+	CustomerRedeemPointsDto,
+	CustomerLoyaltyTransactionDto,
 } from './customer.contract'
 
-export class CustomerRepo {
-	constructor(readonly db: DbClient) {}
+export interface ICustomerRepo {
+	readonly db: DbContext
+	findMany(filter?: Partial<CustomerFilterDto>, db?: DbContext): Promise<CustomerDto[]>
+	findPage(filter: CustomerFilterDto, db?: DbContext): Promise<WithPaginationResult<CustomerDto>>
+	findById(id: number, db?: DbContext): Promise<CustomerDto | undefined>
+	findByPhone(phone: string, db?: DbContext): Promise<CustomerDto | undefined>
+	findLoyaltyHistory(customerId: number, db?: DbContext): Promise<CustomerLoyaltyTransactionDto[]>
+	insert(data: CustomerCreateDto, actorId: ActorId, db?: DbContext): Promise<EntityRef | undefined>
+	update(
+		id: number,
+		data: CustomerUpdateDto,
+		actorId: ActorId,
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+	addPoints(
+		data: CustomerAddPointsDto,
+		actorId: ActorId,
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
+	redeemPoints(
+		data: CustomerRedeemPointsDto,
+		actorId: ActorId,
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
+	updateLastVisit(customerId: number, db?: DbContext): Promise<void>
+}
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export class CustomerRepo implements ICustomerRepo {
+	constructor(readonly db: DbContext) {}
 
-	async getListPaginated(filter: CustomerFilterDto): Promise<WithPaginationResult<CustomerDto>> {
-		const { q, page, limit, tier, phone } = filter
-		const where = and(
+	#buildWhere(filter: Partial<Pick<CustomerFilterDto, 'q' | 'tier' | 'phone'>>): SQL | undefined {
+		const { q, tier, phone } = filter
+		return and(
 			q === undefined
 				? undefined
 				: or(searchFilter(customersTable.name, q), searchFilter(customersTable.code, q)),
 			tier === undefined ? undefined : eq(customersTable.tier, tier),
 			phone === undefined ? undefined : eq(customersTable.phone, phone),
 		)
+	}
 
-		return paginate<any>({
-			data: ({ limit, offset }) =>
-				this.db
+	async findMany(
+		filter: Partial<Pick<CustomerFilterDto, 'q' | 'tier' | 'phone'>> = {},
+		db: DbContext = this.db,
+	): Promise<CustomerDto[]> {
+		const where = this.#buildWhere(filter)
+		const rows = await db.select().from(customersTable).where(where)
+		return rows.map((r) => ({ ...r, tier: r.tier ?? 'bronze' })) as CustomerDto[]
+	}
+
+	async findPage(
+		filter: CustomerFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<CustomerDto>> {
+		const where = this.#buildWhere(filter)
+
+		return paginate<CustomerDto>({
+			data: async ({ limit, offset }) => {
+				const rows = await db
 					.select()
 					.from(customersTable)
 					.where(where)
 					.orderBy(customersTable.name)
 					.limit(limit)
 					.offset(offset)
-					.then((rows) => rows.map((r) => CustomerDto.parse(r))),
-			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(customersTable).where(where),
+				return rows.map((r) => ({ ...r, tier: r.tier ?? 'bronze' })) as CustomerDto[]
+			},
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(customersTable).where(where),
 		})
 	}
 
-	async getById(id: number): Promise<CustomerDto | undefined> {
-		const res = await this.db
+	async findById(id: number, db: DbContext = this.db): Promise<CustomerDto | undefined> {
+		const row = await db
 			.select()
 			.from(customersTable)
 			.where(eq(customersTable.id, id))
 			.limit(1)
 			.then(takeFirst)
 
-		return res ? CustomerDto.parse(res) : undefined
+		return row ? ({ ...row, tier: row.tier ?? 'bronze' } as CustomerDto) : undefined
 	}
 
-	async getByPhone(phone: string): Promise<CustomerDto | undefined> {
-		const res = await this.db
+	async findByPhone(phone: string, db: DbContext = this.db): Promise<CustomerDto | undefined> {
+		const row = await db
 			.select()
 			.from(customersTable)
 			.where(eq(customersTable.phone, phone))
 			.limit(1)
 			.then(takeFirst)
 
-		return res ? CustomerDto.parse(res) : undefined
+		return row ? ({ ...row, tier: row.tier ?? 'bronze' } as CustomerDto) : undefined
 	}
 
-	async getLoyaltyHistory(customerId: number): Promise<CustomerLoyaltyTransactionDto[]> {
-		return this.db
+	async findLoyaltyHistory(
+		customerId: number,
+		db: DbContext = this.db,
+	): Promise<CustomerLoyaltyTransactionDto[]> {
+		return db
 			.select()
 			.from(customerLoyaltyTransactionsTable)
 			.where(eq(customerLoyaltyTransactionsTable.customerId, customerId))
 			.orderBy(desc(customerLoyaltyTransactionsTable.createdAt))
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: CustomerCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const metadata = stampCreate(actorId)
-		const [res] = await this.db
+	async insert(
+		data: CustomerCreateDto,
+		actorId: ActorId,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.insert(customersTable)
-			.values({ ...data, ...metadata })
+			.values({
+				...data,
+				tier: 'bronze',
+				pointsBalance: 0,
+				totalPointsEarned: 0,
+				registeredAt: new Date(),
+				createdBy: actorId,
+				updatedBy: actorId,
+			})
 			.returning({ id: customersTable.id })
 
-		return { id: res?.id ?? 0 }
+		return res
 	}
 
-	async update(data: CustomerUpdateDto, actorId: ActorId): Promise<EntityRef> {
-		const metadata = stampUpdate(actorId)
-		const [res] = await this.db
+	async update(
+		id: number,
+		data: CustomerUpdateDto,
+		actorId: ActorId,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const { id: _, ...updateData } = data
+		const [res] = await db
 			.update(customersTable)
-			.set({ ...data, ...metadata })
-			.where(eq(customersTable.id, data.id))
+			.set({
+				...updateData,
+				updatedBy: actorId,
+				updatedAt: new Date(),
+			})
+			.where(eq(customersTable.id, id))
 			.returning({ id: customersTable.id })
 
-		return { id: res?.id ?? 0 }
+		return res
 	}
 
-	async remove(id: number): Promise<EntityRef> {
-		const [res] = await this.db
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.delete(customersTable)
 			.where(eq(customersTable.id, id))
 			.returning({ id: customersTable.id })
 
-		return { id: res?.id ?? 0 }
+		return res
 	}
 
-	async addPoints(data: CustomerAddPointsDto, actorId: ActorId): Promise<EntityRef> {
-		// Get current customer
-		const customer = await this.getById(data.customerId)
-		if (!customer) return { id: 0 }
+	async addPoints(
+		data: CustomerAddPointsDto,
+		actorId: ActorId,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const customer = await this.findById(data.customerId, db)
+		if (!customer) return undefined
 
-		// Calculate new balance
 		const newBalance = customer.pointsBalance + data.points
 		const totalEarned = customer.totalPointsEarned + data.points
 
-		// Update customer
-		await this.db
+		await db
 			.update(customersTable)
 			.set({
 				pointsBalance: newBalance,
 				totalPointsEarned: totalEarned,
-				updatedAt: new Date(),
 				updatedBy: actorId,
+				updatedAt: new Date(),
 			})
 			.where(eq(customersTable.id, data.customerId))
 
-		// Create loyalty transaction record
-		const metadata = stampCreate(actorId)
-		const [res] = await this.db
+		const [res] = await db
 			.insert(customerLoyaltyTransactionsTable)
 			.values({
 				customerId: data.customerId,
 				type: 'earned',
 				points: data.points,
 				balanceAfter: newBalance,
-				referenceType: data.referenceType,
-				referenceId: data.referenceId,
+				referenceType: data.referenceType ?? null,
+				referenceId: data.referenceId ?? null,
 				description: data.description,
-				...metadata,
+				createdBy: actorId,
+				updatedBy: actorId,
 			})
 			.returning({ id: customerLoyaltyTransactionsTable.id })
 
-		return { id: res?.id ?? 0 }
+		return res
 	}
 
-	async redeemPoints(data: CustomerRedeemPointsDto, actorId: ActorId): Promise<EntityRef> {
-		// Get current customer
-		const customer = await this.getById(data.customerId)
-		if (!customer) return { id: 0 }
+	async redeemPoints(
+		data: CustomerRedeemPointsDto,
+		actorId: ActorId,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const customer = await this.findById(data.customerId, db)
+		if (!customer) return undefined
 
-		// Check if customer has enough points
 		if (customer.pointsBalance < data.points) {
 			throw new Error('Insufficient points balance')
 		}
 
-		// Calculate new balance
 		const newBalance = customer.pointsBalance - data.points
 
-		// Update customer
-		await this.db
+		await db
 			.update(customersTable)
 			.set({
 				pointsBalance: newBalance,
-				updatedAt: new Date(),
 				updatedBy: actorId,
+				updatedAt: new Date(),
 			})
 			.where(eq(customersTable.id, data.customerId))
 
-		// Create loyalty transaction record
-		const metadata = stampCreate(actorId)
-		const [res] = await this.db
+		const [res] = await db
 			.insert(customerLoyaltyTransactionsTable)
 			.values({
 				customerId: data.customerId,
 				type: 'redeemed',
 				points: -data.points,
 				balanceAfter: newBalance,
-				referenceType: data.referenceType,
-				referenceId: data.referenceId,
+				referenceType: data.referenceType ?? null,
+				referenceId: data.referenceId ?? null,
 				description: data.description,
-				...metadata,
+				createdBy: actorId,
+				updatedBy: actorId,
 			})
 			.returning({ id: customerLoyaltyTransactionsTable.id })
 
-		return { id: res?.id ?? 0 }
+		return res
 	}
 
-	async updateLastVisit(customerId: number): Promise<void> {
-		await this.db
+	async updateLastVisit(customerId: number, db: DbContext = this.db): Promise<void> {
+		await db
 			.update(customersTable)
 			.set({ lastVisitAt: new Date() })
 			.where(eq(customersTable.id, customerId))

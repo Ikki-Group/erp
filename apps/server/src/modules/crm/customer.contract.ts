@@ -11,7 +11,7 @@ export const LoyaltyTransactionTypeEnum = z.enum(['earned', 'redeemed', 'adjuste
 export type LoyaltyTransactionType = z.infer<typeof LoyaltyTransactionTypeEnum>
 
 export const CustomerDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	code: zp.str,
 	name: zp.str,
 	email: zp.strNullable,
@@ -28,7 +28,7 @@ export const CustomerDto = z.object({
 })
 export type CustomerDto = z.infer<typeof CustomerDto>
 
-export const CustomerCreateDto = z.object({
+const CustomerMutationDto = z.object({
 	code: zc.strTrim.transform((v) => v.toUpperCase()).pipe(z.string().min(3).max(20)),
 	name: zc.strTrim.min(2).max(100),
 	email: zc.email.optional().or(z.literal('')),
@@ -37,6 +37,8 @@ export const CustomerCreateDto = z.object({
 	taxId: zc.strTrim.min(10).max(30).optional().or(z.literal('')),
 	dateOfBirth: zp.date.optional(),
 })
+
+export const CustomerCreateDto = CustomerMutationDto
 export type CustomerCreateDto = z.infer<typeof CustomerCreateDto>
 
 export const CustomerUpdateDto = z.object({
@@ -59,9 +61,8 @@ export const CustomerFilterDto = z.object({
 })
 export type CustomerFilterDto = z.infer<typeof CustomerFilterDto>
 
-/** Loyalty transaction DTO */
 export const CustomerLoyaltyTransactionDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	customerId: zp.id,
 	type: LoyaltyTransactionTypeEnum,
 	points: zp.id,
@@ -73,7 +74,6 @@ export const CustomerLoyaltyTransactionDto = z.object({
 })
 export type CustomerLoyaltyTransactionDto = z.infer<typeof CustomerLoyaltyTransactionDto>
 
-/** Add points to customer */
 export const CustomerAddPointsDto = z.object({
 	customerId: zp.id,
 	points: zp.id.min(1).max(100000),
@@ -83,7 +83,6 @@ export const CustomerAddPointsDto = z.object({
 })
 export type CustomerAddPointsDto = z.infer<typeof CustomerAddPointsDto>
 
-/** Redeem points for discount */
 export const CustomerRedeemPointsDto = z.object({
 	customerId: zp.id,
 	points: zp.id.min(1).max(100000),
@@ -93,7 +92,6 @@ export const CustomerRedeemPointsDto = z.object({
 })
 export type CustomerRedeemPointsDto = z.infer<typeof CustomerRedeemPointsDto>
 
-/** Get customer by phone */
 export const CustomerGetByPhoneDto = z.object({
 	phone: zc.strTrim.min(10).max(20),
 })

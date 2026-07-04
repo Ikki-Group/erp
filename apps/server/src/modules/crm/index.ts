@@ -1,29 +1,26 @@
+export * from './customer.contract'
+export type { ICustomerRepo } from './customer.repo'
+export type { CustomerModule } from './customer.module'
+
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
-import type { CustomerDto, CustomerLoyaltyTransactionDto } from './customer.contract'
-import { CustomerRepo } from './customer.repo'
-import { initCustomerRoute } from './customer.route'
-import { CustomerService } from './customer.service'
+import { createCustomerModule, type CustomerModule } from './customer.module'
+import { createCustomerRoute } from './customer.route'
 
-export class CrmServiceModule {
-	public readonly customer: CustomerService
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		const repo = new CustomerRepo(db)
-		this.customer = new CustomerService(repo, cacheClient)
-	}
+export type CrmServiceModule = {
+	customer: CustomerModule
 }
 
 export type CrmModule = CrmServiceModule
 
-export function initCrmRouteModule(service: CrmServiceModule) {
-	const customerRouter = initCustomerRoute(service.customer)
-
-	return new Elysia({ prefix: '/crm' }).use(customerRouter)
+export function createCrmModule(db: DbContext, cacheClient: CacheClient): CrmModule {
+	const customer = createCustomerModule(db, cacheClient)
+	return { customer }
 }
 
-export type { CustomerDto, CustomerLoyaltyTransactionDto }
-export type { CustomerService } from './customer.service'
+export function createCrmRouteModule(m: CrmModule) {
+	return new Elysia({ prefix: '/crm' }).use(createCustomerRoute(m.customer))
+}
