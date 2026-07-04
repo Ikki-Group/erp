@@ -133,7 +133,7 @@ export const locationsTable = pgTable('locations', {
 - [ ] Define filter DTO (for list queries)
 - [ ] Export all types
 
-**Template:** See [MODULE_TEMPLATE.md](./MODULE_TEMPLATE.md#contract)
+**Template:** See [MODULE_STANDARD.md §7](./MODULE_STANDARD.md#7-contract-zod-rules)
 
 ---
 
@@ -151,7 +151,7 @@ export const locationsTable = pgTable('locations', {
 - [ ] **IMPORTANT:** Use `inArray()` for batch queries
 - [ ] **IMPORTANT:** Guard empty arrays
 
-**Template:** See [MODULE_TEMPLATE.md](./MODULE_TEMPLATE.md#repository)
+**Template:** See [MODULE_STANDARD.md §3](./MODULE_STANDARD.md#3-repository-port-copy-this)
 
 ---
 
@@ -184,7 +184,7 @@ export const locationsTable = pgTable('locations', {
 - [ ] Add `@record` decorator to all public methods
 - [ ] Implement `toRelationMap()` helper
 
-**Template:** See [MODULE_TEMPLATE.md](./MODULE_TEMPLATE.md#service)
+**Template:** See [MODULE_STANDARD.md §4](./MODULE_STANDARD.md#4-service-createupdate-conflict--atomic)
 
 ---
 
@@ -225,7 +225,7 @@ export const LocationError = {
 - [ ] Instantiate services (inject dependencies)
 - [ ] Return module object
 
-**Template:** See [MODULE_TEMPLATE.md](./MODULE_TEMPLATE.md#module-factory)
+**Template:** See [MODULE_STANDARD.md §6](./MODULE_STANDARD.md#6-wiring-a-new-module)
 
 ---
 
@@ -241,7 +241,7 @@ export const LocationError = {
 - [ ] Implement DELETE route
 - [ ] Use inline async functions (not separate handlers)
 
-**Template:** See [MODULE_TEMPLATE.md](./MODULE_TEMPLATE.md#routes)
+**Template:** See [MODULE_STANDARD.md §1](./MODULE_STANDARD.md#1-the-one-template)
 
 ---
 
@@ -426,7 +426,7 @@ export function registerRoutes(app: Elysia, modules: Modules) {
 When implementing a new module:
 
 1. **Start with schema** - Get the DB structure right first
-2. **Use templates** - Copy from [MODULE_TEMPLATE.md](./MODULE_TEMPLATE.md)
+2. **Use templates** - Copy from the reference modules (`location/`, `iam/`) and [MODULE_STANDARD.md](./MODULE_STANDARD.md)
 3. **Reference similar modules** - `iam/user/` and `location/` are good examples
 4. **Check dependencies** - No circular imports
 5. **Test as you go** - Don't wait until the end
@@ -436,4 +436,4 @@ When implementing a new module:
 
 ---
 
-**Next:** [MODULE_TEMPLATE.md](./MODULE_TEMPLATE.md) for copy-paste ready code templates.
+**Next:** the reference modules (`location/`, `iam/`) and [MODULE_STANDARD.md](./MODULE_STANDARD.md) for copy-paste ready code templates.

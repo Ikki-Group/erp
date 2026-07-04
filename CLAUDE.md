@@ -68,15 +68,11 @@ ikki/erp/
 │   │   │   ├── infra/        # Infrastructure (DB, cache, logger)
 │   │   │   ├── shared/       # Shared utilities
 │   │   │   └── db/           # Database schemas
-│   │   └── docs/             # **START HERE FOR AI AGENTS**
-│   │       ├── ARCHITECTURE.md    # System design & structure
-│   │       ├── CODE_PATTERNS.md   # Implementation patterns
-│   │       ├── MODULE_CHECKLIST.md # Step-by-step guide
-│   │       └── MODULE_TEMPLATE.md  # Copy-paste templates
+│   │   └── README.md         # Server quick-start
 │   │
 │   └── web/            # Frontend (React + Vite)
 │
-├── docs/               # Product + database documentation
+├── docs/               # **CENTRAL DOCS** — architecture, codegen, database, product
 │   └── database/       # DB schema docs (ERDs, conventions) — see below
 ├── AGENTS.md           # **Commands, toolchain, codegen, deploy (read first)**
 └── CLAUDE.md           # This file (architecture & code patterns)
@@ -235,10 +231,10 @@ bun test --coverage               # With coverage
 
 ### When Building Features
 
-1. **[apps/server/docs/MODULE_STANDARD.md](apps/server/docs/MODULE_STANDARD.md)** - **START HERE.** Single source of truth for module structure (repo ports, undefined not-found, explicit-db checkConflict, withTransaction, unit-first tests). References: `location/` (simple), `iam/` (complex).
-2. **[apps/server/docs/ARCHITECTURE.md](apps/server/docs/ARCHITECTURE.md)** - Understand the broader system design
-3. **[apps/server/docs/CODE_PATTERNS.md](apps/server/docs/CODE_PATTERNS.md)** - Reference implementation patterns
-4. **[apps/server/docs/MODULE_CHECKLIST.md](apps/server/docs/MODULE_CHECKLIST.md)** - Follow step-by-step guide
+1. **[docs/architecture/MODULE_STANDARD.md](docs/architecture/MODULE_STANDARD.md)** - **START HERE.** Single source of truth for module structure (repo ports, undefined not-found, explicit-db checkConflict, withTransaction, unit-first tests). References: `location/` (simple), `iam/` (complex).
+2. **[docs/architecture/SERVER_ARCHITECTURE.md](docs/architecture/SERVER_ARCHITECTURE.md)** - Understand the broader system design
+3. **[docs/architecture/CODE_PATTERNS.md](docs/architecture/CODE_PATTERNS.md)** - Reference implementation patterns
+4. **[docs/architecture/MODULE_CHECKLIST.md](docs/architecture/MODULE_CHECKLIST.md)** - Follow step-by-step guide
 
 ### When Touching the Database
 
@@ -328,12 +324,11 @@ Layer 0: Core (Auth, Session)
 
 ### When Asked to Build a Feature
 
-1. Read `apps/server/docs/ARCHITECTURE.md` to understand structure
+1. Read `docs/architecture/MODULE_STANDARD.md` — the source of truth
 2. Check existing similar modules (`iam/user/`, `location/`) for patterns
-3. Copy templates from `apps/server/docs/MODULE_TEMPLATE.md`
-4. Follow checklist in `apps/server/docs/MODULE_CHECKLIST.md`
-5. Reference patterns in `apps/server/docs/CODE_PATTERNS.md`
-6. Run `bun run verify` before completion
+3. Follow the checklist in `docs/architecture/MODULE_CHECKLIST.md`
+4. Reference patterns in `docs/architecture/CODE_PATTERNS.md`
+5. Run `bun run verify` before completion
 
 ### When Asked to Review Code
 
@@ -430,12 +425,13 @@ const users = await Promise.all([1, 2, 3].map((id) => this.repo.findById(id)))
 ## 📞 Getting Help
 
 1. **For commands / toolchain / deploy:** Read `AGENTS.md`
-2. **For architecture questions:** Read `apps/server/docs/ARCHITECTURE.md`
-3. **For implementation patterns:** Read `apps/server/docs/CODE_PATTERNS.md`
-4. **For step-by-step guide:** Read `apps/server/docs/MODULE_CHECKLIST.md`
-5. **For templates:** Read `apps/server/docs/MODULE_TEMPLATE.md`
-6. **For database schema/ERDs:** Read `docs/database/README.md`
-7. **For examples:** Check `iam/user/` or `location/` modules
+2. **For module rules (source of truth):** Read `docs/architecture/MODULE_STANDARD.md`
+3. **For architecture questions:** Read `docs/architecture/SERVER_ARCHITECTURE.md`
+4. **For implementation patterns:** Read `docs/architecture/CODE_PATTERNS.md`
+5. **For step-by-step guide:** Read `docs/architecture/MODULE_CHECKLIST.md`
+6. **For web codegen:** Read `docs/codegen/WEB_CODEGEN.md`
+7. **For database schema/ERDs:** Read `docs/database/README.md`
+8. **For examples:** Check `iam/user/` or `location/` modules
 
 ---
 

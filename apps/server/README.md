@@ -65,17 +65,11 @@ apps/server/
 │   │
 │   └── tests/             # Test setup & helpers
 │
-├── docs/                  # Documentation
-│   ├── ARCHITECTURE.md    # Architecture guide
-│   ├── CODE_PATTERNS.md   # Coding patterns
-│   ├── MODULE_CHECKLIST.md # Module creation guide
-│   └── MODULE_TEMPLATE.md  # Copy-paste templates
-│
-├── scripts/               # Utility scripts (seed, helpers)
+├── scripts/               # Utility scripts (seed, helpers, codegen)
 └── drizzle/               # Generated migrations
 ```
 
-**Read more:** [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+**Read more:** [docs/architecture/MODULE_STANDARD.md](../../docs/architecture/MODULE_STANDARD.md) — the module source of truth. All architecture docs live centrally at the repo-root [`docs/`](../../docs/README.md).
 
 ---
 
@@ -112,21 +106,23 @@ bun run check-deps        # Check circular dependencies
 
 ## 📖 Documentation
 
+All docs are centralized at the repo root [`docs/`](../../docs/README.md).
+
 ### For Developers
 
-1. **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - Project structure, design philosophy, layer architecture
-2. **[CODE_PATTERNS.md](./docs/CODE_PATTERNS.md)** - Common patterns, best practices, examples
-3. **[MODULE_CHECKLIST.md](./docs/MODULE_CHECKLIST.md)** - Step-by-step module creation guide
-4. **[MODULE_TEMPLATE.md](./docs/MODULE_TEMPLATE.md)** - Copy-paste ready templates
+1. **[MODULE_STANDARD.md](../../docs/architecture/MODULE_STANDARD.md)** - **Source of truth** for module structure
+2. **[SERVER_ARCHITECTURE.md](../../docs/architecture/SERVER_ARCHITECTURE.md)** - Project structure, design philosophy, layer architecture
+3. **[CODE_PATTERNS.md](../../docs/architecture/CODE_PATTERNS.md)** - Common patterns, best practices, examples
+4. **[MODULE_CHECKLIST.md](../../docs/architecture/MODULE_CHECKLIST.md)** - Step-by-step module creation guide
 
 ### For AI Agents
 
 The documentation is **AI-first**. When using Claude Code or similar tools:
 
-- Start with `ARCHITECTURE.md` to understand the system
+- Start with `MODULE_STANDARD.md` (the source of truth)
 - Reference `CODE_PATTERNS.md` for implementation patterns
 - Use `MODULE_CHECKLIST.md` for step-by-step guidance
-- Copy from `MODULE_TEMPLATE.md` for new modules
+- Copy from the reference modules (`location/`, `iam/`) for new modules
 
 **Project instructions:** See [/CLAUDE.md](../../CLAUDE.md) at repo root.
 
@@ -265,10 +261,10 @@ bun run db:generate
 
 ## 🤝 Contributing
 
-1. Read [ARCHITECTURE.md](./docs/ARCHITECTURE.md)
-2. Follow patterns in [CODE_PATTERNS.md](./docs/CODE_PATTERNS.md)
-3. Use checklist in [MODULE_CHECKLIST.md](./docs/MODULE_CHECKLIST.md)
-4. Copy templates from [MODULE_TEMPLATE.md](./docs/MODULE_TEMPLATE.md)
+1. Read [MODULE_STANDARD.md](../../docs/architecture/MODULE_STANDARD.md) — the source of truth
+2. Follow patterns in [CODE_PATTERNS.md](../../docs/architecture/CODE_PATTERNS.md)
+3. Use checklist in [MODULE_CHECKLIST.md](../../docs/architecture/MODULE_CHECKLIST.md)
+4. Copy from the reference modules (`location/`, `iam/`)
 5. Run `bun run verify` before committing
 
 ---

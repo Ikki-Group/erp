@@ -1,60 +1,67 @@
 # Ikki ERP Documentation
 
-Welcome to the Ikki ERP documentation. This repository is structured to be readable, simple, and effective for both the development team and AI context (AI agents/skills).
+Central documentation for Ikki ERP. Structured to be readable for the team and
+ingestible as AI context. **Business/product** definitions are kept separate from
+**technical/architecture** references.
 
-## 📁 Directory Structure
+> Toolchain, commands, and deploy live in [`AGENTS.md`](../AGENTS.md) (root).
+> Deeper AI working instructions live in [`CLAUDE.md`](../CLAUDE.md) (root).
 
-We strictly separate **Business/Product Definitions** from **Technical Implementations** to keep things clean.
+## Layout
 
-### 1. `/product`
+### `architecture/` — backend architecture (developer + AI)
 
-Contains high-level product strategy and logic.
+- **[`MODULE_STANDARD.md`](./architecture/MODULE_STANDARD.md)** — **source of truth**
+  for how a module is structured (repo ports, `undefined` not-found, explicit-db
+  `checkConflict`, `withTransaction`, unit-first tests). Reference modules:
+  `location/` (simple), `iam/` (complex). Start here.
+- [`SERVER_ARCHITECTURE.md`](./architecture/SERVER_ARCHITECTURE.md) — broader system
+  design and layering.
+- [`CODE_PATTERNS.md`](./architecture/CODE_PATTERNS.md) — Zod / service / repo /
+  cache / transaction implementation patterns.
+- [`MODULE_CHECKLIST.md`](./architecture/MODULE_CHECKLIST.md) — step-by-step build
+  checklist, aligned to `MODULE_STANDARD.md`.
 
-- `VISION.md`: Overall product vision and north star.
-- `PRD.md`: Main Product Requirements Document.
-- `WORKFLOWS.md`: High-level business process flows.
+### `codegen/` — contract-driven web codegen
 
-### 2. `/features`
+- [`WEB_CODEGEN.md`](./codegen/WEB_CODEGEN.md) — how server contracts generate the
+  web DTO/API layer; includes server↔web validation parity.
+- [`WEB_CODEGEN_ROLLOUT.md`](./codegen/WEB_CODEGEN_ROLLOUT.md) — per-feature
+  migration plan and known gaps.
 
-Contains detailed, module-by-module business requirements.
+### `database/` — schema reference (read before touching `db/schema/`)
 
-- These documents are written from a **Product Manager's perspective**.
-- They outline the **Overview, Core Objectives, Use Cases, and Recommended Enhancements**.
-- **No technical implementation** (API, SQL, Data Models) is kept here. This ensures the documents serve as clear AI context and business guidelines without technical clutter.
+- [`README.md`](./database/README.md) — index: domain map, quick facts, links.
+- [`SCHEMA_CONVENTIONS.md`](./database/SCHEMA_CONVENTIONS.md) — rules for writing/
+  reviewing schema changes (naming, constraints, indexing, caching).
+- `ERD_*.md` — Mermaid ER diagrams, one per layer (core, master data, operations,
+  integrations) + a domain overview.
+- [`PAYMENT_MODULE.md`](./database/PAYMENT_MODULE.md) — payment schema design notes.
 
-### 3. `/technical`
+### `product/` — business & product (PM perspective)
 
-Contains all the developer-focused documentation.
+- [`VISION.md`](./product/VISION.md) — product vision / north star.
+- [`PRD.md`](./product/PRD.md) — product requirements.
+- [`WORKFLOWS.md`](./product/WORKFLOWS.md) — high-level business process flows.
+- `templates/` — [`FEATURE_TEMPLATE.md`](./product/templates/FEATURE_TEMPLATE.md)
+  and [`FEATURE_DOCUMENTATION_STANDARD.md`](./product/templates/FEATURE_DOCUMENTATION_STANDARD.md)
+  for writing new feature docs.
 
-- `ARCHITECTURE.md`: System design and backend architecture.
-- `DATA_MODEL.md`: Database schemas and relationships.
-- `Tech-Specs.md`: Specific technical specifications and API contracts.
-- `CODE_PATTERNS.md`: Guidelines for writing code.
-- `MODULE_CHECKLIST.md`: Checklist for developing new modules.
+## Docs that live next to code (not here)
 
-### 4. `/templates`
+Some docs stay code-adjacent on purpose:
 
-Contains templates to standardize our documentation.
+- `apps/server/README.md`, `apps/web/README.md`, `apps/e2e/README.md` — app quick-starts.
+- `apps/web/src/components/REGISTRY.md` — UI component registry (read before building UI).
+- `apps/server/src/modules/{dashboard,moka,reporting}/README.md` — module-specific notes.
+- `.github/workflows/README.md` — CI secrets.
 
-- `FEATURE_TEMPLATE.md`: Use this template when writing a new document for `/features`.
-- `FEATURE_DOCUMENTATION_STANDARD.md`: Rules and standards for documenting features.
+## Principles
 
-### 5. `/backlog`
-
-- `FEATURE_ENHANCEMENT_PLAN.md`: Ideas and planned improvements for phase 2 and beyond.
-
-### 6. `/database`
-
-Contains everything about the database schema — written primarily for AI
-agents to read before touching `apps/server/src/db/schema/`.
-
-- `README.md`: Index — start here. Domain map, quick facts, links to everything below.
-- `SCHEMA_CONVENTIONS.md`: Rules for writing/reviewing schema changes (naming, constraints, indexing, caching).
-- `ERD_*.md`: Mermaid ER diagrams, one file per architecture layer (core, master data, operations, integrations) plus a domain dependency graph.
-
-## 🎯 Documentation Principles
-
-1. **Keep it simple**: Use clear, good English. Avoid unnecessary jargon.
-2. **Business First in Features**: Feature documentation focuses entirely on _what_ the business needs and _why_, not _how_ to code it.
-3. **AI Friendly**: Write in structured formats (Markdown headers, bullet points, clear steps) so AI agents can easily ingest these documents as "Skills" and context.
-4. **Remove the Useless**: If a document or section doesn't add value or clear context, it is removed.
+1. **Single source of truth.** `MODULE_STANDARD.md` wins for module rules; don't
+   re-document the same rule in multiple places.
+2. **Keep it current.** Delete docs that describe superseded patterns rather than
+   letting them drift.
+3. **AI-friendly.** Structured Markdown (clear headers, bullets, tables).
+4. **Business-first in `product/`.** No code/SQL there — that belongs in
+   `architecture/` and `database/`.

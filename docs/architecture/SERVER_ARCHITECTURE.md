@@ -796,7 +796,7 @@ Before submitting code, verify:
 
 1. Read [CODE_PATTERNS.md](./CODE_PATTERNS.md) for concrete examples
 2. Read [MODULE_CHECKLIST.md](./MODULE_CHECKLIST.md) for step-by-step guide
-3. Read [MODULE_TEMPLATE.md](./MODULE_TEMPLATE.md) for copy-paste templates
+3. Read the reference modules (`location/`, `iam/`) and [MODULE_STANDARD.md](./MODULE_STANDARD.md)
 
 ---
 

@@ -6,14 +6,14 @@ Copy from the two reference modules:
 - **Simple module** → `src/modules/location/` (one entity, flat files)
 - **Complex module** → `src/modules/iam/` (multiple entities, submodule folders + `composed/`)
 
-> If any older doc (ARCHITECTURE.md, MODULE_TEMPLATE.md, CODE_PATTERNS.md)
-> disagrees with this file, **this file wins**. Older docs describe the previous
-> mixed styles and are being retired.
+> If any other doc disagrees with this file, **this file wins.** The previous
+> mixed-style docs (the old "Golden Path" architecture/template/patterns set)
+> have been retired.
 
 **Related, still-valid docs:**
 
 - `MODULE_CHECKLIST.md` — step-by-step build checklist (aligned to these rules).
-- `../../docs/database/SCHEMA_CONVENTIONS.md` — DB schema/naming/index rules.
+- `../database/SCHEMA_CONVENTIONS.md` — DB schema/naming/index rules.
 
 ---
 
