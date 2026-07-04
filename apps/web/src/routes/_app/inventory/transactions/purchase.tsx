@@ -65,7 +65,16 @@ function RouteComponent() {
 	const form = useAppForm({
 		...fopts,
 		onSubmit: async ({ value }) => {
-			const promise = submitMut.mutateAsync({ body: value })
+			const promise = submitMut.mutateAsync({
+				body: {
+					...value,
+					items: value.items.map((it) => ({
+						materialId: it.materialId,
+						qty: String(it.qty),
+						unitCost: String(it.unitCost),
+					})),
+				},
+			})
 
 			await toast.promise(promise, toastLabelMessage('create', 'pembelian bahan')).unwrap()
 

@@ -81,7 +81,14 @@ function ConfigForm({ data, onClose }: { data: MaterialLocationStockDto; onClose
 			reorderPoint: Number(data.reorderPoint),
 		},
 		onSubmit: async ({ value }) => {
-			const promise = updateConfig.mutateAsync({ body: { id: data.id, ...value } })
+			const promise = updateConfig.mutateAsync({
+				body: {
+					id: data.id,
+					minStock: String(value.minStock),
+					maxStock: value.maxStock === null ? null : String(value.maxStock),
+					reorderPoint: String(value.reorderPoint),
+				},
+			})
 			await toast.promise(promise, toastLabelMessage('update', 'konfigurasi stok')).unwrap()
 
 			onClose()

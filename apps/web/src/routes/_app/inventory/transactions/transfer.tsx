@@ -65,7 +65,7 @@ function RouteComponent() {
 			// Clean up extra fields before submitting
 			const sanitizedBody = {
 				...value,
-				items: value.items.map((i) => ({ materialId: i.materialId, qty: i.qty })),
+				items: value.items.map((i) => ({ materialId: i.materialId, qty: String(i.qty) })),
 			}
 
 			const promise = submitMut.mutateAsync({ body: sanitizedBody })

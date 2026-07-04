@@ -94,7 +94,8 @@ export function ExpenditureDialog({ children }: ExpenditureDialogProps) {
 	})
 
 	const { isPending } = useMutation({
-		mutationFn: (data: z.infer<typeof FormDto>) => expenditureApi.create.fetch({ body: data }),
+		mutationFn: (data: z.infer<typeof FormDto>) =>
+			expenditureApi.create.fetch({ body: { ...data, amount: String(data.amount) } }),
 		onSuccess: () => {
 			toast.success('Pengeluaran berhasil dicatat')
 			queryClient.invalidateQueries({ queryKey: ['finance', 'expenditure'] })
