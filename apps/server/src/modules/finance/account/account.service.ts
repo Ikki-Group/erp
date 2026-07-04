@@ -1,88 +1,125 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { accountsTable } from '@/db/schema/finance'
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { NotFoundError } from '@/shared/errors/http-error'
+import { checkConflict, type ConflictField, withTransaction } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import {
+import type {
 	AccountDto,
 	AccountCreateDto,
 	AccountUpdateDto,
 	AccountFilterDto,
 } from './account.contract'
-import { AccountRepo } from './account.repo'
+import { AccountError } from './account.internal'
+import type { IAccountRepo } from './account.repo'
+
+const uniqueFields: ConflictField<{ code: string }>[] = [
+	{
+		field: 'code',
+		column: accountsTable.code,
+		message: 'Account code already exists',
+		code: 'ACCOUNT_CODE_ALREADY_EXISTS',
+	},
+]
 
 export class AccountService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: AccountRepo,
+		private readonly repo: IAccountRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'finance.account')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
-
-	async getById(id: number) {
-		return record('AccountService.getById', async () => {
-			const account = await this.cache.getOrSetWithSkip({
-				key: `byId:${id}`,
-				factory: () => this.repo.getById(id),
-			})
-			if (!account)
-				throw new NotFoundError(`Account ${id} not found`, { code: 'ACCOUNT_NOT_FOUND' })
-			return account
-		})
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
 	}
 
-	async findByCode(code: string) {
-		return record('AccountService.findByCode', async () => {
-			return this.cache.getOrSetWithSkip({
+	async getByCode(code: string): Promise<AccountDto | undefined> {
+		return record('AccountService.getByCode', async () =>
+			this.cache.getOrSetWithSkip({
 				key: `code:${code}`,
 				factory: () => this.repo.findByCode(code),
-			})
-		})
+			}),
+		)
 	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(query: AccountFilterDto): Promise<WithPaginationResult<AccountDto>> {
-		return record('AccountService.handleList', async () => {
-			return this.repo.getListPaginated(query)
-		})
+		return record('AccountService.handleList', async () => this.repo.findPage(query))
 	}
 
-	async handleDetail(id: number) {
+	async handleDetail(id: number): Promise<AccountDto> {
 		return record('AccountService.handleDetail', async () => {
-			return this.getById(id)
+			const result = await this.repo.findById(id)
+			if (!result) throw AccountError.notFound(id)
+			return result
 		})
 	}
 
-	async handleCreate(data: AccountCreateDto, actorId: number) {
+	async handleCreate(data: AccountCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('AccountService.handleCreate', async () => {
-			const result = await this.repo.create(data, actorId)
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			await checkConflict({
+				db: this.repo.db,
+				table: accountsTable,
+				pkColumn: accountsTable.id,
+				fields: uniqueFields,
+				input: data,
+			})
+
+			const result = await this.repo.insert({
+				...data,
+				...stampCreate(actorId),
+			})
+			if (!result) throw AccountError.createFailed()
+
+			await this.invalidate()
 			return result
 		})
 	}
 
-	async handleUpdate(id: number, data: AccountUpdateDto, actorId: number) {
+	async handleUpdate(data: AccountUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('AccountService.handleUpdate', async () => {
-			const result = await this.repo.update(id, data, actorId)
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`, `code:${data.code}`] })
+			const { id } = data
+			const existing = await this.repo.findById(id)
+			if (!existing) throw AccountError.notFound(id)
+
+			await checkConflict({
+				db: this.repo.db,
+				table: accountsTable,
+				pkColumn: accountsTable.id,
+				fields: uniqueFields,
+				input: data,
+				existing,
+			})
+
+			const result = await this.repo.update(id, {
+				...data,
+				...stampUpdate(actorId),
+			})
+			if (!result) throw AccountError.updateFailed(id)
+
+			await this.invalidate(id)
 			return result
 		})
 	}
 
-	async handleRemove(id: number, actorId: number) {
+	async handleRemove(id: number, _actorId: ActorId): Promise<EntityRef> {
 		return record('AccountService.handleRemove', async () => {
 			const hasChildren = await this.repo.hasChildren(id)
-			if (hasChildren) {
-				throw new Error('Account has children, cannot delete')
-			}
-			const result = await this.repo.softDelete(id, actorId)
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			if (hasChildren) throw AccountError.hasChildren(id)
+
+			const result = await withTransaction(this.repo.db, async (tx) => {
+				return this.repo.remove(id, tx)
+			})
+			if (!result) throw AccountError.notFound(id)
+
+			await this.invalidate(id)
 			return result
 		})
 	}

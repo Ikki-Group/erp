@@ -1,9 +1,8 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import {
 	AccountDto,
@@ -11,15 +10,15 @@ import {
 	AccountUpdateDto,
 	AccountFilterDto,
 } from './account.contract'
-import type { AccountService } from './account.service'
+import type { AccountModule } from './account.module'
 
-export function initAccountRoute(s: AccountService) {
+export function createAccountRoute(m: AccountModule) {
 	return new Elysia({ prefix: '/account' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async ({ query }) => {
-				const result = await s.handleList(query)
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -31,7 +30,7 @@ export function initAccountRoute(s: AccountService) {
 		.get(
 			'/detail',
 			async ({ query }) => {
-				const account = await s.handleDetail(query.id)
+				const account = await m.handleDetail(query.id)
 				return res.ok(account)
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(AccountDto), auth: true },
@@ -39,7 +38,7 @@ export function initAccountRoute(s: AccountService) {
 		.post(
 			'/create',
 			async ({ body, auth }) => {
-				const result = await s.handleCreate(body, auth.userId)
+				const result = await m.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
 			{
@@ -51,7 +50,7 @@ export function initAccountRoute(s: AccountService) {
 		.patch(
 			'/update',
 			async ({ body, auth }) => {
-				const result = await s.handleUpdate(body.id, body, auth.userId)
+				const result = await m.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -63,7 +62,7 @@ export function initAccountRoute(s: AccountService) {
 		.delete(
 			'/remove',
 			async ({ query, auth }) => {
-				const result = await s.handleRemove(query.id, auth.userId)
+				const result = await m.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },

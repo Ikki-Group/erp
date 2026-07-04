@@ -1,72 +1,92 @@
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
+import { and, count, eq, ilike, isNull, or, type SQL } from 'drizzle-orm'
 
 import { accountsTable } from '@/db/schema/finance'
+import { paginate, sortBy, takeFirst, type DbContext } from '@/infra/database'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-import { paginate, sortBy, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import type { AccountDto, AccountFilterDto } from './account.contract'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
-import { AccountCreateDto, AccountFilterDto, AccountUpdateDto } from './account.contract'
+type AccountInsert = typeof accountsTable.$inferInsert
+type AccountUpdate = PgUpdateSetSource<typeof accountsTable>
 
-export class AccountRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IAccountRepo {
+	readonly db: DbContext
+	findMany(filter?: Partial<AccountFilterDto>, db?: DbContext): Promise<AccountDto[]>
+	findPage(filter: AccountFilterDto, db?: DbContext): Promise<WithPaginationResult<AccountDto>>
+	findById(id: number, db?: DbContext): Promise<AccountDto | undefined>
+	findByCode(code: string, db?: DbContext): Promise<AccountDto | undefined>
+	hasChildren(id: number, db?: DbContext): Promise<boolean>
+	insert(data: AccountInsert, db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: AccountUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export class AccountRepo implements IAccountRepo {
+	constructor(readonly db: DbContext) {}
 
-	async getById(id: number) {
-		return record('AccountRepo.getById', async () => {
-			const [account] = await this.db
-				.select()
-				.from(accountsTable)
-				.where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
+	#buildWhere(filter?: Partial<Pick<AccountFilterDto, 'q' | 'type' | 'parentId'>>): SQL | undefined {
+		if (!filter) return isNull(accountsTable.deletedAt)
+		const { q, type, parentId } = filter
+		return and(
+			q
+				? or(ilike(accountsTable.name, `%${q}%`), ilike(accountsTable.code, `%${q}%`))
+				: undefined,
+			isNull(accountsTable.deletedAt),
+			type ? eq(accountsTable.type, type) : undefined,
+			parentId !== undefined ? eq(accountsTable.parentId, parentId) : undefined,
+		)
+	}
 
-			return account ?? null
+	async findMany(
+		filter?: Partial<AccountFilterDto>,
+		db: DbContext = this.db,
+	): Promise<AccountDto[]> {
+		const where = this.#buildWhere(filter)
+		return db.select().from(accountsTable).where(where)
+	}
+
+	async findPage(
+		filter: AccountFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<AccountDto>> {
+		const where = this.#buildWhere(filter)
+
+		return paginate<AccountDto>({
+			data: ({ limit, offset }) =>
+				db
+					.select()
+					.from(accountsTable)
+					.where(where)
+					.orderBy(sortBy(accountsTable.code, 'asc'))
+					.limit(limit)
+					.offset(offset),
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(accountsTable).where(where),
 		})
 	}
 
-	async getListPaginated(query: AccountFilterDto) {
-		return record('AccountRepo.getListPaginated', async () => {
-			const { q, type, parentId, limit, page } = query
-
-			const where = and(
-				q
-					? or(ilike(accountsTable.name, `%${q}%`), ilike(accountsTable.code, `%${q}%`))
-					: undefined,
-				isNull(accountsTable.deletedAt),
-				type ? eq(accountsTable.type, type) : undefined,
-				parentId !== undefined ? eq(accountsTable.parentId, parentId) : undefined,
-			)
-
-			return paginate<any>({
-				data: async ({ limit: l, offset }) => {
-					return this.db
-						.select()
-						.from(accountsTable)
-						.where(where)
-						.limit(l)
-						.offset(offset)
-						.orderBy(sortBy(accountsTable.code, 'asc'))
-				},
-				pq: { page, limit },
-				countQuery: () => this.db.select({ count: count() }).from(accountsTable).where(where),
-			})
-		})
+	async findById(id: number, db: DbContext = this.db): Promise<AccountDto | undefined> {
+		return db
+			.select()
+			.from(accountsTable)
+			.where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	async findByCode(code: string) {
-		return record('AccountRepo.findByCode', async () => {
-			const [result] = await this.db
-				.select()
-				.from(accountsTable)
-				.where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
-				.limit(1)
-
-			return result ?? null
-		})
+	async findByCode(code: string, db: DbContext = this.db): Promise<AccountDto | undefined> {
+		return db
+			.select()
+			.from(accountsTable)
+			.where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	async hasChildren(id: number): Promise<boolean> {
-		const [child] = await this.db
+	async hasChildren(id: number, db: DbContext = this.db): Promise<boolean> {
+		const [child] = await db
 			.select({ id: accountsTable.id })
 			.from(accountsTable)
 			.where(and(eq(accountsTable.parentId, id), isNull(accountsTable.deletedAt)))
@@ -74,45 +94,29 @@ export class AccountRepo {
 		return !!child
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: AccountCreateDto, actorId: number) {
-		return record('AccountRepo.create', async () => {
-			const stamps = stampCreate(actorId)
-			const [result] = await this.db
-				.insert(accountsTable)
-				.values({ ...data, ...stamps })
-				.returning({ id: accountsTable.id })
-
-			if (!result) throw new Error('Failed to create account')
-			return result
-		})
+	async insert(data: AccountInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.insert(accountsTable)
+			.values({ ...data })
+			.returning({ id: accountsTable.id })
+		return res
 	}
 
-	async update(id: number, data: AccountUpdateDto, actorId: number) {
-		return record('AccountRepo.update', async () => {
-			const stamps = stampUpdate(actorId)
-			const [result] = await this.db
-				.update(accountsTable)
-				.set({ ...data, ...stamps })
-				.where(eq(accountsTable.id, id))
-				.returning({ id: accountsTable.id })
-
-			if (!result) throw new Error('Failed to update account')
-			return result
-		})
+	async update(id: number, data: AccountUpdate, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(accountsTable)
+			.set({ ...data })
+			.where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
+			.returning({ id: accountsTable.id })
+		return res
 	}
 
-	async softDelete(id: number, actorId: number) {
-		return record('AccountRepo.softDelete', async () => {
-			const [result] = await this.db
-				.update(accountsTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(accountsTable.id, id))
-				.returning({ id: accountsTable.id })
-
-			if (!result) throw new Error('Failed to delete account')
-			return result
-		})
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(accountsTable)
+			.set({ deletedAt: new Date() })
+			.where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
+			.returning({ id: accountsTable.id })
+		return res
 	}
 }

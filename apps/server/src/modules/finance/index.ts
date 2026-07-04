@@ -1,11 +1,10 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-import type { DbClient } from '@/infra/database'
+import type { DbClient, DbContext } from '@/infra/database'
 
-import { AccountRepo } from './account/account.repo'
-import { initAccountRoute } from './account/account.route'
-import { AccountService } from './account/account.service'
+import { createAccountModule, type AccountModule } from './account/account.module'
+import { createAccountRoute } from './account/account.route'
 import { ExpenditureRepo } from './expenditure/expenditure.repo'
 import { initExpenditureRoute } from './expenditure/expenditure.route'
 import { ExpenditureService } from './expenditure/expenditure.service'
@@ -14,7 +13,7 @@ import { initGeneralLedgerRoute } from './general-ledger/general-ledger.route'
 import { GeneralLedgerService } from './general-ledger/general-ledger.service'
 
 export class FinanceServiceModule {
-	public readonly account: AccountService
+	public readonly account: AccountModule
 	public readonly journal: GeneralLedgerService
 	public readonly expenditure: ExpenditureService
 
@@ -22,8 +21,7 @@ export class FinanceServiceModule {
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
 	) {
-		const accountRepo = new AccountRepo(this.db)
-		this.account = new AccountService(accountRepo, this.cacheClient)
+		this.account = createAccountModule(db as DbContext, cacheClient)
 
 		const glRepo = new GeneralLedgerRepo(this.db)
 		this.journal = new GeneralLedgerService(glRepo, this.cacheClient)
@@ -40,14 +38,18 @@ export class FinanceServiceModule {
 
 export type FinanceModule = FinanceServiceModule
 
-export function initFinanceRouteModule(s: FinanceServiceModule) {
+export function createFinanceRoute(m: FinanceModule) {
 	return new Elysia({ prefix: '/finance' })
-		.use(initAccountRoute(s.account))
-		.use(initExpenditureRoute(s.expenditure))
-		.use(initGeneralLedgerRoute(s.journal))
+		.use(createAccountRoute(m.account))
+		.use(initExpenditureRoute(m.expenditure))
+		.use(initGeneralLedgerRoute(m.journal))
 }
 
-export type { AccountService } from './account/account.service'
+export function initFinanceRouteModule(s: FinanceServiceModule) {
+	return createFinanceRoute(s)
+}
+
+export type { AccountModule, AccountModule as AccountService } from './account/account.module'
 export type { GeneralLedgerService } from './general-ledger/general-ledger.service'
 
 export {

@@ -5,7 +5,8 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
-import type { AccountService, GeneralLedgerService } from '@/modules/finance'
+import type { AccountDto } from '@/modules/finance/account/account.contract'
+import type { GeneralLedgerService } from '@/modules/finance'
 
 import type {
 	PayrollBatchCreateDto,
@@ -16,11 +17,15 @@ import type {
 } from './payroll.contract'
 import { PayrollRepo } from './payroll.repo'
 
+export interface AccountPayrollPort {
+	getByCode(code: string): Promise<AccountDto | undefined>
+}
+
 export class PayrollService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly accountSvc: AccountService,
+		private readonly accountSvc: AccountPayrollPort,
 		private readonly journalSvc: GeneralLedgerService,
 		private readonly repo: PayrollRepo,
 		private readonly db: DbClient,
@@ -90,8 +95,8 @@ export class PayrollService {
 	/* --------------------------------- PRIVATE -------------------------------- */
 
 	private async postPayrollToGL(batch: PayrollBatchDto, actorId: number) {
-		const expenseAcc = await this.accountSvc.findByCode('5201')
-		const payableAcc = await this.accountSvc.findByCode('2102')
+		const expenseAcc = await this.accountSvc.getByCode('5201')
+		const payableAcc = await this.accountSvc.getByCode('2102')
 
 		if (!expenseAcc || !payableAcc) {
 			console.warn('Accounting accounts for payroll not found, skipping GL posting')
