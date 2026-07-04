@@ -2,14 +2,14 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { DashboardKpiFilterDto } from './stock-dashboard.contract'
-import { StockDashboardRepo } from './stock-dashboard.repo'
+import type { DashboardKpiFilterDto, DashboardKpiSelectDto } from './stock-dashboard.contract'
+import type { IStockDashboardRepo } from './stock-dashboard.repo'
 
 export class StockDashboardService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: StockDashboardRepo,
+		private readonly repo: IStockDashboardRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory.dashboard')
@@ -17,7 +17,7 @@ export class StockDashboardService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleKpi(filter: DashboardKpiFilterDto) {
+	async handleKpi(filter: DashboardKpiFilterDto): Promise<DashboardKpiSelectDto> {
 		return record('StockDashboardService.handleKpi', async () => {
 			const key = `kpi.${JSON.stringify(filter)}`
 			return this.cache.getOrSet({

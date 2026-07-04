@@ -7,9 +7,8 @@ import type { MaterialModule } from '@/modules/material'
 
 import { createStockAlertModule } from './stock-alert/stock-alert.module'
 import { createStockAlertRoute } from './stock-alert/stock-alert.route'
-import { StockDashboardRepo } from './stock-dashboard/stock-dashboard.repo'
-import { initStockDashboardRoute } from './stock-dashboard/stock-dashboard.route'
-import { StockDashboardService } from './stock-dashboard/stock-dashboard.service'
+import { createStockDashboardModule } from './stock-dashboard/stock-dashboard.module'
+import { createStockDashboardRoute } from './stock-dashboard/stock-dashboard.route'
 import { StockSummaryRepo } from './stock-summary/stock-summary.repo'
 import { initStockSummaryRoute } from './stock-summary/stock-summary.route'
 import { StockSummaryService } from './stock-summary/stock-summary.service'
@@ -28,7 +27,7 @@ export class InventoryServiceModule {
 	public readonly transaction: StockTransactionService
 	public readonly summary: StockSummaryService
 	public readonly alert: ReturnType<typeof createStockAlertModule>
-	public readonly dashboard: StockDashboardService
+	public readonly dashboard: ReturnType<typeof createStockDashboardModule>
 	public readonly stockTransfer: StockTransferService
 
 	constructor(
@@ -38,7 +37,6 @@ export class InventoryServiceModule {
 	) {
 		const transactionRepo = new StockTransactionRepo(this.db)
 		const summaryRepo = new StockSummaryRepo(this.db)
-		const dashboardRepo = new StockDashboardRepo(this.db)
 		const stockTransferRepo = new StockTransferRepo(this.db)
 
 		this.transaction = new StockTransactionService(this.deps.material.location, transactionRepo)
@@ -48,7 +46,7 @@ export class InventoryServiceModule {
 			this.cacheClient,
 		)
 		this.alert = createStockAlertModule(this.db, this.cacheClient)
-		this.dashboard = new StockDashboardService(dashboardRepo, this.cacheClient)
+		this.dashboard = createStockDashboardModule(this.db, this.cacheClient)
 		this.stockTransfer = new StockTransferService(stockTransferRepo, this.cacheClient)
 	}
 }
@@ -58,7 +56,7 @@ export function initInventoryRouteModule(s: InventoryServiceModule) {
 		.use(initStockTransactionRoute(s.transaction))
 		.use(initStockSummaryRoute(s.summary))
 		.use(createStockAlertRoute(s.alert))
-		.use(initStockDashboardRoute(s.dashboard))
+		.use(createStockDashboardRoute(s.dashboard))
 		.use(initStockTransferRoute(s.stockTransfer))
 }
 
