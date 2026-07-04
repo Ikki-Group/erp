@@ -5,22 +5,16 @@ import { res } from '@/shared/http/response'
 import { zc } from '@/shared/schema'
 import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
 
-import {
-	RecipeDto,
-	RecipeCreateDto,
-	RecipeFilterDto,
-	RecipeUpdateDto,
-	RecipeCostDto,
-} from './recipe.contract'
+import { RecipeDto, RecipeCreateDto, RecipeFilterDto, RecipeUpdateDto, RecipeCostDto } from './recipe.contract'
 import type { RecipeService } from './recipe.service'
 
-export function initRecipeRoute(service: RecipeService) {
+export function createRecipeRoute(recipe: RecipeService) {
 	return new Elysia()
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async (context) => {
+				const result = await recipe.handleList(context.query)
 				return res.paginated(result)
 			},
 			{
@@ -31,24 +25,32 @@ export function initRecipeRoute(service: RecipeService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const recipe = await service.handleDetail(context.query.id)
-				return res.ok(recipe)
+			async (context) => {
+				const result = await recipe.handleDetail(context.query.id)
+				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(RecipeDto), auth: true },
+			{
+				query: zc.RecordId,
+				response: createSuccessResponseDto(RecipeDto),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const { id } = await service.handleCreate(context.body, context.auth.userId)
+			async (context) => {
+				const { id } = await recipe.handleCreate(context.body, context.auth.userId)
 				return res.created({ id })
 			},
-			{ body: RecipeCreateDto, response: createSuccessResponseDto(zc.RecordId), auth: true },
+			{
+				body: RecipeCreateDto,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
 		)
 		.put(
 			'/update',
-			async function update(context) {
-				const { id } = await service.handleUpdate(context.body, context.auth.userId)
+			async (context) => {
+				const { id } = await recipe.handleUpdate(context.body, context.auth.userId)
 				return res.ok({ id })
 			},
 			{
@@ -59,26 +61,26 @@ export function initRecipeRoute(service: RecipeService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				await service.handleRemove(context.query.id, context.auth.userId)
-				return res.ok({ id: context.query.id })
+			async (context) => {
+				const { id } = await recipe.handleRemove(context.query.id, context.auth.userId)
+				return res.ok({ id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
-		)
-		.post(
-			'/hard-remove',
-			async function hardRemove(context) {
-				await service.handleHardRemove(context.query.id)
-				return res.ok({ id: context.query.id })
+			{
+				query: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.get(
 			'/cost',
-			async function calculateCost(context) {
-				const result = await service.handleCalculateCost(context.query.id)
+			async (context) => {
+				const result = await recipe.handleCalculateCost(context.query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(RecipeCostDto), auth: true },
+			{
+				query: zc.RecordId,
+				response: createSuccessResponseDto(RecipeCostDto),
+				auth: true,
+			},
 		)
 }

@@ -1,7 +1,7 @@
-// @ts-nocheck
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
-import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
+import { and, count, eq, inArray, isNull, sql } from 'drizzle-orm'
 
+import type { DbContext } from '@/infra/database'
+import { paginate, sortBy } from '@/infra/database'
 import {
 	materialLocationsTable,
 	materialsTable,
@@ -9,27 +9,43 @@ import {
 	recipesTable,
 	uomsTable,
 } from '@/db/schema'
-
-import { paginate, sortBy, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { ActorId, EntityRef } from '@/shared/types/utils'
+import type { EntityRef } from '@/shared/types/utils'
 
-import type {
-	RecipeCreateDto,
-	RecipeDto,
-	RecipeFilterDto,
-	RecipeSelectDto,
-	RecipeUpdateDto,
-} from './recipe.contract'
+import type { RecipeDto, RecipeFilterDto } from './recipe.contract'
 
-export class RecipeRepo {
-	constructor(private readonly db: DbClient) {}
+type RecipeInsert = typeof recipesTable.$inferInsert
 
-	/* -------------------------------- INTERNAL -------------------------------- */
+export interface RecipeItemInput {
+	materialId: number
+	qty: string
+	scrapPercentage: string
+	uomId: number
+	notes: string | null
+	sortOrder: number
+	createdBy: number
+	updatedBy: number
+	createdAt: Date
+	updatedAt: Date
+}
 
-	async #getRecipeItems(recipeId: number) {
-		const results = await this.db
+export interface IRecipeRepo {
+	readonly db: DbContext
+	findById(id: number, db?: DbContext): Promise<RecipeDto | undefined>
+	findPage(filter: RecipeFilterDto, db?: DbContext): Promise<WithPaginationResult<RecipeDto>>
+	findManyByMaterialId(materialId: number, db?: DbContext): Promise<RecipeDto[]>
+	count(db?: DbContext): Promise<number>
+	insert(data: RecipeInsert, items: RecipeItemInput[], db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: Partial<RecipeInsert>, items: RecipeItemInput[], db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+	getAvgCostForMaterial(materialId: number, db?: DbContext): Promise<number>
+}
+
+export class RecipeRepo implements IRecipeRepo {
+	constructor(readonly db: DbContext) {}
+
+	async #getRecipeItems(recipeId: number, db: DbContext) {
+		const results = await db
 			.select({
 				item: recipeItemsTable,
 				material: { name: materialsTable.name, sku: materialsTable.sku },
@@ -41,45 +57,38 @@ export class RecipeRepo {
 			.where(and(eq(recipeItemsTable.recipeId, recipeId), isNull(recipeItemsTable.deletedAt)))
 			.orderBy(recipeItemsTable.sortOrder)
 
-		return results.map((r) =>
-			Object.assign({}, r.item, {
-				material: r.material,
-				uom: r.uom,
-				qty: r.item.qty,
-				scrapPercentage: r.item.scrapPercentage,
-				sortOrder: Number(r.item.sortOrder),
-			}),
-		)
+		return results.map((r) => ({
+			...r.item,
+			material: r.material,
+			uom: r.uom,
+			qty: r.item.qty,
+			scrapPercentage: r.item.scrapPercentage,
+			sortOrder: Number(r.item.sortOrder),
+		}))
 	}
 
-	/* ---------------------------------- QUERY --------------------------------- */
-
-	async getById(id: number): Promise<RecipeDto | undefined> {
-		const [recipe] = await this.db
+	async findById(id: number, db: DbContext = this.db): Promise<RecipeDto | undefined> {
+		const [recipe] = await db
 			.select()
 			.from(recipesTable)
 			.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
+			.limit(1)
 
 		if (!recipe) return undefined
 
-		const items = await this.#getRecipeItems(id)
+		const items = await this.#getRecipeItems(id, db)
 
 		return {
 			...recipe,
 			targetQty: recipe.targetQty,
-			items: items as any,
+			items,
 		}
 	}
 
-	async count(): Promise<number> {
-		const result = await this.db
-			.select({ val: count() })
-			.from(recipesTable)
-			.where(isNull(recipesTable.deletedAt))
-		return result[0]?.val ?? 0
-	}
-
-	async getListPaginated(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeSelectDto>> {
+	async findPage(
+		filter: RecipeFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<RecipeDto>> {
 		const { materialId, productId, productVariantId, isActive, page, limit } = filter
 
 		const where = and(
@@ -94,7 +103,7 @@ export class RecipeRepo {
 
 		const result = await paginate({
 			data: ({ limit: l, offset }) =>
-				this.db
+				db
 					.select()
 					.from(recipesTable)
 					.where(where)
@@ -102,14 +111,14 @@ export class RecipeRepo {
 					.limit(l)
 					.offset(offset),
 			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(recipesTable).where(where),
+			countQuery: () => db.select({ count: count() }).from(recipesTable).where(where),
 		})
 
 		const recipeIds = result.data.map((r) => r.id)
 
 		const allItemsRaw =
 			recipeIds.length > 0
-				? await this.db
+				? await db
 						.select({
 							item: recipeItemsTable,
 							material: { name: materialsTable.name, sku: materialsTable.sku },
@@ -127,15 +136,14 @@ export class RecipeRepo {
 						.orderBy(recipeItemsTable.sortOrder)
 				: []
 
-		const allItems = allItemsRaw.map((r) =>
-			Object.assign({}, r.item, {
-				material: r.material,
-				uom: r.uom,
-				qty: r.item.qty,
-				scrapPercentage: r.item.scrapPercentage,
-				sortOrder: Number(r.item.sortOrder),
-			}),
-		)
+		const allItems = allItemsRaw.map((r) => ({
+			...r.item,
+			material: r.material,
+			uom: r.uom,
+			qty: r.item.qty,
+			scrapPercentage: r.item.scrapPercentage,
+			sortOrder: Number(r.item.sortOrder),
+		}))
 
 		const itemsByRecipe = new Map<number, typeof allItems>()
 		for (const item of allItems) {
@@ -144,167 +152,102 @@ export class RecipeRepo {
 			itemsByRecipe.set(item.recipeId, list)
 		}
 
-		const data: RecipeSelectDto[] = result.data.map((r) => ({
+		const data = result.data.map((r) => ({
 			...r,
 			targetQty: r.targetQty,
-			items: (itemsByRecipe.get(r.id) as any) ?? [],
+			items: itemsByRecipe.get(r.id) ?? [],
 		}))
 
 		return { data, meta: result.meta }
 	}
 
-	async getAvgCostForMaterial(materialId: number): Promise<number> {
-		const [valuation] = await this.db
+	async findManyByMaterialId(materialId: number, db: DbContext = this.db): Promise<RecipeDto[]> {
+		return db
+			.select()
+			.from(recipesTable)
+			.where(and(eq(recipesTable.materialId, materialId), isNull(recipesTable.deletedAt)))
+	}
+
+	async count(db: DbContext = this.db): Promise<number> {
+		const result = await db
+			.select({ val: count() })
+			.from(recipesTable)
+			.where(isNull(recipesTable.deletedAt))
+		return result[0]?.val ?? 0
+	}
+
+	async insert(
+		data: RecipeInsert,
+		items: RecipeItemInput[],
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [recipe] = await db
+			.insert(recipesTable)
+			.values(data)
+			.returning({ id: recipesTable.id })
+
+		if (!recipe) return undefined
+
+		if (items.length > 0) {
+			await db.insert(recipeItemsTable).values(
+				items.map((item) => ({
+					...item,
+					recipeId: recipe.id,
+				})),
+			)
+		}
+
+		return { id: recipe.id }
+	}
+
+	async update(
+		id: number,
+		data: Partial<RecipeInsert>,
+		items: RecipeItemInput[],
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		await db
+			.update(recipesTable)
+			.set(data)
+			.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
+
+		await db.delete(recipeItemsTable).where(eq(recipeItemsTable.recipeId, id))
+
+		if (items.length > 0) {
+			await db.insert(recipeItemsTable).values(
+				items.map((item) => ({
+					...item,
+					recipeId: id,
+				})),
+			)
+		}
+
+		return { id }
+	}
+
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const timestamp = new Date()
+
+		await db
+			.update(recipeItemsTable)
+			.set({ deletedAt: timestamp })
+			.where(eq(recipeItemsTable.recipeId, id))
+
+		const [result] = await db
+			.update(recipesTable)
+			.set({ deletedAt: timestamp })
+			.where(eq(recipesTable.id, id))
+			.returning({ id: recipesTable.id })
+
+		return result
+	}
+
+	async getAvgCostForMaterial(materialId: number, db: DbContext = this.db): Promise<number> {
+		const [valuation] = await db
 			.select({ avgCost: sql<string>`COALESCE(AVG("currentAvgCost"), 0)` })
 			.from(materialLocationsTable)
 			.where(eq(materialLocationsTable.materialId, materialId))
 
 		return Number(valuation?.avgCost ?? 0)
-	}
-
-	async checkTargetConflict(
-		target: {
-			materialId?: number | null | undefined
-			productId?: number | null | undefined
-			productVariantId?: number | null | undefined
-		},
-		excludeId?: number,
-	): Promise<boolean> {
-		const conditions = [isNull(recipesTable.deletedAt)]
-
-		if (target.materialId) conditions.push(eq(recipesTable.materialId, target.materialId))
-		if (target.productId) conditions.push(eq(recipesTable.productId, target.productId))
-		if (target.productVariantId)
-			conditions.push(eq(recipesTable.productVariantId, target.productVariantId))
-
-		if (conditions.length !== 2) {
-			return false // Invalid target
-		}
-
-		if (excludeId) {
-			conditions.push(ne(recipesTable.id, excludeId))
-		}
-
-		const [conflict] = await this.db
-			.select({ id: recipesTable.id })
-			.from(recipesTable)
-			.where(and(...conditions))
-			.limit(1)
-
-		return !!conflict
-	}
-
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: RecipeCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const meta = stampCreate(actorId)
-
-		return this.db.transaction(async (tx) => {
-			const [recipe] = await tx
-				.insert(recipesTable)
-				.values({
-					materialId: data.materialId ?? null,
-					productId: data.productId ?? null,
-					productVariantId: data.productVariantId ?? null,
-					targetQty: (data.targetQty ?? 1).toString(),
-					isActive: data.isActive,
-					instructions: data.instructions,
-					...meta,
-				})
-				.returning({ id: recipesTable.id })
-
-			if (!recipe) throw new Error('Failed to create recipe')
-
-			if (data.items?.length) {
-				await tx.insert(recipeItemsTable).values(
-					data.items.map((item) => ({
-						recipeId: recipe.id,
-						materialId: item.materialId,
-						qty: item.qty.toString(),
-						scrapPercentage: item.scrapPercentage?.toString() ?? '0',
-						uomId: item.uomId,
-						notes: item.notes,
-						sortOrder: (item.sortOrder ?? 0).toString(),
-						...meta,
-					})),
-				)
-			}
-
-			return { id: recipe.id }
-		})
-	}
-
-	async update(data: RecipeUpdateDto, actorId: ActorId): Promise<EntityRef> {
-		const { id } = data
-		const existing = await this.getById(id)
-		if (!existing) throw new Error(`Recipe with ID ${id} not found`)
-
-		const updateMeta = stampUpdate(actorId)
-		const createMeta = stampCreate(actorId)
-
-		await this.db.transaction(async (tx) => {
-			await tx
-				.update(recipesTable)
-				.set({
-					materialId: data.materialId === undefined ? existing.materialId : data.materialId,
-					productId: data.productId === undefined ? existing.productId : data.productId,
-					productVariantId:
-						data.productVariantId === undefined ? existing.productVariantId : data.productVariantId,
-					targetQty: (data.targetQty ?? existing.targetQty).toString(),
-					isActive: data.isActive ?? existing.isActive,
-					instructions: data.instructions === undefined ? existing.instructions : data.instructions,
-					...updateMeta,
-				})
-				.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
-
-			// Hard delete items before re-inserting
-			await tx.delete(recipeItemsTable).where(eq(recipeItemsTable.recipeId, id))
-
-			if (data.items?.length) {
-				await tx.insert(recipeItemsTable).values(
-					data.items.map((item) => ({
-						recipeId: id,
-						materialId: item.materialId,
-						qty: item.qty.toString(),
-						scrapPercentage: item.scrapPercentage?.toString() ?? '0',
-						uomId: item.uomId,
-						notes: item.notes ?? null,
-						sortOrder: (item.sortOrder ?? 0).toString(),
-						...createMeta,
-					})),
-				)
-			}
-		})
-
-		return { id }
-	}
-
-	async softDelete(id: number, actorId: ActorId): Promise<EntityRef> {
-		await this.db.transaction(async (tx) => {
-			const timestamp = new Date()
-
-			// Also soft delete items
-			await tx
-				.update(recipeItemsTable)
-				.set({ deletedAt: timestamp, deletedBy: actorId })
-				.where(eq(recipeItemsTable.recipeId, id))
-
-			await tx
-				.update(recipesTable)
-				.set({ deletedAt: timestamp, deletedBy: actorId })
-				.where(eq(recipesTable.id, id))
-		})
-
-		return { id }
-	}
-
-	async hardDelete(id: number): Promise<EntityRef> {
-		const result = await this.db
-			.delete(recipesTable)
-			.where(eq(recipesTable.id, id))
-			.returning({ id: recipesTable.id })
-
-		if (result.length === 0) throw new Error(`Recipe with ID ${id} not found`)
-		return { id: result[0]!.id }
 	}
 }

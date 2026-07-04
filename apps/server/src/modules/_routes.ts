@@ -1,6 +1,7 @@
 import { createAuthRoute } from '@/modules/auth/auth.route'
 import { createIamRoute } from '@/modules/iam/iam.route'
 import { createLocationRoute } from '@/modules/location/location.route'
+import { createRecipeRoute } from '@/modules/recipe'
 import { createSalesTypeRoute } from '@/modules/sales-type/sales-type.route'
 import { createSupplierRoute } from '@/modules/supplier/supplier.route'
 
@@ -14,6 +15,7 @@ export function createRoutes(m: Modules) {
 		createIamRoute(m.iam),
 		createAuthRoute(m.auth),
 		createSupplierRoute(m.supplier),
+		createRecipeRoute(m.recipe),
 	]
 
 	return {

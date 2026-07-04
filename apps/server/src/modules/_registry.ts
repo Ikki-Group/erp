@@ -4,6 +4,7 @@ import type { DbContext } from '@/infra/database'
 import { createAuthModule, type AuthModule } from '@/modules/auth'
 import { type IamModule, createIamModule } from '@/modules/iam/iam.module'
 import { type LocationModule, createLocationModule } from '@/modules/location/location.module'
+import { createRecipeModule, type RecipeModule } from '@/modules/recipe'
 import { createSalesTypeModule, type SalesTypeModule } from '@/modules/sales-type'
 import { createSessionModule, type SessionModule } from '@/modules/session'
 import { createSupplierModule, type SupplierModule } from '@/modules/supplier'
@@ -18,6 +19,7 @@ export interface Modules {
 	auth: AuthModule
 	tool: ToolModule
 	supplier: SupplierModule
+	recipe: RecipeModule
 }
 
 export function createModules(db: DbContext, cacheClient: CacheClient): Modules {
@@ -25,6 +27,7 @@ export function createModules(db: DbContext, cacheClient: CacheClient): Modules 
 	const location = createLocationModule(db, cacheClient)
 	const salesType = createSalesTypeModule(db, cacheClient)
 	const supplier = createSupplierModule(db, cacheClient)
+	const recipe = createRecipeModule(db, cacheClient)
 	const iam = createIamModule(db, cacheClient, { location })
 	const auth = createAuthModule(db, cacheClient, { iam, session })
 	const tool = createToolModule(db, { iam, location })
@@ -37,5 +40,6 @@ export function createModules(db: DbContext, cacheClient: CacheClient): Modules 
 		auth,
 		tool,
 		supplier,
+		recipe,
 	}
 }

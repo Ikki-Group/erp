@@ -90,6 +90,8 @@ export class WorkOrderService {
 			})
 
 		const recipe = await this.recipeSvc.getById(wo.recipeId)
+		if (!recipe) throw new NotFoundError(`Recipe with ID ${wo.recipeId} not found`)
+
 		const actualQty = new Decimal(data.actualQty)
 		const targetQty = new Decimal(recipe.targetQty)
 		const multiplier = actualQty.div(targetQty.isPositive() ? targetQty : 1)
