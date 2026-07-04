@@ -1,112 +1,38 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-assignment */
-import { record } from '@elysiajs/opentelemetry'
-import Decimal from 'decimal.js'
-
-import { db } from '@/db'
-import { stockTransactionsTable } from '@/db/schema'
-
 import type { DbTx } from '@/infra/database'
-import { stampCreate } from '@/shared/audit/stamp'
-import { BadRequestError } from '@/shared/errors/http-error'
 
-import type { MaterialLocationService } from '@/modules/material'
-
-import type { TransactionResultDto } from '../stock-transaction.contract'
+import type { IStockTransactionRepo } from '../stock-transaction.repo'
 
 export class MovementLogic {
-	constructor(protected readonly mLocationSvc: MaterialLocationService) {}
+	constructor(
+		protected readonly repo: IStockTransactionRepo,
+		protected readonly mLocationSvc: {
+			findOne: (materialId: number, locationId: number) => Promise<{
+				currentQty: string
+				currentAvgCost: string
+			}>
+			updateCurrentStock: (
+				materialId: number,
+				locationId: number,
+				data: { currentQty: number; currentAvgCost: number; currentValue: number },
+				actorId: number,
+				tx?: DbTx,
+			) => Promise<void>
+		},
+	) {}
 
-	/**
-	 * Weighted Average Cost calculation for incoming stock.
-	 */
 	protected calculateIncomingWAC(
 		currentQty: string | number,
 		currentAvgCost: string | number,
 		incomingQty: string | number,
 		incomingUnitCost: string | number,
 	): { newQty: string; newAvgCost: string } {
-		const cQty = new Decimal(currentQty)
-		const cCost = new Decimal(currentAvgCost)
-		const iQty = new Decimal(incomingQty)
-		const iCost = new Decimal(incomingUnitCost)
+		const cQty = Number(currentQty)
+		const cCost = Number(currentAvgCost)
+		const iQty = Number(incomingQty)
+		const iCost = Number(incomingUnitCost)
 
-		const newQty = cQty.plus(iQty)
-		const newAvgCost = newQty.isPositive()
-			? cQty.mul(cCost).plus(iQty.mul(iCost)).div(newQty)
-			: new Decimal(0)
+		const newQty = cQty + iQty
+		const newAvgCost = newQty > 0 ? (cQty * cCost + iQty * iCost) / newQty : 0
 		return { newQty: newQty.toString(), newAvgCost: newAvgCost.toString() }
-	}
-
-	/**
-	 * Core logic for generic stock reduction (Usage, Sell, ProdOut, TransferOut).
-	 */
-	protected async handleStockOut(
-		type: 'usage' | 'sell' | 'production_out' | 'transfer_out',
-		data: {
-			locationId: number
-			date: Date
-			referenceNo: string
-			notes?: string | null | undefined
-			items: Array<{ materialId: number; qty: string | number }>
-			counterpartLocationId?: number | null | undefined
-			transferId?: number | null | undefined
-		},
-		actorId: number,
-		tx: DbTx | typeof db = db,
-	): Promise<TransactionResultDto> {
-		const { locationId, date, referenceNo, notes, items, counterpartLocationId, transferId } = data
-
-		const metadata = stampCreate(actorId)
-
-		for (const item of items) {
-			const { materialId, qty } = item
-
-			await record(`MovementLogic.handleStockOut.${type}.item:${materialId}`, async () => {
-				const assignment = await this.mLocationSvc.findOne(materialId, locationId)
-
-				const qtyDec = new Decimal(qty)
-				const cQtyDec = new Decimal(assignment.currentQty)
-
-				if (cQtyDec.lt(qtyDec)) {
-					throw new BadRequestError(
-						`Insufficient stock for material ${materialId}: available ${assignment.currentQty}, requested ${qty}`,
-					)
-				}
-
-				const currentAvgCost = new Decimal(assignment.currentAvgCost)
-				const newQty = cQtyDec.minus(qtyDec)
-				const totalCost = qtyDec.mul(currentAvgCost)
-
-				await tx.insert(stockTransactionsTable).values({
-					materialId,
-					locationId,
-					type,
-					date,
-					referenceNo,
-					notes: notes ?? null,
-					qty: qtyDec.toString() as any,
-					unitCost: currentAvgCost.toString(),
-					totalCost: totalCost.toString(),
-					counterpartLocationId: counterpartLocationId ?? null,
-					transferId: transferId ?? null,
-					runningQty: newQty.toString() as any,
-					runningAvgCost: currentAvgCost.toString(),
-					...metadata,
-				})
-
-				await this.mLocationSvc.updateCurrentStock(
-					materialId,
-					locationId,
-					{
-						currentQty: newQty.toString() as any,
-						currentAvgCost: currentAvgCost.toString() as any,
-						currentValue: newQty.mul(currentAvgCost).toString() as any,
-					},
-					actorId,
-				)
-			})
-		}
-
-		return { count: items.length, referenceNo }
 	}
 }

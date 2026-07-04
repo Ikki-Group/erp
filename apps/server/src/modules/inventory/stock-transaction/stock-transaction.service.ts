@@ -1,14 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { db } from '@/db'
-
 import type { DbTx } from '@/infra/database'
+import { withTransaction } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-
-import type { MaterialLocationService } from '@/modules/material'
 
 import type {
 	AdjustmentTransactionDto,
+	ProductionInTransactionDto,
+	ProductionOutTransactionDto,
 	PurchaseTransactionDto,
 	SellTransactionDto,
 	StockOpnameDto,
@@ -18,144 +17,147 @@ import type {
 	TransactionResultDto,
 	TransferTransactionDto,
 	UsageTransactionDto,
-	ProductionInTransactionDto,
-	ProductionOutTransactionDto,
 } from './stock-transaction.contract'
-import { StockTransactionRepo } from './stock-transaction.repo'
+import type { IStockTransactionRepo } from './stock-transaction.repo'
 import { StockExternalMovementService } from './sub-services/stock-external-movement.service'
 import { StockHistoryService } from './sub-services/stock-history.service'
 import { StockInternalMovementService } from './sub-services/stock-internal-movement.service'
 
-/**
- * StockTransactionService (Layer 2)
- * Primary facade for all inventory stock movements and history.
- * Modularized into sub-services to comply with < 300 line limit.
- */
+type MaterialLocationPort = {
+	findOne: (materialId: number, locationId: number) => Promise<{
+		currentQty: string
+		currentAvgCost: string
+	}>
+	updateCurrentStock: (
+		materialId: number,
+		locationId: number,
+		data: { currentQty: number; currentAvgCost: number; currentValue: number },
+		actorId: number,
+		tx?: DbTx,
+	) => Promise<void>
+}
+
 export class StockTransactionService {
 	private readonly history: StockHistoryService
 	private readonly external: StockExternalMovementService
 	private readonly internal: StockInternalMovementService
 
 	constructor(
-		mLocationSvc: MaterialLocationService,
-		private readonly repo: StockTransactionRepo,
+		mLocationSvc: MaterialLocationPort,
+		private readonly repo: IStockTransactionRepo,
 	) {
 		this.history = new StockHistoryService(this.repo)
-		this.external = new StockExternalMovementService(mLocationSvc)
-		this.internal = new StockInternalMovementService(mLocationSvc)
+		this.external = new StockExternalMovementService(this.repo, mLocationSvc)
+		this.internal = new StockInternalMovementService(this.repo, mLocationSvc)
 	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
-
-	/* ─── READ OPERATIONS ────────────────────────────────────────────────────── */
 
 	async handleList(
 		filter: StockTransactionFilterDto,
 	): Promise<WithPaginationResult<StockTransactionSelectDto>> {
-		return record('StockTransactionService.handleList', async () => {
-			return this.history.handleList(filter)
-		})
+		return record('StockTransactionService.handleList', async () =>
+			this.history.handleList(filter),
+		)
 	}
 
 	async handleDetail(id: number): Promise<StockTransactionDto> {
-		return record('StockTransactionService.handleDetail', async () => {
-			return this.history.handleDetail(id)
-		})
+		return record('StockTransactionService.handleDetail', async () =>
+			this.history.handleDetail(id),
+		)
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
-		return record('StockTransactionService.handleRemove', async () => {
-			return this.history.handleRemove(id, actorId)
-		})
+		return record('StockTransactionService.handleRemove', async () =>
+			this.history.handleRemove(id, actorId),
+		)
 	}
 
 	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('StockTransactionService.handleHardRemove', async () => {
-			return this.history.handleHardRemove(id)
-		})
+		return record('StockTransactionService.handleHardRemove', async () =>
+			this.history.handleHardRemove(id),
+		)
 	}
-
-	/* ─── WRITE OPERATIONS: EXTERNAL ─────────────────────────────────────────── */
 
 	async handlePurchase(
 		data: PurchaseTransactionDto,
 		actorId: number,
-		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return record('StockTransactionService.handlePurchase', async () => {
-			return this.external.handlePurchase(data, actorId, tx)
-		})
+		return record('StockTransactionService.handlePurchase', async () =>
+			withTransaction(this.repo.db, (tx) => this.external.purchase(data, actorId, tx)),
+		)
 	}
 
 	async handleProductionIn(
 		data: ProductionInTransactionDto,
 		actorId: number,
-		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return record('StockTransactionService.handleProductionIn', async () => {
-			return this.external.handleProductionIn(data, actorId, tx)
-		})
+		return record('StockTransactionService.handleProductionIn', async () =>
+			withTransaction(this.repo.db, (tx) => this.external.productionIn(data, actorId, tx)),
+		)
 	}
 
 	async handleUsage(
 		data: UsageTransactionDto,
 		actorId: number,
-		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return record('StockTransactionService.handleUsage', async () => {
-			return this.external.handleUsage(data, actorId, tx)
-		})
+		return record('StockTransactionService.handleUsage', async () =>
+			withTransaction(this.repo.db, (tx) => this.external.usage(data, actorId, tx)),
+		)
 	}
 
 	async handleSell(
 		data: SellTransactionDto,
 		actorId: number,
-		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return record('StockTransactionService.handleSell', async () => {
-			return this.external.handleSell(data, actorId, tx)
-		})
+		return record('StockTransactionService.handleSell', async () =>
+			withTransaction(this.repo.db, (tx) => this.external.sell(data, actorId, tx)),
+		)
 	}
 
 	async handleProductionOut(
 		data: ProductionOutTransactionDto,
 		actorId: number,
-		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return record('StockTransactionService.handleProductionOut', async () => {
-			return this.external.handleProductionOut(data, actorId, tx)
-		})
+		return record('StockTransactionService.handleProductionOut', async () =>
+			withTransaction(this.repo.db, (tx) => this.external.productionOut(data, actorId, tx)),
+		)
 	}
-
-	/* ─── WRITE OPERATIONS: INTERNAL ─────────────────────────────────────────── */
 
 	async handleTransfer(
 		data: TransferTransactionDto,
 		actorId: number,
-		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return record('StockTransactionService.handleTransfer', async () => {
-			return this.internal.handleTransfer(data, actorId, tx)
-		})
+		return record('StockTransactionService.handleTransfer', async () =>
+			withTransaction(this.repo.db, (tx) => this.internal.transfer(data, actorId, tx)),
+		)
 	}
 
 	async handleAdjustment(
 		data: AdjustmentTransactionDto,
 		actorId: number,
-		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return record('StockTransactionService.handleAdjustment', async () => {
-			return this.internal.handleAdjustment(data, actorId, tx)
-		})
+		return record('StockTransactionService.handleAdjustment', async () =>
+			withTransaction(this.repo.db, (tx) => this.internal.adjustment(data, actorId, tx)),
+		)
 	}
 
 	async handleOpname(
 		data: StockOpnameDto,
 		actorId: number,
-		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return record('StockTransactionService.handleOpname', async () => {
-			return this.internal.handleOpname(data, actorId, tx)
-		})
+		return record('StockTransactionService.handleOpname', async () =>
+			withTransaction(this.repo.db, (tx) => this.internal.opname(data, actorId, tx)),
+		)
+	}
+
+	async purchase(data: PurchaseTransactionDto, actorId: number, tx: DbTx): Promise<TransactionResultDto> {
+		return this.external.purchase(data, actorId, tx)
+	}
+
+	async productionIn(data: ProductionInTransactionDto, actorId: number, tx: DbTx): Promise<TransactionResultDto> {
+		return this.external.productionIn(data, actorId, tx)
+	}
+
+	async productionOut(data: ProductionOutTransactionDto, actorId: number, tx: DbTx): Promise<TransactionResultDto> {
+		return this.external.productionOut(data, actorId, tx)
 	}
 }

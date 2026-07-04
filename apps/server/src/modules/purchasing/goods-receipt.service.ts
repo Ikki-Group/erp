@@ -79,7 +79,7 @@ export class GoodsReceiptService {
 
 			const poItemMap = new Map(poItems.map((i) => [i.id, i.unitPrice]))
 
-			await this.inventorySvc.handlePurchase(
+			await this.inventorySvc.purchase(
 				{
 					locationId: grn.locationId,
 					date: grn.receiveDate,

@@ -1,186 +1,206 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-assignment */
-import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 
-import { db } from '@/db'
-import { stockTransactionsTable } from '@/db/schema'
-
 import type { DbTx } from '@/infra/database'
-import { stampCreate } from '@/shared/audit/stamp'
 
 import type {
-	PurchaseTransactionDto,
-	UsageTransactionDto,
-	SellTransactionDto,
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
+	PurchaseTransactionDto,
+	SellTransactionDto,
 	TransactionResultDto,
+	UsageTransactionDto,
 } from '../stock-transaction.contract'
+import { StockTransactionError } from '../stock-transaction.internal'
 import { MovementLogic } from './movement-logic'
 
 export class StockExternalMovementService extends MovementLogic {
-	/**
-	 * Record purchase transactions for multiple materials at one location.
-	 */
-	async handlePurchase(
-		data: PurchaseTransactionDto,
-		actorId: number,
-		tx: DbTx | typeof db = db,
-	): Promise<TransactionResultDto> {
-		return record('StockExternalMovementService.handlePurchase', async () => {
-			if (tx === db) {
-				return db.transaction(async (trx) => this.executePurchase(data, actorId, trx))
-			}
-			return this.executePurchase(data, actorId, tx as DbTx)
-		})
-	}
-
-	private async executePurchase(
+	async purchase(
 		data: PurchaseTransactionDto,
 		actorId: number,
 		tx: DbTx,
 	): Promise<TransactionResultDto> {
 		const { locationId, date, referenceNo, notes, items } = data
-		const metadata = stampCreate(actorId)
-
 		for (const item of items) {
 			const { materialId, qty, unitCost } = item
+			const assignment = await this.mLocationSvc.findOne(materialId, locationId)
 
-			await record(`StockExternalMovementService.handlePurchase.item:${materialId}`, async () => {
-				const assignment = await this.mLocationSvc.findOne(materialId, locationId)
+			const { newQty, newAvgCost } = this.calculateIncomingWAC(
+				assignment.currentQty,
+				assignment.currentAvgCost,
+				qty,
+				unitCost,
+			)
 
-				const { newQty, newAvgCost } = this.calculateIncomingWAC(
-					assignment.currentQty,
-					assignment.currentAvgCost,
-					qty,
-					unitCost,
-				)
-
-				await tx.insert(stockTransactionsTable).values({
+			await this.repo.insert(
+				{
 					materialId,
 					locationId,
 					type: 'purchase',
 					date,
 					referenceNo,
 					notes: notes ?? null,
-					qty: qty.toString() as any,
+					qty: qty.toString(),
 					unitCost: unitCost.toString(),
 					totalCost: new Decimal(qty).mul(unitCost).toString(),
-					runningQty: newQty.toString() as any,
+					runningQty: newQty.toString(),
 					runningAvgCost: newAvgCost.toString(),
-					...metadata,
-				})
+					createdBy: actorId,
+					updatedBy: actorId,
+				},
+				tx,
+			)
 
-				await this.mLocationSvc.updateCurrentStock(
-					materialId,
-					locationId,
-					{
-						currentQty: newQty as any,
-						currentAvgCost: newAvgCost as any,
-						currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any,
-					},
-					actorId,
-					tx,
-				)
-			})
+			await this.mLocationSvc.updateCurrentStock(
+				materialId,
+				locationId,
+				{
+					currentQty: Number(newQty),
+					currentAvgCost: Number(newAvgCost),
+					currentValue: Number(new Decimal(newQty).mul(newAvgCost)),
+				},
+				actorId,
+				tx,
+			)
 		}
-
 		return { count: items.length, referenceNo }
 	}
 
-	/**
-	 * Record production inputs (finished goods) at a location.
-	 */
-	async handleProductionIn(
-		data: ProductionInTransactionDto,
-		actorId: number,
-		tx: DbTx | typeof db = db,
-	): Promise<TransactionResultDto> {
-		return record('StockExternalMovementService.handleProductionIn', async () => {
-			if (tx === db) {
-				return db.transaction(async (trx) => this.executeProductionIn(data, actorId, trx))
-			}
-			return this.executeProductionIn(data, actorId, tx as DbTx)
-		})
-	}
-
-	private async executeProductionIn(
+	async productionIn(
 		data: ProductionInTransactionDto,
 		actorId: number,
 		tx: DbTx,
 	): Promise<TransactionResultDto> {
 		const { locationId, date, referenceNo, notes, items } = data
-		const metadata = stampCreate(actorId)
-
 		for (const item of items) {
 			const { materialId, qty, unitCost } = item
+			const assignment = await this.mLocationSvc.findOne(materialId, locationId)
 
-			await record(
-				`StockExternalMovementService.handleProductionIn.item:${materialId}`,
-				async () => {
-					const assignment = await this.mLocationSvc.findOne(materialId, locationId)
+			const { newQty, newAvgCost } = this.calculateIncomingWAC(
+				assignment.currentQty,
+				assignment.currentAvgCost,
+				qty,
+				unitCost,
+			)
 
-					const { newQty, newAvgCost } = this.calculateIncomingWAC(
-						assignment.currentQty,
-						assignment.currentAvgCost,
-						qty,
-						unitCost,
-					)
-
-					await tx.insert(stockTransactionsTable).values({
-						materialId,
-						locationId,
-						type: 'production_in',
-						date,
-						referenceNo,
-						notes: notes ?? null,
-						qty: qty.toString() as any,
-						unitCost: unitCost.toString(),
-						totalCost: new Decimal(qty).mul(unitCost).toString(),
-						runningQty: newQty.toString() as any,
-						runningAvgCost: newAvgCost.toString(),
-						...metadata,
-					})
-
-					await this.mLocationSvc.updateCurrentStock(
-						materialId,
-						locationId,
-						{
-							currentQty: newQty as any,
-							currentAvgCost: newAvgCost as any,
-							currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any,
-						},
-						actorId,
-						tx,
-					)
+			await this.repo.insert(
+				{
+					materialId,
+					locationId,
+					type: 'production_in',
+					date,
+					referenceNo,
+					notes: notes ?? null,
+					qty: qty.toString(),
+					unitCost: unitCost.toString(),
+					totalCost: new Decimal(qty).mul(unitCost).toString(),
+					runningQty: newQty.toString(),
+					runningAvgCost: newAvgCost.toString(),
+					createdBy: actorId,
+					updatedBy: actorId,
 				},
+				tx,
+			)
+
+			await this.mLocationSvc.updateCurrentStock(
+				materialId,
+				locationId,
+				{
+					currentQty: Number(newQty),
+					currentAvgCost: Number(newAvgCost),
+					currentValue: Number(new Decimal(newQty).mul(newAvgCost)),
+				},
+				actorId,
+				tx,
+			)
+		}
+		return { count: items.length, referenceNo }
+	}
+
+	async usage(
+		data: UsageTransactionDto,
+		actorId: number,
+		tx: DbTx,
+	): Promise<TransactionResultDto> {
+		return this.stockOut('usage', data, actorId, tx)
+	}
+
+	async sell(
+		data: SellTransactionDto,
+		actorId: number,
+		tx: DbTx,
+	): Promise<TransactionResultDto> {
+		return this.stockOut('sell', data, actorId, tx)
+	}
+
+	async productionOut(
+		data: ProductionOutTransactionDto,
+		actorId: number,
+		tx: DbTx,
+	): Promise<TransactionResultDto> {
+		return this.stockOut('production_out', data, actorId, tx)
+	}
+
+	private async stockOut(
+		type: 'usage' | 'sell' | 'production_out',
+		data: UsageTransactionDto | SellTransactionDto | ProductionOutTransactionDto,
+		actorId: number,
+		tx: DbTx,
+	): Promise<TransactionResultDto> {
+		const { locationId, date, referenceNo, notes, items } = data
+
+		for (const item of items) {
+			const { materialId, qty } = item
+			const assignment = await this.mLocationSvc.findOne(materialId, locationId)
+
+			const qtyDec = new Decimal(qty)
+			const cQtyDec = new Decimal(assignment.currentQty)
+
+			if (cQtyDec.lt(qtyDec)) {
+				throw StockTransactionError.insufficientStock(
+					materialId,
+					assignment.currentQty,
+					qty.toString(),
+				)
+			}
+
+			const currentAvgCost = new Decimal(assignment.currentAvgCost)
+			const newQty = cQtyDec.minus(qtyDec)
+			const totalCost = qtyDec.mul(currentAvgCost)
+
+			await this.repo.insert(
+				{
+					materialId,
+					locationId,
+					type,
+					date,
+					referenceNo,
+					notes: notes ?? null,
+					qty: qtyDec.toString(),
+					unitCost: currentAvgCost.toString(),
+					totalCost: totalCost.toString(),
+					counterpartLocationId: null,
+					transferId: null,
+					runningQty: newQty.toString(),
+					runningAvgCost: currentAvgCost.toString(),
+					createdBy: actorId,
+					updatedBy: actorId,
+				},
+				tx,
+			)
+
+			await this.mLocationSvc.updateCurrentStock(
+				materialId,
+				locationId,
+				{
+					currentQty: Number(newQty),
+					currentAvgCost: Number(currentAvgCost),
+					currentValue: Number(newQty.mul(currentAvgCost)),
+				},
+				actorId,
+				tx,
 			)
 		}
 
 		return { count: items.length, referenceNo }
-	}
-
-	async handleUsage(
-		data: UsageTransactionDto,
-		actorId: number,
-		tx: DbTx | typeof db = db,
-	): Promise<TransactionResultDto> {
-		return this.handleStockOut('usage', data, actorId, tx)
-	}
-
-	async handleSell(
-		data: SellTransactionDto,
-		actorId: number,
-		tx: DbTx | typeof db = db,
-	): Promise<TransactionResultDto> {
-		return this.handleStockOut('sell', data, actorId, tx)
-	}
-
-	async handleProductionOut(
-		data: ProductionOutTransactionDto,
-		actorId: number,
-		tx: DbTx | typeof db = db,
-	): Promise<TransactionResultDto> {
-		return this.handleStockOut('production_out', data, actorId, tx)
 	}
 }

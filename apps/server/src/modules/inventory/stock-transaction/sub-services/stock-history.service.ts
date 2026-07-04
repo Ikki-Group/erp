@@ -1,75 +1,43 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
-import { record } from '@elysiajs/opentelemetry'
-
-import { NotFoundError } from '@/shared/errors/http-error'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type {
+	StockTransactionDto,
 	StockTransactionFilterDto,
 	StockTransactionSelectDto,
-	StockTransactionDto,
 } from '../stock-transaction.contract'
-import { StockTransactionRepo } from '../stock-transaction.repo'
+import { StockTransactionError } from '../stock-transaction.internal'
+import type { IStockTransactionRepo } from '../stock-transaction.repo'
 
 export class StockHistoryService {
-	constructor(private readonly repo: StockTransactionRepo) {}
+	constructor(private readonly repo: IStockTransactionRepo) {}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
-
-	/**
-	 * Get a single transaction by ID.
-	 */
 	async getById(id: number): Promise<StockTransactionDto> {
-		return record('StockHistoryService.getById', async () => {
-			const result = await this.repo.getById(id)
-			if (!result) throw new NotFoundError(`Stock transaction ${id} not found`)
-			return result as unknown as StockTransactionDto
-		})
+		const result = await this.repo.findById(id)
+		if (!result) throw StockTransactionError.notFound(id)
+		return result
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
-
-	/**
-	 * List transactions with filters (paginated), enriched with material info.
-	 */
 	async handleList(
 		filter: StockTransactionFilterDto,
 	): Promise<WithPaginationResult<StockTransactionSelectDto>> {
-		return record('StockHistoryService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
-			return {
-				...result,
-				data: result.data as unknown as StockTransactionSelectDto[],
-			}
-		})
+		return this.repo.findPage(filter)
 	}
 
-	/**
-	 * Get a single transaction by ID.
-	 */
 	async handleDetail(id: number): Promise<StockTransactionDto> {
-		return record('StockHistoryService.handleDetail', async () => {
-			return this.getById(id)
-		})
+		return this.getById(id)
 	}
 
-	/**
-	 * Marks a transaction as deleted (Soft Delete).
-	 */
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
-		return record('StockHistoryService.handleRemove', async () => {
-			const existing = await this.repo.getById(id)
-			if (!existing) throw new NotFoundError(`Stock transaction ${id} not found`)
-			return this.repo.softDelete(id, actorId)
-		})
+		const existing = await this.repo.findById(id)
+		if (!existing) throw StockTransactionError.notFound(id)
+		const result = await this.repo.softDelete(id, actorId)
+		if (!result) throw StockTransactionError.notFound(id)
+		return result
 	}
 
-	/**
-	 * Permanently deletes a transaction (Hard Delete).
-	 */
 	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('StockHistoryService.handleHardRemove', async () => {
-			return this.repo.hardDelete(id)
-		})
+		const result = await this.repo.hardDelete(id)
+		if (!result) throw StockTransactionError.notFound(id)
+		return result
 	}
 }

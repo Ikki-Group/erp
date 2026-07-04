@@ -100,7 +100,7 @@ export class WorkOrderService {
 		return this.db.transaction(async (tx) => {
 			// 1. Consume raw materials
 			if (recipe.items) {
-				await this.stockTransactionSvc.handleProductionOut(
+				await this.stockTransactionSvc.productionOut(
 					{
 						locationId: wo.locationId,
 						date: new Date(),
@@ -121,7 +121,7 @@ export class WorkOrderService {
 
 			// 2. Add finished good
 			if (recipe.materialId) {
-				await this.stockTransactionSvc.handleProductionIn(
+				await this.stockTransactionSvc.productionIn(
 					{
 						locationId: wo.locationId,
 						date: new Date(),
