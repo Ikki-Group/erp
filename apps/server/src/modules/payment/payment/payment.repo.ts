@@ -1,131 +1,135 @@
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, gte, lte, or } from 'drizzle-orm'
+import { and, count, eq, gte, lte, or, type SQL } from 'drizzle-orm'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 import { paymentInvoicesTable, paymentsTable } from '@/db/schema'
 
-import { paginate, searchFilter, takeFirst, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-import * as dto from './payment.contract'
+import type {
+	PaymentDto,
+	PaymentFilterDto,
+	PaymentInvoiceDto,
+} from './payment.contract'
 
-export class PaymentRepo {
-	constructor(readonly db: DbClient) {}
+type PaymentInsert = typeof paymentsTable.$inferInsert
+type PaymentUpdate = PgUpdateSetSource<typeof paymentsTable>
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export interface IPaymentRepo {
+	readonly db: DbContext
+	findMany(filter?: Partial<PaymentFilterDto>, db?: DbContext): Promise<PaymentDto[]>
+	findPage(filter: PaymentFilterDto, db?: DbContext): Promise<WithPaginationResult<PaymentDto>>
+	findById(id: number, db?: DbContext): Promise<PaymentDto | undefined>
+	count(db?: DbContext): Promise<number>
+	findPaymentInvoicesByPaymentId(paymentId: number, db?: DbContext): Promise<PaymentInvoiceDto[]>
+	insert(data: PaymentInsert, db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: PaymentUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	async getListPaginated(
-		filter: dto.PaymentFilterDto,
-	): Promise<WithPaginationResult<dto.PaymentDto>> {
-		return record('PaymentRepo.getListPaginated', async () => {
-			const { q, page, limit, type, method, accountId, dateFrom, dateTo } = filter
-			const where = and(
-				q === undefined
-					? undefined
-					: or(searchFilter(paymentsTable.referenceNo, q), searchFilter(paymentsTable.notes, q)),
-				type === undefined ? undefined : eq(paymentsTable.type, type),
-				method === undefined ? undefined : eq(paymentsTable.method, method),
-				accountId === undefined ? undefined : eq(paymentsTable.accountId, accountId),
-				dateFrom === undefined ? undefined : gte(paymentsTable.date, dateFrom),
-				dateTo === undefined ? undefined : lte(paymentsTable.date, dateTo),
-			)
+export class PaymentRepo implements IPaymentRepo {
+	constructor(readonly db: DbContext) {}
 
-			return paginate<any>({
-				data: ({ limit, offset }) =>
-					this.db
-						.select()
-						.from(paymentsTable)
-						.where(where)
-						.orderBy(paymentsTable.date)
-						.limit(limit)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: () => this.db.select({ count: count() }).from(paymentsTable).where(where),
-			})
+	#buildWhere(filter: Partial<
+		Pick<PaymentFilterDto, 'q' | 'type' | 'method' | 'accountId' | 'dateFrom' | 'dateTo'>
+	>): SQL | undefined {
+		const { q, type, method, accountId, dateFrom, dateTo } = filter
+		return and(
+			q === undefined
+				? undefined
+				: or(searchFilter(paymentsTable.referenceNo, q), searchFilter(paymentsTable.notes, q)),
+			type === undefined ? undefined : eq(paymentsTable.type, type),
+			method === undefined ? undefined : eq(paymentsTable.method, method),
+			accountId === undefined ? undefined : eq(paymentsTable.accountId, accountId),
+			dateFrom === undefined ? undefined : gte(paymentsTable.date, dateFrom),
+			dateTo === undefined ? undefined : lte(paymentsTable.date, dateTo),
+		)
+	}
+
+	async findMany(
+		filter: Partial<PaymentFilterDto> = {},
+		db: DbContext = this.db,
+	): Promise<PaymentDto[]> {
+		const where = this.#buildWhere(filter)
+		return db.select().from(paymentsTable).where(where).orderBy(paymentsTable.date)
+	}
+
+	async findPage(
+		filter: PaymentFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<PaymentDto>> {
+		const where = this.#buildWhere(filter)
+
+		return paginate<PaymentDto>({
+			data: ({ limit, offset }) =>
+				db
+					.select()
+					.from(paymentsTable)
+					.where(where)
+					.orderBy(paymentsTable.date)
+					.limit(limit)
+					.offset(offset),
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(paymentsTable).where(where),
 		})
 	}
 
-	async getList(): Promise<dto.PaymentDto[]> {
-		return record('PaymentRepo.getList', async () => {
-			return this.db.select().from(paymentsTable)
-		})
+	async findById(id: number, db: DbContext = this.db): Promise<PaymentDto | undefined> {
+		return db
+			.select()
+			.from(paymentsTable)
+			.where(eq(paymentsTable.id, id))
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	async getById(id: number): Promise<dto.PaymentDto | undefined> {
-		return record('PaymentRepo.getById', async () => {
-			const res = await this.db
-				.select()
-				.from(paymentsTable)
-				.where(eq(paymentsTable.id, id))
-				.limit(1)
-				.then(takeFirst)
-			return res
-		})
+	async count(db: DbContext = this.db): Promise<number> {
+		return db
+			.select({ count: count() })
+			.from(paymentsTable)
+			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	async count(): Promise<number> {
-		return record('PaymentRepo.count', async () => {
-			return this.db
-				.select({ count: count() })
-				.from(paymentsTable)
-				.then((rows) => rows[0]?.count ?? 0)
-		})
+	async findPaymentInvoicesByPaymentId(
+		paymentId: number,
+		db: DbContext = this.db,
+	): Promise<PaymentInvoiceDto[]> {
+		return db
+			.select()
+			.from(paymentInvoicesTable)
+			.where(eq(paymentInvoicesTable.paymentId, paymentId))
 	}
 
-	async getPaymentInvoicesByPaymentId(paymentId: number): Promise<dto.PaymentInvoiceDto[]> {
-		return record('PaymentRepo.getPaymentInvoicesByPaymentId', async () => {
-			return this.db
-				.select()
-				.from(paymentInvoicesTable)
-				.where(eq(paymentInvoicesTable.paymentId, paymentId))
-		})
+	async insert(data: PaymentInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.insert(paymentsTable)
+			.values({ ...data })
+			.returning({ id: paymentsTable.id })
+
+		return res
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
+	async update(
+		id: number,
+		data: PaymentUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(paymentsTable)
+			.set({ ...data })
+			.where(eq(paymentsTable.id, id))
+			.returning({ id: paymentsTable.id })
 
-	async create(data: dto.PaymentCreateDto, actorId: number): Promise<number | undefined> {
-		return record('PaymentRepo.create', async () => {
-			const metadata = stampCreate(actorId)
-			const insertData = {
-				...data,
-				amount: typeof data.amount === 'string' ? data.amount : String(data.amount),
-				...metadata,
-			}
-			const [res] = await this.db
-				.insert(paymentsTable)
-				.values(insertData)
-				.returning({ id: paymentsTable.id })
-
-			return res?.id
-		})
+		return res
 	}
 
-	async update(data: dto.PaymentUpdateDto, actorId: number): Promise<number | undefined> {
-		return record('PaymentRepo.update', async () => {
-			const metadata = stampUpdate(actorId)
-			const updateData = {
-				...data,
-				amount: typeof data.amount === 'string' ? data.amount : String(data.amount),
-				...metadata,
-			}
-			const [res] = await this.db
-				.update(paymentsTable)
-				.set(updateData)
-				.where(eq(paymentsTable.id, data.id))
-				.returning({ id: paymentsTable.id })
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.delete(paymentsTable)
+			.where(eq(paymentsTable.id, id))
+			.returning({ id: paymentsTable.id })
 
-			return res?.id
-		})
-	}
-
-	async remove(id: number): Promise<number | undefined> {
-		return record('PaymentRepo.remove', async () => {
-			const [res] = await this.db
-				.delete(paymentsTable)
-				.where(eq(paymentsTable.id, id))
-				.returning({ id: paymentsTable.id })
-
-			return res?.id
-		})
+		return res
 	}
 }

@@ -9,13 +9,12 @@ import { createPaymentMethodModule } from './payment-method/payment-method.modul
 import { initPaymentMethodRoute } from './payment-method/payment-method.route'
 import { createPaymentProviderModule } from './payment-provider/payment-provider.module'
 import { initPaymentProviderRoute } from './payment-provider/payment-provider.route'
-import { PaymentRepo } from './payment/payment.repo'
-import { initPaymentRoute } from './payment/payment.route'
-import { PaymentService } from './payment/payment.service'
+import { createPaymentModule, type PaymentModule } from './payment/payment.module'
+import { createPaymentRoute } from './payment/payment.route'
 
 export class PaymentServiceModule {
 	public readonly paymentMethod: ReturnType<typeof createPaymentMethodModule>
-	public readonly payment: PaymentService
+	public readonly payment: PaymentModule
 	public readonly paymentProvider: ReturnType<typeof createPaymentProviderModule>
 	public readonly locationPaymentMethod: ReturnType<typeof createLocationPaymentMethodModule>
 
@@ -25,8 +24,7 @@ export class PaymentServiceModule {
 	) {
 		this.paymentMethod = createPaymentMethodModule(this.db, this.cacheClient)
 
-		const paymentRepo = new PaymentRepo(this.db)
-		this.payment = new PaymentService(paymentRepo, this.cacheClient)
+		this.payment = createPaymentModule(this.db, this.cacheClient)
 
 		this.paymentProvider = createPaymentProviderModule(this.db, this.cacheClient)
 
@@ -44,13 +42,14 @@ export class PaymentServiceModule {
 export function initPaymentRouteModule(s: PaymentServiceModule) {
 	return new Elysia({ prefix: '/payment' })
 		.use(initPaymentMethodRoute(s.paymentMethod))
-		.use(initPaymentRoute(s.payment))
+		.use(createPaymentRoute(s.payment))
 		.use(initPaymentProviderRoute(s.paymentProvider))
 		.use(createLocationPaymentMethodRoute(s.locationPaymentMethod))
 }
 
 export { PaymentDto, PaymentInvoiceDto, PaymentTypeDto } from './payment/payment.contract'
-export type { PaymentService } from './payment/payment.service'
+export type { PaymentModule } from './payment/payment.module'
+export { createPaymentModule } from './payment/payment.module'
 export {
 	PaymentMethodDto,
 	PaymentMethodCreateDto,

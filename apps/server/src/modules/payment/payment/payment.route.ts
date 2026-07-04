@@ -2,19 +2,18 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import * as dto from './payment.contract'
-import type { PaymentService } from './payment.service'
+import type { PaymentModule } from './payment.module'
 
-export function initPaymentRoute(service: PaymentService) {
+export function createPaymentRoute(m: PaymentModule) {
 	return new Elysia({ prefix: '/transaction' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -25,16 +24,20 @@ export function initPaymentRoute(service: PaymentService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const result = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const result = await m.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseDto(dto.PaymentDto), auth: true },
+			{
+				query: zq.recordId,
+				response: createSuccessResponseDto(dto.PaymentDto),
+				auth: true,
+			},
 		)
 		.get(
 			'/invoices',
-			async function invoices(context) {
-				const result = await service.getPaymentInvoices(context.query.id)
+			async ({ query }) => {
+				const result = await m.getPaymentInvoices(query.id)
 				return res.ok(result)
 			},
 			{
@@ -45,9 +48,9 @@ export function initPaymentRoute(service: PaymentService) {
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const result = await service.handleCreate(context.body, context.auth.userId)
-				return res.ok(result)
+			async ({ body, auth }) => {
+				const result = await m.handleCreate(body, auth.userId)
+				return res.created(result)
 			},
 			{
 				body: dto.PaymentCreateDto,
@@ -57,8 +60,8 @@ export function initPaymentRoute(service: PaymentService) {
 		)
 		.put(
 			'/update',
-			async function update(context) {
-				const result = await service.handleUpdate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -69,10 +72,14 @@ export function initPaymentRoute(service: PaymentService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				const result = await service.handleRemove(context.query.id)
+			async ({ body }) => {
+				const result = await m.handleRemove(body.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
+			{
+				body: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
 		)
 }
