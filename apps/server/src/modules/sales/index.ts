@@ -12,8 +12,14 @@ import { SalesInvoiceRepo } from './sales-invoice/sales-invoice.repo'
 import { initSalesInvoiceRoute } from './sales-invoice/sales-invoice.route'
 import { SalesInvoiceService } from './sales-invoice/sales-invoice.service'
 import { SalesOrderRepo } from './sales-order/sales-order.repo'
-import { initSalesOrderRoute } from './sales-order/sales-order.route'
-import { SalesOrderService } from './sales-order/sales-order.service'
+import { createSalesOrderRoute } from './sales-order/sales-order.route'
+import {
+	SalesOrderService,
+	type LocationReadPort,
+	type CustomerReadPort,
+	type SalesTypeReadPort,
+	type ProductReadPort,
+} from './sales-order/sales-order.service'
 
 interface SalesServiceModuleDeps {
 	location: LocationModule
@@ -32,7 +38,18 @@ export class SalesModule {
 		public readonly deps: SalesServiceModuleDeps,
 	) {
 		const salesOrderRepo = new SalesOrderRepo(this.db)
-		this.order = new SalesOrderService(salesOrderRepo, this.cacheClient, this.deps)
+		const orderDeps: {
+			location: LocationReadPort
+			customer: CustomerReadPort
+			salesType: SalesTypeReadPort
+			product: ProductReadPort
+		} = {
+			location: deps.location,
+			customer: deps.crm.customer,
+			salesType: deps.salesType,
+			product: deps.product.product,
+		}
+		this.order = new SalesOrderService(salesOrderRepo, this.cacheClient, orderDeps)
 
 		const salesInvoiceRepo = new SalesInvoiceRepo(this.db)
 		this.invoice = new SalesInvoiceService(salesInvoiceRepo, this.cacheClient)
@@ -41,7 +58,7 @@ export class SalesModule {
 
 export function initSalesRouteModule(s: SalesModule) {
 	return new Elysia({ prefix: '/sales' })
-		.use(initSalesOrderRoute(s.order))
+		.use(createSalesOrderRoute(s.order))
 		.use(initSalesInvoiceRoute(s.invoice))
 		.use(createSalesTypeRoute(s.deps.salesType))
 }

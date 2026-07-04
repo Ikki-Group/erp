@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment */
-import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
-import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
+import { and, count, desc, eq, gte, lte, type SQL } from 'drizzle-orm'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 import {
 	salesExternalRefsTable,
@@ -11,50 +11,177 @@ import {
 	salesVoidsTable,
 } from '@/db/schema/sales'
 
-import { paginate, takeFirstOrThrow, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { BadRequestError, NotFoundError } from '@/shared/errors/http-error'
+import { paginate, type DbContext } from '@/infra/database'
+import { stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-import {
-	SalesOrderAddBatchDto,
+import type {
 	SalesOrderBatchDto,
-	SalesOrderCreateDto,
 	SalesOrderDto,
 	SalesOrderFilterDto,
 	SalesOrderItemDto,
 	SalesOrderOutputDto,
-	SalesOrderVoidDto,
 	SalesVoidDto,
 } from './sales-order.contract'
 
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError(`Sales Order ${id} not found`, { code: 'SALES_ORDER_NOT_FOUND' }),
-	itemNotFound: (id: number) =>
-		new NotFoundError(`Sales Order Item ${id} not found`, { code: 'SALES_ORDER_ITEM_NOT_FOUND' }),
-	notOpen: (id: number) =>
-		new BadRequestError(`Sales Order ${id} is not open`, { code: 'SALES_ORDER_NOT_OPEN' }),
+type SalesOrderInsert = typeof salesOrdersTable.$inferInsert
+type SalesOrderUpdate = PgUpdateSetSource<typeof salesOrdersTable>
+type SalesOrderItemInsert = typeof salesOrderItemsTable.$inferInsert
+type SalesOrderBatchInsert = typeof salesOrderBatchesTable.$inferInsert
+type SalesVoidInsert = typeof salesVoidsTable.$inferInsert
+type SalesExternalRefInsert = typeof salesExternalRefsTable.$inferInsert
+
+export interface ISalesOrderRepo {
+	readonly db: DbContext
+	findById(id: number, db?: DbContext): Promise<SalesOrderOutputDto | undefined>
+	findPage(filter: SalesOrderFilterDto, db?: DbContext): Promise<WithPaginationResult<SalesOrderDto>>
+	findExternalRef(source: string, extId: string, db?: DbContext): Promise<number | undefined>
+	insert(data: SalesOrderInsert, db?: DbContext): Promise<EntityRef | undefined>
+	insertItems(items: SalesOrderItemInsert[], db: DbContext): Promise<void>
+	insertBatch(data: SalesOrderBatchInsert, db: DbContext): Promise<EntityRef | undefined>
+	insertVoid(data: SalesVoidInsert, db: DbContext): Promise<EntityRef | undefined>
+	insertExternalRef(data: SalesExternalRefInsert, db: DbContext): Promise<void>
+	updateOrder(id: number, data: SalesOrderUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	updateOrderStatus(id: number, status: 'open' | 'closed' | 'void', actorId: number, db?: DbContext): Promise<EntityRef | undefined>
+	recalculateTotals(orderId: number, actorId: number, db: DbContext): Promise<void>
 }
 
-export class SalesOrderRepo {
-	constructor(private readonly db: DbClient) {}
+export class SalesOrderRepo implements ISalesOrderRepo {
+	constructor(readonly db: DbContext) {}
 
-	/* -------------------------------- INTERNAL -------------------------------- */
+	#buildWhere(filter: Partial<Pick<SalesOrderFilterDto, 'locationId' | 'status' | 'salesTypeId' | 'startDate' | 'endDate'>>): SQL | undefined {
+		const { locationId, status, salesTypeId, startDate, endDate } = filter
 
-	async #recalculateOrderTotals(tx: any = this.db, orderId: number, actorId: number) {
-		const allItems = await tx
+		const dateCondition =
+			startDate && endDate
+				? and(gte(salesOrdersTable.transactionDate, startDate), lte(salesOrdersTable.transactionDate, endDate))
+				: startDate
+					? gte(salesOrdersTable.transactionDate, startDate)
+					: endDate
+						? lte(salesOrdersTable.transactionDate, endDate)
+						: undefined
+
+		return and(
+			locationId === undefined ? undefined : eq(salesOrdersTable.locationId, locationId),
+			status === undefined ? undefined : eq(salesOrdersTable.status, status),
+			salesTypeId === undefined ? undefined : eq(salesOrdersTable.salesTypeId, salesTypeId),
+			dateCondition,
+		)
+	}
+
+	async findById(id: number, db: DbContext = this.db): Promise<SalesOrderOutputDto | undefined> {
+		const [row] = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
+		if (!row) return undefined
+
+		const [items, batches, voids] = await Promise.all([
+			db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
+			db.select().from(salesOrderBatchesTable).where(eq(salesOrderBatchesTable.orderId, id)),
+			db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
+		])
+
+		return {
+			...row,
+			items: items as unknown as SalesOrderItemDto[],
+			batches: batches as unknown as SalesOrderBatchDto[],
+			voids: voids as unknown as SalesVoidDto[],
+		} as unknown as SalesOrderOutputDto
+	}
+
+	async findPage(filter: SalesOrderFilterDto, db: DbContext = this.db): Promise<WithPaginationResult<SalesOrderDto>> {
+		const where = this.#buildWhere(filter)
+
+		const result = await paginate({
+			data: ({ limit, offset }) =>
+				db
+					.select()
+					.from(salesOrdersTable)
+					.where(where)
+					.orderBy(desc(salesOrdersTable.transactionDate))
+					.limit(limit)
+					.offset(offset),
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(salesOrdersTable).where(where),
+		})
+
+		return {
+			...result,
+			data: result.data as unknown as SalesOrderDto[],
+		}
+	}
+
+	async findExternalRef(source: string, extId: string, db: DbContext = this.db): Promise<number | undefined> {
+		const [existingRef] = await db
+			.select({ orderId: salesExternalRefsTable.orderId })
+			.from(salesExternalRefsTable)
+			.where(
+				and(
+					eq(salesExternalRefsTable.externalSource, source),
+					eq(salesExternalRefsTable.externalOrderId, extId.toString()),
+				),
+			)
+			.limit(1)
+
+		return existingRef?.orderId
+	}
+
+	async insert(data: SalesOrderInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db.insert(salesOrdersTable).values(data).returning({ id: salesOrdersTable.id })
+		return res
+	}
+
+	async insertItems(items: SalesOrderItemInsert[], db: DbContext): Promise<void> {
+		if (items.length === 0) return
+		await db.insert(salesOrderItemsTable).values(items)
+	}
+
+	async insertBatch(data: SalesOrderBatchInsert, db: DbContext): Promise<EntityRef | undefined> {
+		const [res] = await db.insert(salesOrderBatchesTable).values(data).returning({ id: salesOrderBatchesTable.id })
+		return res
+	}
+
+	async insertVoid(data: SalesVoidInsert, db: DbContext): Promise<EntityRef | undefined> {
+		const [res] = await db.insert(salesVoidsTable).values(data).returning({ id: salesVoidsTable.id })
+		return res
+	}
+
+	async insertExternalRef(data: SalesExternalRefInsert, db: DbContext): Promise<void> {
+		await db.insert(salesExternalRefsTable).values(data)
+	}
+
+	async updateOrder(id: number, data: SalesOrderUpdate, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(salesOrdersTable)
+			.set(data)
+			.where(eq(salesOrdersTable.id, id))
+			.returning({ id: salesOrdersTable.id })
+		return res
+	}
+
+	async updateOrderStatus(id: number, status: 'open' | 'closed' | 'void', actorId: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(salesOrdersTable)
+			.set({ status, ...stampUpdate(actorId) })
+			.where(eq(salesOrdersTable.id, id))
+			.returning({ id: salesOrdersTable.id })
+		return res
+	}
+
+	async recalculateTotals(orderId: number, actorId: number, db: DbContext): Promise<void> {
+		const allItems = await db
 			.select()
 			.from(salesOrderItemsTable)
 			.where(eq(salesOrderItemsTable.orderId, orderId))
-		const allVoids = await tx
+
+		const allVoids = await db
 			.select()
 			.from(salesVoidsTable)
 			.where(eq(salesVoidsTable.orderId, orderId))
+
 		const voidedItemIds = new Set<number>(
 			allVoids
-				.filter((v: { itemId: number | null }) => v.itemId !== null)
-				.map((v: { itemId: number | null }) => v.itemId as number),
+				.filter((v) => v.itemId !== null)
+				.map((v) => v.itemId as number),
 		)
 
 		let totalAmount = new Decimal(0)
@@ -70,7 +197,7 @@ export class SalesOrderRepo {
 		}
 
 		const metadata = stampUpdate(actorId)
-		await tx
+		await db
 			.update(salesOrdersTable)
 			.set({
 				totalAmount: totalAmount.toString(),
@@ -81,331 +208,5 @@ export class SalesOrderRepo {
 				...metadata,
 			})
 			.where(eq(salesOrdersTable.id, orderId))
-	}
-
-	/* ---------------------------------- QUERY --------------------------------- */
-
-	async getById(id: number): Promise<SalesOrderOutputDto | undefined> {
-		return record('SalesOrderRepo.getById', async () => {
-			const [row] = await this.db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
-			if (!row) return undefined
-
-			const [items, batches, voids] = await Promise.all([
-				this.db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
-				this.db.select().from(salesOrderBatchesTable).where(eq(salesOrderBatchesTable.orderId, id)),
-				this.db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
-			])
-
-			return {
-				...row,
-				items: items as unknown as SalesOrderItemDto[],
-				batches: batches as unknown as SalesOrderBatchDto[],
-				voids: voids as unknown as SalesVoidDto[],
-			} as unknown as SalesOrderOutputDto
-		})
-	}
-
-	async getListPaginated(
-		filter: SalesOrderFilterDto,
-	): Promise<WithPaginationResult<SalesOrderDto>> {
-		return record('SalesOrderRepo.getListPaginated', async () => {
-			const { locationId, status, salesTypeId, startDate, endDate, page, limit } = filter
-
-			const dateCondition =
-				startDate && endDate
-					? and(
-							gte(salesOrdersTable.transactionDate, startDate),
-							lte(salesOrdersTable.transactionDate, endDate),
-						)
-					: startDate
-						? gte(salesOrdersTable.transactionDate, startDate)
-						: endDate
-							? lte(salesOrdersTable.transactionDate, endDate)
-							: undefined
-
-			const where = and(
-				locationId === undefined ? undefined : eq(salesOrdersTable.locationId, locationId),
-				status === undefined ? undefined : eq(salesOrdersTable.status, status),
-				salesTypeId === undefined ? undefined : eq(salesOrdersTable.salesTypeId, salesTypeId),
-				dateCondition,
-			)
-
-			const result = await paginate({
-				data: ({ limit: l, offset }) =>
-					this.db
-						.select()
-						.from(salesOrdersTable)
-						.where(where)
-						.orderBy(desc(salesOrdersTable.transactionDate))
-						.limit(l)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: () => this.db.select({ count: count() }).from(salesOrdersTable).where(where),
-			})
-
-			return {
-				...result,
-				data: result.data as unknown as SalesOrderDto[],
-			}
-		})
-	}
-
-	async checkExistingExternalRef(
-		source: string,
-		extId: number | string,
-	): Promise<number | undefined> {
-		const [existingRef] = await this.db
-			.select({ orderId: salesExternalRefsTable.orderId })
-			.from(salesExternalRefsTable)
-			.where(
-				and(
-					eq(salesExternalRefsTable.externalSource, source),
-					eq(salesExternalRefsTable.externalOrderId, extId.toString()),
-				),
-			)
-			.limit(1)
-
-		return existingRef?.orderId
-	}
-
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: SalesOrderCreateDto, actorId: number): Promise<{ id: number }> {
-		return record('SalesOrderRepo.create', async () => {
-			const {
-				locationId,
-				customerId,
-				salesTypeId,
-				status,
-				transactionDate,
-				totalAmount,
-				discountAmount,
-				taxAmount,
-				gratuityAmount,
-				refundAmount,
-				items,
-			} = data
-
-			const inserted = await this.db.transaction(async (tx) => {
-				const metadata = stampCreate(actorId)
-
-				const [order] = await tx
-					.insert(salesOrdersTable)
-					.values({
-						locationId,
-						customerId: customerId ?? null,
-						salesTypeId,
-						status,
-						transactionDate,
-						totalAmount: totalAmount.toString(),
-						discountAmount: discountAmount.toString(),
-						taxAmount: taxAmount.toString(),
-						gratuityAmount: gratuityAmount?.toString() ?? '0',
-						refundAmount: refundAmount?.toString() ?? '0',
-						...metadata,
-					})
-					.returning({ id: salesOrdersTable.id })
-
-				if (items && items.length > 0) {
-					await tx.insert(salesOrderItemsTable).values(
-						items.map((item) =>
-							Object.assign(
-								{
-									orderId: order!.id,
-									batchId: item.batchId ?? null,
-									productId: item.productId ?? null,
-									variantId: item.variantId ?? null,
-									itemName: item.itemName,
-									quantity: item.quantity.toString(),
-									unitPrice: item.unitPrice.toString(),
-									discountAmount: item.discountAmount.toString(),
-									taxAmount: item.taxAmount.toString(),
-									subtotal: item.subtotal.toString(),
-								},
-								metadata,
-							),
-						),
-					)
-				}
-
-				return { id: order!.id }
-			})
-
-			return inserted
-		})
-	}
-
-	async createWithExternalRef(
-		data: SalesOrderCreateDto,
-		externalRef: { source: string; extId: string; payload: any },
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('SalesOrderRepo.createWithExternalRef', async () => {
-			const inserted = await this.db.transaction(async (tx) => {
-				const metadata = stampCreate(actorId)
-
-				const [order] = await tx
-					.insert(salesOrdersTable)
-					.values({
-						locationId: data.locationId,
-						customerId: data.customerId ?? null,
-						salesTypeId: data.salesTypeId,
-						status: data.status,
-						transactionDate: data.transactionDate,
-						totalAmount: data.totalAmount.toString(),
-						discountAmount: data.discountAmount.toString(),
-						taxAmount: data.taxAmount.toString(),
-						gratuityAmount: data.gratuityAmount?.toString() ?? '0',
-						refundAmount: data.refundAmount?.toString() ?? '0',
-						...metadata,
-					})
-					.returning({ id: salesOrdersTable.id })
-
-				if (data.items && data.items.length > 0) {
-					await tx.insert(salesOrderItemsTable).values(
-						data.items.map((item) => ({
-							orderId: order!.id,
-							batchId: item.batchId ?? null,
-							productId: item.productId ?? null,
-							variantId: item.variantId ?? null,
-							itemName: item.itemName,
-							quantity: item.quantity.toString(),
-							unitPrice: item.unitPrice.toString(),
-							discountAmount: item.discountAmount.toString(),
-							taxAmount: item.taxAmount.toString(),
-							subtotal: item.subtotal.toString(),
-							...metadata,
-						})),
-					)
-				}
-
-				await tx.insert(salesExternalRefsTable).values({
-					orderId: order!.id,
-					externalSource: externalRef.source,
-					externalOrderId: externalRef.extId,
-					rawPayload: externalRef.payload ?? null,
-					...metadata,
-				})
-
-				return { id: order!.id }
-			})
-
-			return inserted
-		})
-	}
-
-	async addBatch(
-		orderId: number,
-		data: SalesOrderAddBatchDto,
-		actorId: number,
-	): Promise<{ batchId: number }> {
-		return record('SalesOrderRepo.addBatch', async () => {
-			const result = await this.db.transaction(async (tx) => {
-				const orderResult = await tx
-					.select({ status: salesOrdersTable.status })
-					.from(salesOrdersTable)
-					.where(eq(salesOrdersTable.id, orderId))
-				const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message)
-
-				if (order.status !== 'open') throw err.notOpen(orderId)
-
-				const metadata = stampCreate(actorId)
-
-				const [batch] = await tx
-					.insert(salesOrderBatchesTable)
-					.values({
-						orderId,
-						batchNumber: data.batchNumber.toString(),
-						status: 'pending',
-						...metadata,
-					})
-					.returning({ id: salesOrderBatchesTable.id })
-
-				if (data.items.length > 0) {
-					await tx.insert(salesOrderItemsTable).values(
-						data.items.map((item) => ({
-							orderId,
-							batchId: batch!.id,
-							productId: item.productId ?? null,
-							variantId: item.variantId ?? null,
-							itemName: item.itemName,
-							quantity: item.quantity.toString(),
-							unitPrice: item.unitPrice.toString(),
-							discountAmount: item.discountAmount.toString(),
-							taxAmount: item.taxAmount.toString(),
-							subtotal: item.subtotal.toString(),
-							...metadata,
-						})),
-					)
-				}
-
-				await this.#recalculateOrderTotals(tx, orderId, actorId)
-				return { batchId: batch!.id }
-			})
-			return result
-		})
-	}
-
-	async close(orderId: number, actorId: number): Promise<{ id: number }> {
-		return record('SalesOrderRepo.close', async () => {
-			await this.db.transaction(async (tx) => {
-				const orderResult = await tx
-					.select({ status: salesOrdersTable.status })
-					.from(salesOrdersTable)
-					.where(eq(salesOrdersTable.id, orderId))
-				const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message)
-
-				if (order.status !== 'open') throw err.notOpen(orderId)
-
-				await tx
-					.update(salesOrdersTable)
-					.set({ status: 'closed', ...stampUpdate(actorId) })
-					.where(eq(salesOrdersTable.id, orderId))
-
-				// TODO: Add GL posting for manual sales when Finance module integration is ready
-				// Similar to Moka sync's postSalesToGL method
-			})
-			return { id: orderId }
-		})
-	}
-
-	async void(orderId: number, data: SalesOrderVoidDto, actorId: number): Promise<{ id: number }> {
-		return record('SalesOrderRepo.void', async () => {
-			await this.db.transaction(async (tx) => {
-				const orderResult = await tx
-					.select({ status: salesOrdersTable.status })
-					.from(salesOrdersTable)
-					.where(eq(salesOrdersTable.id, orderId))
-				const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message)
-
-				const metadata = stampCreate(actorId)
-
-				await tx.insert(salesVoidsTable).values({
-					orderId,
-					itemId: data.itemId ?? null,
-					reason: data.reason,
-					voidedBy: actorId,
-					...metadata,
-				})
-
-				if (!data.itemId) {
-					await tx
-						.update(salesOrdersTable)
-						.set({ status: 'void', ...stampUpdate(actorId) })
-						.where(eq(salesOrdersTable.id, orderId))
-				} else {
-					const itemResult = await tx
-						.select({ id: salesOrderItemsTable.id })
-						.from(salesOrderItemsTable)
-						.where(eq(salesOrderItemsTable.id, data.itemId))
-					takeFirstOrThrow(itemResult, err.itemNotFound(data.itemId).message)
-
-					if (order.status === 'open') {
-						await this.#recalculateOrderTotals(tx, orderId, actorId)
-					}
-				}
-			})
-			return { id: orderId }
-		})
 	}
 }

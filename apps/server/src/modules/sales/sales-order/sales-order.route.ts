@@ -14,13 +14,13 @@ import {
 } from './sales-order.contract'
 import type { SalesOrderService } from './sales-order.service'
 
-export function initSalesOrderRoute(service: SalesOrderService) {
+export function createSalesOrderRoute(service: SalesOrderService) {
 	return new Elysia({ prefix: '/order' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -31,8 +31,8 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const order = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const order = await service.handleDetail(query.id)
 				return res.ok(order)
 			},
 			{
@@ -43,8 +43,8 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const { id } = await service.handleCreate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const { id } = await service.handleCreate(body, auth.userId)
 				return res.created({ id })
 			},
 			{
@@ -55,13 +55,9 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		)
 		.post(
 			'/add-batch',
-			async function addBatch(context) {
-				const result = await service.handleAddBatch(
-					context.query.id,
-					context.body,
-					context.auth.userId,
-				)
-				return res.ok(result)
+			async ({ query, body, auth }) => {
+				const result = await service.handleAddBatch(query.id, body, auth.userId)
+				return res.ok({ batchId: result.id })
 			},
 			{
 				query: zq.recordId,
@@ -72,16 +68,16 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 		)
 		.post(
 			'/close',
-			async function close(context) {
-				const result = await service.handleClose(context.query.id, context.auth.userId)
+			async ({ query, auth }) => {
+				const result = await service.handleClose(query.id, auth.userId)
 				return res.ok(result)
 			},
 			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/void',
-			async function voidOrder(context) {
-				const result = await service.handleVoid(context.query.id, context.body, context.auth.userId)
+			async ({ query, body, auth }) => {
+				const result = await service.handleVoid(query.id, body, auth.userId)
 				return res.ok(result)
 			},
 			{
