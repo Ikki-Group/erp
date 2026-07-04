@@ -2,6 +2,10 @@
 
 /** Generated endpoint URL map. Do not edit by hand. */
 export const endpoint = {
+	auth: {
+		login: 'location/login',
+		me: 'location/me',
+	},
 	location: {
 		list: 'location/list',
 		detail: 'location/detail',

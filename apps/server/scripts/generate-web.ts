@@ -22,10 +22,10 @@
  *   bun run generate:web:preview         # dry-run
  */
 
+import type { ModuleContract } from '@/shared/contract/define-contract'
+
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
-
-import type { ModuleContract } from '@/shared/contract/define-contract'
 
 // apps/server/scripts → apps/server → apps → <repo root>
 const REPO_ROOT = resolve(import.meta.dir, '../../..')
@@ -42,7 +42,7 @@ const ENDPOINT_GEN = join(REPO_ROOT, 'apps/web/src/config/endpoint.gen.ts')
  * `defineContract(...)` export to its `*.contract.ts`.
  */
 async function loadContracts(): Promise<ModuleContract[]> {
-	const paths = ['location/location.contract.ts']
+	const paths = ['location/location.contract.ts', 'auth/auth.contract.ts']
 
 	const contracts: ModuleContract[] = []
 	for (const rel of paths) {
@@ -226,8 +226,7 @@ function generateEndpointConfig(contracts: ModuleContract[]): string {
 		if ((entityCount.get(c.feature) ?? 1) > 1) {
 			// multi-entity feature → endpoint.<feature>.<entity>.<action>
 			const existing = tree[c.feature]
-			const node: { [key: string]: EndpointNode } =
-				typeof existing === 'object' ? existing : {}
+			const node: { [key: string]: EndpointNode } = typeof existing === 'object' ? existing : {}
 			node[c.entity] = actions
 			tree[c.feature] = node
 		} else {
