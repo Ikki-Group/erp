@@ -1,71 +1,80 @@
-// @ts-nocheck
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
-import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
+import { and, count, desc, eq, gte, lte, SQL } from 'drizzle-orm'
 
 import { auditLogsTable } from '@/db/schema'
 
-import { paginate, searchFilter, takeFirst, type DbClient } from '@/infra/database'
-import { stampCreate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { ActorId, EntityRef } from '@/shared/types/utils'
+import type { EntityRef } from '@/shared/types/utils'
 
-import { AuditLogDto, type AuditLogFilterDto, type AuditLogCreateDto } from './audit-log.contract'
+import type { AuditLogDto, AuditLogFilterDto, AuditLogCreateDto } from './audit-log.contract'
 
-export class AuditLogRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IAuditLogRepo {
+	readonly db: DbContext
+	findPage(filter: AuditLogFilterDto, db?: DbContext): Promise<WithPaginationResult<AuditLogDto>>
+	findById(id: number, db?: DbContext): Promise<AuditLogDto | undefined>
+	insert(data: AuditLogCreateDto, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export class AuditLogRepo implements IAuditLogRepo {
+	constructor(readonly db: DbContext) {}
 
-	async getListPaginated(filter: AuditLogFilterDto): Promise<WithPaginationResult<AuditLogDto>> {
-		const { q, page, limit, action, entityType, userId, fromDate, toDate } = filter
-		const where = and(
+	#buildWhere(filter: AuditLogFilterDto): SQL | undefined {
+		const { q, action, entityType, userId, fromDate, toDate } = filter
+		return and(
 			q === undefined ? undefined : searchFilter(auditLogsTable.description, q),
-			action === undefined
-				? undefined
-				: eq(
-						auditLogsTable.action,
-						action as any as 'CREATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'OTHER' | 'UPDATE',
-					),
+			action === undefined || action === null ? undefined : eq(auditLogsTable.action, action),
 			entityType === undefined ? undefined : eq(auditLogsTable.entityType, entityType),
 			userId === undefined ? undefined : eq(auditLogsTable.userId, userId),
 			fromDate === undefined ? undefined : gte(auditLogsTable.actionAt, fromDate),
 			toDate === undefined ? undefined : lte(auditLogsTable.actionAt, toDate),
 		)
+	}
 
-		return paginate<any>({
+	async findPage(
+		filter: AuditLogFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<AuditLogDto>> {
+		const where = this.#buildWhere(filter)
+
+		return paginate<AuditLogDto>({
 			data: ({ limit, offset }) =>
-				this.db
+				db
 					.select()
 					.from(auditLogsTable)
 					.where(where)
 					.orderBy(desc(auditLogsTable.actionAt))
 					.limit(limit)
 					.offset(offset),
-			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(auditLogsTable).where(where),
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(auditLogsTable).where(where),
 		})
 	}
 
-	async getById(id: number): Promise<AuditLogDto | undefined> {
-		const res = await this.db
+	async findById(id: number, db: DbContext = this.db): Promise<AuditLogDto | undefined> {
+		return db
 			.select()
 			.from(auditLogsTable)
 			.where(eq(auditLogsTable.id, id))
 			.limit(1)
 			.then(takeFirst)
-
-		return res ?? undefined
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: AuditLogCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const metadata = stampCreate(actorId)
-		const [res] = await this.db
+	async insert(data: AuditLogCreateDto, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.insert(auditLogsTable)
-			.values({ ...data, ...metadata })
+			.values({
+				userId: data.userId,
+				action: data.action,
+				entityType: data.entityType,
+				entityId: data.entityId ?? null,
+				description: data.description,
+				oldValue: data.oldValue ?? null,
+				newValue: data.newValue ?? null,
+				ipAddress: data.ipAddress ?? null,
+				userAgent: data.userAgent ?? null,
+			})
 			.returning({ id: auditLogsTable.id })
 
-		return { id: res?.id ?? 0 }
+		return res
 	}
 }

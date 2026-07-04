@@ -2,7 +2,6 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
 
-/** Audit action types */
 const auditActionValues = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'OTHER'] as const
 export const AuditActionDto = z.enum(auditActionValues)
 export type AuditActionDto = z.infer<typeof AuditActionDto>
@@ -19,7 +18,6 @@ export const AuditLogDto = z.object({
 	ipAddress: zp.strNullable,
 	userAgent: zp.strNullable,
 	actionAt: zp.date,
-	...zc.AuditBasic.shape,
 })
 export type AuditLogDto = z.infer<typeof AuditLogDto>
 

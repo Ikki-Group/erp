@@ -1,4 +1,5 @@
 import { createAuthRoute } from '@/modules/auth/auth.route'
+import { createAuditLogRoute } from '@/modules/audit/audit-log.route'
 import { createIamRoute } from '@/modules/iam/iam.route'
 import { createLocationRoute } from '@/modules/location/location.route'
 import { createRecipeRoute } from '@/modules/recipe'
@@ -10,6 +11,7 @@ import type Elysia from 'elysia'
 
 export function createRoutes(m: Modules) {
 	const routes = [
+		createAuditLogRoute(m.auditLog),
 		createLocationRoute(m.location),
 		createSalesTypeRoute(m.salesType),
 		createIamRoute(m.iam),

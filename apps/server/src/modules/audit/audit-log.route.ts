@@ -1,24 +1,19 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import {
-	createPaginatedResponseDto,
-	createSuccessResponseDto,
-	zc,
-	zq,
-} from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import { AuditLogDto, AuditLogFilterDto, AuditLogCreateDto } from './audit-log.contract'
-import type { AuditLogService } from './audit-log.service'
+import type { AuditLogModule } from './audit-log.module'
 
-export function initAuditLogRoute(service: AuditLogService) {
+export function createAuditLogRoute(m: AuditLogModule) {
 	return new Elysia({ prefix: '/audit-log' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -29,8 +24,8 @@ export function initAuditLogRoute(service: AuditLogService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const result = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const result = await m.handleDetail(query.id)
 				return res.ok(result)
 			},
 			{
@@ -41,12 +36,12 @@ export function initAuditLogRoute(service: AuditLogService) {
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const result = await service.handleCreate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await m.handleCreate({ ...body, userId: auth.userId })
 				return res.created(result)
 			},
 			{
-				body: AuditLogCreateDto,
+				body: AuditLogCreateDto.omit({ userId: true }),
 				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},

@@ -1,59 +1,56 @@
+import { record } from '@elysiajs/opentelemetry'
+
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { ActorId, EntityRef } from '@/shared/types/utils'
+import type { EntityRef } from '@/shared/types/utils'
 
 import type { AuditLogDto, AuditLogCreateDto, AuditLogFilterDto } from './audit-log.contract'
-import { AuditLogRepo } from './audit-log.repo'
-
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError(`Audit log with ID ${id} not found`, { code: 'AUDIT_LOG_NOT_FOUND' }),
-	createFailed: () =>
-		new InternalServerError('Audit log creation failed', { code: 'AUDIT_LOG_CREATE_FAILED' }),
-}
+import { AuditLogError } from './audit-log.internal'
+import type { IAuditLogRepo } from './audit-log.repo'
 
 export class AuditLogService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: AuditLogRepo,
+		private readonly repo: IAuditLogRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'audit-log')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
+	private async invalidate(): Promise<void> {
+		await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
+	}
 
 	async getById(id: number): Promise<AuditLogDto | undefined> {
-		return this.cache.getOrSetWithSkip({
-			key: `byId:${id}`,
-			factory: () => this.repo.getById(id),
-		})
+		return record('AuditLogService.getById', async () =>
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
+				factory: () => this.repo.findById(id),
+			}),
+		)
 	}
 
-	async log(data: AuditLogCreateDto, actorId: ActorId): Promise<EntityRef> {
-		return this.repo.create(data, actorId)
+	async log(data: AuditLogCreateDto): Promise<EntityRef> {
+		const result = await this.repo.insert(data)
+		if (!result) throw AuditLogError.createFailed()
+		await this.invalidate()
+		return result
 	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(filter: AuditLogFilterDto): Promise<WithPaginationResult<AuditLogDto>> {
-		const result = await this.repo.getListPaginated(filter)
-		return result
+		return record('AuditLogService.handleList', async () => this.repo.findPage(filter))
 	}
 
 	async handleDetail(id: number): Promise<AuditLogDto> {
-		const result = await this.repo.getById(id)
-		if (!result) throw err.notFound(id)
-		return result
+		return record('AuditLogService.handleDetail', async () => {
+			const result = await this.repo.findById(id)
+			if (!result) throw AuditLogError.notFound(id)
+			return result
+		})
 	}
 
-	async handleCreate(data: AuditLogCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const result = await this.repo.create(data, actorId)
-
-		await this.cache.deleteMany({ keys: ['list', 'count'] })
-
-		return result
+	async handleCreate(data: AuditLogCreateDto): Promise<EntityRef> {
+		return record('AuditLogService.handleCreate', async () => this.log(data))
 	}
 }

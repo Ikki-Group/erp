@@ -2,6 +2,7 @@ import type { CacheClient } from '@/infra/cache'
 import type { DbContext } from '@/infra/database'
 
 import { createAuthModule, type AuthModule } from '@/modules/auth'
+import { createAuditLogModule, type AuditLogModule } from '@/modules/audit/audit-log.module'
 import { type IamModule, createIamModule } from '@/modules/iam/iam.module'
 import { type LocationModule, createLocationModule } from '@/modules/location/location.module'
 import { createRecipeModule, type RecipeModule } from '@/modules/recipe'
@@ -12,6 +13,7 @@ import type { ToolModule } from '@/modules/tool'
 import { createToolModule } from '@/modules/tool/tool.module'
 
 export interface Modules {
+	auditLog: AuditLogModule
 	location: LocationModule
 	salesType: SalesTypeModule
 	iam: IamModule
@@ -28,11 +30,13 @@ export function createModules(db: DbContext, cacheClient: CacheClient): Modules 
 	const salesType = createSalesTypeModule(db, cacheClient)
 	const supplier = createSupplierModule(db, cacheClient)
 	const recipe = createRecipeModule(db, cacheClient)
+	const auditLog = createAuditLogModule(db, cacheClient)
 	const iam = createIamModule(db, cacheClient, { location })
 	const auth = createAuthModule(db, cacheClient, { iam, session })
 	const tool = createToolModule(db, { iam, location })
 
 	return {
+		auditLog,
 		location,
 		salesType,
 		iam,
