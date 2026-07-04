@@ -83,6 +83,15 @@ export class UserService {
 		)
 	}
 
+	async count(): Promise<number> {
+		return record('UserService.count', async () =>
+			this.cache.getOrSet({
+				key: this.cache.keys.count,
+				factory: () => this.repo.count(),
+			}),
+		)
+	}
+
 	async getRelationMap(): Promise<RelationMap<number, UserDto>> {
 		return record('UserService.getRelationMap', async () =>
 			RelationMap.fromArray(await this.getListAll(), (v) => v.id),

@@ -8,3 +8,11 @@ export { createIamModule as IamServiceModule } from './iam.module'
 export type { RoleService } from './role/role.service'
 export type { UserService } from './user/user.service'
 export { UserService as UserReadService } from './user/user.service'
+
+export interface IamUserPort {
+	count(): Promise<number>
+}
+
+export interface IamRolePort {
+	count(): Promise<number>
+}

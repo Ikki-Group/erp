@@ -65,6 +65,15 @@ export class LocationService {
 		)
 	}
 
+	async count(): Promise<number> {
+		return record('LocationService.count', async () =>
+			this.cache.getOrSet({
+				key: this.cache.keys.count,
+				factory: () => this.repo.count(),
+			}),
+		)
+	}
+
 	async getById(id: number): Promise<LocationDto | undefined> {
 		return record('LocationService.getById', async () =>
 			this.cache.getOrSetWithSkip({

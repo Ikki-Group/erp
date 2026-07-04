@@ -10,8 +10,8 @@ import type { SalesModule } from '@/modules/sales'
 
 import { createAnalyticsModule, type AnalyticsModule } from './analytics/analytics.module'
 import { initAnalyticsRoute } from './analytics/analytics.route'
-import { initSettingsRoute } from './settings/settings.route'
-import { SettingsService } from './settings/settings.service'
+import { createSettingsModule, type SettingsModule } from './settings/settings.module'
+import { createSettingsRoute } from './settings/settings.route'
 
 interface DashboardServiceModuleDeps {
 	iam: IamModule
@@ -21,7 +21,7 @@ interface DashboardServiceModuleDeps {
 }
 
 export class DashboardServiceModule {
-	public readonly settings: SettingsService
+	public readonly settings: SettingsModule
 	public readonly analytics: AnalyticsModule
 
 	constructor(
@@ -29,16 +29,20 @@ export class DashboardServiceModule {
 		cacheClient: CacheClient,
 		deps: DashboardServiceModuleDeps,
 	) {
-		this.settings = new SettingsService(deps.iam, deps.location)
+		this.settings = createSettingsModule({
+			iamUser: deps.iam.user,
+			iamRole: deps.iam.role,
+			location: deps.location,
+		})
 		this.analytics = createAnalyticsModule(db, cacheClient)
 	}
 }
 
 export function initDashboardRouteModule(module: DashboardServiceModule) {
 	return new Elysia({ prefix: '/dashboard', detail: { tags: ['Dashboard'] } })
-		.use(initSettingsRoute(module.settings))
+		.use(createSettingsRoute(module.settings))
 		.use(initAnalyticsRoute(module.analytics))
 }
 
 export { SettingsSummaryDto } from './settings/settings.contract'
-export type { SettingsService } from './settings/settings.service'
+export type { SettingsModule } from './settings/settings.module'

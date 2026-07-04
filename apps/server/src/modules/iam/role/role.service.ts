@@ -58,6 +58,15 @@ export class RoleService {
 		)
 	}
 
+	async count(): Promise<number> {
+		return record('RoleService.count', async () =>
+			this.cache.getOrSet({
+				key: this.cache.keys.count,
+				factory: () => this.repo.count(),
+			}),
+		)
+	}
+
 	async getById(id: number): Promise<RoleDto | undefined> {
 		return record('RoleService.getById', async () =>
 			this.cache.getOrSetWithSkip({

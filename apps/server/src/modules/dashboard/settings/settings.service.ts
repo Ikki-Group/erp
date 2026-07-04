@@ -1,22 +1,25 @@
-// @ts-nocheck
-import type { IamServiceModule } from '@/modules/iam'
-import type { LocationServiceModule } from '@/modules/location'
-
 import type { SettingsSummaryDto } from './settings.contract'
+import type { SettingsDeps } from './settings.module'
+import { SettingsError } from './settings.internal'
 
 export class SettingsService {
 	constructor(
-		private readonly iam: IamServiceModule,
-		private readonly location: LocationServiceModule,
+		private readonly deps: SettingsDeps,
 	) {}
 
-	async getSettingsSummary(): Promise<SettingsSummaryDto> {
+	async getSummary(): Promise<SettingsSummaryDto> {
 		const [users, roles, locations] = await Promise.all([
-			this.iam.user.count(),
-			this.iam.role.count(),
-			this.location.master.getCount(),
+			this.deps.iamUser.count(),
+			this.deps.iamRole.count(),
+			this.deps.location.count(),
 		])
 
 		return { users, roles, locations }
+	}
+
+	async handleGetSummary(): Promise<SettingsSummaryDto> {
+		const result = await this.getSummary()
+		if (!result) throw SettingsError.summaryFailed()
+		return result
 	}
 }
