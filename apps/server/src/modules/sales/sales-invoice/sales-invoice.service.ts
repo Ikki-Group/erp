@@ -1,166 +1,223 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-import type { RecordId } from '@/shared/schema'
+import type { DbContext } from '@/infra/database'
+import { withTransaction } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
+import { RelationMap } from '@/shared/utils'
 
-import * as dto from './sales-invoice.contract'
-import { SalesInvoiceRepo } from './sales-invoice.repo'
+import type {
+	SalesInvoiceDto,
+	SalesInvoiceFilterDto,
+	SalesInvoiceWithItemsDto,
+	SalesInvoiceCreateDto,
+	SalesInvoiceUpdateDto,
+	SalesInvoiceGenerateDto,
+} from './sales-invoice.contract'
+import { SalesInvoiceError } from './sales-invoice.internal'
+import type { ISalesInvoiceRepo } from './sales-invoice.repo'
 
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError(`Sales invoice with ID ${id} not found`, { code: 'SALES_INVOICE_NOT_FOUND' }),
-	orderNotFound: (id: number) =>
-		new NotFoundError(`Sales order with ID ${id} not found`, { code: 'SALES_ORDER_NOT_FOUND' }),
-	createFailed: () =>
-		new InternalServerError('Sales invoice creation failed', {
-			code: 'SALES_INVOICE_CREATE_FAILED',
-		}),
+export interface ISalesOrderPort {
+	findById(orderId: number): Promise<{ id: number; status: string } | undefined>
+	findItemsByOrderId(orderId: number, db: DbContext): Promise<
+		Array<{
+			id: number
+			productId: number | null
+			variantId: number | null
+			itemName: string
+			quantity: string
+			unitPrice: string
+			taxAmount: string
+			discountAmount: string
+			subtotal: string
+		}>
+	>
 }
 
 export class SalesInvoiceService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: SalesInvoiceRepo,
+		private readonly repo: ISalesInvoiceRepo,
+		private readonly salesOrder: ISalesOrderPort,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'sales.invoice')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
-
-	async getById(id: number): Promise<dto.SalesInvoiceDto | undefined> {
-		return record('SalesInvoiceService.getById', async () => {
-			const key = `byId:${id}`
-			return this.cache.getOrSetWithSkip({
-				key,
-				factory: () => this.repo.getById(id),
-			})
-		})
+	toRelationMap(items: SalesInvoiceDto[]): RelationMap<number, SalesInvoiceDto> {
+		return RelationMap.fromArray(items, (v) => v.id)
 	}
 
-	async getWithItems(id: number): Promise<dto.SalesInvoiceWithItemsDto | undefined> {
-		return record('SalesInvoiceService.getWithItems', async () => {
-			const key = `withItems:${id}`
-			return this.cache.getOrSetWithSkip({
-				key,
-				factory: () => this.repo.getWithItems(id),
-			})
-		})
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) {
+			keys.push(this.cache.keys.byId(id))
+		}
+		await this.cache.deleteFromKeys(keys)
 	}
 
-	async getByOrderId(orderId: number): Promise<dto.SalesInvoiceDto | undefined> {
-		return record('SalesInvoiceService.getByOrderId', async () => {
-			const key = `byOrderId:${orderId}`
-			return this.cache.getOrSetWithSkip({
-				key,
-				factory: () => this.repo.getByOrderId(orderId),
-			})
-		})
+	async getById(id: number): Promise<SalesInvoiceDto | undefined> {
+		return record('SalesInvoiceService.getById', async () =>
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
+				factory: () => this.repo.findById(id),
+			}),
+		)
 	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(
-		filter: dto.SalesInvoiceFilterDto,
-	): Promise<WithPaginationResult<dto.SalesInvoiceDto>> {
-		return record('SalesInvoiceService.handleList', async () => {
-			const key = `list.${JSON.stringify(filter)}`
-			return this.cache.getOrSet({
-				key,
-				factory: () => this.repo.getListPaginated(filter),
-			})
-		})
+		filter: SalesInvoiceFilterDto,
+	): Promise<WithPaginationResult<SalesInvoiceDto>> {
+		return record('SalesInvoiceService.handleList', async () =>
+			this.cache.getOrSet({
+				key: `${this.cache.keys.list}.${JSON.stringify(filter)}`,
+				factory: () => this.repo.findPage(filter),
+			}),
+		)
 	}
 
-	async handleDetail(id: number): Promise<dto.SalesInvoiceDto> {
+	async handleDetail(id: number): Promise<SalesInvoiceDto> {
 		return record('SalesInvoiceService.handleDetail', async () => {
-			const result = await this.repo.getById(id)
-			if (!result) throw err.notFound(id)
+			const result = await this.repo.findById(id)
+			if (!result) throw SalesInvoiceError.notFound(id)
 			return result
 		})
 	}
 
-	async handleDetailWithItems(id: number): Promise<dto.SalesInvoiceWithItemsDto> {
+	async handleDetailWithItems(id: number): Promise<SalesInvoiceWithItemsDto> {
 		return record('SalesInvoiceService.handleDetailWithItems', async () => {
-			const result = await this.repo.getWithItems(id)
-			if (!result) throw err.notFound(id)
+			const result = await this.repo.findWithItems(id)
+			if (!result) throw SalesInvoiceError.notFound(id)
 			return result
 		})
 	}
 
-	async handleCreate(data: dto.SalesInvoiceCreateDto, actorId: number): Promise<RecordId> {
+	async handleCreate(data: SalesInvoiceCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('SalesInvoiceService.handleCreate', async () => {
-			const result = await this.repo.create(data, actorId)
-			if (!result) throw err.createFailed()
+			const result = await this.repo.insert(
+				{
+					...data,
+					status: 'draft',
+					invoiceDate: new Date(),
+					totalAmount: '0',
+					taxAmount: '0',
+					discountAmount: '0',
+					...stampCreate(actorId),
+				},
+				this.repo.db,
+			)
+			if (!result) throw SalesInvoiceError.createFailed()
 
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
-			return { id: result }
+			await this.invalidate()
+			return result
 		})
 	}
 
 	async handleGenerateFromOrder(
-		data: dto.SalesInvoiceGenerateDto,
-		actorId: number,
-	): Promise<RecordId> {
+		data: SalesInvoiceGenerateDto,
+		actorId: ActorId,
+	): Promise<EntityRef> {
 		return record('SalesInvoiceService.handleGenerateFromOrder', async () => {
-			// Check if invoice already exists for this order
-			const existing = await this.repo.getByOrderId(data.orderId)
+			const existing = await this.repo.findByOrderId(data.orderId)
 			if (existing) {
-				throw new InternalServerError('Invoice already exists for this order', {
-					code: 'INVOICE_ALREADY_EXISTS',
-				})
+				throw SalesInvoiceError.generateFailed()
 			}
 
-			const result = await this.repo.generateFromOrder(data.orderId, data, actorId)
-			if (!result) throw err.createFailed()
+			const order = await this.salesOrder.findById(data.orderId)
+			if (!order) {
+				throw SalesInvoiceError.generateFailed()
+			}
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byOrderId:${data.orderId}`] })
-			return { id: result }
+			const result = await withTransaction(this.repo.db, async (tx) => {
+				const invoiceRef = await this.repo.insert(
+					{
+						orderId: data.orderId,
+						locationId: data.locationId,
+						customerId: data.customerId ?? null,
+						status: 'draft',
+						invoiceDate: new Date(),
+						dueDate: data.dueDate ?? null,
+						notes: data.notes ?? null,
+						totalAmount: '0',
+						taxAmount: '0',
+						discountAmount: '0',
+						...stampCreate(actorId),
+					},
+					tx,
+				)
+				if (!invoiceRef) throw SalesInvoiceError.generateFailed()
+
+				const orderItems = await this.salesOrder.findItemsByOrderId(data.orderId, tx)
+				if (orderItems.length > 0) {
+					const items = orderItems.map((item) => ({
+						invoiceId: invoiceRef.id,
+						salesOrderItemId: item.id,
+						productId: item.productId,
+						variantId: item.variantId,
+						itemName: item.itemName,
+						quantity: item.quantity,
+						unitPrice: item.unitPrice,
+						taxAmount: item.taxAmount,
+						discountAmount: item.discountAmount,
+						subtotal: item.subtotal,
+						...stampCreate(actorId),
+					}))
+					await this.repo.insertItems(items, tx)
+				}
+
+				return invoiceRef
+			})
+
+			await this.invalidate()
+			return result
 		})
 	}
 
-	async handleUpdate(data: dto.SalesInvoiceUpdateDto, actorId: number): Promise<RecordId> {
+	async handleUpdate(data: SalesInvoiceUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('SalesInvoiceService.handleUpdate', async () => {
 			const { id } = data
-
 			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
+			if (!existing) throw SalesInvoiceError.notFound(id)
 
-			// Prevent updating status from paid/void
 			if (existing.status === 'paid' || existing.status === 'void') {
-				throw new InternalServerError('Cannot update a paid or voided invoice', {
-					code: 'CANNOT_UPDATE_PAID_OR_VOIDED_INVOICE',
-				})
+				throw SalesInvoiceError.updateFailed()
 			}
 
-			const result = await this.repo.update(data, actorId)
-			if (!result) throw err.notFound(id)
+			const result = await this.repo.update(
+				id,
+				{
+					...data,
+					status: data.status ?? existing.status,
+					dueDate: data.dueDate ?? existing.dueDate,
+					notes: data.notes ?? existing.notes,
+					...stampUpdate(actorId),
+				},
+				this.repo.db,
+			)
+			if (!result) throw SalesInvoiceError.notFound(id)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`, `withItems:${id}`] })
-			return { id }
+			await this.invalidate(id)
+			return result
 		})
 	}
 
-	async handleRemove(id: number): Promise<RecordId> {
+	async handleRemove(id: number): Promise<EntityRef> {
 		return record('SalesInvoiceService.handleRemove', async () => {
 			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
+			if (!existing) throw SalesInvoiceError.notFound(id)
 
-			// Prevent deleting paid or open invoices
 			if (existing.status === 'paid' || existing.status === 'open') {
-				throw new InternalServerError('Cannot delete a paid or open invoice', {
-					code: 'CANNOT_DELETE_PAID_OR_OPEN_INVOICE',
-				})
+				throw SalesInvoiceError.updateFailed()
 			}
 
-			const result = await this.repo.remove(id)
-			if (!result) throw err.notFound(id)
+			const result = await this.repo.remove(id, this.repo.db)
+			if (!result) throw SalesInvoiceError.notFound(id)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`, `withItems:${id}`] })
-			return { id }
+			await this.invalidate(id)
+			return result
 		})
 	}
 }

@@ -1,20 +1,19 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc, zq } from '@/shared/schema'
-import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import * as dto from './sales-invoice.contract'
 import type { SalesInvoiceService } from './sales-invoice.service'
 
-export function initSalesInvoiceRoute(service: SalesInvoiceService) {
+export function createSalesInvoiceRoute(service: SalesInvoiceService) {
 	return new Elysia({ prefix: '/invoice' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -25,8 +24,8 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const result = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
 			{
@@ -37,8 +36,8 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 		)
 		.get(
 			'/detail-with-items',
-			async function detailWithItems(context) {
-				const result = await service.handleDetailWithItems(context.query.id)
+			async ({ query }) => {
+				const result = await service.handleDetailWithItems(query.id)
 				return res.ok(result)
 			},
 			{
@@ -49,8 +48,8 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const result = await service.handleCreate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
 			{
@@ -61,8 +60,8 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 		)
 		.post(
 			'/generate-from-order',
-			async function generateFromOrder(context) {
-				const result = await service.handleGenerateFromOrder(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleGenerateFromOrder(body, auth.userId)
 				return res.created(result)
 			},
 			{
@@ -73,8 +72,8 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 		)
 		.patch(
 			'/update',
-			async function update(context) {
-				const result = await service.handleUpdate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -85,8 +84,8 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				const result = await service.handleRemove(context.query.id)
+			async ({ query }) => {
+				const result = await service.handleRemove(query.id)
 				return res.ok(result)
 			},
 			{

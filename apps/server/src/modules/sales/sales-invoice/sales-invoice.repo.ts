@@ -1,161 +1,155 @@
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
+import { and, count, desc, eq, gte, lte, type SQL } from 'drizzle-orm'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
-import { salesInvoicesTable, salesInvoiceItemsTable, salesOrderItemsTable } from '@/db/schema'
-
-import { paginate, searchFilter, takeFirst, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import {
+	salesInvoicesTable,
+	salesInvoiceItemsTable,
+} from '@/db/schema'
+import { paginate, searchFilter, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-import * as dto from './sales-invoice.contract'
+import type {
+	SalesInvoiceDto,
+	SalesInvoiceFilterDto,
+	SalesInvoiceItemDto,
+	SalesInvoiceWithItemsDto,
+} from './sales-invoice.contract'
 
-export class SalesInvoiceRepo {
-	constructor(private readonly db: DbClient) {}
+type SalesInvoiceInsert = typeof salesInvoicesTable.$inferInsert
+type SalesInvoiceUpdate = PgUpdateSetSource<typeof salesInvoicesTable>
+type SalesInvoiceItemInsert = typeof salesInvoiceItemsTable.$inferInsert
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export interface ISalesInvoiceRepo {
+	readonly db: DbContext
+	findPage(filter: SalesInvoiceFilterDto, db?: DbContext): Promise<WithPaginationResult<SalesInvoiceDto>>
+	findById(id: number, db?: DbContext): Promise<SalesInvoiceDto | undefined>
+	findByIds(ids: number[], db?: DbContext): Promise<SalesInvoiceDto[]>
+	findWithItems(id: number, db?: DbContext): Promise<SalesInvoiceWithItemsDto | undefined>
+	findByOrderId(orderId: number, db?: DbContext): Promise<SalesInvoiceDto | undefined>
+	insert(data: SalesInvoiceInsert, db?: DbContext): Promise<EntityRef | undefined>
+	insertItems(items: SalesInvoiceItemInsert[], db?: DbContext): Promise<void>
+	update(id: number, data: SalesInvoiceUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	async getListPaginated(
-		filter: dto.SalesInvoiceFilterDto,
-	): Promise<WithPaginationResult<dto.SalesInvoiceDto>> {
-		return record('SalesInvoiceRepo.getListPaginated', async () => {
-			const { q, page, limit, status, customerId, locationId, fromDate, toDate } = filter
-			const where = and(
-				q === undefined ? undefined : searchFilter(salesInvoicesTable.notes, q),
-				status === undefined ? undefined : eq(salesInvoicesTable.status, status),
-				customerId === undefined ? undefined : eq(salesInvoicesTable.customerId, customerId),
-				locationId === undefined ? undefined : eq(salesInvoicesTable.locationId, locationId),
-				fromDate === undefined ? undefined : gte(salesInvoicesTable.invoiceDate, fromDate),
-				toDate === undefined ? undefined : lte(salesInvoicesTable.invoiceDate, toDate),
-			)
+export class SalesInvoiceRepo implements ISalesInvoiceRepo {
+	constructor(readonly db: DbContext) {}
 
-			return paginate<any>({
-				data: ({ limit, offset }) =>
-					this.db
-						.select()
-						.from(salesInvoicesTable)
-						.where(where)
-						.orderBy(desc(salesInvoicesTable.invoiceDate))
-						.limit(limit)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: () => this.db.select({ count: count() }).from(salesInvoicesTable).where(where),
-			})
+	#buildWhere(filter: Partial<
+		Pick<SalesInvoiceFilterDto, 'q' | 'status' | 'customerId' | 'locationId' | 'fromDate' | 'toDate'>
+	>): SQL | undefined {
+		const { q, status, customerId, locationId, fromDate, toDate } = filter
+		return and(
+			q === undefined ? undefined : searchFilter(salesInvoicesTable.notes, q),
+			status === undefined ? undefined : eq(salesInvoicesTable.status, status),
+			customerId === undefined ? undefined : eq(salesInvoicesTable.customerId, customerId),
+			locationId === undefined ? undefined : eq(salesInvoicesTable.locationId, locationId),
+			fromDate === undefined ? undefined : gte(salesInvoicesTable.invoiceDate, fromDate),
+			toDate === undefined ? undefined : lte(salesInvoicesTable.invoiceDate, toDate),
+		)
+	}
+
+	async findPage(
+		filter: SalesInvoiceFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<SalesInvoiceDto>> {
+		const where = this.#buildWhere(filter)
+
+		return paginate<SalesInvoiceDto>({
+			data: ({ limit, offset }) =>
+				db
+					.select()
+					.from(salesInvoicesTable)
+					.where(where)
+					.orderBy(desc(salesInvoicesTable.invoiceDate))
+					.limit(limit)
+					.offset(offset),
+			pq: filter,
+			countQuery: () =>
+				db
+					.select({ count: count() })
+					.from(salesInvoicesTable)
+					.where(where),
 		})
 	}
 
-	async getById(id: number): Promise<dto.SalesInvoiceDto | undefined> {
-		return record('SalesInvoiceRepo.getById', async () => {
-			const res = await this.db
-				.select()
-				.from(salesInvoicesTable)
-				.where(eq(salesInvoicesTable.id, id))
-				.limit(1)
-				.then(takeFirst)
-
-			return res ?? undefined
-		})
+	async findById(id: number, db: DbContext = this.db): Promise<SalesInvoiceDto | undefined> {
+		return db
+			.select()
+			.from(salesInvoicesTable)
+			.where(eq(salesInvoicesTable.id, id))
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	async getWithItems(id: number): Promise<dto.SalesInvoiceWithItemsDto | undefined> {
-		return record('SalesInvoiceRepo.getWithItems', async () => {
-			const invoice = await this.getById(id)
-			if (!invoice) return undefined
-
-			const items = await this.db
-				.select()
-				.from(salesInvoiceItemsTable)
-				.where(eq(salesInvoiceItemsTable.invoiceId, id))
-
-			return { invoice, items }
-		})
+	async findByIds(ids: number[], db: DbContext = this.db): Promise<SalesInvoiceDto[]> {
+		if (ids.length === 0) return []
+		const { inArray } = await import('drizzle-orm')
+		return db
+			.select()
+			.from(salesInvoicesTable)
+			.where(inArray(salesInvoicesTable.id, ids))
 	}
 
-	async getByOrderId(orderId: number): Promise<dto.SalesInvoiceDto | undefined> {
-		return record('SalesInvoiceRepo.getByOrderId', async () => {
-			const res = await this.db
-				.select()
-				.from(salesInvoicesTable)
-				.where(eq(salesInvoicesTable.orderId, orderId))
-				.limit(1)
-				.then(takeFirst)
+	async findWithItems(
+		id: number,
+		db: DbContext = this.db,
+	): Promise<SalesInvoiceWithItemsDto | undefined> {
+		const invoice = await this.findById(id, db)
+		if (!invoice) return undefined
 
-			return res ?? undefined
-		})
+		const items = await db
+			.select()
+			.from(salesInvoiceItemsTable)
+			.where(eq(salesInvoiceItemsTable.invoiceId, id))
+
+		return { invoice, items: items as SalesInvoiceItemDto[] }
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: dto.SalesInvoiceCreateDto, actorId: number): Promise<number | undefined> {
-		return record('SalesInvoiceRepo.create', async () => {
-			const metadata = stampCreate(actorId)
-			const [res] = await this.db
-				.insert(salesInvoicesTable)
-				.values({ ...data, ...metadata })
-				.returning({ id: salesInvoicesTable.id })
-
-			return res?.id
-		})
+	async findByOrderId(orderId: number, db: DbContext = this.db): Promise<SalesInvoiceDto | undefined> {
+		return db
+			.select()
+			.from(salesInvoicesTable)
+			.where(eq(salesInvoicesTable.orderId, orderId))
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	async update(data: dto.SalesInvoiceUpdateDto, actorId: number): Promise<number | undefined> {
-		return record('SalesInvoiceRepo.update', async () => {
-			const metadata = stampUpdate(actorId)
-			const [res] = await this.db
-				.update(salesInvoicesTable)
-				.set({ ...data, ...metadata })
-				.where(eq(salesInvoicesTable.id, data.id))
-				.returning({ id: salesInvoicesTable.id })
+	async insert(data: SalesInvoiceInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.insert(salesInvoicesTable)
+			.values(data)
+			.returning({ id: salesInvoicesTable.id })
 
-			return res?.id
-		})
+		return res
 	}
 
-	async remove(id: number): Promise<number | undefined> {
-		return record('SalesInvoiceRepo.remove', async () => {
-			const [res] = await this.db
-				.delete(salesInvoicesTable)
-				.where(eq(salesInvoicesTable.id, id))
-				.returning({ id: salesInvoicesTable.id })
-
-			return res?.id
-		})
+	async insertItems(items: SalesInvoiceItemInsert[], db: DbContext = this.db): Promise<void> {
+		if (items.length === 0) return
+		await db.insert(salesInvoiceItemsTable).values(items)
 	}
 
-	async generateFromOrder(
-		orderId: number,
-		data: Omit<dto.SalesInvoiceCreateDto, 'orderId'>,
-		actorId: number,
-	): Promise<number | undefined> {
-		return record('SalesInvoiceRepo.generateFromOrder', async () => {
-			// Get order items to copy to invoice
-			const orderItems = await this.db
-				.select()
-				.from(salesOrderItemsTable)
-				.where(eq(salesOrderItemsTable.orderId, orderId))
+	async update(
+		id: number,
+		data: SalesInvoiceUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(salesInvoicesTable)
+			.set(data)
+			.where(eq(salesInvoicesTable.id, id))
+			.returning({ id: salesInvoicesTable.id })
 
-			// Create invoice
-			const invoiceId = await this.create({ orderId, ...data }, actorId)
-			if (!invoiceId) return undefined
+		return res
+	}
 
-			// Create invoice items from order items
-			for (const item of orderItems) {
-				const metadata = stampCreate(actorId)
-				await this.db.insert(salesInvoiceItemsTable).values({
-					invoiceId,
-					salesOrderItemId: item.id,
-					productId: item.productId,
-					variantId: item.variantId,
-					itemName: item.itemName,
-					quantity: item.quantity,
-					unitPrice: item.unitPrice,
-					taxAmount: item.taxAmount,
-					discountAmount: item.discountAmount,
-					subtotal: item.subtotal,
-					...metadata,
-				})
-			}
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.delete(salesInvoicesTable)
+			.where(eq(salesInvoicesTable.id, id))
+			.returning({ id: salesInvoicesTable.id })
 
-			return invoiceId
-		})
+		return res
 	}
 }
