@@ -21,9 +21,8 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
 
-import type { LocationDto } from '@/features/location'
+import type { LocationDto, LocationTypeEnum } from '@/features/location'
 import { locationApi } from '@/features/location'
-import type { LocationTypeDto } from '@/features/location/dto'
 
 export const Route = createFileRoute('/_app/settings/_tab/location')({
 	component: RouteComponent,
@@ -151,7 +150,7 @@ function getColumns({ onRemove }: GetColumnsProps): ColumnDef<LocationDto>[] {
 }
 
 function LocationsTable() {
-	const ds = useDataTableState<{ isActive?: boolean; type?: LocationTypeDto }>()
+	const ds = useDataTableState<{ isActive?: boolean; type?: LocationTypeEnum }>()
 	const { data, isLoading } = useQuery(
 		locationApi.list.query({ ...ds.pagination, q: ds.search, ...ds.filters }),
 	)

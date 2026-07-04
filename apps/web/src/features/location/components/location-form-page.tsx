@@ -12,8 +12,8 @@ import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm } from '@/components/form'
 import { Page } from '@/components/layout/page'
 
-import { locationApi } from '../api'
-import type { LocationDto } from '../dto'
+import { locationApi } from '..'
+import type { LocationDto } from '..'
 
 const FormDto = z.object({
 	name: z.string().min(1),

@@ -26,7 +26,7 @@ import { InputCurrency } from '@/components/ui/input-currency'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { locationApi } from '@/features/location/api/location.api'
+import { locationApi } from '@/features/location'
 import { supplierApi } from '@/features/supplier/api/supplier.api'
 
 import { expenditureApi } from '../api/finance-expenditure.api'

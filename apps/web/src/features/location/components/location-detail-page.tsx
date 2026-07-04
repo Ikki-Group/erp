@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button'
 
 import { assignmentApi, userApi } from '@/features/iam'
 
-import { locationApi } from '../api'
+import { locationApi } from '..'
 import { LocationAssignMemberDialog } from './location-assign-member-dialog'
 
 interface LocationDetailPageProps {

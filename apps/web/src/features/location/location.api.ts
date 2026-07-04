@@ -6,9 +6,9 @@ import { endpoint } from '@/config/endpoint.gen'
 
 import { apiFactory, createQueryKeys } from '@/lib/api'
 
-import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from '../dto'
+import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from './location.dto'
 
-const locationKeys = createQueryKeys('location', 'resource')
+const locationKeys = createQueryKeys('location', 'location')
 
 export const locationApi = {
 	list: apiFactory({

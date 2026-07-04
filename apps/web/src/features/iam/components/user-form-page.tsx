@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/table'
 
 import { roleApi } from '@/features/iam/api/role.api'
-import { locationApi } from '@/features/location/api/location.api'
+import { locationApi } from '@/features/location'
 
 import { userApi } from '../api'
 import type { UserDetailDto } from '../dto'
