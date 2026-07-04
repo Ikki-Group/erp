@@ -1,18 +1,28 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/infra/cache'
-import type { DbClient } from '@/infra/database'
+import { createCategoryRoute } from './category.route'
+import { createProductRoute } from './product.route'
+import { createProductModule, type ProductModule } from './product.module'
 
-import type {
+export type { ProductModule }
+export { createProductModule }
+
+export function initProductRouteModule(m: ProductModule) {
+	return new Elysia({ prefix: '/product' })
+		.use(createCategoryRoute(m.category))
+		.use(createProductRoute(m.product))
+}
+
+export type {
 	ProductCategoryDto,
 	ProductCategoryCreateDto,
 	ProductCategoryUpdateDto,
 	ProductCategoryFilterDto,
 } from './category.contract'
-import { ProductCategoryRepo } from './category.repo'
-import { createCategoryRoute } from './category.route'
-import { ProductCategoryService } from './category.service'
-import type {
+export type { IProductCategoryRepo } from './category.repo'
+export type { ProductCategoryService } from './category.service'
+
+export type {
 	ProductDto,
 	ProductSelectDto,
 	ProductFilterDto,
@@ -23,8 +33,14 @@ import type {
 	VariantPriceDto,
 	ProductExternalMappingDto,
 } from './product.contract'
+export type { IProductRepo } from './product.repo'
+export type { ProductService } from './product.service'
+
+import type { CacheClient } from '@/infra/cache'
+import type { DbContext } from '@/infra/database'
+import { ProductCategoryRepo } from './category.repo'
+import { ProductCategoryService } from './category.service'
 import { ProductRepo } from './product.repo'
-import { initProductRoute } from './product.route'
 import { ProductService } from './product.service'
 
 export class ProductServiceModule {
@@ -32,40 +48,13 @@ export class ProductServiceModule {
 	public readonly product: ProductService
 
 	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
+		db: DbContext,
+		cacheClient: CacheClient,
 	) {
-		const productCategoryRepo = new ProductCategoryRepo(this.db)
-		this.category = new ProductCategoryService(productCategoryRepo, this.cacheClient)
+		const categoryRepo = new ProductCategoryRepo(db)
+		this.category = new ProductCategoryService(categoryRepo, cacheClient)
 
-		const productRepo = new ProductRepo(this.db)
-		this.product = new ProductService(this.category, productRepo, this.cacheClient)
+		const productRepo = new ProductRepo(db)
+		this.product = new ProductService(categoryRepo, productRepo, cacheClient)
 	}
 }
-
-export type ProductModule = ProductServiceModule
-
-export function initProductRouteModule(s: ProductServiceModule) {
-	return new Elysia({ prefix: '/product' })
-		.use(createCategoryRoute(s.category))
-		.use(initProductRoute(s.product))
-}
-
-export type {
-	ProductCategoryDto,
-	ProductCategoryCreateDto,
-	ProductCategoryUpdateDto,
-	ProductCategoryFilterDto,
-	ProductDto,
-	ProductSelectDto,
-	ProductFilterDto,
-	ProductCreateDto,
-	ProductUpdateDto,
-	ProductVariantDto,
-	ProductPriceDto,
-	VariantPriceDto,
-	ProductExternalMappingDto,
-}
-export type { IProductCategoryRepo } from './category.repo'
-export type { ProductCategoryService } from './category.service'
-export type { ProductService } from './product.service'

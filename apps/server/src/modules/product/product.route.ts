@@ -2,8 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc } from '@/shared/schema'
-import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
+import { zc, createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema'
 
 import {
 	ProductFilterDto,
@@ -13,13 +12,13 @@ import {
 } from './product.contract'
 import type { ProductService } from './product.service'
 
-export function initProductRoute(s: ProductService) {
-	return new Elysia()
+export function createProductRoute(s: ProductService) {
+	return new Elysia({ prefix: '/product' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await s.handleList(context.query)
+			async ({ query }) => {
+				const result = await s.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -30,9 +29,9 @@ export function initProductRoute(s: ProductService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const product = await s.handleDetail(context.query.id)
-				return res.ok(product)
+			async ({ query }) => {
+				const result = await s.handleDetail(query.id)
+				return res.ok(result)
 			},
 			{
 				query: zc.RecordId,
@@ -42,9 +41,9 @@ export function initProductRoute(s: ProductService) {
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const { id } = await s.handleCreate(context.body, context.auth.userId)
-				return res.created({ id })
+			async ({ body, auth }) => {
+				const result = await s.handleCreate(body, auth.userId)
+				return res.created(result)
 			},
 			{
 				body: ProductCreateDto,
@@ -54,9 +53,9 @@ export function initProductRoute(s: ProductService) {
 		)
 		.patch(
 			'/update',
-			async function update(context) {
-				const { id } = await s.handleUpdate(context.body.id, context.body, context.auth.userId)
-				return res.ok({ id })
+			async ({ body, auth }) => {
+				const result = await s.handleUpdate(body.id, body, auth.userId)
+				return res.ok(result)
 			},
 			{
 				body: ProductUpdateDto,
@@ -66,18 +65,26 @@ export function initProductRoute(s: ProductService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				await s.handleRemove(context.query.id)
-				return res.ok({ id: context.query.id })
+			async ({ query }) => {
+				const result = await s.handleRemove(query.id)
+				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
+			{
+				query: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
 		)
 		.delete(
 			'/hard-remove',
-			async function hardRemove(context) {
-				await s.handleHardRemove(context.query.id)
-				return res.ok({ id: context.query.id })
+			async ({ query }) => {
+				const result = await s.handleHardRemove(query.id)
+				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
+			{
+				query: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
 		)
 }

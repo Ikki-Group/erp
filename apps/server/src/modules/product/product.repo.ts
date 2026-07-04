@@ -1,37 +1,58 @@
-// @ts-nocheck
-import { and, count, eq, ilike, inArray, not, or } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, not, or, type SQL } from 'drizzle-orm'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 import {
 	productPricesTable,
 	productsTable,
 	productVariantsTable,
-	variantPricesTable,
+	productVariantPricesTable,
 } from '@/db/schema'
 
-import { paginate, sortBy, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
+import { paginate, sortBy, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { ActorId, EntityRef } from '@/shared/types/utils'
+import type { EntityRef } from '@/shared/types/utils'
 
 import {
 	ProductDto,
 	type ProductFilterDto,
-	type ProductMutationDto,
-	ProductPriceDto,
-	ProductVariantDto,
-	VariantPriceDto,
+	type ProductPriceDto,
+	type ProductVariantDto,
+	type VariantPriceDto,
 } from './product.contract'
 
-const DEFAULT_VARIANT_NAME = 'Default'
+type ProductInsert = typeof productsTable.$inferInsert
+type ProductUpdate = PgUpdateSetSource<typeof productsTable>
+type ProductPriceInsert = typeof productPricesTable.$inferInsert
+type VariantInsert = typeof productVariantsTable.$inferInsert
+type VariantPriceInsert = typeof productVariantPricesTable.$inferInsert
 
-export class ProductRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IProductRepo {
+	readonly db: DbContext
+	findById(id: number, db?: DbContext): Promise<ProductDto | undefined>
+	findPage(filter: ProductFilterDto, db?: DbContext): Promise<WithPaginationResult<ProductDto>>
+	checkScopedConflict(
+		locationId: number,
+		input: { sku: string; name: string },
+		excludeId?: number,
+		db?: DbContext,
+	): Promise<{ sku: string; name: string } | undefined>
+	insert(data: ProductInsert, db?: DbContext): Promise<EntityRef | undefined>
+	insertProductPrices(items: ProductPriceInsert[], db: DbContext): Promise<void>
+	insertVariant(data: VariantInsert, db: DbContext): Promise<EntityRef | undefined>
+	insertVariantPrices(items: VariantPriceInsert[], db: DbContext): Promise<void>
+	deleteProductPrices(productId: number, db: DbContext): Promise<void>
+	deleteVariants(productId: number, db: DbContext): Promise<void>
+	updateProduct(id: number, data: ProductUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	async #getProductPricesBatch(productIds: number[]) {
+export class ProductRepo implements IProductRepo {
+	constructor(readonly db: DbContext) {}
+
+	async #getProductPricesBatch(productIds: number[], db: DbContext) {
 		if (productIds.length === 0) return new Map<number, ProductPriceDto[]>()
 
-		const prices = await this.db
+		const prices = await db
 			.select()
 			.from(productPricesTable)
 			.where(inArray(productPricesTable.productId, productIds))
@@ -44,9 +65,9 @@ export class ProductRepo {
 		return map
 	}
 
-	async #getVariantsBatch(productIds: number[]) {
+	async #getVariantsBatch(productIds: number[], db: DbContext) {
 		if (productIds.length === 0) return new Map<number, ProductVariantDto[]>()
-		const variants = await this.db
+		const variants = await db
 			.select()
 			.from(productVariantsTable)
 			.where(inArray(productVariantsTable.productId, productIds))
@@ -54,10 +75,10 @@ export class ProductRepo {
 		const variantIds = variants.map((v) => v.id)
 		const prices =
 			variantIds.length > 0
-				? await this.db
+				? await db
 						.select()
-						.from(variantPricesTable)
-						.where(inArray(variantPricesTable.variantId, variantIds))
+						.from(productVariantPricesTable)
+						.where(inArray(productVariantPricesTable.variantId, variantIds))
 				: []
 
 		const pricesByVariant = new Map<number, VariantPriceDto[]>()
@@ -79,20 +100,31 @@ export class ProductRepo {
 		return map
 	}
 
-	/* ---------------------------------- QUERY --------------------------------- */
+	#buildWhere(filter: Partial<Pick<ProductFilterDto, 'search' | 'status' | 'categoryId' | 'locationId'>>): SQL | undefined {
+		const { search, status, categoryId, locationId } = filter
+		return and(
+			search
+				? or(ilike(productsTable.name, `%${search}%`), ilike(productsTable.sku, `%${search}%`))
+				: undefined,
+			status ? eq(productsTable.status, status) : undefined,
+			categoryId ? eq(productsTable.categoryId, categoryId) : undefined,
+			locationId ? eq(productsTable.locationId, locationId) : undefined,
+		)
+	}
 
-	async getById(id: number): Promise<ProductDto | undefined> {
-		const [product] = await this.db
+	async findById(id: number, db: DbContext = this.db): Promise<ProductDto | undefined> {
+		const product = await db
 			.select()
 			.from(productsTable)
 			.where(eq(productsTable.id, id))
 			.limit(1)
+			.then(takeFirst)
 
 		if (!product) return undefined
 
 		const [variantsMap, pricesMap] = await Promise.all([
-			this.#getVariantsBatch([id]),
-			this.#getProductPricesBatch([id]),
+			this.#getVariantsBatch([id], db),
+			this.#getProductPricesBatch([id], db),
 		])
 
 		return {
@@ -104,28 +136,17 @@ export class ProductRepo {
 		}
 	}
 
-	async getListPaginated(filter: ProductFilterDto): Promise<WithPaginationResult<ProductDto>> {
-		const { search, status, categoryId, locationId, page, limit } = filter
+	async findPage(filter: ProductFilterDto, db: DbContext = this.db): Promise<WithPaginationResult<ProductDto>> {
+		const where = this.#buildWhere(filter)
 
-		const conditions = [
-			search
-				? or(ilike(productsTable.name, `%${search}%`), ilike(productsTable.sku, `%${search}%`))
-				: undefined,
-			status ? eq(productsTable.status, status) : undefined,
-			categoryId ? eq(productsTable.categoryId, categoryId) : undefined,
-			locationId ? eq(productsTable.locationId, locationId) : undefined,
-		].filter((c): c is NonNullable<typeof c> => c !== undefined)
-
-		const where = conditions.length > 0 ? and(...conditions) : undefined
-
-		const result = await paginate({
-			data: async ({ limit: l, offset }) => {
-				const rows = await this.db
+		return paginate<ProductDto>({
+			data: async ({ limit, offset }) => {
+				const rows = await db
 					.select()
 					.from(productsTable)
 					.where(where)
 					.orderBy(sortBy(productsTable.updatedAt, 'desc'))
-					.limit(l)
+					.limit(limit)
 					.offset(offset)
 				return rows.map((r) =>
 					ProductDto.parse({
@@ -137,17 +158,16 @@ export class ProductRepo {
 					}),
 				)
 			},
-			pq: { page, limit },
-			countQuery: () => this.db.select({ count: count() }).from(productsTable).where(where),
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(productsTable).where(where),
 		})
-
-		return result
 	}
 
-	async checkScopedConflict(
+	checkScopedConflict(
 		locationId: number,
 		input: { sku: string; name: string },
 		excludeId?: number,
+		db: DbContext = this.db,
 	) {
 		const conditions = [
 			eq(productsTable.locationId, locationId),
@@ -155,183 +175,62 @@ export class ProductRepo {
 		]
 		if (excludeId) conditions.push(not(eq(productsTable.id, excludeId)))
 
-		const [conflict] = await this.db
+		return db
 			.select({ sku: productsTable.sku, name: productsTable.name })
 			.from(productsTable)
 			.where(and(...conditions))
 			.limit(1)
-
-		if (conflict) {
-			if (conflict.sku === input.sku)
-				throw new ConflictError('Product SKU already exists in this location', {
-					code: 'PRODUCT_SKU_ALREADY_EXISTS',
-				})
-			if (conflict.name === input.name)
-				throw new ConflictError('Product name already exists in this location', {
-					code: 'PRODUCT_NAME_ALREADY_EXISTS',
-				})
-		}
+			.then(takeFirst)
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: ProductMutationDto, actorId: ActorId): Promise<EntityRef> {
-		const meta = stampCreate(actorId)
-		return this.db.transaction(async (tx) => {
-			const [product] = await tx
-				.insert(productsTable)
-				.values({
-					name: data.name,
-					description: data.description,
-					sku: data.sku,
-					locationId: data.locationId,
-					categoryId: data.categoryId,
-					status: data.status,
-					basePrice: (data.basePrice ?? 0).toString(),
-					hasVariants: data.hasVariants,
-					hasSalesTypePricing: data.hasSalesTypePricing,
-					...meta,
-				})
-				.returning({ id: productsTable.id })
-
-			if (!product) throw new Error('Create product failed')
-
-			if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-				await tx.insert(productPricesTable).values(
-					data.prices.map((p) => ({
-						productId: product.id,
-						salesTypeId: p.salesTypeId,
-						price: p.price.toString(),
-						...meta,
-					})),
-				)
-			}
-
-			const inputVariants = data.hasVariants
-				? data.variants && data.variants.length > 0
-					? data.variants
-					: [
-							{
-								name: DEFAULT_VARIANT_NAME,
-								isDefault: true,
-								prices: [],
-								basePrice: '0',
-								sku: data.sku,
-							},
-						]
-				: []
-
-			for (const variant of inputVariants) {
-				const [insertedV] = await tx
-					.insert(productVariantsTable)
-					.values({
-						productId: product.id,
-						name: variant.name.trim(),
-						sku: variant.sku?.trim() ?? '',
-						isDefault: variant.isDefault ?? false,
-						basePrice: (variant.basePrice ?? 0).toString(),
-						...meta,
-					})
-					.returning({ id: productVariantsTable.id })
-
-				if (insertedV && data.hasSalesTypePricing && variant.prices?.length) {
-					await tx.insert(variantPricesTable).values(
-						variant.prices.map((p) => ({
-							variantId: insertedV.id,
-							salesTypeId: p.salesTypeId,
-							price: p.price.toString(),
-							...meta,
-						})),
-					)
-				}
-			}
-			return { id: product.id }
-		})
+	async insert(data: ProductInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [result] = await db
+			.insert(productsTable)
+			.values({ ...data })
+			.returning({ id: productsTable.id })
+		return result
 	}
 
-	async update(id: number, data: ProductMutationDto, actorId: ActorId): Promise<EntityRef> {
-		const updateMeta = stampUpdate(actorId)
-		const createMeta = stampCreate(actorId)
-
-		await this.db.transaction(async (tx) => {
-			await tx
-				.update(productsTable)
-				.set({
-					name: data.name,
-					description: data.description,
-					sku: data.sku,
-					locationId: data.locationId,
-					categoryId: data.categoryId,
-					status: data.status,
-					basePrice: (data.basePrice ?? 0).toString(),
-					hasVariants: data.hasVariants,
-					hasSalesTypePricing: data.hasSalesTypePricing,
-					...updateMeta,
-				})
-				.where(eq(productsTable.id, id))
-
-			await tx.delete(productPricesTable).where(eq(productPricesTable.productId, id))
-			if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-				await tx.insert(productPricesTable).values(
-					data.prices.map((p) => ({
-						productId: id,
-						salesTypeId: p.salesTypeId,
-						price: p.price.toString(),
-						...createMeta,
-					})),
-				)
-			}
-
-			if (data.hasVariants && data.variants) {
-				await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
-				for (const variant of data.variants) {
-					const [insertedV] = await tx
-						.insert(productVariantsTable)
-						.values({
-							productId: id,
-							name: variant.name.trim(),
-							sku: variant.sku?.trim() ?? '',
-							isDefault: variant.isDefault ?? false,
-							basePrice: (variant.basePrice ?? 0).toString(),
-							...createMeta,
-						})
-						.returning({ id: productVariantsTable.id })
-
-					if (insertedV && data.hasSalesTypePricing && variant.prices?.length) {
-						await tx.insert(variantPricesTable).values(
-							variant.prices.map((p) => ({
-								variantId: insertedV.id,
-								salesTypeId: p.salesTypeId,
-								price: p.price.toString(),
-								...createMeta,
-							})),
-						)
-					}
-				}
-			} else if (!data.hasVariants) {
-				await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
-			}
-		})
-		return { id }
+	async insertProductPrices(items: ProductPriceInsert[], db: DbContext): Promise<void> {
+		if (items.length === 0) return
+		await db.insert(productPricesTable).values(items)
 	}
 
-	async softDelete(id: number): Promise<EntityRef> {
-		const [result] = await this.db
+	async insertVariant(data: VariantInsert, db: DbContext): Promise<EntityRef | undefined> {
+		const [result] = await db
+			.insert(productVariantsTable)
+			.values({ ...data })
+			.returning({ id: productVariantsTable.id })
+		return result
+	}
+
+	async insertVariantPrices(items: VariantPriceInsert[], db: DbContext): Promise<void> {
+		if (items.length === 0) return
+		await db.insert(productVariantPricesTable).values(items)
+	}
+
+	async deleteProductPrices(productId: number, db: DbContext): Promise<void> {
+		await db.delete(productPricesTable).where(eq(productPricesTable.productId, productId))
+	}
+
+	async deleteVariants(productId: number, db: DbContext): Promise<void> {
+		await db.delete(productVariantsTable).where(eq(productVariantsTable.productId, productId))
+	}
+
+	async updateProduct(id: number, data: ProductUpdate, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [result] = await db
+			.update(productsTable)
+			.set({ ...data })
+			.where(eq(productsTable.id, id))
+			.returning({ id: productsTable.id })
+		return result
+	}
+
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [result] = await db
 			.delete(productsTable)
 			.where(eq(productsTable.id, id))
 			.returning({ id: productsTable.id })
-		if (!result)
-			throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
-		return { id: result.id }
-	}
-
-	async hardDelete(id: number): Promise<EntityRef> {
-		const [result] = await this.db
-			.delete(productsTable)
-			.where(eq(productsTable.id, id))
-			.returning({ id: productsTable.id })
-		if (!result)
-			throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
-		return { id: result.id }
+		return result
 	}
 }
