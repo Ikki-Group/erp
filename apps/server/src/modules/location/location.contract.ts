@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { defineContract, dto, endpoint, shared } from '@/shared/contract/define-contract'
 import { zc, zp, zq } from '@/shared/schema'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -54,3 +55,52 @@ export const LocationUpdateDto = z.object({
 	...LocationMutationDto.shape,
 })
 export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
+
+/* -------------------------------- CONTRACT -------------------------------- */
+
+/**
+ * Single source of truth for the Location HTTP surface.
+ * Drives both the Elysia route wiring and the web codegen.
+ */
+export const locationContract = defineContract({
+	feature: 'location',
+	prefix: '/location',
+	dtoSource: 'location/location.contract.ts',
+	endpoints: [
+		endpoint({
+			action: 'list',
+			method: 'get',
+			path: '/list',
+			input: { kind: 'query', ref: dto(LocationFilterDto, 'LocationFilterDto') },
+			output: { kind: 'paginated', ref: dto(LocationDto, 'LocationDto') },
+		}),
+		endpoint({
+			action: 'detail',
+			method: 'get',
+			path: '/detail',
+			input: { kind: 'query', ref: shared(zc.RecordId, 'zc.RecordId') },
+			output: { kind: 'single', ref: dto(LocationDto, 'LocationDto') },
+		}),
+		endpoint({
+			action: 'create',
+			method: 'post',
+			path: '/create',
+			input: { kind: 'body', ref: dto(LocationCreateDto, 'LocationCreateDto') },
+			output: { kind: 'single', ref: shared(zc.RecordId, 'zc.RecordId') },
+		}),
+		endpoint({
+			action: 'update',
+			method: 'put',
+			path: '/update',
+			input: { kind: 'body', ref: dto(LocationUpdateDto, 'LocationUpdateDto') },
+			output: { kind: 'single', ref: shared(zc.RecordId, 'zc.RecordId') },
+		}),
+		endpoint({
+			action: 'remove',
+			method: 'delete',
+			path: '/remove',
+			input: { kind: 'body', ref: shared(zc.RecordId, 'zc.RecordId') },
+			output: { kind: 'single', ref: shared(zc.RecordId, 'zc.RecordId') },
+		}),
+	],
+})
