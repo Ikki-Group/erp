@@ -64,6 +64,7 @@ export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
  */
 export const locationContract = defineContract({
 	feature: 'location',
+	entity: 'location',
 	prefix: '/location',
 	dtoSource: 'location/location.contract.ts',
 	endpoints: [

@@ -70,10 +70,18 @@ export interface EndpointContract<
 
 export interface ModuleContract {
 	/**
-	 * Feature key on the web side (used for the endpoint config namespace and
-	 * the `features/<feature>` folder). e.g. `'location'`, `'iam.user'`.
+	 * Web feature = the `features/<feature>` folder AND the endpoint-config
+	 * namespace. e.g. `'location'`, `'iam'`, `'payment'`.
 	 */
 	feature: string
+	/**
+	 * Entity within the feature. Drives the flat file basenames
+	 * (`<entity>.dto.ts`, `<entity>.api.ts`), the exported `<entity>Api` object,
+	 * and the query-key resource. For a single-entity feature this equals
+	 * `feature` (e.g. location → `entity: 'location'`). For a multi-entity
+	 * feature it is the sub-entity (e.g. feature `iam`, entity `user`).
+	 */
+	entity: string
 	/** Elysia route prefix, e.g. `/location` or `/iam/user`. */
 	prefix: string
 	/**

@@ -73,7 +73,7 @@ function isModuleContract(v: unknown): v is ModuleContract {
  * Copy the server contract DTO source to the web feature, rewriting the
  * validation import path and stripping server-only contract wiring.
  */
-function generateDto(contract: ModuleContract): { path: string; content: string; barrel: string } {
+function generateDto(contract: ModuleContract): { path: string; content: string } {
 	const src = readFileSync(join(SERVER_MODULES, contract.dtoSource), 'utf-8')
 
 	// The web DTO must not carry the server contract wiring. Drop the
@@ -90,12 +90,9 @@ function generateDto(contract: ModuleContract): { path: string; content: string;
 
 	out = `${GEN_HEADER}\n${out.trimEnd()}\n`
 
-	const baseName = contract.feature.split('.').pop()!
-	const fileName = `${baseName}.dto.ts`
 	return {
-		path: join(WEB_FEATURES, featureDir(contract), 'dto', fileName),
+		path: join(WEB_FEATURES, contract.feature, `${contract.entity}.dto.ts`),
 		content: out,
-		barrel: `export * from './${baseName}.dto'\n`,
 	}
 }
 
@@ -103,13 +100,15 @@ function generateDto(contract: ModuleContract): { path: string; content: string;
 /*  API factory                                                               */
 /* -------------------------------------------------------------------------- */
 
-function generateApi(contract: ModuleContract): { path: string; content: string; barrel: string } {
-	const baseName = contract.feature.split('.').pop()!
+function generateApi(
+	contract: ModuleContract,
+	multiEntity: boolean,
+): { path: string; content: string } {
+	const entity = contract.entity
 
 	// Collect referenced identifiers to build imports.
 	const dtoRefs = new Set<string>()
 	const validationRefs = new Set<string>() // e.g. zc.RecordId → import zc
-	let needsZ = false
 
 	const wrapperImports = new Set<string>()
 
@@ -130,24 +129,23 @@ function generateApi(contract: ModuleContract): { path: string; content: string;
 	lines.push(GEN_HEADER)
 	lines.push('')
 	lines.push(`import { ${[...validationNamed].sort().join(', ')} } from '@/lib/validation'`)
-	if (needsZ) lines.push(`import z from 'zod'`)
 	lines.push('')
 	lines.push(`import { endpoint } from '@/config/endpoint.gen'`)
 	lines.push('')
 	lines.push(`import { apiFactory, createQueryKeys } from '@/lib/api'`)
 	lines.push('')
 	if (dtoRefs.size > 0) {
-		lines.push(`import { ${[...dtoRefs].sort().join(', ')} } from '../dto'`)
+		lines.push(`import { ${[...dtoRefs].sort().join(', ')} } from './${entity}.dto'`)
 		lines.push('')
 	}
 
-	const keysVar = `${camel(baseName)}Keys`
-	lines.push(`const ${keysVar} = createQueryKeys('${contract.feature}', 'resource')`)
+	const keysVar = `${camel(entity)}Keys`
+	lines.push(`const ${keysVar} = createQueryKeys('${contract.feature}', '${entity}')`)
 	lines.push('')
-	lines.push(`export const ${camel(baseName)}Api = {`)
+	lines.push(`export const ${camel(entity)}Api = {`)
 
 	for (const ep of contract.endpoints) {
-		const epPath = endpointConfigRef(contract.feature, ep.action)
+		const epPath = endpointConfigRef(contract, ep.action, multiEntity)
 		lines.push(`\t${ep.action}: apiFactory({`)
 		lines.push(`\t\tmethod: '${ep.method}',`)
 		lines.push(`\t\turl: ${epPath},`)
@@ -172,9 +170,8 @@ function generateApi(contract: ModuleContract): { path: string; content: string;
 	lines.push(`}`)
 
 	return {
-		path: join(WEB_FEATURES, featureDir(contract), 'api', `${baseName}.api.ts`),
+		path: join(WEB_FEATURES, contract.feature, `${entity}.api.ts`),
 		content: lines.join('\n') + '\n',
-		barrel: `export * from './${baseName}.api'\n`,
 	}
 }
 
@@ -198,9 +195,10 @@ function collectRef(
 /*  Endpoint config fragment                                                  */
 /* -------------------------------------------------------------------------- */
 
-function endpointConfigRef(feature: string, action: string): string {
-	// feature may be dotted (iam.user) → endpoint.iam.user.list
-	return `endpoint.${feature}.${action}`
+function endpointConfigRef(contract: ModuleContract, action: string, multiEntity: boolean): string {
+	return multiEntity
+		? `endpoint.${contract.feature}.${contract.entity}.${action}`
+		: `endpoint.${contract.feature}.${action}`
 }
 
 function generateEndpointConfig(contracts: ModuleContract[]): string {
@@ -210,20 +208,22 @@ function generateEndpointConfig(contracts: ModuleContract[]): string {
 	lines.push('/** Generated endpoint URL map. Do not edit by hand. */')
 	lines.push('export const endpoint = {')
 
-	// group by top-level feature segment to support dotted features
-	const tree: Record<string, Record<string, Record<string, string>> | Record<string, string>> = {}
+	// Count entities per feature to decide flat vs nested.
+	const entityCount = new Map<string, number>()
+	for (const c of contracts) entityCount.set(c.feature, (entityCount.get(c.feature) ?? 0) + 1)
+
+	const tree: Record<string, Record<string, unknown>> = {}
 	for (const c of contracts) {
-		const segs = c.feature.split('.')
 		const actions: Record<string, string> = {}
-		for (const ep of c.endpoints) {
-			actions[ep.action] = joinUrl(c.prefix, ep.path)
-		}
-		if (segs.length === 1) {
-			tree[segs[0]] = actions
+		for (const ep of c.endpoints) actions[ep.action] = joinUrl(c.prefix, ep.path)
+
+		if ((entityCount.get(c.feature) ?? 1) > 1) {
+			// multi-entity feature → endpoint.<feature>.<entity>.<action>
+			const node = (tree[c.feature] ??= {})
+			node[c.entity] = actions
 		} else {
-			const [top, sub] = segs
-			const node = (tree[top] ??= {}) as Record<string, Record<string, string>>
-			node[sub] = actions
+			// single-entity feature → endpoint.<feature>.<action>
+			tree[c.feature] = actions
 		}
 	}
 
@@ -256,11 +256,6 @@ function joinUrl(prefix: string, path: string): string {
 
 const GEN_HEADER = `// AUTO-GENERATED by scripts/generate-web.ts — DO NOT EDIT.`
 
-function featureDir(contract: ModuleContract): string {
-	// iam.user → iam/user ; location → location
-	return contract.feature.replace(/\./g, '/')
-}
-
 function camel(s: string): string {
 	return s.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
 }
@@ -275,12 +270,47 @@ function writeFile(path: string, content: string, dryRun: boolean) {
 	console.log(`   ✓ ${path.replace(REPO_ROOT + '/', '')}`)
 }
 
-function appendBarrel(dir: string, entry: string, dryRun: boolean) {
-	const barrelPath = join(dir, 'index.ts')
-	let existing = existsSync(barrelPath) ? readFileSync(barrelPath, 'utf-8') : ''
-	if (existing.includes(entry.trim())) return
-	if (!existing.startsWith(GEN_HEADER)) existing = `${GEN_HEADER}\n${existing}`
-	writeFile(barrelPath, existing.trimEnd() + '\n' + entry, dryRun)
+/**
+ * Write the feature barrel `index.ts`. The generator owns the dto/api exports
+ * (one block per entity) and preserves any hand-written exports below a marker
+ * (e.g. `./components`, `./utils`, `./pages`).
+ */
+function writeFeatureBarrel(feature: string, entities: string[], dryRun: boolean) {
+	const barrelPath = join(WEB_FEATURES, feature, 'index.ts')
+	const MANUAL_MARKER = '/* --- manual exports (preserved) --- */'
+
+	// Preserve any manual exports written below the marker.
+	let manual = ''
+	if (existsSync(barrelPath)) {
+		const existing = readFileSync(barrelPath, 'utf-8')
+		const idx = existing.indexOf(MANUAL_MARKER)
+		if (idx !== -1) {
+			manual = existing.slice(idx + MANUAL_MARKER.length).trim()
+		} else {
+			// First migration: keep any non-generated (dto/api) export lines.
+			manual = existing
+				.split('\n')
+				.filter(
+					(l) =>
+						l.startsWith('export') &&
+						!/\.\/[\w-]+\.(dto|api)'/.test(l) &&
+						!/\.\/(api|dto)'/.test(l),
+				)
+				.join('\n')
+				.trim()
+		}
+	}
+
+	const lines = [GEN_HEADER, '']
+	for (const entity of entities.sort()) {
+		lines.push(`export * from './${entity}.dto'`)
+		lines.push(`export * from './${entity}.api'`)
+	}
+	lines.push('')
+	lines.push(MANUAL_MARKER)
+	if (manual) lines.push(manual)
+
+	writeFile(barrelPath, lines.join('\n').trimEnd() + '\n', dryRun)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -293,30 +323,48 @@ async function main() {
 	const only = args.find((a) => !a.startsWith('--'))
 
 	console.log('\n📋 Loading contracts...')
-	let contracts = await loadContracts()
-	if (only) contracts = contracts.filter((c) => c.feature === only || c.feature.startsWith(only + '.'))
+	const allContracts = await loadContracts()
+	let contracts = allContracts
+	if (only) contracts = contracts.filter((c) => c.feature === only)
 
 	if (contracts.length === 0) {
 		console.log('   (no matching contracts)')
 		return
 	}
-	console.log(`   found: ${contracts.map((c) => c.feature).join(', ')}`)
+	console.log(`   found: ${contracts.map((c) => `${c.feature}/${c.entity}`).join(', ')}`)
 
-	console.log('\n🔨 Generating per-feature DTO + API...')
+	// A feature is multi-entity if more than one contract shares its `feature`.
+	const entityCount = new Map<string, number>()
+	for (const c of allContracts) entityCount.set(c.feature, (entityCount.get(c.feature) ?? 0) + 1)
+
+	console.log('\n🔨 Generating flat DTO + API per entity...')
+	// Group target contracts by feature to write one barrel per feature.
+	const byFeature = new Map<string, ModuleContract[]>()
 	for (const c of contracts) {
+		const arr = byFeature.get(c.feature) ?? []
+		arr.push(c)
+		byFeature.set(c.feature, arr)
+	}
+
+	for (const c of contracts) {
+		const multiEntity = (entityCount.get(c.feature) ?? 1) > 1
+
 		const dtoFile = generateDto(c)
 		writeFile(dtoFile.path, dtoFile.content, dryRun)
-		appendBarrel(dirname(dtoFile.path), dtoFile.barrel, dryRun)
 
-		const apiFile = generateApi(c)
+		const apiFile = generateApi(c, multiEntity)
 		writeFile(apiFile.path, apiFile.content, dryRun)
-		appendBarrel(dirname(apiFile.path), apiFile.barrel, dryRun)
+	}
+
+	// Barrel per feature — include ALL entities of the feature (not just the
+	// filtered subset) so a single-entity run doesn't drop sibling exports.
+	for (const feature of byFeature.keys()) {
+		const entities = allContracts.filter((c) => c.feature === feature).map((c) => c.entity)
+		writeFeatureBarrel(feature, entities, dryRun)
 	}
 
 	console.log('\n🔨 Generating endpoint config...')
-	// Merge with any previously-generated features so single-feature runs don't
-	// drop others. Simplest robust approach: regenerate from ALL contracts.
-	const allContracts = await loadContracts()
+	// Regenerate from ALL contracts so single-feature runs don't drop others.
 	writeFile(ENDPOINT_GEN, generateEndpointConfig(allContracts), dryRun)
 
 	console.log('\n✅ Done!\n')
