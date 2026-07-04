@@ -1,10 +1,4 @@
-import {
-	configure,
-	getLogger as getLogtapeLogger,
-	getConsoleSink,
-	type Logger,
-	jsonLinesFormatter,
-} from '@logtape/logtape'
+import { configure, getLogger, getConsoleSink, jsonLinesFormatter } from '@logtape/logtape'
 import { getPrettyFormatter } from '@logtape/pretty'
 
 import { env } from '@/config/env'
@@ -31,14 +25,9 @@ await configure({
 	loggers: [
 		{ category: ['logtape', 'meta'], sinks: ['meta'], lowestLevel: 'error' },
 		// { category: ['otel'], sinks: ['otel'], lowestLevel: 'debug' },
-		{ category: [], sinks: ['main'] },
+		{ category: ['app'], sinks: ['main'] },
 	],
 })
 
-export function getLogger(category: string[] = []): Logger {
-	return getLogtapeLogger([...category])
-}
-
-const logger = getLogtapeLogger([])
-
+const logger = getLogger(['app'])
 export { logger }
