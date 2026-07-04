@@ -1,4 +1,4 @@
-import { z, createSuccessResponseSchema } from '@ikki/api-contract/validation'
+import { z, createSuccessResponseSchema } from '@/lib/validation'
 
 import { endpoint } from '@/config/endpoint'
 

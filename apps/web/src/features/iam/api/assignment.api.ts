@@ -1,4 +1,4 @@
-import { createPaginatedResponseSchema, successNoDataSchema } from '@ikki/api-contract/validation'
+import { createPaginatedResponseSchema, successNoDataSchema } from '@/lib/validation'
 
 import { endpoint } from '@/config/endpoint'
 

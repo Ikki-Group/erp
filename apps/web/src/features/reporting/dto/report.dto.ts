@@ -1,4 +1,4 @@
-import { z, zp } from '@ikki/api-contract/validation'
+import { z, zp } from '@/lib/validation'
 
 import { ChartTypeDto, ReportRequestDto, ReportSummaryDto } from './reporting.dto'
 

@@ -22,8 +22,7 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false,
 		"paths": {
-			"@/*": ["./src/*"],
-			"@ikki/api-contract/*": ["../../packages/api-contract/dist/*"]
+			"@/*": ["./src/*"]
 		}
 	},
 	"include": ["**/*.ts", "**/*.tsx", "vite.config.js"]

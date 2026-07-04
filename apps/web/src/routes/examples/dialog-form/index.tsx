@@ -8,7 +8,7 @@ import { useForm } from '@tanstack/react-form'
 import { createFileRoute } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-form-adapter'
 
-import { z } from '@ikki/api-contract/validation'
+import { z } from '@/lib/validation'
 import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 

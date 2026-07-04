@@ -3,7 +3,7 @@ import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
-} from '@ikki/api-contract/validation'
+} from '@/lib/validation'
 
 import { endpoint } from '@/config/endpoint'
 

@@ -1,4 +1,4 @@
-import { z, zp } from '@ikki/api-contract/validation'
+import { z, zp } from '@/lib/validation'
 
 /** Date range filter for reports */
 export const DateRangeDto = z.object({

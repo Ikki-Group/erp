@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
 
-import { z } from '@ikki/api-contract/validation'
+import { z } from '@/lib/validation'
 import { PlusIcon, ShieldAlertIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 

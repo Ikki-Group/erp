@@ -1,4 +1,4 @@
-import { z, zp, zc, zq } from '@ikki/api-contract/validation'
+import { z, zp, zc, zq } from '@/lib/validation'
 
 export const AccountTypeEnum = z.enum(['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'])
 export type AccountTypeEnum = z.infer<typeof AccountTypeEnum>

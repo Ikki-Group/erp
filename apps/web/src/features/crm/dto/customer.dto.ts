@@ -1,4 +1,4 @@
-import { z, zp, zc, zq } from '@ikki/api-contract/validation'
+import { z, zp, zc, zq } from '@/lib/validation'
 
 /** Customer loyalty tier levels */
 export const CustomerTierDto = z.enum(['bronze', 'silver', 'gold', 'platinum'])

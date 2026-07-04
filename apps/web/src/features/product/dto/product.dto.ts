@@ -1,4 +1,4 @@
-import { z, zp, zc, zq } from '@ikki/api-contract/validation'
+import { z, zp, zc, zq } from '@/lib/validation'
 
 import { ProductCategoryDto } from './product-category.dto'
 

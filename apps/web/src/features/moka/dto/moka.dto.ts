@@ -1,4 +1,4 @@
-import { z, zp } from '@ikki/api-contract/validation'
+import { z, zp } from '@/lib/validation'
 
 import { MokaScrapType, MokaSyncTriggerMode } from './moka-scrap-history.dto'
 

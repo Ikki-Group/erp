@@ -1,4 +1,4 @@
-import { z, zp, zc } from '@ikki/api-contract/validation'
+import { z, zp, zc } from '@/lib/validation'
 
 /** Single material count in a stock opname */
 const StockOpnameItemDto = z.object({

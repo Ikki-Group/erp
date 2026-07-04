@@ -1,4 +1,4 @@
-import { z, zp, zc, zq } from '@ikki/api-contract/validation'
+import { z, zp, zc, zq } from '@/lib/validation'
 
 export const WorkOrderStatusDto = z.enum(['draft', 'in_progress', 'completed', 'cancelled'])
 export type WorkOrderStatusDto = z.infer<typeof WorkOrderStatusDto>

@@ -1,7 +1,7 @@
 import { formOptions } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 
-import { z, zPassword } from '@ikki/api-contract/validation'
+import { z, zPassword } from '@/lib/validation'
 import { createCallable } from 'react-call'
 import { toast } from 'sonner'
 

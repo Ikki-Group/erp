@@ -3,7 +3,7 @@ import {
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@ikki/api-contract/validation'
+} from '@/lib/validation'
 import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'

@@ -1,4 +1,4 @@
-import { z, zp, zc } from '@ikki/api-contract/validation'
+import { z, zp, zc } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 

@@ -1,4 +1,4 @@
-import { z, zp } from '@ikki/api-contract/validation'
+import { z, zp } from '@/lib/validation'
 
 export const StockAlertFilterDto = z.object({
 	locationId: zp.id.optional(),

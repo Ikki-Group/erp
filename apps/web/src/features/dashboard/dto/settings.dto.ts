@@ -1,4 +1,4 @@
-import { z, zp } from '@ikki/api-contract/validation'
+import { z, zp } from '@/lib/validation'
 
 export const SettingsSummaryDto = z.object({ users: zp.num, roles: zp.num, locations: zp.num })
 
