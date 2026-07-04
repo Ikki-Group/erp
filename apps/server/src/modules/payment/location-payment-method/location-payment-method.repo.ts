@@ -1,211 +1,132 @@
-// @ts-nocheck
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, SQL } from 'drizzle-orm'
 
-import { locationPaymentMethodsTable, locationsTable, paymentMethodsTable } from '@/db/schema'
+import { locationPaymentMethodsTable } from '@/db/schema'
 
-import { paginate, sortBy, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import { paginate, sortBy, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-import {
-	LocationPaymentMethodCreateDto,
+import type {
 	LocationPaymentMethodDto,
 	LocationPaymentMethodFilterDto,
-	LocationPaymentMethodUpdateDto,
 } from './location-payment-method.contract'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
-export class LocationPaymentMethodRepo {
-	constructor(private readonly db: DbClient) {}
+type LocationPaymentMethodInsert = typeof locationPaymentMethodsTable.$inferInsert
+type LocationPaymentMethodUpdate = PgUpdateSetSource<typeof locationPaymentMethodsTable>
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export type { LocationPaymentMethodInsert, LocationPaymentMethodUpdate }
 
-	async getById(id: number): Promise<LocationPaymentMethodDto | undefined> {
-		return record('LocationPaymentMethodRepo.getById', async () => {
-			const result = await this.db
-				.select()
-				.from(locationPaymentMethodsTable)
-				.where(eq(locationPaymentMethodsTable.id, id))
-			if (result.length === 0) return undefined
-			return LocationPaymentMethodDto.parse(result[0])
-		})
+export interface ILocationPaymentMethodRepo {
+	readonly db: DbContext
+	findById(id: number, db?: DbContext): Promise<LocationPaymentMethodDto | undefined>
+	findByLocation(locationId: number, db?: DbContext): Promise<LocationPaymentMethodDto[]>
+	findPage(filter: LocationPaymentMethodFilterDto, db?: DbContext): Promise<WithPaginationResult<LocationPaymentMethodDto>>
+	insert(data: LocationPaymentMethodInsert, db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: LocationPaymentMethodUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+	removeByLocation(locationId: number, db?: DbContext): Promise<number>
+	unsetDefaultForLocation(locationId: number, db?: DbContext): Promise<void>
+}
+
+export class LocationPaymentMethodRepo implements ILocationPaymentMethodRepo {
+	constructor(readonly db: DbContext) {}
+
+	#buildWhere(filter: Partial<LocationPaymentMethodFilterDto>): SQL | undefined {
+		const { locationId, paymentMethodId, paymentProviderId, isEnabled } = filter
+		return and(
+			locationId === undefined ? undefined : eq(locationPaymentMethodsTable.locationId, locationId),
+			paymentMethodId === undefined ? undefined : eq(locationPaymentMethodsTable.paymentMethodId, paymentMethodId),
+			paymentProviderId === undefined ? undefined : eq(locationPaymentMethodsTable.paymentProviderId, paymentProviderId),
+			isEnabled === undefined ? undefined : eq(locationPaymentMethodsTable.isEnabled, isEnabled),
+		)
 	}
 
-	async getByLocation(locationId: number): Promise<LocationPaymentMethodDto[]> {
-		return record('LocationPaymentMethodRepo.getByLocation', async () => {
-			const rows = await this.db
-				.select()
-				.from(locationPaymentMethodsTable)
-				.where(eq(locationPaymentMethodsTable.locationId, locationId))
-				.orderBy(locationPaymentMethodsTable.isDefault, locationPaymentMethodsTable.createdAt)
-			return rows.map((r) => LocationPaymentMethodDto.parse(r))
-		})
+	async findById(id: number, db: DbContext = this.db): Promise<LocationPaymentMethodDto | undefined> {
+		return db
+			.select()
+			.from(locationPaymentMethodsTable)
+			.where(eq(locationPaymentMethodsTable.id, id))
+			.limit(1)
+			.then(takeFirst)
 	}
 
-	async getListPaginated(
+	async findByLocation(locationId: number, db: DbContext = this.db): Promise<LocationPaymentMethodDto[]> {
+		return db
+			.select()
+			.from(locationPaymentMethodsTable)
+			.where(eq(locationPaymentMethodsTable.locationId, locationId))
+			.orderBy(locationPaymentMethodsTable.isDefault, locationPaymentMethodsTable.createdAt)
+	}
+
+	async findPage(
 		filter: LocationPaymentMethodFilterDto,
+		db: DbContext = this.db,
 	): Promise<WithPaginationResult<LocationPaymentMethodDto>> {
-		return record('LocationPaymentMethodRepo.getListPaginated', async () => {
-			const { page, limit, locationId, paymentMethodId, paymentProviderId, isEnabled } = filter
+		const where = this.#buildWhere(filter)
 
-			const conditions = []
-			if (locationId) conditions.push(eq(locationPaymentMethodsTable.locationId, locationId))
-			if (paymentMethodId)
-				conditions.push(eq(locationPaymentMethodsTable.paymentMethodId, paymentMethodId))
-			if (paymentProviderId)
-				conditions.push(eq(locationPaymentMethodsTable.paymentProviderId, paymentProviderId))
-			if (isEnabled !== undefined)
-				conditions.push(eq(locationPaymentMethodsTable.isEnabled, isEnabled))
-
-			const where = conditions.length > 0 ? and(...conditions) : undefined
-
-			return paginate<any>({
-				data: async ({ limit: l, offset }) => {
-					const rows = await this.db
-						.select()
-						.from(locationPaymentMethodsTable)
-						.where(where)
-						.orderBy(sortBy(locationPaymentMethodsTable.createdAt, 'desc'))
-						.limit(l)
-						.offset(offset)
-					return rows.map((r) => LocationPaymentMethodDto.parse(r))
-				},
-				pq: { page, limit },
-				countQuery: this.db
-					.select({ count: count() })
+		return paginate<LocationPaymentMethodDto>({
+			data: ({ limit, offset }) =>
+				db
+					.select()
 					.from(locationPaymentMethodsTable)
-					.where(where),
-			})
+					.where(where)
+					.orderBy(sortBy(locationPaymentMethodsTable.createdAt, 'desc'))
+					.limit(limit)
+					.offset(offset),
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(locationPaymentMethodsTable).where(where),
 		})
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
+	async insert(data: LocationPaymentMethodInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.insert(locationPaymentMethodsTable)
+			.values({ ...data })
+			.returning({ id: locationPaymentMethodsTable.id })
 
-	async create(data: LocationPaymentMethodCreateDto, actorId: string): Promise<{ id: number }> {
-		return record('LocationPaymentMethodRepo.create', async () => {
-			// Validate location exists and is a store
-			const location = await this.db
-				.select()
-				.from(locationsTable)
-				.where(eq(locationsTable.id, data.locationId))
-			if (location.length === 0) {
-				throw new NotFoundError(`Location with ID ${data.locationId} not found`, {
-					code: 'LOCATION_NOT_FOUND',
-				})
-			}
-			if (location[0].type !== 'store') {
-				throw new BadRequestError('Payment methods can only be configured for store locations', {
-					code: 'INVALID_LOCATION_TYPE',
-				})
-			}
-
-			// Validate payment method exists
-			const paymentMethod = await this.db
-				.select()
-				.from(paymentMethodsTable)
-				.where(eq(paymentMethodsTable.id, data.paymentMethodId))
-			if (paymentMethod.length === 0) {
-				throw new NotFoundError(`Payment method with ID ${data.paymentMethodId} not found`, {
-					code: 'PAYMENT_METHOD_NOT_FOUND',
-				})
-			}
-
-			// If setting as default, unset other defaults for this location
-			if (data.isDefault) {
-				await this.db
-					.update(locationPaymentMethodsTable)
-					.set({ isDefault: false })
-					.where(
-						and(
-							eq(locationPaymentMethodsTable.locationId, data.locationId),
-							eq(locationPaymentMethodsTable.isDefault, true),
-						),
-					)
-			}
-
-			const [inserted] = await this.db
-				.insert(locationPaymentMethodsTable)
-				.values({
-					...data,
-					enabledAt: data.isEnabled ? new Date() : null,
-					...stampCreate(actorId),
-				})
-				.returning({ id: locationPaymentMethodsTable.id })
-
-			if (!inserted)
-				throw new InternalServerError('Location payment method creation failed', {
-					code: 'LOCATION_PAYMENT_METHOD_CREATE_FAILED',
-				})
-
-			return inserted
-		})
+		return res
 	}
 
 	async update(
 		id: number,
-		data: Partial<LocationPaymentMethodUpdateDto>,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('LocationPaymentMethodRepo.update', async () => {
-			const existing = await this.getById(id)
-			if (!existing)
-				throw new NotFoundError(`Location payment method with ID ${id} not found`, {
-					code: 'LOCATION_PAYMENT_METHOD_NOT_FOUND',
-				})
-
-			// If setting as default, unset other defaults for this location
-			if (data.isDefault === true && !existing.isDefault) {
-				await this.db
-					.update(locationPaymentMethodsTable)
-					.set({ isDefault: false })
-					.where(
-						and(
-							eq(locationPaymentMethodsTable.locationId, existing.locationId),
-							eq(locationPaymentMethodsTable.isDefault, true),
-						),
-					)
-			}
-
-			// Update enabledAt if toggling isEnabled
-			const updateData: any = { ...data }
-			if (data.isEnabled !== undefined && data.isEnabled !== existing.isEnabled) {
-				updateData.enabledAt = data.isEnabled ? new Date() : null
-			}
-
-			await this.db
-				.update(locationPaymentMethodsTable)
-				.set({ ...updateData, ...stampUpdate(actorId) })
-				.where(eq(locationPaymentMethodsTable.id, id))
-
-			return { id }
-		})
+		data: LocationPaymentMethodUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.update(locationPaymentMethodsTable)
+			.set({ ...data })
+			.where(eq(locationPaymentMethodsTable.id, id))
+			.returning({ id: locationPaymentMethodsTable.id })
+		return res
 	}
 
-	async delete(id: number): Promise<{ id: number }> {
-		return record('LocationPaymentMethodRepo.delete', async () => {
-			const existing = await this.getById(id)
-			if (!existing)
-				throw new NotFoundError(`Location payment method with ID ${id} not found`, {
-					code: 'LOCATION_PAYMENT_METHOD_NOT_FOUND',
-				})
-
-			await this.db
-				.delete(locationPaymentMethodsTable)
-				.where(eq(locationPaymentMethodsTable.id, id))
-
-			return { id }
-		})
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.delete(locationPaymentMethodsTable)
+			.where(eq(locationPaymentMethodsTable.id, id))
+			.returning({ id: locationPaymentMethodsTable.id })
+		return res
 	}
 
-	async deleteByLocation(locationId: number): Promise<number> {
-		return record('LocationPaymentMethodRepo.deleteByLocation', async () => {
-			const result = await this.db
-				.delete(locationPaymentMethodsTable)
-				.where(eq(locationPaymentMethodsTable.locationId, locationId))
-				.returning({ id: locationPaymentMethodsTable.id })
+	async removeByLocation(locationId: number, db: DbContext = this.db): Promise<number> {
+		const result = await db
+			.delete(locationPaymentMethodsTable)
+			.where(eq(locationPaymentMethodsTable.locationId, locationId))
+			.returning({ id: locationPaymentMethodsTable.id })
 
-			return result.length
-		})
+		return result.length
+	}
+
+	async unsetDefaultForLocation(locationId: number, db: DbContext = this.db): Promise<void> {
+		await db
+			.update(locationPaymentMethodsTable)
+			.set({ isDefault: false })
+			.where(
+				and(
+					eq(locationPaymentMethodsTable.locationId, locationId),
+					eq(locationPaymentMethodsTable.isDefault, true),
+				),
+			)
 	}
 }

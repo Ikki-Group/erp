@@ -34,7 +34,7 @@ export const LocationPaymentMethodDto = z.object({
 })
 export type LocationPaymentMethodDto = z.infer<typeof LocationPaymentMethodDto>
 
-export const LocationPaymentMethodCreateDto = z.object({
+const LocationPaymentMethodMutationDto = z.object({
 	locationId: zp.num,
 	paymentMethodId: zp.num,
 	paymentProviderId: zp.num.nullable(),
@@ -43,11 +43,13 @@ export const LocationPaymentMethodCreateDto = z.object({
 	credentials: LocationPaymentMethodCredentialsDto.optional(),
 	config: LocationPaymentMethodConfigDto.optional(),
 })
+
+export const LocationPaymentMethodCreateDto = LocationPaymentMethodMutationDto
 export type LocationPaymentMethodCreateDto = z.infer<typeof LocationPaymentMethodCreateDto>
 
 export const LocationPaymentMethodUpdateDto = z.object({
 	...zc.RecordId.shape,
-	...LocationPaymentMethodCreateDto.shape,
+	...LocationPaymentMethodMutationDto.shape,
 })
 export type LocationPaymentMethodUpdateDto = z.infer<typeof LocationPaymentMethodUpdateDto>
 

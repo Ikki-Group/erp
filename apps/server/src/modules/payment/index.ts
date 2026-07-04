@@ -3,9 +3,8 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 
-import { LocationPaymentMethodRepo } from './location-payment-method/location-payment-method.repo'
-import { initLocationPaymentMethodRoute } from './location-payment-method/location-payment-method.route'
-import { LocationPaymentMethodService } from './location-payment-method/location-payment-method.service'
+import { createLocationPaymentMethodModule } from './location-payment-method/location-payment-method.module'
+import { createLocationPaymentMethodRoute } from './location-payment-method/location-payment-method.route'
 import { createPaymentMethodModule } from './payment-method/payment-method.module'
 import { initPaymentMethodRoute } from './payment-method/payment-method.route'
 import { createPaymentProviderModule } from './payment-provider/payment-provider.module'
@@ -18,7 +17,7 @@ export class PaymentServiceModule {
 	public readonly paymentMethod: ReturnType<typeof createPaymentMethodModule>
 	public readonly payment: PaymentService
 	public readonly paymentProvider: ReturnType<typeof createPaymentProviderModule>
-	public readonly locationPaymentMethod: LocationPaymentMethodService
+	public readonly locationPaymentMethod: ReturnType<typeof createLocationPaymentMethodModule>
 
 	constructor(
 		private readonly db: DbClient,
@@ -31,10 +30,13 @@ export class PaymentServiceModule {
 
 		this.paymentProvider = createPaymentProviderModule(this.db, this.cacheClient)
 
-		const locationPaymentMethodRepo = new LocationPaymentMethodRepo(this.db)
-		this.locationPaymentMethod = new LocationPaymentMethodService(
-			locationPaymentMethodRepo,
+		this.locationPaymentMethod = createLocationPaymentMethodModule(
+			this.db,
 			this.cacheClient,
+			{
+				location: this.paymentMethod,
+				paymentMethod: this.paymentMethod,
+			},
 		)
 	}
 }
@@ -44,7 +46,7 @@ export function initPaymentRouteModule(s: PaymentServiceModule) {
 		.use(initPaymentMethodRoute(s.paymentMethod))
 		.use(initPaymentRoute(s.payment))
 		.use(initPaymentProviderRoute(s.paymentProvider))
-		.use(initLocationPaymentMethodRoute(s.locationPaymentMethod))
+		.use(createLocationPaymentMethodRoute(s.locationPaymentMethod))
 }
 
 export { PaymentDto, PaymentInvoiceDto, PaymentTypeDto } from './payment/payment.contract'
@@ -75,4 +77,5 @@ export {
 	LocationPaymentMethodCredentialsDto,
 	LocationPaymentMethodConfigDto,
 } from './location-payment-method/location-payment-method.contract'
-export type { LocationPaymentMethodService } from './location-payment-method/location-payment-method.service'
+export type { ILocationPaymentMethodRepo } from './location-payment-method/location-payment-method.repo'
+export type { LocationPaymentMethodModule, LocationReadPort, PaymentMethodReadPort } from './location-payment-method/location-payment-method.module'

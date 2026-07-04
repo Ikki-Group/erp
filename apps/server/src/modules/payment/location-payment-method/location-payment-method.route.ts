@@ -1,10 +1,10 @@
 import Elysia from 'elysia'
-import { z } from 'zod'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc, zp, zq } from '@/shared/schema'
-import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
+import { zc, createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema'
+import { z } from 'zod'
+import { zp } from '@/shared/schema/primitive'
 
 import {
 	LocationPaymentMethodDto,
@@ -14,13 +14,13 @@ import {
 } from './location-payment-method.contract'
 import type { LocationPaymentMethodService } from './location-payment-method.service'
 
-export function initLocationPaymentMethodRoute(service: LocationPaymentMethodService) {
+export function createLocationPaymentMethodRoute(m: LocationPaymentMethodService) {
 	return new Elysia({ prefix: '/location-payment-method' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -31,20 +31,20 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const locationPaymentMethod = await service.handleDetail(context.query.id)
-				return res.ok(locationPaymentMethod)
+			async ({ query }) => {
+				const result = await m.handleGetById(query.id)
+				return res.ok(result)
 			},
 			{
-				query: zq.recordId,
+				query: z.object({ id: zp.num }),
 				response: createSuccessResponseDto(LocationPaymentMethodDto),
 				auth: true,
 			},
 		)
 		.get(
 			'/by-location',
-			async function byLocation(context) {
-				const result = await service.getByLocation(context.query.locationId)
+			async ({ query }) => {
+				const result = await m.handleGetByLocation(query.locationId)
 				return res.ok(result)
 			},
 			{
@@ -55,9 +55,9 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const { id } = await service.handleCreate(context.body, context.auth.userId)
-				return res.created({ id })
+			async ({ body, auth }) => {
+				const result = await m.handleCreate(body, auth.userId)
+				return res.created(result)
 			},
 			{
 				body: LocationPaymentMethodCreateDto,
@@ -67,13 +67,9 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		)
 		.put(
 			'/update',
-			async function update(context) {
-				const { id } = await service.handleUpdate(
-					context.body.id,
-					context.body,
-					context.auth.userId,
-				)
-				return res.ok({ id })
+			async ({ body, auth }) => {
+				const result = await m.handleUpdate(body, auth.userId)
+				return res.ok(result)
 			},
 			{
 				body: LocationPaymentMethodUpdateDto,
@@ -83,10 +79,14 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				await service.handleRemove(context.query.id)
-				return res.ok({ id: context.query.id })
+			async ({ query }) => {
+				const result = await m.handleRemove(query.id)
+				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
+			{
+				query: z.object({ id: zp.num }),
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
 		)
 }
