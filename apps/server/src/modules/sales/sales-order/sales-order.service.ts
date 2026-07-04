@@ -18,7 +18,7 @@ interface SalesOrderServiceDeps {
 	location: import('@/modules/location').LocationModule
 	crm: import('@/modules/crm').CrmServiceModule
 	product: import('@/modules/product').ProductServiceModule
-	salesType: import('../../sales-type').SalesTypeServiceModule
+	salesType: import('../../sales-type').SalesTypeModule
 }
 
 export class SalesOrderService {
@@ -44,7 +44,7 @@ export class SalesOrderService {
 		}
 
 		// Validate sales type exists
-		const salesType = await this.deps.salesType.salesType.getById(data.salesTypeId)
+		const salesType = await this.deps.salesType.getById(data.salesTypeId)
 		if (!salesType) {
 			throw new NotFoundError(`Sales type with ID ${data.salesTypeId} not found`, {
 				code: 'SALES_TYPE_NOT_FOUND',

@@ -1,9 +1,8 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc, zq } from '@/shared/schema'
-import { createSuccessResponseDto, createPaginatedResponseDto } from '@/shared/schema/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import {
 	SalesTypeDto,
@@ -11,15 +10,15 @@ import {
 	SalesTypeCreateDto,
 	SalesTypeUpdateDto,
 } from './sales-type.contract'
-import type { SalesTypeService } from './sales-type.service'
+import type { SalesTypeModule } from './sales-type.module'
 
-export function initSalesTypeRoute(service: SalesTypeService) {
+export function createSalesTypeRoute(m: SalesTypeModule) {
 	return new Elysia({ prefix: '/sales-type' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await m.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -30,17 +29,21 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const salesType = await service.handleDetail(context.query.id)
-				return res.ok(salesType)
+			async ({ query }) => {
+				const result = await m.handleGetById(query.id)
+				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseDto(SalesTypeDto), auth: true },
+			{
+				query: zq.recordId,
+				response: createSuccessResponseDto(SalesTypeDto),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const { id } = await service.handleCreate(context.body, context.auth.userId)
-				return res.created({ id })
+			async ({ body, auth }) => {
+				const result = await m.handleCreate(body, auth.userId)
+				return res.created(result)
 			},
 			{
 				body: SalesTypeCreateDto,
@@ -50,13 +53,9 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 		)
 		.put(
 			'/update',
-			async function update(context) {
-				const { id } = await service.handleUpdate(
-					context.body.id,
-					context.body,
-					context.auth.userId,
-				)
-				return res.ok({ id })
+			async ({ body, auth }) => {
+				const result = await m.handleUpdate(body, auth.userId)
+				return res.ok(result)
 			},
 			{
 				body: SalesTypeUpdateDto,
@@ -66,10 +65,14 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				await service.handleRemove(context.query.id)
-				return res.ok({ id: context.query.id })
+			async ({ body }) => {
+				const result = await m.handleDelete(body.id)
+				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
+			{
+				body: zc.RecordId,
+				response: createSuccessResponseDto(zc.RecordId),
+				auth: true,
+			},
 		)
 }
