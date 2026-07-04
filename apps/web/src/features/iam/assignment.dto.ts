@@ -1,16 +1,8 @@
-import { z, zc, zp, zq } from '@/lib/validation'
+// MANUAL (not generated) — no server contract exists for assignment yet.
+// UserAssignmentDto is re-used from the generated iam.dto to avoid duplication.
+import { z, zp, zq } from '@/lib/validation'
 
-/* ---------------------------------- ENTITY ---------------------------------- */
-
-export const UserAssignmentDto = z.object({
-	...zc.RecordId.shape,
-	userId: zp.id,
-	roleId: zp.id,
-	locationId: zp.id,
-	addedAt: zp.date,
-	addedBy: zp.id.nullable(),
-})
-export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
+export { UserAssignmentDto } from './iam.dto'
 
 /* -------------------------------- MUTATION -------------------------------- */
 

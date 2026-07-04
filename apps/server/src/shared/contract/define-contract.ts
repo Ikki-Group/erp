@@ -65,8 +65,12 @@ export interface ModuleContract {
 	entity: string
 	/** Elysia route prefix, e.g. `/location` or `/iam/user`. */
 	prefix: string
-	/** Contract file path relative to `apps/server/src/modules`. */
-	dtoSource: string
+	/**
+	 * Contract file path(s) relative to `apps/server/src/modules`, whose DTO
+	 * definitions are copied to web. Usually the contract's own file; pass an
+	 * array to also pull in DTOs defined elsewhere (e.g. a `composed/` file).
+	 */
+	dtoSource: string | string[]
 	/**
 	 * DTO registry: identifier → schema. The generator recovers each emitted
 	 * name by matching schema identity against this map.

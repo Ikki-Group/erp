@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { defineContract } from '@/shared/contract/define-contract'
 import { zc, zp, zq } from '@/shared/schema'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -39,3 +40,20 @@ export const RoleUpdateDto = z.object({
 	...RoleMutationDto.shape,
 })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
+
+/* -------------------------------- CONTRACT -------------------------------- */
+
+export const roleContract = defineContract({
+	feature: 'iam',
+	entity: 'role',
+	prefix: '/iam/role',
+	dtoSource: 'iam/role/role.contract.ts',
+	dtos: { RoleDto, RoleFilterDto, RoleCreateDto, RoleUpdateDto },
+	endpoints: {
+		list: { get: '/list', query: RoleFilterDto, ok: [RoleDto] },
+		detail: { get: '/detail', query: zc.RecordId, ok: RoleDto },
+		create: { post: '/create', body: RoleCreateDto, ok: zc.RecordId },
+		update: { put: '/update', body: RoleUpdateDto, ok: zc.RecordId },
+		remove: { delete: '/remove', query: zc.RecordId, ok: zc.RecordId },
+	},
+})

@@ -6,6 +6,24 @@ export const endpoint = {
 		login: 'auth/login',
 		me: 'auth/me',
 	},
+	iam: {
+		role: {
+			list: 'iam/role/list',
+			detail: 'iam/role/detail',
+			create: 'iam/role/create',
+			update: 'iam/role/update',
+			remove: 'iam/role/remove',
+		},
+		user: {
+			list: 'iam/user/list',
+			detail: 'iam/user/detail',
+			create: 'iam/user/create',
+			update: 'iam/user/update',
+			changePassword: 'iam/user/change-password',
+			adminPasswordReset: 'iam/user/admin/password-reset',
+			remove: 'iam/user/remove',
+		},
+	},
 	location: {
 		list: 'location/list',
 		detail: 'location/detail',

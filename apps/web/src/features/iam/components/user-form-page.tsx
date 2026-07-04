@@ -28,11 +28,11 @@ import {
 	TableRow,
 } from '@/components/ui/table'
 
-import { roleApi } from '@/features/iam/api/role.api'
+import { roleApi } from '..'
 import { locationApi } from '@/features/location'
 
-import { userApi } from '../api'
-import type { UserDetailDto } from '../dto'
+import { userApi } from '..'
+import type { UserDetailDto } from '..'
 
 const FormDto = z.object({
 	fullname: z.string().min(1, 'Nama lengkap wajib diisi').max(100, 'Nama terlalu panjang'),
@@ -68,7 +68,7 @@ function getDefaultValues(v?: UserDetailDto): FormDto {
 			v?.assignments?.map((a) => ({
 				roleId: a.role.id,
 				locationId: a.location.id,
-				isDefault: a.isDefault,
+				isDefault: false,
 			})) ?? [],
 	}
 }

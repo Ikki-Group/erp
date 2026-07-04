@@ -194,7 +194,7 @@ function getColumns({ onRemove }: GetColumnsProps): ColumnDef<UserDetailDto>[] {
 										>
 											<div className="flex items-center justify-between gap-2">
 												<p className="font-medium">{a.location.name}</p>
-												{a.isDefault && (
+												{a.location.id === row.original.defaultLocationId && (
 													<Badge variant="outline" className="h-4 px-1 text-[10px]">
 														Default
 													</Badge>

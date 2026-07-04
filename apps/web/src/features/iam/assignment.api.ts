@@ -1,3 +1,4 @@
+// MANUAL (not generated) — no server contract exists for assignment yet.
 import { createPaginatedResponseSchema, successNoDataSchema } from '@/lib/validation'
 
 import { endpoint } from '@/config/endpoint'
@@ -11,7 +12,7 @@ import {
 	UserAssignmentDto,
 	UserAssignmentFilterDto,
 	UserAssignmentUpsertDto,
-} from '../dto/assignment.dto'
+} from './assignment.dto'
 
 const assignmentKeys = createQueryKeys('iam', 'assignment')
 

@@ -15,8 +15,8 @@ import { FormDialog } from '@/components/layout/form-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-import { roleApi } from '../api'
-import type { RoleDto } from '../dto'
+import { roleApi } from '..'
+import type { RoleDto } from '..'
 
 const FormDto = z.object({
 	name: z.string().min(2, 'Nama role minimal 2 karakter').max(100, 'Nama terlalu panjang'),

@@ -10,7 +10,7 @@ import { toastLabelMessage } from '@/lib/toast-message'
 import { useAppForm } from '@/components/form'
 import { FormDialog } from '@/components/layout/form-dialog'
 
-import { userApi } from '../api'
+import { userApi } from '..'
 
 const FormDto = z.object({ password: zPassword })
 

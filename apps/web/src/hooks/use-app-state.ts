@@ -56,8 +56,8 @@ function validateLocation(current: Location, user: UserDetailDto): Location {
 		return current
 	}
 
-	// Default to isDefault assignment (backend guarantees this exists)
-	const defaultAssignment = assignments.find((a) => a.isDefault)
+	// Default to the user's default location (the assignment matching it).
+	const defaultAssignment = assignments.find((a) => a.location.id === user.defaultLocationId)
 	if (defaultAssignment) return [user.defaultLocationId ?? defaultAssignment.location.id]
 
 	// Fallback to first location

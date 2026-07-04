@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button'
 
 import { roleApi } from '@/features/iam'
 import { RoleFormDialog } from '@/features/iam/components/role-form-dialog'
-import type { RoleDto } from '@/features/iam/dto'
+import type { RoleDto } from '@/features/iam'
 
 export const Route = createFileRoute('/_app/settings/_tab/role')({
 	component: RouteComponent,

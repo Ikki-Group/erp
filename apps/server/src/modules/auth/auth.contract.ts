@@ -3,7 +3,7 @@ import z from 'zod'
 import { defineContract } from '@/shared/contract/define-contract'
 import { zc, zp } from '@/shared/schema'
 
-import { UserDto } from '@/modules/iam'
+import { UserDetailDto } from '@/modules/iam'
 
 export const AuthLoginDto = z.object({
 	identifier: zc.strTrim.min(1),
@@ -12,7 +12,7 @@ export const AuthLoginDto = z.object({
 export type AuthLoginDto = z.infer<typeof AuthLoginDto>
 
 export const AuthOutputDto = z.object({
-	user: UserDto,
+	user: UserDetailDto,
 	token: zp.str,
 })
 export type AuthOutputDto = z.infer<typeof AuthOutputDto>
@@ -24,9 +24,9 @@ export const authContract = defineContract({
 	entity: 'auth',
 	prefix: '/auth',
 	dtoSource: 'auth/auth.contract.ts',
-	dtos: { AuthLoginDto, AuthOutputDto, UserDto },
+	dtos: { AuthLoginDto, AuthOutputDto, UserDetailDto },
 	endpoints: {
 		login: { post: '/login', body: AuthLoginDto, ok: AuthOutputDto },
-		me: { get: '/me', ok: UserDto },
+		me: { get: '/me', ok: UserDetailDto },
 	},
 })

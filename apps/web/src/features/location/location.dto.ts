@@ -54,9 +54,3 @@ export const LocationUpdateDto = z.object({
 	...LocationMutationDto.shape,
 })
 export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
-
-
-/**
- * Single source of truth for the Location HTTP surface.
- * Drives both the Elysia route wiring and the web codegen.
- */

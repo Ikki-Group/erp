@@ -43,7 +43,12 @@ const METHODS: HttpMethod[] = ['get', 'post', 'put', 'patch', 'delete']
 /*  Contract registry — add a module's contract path here after authoring it. */
 /* -------------------------------------------------------------------------- */
 
-const CONTRACT_PATHS = ['location/location.contract.ts', 'auth/auth.contract.ts']
+const CONTRACT_PATHS = [
+	'location/location.contract.ts',
+	'auth/auth.contract.ts',
+	'iam/role/role.contract.ts',
+	'iam/composed/composed.contract.ts',
+]
 
 async function loadContracts(): Promise<ModuleContract[]> {
 	const contracts: ModuleContract[] = []
@@ -157,13 +162,15 @@ function generateDto(feature: string, contracts: ModuleContract[]): {
 	const reexports = new Set<string>() // cross-feature re-export lines (deduped)
 	const bodies: string[] = []
 
-	// Unique dtoSource files (a feature may have several entities/contracts).
-	const sources = [...new Set(contracts.map((c) => c.dtoSource))]
+	// Unique dtoSource files (a feature may have several entities/contracts,
+	// and each contract may list multiple source files).
+	const sources = [...new Set(contracts.flatMap((c) => [c.dtoSource].flat()))]
 
+	const rawImports: string[] = []
 	for (const src of sources) {
 		const raw = readFileSync(join(SERVER_MODULES, src), 'utf-8')
 		const { importLines, reexportLines, body } = transformDtoSource(raw)
-		for (const imp of importLines) imports.add(imp)
+		for (const imp of importLines) rawImports.push(imp)
 		for (const re of reexportLines) reexports.add(re)
 
 		// Detect duplicate export names across merged sources.
@@ -176,6 +183,36 @@ function generateDto(feature: string, contracts: ModuleContract[]): {
 		}
 		bodies.push(body.trim())
 	}
+
+	// Drop imports of symbols defined locally in the merged body (intra-feature
+	// sibling imports), then MERGE remaining imports by module specifier so each
+	// source is imported once with the union of its named symbols.
+	const localNames = new Set(seenExports.keys())
+	const named = new Map<string, Set<string>>() // spec → symbols (named imports)
+	const defaults = new Set<string>() // full default/namespace import lines
+
+	for (const raw of rawImports) {
+		const kept = filterImportNames(raw, localNames)
+		if (!kept) continue
+		const m = kept.match(/^import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+'([^']+)'/u)
+		if (m && m[1] && m[2]) {
+			const set = named.get(m[2]) ?? new Set<string>()
+			for (const s of m[1].split(',').map((x) => x.trim()).filter(Boolean)) set.add(s)
+			named.set(m[2], set)
+		} else {
+			defaults.add(kept) // e.g. `import z from 'zod'`
+		}
+	}
+
+	// `import z from 'zod'` + `import { z } from 'zod'` → keep the default form
+	// only, and drop a bare `{ z }` named import for the same spec.
+	const importLinesOut: string[] = [...defaults]
+	for (const [spec, symbols] of named) {
+		const defaultForSpec = [...defaults].some((d) => d.endsWith(`from '${spec}'`))
+		const syms = [...symbols].filter((s) => !(defaultForSpec && s === 'z'))
+		if (syms.length > 0) importLinesOut.push(`import { ${syms.sort().join(', ')} } from '${spec}'`)
+	}
+	for (const line of importLinesOut) imports.add(line)
 
 	const importBlock = [...imports].sort().join('\n')
 	const reexportBlock = reexports.size > 0 ? '\n\n' + [...reexports].sort().join('\n') : ''
@@ -194,17 +231,32 @@ function generateDto(feature: string, contracts: ModuleContract[]): {
  *  - drop the `define-contract` import and the `export const …Contract` block
  */
 function transformDtoSource(src: string): { importLines: string[]; reexportLines: string[]; body: string } {
-	const out = src
+	let out = src
+		// collapse multi-line named imports to a single line so the line parser
+		// and dedup logic can handle them (e.g. `import {\n A,\n B,\n} from '…'`).
+		.replace(
+			/import\s+(type\s+)?\{([\s\S]*?)\}\s+from\s+('[^']+')/gu,
+			(_all, t: string | undefined, names: string, spec: string) => {
+				const flat = names
+					.split(',')
+					.map((s) => s.trim())
+					.filter((s) => s.length > 0)
+					.join(', ')
+				return `import ${t ? 'type ' : ''}{ ${flat} } from ${spec}`
+			},
+		)
 		// drop the define-contract import line
 		.replace(/^import\s+\{[^}]*\}\s+from\s+'@\/shared\/contract\/define-contract'\r?\n/mu, '')
-		// drop the contract export block: `export const <x>Contract = defineContract({ ... })`
-		.replace(/\nexport const \w+Contract = defineContract\(\{[\s\S]*?\n\}\)\n?/mu, '\n')
-		// drop a `/* --- CONTRACT --- */` divider if present
-		.replace(/\n\/\* -+ CONTRACT -+ \*\/\n?/mu, '\n')
 		// rewrite validation import
 		.replace(/from '@\/shared\/schema'/gu, "from '@/lib/validation'")
 		// rewrite cross-module import specifiers → cross-feature
 		.replace(/from '@\/modules\//gu, "from '@/features/")
+
+	// Drop the contract export block `export const <x>Contract = defineContract( … )`
+	// via balanced-paren matching (handles multi-line + array `dtoSource`).
+	out = stripContractBlock(out)
+	// Drop a leftover `/* --- CONTRACT --- */` divider.
+	out = out.replace(/\n\/\* -+ CONTRACT -+ \*\/\n?/gu, '\n')
 
 	// Split leading imports from the body so a merge can dedupe imports.
 	const importLines: string[] = []
@@ -215,8 +267,6 @@ function transformDtoSource(src: string): { importLines: string[]; reexportLines
 		const t = line.trim()
 		if (inImports && /^import\s/u.test(t)) {
 			importLines.push(t)
-			// Cross-feature imports are also re-exported so the merged dto is the
-			// single import surface for the api file (which references borrowed DTOs).
 			const cross = t.match(/^import (?:type )?(\{[^}]*\}) from '(@\/features\/[^']+)'/u)
 			if (cross) reexportLines.push(`export ${cross[1]} from '${cross[2]}'`)
 		} else if (inImports && t === '') {
@@ -229,6 +279,39 @@ function transformDtoSource(src: string): { importLines: string[]; reexportLines
 	return { importLines, reexportLines, body: bodyLines.join('\n') }
 }
 
+/** Remove every `export const <X>Contract = defineContract( … )` (balanced parens),
+ * plus a JSDoc/`//` comment block immediately preceding it. */
+function stripContractBlock(src: string): string {
+	const marker = /export const \w+Contract = defineContract\(/gu
+	let out = src
+	let m: RegExpExecArray | null
+	while ((m = marker.exec(out)) !== null) {
+		let start = m.index
+		// Absorb an immediately-preceding JSDoc comment (only whitespace between
+		// the comment's closing */ and the contract). Use a greedy `[\s\S]*` so
+		// the match starts at the LAST `/**`, not an earlier one.
+		const before = out.slice(0, start).replace(/\s+$/u, '')
+		const jsdoc = before.match(/\/\*\*(?:(?!\*\/)[\s\S])*\*\/$/u)
+		if (jsdoc) start = before.length - jsdoc[0].length
+
+		let i = m.index + m[0].length - 1 // at the '('
+		let depth = 0
+		for (; i < out.length; i++) {
+			if (out[i] === '(') depth++
+			else if (out[i] === ')') {
+				depth--
+				if (depth === 0) {
+					i++
+					break
+				}
+			}
+		}
+		out = out.slice(0, start) + out.slice(i)
+		marker.lastIndex = start
+	}
+	return out
+}
+
 /** Extract top-level exported identifiers (const/type/enum/function). */
 function exportedNames(body: string): string[] {
 	const names: string[] = []
@@ -236,6 +319,24 @@ function exportedNames(body: string): string[] {
 	let m: RegExpExecArray | null
 	while ((m = re.exec(body)) !== null) if (m[1]) names.push(m[1])
 	return names
+}
+
+/**
+ * Given an `import { A, B, type C } from '...'` line, drop any named symbols
+ * that are defined locally in the merged file. Returns the rebuilt import, or
+ * null if every symbol was local (import fully redundant).
+ */
+function filterImportNames(importLine: string, localNames: Set<string>): string | null {
+	const m = importLine.match(/^import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+('[^']+')/u)
+	if (!m || !m[1] || !m[2]) return importLine // not a named import → keep as-is
+	const typeOnly = /^import\s+type\s/u.test(importLine)
+	const kept = m[1]
+		.split(',')
+		.map((s) => s.trim())
+		.filter((s) => s.length > 0)
+		.filter((s) => !localNames.has(s.replace(/^type\s+/u, '')))
+	if (kept.length === 0) return null
+	return `import ${typeOnly ? 'type ' : ''}{ ${kept.join(', ')} } from ${m[2]}`
 }
 
 /* -------------------------------------------------------------------------- */
