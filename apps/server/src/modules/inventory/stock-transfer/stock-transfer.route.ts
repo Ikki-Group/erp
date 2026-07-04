@@ -1,9 +1,8 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { zc } from '@/shared/schema'
-import { createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema/response'
+import { zc, createPaginatedResponseDto, createSuccessResponseDto } from '@/shared/schema'
 
 import * as dto from './stock-transfer.contract'
 import type { StockTransferService } from './stock-transfer.service'
@@ -13,8 +12,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list(context) {
-				const result = await service.handleList(context.query)
+			async ({ query }) => {
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -25,8 +24,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const result = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
 			{
@@ -37,8 +36,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const result = await service.handleCreate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
 			{
@@ -49,8 +48,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.patch(
 			'/update',
-			async function update(context) {
-				const result = await service.handleUpdate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -61,16 +60,16 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.delete(
 			'/remove',
-			async function remove(context) {
-				const result = await service.handleRemove(context.body.id, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleRemove(body.id, auth.userId)
 				return res.ok(result)
 			},
 			{ body: zc.RecordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
 		)
 		.post(
 			'/approve',
-			async function approve(context) {
-				const result = await service.handleApprove(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleApprove(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -81,8 +80,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/reject',
-			async function reject(context) {
-				const result = await service.handleReject(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleReject(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -93,8 +92,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/mark-in-transit',
-			async function markInTransit(context) {
-				const result = await service.handleMarkInTransit(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleMarkInTransit(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -105,8 +104,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/mark-completed',
-			async function markCompleted(context) {
-				const result = await service.handleMarkCompleted(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleMarkCompleted(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -117,8 +116,8 @@ export function initStockTransferRoute(service: StockTransferService) {
 		)
 		.post(
 			'/cancel',
-			async function cancel(context) {
-				const result = await service.handleCancel(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleCancel(body, auth.userId)
 				return res.ok(result)
 			},
 			{

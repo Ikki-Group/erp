@@ -1,229 +1,223 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-assignment */
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, gte, isNull, lte, or } from 'drizzle-orm'
+import { and, count, eq, gte, isNull, lte, or, SQL } from 'drizzle-orm'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 import { stockTransferItemsTable, stockTransfersTable } from '@/db/schema'
 
-import { paginate, searchFilter, sortBy, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, sortBy, type DbContext } from '@/infra/database'
+import { stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
-import {
-	StockTransferCreateDto,
+import type {
 	StockTransferDto,
 	StockTransferFilterDto,
 	StockTransferSelectDto,
-	StockTransferUpdateDto,
+	TransferStatus,
 } from './stock-transfer.contract'
 
-export class StockTransferRepo {
-	constructor(private readonly db: DbClient) {}
+type StockTransferInsert = typeof stockTransfersTable.$inferInsert
+type StockTransferUpdate = PgUpdateSetSource<typeof stockTransfersTable>
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export interface StockTransferItemInsert {
+	materialId: number
+	itemName: string
+	quantity: string
+	unitCost: string
+	totalCost: string
+	notes?: string | null
+	createdBy: number
+	updatedBy: number
+	createdAt?: Date
+	updatedAt?: Date
+}
 
-	async getById(id: number): Promise<StockTransferDto | undefined> {
-		return record('StockTransferRepo.getById', async () => {
-			const [transfer] = await this.db
-				.select()
-				.from(stockTransfersTable)
-				.where(and(eq(stockTransfersTable.id, id), isNull(stockTransfersTable.deletedAt)))
+export interface IStockTransferRepo {
+	readonly db: DbContext
+	findById(id: number, db?: DbContext): Promise<StockTransferDto | undefined>
+	findPage(filter: StockTransferFilterDto, db?: DbContext): Promise<WithPaginationResult<StockTransferSelectDto>>
+	insert(data: StockTransferInsert, items: StockTransferItemInsert[], db?: DbContext): Promise<EntityRef | undefined>
+	update(
+		id: number,
+		data: StockTransferUpdate,
+		items: StockTransferItemInsert[] | undefined,
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
+	softDelete(id: number, deletedBy: number, db?: DbContext): Promise<EntityRef | undefined>
+	updateStatus(id: number, status: TransferStatus, actorId: number, db?: DbContext): Promise<EntityRef | undefined>
+	updateStatusWithReason(
+		id: number,
+		status: TransferStatus,
+		reason: string,
+		actorId: number,
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
+	updateReceivedDate(id: number, receivedDate: Date, actorId: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-			if (!transfer) return undefined
+export class StockTransferRepo implements IStockTransferRepo {
+	constructor(readonly db: DbContext) {}
 
-			const items = await this.db
-				.select()
-				.from(stockTransferItemsTable)
-				.where(
-					and(
-						eq(stockTransferItemsTable.transferId, id),
-						isNull(stockTransferItemsTable.deletedAt),
-					),
-				)
-
-			return StockTransferDto.parse({ ...transfer, items })
-		})
+	#buildWhere(filter: StockTransferFilterDto): SQL | undefined {
+		const { q, sourceLocationId, destinationLocationId, status, dateFrom, dateTo } = filter
+		return and(
+			isNull(stockTransfersTable.deletedAt),
+			q === undefined ? undefined : or(searchFilter(stockTransfersTable.referenceNo, q)),
+			sourceLocationId === undefined
+				? undefined
+				: eq(stockTransfersTable.sourceLocationId, sourceLocationId),
+			destinationLocationId === undefined
+				? undefined
+				: eq(stockTransfersTable.destinationLocationId, destinationLocationId),
+			status === undefined ? undefined : eq(stockTransfersTable.status, status),
+			dateFrom === undefined ? undefined : gte(stockTransfersTable.transferDate, dateFrom),
+			dateTo === undefined ? undefined : lte(stockTransfersTable.transferDate, dateTo),
+		)
 	}
 
-	async getListPaginated(
-		filter: StockTransferFilterDto,
-	): Promise<WithPaginationResult<StockTransferSelectDto>> {
-		return record('StockTransferRepo.getListPaginated', async () => {
-			const { q, page, limit, sourceLocationId, destinationLocationId, status, dateFrom, dateTo } =
-				filter
-			const where = and(
-				isNull(stockTransfersTable.deletedAt),
-				q === undefined ? undefined : or(searchFilter(stockTransfersTable.referenceNo, q)),
-				sourceLocationId === undefined
-					? undefined
-					: eq(stockTransfersTable.sourceLocationId, sourceLocationId),
-				destinationLocationId === undefined
-					? undefined
-					: eq(stockTransfersTable.destinationLocationId, destinationLocationId),
-				status === undefined ? undefined : eq(stockTransfersTable.status, status),
-				dateFrom === undefined ? undefined : gte(stockTransfersTable.transferDate, dateFrom),
-				dateTo === undefined ? undefined : lte(stockTransfersTable.transferDate, dateTo),
+	async findById(id: number, db: DbContext = this.db): Promise<StockTransferDto | undefined> {
+		const [transfer] = await db
+			.select()
+			.from(stockTransfersTable)
+			.where(and(eq(stockTransfersTable.id, id), isNull(stockTransfersTable.deletedAt)))
+			.limit(1)
+
+		if (!transfer) return undefined
+
+		const items = await db
+			.select()
+			.from(stockTransferItemsTable)
+			.where(
+				and(eq(stockTransferItemsTable.transferId, id), isNull(stockTransferItemsTable.deletedAt)),
 			)
 
-			return paginate<any>({
-				data: async ({ limit: l, offset }) => {
-					const rows = await this.db
-						.select()
-						.from(stockTransfersTable)
-						.where(where)
-						.orderBy(sortBy(stockTransfersTable.createdAt, 'desc'))
-						.limit(l)
-						.offset(offset)
-					return rows.map((r) => StockTransferSelectDto.parse(r))
-				},
-				pq: { page, limit },
-				countQuery: () => this.db.select({ count: count() }).from(stockTransfersTable).where(where),
-			})
+		return { ...transfer, items } as StockTransferDto
+	}
+
+	async findPage(
+		filter: StockTransferFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<StockTransferSelectDto>> {
+		const where = this.#buildWhere(filter)
+
+		return paginate({
+			data: async ({ limit, offset }) => {
+				const rows = await db
+					.select()
+					.from(stockTransfersTable)
+					.where(where)
+					.orderBy(sortBy(stockTransfersTable.createdAt, 'desc'))
+					.limit(limit)
+					.offset(offset)
+				return rows as StockTransferSelectDto[]
+			},
+			pq: filter,
+			countQuery: () => db.select({ count: count() }).from(stockTransfersTable).where(where),
 		})
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
+	async insert(
+		data: StockTransferInsert,
+		items: StockTransferItemInsert[],
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [inserted] = await db
+			.insert(stockTransfersTable)
+			.values(data)
+			.returning({ id: stockTransfersTable.id })
 
-	async create(data: StockTransferCreateDto, actorId: number): Promise<{ id: number }> {
-		return record('StockTransferRepo.create', async () => {
-			const result = await this.db.transaction(async (tx) => {
-				const { items, ...transferData } = data
-				const meta = stampCreate(actorId)
+		if (!inserted) return undefined
 
-				const [insertedTransfer] = await tx
-					.insert(stockTransfersTable)
-					.values({
-						...transferData,
-						...meta,
-					})
-					.returning({ id: stockTransfersTable.id })
+		if (items.length > 0) {
+			const itemValues = items.map((item) => ({
+				...item,
+				transferId: inserted.id,
+			}))
+			await db.insert(stockTransferItemsTable).values(itemValues)
+		}
 
-				if (!insertedTransfer) throw new Error('Stock transfer creation failed')
-
-				const itemValues = items.map((item) => ({
-					transferId: insertedTransfer.id,
-					materialId: item.materialId,
-					itemName: item.itemName,
-					quantity: item.quantity?.toString(),
-					unitCost: item.unitCost?.toString(),
-					totalCost: item.totalCost?.toString(),
-					notes: item.notes,
-					...meta,
-				}))
-
-				await tx.insert(stockTransferItemsTable).values(itemValues)
-
-				return insertedTransfer
-			})
-			return result
-		})
+		return inserted
 	}
 
-	async update(data: StockTransferUpdateDto, actorId: number): Promise<{ id: number }> {
-		return record('StockTransferRepo.update', async () => {
-			const { id, items, ...transferData } = data
-			const updateMeta = stampUpdate(actorId)
-			const createMeta = stampCreate(actorId)
-
-			const result = await this.db.transaction(async (tx) => {
-				await tx
-					.update(stockTransfersTable)
-					.set({
-						...transferData,
-						...updateMeta,
-					})
-					.where(eq(stockTransfersTable.id, id))
-
-				if (items) {
-					await tx.delete(stockTransferItemsTable).where(eq(stockTransferItemsTable.transferId, id))
-					if (items.length > 0) {
-						const itemValues = items.map((item) => ({
-							transferId: id,
-							materialId: item.materialId,
-							itemName: item.itemName,
-							quantity: item.quantity?.toString(),
-							unitCost: item.unitCost?.toString(),
-							totalCost: item.totalCost?.toString(),
-							notes: item.notes,
-							...createMeta,
-						}))
-						await tx.insert(stockTransferItemsTable).values(itemValues)
-					}
-				}
-
-				return { id }
-			})
-			return result
-		})
-	}
-
-	async softDelete(id: number, actorId: number): Promise<{ id: number }> {
-		return record('StockTransferRepo.softDelete', async () => {
-			const [result] = await this.db
-				.update(stockTransfersTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(stockTransfersTable.id, id))
-				.returning({ id: stockTransfersTable.id })
-			if (!result) throw new Error('Stock transfer not found')
-			return result
-		})
-	}
-
-	async hardDelete(id: number): Promise<{ id: number }> {
-		return record('StockTransferRepo.hardDelete', async () => {
-			const [result] = await this.db
-				.delete(stockTransfersTable)
-				.where(eq(stockTransfersTable.id, id))
-				.returning({ id: stockTransfersTable.id })
-			if (!result) throw new Error('Stock transfer not found')
-			return result
-		})
-	}
-
-	async updateStatus(id: number, status: string, actorId: number): Promise<{ id: number }> {
-		return record('StockTransferRepo.updateStatus', async () => {
-			const updateMeta = stampUpdate(actorId)
-			const [result] = await this.db
-				.update(stockTransfersTable)
-				.set({ status: status as any, ...updateMeta })
-				.where(eq(stockTransfersTable.id, id))
-				.returning({ id: stockTransfersTable.id })
-			if (!result) throw new Error('Stock transfer not found')
-			return result
-		})
-	}
-
-	async updateWithRejectionReason(
+	async update(
 		id: number,
-		status: string,
-		rejectionReason: string,
+		data: StockTransferUpdate,
+		items: StockTransferItemInsert[] | undefined,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [updated] = await db
+			.update(stockTransfersTable)
+			.set(data)
+			.where(eq(stockTransfersTable.id, id))
+			.returning({ id: stockTransfersTable.id })
+
+		if (!updated) return undefined
+
+		if (items !== undefined) {
+			await db.delete(stockTransferItemsTable).where(eq(stockTransferItemsTable.transferId, id))
+			if (items.length > 0) {
+				const itemValues = items.map((item) => ({
+					...item,
+					transferId: id,
+				}))
+				await db.insert(stockTransferItemsTable).values(itemValues)
+			}
+		}
+
+		return updated
+	}
+
+	async softDelete(id: number, deletedBy: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [result] = await db
+			.update(stockTransfersTable)
+			.set({ deletedAt: new Date(), deletedBy })
+			.where(eq(stockTransfersTable.id, id))
+			.returning({ id: stockTransfersTable.id })
+		return result
+	}
+
+	async updateStatus(
+		id: number,
+		status: TransferStatus,
 		actorId: number,
-	): Promise<{ id: number }> {
-		return record('StockTransferRepo.updateWithRejectionReason', async () => {
-			const updateMeta = stampUpdate(actorId)
-			const [result] = await this.db
-				.update(stockTransfersTable)
-				.set({ status: status as any, rejectionReason, ...updateMeta })
-				.where(eq(stockTransfersTable.id, id))
-				.returning({ id: stockTransfersTable.id })
-			if (!result) throw new Error('Stock transfer not found')
-			return result
-		})
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const updateMeta = stampUpdate(actorId)
+		const [result] = await db
+			.update(stockTransfersTable)
+			.set({ status, ...updateMeta })
+			.where(eq(stockTransfersTable.id, id))
+			.returning({ id: stockTransfersTable.id })
+		return result
+	}
+
+	async updateStatusWithReason(
+		id: number,
+		status: TransferStatus,
+		reason: string,
+		actorId: number,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const updateMeta = stampUpdate(actorId)
+		const [result] = await db
+			.update(stockTransfersTable)
+			.set({ status, rejectionReason: reason, ...updateMeta })
+			.where(eq(stockTransfersTable.id, id))
+			.returning({ id: stockTransfersTable.id })
+		return result
 	}
 
 	async updateReceivedDate(
 		id: number,
 		receivedDate: Date,
 		actorId: number,
-	): Promise<{ id: number }> {
-		return record('StockTransferRepo.updateReceivedDate', async () => {
-			const updateMeta = stampUpdate(actorId)
-			const [result] = await this.db
-				.update(stockTransfersTable)
-				.set({ receivedDate, ...updateMeta })
-				.where(eq(stockTransfersTable.id, id))
-				.returning({ id: stockTransfersTable.id })
-			if (!result) throw new Error('Stock transfer not found')
-			return result
-		})
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const updateMeta = stampUpdate(actorId)
+		const [result] = await db
+			.update(stockTransfersTable)
+			.set({ receivedDate, ...updateMeta })
+			.where(eq(stockTransfersTable.id, id))
+			.returning({ id: stockTransfersTable.id })
+		return result
 	}
 }
