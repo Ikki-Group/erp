@@ -1,116 +1,158 @@
+import { record } from '@elysiajs/opentelemetry'
 import { and, inArray } from 'drizzle-orm'
 
 import { purchaseOrderItemsTable } from '@/db/schema'
-
 import { CacheService, type CacheClient } from '@/infra/cache'
-import type { DbClient } from '@/infra/database'
-import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
+import type { DbTx } from '@/infra/database'
+import { withTransaction } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import type { StockTransactionService } from '@/modules/inventory'
-
 import type {
+	GoodsReceiptNoteCreateDto,
 	GoodsReceiptNoteDto,
 	GoodsReceiptNoteFilterDto,
 	GoodsReceiptNoteSelectDto,
-	GoodsReceiptNoteCreateDto,
 } from './goods-receipt.contract'
-import { GoodsReceiptRepo } from './goods-receipt.repo'
+import { GoodsReceiptError } from './goods-receipt.internal'
+import type { IGoodsReceiptRepo } from './goods-receipt.repo'
+
+export interface StockTransactionPort {
+	purchase(
+		data: {
+			locationId: number
+			date: Date
+			referenceNo: string
+			notes: string | null
+			items: Array<{ materialId: number; qty: string; unitCost: string }>
+		},
+		actorId: number,
+		tx: DbTx,
+	): Promise<{ count: number; referenceNo: string }>
+}
+
+export interface PurchaseOrderReadPort {
+	handleGetById(id: number): Promise<{ id: number; status: string }>
+}
+
+export interface GoodsReceiptDeps {
+	stockTransaction: StockTransactionPort
+	purchaseOrder: PurchaseOrderReadPort
+}
 
 export class GoodsReceiptService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: GoodsReceiptRepo,
-		private readonly inventorySvc: StockTransactionService,
-		private readonly db: DbClient,
+		private readonly deps: GoodsReceiptDeps,
+		private readonly repo: IGoodsReceiptRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'purchasing.receipt')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
-
-	async getById(id: number): Promise<GoodsReceiptNoteDto> {
-		const key = `byId:${id}`
-		const grn = await this.cache.getOrSetWithSkip({
-			key,
-			factory: () => this.repo.getById(id),
-		})
-		if (!grn) throw new NotFoundError(`GRN with ID ${id} not found`, { code: 'GRN_NOT_FOUND' })
-		return grn
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
-
-	async handleList(
-		filter: GoodsReceiptNoteFilterDto,
-	): Promise<WithPaginationResult<GoodsReceiptNoteSelectDto>> {
-		const key = `list.${JSON.stringify(filter)}`
-		return this.cache.getOrSet({
-			key,
-			factory: () => this.repo.getListPaginated(filter),
+	private async getById(id: number): Promise<GoodsReceiptNoteDto | undefined> {
+		return this.cache.getOrSetWithSkip({
+			key: this.cache.keys.byId(id),
+			factory: () => this.repo.findById(id),
 		})
+	}
+
+	async handleList(filter: GoodsReceiptNoteFilterDto): Promise<WithPaginationResult<GoodsReceiptNoteSelectDto>> {
+		return record('GoodsReceiptService.handleList', async () =>
+			this.cache.getOrSet({
+				key: `${this.cache.keys.list}.${JSON.stringify(filter)}`,
+				factory: () => this.repo.findPage(filter),
+			}),
+		)
 	}
 
 	async handleDetail(id: number): Promise<GoodsReceiptNoteDto> {
-		return this.getById(id)
+		return record('GoodsReceiptService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw GoodsReceiptError.notFound(id)
+			return result
+		})
 	}
 
 	async handleCreate(data: GoodsReceiptNoteCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const result = await this.repo.create(data, actorId)
-		await this.cache.deleteMany({ keys: ['list', 'count'] })
-		return result
+		return record('GoodsReceiptService.handleCreate', async () => {
+			const result = await this.repo.insert(data, actorId)
+			if (!result) throw GoodsReceiptError.createFailed()
+
+			await this.invalidate()
+			return result
+		})
 	}
 
 	async handleComplete(id: number, actorId: ActorId): Promise<EntityRef> {
-		return this.db.transaction(async (tx) => {
+		return record('GoodsReceiptService.handleComplete', async () => {
 			const grn = await this.getById(id)
-			if (grn.status !== 'open') {
-				throw new ConflictError(`GRN is already ${grn.status}`, { code: 'GRN_STATUS_CONFLICT' })
-			}
+			if (!grn) throw GoodsReceiptError.notFound(id)
+			if (grn.status !== 'open') throw GoodsReceiptError.alreadyCompleted(grn.status)
 
 			const poItemIds = grn.items.map((i) => i.purchaseOrderItemId).filter(Boolean)
-			const poItems = await tx
-				.select({ id: purchaseOrderItemsTable.id, unitPrice: purchaseOrderItemsTable.unitPrice })
-				.from(purchaseOrderItemsTable)
-				.where(and(inArray(purchaseOrderItemsTable.id, poItemIds)))
+			const result = await withTransaction(this.repo.db, async (tx) => {
+				const poItems = await tx
+					.select({ id: purchaseOrderItemsTable.id, unitPrice: purchaseOrderItemsTable.unitPrice })
+					.from(purchaseOrderItemsTable)
+					.where(and(inArray(purchaseOrderItemsTable.id, poItemIds)))
 
-			const poItemMap = new Map(poItems.map((i) => [i.id, i.unitPrice]))
+				const poItemMap = new Map(poItems.map((i) => [i.id, i.unitPrice]))
 
-			await this.inventorySvc.purchase(
-				{
-					locationId: grn.locationId,
-					date: grn.receiveDate,
-					referenceNo: `GRN-${grn.id}`,
-					notes: grn.notes ?? null,
-					items: grn.items.map((item) => {
-						const unitCost = item.purchaseOrderItemId
-							? String(poItemMap.get(item.purchaseOrderItemId) ?? '0')
-							: '0'
-						return { materialId: item.materialId!, qty: item.quantityReceived, unitCost }
-					}),
-				},
-				actorId,
-				tx,
-			)
+				await this.deps.stockTransaction.purchase(
+					{
+						locationId: grn.locationId,
+						date: grn.receiveDate,
+						referenceNo: `GRN-${grn.id}`,
+						notes: grn.notes ?? null,
+						items: grn.items.map((item) => {
+							const unitCost = item.purchaseOrderItemId
+								? String(poItemMap.get(item.purchaseOrderItemId) ?? '0')
+								: '0'
+							return { materialId: item.materialId!, qty: String(item.quantityReceived), unitCost }
+						}),
+					},
+					actorId,
+					tx,
+				)
 
-			const result = await this.repo.updateStatus(id, 'completed', actorId)
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+				const updated = await this.repo.updateStatus(id, 'completed', actorId, tx)
+				if (!updated) throw GoodsReceiptError.updateFailed()
+				return updated
+			})
+
+			await this.invalidate(id)
 			return result
 		})
 	}
 
 	async handleRemove(id: number, actorId: ActorId): Promise<EntityRef> {
-		const result = await this.repo.softDelete(id, actorId)
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-		return result
+		return record('GoodsReceiptService.handleRemove', async () => {
+			const existing = await this.getById(id)
+			if (!existing) throw GoodsReceiptError.notFound(id)
+
+			const result = await this.repo.softDelete(id, actorId)
+			if (!result) throw GoodsReceiptError.notFound(id)
+
+			await this.invalidate(id)
+			return result
+		})
 	}
 
 	async handleHardRemove(id: number): Promise<EntityRef> {
-		const result = await this.repo.hardDelete(id)
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-		return result
+		return record('GoodsReceiptService.handleHardRemove', async () => {
+			const result = await this.repo.hardDelete(id)
+			if (!result) throw GoodsReceiptError.notFound(id)
+
+			await this.invalidate(id)
+			return result
+		})
 	}
 }

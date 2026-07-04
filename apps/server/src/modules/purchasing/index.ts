@@ -5,9 +5,8 @@ import type { DbClient } from '@/infra/database'
 
 import type { InventoryServiceModule } from '@/modules/inventory'
 
-import { GoodsReceiptRepo } from './goods-receipt.repo'
-import { initGoodsReceiptRoute } from './goods-receipt.route'
-import { GoodsReceiptService } from './goods-receipt.service'
+import { createGoodsReceiptModule, type GoodsReceiptModule } from './goods-receipt.module'
+import { createGoodsReceiptRoute } from './goods-receipt.route'
 import { createPurchaseOrderModule, type PurchaseOrderModule } from './purchase-order.module'
 import { createPurchaseOrderRoute } from './purchase-order.route'
 
@@ -33,7 +32,8 @@ export {
 	GoodsReceiptStatusEnum,
 	type GoodsReceiptStatus,
 } from './goods-receipt.contract'
-export type { GoodsReceiptService } from './goods-receipt.service'
+export type { IGoodsReceiptRepo } from './goods-receipt.repo'
+export type { GoodsReceiptModule } from './goods-receipt.module'
 
 export interface PurchasingDeps {
 	location: { getById: (id: number) => Promise<{ id: number; name: string } | undefined> }
@@ -43,7 +43,7 @@ export interface PurchasingDeps {
 
 export class PurchasingServiceModule {
 	public readonly purchaseOrder: PurchaseOrderModule
-	public readonly goodsReceipt: GoodsReceiptService
+	public readonly goodsReceipt: GoodsReceiptModule
 
 	constructor(
 		db: DbClient,
@@ -53,18 +53,20 @@ export class PurchasingServiceModule {
 	) {
 		this.purchaseOrder = createPurchaseOrderModule(db, cacheClient, deps)
 
-		const goodsReceiptRepo = new GoodsReceiptRepo(db)
-		this.goodsReceipt = new GoodsReceiptService(
-			goodsReceiptRepo,
-			inventory.transaction,
-			db,
-			cacheClient,
-		)
+		this.goodsReceipt = createGoodsReceiptModule(db, cacheClient, {
+			stockTransaction: inventory.transaction,
+			purchaseOrder: {
+				handleGetById: async (id: number) => {
+					const po = await this.purchaseOrder.handleGetById(id)
+					return { id: po.id, status: po.status }
+				},
+			},
+		})
 	}
 }
 
 export function initPurchasingRouteModule(s: PurchasingServiceModule) {
 	return new Elysia({ prefix: '/purchasing' })
 		.use(createPurchaseOrderRoute(s.purchaseOrder))
-		.use(initGoodsReceiptRoute(s.goodsReceipt))
+		.use(createGoodsReceiptRoute(s.goodsReceipt))
 }
