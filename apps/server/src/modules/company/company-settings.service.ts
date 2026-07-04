@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
@@ -9,103 +9,113 @@ import type {
 	CompanySettingsCreateDto,
 	CompanySettingsUpdateDto,
 } from './company-settings.contract'
-import { CompanySettingsRepo } from './company-settings.repo'
-
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError(`Company settings with ID ${id} not found`, {
-			code: 'COMPANY_SETTINGS_NOT_FOUND',
-		}),
-	notConfigured: () =>
-		new InternalServerError('Company settings not configured', {
-			code: 'COMPANY_SETTINGS_NOT_CONFIGURED',
-		}),
-	createFailed: () =>
-		new InternalServerError('Company settings creation failed', {
-			code: 'COMPANY_SETTINGS_CREATE_FAILED',
-		}),
-}
+import { CompanySettingsError } from './company-settings.internal'
+import type { ICompanySettingsRepo, CompanySettingsInsert, CompanySettingsUpdate } from './company-settings.repo'
 
 export class CompanySettingsService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: CompanySettingsRepo,
+		private readonly repo: ICompanySettingsRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'company-settings')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
+	}
 
-	async get(): Promise<CompanySettingsDto> {
-		return record('CompanySettingsService.get', async () => {
-			const result = await this.cache.getOrSetWithSkip({
-				key: this.cache.keys.list,
-				factory: () => this.repo.get(),
-			})
-			if (!result) throw err.notConfigured()
-			return result
+	async get(): Promise<CompanySettingsDto | undefined> {
+		return this.cache.getOrSetWithSkip({
+			key: this.cache.keys.list,
+			factory: () => this.repo.get(),
 		})
 	}
 
 	async getById(id: number): Promise<CompanySettingsDto | undefined> {
-		return record('CompanySettingsService.getById', async () =>
-			this.cache.getOrSetWithSkip({
-				key: this.cache.keys.byId(id),
-				factory: () => this.repo.getById(id),
-			}),
-		)
+		return this.cache.getOrSetWithSkip({
+			key: this.cache.keys.byId(id),
+			factory: () => this.repo.findById(id),
+		})
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
+	async create(data: CompanySettingsCreateDto, actorId: ActorId): Promise<EntityRef> {
+		const existing = await this.repo.get()
+		if (existing) throw CompanySettingsError.alreadyExists()
+
+		const insertData: CompanySettingsInsert = {
+			name: data.name,
+			address: data.address || null,
+			phone: data.phone || null,
+			email: data.email || null,
+			taxId: data.taxId || null,
+			taxRate: data.taxRate !== undefined ? String(data.taxRate) : '0',
+			logoUrl: data.logoUrl || null,
+			invoiceFooter: data.invoiceFooter || null,
+			receiptFooter: data.receiptFooter || null,
+			currencyCode: data.currencyCode,
+			currencySymbol: data.currencySymbol,
+			settings: data.settings,
+			...stampCreate(actorId),
+		}
+		const result = await this.repo.insert(insertData)
+		if (!result) throw CompanySettingsError.createFailed()
+
+		await this.invalidate()
+		return result
+	}
+
+	async update(data: CompanySettingsUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		const { id } = data
+		const existing = await this.repo.findById(id)
+		if (!existing) throw CompanySettingsError.notFound(id)
+
+		const updateData: CompanySettingsUpdate = {
+			name: data.name,
+			address: data.address || null,
+			phone: data.phone || null,
+			email: data.email || null,
+			taxId: data.taxId || null,
+			taxRate: data.taxRate !== undefined ? String(data.taxRate) : undefined,
+			logoUrl: data.logoUrl || null,
+			invoiceFooter: data.invoiceFooter || null,
+			receiptFooter: data.receiptFooter || null,
+			currencyCode: data.currencyCode,
+			currencySymbol: data.currencySymbol,
+			settings: data.settings,
+			...stampUpdate(actorId),
+		}
+		const result = await this.repo.update(id, updateData)
+		if (!result) throw CompanySettingsError.notFound(id)
+
+		await this.invalidate(id)
+		return result
+	}
 
 	async handleGet(): Promise<CompanySettingsDto> {
-		return record('CompanySettingsService.handleGet', () => this.get())
+		return record('CompanySettingsService.handleGet', async () => {
+			const result = await this.repo.get()
+			if (!result) throw CompanySettingsError.notConfigured()
+			return result
+		})
 	}
 
 	async handleDetail(id: number): Promise<CompanySettingsDto> {
 		return record('CompanySettingsService.handleDetail', async () => {
-			const result = await this.repo.getById(id)
-			if (!result) throw err.notFound(id)
+			const result = await this.repo.findById(id)
+			if (!result) throw CompanySettingsError.notFound(id)
 			return result
 		})
 	}
 
 	async handleCreate(data: CompanySettingsCreateDto, actorId: ActorId): Promise<EntityRef> {
-		return record('CompanySettingsService.handleCreate', async () => {
-			// Check if settings already exist (should be single instance)
-			const existing = await this.repo.get()
-			if (existing) {
-				throw new InternalServerError('Company settings already exist. Use update instead.', {
-					code: 'COMPANY_SETTINGS_ALREADY_EXISTS',
-				})
-			}
-
-			const result = await this.repo.create(data, actorId)
-
-			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
-
-			return result
-		})
+		return record('CompanySettingsService.handleCreate', async () => this.create(data, actorId))
 	}
 
 	async handleUpdate(data: CompanySettingsUpdateDto, actorId: ActorId): Promise<EntityRef> {
-		return record('CompanySettingsService.handleUpdate', async () => {
-			const { id } = data
-
-			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
-
-			const result = await this.repo.update(data, actorId)
-
-			await this.cache.deleteFromKeys([
-				this.cache.keys.list,
-				this.cache.keys.count,
-				this.cache.keys.byId(id),
-			])
-
-			return result
-		})
+		return record('CompanySettingsService.handleUpdate', async () => this.update(data, actorId))
 	}
 }

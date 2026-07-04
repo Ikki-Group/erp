@@ -11,12 +11,12 @@ import {
 } from './company-settings.contract'
 import type { CompanySettingsService } from './company-settings.service'
 
-export function initCompanySettingsRoute(service: CompanySettingsService) {
+export function createCompanySettingsRoute(service: CompanySettingsService) {
 	return new Elysia({ prefix: '/settings' })
 		.use(authPluginMacro)
 		.get(
 			'/',
-			async function get() {
+			async () => {
 				const result = await service.handleGet()
 				return res.ok(result)
 			},
@@ -27,8 +27,8 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 		)
 		.get(
 			'/detail',
-			async function detail(context) {
-				const result = await service.handleDetail(context.query.id)
+			async ({ query }) => {
+				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
 			{
@@ -39,8 +39,8 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 		)
 		.post(
 			'/create',
-			async function create(context) {
-				const result = await service.handleCreate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
 			{
@@ -51,8 +51,8 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 		)
 		.patch(
 			'/update',
-			async function update(context) {
-				const result = await service.handleUpdate(context.body, context.auth.userId)
+			async ({ body, auth }) => {
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
