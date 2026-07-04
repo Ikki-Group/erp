@@ -93,14 +93,21 @@ For each feature (do `iam` first as the multi-entity reference):
   `@/modules/<x>` / cross-feature imports. Plan: for cross-feature DTO refs,
   rewrite to `@/features/<x>` on copy (add a rule when we hit `iam`).
 
-- **`zp.decimal` server↔web divergence.** Server `zp.decimal` outputs a
-  `string` (`union([string,number]).transform(String)`), so contracts write
-  `zp.decimal.default('0')`. Web `zp.decimal` is `z.coerce.number()` (outputs
-  `number`), so a string default is a type error. When migrating any feature
-  with decimal defaults (company, product, recipe, sales, purchasing, finance,
-  payment, inventory), the copier must rewrite `zp.decimal(...).default('<n>')`
-  → `.default(<n>)` (drop the quotes). Until the generator does this, fix the
-  generated DTO by hand (already done for company/product/recipe pre-migration).
+- **`zp.decimal` is now aligned (no rewrite needed).** ✅ Resolved. Both server
+  and web `zp.decimal` infer **`string`** (server: `union([string,number])
+  .transform(String)`; web: lightweight `z.string()`). Decimal values travel
+  over the wire as strings (Drizzle `numeric` → JSON string), so contracts can
+  write `zp.decimal.default('0')` and the DTO copies **verbatim** to web — no
+  quote-stripping / rewrite rule required in the copier.
+  - Consequence at call sites: since decimal DTO fields are typed `string`,
+    forms that hold numbers must convert `number → String(x)` when building the
+    mutation body (done at the submit boundary — see inventory transactions,
+    expenditure dialog, material-location sheet, POS). Read-side display uses
+    `Number(x)` where numeric math/formatting is needed.
+  - Web validation stays intentionally **lightweight/type-only**: `z.string()`
+    for decimal (no union/transform), `.toLowerCase()` for email (not a
+    `.transform`), string→boolean parse for query booleans. Inferred output
+    types match the server; runtime is minimal.
 
 - **Custom endpoint query-keys.** The generator only special-cases `list` and
   `detail` for query keys and applies `invalidates: [<entity>Keys.lists()]` to all
