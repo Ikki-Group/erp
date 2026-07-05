@@ -152,13 +152,16 @@ export class RecipeService {
 		})
 	}
 
-	async handleRemove(id: number, _actorId: ActorId): Promise<EntityRef> {
+	async handleRemove(id: number, actorId: ActorId): Promise<EntityRef> {
 		return record('RecipeService.handleRemove', async () => {
 			const existing = await this.getById(id)
 			if (!existing) throw RecipeError.notFound(id)
 
-			const result = await this.repo.remove(id)
-			if (!result) throw RecipeError.notFound(id)
+			const result = await withTransaction(this.repo.db, async (tx) => {
+				const removed = await this.repo.remove(id, actorId, tx)
+				if (!removed) throw RecipeError.notFound(id)
+				return removed
+			})
 
 			await this.invalidate(id)
 			return result

@@ -10,7 +10,7 @@ import {
 	uomsTable,
 } from '@/db/schema'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { EntityRef } from '@/shared/types/utils'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { RecipeDto, RecipeFilterDto } from './recipe.contract'
 
@@ -37,7 +37,7 @@ export interface IRecipeRepo {
 	count(db?: DbContext): Promise<number>
 	insert(data: RecipeInsert, items: RecipeItemInput[], db?: DbContext): Promise<EntityRef | undefined>
 	update(id: number, data: Partial<RecipeInsert>, items: RecipeItemInput[], db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, deletedBy: ActorId, db?: DbContext): Promise<EntityRef | undefined>
 	getAvgCostForMaterial(materialId: number, db?: DbContext): Promise<number>
 }
 
@@ -225,17 +225,17 @@ export class RecipeRepo implements IRecipeRepo {
 		return { id }
 	}
 
-	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async remove(id: number, deletedBy: ActorId, db: DbContext = this.db): Promise<EntityRef | undefined> {
 		const timestamp = new Date()
 
 		await db
 			.update(recipeItemsTable)
-			.set({ deletedAt: timestamp })
+			.set({ deletedAt: timestamp, deletedBy })
 			.where(eq(recipeItemsTable.recipeId, id))
 
 		const [result] = await db
 			.update(recipesTable)
-			.set({ deletedAt: timestamp })
+			.set({ deletedAt: timestamp, deletedBy })
 			.where(eq(recipesTable.id, id))
 			.returning({ id: recipesTable.id })
 

@@ -141,7 +141,7 @@ class FakeRecipeRepo implements IRecipeRepo {
 		return { id }
 	}
 
-	async remove(id: number): Promise<EntityRef | undefined> {
+	async remove(id: number, _deletedBy: number): Promise<EntityRef | undefined> {
 		if (!this.store.has(id)) return undefined
 		this.store.delete(id)
 		return { id }

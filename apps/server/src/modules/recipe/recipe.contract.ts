@@ -14,7 +14,7 @@ const RecipeItemMutationDto = z.object({
 })
 
 export const RecipeItemDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	recipeId: zp.id,
 	materialId: zp.id,
 	qty: zp.decimal,
@@ -31,7 +31,7 @@ export type RecipeItemDto = z.infer<typeof RecipeItemDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const RecipeDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	materialId: zp.id.nullable(),
 	productId: zp.id.nullable(),
 	productVariantId: zp.id.nullable(),
@@ -86,7 +86,7 @@ export const RecipeCreateDto = RecipeMutationDto
 export type RecipeCreateDto = z.infer<typeof RecipeCreateDto>
 
 export const RecipeUpdateDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	...RecipeMutationDto.shape,
 })
 export type RecipeUpdateDto = z.infer<typeof RecipeUpdateDto>
