@@ -9,7 +9,7 @@ import { zc, zp, zq } from '@/shared/schema'
 /* -------------------------------- RESPONSE -------------------------------- */
 
 export const UomDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	code: zp.str,
 	...zc.AuditBasic.shape,
 })
@@ -36,7 +36,7 @@ export const UomCreateDto = UomMutationDto
 export type UomCreateDto = z.infer<typeof UomCreateDto>
 
 export const UomUpdateDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	...UomMutationDto.shape,
 })
 export type UomUpdateDto = z.infer<typeof UomUpdateDto>
