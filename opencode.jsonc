@@ -1,0 +1,48 @@
+{
+  // Project-level opencode config for Ikki ERP.
+  // Docs/schema: https://opencode.ai/config.json
+  "$schema": "https://opencode.ai/config.json",
+
+  // Always load both instruction files as context.
+  // AGENTS.md = toolchain/commands; CLAUDE.md = deep module/architecture patterns.
+  "instructions": ["AGENTS.md", "CLAUDE.md"],
+
+  // --- Token optimization ------------------------------------------------
+  // Truncate large tool outputs to disk instead of flooding the context.
+  // This repo produces big test/lint/typecheck outputs; cap them tightly.
+  // The full output is still written to disk and searchable via Grep/Read.
+  "tool_output": {
+    "max_lines": 500,
+    "max_bytes": 20000
+  },
+
+  // Auto-compact when the context fills, prune stale tool outputs, and keep
+  // the most recent turns verbatim so long sessions stay lean.
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "tail_turns": 4
+  },
+
+  // Housekeeping.
+  "share": "disabled",
+  "autoupdate": "notify",
+
+  // --- MCP servers -------------------------------------------------------
+  // Context7: on-demand, version-specific library docs (pairs with the
+  // context7 skill). Remote + lazy, so tool-definition cost is minimal.
+  // Playwright: browser/e2e debugging for apps/e2e. Local; spawns a browser
+  // only when invoked.
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["bunx", "@playwright/mcp@latest"],
+      "enabled": true
+    }
+  }
+}
