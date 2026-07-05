@@ -16,18 +16,90 @@ because `logger.ts` and `otel/otel.ts` have module-load side effects):
 
 ## `database/`
 
-Drizzle helpers shared by every repo. Pure functions + types, no state.
+Drizzle helpers shared by every repo. Pure functions + types, no state. One
+file per concern:
 
-| Export                              | Purpose                                                                                  |
-| ----------------------------------- | ---------------------------------------------------------------------------------------- |
-| `DbContext` / `DbClient` / `DbTx`   | The DB handle types. `DbContext = DbClient \| DbTx` — repos accept it so writes can join a caller's transaction. |
-| `withTransaction(db, fn)`           | Run `fn` atomically. If `db` is already a `DbTx`, reuses it (no nesting); else opens one. Thread the `tx` into every repo write. |
-| `paginate({ data, pq, countQuery })`| Runs data + count queries in parallel (`Promise.all`), returns `{ data, meta }`. `data`/`countQuery` are thunks so any Drizzle query shape works. |
-| `checkConflict(opts)`               | Generic uniqueness check. Queries each **changed** field independently for accurate attribution; on update excludes the current row via `ne(pk, existing.id)`. Requires explicit `db` (no global fallback → stays inside the caller's transaction). |
-| `searchFilter(column, search)`      | `ILIKE '%term%'` condition, or `undefined` when empty. Escapes `%`, `_`, `\` so input is a literal substring. |
-| `sortBy(column, dir)`               | `asc`/`desc` orderBy clause (default `desc`).                                            |
-| `takeFirst(rows)`                   | `rows[0]` or `undefined` — the standard "not found = undefined" read helper.             |
-| `takeFirstOrThrow(rows, msg, code)` | `rows[0]` or throws `NotFoundError`. Use sparingly (repos normally return `undefined`).  |
+| File             | Exports                                                                                  |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| `types.ts`       | `DbClient` / `DbTx` / `DbContext`                                                        |
+| `row.ts`         | `takeFirst`, `takeFirstOrThrow`                                                          |
+| `query.ts`       | `sortBy`, `allOf`/`anyOf`, `searchFilter`/`searchAcross`, `eqIf`, `notDeleted`, `existsWhere`, `countWhere` |
+| `pagination.ts`  | `paginate`, `paginateWindow`, `buildPaginationMeta`, `toLimitOffset`                     |
+| `transaction.ts` | `withTransaction`                                                                        |
+| `conflict.ts`    | `checkConflict` (pre-check) + `catchUniqueViolation` (constraint-based)                  |
+
+### Types
+
+`DbContext = DbClient | DbTx`. Repos accept `db?: DbContext = this.db` so a
+service can thread its `DbTx` into every write for atomic multi-write ops.
+
+### Reads
+
+- `takeFirst(rows)` → `rows[0] | undefined` — the standard "not found = undefined".
+- `takeFirstOrThrow(rows, msg, code)` → throws `NotFoundError` (use sparingly).
+- `existsWhere(db, table, where)` → `boolean` (`LIMIT 1`).
+- `countWhere(db, table, where?)` → `number`.
+
+### WHERE composition (DRY optional filters)
+
+```ts
+// drops undefined/false/null so optional filters inline cleanly
+const where = allOf(
+  searchAcross(filter.q, [users.name, users.email]), // ILIKE across columns
+  eqIf(users.locationId, filter.locationId),          // eq() only when defined
+  eqIf(users.isActive, filter.isActive),
+)
+```
+
+- `sortBy(column, 'desc')` — orderBy clause.
+- `searchFilter(col, term)` — escaped `ILIKE '%term%'` (or `undefined` when empty).
+- `searchAcross(term, [colA, colB])` — same, OR-ed across columns.
+- `allOf(...)` / `anyOf(...)` — `AND`/`OR` that skip falsy conditions.
+- `eqIf(col, value)` — `eq()` when value is set, else `undefined`.
+- `notDeleted(table.deletedAt)` — `isNull(deletedAt)` soft-delete filter; compose with `allOf`.
+
+### Pagination
+
+Two strategies:
+
+- **`paginateWindow(rows, pq)`** — **preferred.** Single round-trip: select
+  `rowCount: sql\`count(*) over()\`` alongside your columns; it reads the total
+  from the first row and strips `rowCount` from the data. Best on network-bound
+  DBs (Neon).
+
+  ```ts
+  const { limit, offset } = toLimitOffset(filter)
+  const rows = await db
+    .select({ ...getColumns(users), rowCount: sql<number>`count(*) over()` })
+    .from(users).where(where).orderBy(sortBy(users.updatedAt))
+    .limit(limit).offset(offset)
+  return paginateWindow(rows, filter)
+  ```
+
+- **`paginate({ data, pq, countQuery })`** — two queries in parallel. Use when
+  the count differs from the data query (joins, DISTINCT, grouped counts).
+
+  `buildPaginationMeta(total, pq)` / `toLimitOffset(pq)` are exposed for custom
+  flows. Reference: `location.repo.ts` uses `paginateWindow`.
+
+### Uniqueness / conflicts
+
+Two complementary tools:
+
+- **`checkConflict(opts)`** — read-before-write. Queries each **changed** field
+  independently for precise per-field error attribution; on update excludes the
+  current row. Great UX (exact field message). Requires explicit `db` (stays in
+  the caller's transaction). Not race-proof on its own.
+- **`catchUniqueViolation(fn, map)`** — wraps a write, catches Postgres
+  `23505 unique_violation`, and maps the violated **constraint name** → a typed
+  `ConflictError`. Race-free (DB is the source of truth). Use when the table has
+  real unique constraints; pair with `checkConflict` for best UX + safety.
+
+  ```ts
+  return catchUniqueViolation(() => this.repo.insert(data), [
+    { constraint: 'users_email_unique', message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
+  ])
+  ```
 
 **Repo contract reminder:** reads return `T | undefined` (never `null`, never
 throw); writes return `EntityRef | undefined`. See

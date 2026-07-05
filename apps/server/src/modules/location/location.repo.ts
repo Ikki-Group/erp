@@ -1,8 +1,18 @@
-import { and, count, eq, or, SQL } from 'drizzle-orm'
+import { eq, getColumns, sql, type SQL } from 'drizzle-orm'
 
 import { locationsTable } from '@/db/schema'
 
-import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
+import {
+	allOf,
+	countWhere,
+	eqIf,
+	paginateWindow,
+	searchAcross,
+	sortBy,
+	takeFirst,
+	toLimitOffset,
+	type DbContext,
+} from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
@@ -37,12 +47,9 @@ export class LocationRepo implements ILocationRepo {
 	constructor(readonly db: DbContext) {}
 
 	#buildWhere(filter: Partial<Pick<LocationFilterDto, 'q' | 'type'>>): SQL | undefined {
-		const { q, type } = filter
-		return and(
-			q === undefined
-				? undefined
-				: or(searchFilter(locationsTable.name, q), searchFilter(locationsTable.code, q)),
-			type === undefined ? undefined : eq(locationsTable.type, type),
+		return allOf(
+			searchAcross(filter.q, [locationsTable.name, locationsTable.code]),
+			eqIf(locationsTable.type, filter.type),
 		)
 	}
 
@@ -59,19 +66,18 @@ export class LocationRepo implements ILocationRepo {
 		db: DbContext = this.db,
 	): Promise<WithPaginationResult<LocationDto>> {
 		const where = this.#buildWhere(filter)
+		const { limit, offset } = toLimitOffset(filter)
 
-		return paginate<LocationDto>({
-			data: ({ limit, offset }) =>
-				db
-					.select()
-					.from(locationsTable)
-					.where(where)
-					.orderBy(sortBy(locationsTable.updatedAt, 'desc'))
-					.limit(limit)
-					.offset(offset),
-			pq: filter,
-			countQuery: () => db.select({ count: count() }).from(locationsTable).where(where),
-		})
+		// Single round-trip: data + total via `count(*) over()`.
+		const rows = await db
+			.select({ ...getColumns(locationsTable), rowCount: sql<number>`count(*) over()` })
+			.from(locationsTable)
+			.where(where)
+			.orderBy(sortBy(locationsTable.updatedAt, 'desc'))
+			.limit(limit)
+			.offset(offset)
+
+		return paginateWindow(rows, filter)
 	}
 
 	async findById(id: number, db: DbContext = this.db): Promise<LocationDto | undefined> {
@@ -84,10 +90,7 @@ export class LocationRepo implements ILocationRepo {
 	}
 
 	async count(db: DbContext = this.db): Promise<number> {
-		return db
-			.select({ count: count() })
-			.from(locationsTable)
-			.then((rows) => rows[0]?.count ?? 0)
+		return countWhere(db, locationsTable)
 	}
 
 	async insert(data: LocationInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
