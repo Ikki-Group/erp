@@ -16,7 +16,7 @@ describe('services/auth', () => {
 	})
 
 	test('login success with valid credentials', async () => {
-		const res = await authSvc.login(USER_SUPERADMIN)
+		const res = await authSvc.handleLogin(USER_SUPERADMIN)
 		expect(res.user.isRoot).toBe(true)
 		expect(res.token).toBeTruthy()
 	})

@@ -3,7 +3,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { verifyPassword } from '@/shared/utils/password'
 
 import type { UserDto, UserWithPasswordDto } from '@/modules/iam'
-import type { SessionService } from '@/modules/session/session.service'
+import type { SessionDto } from '@/modules/session/session.contract'
 
 import type { AuthOutputDto, AuthLoginDto } from './auth.contract'
 import { AuthError } from './auth.internal'
@@ -18,14 +18,23 @@ export interface IamAuthPort {
 	getUserDetail(userId: number): Promise<UserDto>
 }
 
+/**
+ * Narrow session surface that AuthService depends on — instead of the whole
+ * `SessionService` class. Keeps the coupling explicit and minimal.
+ */
+export interface SessionAuthPort {
+	createSession(user: UserDto): Promise<{ session: SessionDto; token: string }>
+	verifySession(token: string): Promise<SessionDto | null>
+}
+
 export class AuthService {
 	constructor(
 		private readonly iam: IamAuthPort,
-		private readonly sessionSvc: SessionService,
+		private readonly sessionSvc: SessionAuthPort,
 	) {}
 
-	async login(input: AuthLoginDto): Promise<AuthOutputDto> {
-		return record('AuthService.login', async () => {
+	async handleLogin(input: AuthLoginDto): Promise<AuthOutputDto> {
+		return record('AuthService.handleLogin', async () => {
 			const { identifier, password } = input
 			const targetUser = await this.iam.getByIdentifier(identifier)
 
@@ -56,8 +65,8 @@ export class AuthService {
 		})
 	}
 
-	async getById(userId: number): Promise<UserDto | undefined> {
-		return record('AuthService.getById', async () => {
+	async handleGetById(userId: number): Promise<UserDto | undefined> {
+		return record('AuthService.handleGetById', async () => {
 			return this.iam.getUserDetail(userId)
 		})
 	}

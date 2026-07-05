@@ -33,13 +33,4 @@ export const AuthError = {
 		new UnauthorizedError('Invalid or expired token', {
 			code: 'AUTH_INVALID_TOKEN',
 		}),
-
-	/**
-	 * Session expired
-	 * More specific error when session exists but is expired
-	 */
-	sessionExpired: () =>
-		new UnauthorizedError('Session expired', {
-			code: 'AUTH_SESSION_EXPIRED',
-		}),
 }

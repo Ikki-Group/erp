@@ -16,7 +16,7 @@ export function createAuthRoute(svc: AuthService) {
 		.post(
 			'/login',
 			async function login(context) {
-				const { user, token } = await svc.login(context.body)
+				const { user, token } = await svc.handleLogin(context.body)
 				return res.ok({ token, user }, 'AUTH_LOGIN_SUCCESS')
 			},
 			{ body: AuthLoginDto, response: createSuccessResponseDto(AuthOutputDto) },
@@ -24,7 +24,7 @@ export function createAuthRoute(svc: AuthService) {
 		.get(
 			'/me',
 			async function me(context) {
-				const userWithDetails = await svc.getById(context.auth.user!.id)
+				const userWithDetails = await svc.handleGetById(context.auth.user!.id)
 				if (!userWithDetails) {
 					throw new UnauthorizedError('User not found', { code: 'AUTH_USER_NOT_FOUND' })
 				}
