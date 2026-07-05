@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js'
+import { money } from '@/shared/utils/money'
 
 import type { DbTx } from '@/infra/database'
 
@@ -41,7 +41,7 @@ export class StockExternalMovementService extends MovementLogic {
 					notes: notes ?? null,
 					qty: qty.toString(),
 					unitCost: unitCost.toString(),
-					totalCost: new Decimal(qty).mul(unitCost).toString(),
+					totalCost: money(qty).mul(unitCost).toString(),
 					runningQty: newQty.toString(),
 					runningAvgCost: newAvgCost.toString(),
 					createdBy: actorId,
@@ -56,7 +56,7 @@ export class StockExternalMovementService extends MovementLogic {
 				{
 					currentQty: Number(newQty),
 					currentAvgCost: Number(newAvgCost),
-					currentValue: Number(new Decimal(newQty).mul(newAvgCost)),
+					currentValue: Number(money(newQty).mul(newAvgCost)),
 				},
 				actorId,
 				tx,
@@ -92,7 +92,7 @@ export class StockExternalMovementService extends MovementLogic {
 					notes: notes ?? null,
 					qty: qty.toString(),
 					unitCost: unitCost.toString(),
-					totalCost: new Decimal(qty).mul(unitCost).toString(),
+					totalCost: money(qty).mul(unitCost).toString(),
 					runningQty: newQty.toString(),
 					runningAvgCost: newAvgCost.toString(),
 					createdBy: actorId,
@@ -107,7 +107,7 @@ export class StockExternalMovementService extends MovementLogic {
 				{
 					currentQty: Number(newQty),
 					currentAvgCost: Number(newAvgCost),
-					currentValue: Number(new Decimal(newQty).mul(newAvgCost)),
+					currentValue: Number(money(newQty).mul(newAvgCost)),
 				},
 				actorId,
 				tx,
@@ -152,8 +152,8 @@ export class StockExternalMovementService extends MovementLogic {
 			const { materialId, qty } = item
 			const assignment = await this.mLocationSvc.findOne(materialId, locationId)
 
-			const qtyDec = new Decimal(qty)
-			const cQtyDec = new Decimal(assignment.currentQty)
+			const qtyDec = money(qty)
+			const cQtyDec = money(assignment.currentQty)
 
 			if (cQtyDec.lt(qtyDec)) {
 				throw StockTransactionError.insufficientStock(
@@ -163,7 +163,7 @@ export class StockExternalMovementService extends MovementLogic {
 				)
 			}
 
-			const currentAvgCost = new Decimal(assignment.currentAvgCost)
+			const currentAvgCost = money(assignment.currentAvgCost)
 			const newQty = cQtyDec.minus(qtyDec)
 			const totalCost = qtyDec.mul(currentAvgCost)
 

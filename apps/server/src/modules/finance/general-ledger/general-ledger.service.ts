@@ -1,8 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
-import Decimal from 'decimal.js'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { withTransaction, type DbContext } from '@/infra/database'
+import { sum } from '@/shared/utils/money'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
@@ -43,14 +43,8 @@ export class GeneralLedgerService {
 		actorId: ActorId,
 		db?: DbContext,
 	): Promise<EntityRef> {
-		const totalDebit = input.items.reduce(
-			(sum, item) => sum.plus(item.debit),
-			new Decimal(0),
-		)
-		const totalCredit = input.items.reduce(
-			(sum, item) => sum.plus(item.credit),
-			new Decimal(0),
-		)
+		const totalDebit = sum(input.items, (item) => item.debit)
+		const totalCredit = sum(input.items, (item) => item.credit)
 
 		if (!totalDebit.eq(totalCredit)) {
 			throw GeneralLedgerError.notBalanced(totalDebit.toString(), totalCredit.toString())

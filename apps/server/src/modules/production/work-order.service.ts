@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js'
+import { money } from '@/shared/utils/money'
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
@@ -156,12 +156,12 @@ export class WorkOrderService {
 			const recipe = await this.deps.recipe.getById(wo.recipeId)
 			if (!recipe) throw ProductionError.notFound(wo.recipeId)
 
-			const actualQty = new Decimal(data.actualQty)
-			const targetQty = new Decimal(recipe.targetQty)
+			const actualQty = money(data.actualQty)
+			const targetQty = money(recipe.targetQty)
 			const multiplier = actualQty.div(targetQty.isPositive() ? targetQty : 1)
 
 			const costRes = await this.deps.recipe.handleCalculateCost(wo.recipeId)
-			const actualTotalCost = new Decimal(costRes.totalCost).mul(multiplier)
+			const actualTotalCost = money(costRes.totalCost).mul(multiplier)
 
 			const result = await withTransaction(this.repo.db, async (tx) => {
 				if (recipe.items) {
@@ -173,9 +173,9 @@ export class WorkOrderService {
 							notes: `Consumed for Work Order #${wo.id}`,
 							items: recipe.items.map((item) => ({
 								materialId: item.materialId,
-								qty: new Decimal(item.qty)
+								qty: money(item.qty)
 									.mul(multiplier)
-									.mul(new Decimal(1).plus(new Decimal(item.scrapPercentage).div(100)))
+									.mul(money(1).plus(money(item.scrapPercentage).div(100)))
 									.toString(),
 							})),
 						},

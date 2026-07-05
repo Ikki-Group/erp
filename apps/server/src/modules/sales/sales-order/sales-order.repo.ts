@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment */
-import Decimal from 'decimal.js'
 import { and, count, desc, eq, gte, lte, type SQL } from 'drizzle-orm'
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
@@ -13,6 +12,7 @@ import {
 
 import { paginate, type DbContext } from '@/infra/database'
 import { stampUpdate } from '@/shared/audit/stamp'
+import { sum } from '@/shared/utils/money'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
@@ -184,17 +184,10 @@ export class SalesOrderRepo implements ISalesOrderRepo {
 				.map((v) => v.itemId as number),
 		)
 
-		let totalAmount = new Decimal(0)
-		let discountAmount = new Decimal(0)
-		let taxAmount = new Decimal(0)
-
-		for (const item of allItems) {
-			if (!voidedItemIds.has(item.id)) {
-				totalAmount = totalAmount.plus(item.subtotal)
-				discountAmount = discountAmount.plus(item.discountAmount)
-				taxAmount = taxAmount.plus(item.taxAmount)
-			}
-		}
+		const validItems = allItems.filter((item) => !voidedItemIds.has(item.id))
+		const totalAmount = sum(validItems, (item) => item.subtotal)
+		const discountAmount = sum(validItems, (item) => item.discountAmount)
+		const taxAmount = sum(validItems, (item) => item.taxAmount)
 
 		const metadata = stampUpdate(actorId)
 		await db

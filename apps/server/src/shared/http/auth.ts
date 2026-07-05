@@ -23,7 +23,5 @@ export class AuthContext {
 		if (!this.isAuthenticated)
 			throw new UnauthorizedError('Unauthorized', { code: 'AUTH_UNAUTHORIZED' })
 		return this.user!.id
-
-		// return 1
 	}
 }
