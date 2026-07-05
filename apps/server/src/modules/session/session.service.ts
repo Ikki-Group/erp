@@ -7,13 +7,13 @@ import { logger } from '@/infra/logger'
 import type { UserDto } from '@/modules/iam'
 
 import { SessionDto, SessionPayloadDto } from './session.contract'
-import { SessionRepo } from './session.repo'
+import type { ISessionRepo } from './session.repo'
 
 export class SessionService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: SessionRepo,
+		private readonly repo: ISessionRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'session')

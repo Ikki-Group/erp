@@ -6,8 +6,25 @@ import { takeFirst, type DbContext } from '@/infra/database'
 
 import type { SessionDto } from './session.contract'
 
-export class SessionRepo {
-	constructor(private readonly db: DbContext) {}
+/**
+ * Repository port for the session module. Services depend on this interface
+ * (not the concrete class) so they can be unit-tested with plain in-memory
+ * fakes and no database. Not-found reads return `undefined` — repos never
+ * throw for "not found", the service decides error semantics.
+ */
+export interface ISessionRepo {
+	/** The default database context this repo is bound to (client or tx). */
+	readonly db: DbContext
+	getById(id: number): Promise<SessionDto | undefined>
+	getByUserId(userId: number): Promise<SessionDto[]>
+	create(data: typeof sessionsTable.$inferInsert): Promise<SessionDto>
+	invalidate(id: number): Promise<void>
+	invalidateByUserId(userId: number): Promise<void>
+	cleanupExpired(): Promise<number>
+}
+
+export class SessionRepo implements ISessionRepo {
+	constructor(readonly db: DbContext) {}
 
 	async getById(id: number): Promise<SessionDto | undefined> {
 		const result = await this.db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
