@@ -17,7 +17,6 @@
 		"db:studio": "bunx --bun drizzle-kit studio",
 		"db:reset": "bun run scripts/db-scripts-helper.ts reset",
 		"db:seed": "bun run scripts/db-scripts-helper.ts seed",
-		"db:seed-dev": "bun run scripts/db-scripts-helper.ts seed-dev",
 		"seed": "bun run scripts/seed.ts",
 		"lint": "oxlint --type-aware .",
 		"lint:fix": "oxlint --type-aware --fix --fix-suggestions --fix-dangerously .",

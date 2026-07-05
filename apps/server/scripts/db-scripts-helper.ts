@@ -10,7 +10,7 @@ import type { DbContext } from '@/infra/database'
 
 import { createModules } from '@/modules/_registry'
 
-const Action = z.enum(['reset', 'seed', 'seed-dev', 'all'])
+const Action = z.enum(['reset', 'seed', 'all'])
 type Action = z.infer<typeof Action>
 
 const isAllowed =
@@ -45,19 +45,6 @@ async function runMigrate(db: DbContext) {
 	console.log('✅ Database migrated.')
 }
 
-async function seedDev(db: DbContext, cacheClient: CacheClient) {
-	// @ts-expect-error
-	const m = createModules(db, cacheClient)
-
-	console.log('🌱 Starting core database seed...')
-	await m.tool.seed.seed()
-	console.log('✅ Core seed completed.')
-
-	console.log('🌱 Starting development mock data seed...')
-	await m.tool.seed.seedDev()
-	console.log('✅ Development seed completed.')
-}
-
 export async function runDbScriptsHelper(db: DbContext, cacheClient: CacheClient, action: Action) {
 	if (!isAllowed) {
 		console.warn('Not allowed to run db scripts in this environment')
@@ -71,13 +58,10 @@ export async function runDbScriptsHelper(db: DbContext, cacheClient: CacheClient
 		case 'seed':
 			await seed(db, cacheClient)
 			break
-		case 'seed-dev':
-			await seedDev(db, cacheClient)
-			break
 		case 'all':
 			await reset(db).catch(console.error)
 			await runMigrate(db)
-			await seedDev(db, cacheClient)
+			await seed(db, cacheClient)
 			break
 		default:
 			console.warn('Invalid action')
