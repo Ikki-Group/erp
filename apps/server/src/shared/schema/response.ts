@@ -2,17 +2,12 @@ import { z } from 'zod'
 
 import { zc } from './common'
 
-export { zc } from './common'
-export { zq } from './query'
-
 /**
- * Standard Success Response Schema.
- * Wraps any schema into { success: true, code: string, data: T }
+ * Standard success response schema — wraps a payload into
+ * `{ success: true, code: string, data: T }`.
  *
  * @example
- * const userDto = z.object({ id: z.number(), name: z.string() })
- * const response = createSuccessResponseDto( T)
- * // { success: true, code: string, data: { id, name } }
+ * response: createSuccessResponseDto(LocationDto)
  */
 export function createSuccessResponseDto<T extends z.ZodType>(dataDto: T) {
 	return z.object({
@@ -23,13 +18,11 @@ export function createSuccessResponseDto<T extends z.ZodType>(dataDto: T) {
 }
 
 /**
- * Standard List Response Schema.
- * Wraps an array into { success: true, code: string, data: T[], meta: { ... } }
+ * Standard paginated response schema — wraps an array into
+ * `{ success: true, code: string, data: T[], meta: PaginationMeta }`.
  *
  * @example
- * const itemDto = z.object({ id: z.number(), name: z.string() })
- * const response = createPaginatedResponseDto( T)
- * // { success: true, code: string, data: [{ id, name }], meta: { page, limit, total, totalPages } }
+ * response: createPaginatedResponseDto(LocationDto)
  */
 export function createPaginatedResponseDto<T extends z.ZodType>(itemDto: T) {
 	return z.object({
@@ -39,6 +32,3 @@ export function createPaginatedResponseDto<T extends z.ZodType>(itemDto: T) {
 		meta: zc.PaginationMeta,
 	})
 }
-
-export const successRecordIdDto = createSuccessResponseDto(zc.RecordId)
-export const successNoDataDto = createSuccessResponseDto(z.undefined())

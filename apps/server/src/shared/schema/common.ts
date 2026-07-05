@@ -23,67 +23,30 @@ const password = z.string().min(8).max(100)
 
 const fullname = z.string().trim().min(3).max(100)
 
-export const RecordId = z.object({ id: zp.id })
-export type RecordId = z.infer<typeof RecordId>
+const RecordId = z.object({ id: zp.id })
 
-const Timestamps = z.object({
+/** Audit columns present on every table: `createdAt/updatedAt/createdBy/updatedBy`. */
+const AuditBasic = z.object({
 	createdAt: zp.date,
 	updatedAt: zp.date,
-})
-
-const Actors = z.object({
 	createdBy: zp.id,
 	updatedBy: zp.id,
 })
 
-const SoftDelete = z.object({
+/** `AuditBasic` + soft-delete columns (`deletedAt/deletedBy`). */
+const AuditFull = z.object({
+	...AuditBasic.shape,
 	deletedBy: zp.id.nullable(),
 	deletedAt: zp.date.nullable(),
 })
 
-const SyncMeta = z.object({
-	syncAt: zp.date.nullable(),
-})
-
-const AuditBasic = z.object({
-	...Timestamps.shape,
-	...Actors.shape,
-})
-
-const AuditFull = z.object({
-	...AuditBasic.shape,
-	...SoftDelete.shape,
-})
-
-const AuditSync = z.object({
-	...AuditFull.shape,
-	...SyncMeta.shape,
-})
-
-const UserSnippet = z.object({
-	id: zp.id,
-	username: zp.str,
-	fullname: zp.str,
-})
-
-const AuditResolved = z.object({
-	creator: UserSnippet.nullable(),
-	updater: UserSnippet.nullable(),
-})
-
+/** Standard pagination metadata returned in list responses. */
 const PaginationMeta = z.object({
 	page: zp.num,
 	limit: zp.num,
 	total: zp.num,
 	totalPages: zp.num,
 })
-
-function withAuditResolved<T extends z.ZodRawShape>(shape: T) {
-	return z.object({
-		...shape,
-		...AuditResolved.shape,
-	})
-}
 
 export const zc = {
 	strTrim,
@@ -92,16 +55,8 @@ export const zc = {
 	username,
 	password,
 	fullname,
-	RecordId: RecordId,
-	Timestamps,
-	Actors,
-	SoftDelete,
-	SyncMeta,
+	RecordId,
 	AuditBasic,
 	AuditFull,
-	AuditSync,
-	AuditResolved,
-	UserSnippet,
 	PaginationMeta,
-	withAuditResolved,
 } as const

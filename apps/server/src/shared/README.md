@@ -8,12 +8,49 @@ root `shared/index.ts`).
 
 Shared validation building blocks for contracts. Import from `@/shared/schema`.
 
-- `zp.*` — raw primitives for **output/entity** DTOs (`zp.str`, `zp.id`, `zp.bool`, `zp.date`, `zp.decimal`).
-- `zc.*` — validated/trimmed primitives for **input/mutation** DTOs (`zc.strTrim`, `zc.email`, `zc.password`) + reusable shapes (`zc.AuditBasic`, `zc.RecordId`).
-- `zq.*` — **query** primitives that COERCE strings (`zq.recordId`, `zq.ids`, `zq.pagination`, `zq.search`, `zq.boolean`).
-- `response.ts` — `createSuccessResponseDto` / `createPaginatedResponseDto` envelope schemas.
+**`zp.*` — raw output/entity primitives (no coercion):**
 
-See [docs/server/MODULE_STANDARD.md § 7](../../../../docs/server/MODULE_STANDARD.md) for when to use which.
+| Member         | Type                                  |
+| -------------- | ------------------------------------- |
+| `str`          | `string`                              |
+| `strNullable`  | `string \| null`                      |
+| `num`          | `number`                              |
+| `bool`         | `boolean`                             |
+| `date`         | `Date` (coerced)                      |
+| `dateNullable` | `Date \| null`                        |
+| `id`           | positive int                          |
+| `decimal`      | numeric → `string` (Postgres numeric) |
+
+**`zc.*` — validated/trimmed input primitives + reusable shapes:**
+
+| Member            | Purpose                                                        |
+| ----------------- | ------------------------------------------------------------- |
+| `strTrim`         | trimmed string                                                |
+| `strTrimNullable` | trimmed string, `''` → `null`                                 |
+| `email`           | validated, lowercased, max 255                                |
+| `username`        | 3–30, `[a-zA-Z0-9_]`                                          |
+| `password`        | 8–100                                                         |
+| `fullname`        | trimmed, 3–100                                                |
+| `RecordId`        | `{ id }`                                                       |
+| `AuditBasic`      | `createdAt/updatedAt/createdBy/updatedBy` — spread into entity DTOs |
+| `AuditFull`       | `AuditBasic` + `deletedAt/deletedBy` (soft delete)            |
+| `PaginationMeta`  | list-response meta schema (used by `createPaginatedResponseDto`) |
+
+**`zq.*` — query primitives that COERCE (query params arrive as strings):**
+
+| Member       | Purpose                                     |
+| ------------ | ------------------------------------------- |
+| `id`         | coerced positive int                        |
+| `ids`        | `?id=1&id=2` or `?id=1` → `number[]`         |
+| `recordId`   | `{ id }` (coerced) — for detail/remove       |
+| `search`     | trimmed, `''` → `undefined`                 |
+| `boolean`    | `'true'`/`'1'` → `boolean`                  |
+| `pagination` | `{ page, limit }` with defaults + `.catch`  |
+
+**`response.ts`** — `createSuccessResponseDto(dto)` / `createPaginatedResponseDto(dto)`
+build the `{ success, code, data(, meta) }` envelope schemas used as route `response`.
+
+See [docs/server/MODULE_STANDARD.md § 7](../../../../docs/server/MODULE_STANDARD.md) for when to use which prefix.
 
 ## `errors/`
 
