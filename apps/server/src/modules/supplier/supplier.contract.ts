@@ -5,7 +5,7 @@ import { zc, zp, zq } from '@/shared/schema'
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const SupplierDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	code: zp.str,
 	name: zp.str,
 	email: zp.strNullable,
@@ -31,7 +31,7 @@ export const SupplierCreateDto = SupplierMutationDto
 export type SupplierCreateDto = z.infer<typeof SupplierCreateDto>
 
 export const SupplierUpdateDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	...SupplierMutationDto.shape,
 })
 export type SupplierUpdateDto = z.infer<typeof SupplierUpdateDto>

@@ -5,7 +5,7 @@ import { suppliersTable } from '@/db/schema/supplier'
 
 import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { EntityRef } from '@/shared/types/utils'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { SupplierDto, SupplierFilterDto } from './supplier.contract'
 
@@ -21,7 +21,7 @@ export interface ISupplierRepo {
 	insert(data: SupplierInsert, db?: DbContext): Promise<EntityRef | undefined>
 	insertMany(items: SupplierInsert[], db?: DbContext): Promise<void>
 	update(id: number, data: SupplierUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, deletedBy: ActorId, db?: DbContext): Promise<EntityRef | undefined>
 }
 
 export class SupplierRepo implements ISupplierRepo {
@@ -110,10 +110,14 @@ export class SupplierRepo implements ISupplierRepo {
 		return res
 	}
 
-	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async remove(
+		id: number,
+		deletedBy: ActorId,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const [res] = await db
 			.update(suppliersTable)
-			.set({ deletedAt: new Date() })
+			.set({ deletedAt: new Date(), deletedBy })
 			.where(eq(suppliersTable.id, id))
 			.returning({ id: suppliersTable.id })
 		return res

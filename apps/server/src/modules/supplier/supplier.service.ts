@@ -129,12 +129,12 @@ export class SupplierService {
 		return result
 	}
 
-	async remove(id: number, _actorId: ActorId): Promise<EntityRef> {
+	async remove(id: number, actorId: ActorId): Promise<EntityRef> {
 		const existing = await this.getById(id)
 		if (!existing) throw SupplierError.notFound(id)
 
 		const result = await withTransaction(this.repo.db, async (tx) => {
-			const deleted = await this.repo.remove(id, tx)
+			const deleted = await this.repo.remove(id, actorId, tx)
 			if (!deleted) throw SupplierError.notFound(id)
 			return deleted
 		})
@@ -163,11 +163,7 @@ export class SupplierService {
 		return record('SupplierService.handleUpdate', async () => this.update(data, actorId))
 	}
 
-	async handleDelete(id: number, _actorId: ActorId): Promise<EntityRef> {
-		return record('SupplierService.handleDelete', async () => this.remove(id, _actorId))
-	}
-
-	async handleRemove(id: number, actorId: ActorId): Promise<EntityRef> {
-		return this.handleDelete(id, actorId)
+	async handleDelete(id: number, actorId: ActorId): Promise<EntityRef> {
+		return record('SupplierService.handleDelete', async () => this.remove(id, actorId))
 	}
 }
