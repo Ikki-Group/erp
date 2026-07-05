@@ -3,6 +3,7 @@ import { and, count, desc, eq, or, SQL } from 'drizzle-orm'
 import { customersTable, customerLoyaltyTransactionsTable } from '@/db/schema'
 
 import { paginate, searchFilter, takeFirst, type DbContext } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
@@ -135,8 +136,7 @@ export class CustomerRepo implements ICustomerRepo {
 				pointsBalance: 0,
 				totalPointsEarned: 0,
 				registeredAt: new Date(),
-				createdBy: actorId,
-				updatedBy: actorId,
+				...stampCreate(actorId),
 			})
 			.returning({ id: customersTable.id })
 
@@ -154,8 +154,7 @@ export class CustomerRepo implements ICustomerRepo {
 			.update(customersTable)
 			.set({
 				...updateData,
-				updatedBy: actorId,
-				updatedAt: new Date(),
+				...stampUpdate(actorId),
 			})
 			.where(eq(customersTable.id, id))
 			.returning({ id: customersTable.id })
@@ -188,8 +187,7 @@ export class CustomerRepo implements ICustomerRepo {
 			.set({
 				pointsBalance: newBalance,
 				totalPointsEarned: totalEarned,
-				updatedBy: actorId,
-				updatedAt: new Date(),
+				...stampUpdate(actorId),
 			})
 			.where(eq(customersTable.id, data.customerId))
 
@@ -203,8 +201,7 @@ export class CustomerRepo implements ICustomerRepo {
 				referenceType: data.referenceType ?? null,
 				referenceId: data.referenceId ?? null,
 				description: data.description,
-				createdBy: actorId,
-				updatedBy: actorId,
+				...stampCreate(actorId),
 			})
 			.returning({ id: customerLoyaltyTransactionsTable.id })
 
@@ -229,8 +226,7 @@ export class CustomerRepo implements ICustomerRepo {
 			.update(customersTable)
 			.set({
 				pointsBalance: newBalance,
-				updatedBy: actorId,
-				updatedAt: new Date(),
+				...stampUpdate(actorId),
 			})
 			.where(eq(customersTable.id, data.customerId))
 
@@ -244,8 +240,7 @@ export class CustomerRepo implements ICustomerRepo {
 				referenceType: data.referenceType ?? null,
 				referenceId: data.referenceId ?? null,
 				description: data.description,
-				createdBy: actorId,
-				updatedBy: actorId,
+				...stampCreate(actorId),
 			})
 			.returning({ id: customerLoyaltyTransactionsTable.id })
 

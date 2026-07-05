@@ -19,7 +19,7 @@ import type {
 import { CustomerError } from './customer.internal'
 import type { ICustomerRepo } from './customer.repo'
 
-const uniqueFields: ConflictField<{ code: string; name: string; phone: string | null }>[] = [
+const uniqueFields: ConflictField<{ code: string; name: string }>[] = [
 	{
 		field: 'code',
 		column: customersTable.code,
@@ -31,12 +31,6 @@ const uniqueFields: ConflictField<{ code: string; name: string; phone: string | 
 		column: customersTable.name,
 		message: 'Customer name already exists',
 		code: 'CUSTOMER_NAME_ALREADY_EXISTS',
-	},
-	{
-		field: 'phone',
-		column: customersTable.phone,
-		message: 'Customer phone already exists',
-		code: 'CUSTOMER_PHONE_ALREADY_EXISTS',
 	},
 ]
 
@@ -82,7 +76,6 @@ export class CustomerService {
 			input: {
 				code: data.code,
 				name: data.name,
-				phone: data.phone ?? null,
 			},
 		})
 
@@ -106,7 +99,6 @@ export class CustomerService {
 			input: {
 				code: existing.code,
 				name: data.name ?? existing.name,
-				phone: data.phone ?? existing.phone,
 			},
 			existing,
 		})

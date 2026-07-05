@@ -1,7 +1,7 @@
 import { createAuditLogRoute } from '@/modules/audit/audit-log.route'
 import { createAuthRoute } from '@/modules/auth/auth.route'
 import { createCompanyRoute } from '@/modules/company/company.route'
-import { createCrmRouteModule } from '@/modules/crm'
+import { createCrmRouteModule } from '@/modules/crm/crm.route'
 import { initDashboardRouteModule } from '@/modules/dashboard'
 import { initFinanceRouteModule } from '@/modules/finance'
 import { initHRRouteModule } from '@/modules/hr'

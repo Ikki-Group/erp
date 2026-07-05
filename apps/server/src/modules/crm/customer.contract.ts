@@ -42,7 +42,7 @@ export const CustomerCreateDto = CustomerMutationDto
 export type CustomerCreateDto = z.infer<typeof CustomerCreateDto>
 
 export const CustomerUpdateDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	name: zc.strTrim.min(2).max(100).optional(),
 	email: zc.email.optional().or(z.literal('')),
 	phone: zc.strTrim.min(10).max(20).optional().or(z.literal('')),
