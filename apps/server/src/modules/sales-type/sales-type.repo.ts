@@ -4,7 +4,7 @@ import { salesTypesTable } from '@/db/schema'
 
 import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
-import type { ActorId, EntityRef } from '@/shared/types/utils'
+import type { EntityRef } from '@/shared/types/utils'
 
 import type { SalesTypeDto, SalesTypeFilterDto } from './sales-type.contract'
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
@@ -126,17 +126,5 @@ export class SalesTypeRepo implements ISalesTypeRepo {
 			.where(eq(salesTypesTable.id, id))
 			.returning({ id: salesTypesTable.id })
 		return res
-	}
-
-	/* -------------------------------- SEED -------------------------------- */
-
-	async seed(
-		data: (SalesTypeInsert & { id?: number; createdBy: ActorId })[],
-		db: DbContext = this.db,
-	): Promise<void> {
-		for (const d of data) {
-			const { isSystem, ...rest } = d
-			await db.insert(salesTypesTable).values({ ...rest, isSystem }).onConflictDoNothing()
-		}
 	}
 }
