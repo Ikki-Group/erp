@@ -1,7 +1,7 @@
-import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ne, type SQL } from 'drizzle-orm'
 
 import { logger } from '@/infra/logger'
+import { withSpan } from '@/infra/otel'
 import { ConflictError } from '@/shared/errors/http-error'
 
 import type { DbContext } from './types'
@@ -77,7 +77,7 @@ interface CheckConflictOptions<T extends Record<string, unknown> = Record<string
 export async function checkConflict<T extends Record<string, unknown>>(
 	opts: CheckConflictOptions<T>,
 ): Promise<void> {
-	return record('db.checkConflict', async () => {
+	return withSpan('db.checkConflict', async () => {
 		const { db, table, pkColumn, fields, input, existing } = opts
 
 		// Determine which fields actually changed

@@ -1,4 +1,4 @@
-import { record } from '@elysiajs/opentelemetry'
+import { withSpan } from '@/infra/otel'
 
 import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
 /* -------------------------------------------------------------------------- */
@@ -46,7 +46,7 @@ export async function paginate<TResult>({
 	pq,
 	countQuery,
 }: PaginateOptions<TResult>): Promise<WithPaginationResult<TResult>> {
-	return record('db.paginate', async () => {
+	return withSpan('db.paginate', async () => {
 		const page = pq.page
 		const limit = pq.limit
 		const offset = (page - 1) * limit

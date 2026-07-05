@@ -1,10 +1,11 @@
-import { record } from '@elysiajs/opentelemetry'
+import { withSpan } from '@/infra/otel'
 
 import { type CacheClient } from './cache'
 import type { ConfigNamespace } from './config'
 import type { CacheProvider, DeleteManyOptions, GetOrSetOptions } from 'bentocache/types'
 
-type KeyFactory = string | ((...any: any[]) => string)
+/** A cache key is either a literal string or a builder producing one. */
+type KeyFactory = string | ((...args: (string | number)[]) => string)
 type CacheKeys = Record<string, KeyFactory>
 
 type GetOrSetOptionsWithKey<T> = Omit<GetOrSetOptions<T>, 'key'> & { key: KeyFactory }
@@ -37,22 +38,17 @@ export class CacheService<T extends CacheKeys = typeof DEFAULT_KEYS> {
 	}
 
 	async getOrSet<T>({ key, ...options }: GetOrSetOptionsWithKey<T>): Promise<T> {
-		return record('CacheService.getOrSet', (s) => {
-			s.setAttribute('cache.namespace', this.ns)
-			return this.cache.getOrSet({
-				key: this.#buildKey(key),
-				...options,
-			})
-		})
+		return withSpan('CacheService.getOrSet', { 'cache.namespace': this.ns }, () =>
+			this.cache.getOrSet({ key: this.#buildKey(key), ...options }),
+		)
 	}
 
 	async getOrSetWithSkip<T>({
 		key,
 		...options
 	}: GetOrSetOptionsWithKey<T>): Promise<T | undefined> {
-		return record('CacheService.getOrSetWithSkip', (s) => {
-			s.setAttribute('cache.namespace', this.ns)
-			return this.cache.getOrSet({
+		return withSpan('CacheService.getOrSetWithSkip', { 'cache.namespace': this.ns }, () =>
+			this.cache.getOrSet({
 				key: this.#buildKey(key),
 				...options,
 				factory: async (ctx) => {
@@ -60,8 +56,8 @@ export class CacheService<T extends CacheKeys = typeof DEFAULT_KEYS> {
 					if (value === undefined) return ctx.skip()
 					return value
 				},
-			})
-		})
+			}),
+		)
 	}
 
 	async deleteMany({
@@ -70,23 +66,23 @@ export class CacheService<T extends CacheKeys = typeof DEFAULT_KEYS> {
 	}: Omit<DeleteManyOptions, 'keys'> & {
 		keys: (KeyFactory | undefined | null)[]
 	}): Promise<boolean> {
-		return record('CacheService.deleteMany', async (s) => {
-			s.setAttribute('cache.namespace', this.ns)
+		return withSpan('CacheService.deleteMany', { 'cache.namespace': this.ns }, () => {
 			const filteredKeys = keys.reduce<string[]>((acc, key) => {
 				if (key === undefined || key === null) return acc
 				acc.push(this.#buildKey(key))
 				return acc
 			}, [])
-			if (filteredKeys.length === 0) return false
+			if (filteredKeys.length === 0) return Promise.resolve(false)
 			return this.cache.deleteMany({ keys: filteredKeys, ...options })
 		})
 	}
 
+	/**
+	 * Ergonomic alias for `deleteMany({ keys })` — the common "invalidate these
+	 * keys" case with no extra options. Skips `null`/`undefined` keys.
+	 */
 	async deleteFromKeys(keys: (KeyFactory | undefined | null)[]): Promise<boolean> {
-		return record('CacheService.deleteFromKeys', async (s) => {
-			s.setAttribute('cache.namespace', this.ns)
-			return this.deleteMany({ keys: keys })
-		})
+		return this.deleteMany({ keys })
 	}
 
 	/**
@@ -103,10 +99,9 @@ export class CacheService<T extends CacheKeys = typeof DEFAULT_KEYS> {
 	 * client-side), so this works even in L1-memory-only mode.
 	 */
 	async deleteByTags(tags: (string | undefined | null)[]): Promise<boolean> {
-		return record('CacheService.deleteByTags', async (s) => {
-			s.setAttribute('cache.namespace', this.ns)
+		return withSpan('CacheService.deleteByTags', { 'cache.namespace': this.ns }, () => {
 			const filteredTags = tags.filter((tag): tag is string => tag !== undefined && tag !== null)
-			if (filteredTags.length === 0) return false
+			if (filteredTags.length === 0) return Promise.resolve(false)
 			return this.cache.deleteByTag({ tags: filteredTags })
 		})
 	}
