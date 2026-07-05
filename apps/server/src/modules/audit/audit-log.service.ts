@@ -44,7 +44,7 @@ export class AuditLogService {
 
 	async handleDetail(id: number): Promise<AuditLogDto> {
 		return record('AuditLogService.handleDetail', async () => {
-			const result = await this.repo.findById(id)
+			const result = await this.getById(id)
 			if (!result) throw AuditLogError.notFound(id)
 			return result
 		})
