@@ -6,9 +6,9 @@ import type {
 	ProductCategoryDto,
 	ProductCategoryFilterDto,
 	ProductCategoryUpdateDto,
-} from '@/modules/product/category.contract'
-import type { IProductCategoryRepo } from '@/modules/product/category.repo'
-import { ProductCategoryService } from '@/modules/product/category.service'
+} from '@/modules/product/category/category.contract'
+import type { IProductCategoryRepo } from '@/modules/product/category/category.repo'
+import { ProductCategoryService } from '@/modules/product/category/category.service'
 
 import { createMockCacheClient } from '../helpers/mock-db'
 import { beforeEach, describe, expect, test } from 'bun:test'

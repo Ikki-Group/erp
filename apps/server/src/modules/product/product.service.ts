@@ -8,8 +8,8 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import type { ProductCategoryDto } from './category.contract'
-import type { IProductCategoryRepo } from './category.repo'
+import type { ProductCategoryDto } from './category/category.contract'
+import type { IProductCategoryRepo } from './category/category.repo'
 import type {
 	ProductDto,
 	ProductFilterDto,

@@ -16,7 +16,7 @@ import type {
 	ProductDto,
 	ProductFilterDto,
 } from '@/modules/product/product.contract'
-import type { ProductCategoryDto } from '@/modules/product/category.contract'
+import type { ProductCategoryDto } from '@/modules/product/category/category.contract'
 import type { IProductRepo } from '@/modules/product/product.repo'
 import { ProductService } from '@/modules/product/product.service'
 

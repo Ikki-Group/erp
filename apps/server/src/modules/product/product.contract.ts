@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
 
-import { ProductCategoryDto } from './category.contract'
+import { ProductCategoryDto } from './category/category.contract'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -55,7 +55,7 @@ export type ProductExternalMappingDto = z.infer<typeof ProductExternalMappingDto
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const ProductDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	name: zp.str,
 	description: zp.strNullable,
 	sku: zp.str,
@@ -138,7 +138,7 @@ export const ProductCreateDto = ProductMutationDto
 export type ProductCreateDto = z.infer<typeof ProductCreateDto>
 
 export const ProductUpdateDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	...ProductMutationDto.shape,
 })
 export type ProductUpdateDto = z.infer<typeof ProductUpdateDto>

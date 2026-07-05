@@ -5,7 +5,7 @@ import { zc, zp, zq } from '@/shared/schema'
 /* ---------------------------------- ENTITY ---------------------------------- */
 
 export const ProductCategoryDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	code: zp.str,
 	name: zp.str,
 	description: zp.strNullable,
@@ -38,7 +38,7 @@ export const ProductCategoryCreateDto = ProductCategoryMutationDto
 export type ProductCategoryCreateDto = z.infer<typeof ProductCategoryCreateDto>
 
 export const ProductCategoryUpdateDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	...ProductCategoryMutationDto.shape,
 })
 export type ProductCategoryUpdateDto = z.infer<typeof ProductCategoryUpdateDto>

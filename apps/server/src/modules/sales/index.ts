@@ -5,7 +5,7 @@ import type { DbClient } from '@/infra/database'
 
 import type { CrmServiceModule as CrmModule } from '@/modules/crm'
 import type { LocationModule } from '@/modules/location'
-import type { ProductServiceModule as ProductModule } from '@/modules/product'
+import type { ProductModule } from '@/modules/product'
 
 import { createSalesTypeRoute, type SalesTypeModule } from '../sales-type'
 import {

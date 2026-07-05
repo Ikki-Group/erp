@@ -1,8 +1,8 @@
 import type { CacheClient } from '@/infra/cache'
 import type { DbContext } from '@/infra/database'
 
-import { ProductCategoryRepo } from './category.repo'
-import { ProductCategoryService } from './category.service'
+import { ProductCategoryRepo } from './category/category.repo'
+import { ProductCategoryService } from './category/category.service'
 import { ProductRepo } from './product.repo'
 import { ProductService } from './product.service'
 

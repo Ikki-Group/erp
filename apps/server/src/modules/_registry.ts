@@ -14,7 +14,7 @@ import { type LocationModule, createLocationModule } from '@/modules/location/lo
 import { createMaterialModule, type MaterialModule } from '@/modules/material'
 import { MokaServiceModule } from '@/modules/moka'
 import { PaymentServiceModule } from '@/modules/payment'
-import { createProductModule, type ProductModule } from '@/modules/product'
+import { createProductModule, type ProductModule } from '@/modules/product/product.module'
 import { ProductionServiceModule } from '@/modules/production'
 import { PurchasingServiceModule } from '@/modules/purchasing'
 import { createRecipeModule, type RecipeModule } from '@/modules/recipe'

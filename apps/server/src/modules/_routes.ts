@@ -11,7 +11,7 @@ import { createLocationRoute } from '@/modules/location/location.route'
 import { initMaterialRoutes } from '@/modules/material'
 import { initMokaRouteModule } from '@/modules/moka'
 import { initPaymentRouteModule } from '@/modules/payment'
-import { initProductRouteModule } from '@/modules/product'
+import { createProductRoute } from '@/modules/product/product.route'
 import { initProductionRouteModule } from '@/modules/production'
 import { initPurchasingRouteModule } from '@/modules/purchasing'
 import { createRecipeRoute } from '@/modules/recipe'
@@ -44,7 +44,7 @@ export function createRoutes(m: Modules) {
 		createSalesTypeRoute(m.salesType),
 		createSupplierRoute(m.supplier),
 		createCrmRouteModule(m.crm),
-		initProductRouteModule(m.product),
+		createProductRoute(m.product),
 		createRecipeRoute(m.recipe),
 		initFinanceRouteModule(m.finance),
 		createIamRoute(m.iam),
