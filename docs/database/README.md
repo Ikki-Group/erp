@@ -15,8 +15,8 @@ links below for the specific thing you need.
 | Understand a domain's tables/relationships before touching it | [`ERD_*.md`](#erd) — pick the file matching your domain                                  |
 | Add a table, column, index, or constraint                     | [`SCHEMA_CONVENTIONS.md`](./SCHEMA_CONVENTIONS.md) — rules, not suggestions              |
 | Understand how caching relates to schema design               | [`SCHEMA_CONVENTIONS.md#cache-friendliness`](./SCHEMA_CONVENTIONS.md#cache-friendliness) |
-| Understand backend architecture beyond the DB                 | [`../architecture/SERVER_ARCHITECTURE.md`](../architecture/SERVER_ARCHITECTURE.md)       |
-| Understand code patterns (services, repos, caching)           | [`../architecture/CODE_PATTERNS.md`](../architecture/CODE_PATTERNS.md)                   |
+| Understand backend architecture beyond the DB                 | [`../server/SERVER_ARCHITECTURE.md`](../server/SERVER_ARCHITECTURE.md)       |
+| Understand code patterns (services, repos, caching)           | [`../server/CODE_PATTERNS.md`](../server/CODE_PATTERNS.md)                   |
 
 ## Quick facts
 

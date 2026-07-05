@@ -9,25 +9,30 @@ ingestible as AI context. **Business/product** definitions are kept separate fro
 
 ## Layout
 
-### `architecture/` — backend architecture (developer + AI)
+### `server/` — backend server (developer + AI)
 
-- **[`MODULE_STANDARD.md`](./architecture/MODULE_STANDARD.md)** — **source of truth**
+- [`README.md`](./server/README.md) — index: start here, quick facts, the four docs.
+- **[`MODULE_STANDARD.md`](./server/MODULE_STANDARD.md)** — **source of truth**
   for how a module is structured (repo ports, `undefined` not-found, explicit-db
   `checkConflict`, `withTransaction`, unit-first tests). Reference modules:
   `location/` (simple), `iam/` (complex). Start here.
-- [`SERVER_ARCHITECTURE.md`](./architecture/SERVER_ARCHITECTURE.md) — broader system
+- [`SERVER_ARCHITECTURE.md`](./server/SERVER_ARCHITECTURE.md) — broader system
   design and layering.
-- [`CODE_PATTERNS.md`](./architecture/CODE_PATTERNS.md) — Zod / service / repo /
+- [`CODE_PATTERNS.md`](./server/CODE_PATTERNS.md) — Zod / service / repo /
   cache / transaction implementation patterns.
-- [`MODULE_CHECKLIST.md`](./architecture/MODULE_CHECKLIST.md) — step-by-step build
+- [`MODULE_CHECKLIST.md`](./server/MODULE_CHECKLIST.md) — step-by-step build
   checklist, aligned to `MODULE_STANDARD.md`.
 
-### `codegen/` — contract-driven web codegen
+### `codegen/` — contract-driven web codegen (⚠️ superseded)
 
-- [`WEB_CODEGEN.md`](./codegen/WEB_CODEGEN.md) — how server contracts generate the
-  web DTO/API layer; includes server↔web validation parity.
-- [`WEB_CODEGEN_ROLLOUT.md`](./codegen/WEB_CODEGEN_ROLLOUT.md) — per-feature
-  migration plan and known gaps.
+> ⚠️ The contract-driven web codegen was **cancelled**; the web DTO layer is now
+> managed manually. These docs are retained for historical context only and no
+> longer reflect the build — do not follow them.
+
+- [`WEB_CODEGEN.md`](./codegen/WEB_CODEGEN.md) — (historical) how server contracts
+  generated the web DTO/API layer.
+- [`WEB_CODEGEN_ROLLOUT.md`](./codegen/WEB_CODEGEN_ROLLOUT.md) — (historical)
+  per-feature migration plan.
 
 ### `database/` — schema reference (read before touching `db/schema/`)
 
@@ -64,4 +69,4 @@ Some docs stay code-adjacent on purpose:
    letting them drift.
 3. **AI-friendly.** Structured Markdown (clear headers, bullets, tables).
 4. **Business-first in `product/`.** No code/SQL there — that belongs in
-   `architecture/` and `database/`.
+   `server/` and `database/`.

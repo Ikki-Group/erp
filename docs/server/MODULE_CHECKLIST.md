@@ -1,7 +1,7 @@
 # Module Creation Checklist
 
 **Version**: 1.0  
-**Last Updated**: 2026-06-22
+**Last Updated**: 2026-07-05
 
 Step-by-step guide to create a new module or submodule.
 
@@ -125,13 +125,13 @@ export const locationsTable = pgTable('locations', {
 
 ### Step 1: Contract (`*.contract.ts`)
 
-- [ ] Import Zod and shared schemas (`zc`, `zp`)
-- [ ] Define entity DTO (output from DB)
-- [ ] Define mutation DTO (reusable for CREATE/UPDATE)
+- [ ] Import Zod and shared schemas (`zc`, `zp`, `zq`)
+- [ ] Define entity DTO (output from DB — use `zp.*`)
+- [ ] Define mutation DTO (reusable for CREATE/UPDATE — use `zc.*`)
 - [ ] Define create DTO (with all required fields)
-- [ ] Define update DTO (with ID + optional fields)
-- [ ] Define filter DTO (for list queries)
-- [ ] Export all types
+- [ ] Define update DTO (id inline `id: zp.id` + fields)
+- [ ] Define filter DTO (`...zq.pagination.shape` + `q: zq.search`)
+- [ ] Export all schemas + inferred types
 
 **Template:** See [MODULE_STANDARD.md §7](./MODULE_STANDARD.md#7-contract-zod-rules)
 
@@ -139,15 +139,15 @@ export const locationsTable = pgTable('locations', {
 
 ### Step 2: Repository (`*.repo.ts`)
 
-- [ ] Create repo class with `db: DbContext` constructor param
-- [ ] Implement `findById(id: number)`
-- [ ] Implement `findByIds(ids: number[])`
-- [ ] Implement `create(data: CreateDto)`
-- [ ] Implement `update(id: number, data: Partial<Dto>)`
-- [ ] Implement `delete(id: number)`
-- [ ] Implement `findWithPagination(filter: FilterDto)` (if needed)
-- [ ] Implement custom queries (if needed)
-- [ ] **IMPORTANT:** Return `null` for not found (NOT throw)
+- [ ] Declare `I{Module}Repo` **port** with `readonly db: DbContext`; class `implements` it
+- [ ] Implement `findById(id, db?)` → returns `T | undefined`
+- [ ] Implement `findByIds(ids, db?)` (guard empty array)
+- [ ] Implement `findPage(filter, db?)` (via `paginate`)
+- [ ] Implement `insert(data, db?)` → returns `EntityRef | undefined`
+- [ ] Implement `update(id, data, db?)`
+- [ ] Implement `remove(id, db?)`
+- [ ] Every write accepts optional `db?: DbContext = this.db`
+- [ ] **IMPORTANT:** Return `undefined` for not found (NOT `null`, NOT throw)
 - [ ] **IMPORTANT:** Use `inArray()` for batch queries
 - [ ] **IMPORTANT:** Guard empty arrays
 
@@ -181,7 +181,7 @@ export const locationsTable = pgTable('locations', {
   - [ ] Check dependencies
   - [ ] Delete from DB
   - [ ] Invalidate cache
-- [ ] Add `@record` decorator to all public methods
+- [ ] Wrap the OTEL span with `record('...', async () => …)` at ONE level
 - [ ] Implement `toRelationMap()` helper
 
 **Template:** See [MODULE_STANDARD.md §4](./MODULE_STANDARD.md#4-service-createupdate-conflict--atomic)
@@ -231,14 +231,14 @@ export const LocationError = {
 
 ### Step 6: Routes (`*.route.ts`)
 
-- [ ] Create route group with module prefix
-- [ ] Implement GET list route
-- [ ] Implement GET detail route
-- [ ] Implement POST create route
-  - [ ] Validate body with Zod schema
-  - [ ] Extract actor from context
-- [ ] Implement PATCH update route
-- [ ] Implement DELETE route
+- [ ] Create `new Elysia({ prefix: '/module' })` factory `create{Module}Route(m)`
+- [ ] `.use(authPluginMacro)`; guard each endpoint with `auth: true`
+- [ ] GET `/list` → `res.paginated`, `query: FilterDto`
+- [ ] GET `/detail` → `res.ok`, `query: zq.recordId` (coerced `{id}`)
+- [ ] POST `/create` → `res.created`, `body: CreateDto`, actor via `auth.userId`
+- [ ] PUT `/update` → `res.ok`, `body: UpdateDto`
+- [ ] DELETE `/remove` → `res.ok`, `query: zq.recordId`
+- [ ] Declare `response:` DTO on every endpoint
 - [ ] Use inline async functions (not separate handlers)
 
 **Template:** See [MODULE_STANDARD.md §1](./MODULE_STANDARD.md#1-the-one-template)
@@ -304,11 +304,19 @@ export function createModules(db: DbContext, cacheClient: CacheClient): Modules 
 
 ```ts
 // modules/_routes.ts
-import { locationRoutes } from '@/modules/location/location.route'
+import { createLocationRoute } from '@/modules/location/location.route'
 
-export function registerRoutes(app: Elysia, modules: Modules) {
-	return app.use((app) => locationRoutes(app, modules))
-	// ... other routes
+export function createRoutes(m: Modules) {
+	const routes = [
+		createLocationRoute(m.location),
+		// ... other module routes
+	]
+	return {
+		register: (app: Elysia): Elysia => {
+			routes.forEach((route) => app.use(route))
+			return app
+		},
+	}
 }
 ```
 
@@ -318,14 +326,14 @@ export function registerRoutes(app: Elysia, modules: Modules) {
 
 ### Step 10: Write Tests
 
-- [ ] Create `{module}.test.ts` (unit tests)
+- [ ] Create `src/tests/unit/{module}.service.test.ts` (unit — typed in-memory fake)
 - [ ] Test `handleCreate` (success + conflict cases)
 - [ ] Test `handleUpdate` (success + not found + conflict)
 - [ ] Test `handleGetById` (success + not found)
 - [ ] Test `handleList` (with filters + pagination)
-- [ ] Test `handleDelete` (success + not found + has dependencies)
-- [ ] Create `{module}.integration.test.ts` (integration tests)
-- [ ] Test full HTTP flow (POST, GET, PATCH, DELETE)
+- [ ] Test `handleDelete` (success + not found)
+- [ ] Create `src/tests/services/{module}.test.ts` (integration — real module graph)
+- [ ] Test critical HTTP/business flow
 - [ ] Run tests: `bun test`
 
 ---
@@ -345,7 +353,7 @@ export function registerRoutes(app: Elysia, modules: Modules) {
 
 ### Step 12: Update Docs
 
-- [ ] Add module to ARCHITECTURE.md (if new layer/pattern)
+- [ ] Add module to SERVER_ARCHITECTURE.md (if new layer/pattern)
 - [ ] Add examples to CODE_PATTERNS.md (if new pattern)
 - [ ] Update CLAUDE.md (if new convention)
 - [ ] Add inline comments for complex business rules
@@ -379,7 +387,7 @@ export function registerRoutes(app: Elysia, modules: Modules) {
 ### ❌ Things to Avoid
 
 - [ ] Using `.extend()` on Zod schemas (use spread-shape)
-- [ ] Throwing errors in repo (return `null` for not found)
+- [ ] Throwing errors in repo (return `undefined` for not found)
 - [ ] Forgetting cache invalidation on mutations
 - [ ] Missing conflict checks on CREATE/UPDATE
 - [ ] Missing audit stamps (`createdBy`, `updatedBy`)
@@ -411,7 +419,7 @@ export function registerRoutes(app: Elysia, modules: Modules) {
 | **Design**       | -                                    | Define entities, dependencies, business rules |
 | **Schema**       | `db/schema/*.ts`                     | Create tables, run migration                  |
 | **Contract**     | `*.contract.ts`                      | Define Zod schemas, export types              |
-| **Repo**         | `*.repo.ts`                          | Implement CRUD, return `null` for not found   |
+| **Repo**         | `*.repo.ts`                          | Implement CRUD, return `undefined` for not found   |
 | **Service**      | `*.service.ts`                       | Business logic, cache, conflict checks        |
 | **Factory**      | `*.module.ts`                        | DI container, inject dependencies             |
 | **Routes**       | `*.route.ts`                         | HTTP endpoints, validate input                |

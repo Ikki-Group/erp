@@ -142,7 +142,7 @@ async create(data: DtoWithHash, actorId: ActorId): Promise<EntityRef> {
 2. In `modules/_registry.ts`: add the field to `Modules`, create it **in
    dependency order** (see the topological comment there), add it to the return.
 3. In `modules/_routes.ts`: add `create{Module}Route(m.{module})` (only if it has HTTP).
-4. Schema changes → `db:generate` + `db:migrate`. Contract changes → `generate:endpoints` / `generate:web`.
+4. Schema changes → `db:generate` + `db:migrate`.
 5. Gate: `bun run verify` + `bun run check-deps`.
 
 ---
@@ -153,7 +153,7 @@ async create(data: DtoWithHash, actorId: ActorId): Promise<EntityRef> {
 
   ```ts
   // ✅ good
-  export const XUpdateDto = z.object({ ...zc.RecordId.shape, ...XMutationDto.shape })
+  export const XUpdateDto = z.object({ id: zp.id, ...XMutationDto.shape })
   // ❌ bad
   export const XUpdateDto = XMutationDto.extend({ id: z.number() })
   ```
@@ -162,7 +162,36 @@ async create(data: DtoWithHash, actorId: ActorId): Promise<EntityRef> {
 - Extract a reusable `{Entity}MutationDto` for the create/update field set.
 - Filters use `...zq.pagination.shape` + `q: zq.search`.
 - Export both the schema and its inferred type: `export type XDto = z.infer<typeof XDto>`.
-- IDs are serial integers (`zp.id`), never UUIDs.
+- IDs are serial integers (`zp.id`), never UUIDs. Write the id field **inline as
+  `id: zp.id`** in Update DTOs (not `...zc.RecordId.shape`).
+
+### Validation primitives: `zp` vs `zc` vs `zq`
+
+| Prefix | Use for                       | Coerces? | Examples                                         |
+| ------ | ----------------------------- | -------- | ------------------------------------------------ |
+| `zp.*` | **output / entity** DTOs      | no       | `zp.str`, `zp.id`, `zp.bool`, `zp.date`          |
+| `zc.*` | **input / mutation** DTOs     | no       | `zc.strTrim`, `zc.email`, `zc.password`          |
+| `zq.*` | **query** params (GET)        | **yes**  | `zq.recordId`, `zq.ids`, `zq.pagination`, `zq.search` |
+
+Query strings always arrive as text, so a `{ id }` read via **query** MUST use
+`zq.recordId` (coerces `"1"` → `1`), never `zc.RecordId` (raw `number`, would reject).
+
+### Route input conventions
+
+| Operation        | Input source | Schema                                                   |
+| ---------------- | ------------ | -------------------------------------------------------- |
+| `detail` `{id}`  | query params | `zq.recordId`                                            |
+| `remove` `{id}`  | query params | `zq.recordId`                                            |
+| bulk remove      | body         | `{ ids }` (`zq.ids` shape) — convention only, not built  |
+| `create`/`update`| body         | `<Entity>CreateDto` / `<Entity>UpdateDto`                |
+
+Single `detail`/`remove` take `{ id }` via **query** (coerced). Bulk operations
+take a payload via **body**. The response is never validated against the input
+schema — output DTOs (`zp.*`) and input DTOs (`zc.*`) are separate on purpose.
+
+> **Contract files hold HTTP DTOs only.** A persistence-only shape (e.g.
+> `UserWithPasswordDto`, which carries `passwordHash`) may live in the contract
+> file but MUST be commented as internal and never returned from a route.
 
 ## 8. Error factory (`{module}.internal.ts`)
 

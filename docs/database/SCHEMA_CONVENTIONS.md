@@ -287,7 +287,7 @@ half before writing it as one table.
 ## Layering / import direction
 
 Schema files may only import "downward", mirroring the module layer
-hierarchy documented in `../architecture/SERVER_ARCHITECTURE.md`:
+hierarchy documented in `../server/SERVER_ARCHITECTURE.md`:
 
 ```
 Integrations   (moka.ts)

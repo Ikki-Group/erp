@@ -6,8 +6,8 @@
 > modules `location/` (simple) and `iam/` (complex). This guide gives the
 > broader system context; where it conflicts with MODULE_STANDARD.md, that file wins.
 
-**Version**: 1.0  
-**Last Updated**: 2026-06-22  
+**Version**: 1.1  
+**Last Updated**: 2026-07-05  
 **Target**: Solo developer with AI-assisted development
 
 ---
@@ -71,7 +71,7 @@ apps/server/
 │   │   │   ├── app-error.ts
 │   │   │   └── http-error.ts  # NotFoundError, ConflictError, etc.
 │   │   ├── schema/            # Zod primitives
-│   │   │   └── index.ts       # zp (primitives), zc (common)
+│   │   │   └── index.ts       # zp (primitives), zc (common), zq (query)
 │   │   └── utils/             # Pure functions
 │   │       ├── relation-map.ts
 │   │       └── password.ts
@@ -167,7 +167,7 @@ Domain-agnostic utilities used across modules.
 shared/
 ├── audit/       # stampCreate, stampUpdate
 ├── errors/      # Custom error classes
-├── schema/      # Zod primitives (zp, zc)
+├── schema/      # Zod primitives (zp, zc, zq)
 └── utils/       # Pure functions (RelationMap, password)
 ```
 
@@ -295,115 +295,122 @@ Zod schemas for validation + TypeScript types.
 ```ts
 // location.contract.ts
 import { z } from 'zod'
-import { zc, zp } from '@/shared/schema'
+import { zc, zp, zq } from '@/shared/schema'
 
-// Entity DTO (what comes OUT of DB)
+// Entity DTO (what comes OUT of the DB) — use zp.* (raw, no coercion)
 export const LocationDto = z.object({
 	id: zp.id,
-	name: zp.str,
 	code: zp.str,
-	type: z.enum(['WAREHOUSE', 'STORE', 'SUPPLIER']),
-	...zc.AuditBasic.shape, // createdAt, updatedAt, etc.
+	name: zp.str,
+	type: LocationTypeEnum,
+	description: zp.str.nullable(),
+	isActive: zp.bool,
+	...zc.AuditBasic.shape, // createdAt, updatedAt, createdBy, updatedBy
 })
 export type LocationDto = z.infer<typeof LocationDto>
 
-// Mutation DTO (reusable shape for CREATE/UPDATE)
+// Filter DTO (GET list) — pagination + search
+export const LocationFilterDto = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
+	type: LocationTypeEnum.optional(),
+})
+export type LocationFilterDto = z.infer<typeof LocationFilterDto>
+
+// Reusable mutation shape — use zc.* (trimmed / validated input)
 const LocationMutationDto = z.object({
-	name: zc.name,
-	code: zc.code,
-	type: z.enum(['WAREHOUSE', 'STORE', 'SUPPLIER']),
+	code: zc.strTrim,
+	name: zc.strTrim.min(3).max(100),
+	type: LocationTypeEnum,
+	description: zc.strTrimNullable,
+	isActive: zp.bool.default(true),
 })
 
 // Create DTO (HTTP POST)
-export const LocationCreateDto = z.object({
-	...LocationMutationDto.shape,
-})
+export const LocationCreateDto = LocationMutationDto
 export type LocationCreateDto = z.infer<typeof LocationCreateDto>
 
-// Update DTO (HTTP PATCH)
+// Update DTO (HTTP PUT) — id inline as `id: zp.id`
 export const LocationUpdateDto = z.object({
-	...zc.RecordId.shape, // { id: number }
+	id: zp.id,
 	...LocationMutationDto.shape,
 })
 export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
-
-// Filter DTO (HTTP GET list with filters)
-export const LocationFilterDto = z.object({
-	...zc.PaginationQuery.shape,
-	type: z.enum(['WAREHOUSE', 'STORE', 'SUPPLIER']).optional(),
-})
-export type LocationFilterDto = z.infer<typeof LocationFilterDto>
 ```
 
 **Pattern:**
 
-- Use spread-shape (`.shape`) instead of `.extend()` for Zod composition
-- Separate mutation logic into reusable `{Entity}MutationDto`
-- Always include audit fields via `zc.AuditBasic.shape`
+- Use spread-shape (`.shape`) instead of `.extend()` for Zod composition.
+- Output DTOs use `zp.*`; mutation DTOs use `zc.*`; query params use `zq.*` (coerced).
+- Separate mutation logic into a reusable `{Entity}MutationDto`.
+- Always include audit fields via `...zc.AuditBasic.shape`.
+- Write the id field inline (`id: zp.id`), not `...zc.RecordId.shape`.
+- Full rules: **[MODULE_STANDARD.md § 7](./MODULE_STANDARD.md)**.
 
 ---
 
 ### **2. Repository** (`*.repo.ts`)
 
-Pure data access layer. **NO business logic.**
+Pure data access layer. **NO business logic.** Declare an `I{Module}Repo`
+**port** (interface); the service depends on the port, not the class.
 
 ```ts
 // location.repo.ts
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import type { DbContext } from '@/infra/database'
 import { locationsTable } from '@/db/schema'
-import type { LocationDto, LocationCreateDto } from './location.contract'
+import type { EntityRef } from '@/types/utils'
+import type { LocationDto, LocationFilterDto } from './location.contract'
 
-export class LocationRepo {
-	constructor(private readonly db: DbContext) {}
+export interface ILocationRepo {
+	readonly db: DbContext
+	findMany(filter?: LocationFilterDto, db?: DbContext): Promise<LocationDto[]>
+	findById(id: number, db?: DbContext): Promise<LocationDto | undefined>
+	findByIds(ids: number[], db?: DbContext): Promise<LocationDto[]>
+	insert(data: LocationInsert, db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: LocationUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
 
-	// Find by ID
-	async findById(id: number): Promise<LocationDto | null> {
-		return await this.db
+export class LocationRepo implements ILocationRepo {
+	constructor(readonly db: DbContext) {}
+
+	async findById(id: number, db: DbContext = this.db): Promise<LocationDto | undefined> {
+		return db
 			.select()
 			.from(locationsTable)
 			.where(eq(locationsTable.id, id))
-			.then((rows) => rows[0] ?? null)
+			.then((rows) => rows[0]) // undefined when empty
 	}
 
-	// Find by IDs (batch)
-	async findByIds(ids: number[]): Promise<LocationDto[]> {
+	async findByIds(ids: number[], db: DbContext = this.db): Promise<LocationDto[]> {
 		if (ids.length === 0) return []
-		return await this.db.select().from(locationsTable).where(inArray(locationsTable.id, ids))
+		return db.select().from(locationsTable).where(inArray(locationsTable.id, ids))
 	}
 
-	// Create
-	async create(data: LocationCreateDto): Promise<LocationDto> {
-		return await this.db
-			.insert(locationsTable)
-			.values(data)
-			.returning()
-			.then((rows) => rows[0])
+	async insert(data: LocationInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db.insert(locationsTable).values(data).returning({ id: locationsTable.id })
+		return res
 	}
 
-	// Update
-	async update(id: number, data: Partial<LocationDto>): Promise<LocationDto> {
-		return await this.db
-			.update(locationsTable)
-			.set(data)
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.delete(locationsTable)
 			.where(eq(locationsTable.id, id))
-			.returning()
-			.then((rows) => rows[0])
-	}
-
-	// Delete
-	async delete(id: number): Promise<void> {
-		await this.db.delete(locationsTable).where(eq(locationsTable.id, id))
+			.returning({ id: locationsTable.id })
+		return res
 	}
 }
 ```
 
 **Rules:**
 
-- Use batch operations (`inArray`) instead of loops
-- Return `null` for not found (NOT throw)
-- Use `.then(rows => rows[0])` for single-row queries
-- Guard empty arrays (`if (ids.length === 0) return []`)
+- Declare an `I{Module}Repo` **port**; services depend on the port, not the class.
+- Reads return `T | undefined` for not-found — **never `null`, never throw**.
+- Writes return `EntityRef | undefined` (`{ id }`), not the full row.
+- Every write accepts an optional `db?: DbContext = this.db` for transactions.
+- Read verbs: `findMany / findById / findByIds / findPage`. Writes: `insert / insertMany / update / remove`.
+- Use batch ops (`inArray`) instead of loops; guard empty arrays.
 
 ---
 
@@ -418,121 +425,76 @@ import { locationsTable } from '@/db/schema'
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { NotFoundError, ConflictError } from '@/shared/errors/http-error'
-import { RelationMap } from '@/shared/utils'
-import type { ActorId } from '@/types/utils'
-import type { LocationRepo } from './location.repo'
-import type { LocationDto, LocationCreateDto, LocationUpdateDto } from './location.contract'
+import type { ActorId, EntityRef } from '@/types/utils'
+import { LocationError } from './location.internal'
+import type { ILocationRepo } from './location.repo'
+import type { LocationCreateDto, LocationUpdateDto } from './location.contract'
 
 const uniqueFields: ConflictField<{ name: string; code: string }>[] = [
-	{
-		field: 'name',
-		column: locationsTable.name,
-		message: 'Location name already exists',
-		code: 'LOCATION_NAME_ALREADY_EXISTS',
-	},
-	{
-		field: 'code',
-		column: locationsTable.code,
-		message: 'Location code already exists',
-		code: 'LOCATION_CODE_ALREADY_EXISTS',
-	},
+	{ field: 'name', column: locationsTable.name, message: 'Location name already exists', code: 'LOCATION_NAME_ALREADY_EXISTS' },
+	{ field: 'code', column: locationsTable.code, message: 'Location code already exists', code: 'LOCATION_CODE_ALREADY_EXISTS' },
 ]
 
 export class LocationService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: LocationRepo,
+		private readonly repo: ILocationRepo, // depend on the PORT
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'location')
 	}
 
-	// Public method: Create
-	@record('location.create')
-	async handleCreate(dto: LocationCreateDto, actor: ActorId): Promise<LocationDto> {
-		// 1. Check conflicts
-		await checkConflict(this.repo.db, uniqueFields, dto)
-
-		// 2. Create
-		const location = await this.repo.create({
-			...dto,
-			...stampCreate(actor),
-		})
-
-		// 3. Invalidate cache
-		await this.cache.deleteAll()
-
-		return location
+	/** Private cache-bust helper — every mutation calls this. */
+	private async invalidate(id?: number): Promise<void> {
+		const keys = [this.cache.keys.list, this.cache.keys.count]
+		if (id !== undefined) keys.push(this.cache.keys.byId(id))
+		await this.cache.deleteFromKeys(keys)
 	}
 
-	// Public method: Update
-	@record('location.update')
-	async handleUpdate(dto: LocationUpdateDto, actor: ActorId): Promise<LocationDto> {
-		// 1. Check exists
-		const existing = await this.repo.findById(dto.id)
-		if (!existing) {
-			throw new NotFoundError('Location not found', {
-				code: 'LOCATION_NOT_FOUND',
-				context: { id: dto.id },
+	// `handleX` are the ONLY methods routes call. The telemetry span is wrapped
+	// at ONE level (here), not also in the internal method.
+	async handleCreate(data: LocationCreateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('LocationService.handleCreate', async () => {
+			await checkConflict({
+				db: this.repo.db, // explicit db — no global fallback
+				table: locationsTable,
+				pkColumn: locationsTable.id,
+				fields: uniqueFields,
+				input: data,
 			})
-		}
 
-		// 2. Check conflicts
-		await checkConflict(this.repo.db, uniqueFields, dto, dto.id)
+			const result = await this.repo.insert({ ...data, ...stampCreate(actorId) })
+			if (!result) throw LocationError.createFailed()
 
-		// 3. Update
-		const updated = await this.repo.update(dto.id, {
-			...dto,
-			...stampUpdate(actor),
+			await this.invalidate()
+			return result
 		})
-
-		// 4. Invalidate cache
-		await this.cache.delete(dto.id)
-		await this.cache.deleteAll()
-
-		return updated
 	}
 
-	// Public method: Get by ID
-	@record('location.getById')
 	async handleGetById(id: number): Promise<LocationDto> {
-		return await this.cache.getOrSet(id, async () => {
-			const location = await this.repo.findById(id)
-			if (!location) {
-				throw new NotFoundError('Location not found', {
-					code: 'LOCATION_NOT_FOUND',
-					context: { id },
-				})
-			}
-			return location
+		return record('LocationService.handleGetById', async () => {
+			const found = await this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
+				factory: () => this.repo.findById(id),
+			})
+			if (!found) throw LocationError.notFound(id) // service turns undefined → typed error
+			return found
 		})
-	}
-
-	// Public method: Get by IDs (batch)
-	@record('location.getByIds')
-	async handleGetByIds(ids: number[]): Promise<LocationDto[]> {
-		if (ids.length === 0) return []
-		return await this.repo.findByIds(ids)
-	}
-
-	// Helper: Convert to RelationMap (for JOIN simulation)
-	toRelationMap(items: LocationDto[]): RelationMap<number, LocationDto> {
-		return RelationMap.fromArray(items, (v) => v.id)
 	}
 }
 ```
 
 **Rules:**
 
-- Public methods: `handleX` (e.g., `handleCreate`, `handleUpdate`)
-- Private helpers: no prefix (e.g., `validateBusinessRule`)
-- Always check conflicts BEFORE create/update
-- Always invalidate cache AFTER mutations
-- Use `@record` decorator for OTEL tracing
-- Throw custom errors (NotFoundError, ConflictError, etc.)
-- Include audit stamps (`stampCreate`, `stampUpdate`)
+- Public methods use the `handleX` prefix — the only entrypoints routes call.
+- Internal reuse methods use plain verbs (`create`, `getById`).
+- Wrap the telemetry span with `record('...', async () => …)` at **one** level only.
+- `checkConflict({ db: this.repo.db, … })` — always pass an explicit `db`.
+- Repos return `undefined`; the **service** translates it to a typed `{Module}Error`.
+- Every mutation stamps the actor (`stampCreate`/`stampUpdate`) and calls `invalidate()`.
+- Multi-write ops must be atomic via `withTransaction(this.repo.db, tx => …)`.
+- Full rules: **[MODULE_STANDARD.md § 2–4](./MODULE_STANDARD.md)**.
 
 ---
 
@@ -547,15 +509,12 @@ import type { DbContext } from '@/infra/database'
 import { LocationRepo } from './location.repo'
 import { LocationService } from './location.service'
 
-export interface LocationModule {
-	location: LocationService
-}
+// A leaf module's public type IS its service.
+export type LocationModule = LocationService
 
 export function createLocationModule(db: DbContext, cacheClient: CacheClient): LocationModule {
 	const repo = new LocationRepo(db)
-	const service = new LocationService(repo, cacheClient)
-
-	return { location: service }
+	return new LocationService(repo, cacheClient)
 }
 ```
 
@@ -568,29 +527,29 @@ interface Deps {
 }
 
 export interface IamModule {
-	user: UserService
 	role: RoleService
 	assignment: UserAssignmentService
+	user: UserService
 	composed: IamComposedService
 }
 
 export function createIamModule(db: DbContext, cacheClient: CacheClient, deps: Deps): IamModule {
 	// Create repos
-	const userRepo = new UserRepo(db)
 	const roleRepo = new RoleRepo(db)
+	const userRepo = new UserRepo(db)
 	const assignmentRepo = new UserAssignmentRepo(db)
 	const composedRepo = new IamComposedRepo(db)
 
-	// Create services (inject dependencies)
+	// Create services, injecting narrow deps (not whole modules)
 	const role = new RoleService(roleRepo, cacheClient)
 	const assignment = new UserAssignmentService(assignmentRepo, cacheClient)
-	const user = new UserService({ location: deps.location, assignment, role }, userRepo, cacheClient)
+	const user = new UserService({ location: deps.location, assignment }, userRepo, cacheClient)
 	const composed = new IamComposedService(
 		{ role, assignment, user, location: deps.location },
 		composedRepo,
 	)
 
-	return { user, role, assignment, composed }
+	return { role, assignment, user, composed }
 }
 ```
 
@@ -602,54 +561,60 @@ HTTP layer (Elysia).
 
 ```ts
 // location.route.ts
-import { Elysia, t } from 'elysia'
-import type { Modules } from '@/modules/_registry'
-import { LocationCreateDto, LocationUpdateDto } from './location.contract'
+import { Elysia } from 'elysia'
+import { authPluginMacro } from '@/server/plugins/auth.plugin'
+import { res } from '@/shared/http/response'
+import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
+import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from './location.contract'
+import type { LocationModule } from './location.module'
 
-export const locationRoutes = (app: Elysia, modules: Modules) =>
-	app.group('/locations', (app) =>
-		app
-			// List
-			.get('/', async ({ query }) => {
-				return await modules.location.handleList(query)
-			})
-
-			// Detail
-			.get('/:id', async ({ params }) => {
-				return await modules.location.handleGetById(params.id)
-			})
-
-			// Create
-			.post(
-				'/',
-				async ({ body, user }) => {
-					return await modules.location.handleCreate(body, user.id)
-				},
-				{ body: LocationCreateDto },
-			)
-
-			// Update
-			.patch(
-				'/:id',
-				async ({ params, body, user }) => {
-					return await modules.location.handleUpdate({ ...body, id: params.id }, user.id)
-				},
-				{ body: t.Omit(LocationUpdateDto, ['id']) },
-			)
-
-			// Delete
-			.delete('/:id', async ({ params, user }) => {
-				return await modules.location.handleDelete(params.id, user.id)
-			}),
-	)
+export function createLocationRoute(m: LocationModule) {
+	return new Elysia({ prefix: '/location' })
+		.use(authPluginMacro)
+		// List (paginated)
+		.get(
+			'/list',
+			async ({ query }) => res.paginated(await m.handleList(query)),
+			{ query: LocationFilterDto, response: createPaginatedResponseDto(LocationDto), auth: true },
+		)
+		// Detail — {id} via query, coerced with zq.recordId
+		.get(
+			'/detail',
+			async ({ query }) => res.ok(await m.handleGetById(query.id)),
+			{ query: zq.recordId, response: createSuccessResponseDto(LocationDto), auth: true },
+		)
+		// Create — actor from auth.userId
+		.post(
+			'/create',
+			async ({ body, auth }) => res.created(await m.handleCreate(body, auth.userId)),
+			{ body: LocationCreateDto, response: createSuccessResponseDto(zc.RecordId), auth: true },
+		)
+		// Update
+		.put(
+			'/update',
+			async ({ body, auth }) => res.ok(await m.handleUpdate(body, auth.userId)),
+			{ body: LocationUpdateDto, response: createSuccessResponseDto(zc.RecordId), auth: true },
+		)
+		// Remove — {id} via query
+		.delete(
+			'/remove',
+			async ({ query }) => res.ok(await m.handleDelete(query.id)),
+			{ query: zq.recordId, response: createSuccessResponseDto(zc.RecordId), auth: true },
+		)
+}
 ```
 
 **Rules:**
 
-- Routes are THIN (just call service methods)
-- Validate body with Zod schema (`{ body: XxxDto }`)
-- Extract actor from context (`user.id` from JWT)
-- Use inline async functions (not separate handler files)
+- One `create{Module}Route(m: {Module}Module)` factory returning `new Elysia({ prefix })`.
+- `.use(authPluginMacro)` once; guard each endpoint with `auth: true`.
+- Routes are THIN: validate → call one `handleX` → wrap in `res.*`.
+- Wrap responses: `res.paginated` (list), `res.ok` (detail/update/remove), `res.created` (create).
+- Declare a `response:` DTO (`createSuccessResponseDto` / `createPaginatedResponseDto`).
+- `detail`/`remove` take `{ id }` via **query** using `zq.recordId` (coerced).
+- Actor comes from `auth.userId` (injected by `authPluginMacro`).
+- Complex modules split into per-entity sub-routes composed by the aggregate route
+  (see `iam.route.ts` → `roleRoute` + `userRoute`).
 
 ---
 
@@ -689,70 +654,49 @@ import { SalesService } from '@/modules/sales' // CIRCULAR!
 
 ## 🧪 Testing Strategy
 
-### **Unit Tests** (`*.test.ts`)
+Unit-first. Full rules: **[MODULE_STANDARD.md § 5](./MODULE_STANDARD.md)**.
 
-Test service logic in isolation (mock repo).
+### **Unit Tests** (`src/tests/unit/*.service.test.ts`)
+
+Instantiate the service with a **typed in-memory fake** implementing the repo
+port — no DB, no `as any`.
 
 ```ts
-// location.service.test.ts
-import { describe, it, expect, beforeEach } from 'bun:test'
-import { mock } from 'bun:test'
+// src/tests/unit/location.service.test.ts
+import { describe, it, expect } from 'bun:test'
+import { LocationService } from '@/modules/location/location.service'
+import type { ILocationRepo } from '@/modules/location/location.repo'
+
+function fakeRepo(overrides: Partial<ILocationRepo> = {}): ILocationRepo {
+	return {
+		db: { select: () => ({ from: () => ({ where: () => ({ limit: () => [] }) }) }) } as never,
+		findMany: async () => [],
+		findById: async () => undefined,
+		findByIds: async () => [],
+		insert: async () => ({ id: 1 }),
+		update: async () => ({ id: 1 }),
+		remove: async () => ({ id: 1 }),
+		...overrides,
+	}
+}
 
 describe('LocationService', () => {
-	let service: LocationService
-	let mockRepo: LocationRepo
-
-	beforeEach(() => {
-		mockRepo = {
-			findById: mock(() => Promise.resolve(null)),
-			create: mock((data) => Promise.resolve({ id: 1, ...data })),
-		}
-		service = new LocationService(mockRepo, mockCache)
-	})
-
-	it('should create location', async () => {
+	it('creates a location', async () => {
+		const service = new LocationService(fakeRepo(), fakeCache)
 		const result = await service.handleCreate(
-			{
-				name: 'Test',
-				code: 'TEST',
-				type: 'WAREHOUSE',
-			},
+			{ code: 'ST-01', name: 'Main Store', type: 'store', description: null, address: null, phone: null, isActive: true },
 			1,
 		)
-
-		expect(result).toMatchObject({
-			name: 'Test',
-			code: 'TEST',
-		})
+		expect(result).toEqual({ id: 1 })
 	})
 })
 ```
 
-### **Integration Tests** (`*.integration.test.ts`)
+### **Integration Tests** (`src/tests/services/*.test.ts`)
 
-Test full HTTP flow (real DB + routes).
-
-```ts
-// location.integration.test.ts
-import { describe, it, expect } from 'bun:test'
-import { testClient } from '@/tests/helpers/test-client'
-
-describe('POST /locations', () => {
-	it('should create location', async () => {
-		const response = await testClient.locations.post({
-			name: 'Test Warehouse',
-			code: 'TW001',
-			type: 'WAREHOUSE',
-		})
-
-		expect(response.status).toBe(201)
-		expect(response.data).toMatchObject({
-			name: 'Test Warehouse',
-			code: 'TW001',
-		})
-	})
-})
-```
+Build the real module graph via `testCtx.m.*` against the test DB for critical
+HTTP/business flows (reference: `iam.test.ts`). Assert async rejection with the
+`expectReject(promise)` helper.
 
 ---
 
@@ -787,7 +731,7 @@ Before submitting code, verify:
 - [ ] All mutations invalidate cache
 - [ ] All unique fields have conflict checks
 - [ ] All services use `handleX` for public methods
-- [ ] All repos return `null` (not throw) for not found
+- [ ] All repos return `undefined` (not `null`, not throw) for not found
 - [ ] All routes are thin (just validate + call service)
 
 ---
