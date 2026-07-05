@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { zc, zp } from '@/shared/schema'
 
 export const CompanySettingsDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	name: zp.str,
 	address: zp.strNullable,
 	phone: zp.strNullable,
@@ -49,7 +49,7 @@ export const CompanySettingsCreateDto = CompanySettingsMutationDto
 export type CompanySettingsCreateDto = z.infer<typeof CompanySettingsCreateDto>
 
 export const CompanySettingsUpdateDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	name: zc.strTrim.min(2).max(255).optional(),
 	address: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
 	phone: zc.strTrim.min(10).max(20).optional().or(z.literal('')),

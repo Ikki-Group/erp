@@ -8,9 +8,9 @@ import type {
 	CompanySettingsDto,
 	CompanySettingsCreateDto,
 	CompanySettingsUpdateDto,
-} from './company-settings.contract'
-import { CompanySettingsError } from './company-settings.internal'
-import type { ICompanySettingsRepo, CompanySettingsInsert, CompanySettingsUpdate } from './company-settings.repo'
+} from './settings.contract'
+import { CompanySettingsError } from './settings.internal'
+import type { ICompanySettingsRepo, CompanySettingsInsert, CompanySettingsUpdate } from './settings.repo'
 
 export class CompanySettingsService {
 	private readonly cache: CacheService
@@ -43,7 +43,7 @@ export class CompanySettingsService {
 	}
 
 	async create(data: CompanySettingsCreateDto, actorId: ActorId): Promise<EntityRef> {
-		const existing = await this.repo.get()
+		const existing = await this.get()
 		if (existing) throw CompanySettingsError.alreadyExists()
 
 		const insertData: CompanySettingsInsert = {
@@ -70,7 +70,7 @@ export class CompanySettingsService {
 
 	async update(data: CompanySettingsUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const { id } = data
-		const existing = await this.repo.findById(id)
+		const existing = await this.getById(id)
 		if (!existing) throw CompanySettingsError.notFound(id)
 
 		const updateData: CompanySettingsUpdate = {
@@ -97,7 +97,7 @@ export class CompanySettingsService {
 
 	async handleGet(): Promise<CompanySettingsDto> {
 		return record('CompanySettingsService.handleGet', async () => {
-			const result = await this.repo.get()
+			const result = await this.get()
 			if (!result) throw CompanySettingsError.notConfigured()
 			return result
 		})
@@ -105,7 +105,7 @@ export class CompanySettingsService {
 
 	async handleDetail(id: number): Promise<CompanySettingsDto> {
 		return record('CompanySettingsService.handleDetail', async () => {
-			const result = await this.repo.findById(id)
+			const result = await this.getById(id)
 			if (!result) throw CompanySettingsError.notFound(id)
 			return result
 		})

@@ -8,9 +8,9 @@
 import type { DbContext } from '@/infra/database'
 import type { EntityRef } from '@/shared/types/utils'
 
-import type { CompanySettingsDto } from '@/modules/company/company-settings.contract'
-import type { ICompanySettingsRepo } from '@/modules/company/company-settings.repo'
-import { CompanySettingsService } from '@/modules/company/company-settings.service'
+import type { CompanySettingsDto } from '@/modules/company/settings/settings.contract'
+import type { ICompanySettingsRepo } from '@/modules/company/settings/settings.repo'
+import { CompanySettingsService } from '@/modules/company/settings/settings.service'
 
 import { createMockCacheClient } from '../helpers/mock-db'
 import { beforeEach, describe, expect, test } from 'bun:test'

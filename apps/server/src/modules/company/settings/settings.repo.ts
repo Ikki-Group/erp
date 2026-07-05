@@ -5,7 +5,7 @@ import { companySettingsTable } from '@/db/schema'
 import { takeFirst, type DbContext } from '@/infra/database'
 import type { EntityRef } from '@/shared/types/utils'
 
-import { CompanySettingsDto } from './company-settings.contract'
+import { CompanySettingsDto } from './settings.contract'
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 export type CompanySettingsInsert = typeof companySettingsTable.$inferInsert

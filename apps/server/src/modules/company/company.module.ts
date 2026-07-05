@@ -1,8 +1,8 @@
 import type { CacheClient } from '@/infra/cache'
 import type { DbContext } from '@/infra/database'
 
-import { CompanySettingsRepo } from './company-settings.repo'
-import { CompanySettingsService } from './company-settings.service'
+import { CompanySettingsRepo } from './settings/settings.repo'
+import { CompanySettingsService } from './settings/settings.service'
 
 export type CompanyModule = {
 	settings: CompanySettingsService

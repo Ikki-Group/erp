@@ -8,8 +8,8 @@ import {
 	CompanySettingsDto,
 	CompanySettingsCreateDto,
 	CompanySettingsUpdateDto,
-} from './company-settings.contract'
-import type { CompanySettingsService } from './company-settings.service'
+} from './settings.contract'
+import type { CompanySettingsService } from './settings.service'
 
 export function createCompanySettingsRoute(service: CompanySettingsService) {
 	return new Elysia({ prefix: '/settings' })
