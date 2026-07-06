@@ -14,19 +14,21 @@ interface ProductionServiceModuleDeps {
 	stockTransaction: StockTransactionService
 }
 
-export class ProductionServiceModule {
-	public readonly workOrder: ReturnType<typeof createWorkOrderModule>
+export interface ProductionServiceModule {
+	workOrder: ReturnType<typeof createWorkOrderModule>
+}
 
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-		private readonly deps: ProductionServiceModuleDeps,
-	) {
-		this.workOrder = createWorkOrderModule(this.db, this.cacheClient, {
-			recipe: this.deps.recipe,
-			stockTransaction: this.deps.stockTransaction,
-		})
-	}
+export function createProductionServiceModule(
+	db: DbClient,
+	cacheClient: CacheClient,
+	deps: ProductionServiceModuleDeps,
+): ProductionServiceModule {
+	const workOrder = createWorkOrderModule(db, cacheClient, {
+		recipe: deps.recipe,
+		stockTransaction: deps.stockTransaction,
+	})
+
+	return { workOrder }
 }
 
 export function initProductionRouteModule(s: ProductionServiceModule) {

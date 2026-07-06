@@ -15,7 +15,7 @@ import { createMaterialModule, type MaterialModule } from '@/modules/material'
 import { MokaServiceModule } from '@/modules/moka'
 import { createPaymentServiceModule, type PaymentServiceModule } from '@/modules/payment'
 import { createProductModule, type ProductModule } from '@/modules/product/product.module'
-import { ProductionServiceModule } from '@/modules/production'
+import { createProductionServiceModule, type ProductionServiceModule } from '@/modules/production'
 import { PurchasingServiceModule } from '@/modules/purchasing'
 import { createRecipeModule, type RecipeModule } from '@/modules/recipe'
 import { ReportingServiceModule } from '@/modules/reporting'
@@ -109,7 +109,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 
 	// ---- Layer 2 (operations) --------------------------------------------
 	const inventory = createInventoryModule(db, cacheClient, { material })
-	const production = new ProductionServiceModule(db, cacheClient, {
+	const production = createProductionServiceModule(db, cacheClient, {
 		recipe,
 		stockTransaction: inventory.transaction,
 	})
