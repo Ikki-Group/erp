@@ -6,7 +6,7 @@ import { initDashboardRouteModule } from '@/modules/dashboard'
 import { createFinanceRoute } from '@/modules/finance'
 import { initHRRouteModule } from '@/modules/hr'
 import { createIamRoute } from '@/modules/iam/iam.route'
-import { initInventoryRouteModule } from '@/modules/inventory'
+import { createInventoryRoute } from '@/modules/inventory'
 import { createLocationRoute } from '@/modules/location/location.route'
 import { initMaterialRoutes } from '@/modules/material'
 import { initMokaRouteModule } from '@/modules/moka'
@@ -50,7 +50,7 @@ export function createRoutes(m: Modules) {
 		createIamRoute(m.iam),
 		initMaterialRoutes(m.material),
 		// Operations
-		initInventoryRouteModule(m.inventory),
+		createInventoryRoute(m.inventory),
 		initProductionRouteModule(m.production),
 		initPurchasingRouteModule(m.purchasing),
 		initPaymentRouteModule(m.payment),

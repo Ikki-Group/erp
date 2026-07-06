@@ -23,7 +23,7 @@ import { StockExternalMovementService } from './sub-services/stock-external-move
 import { StockHistoryService } from './sub-services/stock-history.service'
 import { StockInternalMovementService } from './sub-services/stock-internal-movement.service'
 
-type MaterialLocationPort = {
+export type MaterialLocationPort = {
 	findOne: (materialId: number, locationId: number) => Promise<{
 		currentQty: string
 		currentAvgCost: string

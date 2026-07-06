@@ -9,7 +9,7 @@ import { DashboardServiceModule } from '@/modules/dashboard'
 import { createFinanceModule, type FinanceModule } from '@/modules/finance'
 import { HRServiceModule } from '@/modules/hr'
 import { type IamModule, createIamModule } from '@/modules/iam/iam.module'
-import { InventoryServiceModule } from '@/modules/inventory'
+import { createInventoryModule, type InventoryModule } from '@/modules/inventory'
 import { type LocationModule, createLocationModule } from '@/modules/location/location.module'
 import { createMaterialModule, type MaterialModule } from '@/modules/material'
 import { MokaServiceModule } from '@/modules/moka'
@@ -45,7 +45,7 @@ export interface Modules {
 	iam: IamModule
 	material: MaterialModule
 	// Operations (Layer 2)
-	inventory: InventoryServiceModule
+	inventory: InventoryModule
 	production: ProductionServiceModule
 	purchasing: PurchasingServiceModule
 	payment: PaymentServiceModule
@@ -108,7 +108,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 	const material = createMaterialModule(db, cacheClient, { location })
 
 	// ---- Layer 2 (operations) --------------------------------------------
-	const inventory = new InventoryServiceModule(db, cacheClient, { material })
+	const inventory = createInventoryModule(db, cacheClient, { material })
 	const production = new ProductionServiceModule(db, cacheClient, {
 		recipe,
 		stockTransaction: inventory.transaction,

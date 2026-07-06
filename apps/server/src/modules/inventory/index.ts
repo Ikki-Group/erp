@@ -9,55 +9,46 @@ import { createStockAlertModule } from './stock-alert/stock-alert.module'
 import { createStockAlertRoute } from './stock-alert/stock-alert.route'
 import { createStockDashboardModule } from './stock-dashboard/stock-dashboard.module'
 import { createStockDashboardRoute } from './stock-dashboard/stock-dashboard.route'
-import { StockSummaryRepo } from './stock-summary/stock-summary.repo'
+import { createStockSummaryModule } from './stock-summary/stock-summary.module'
 import { initStockSummaryRoute } from './stock-summary/stock-summary.route'
-import { StockSummaryService } from './stock-summary/stock-summary.service'
-import { StockTransactionRepo } from './stock-transaction/stock-transaction.repo'
+import { createStockTransactionModule } from './stock-transaction/stock-transaction.module'
 import { initStockTransactionRoute } from './stock-transaction/stock-transaction.route'
-import { StockTransactionService } from './stock-transaction/stock-transaction.service'
-import { StockTransferRepo } from './stock-transfer/stock-transfer.repo'
+import { createStockTransferModule } from './stock-transfer/stock-transfer.module'
 import { initStockTransferRoute } from './stock-transfer/stock-transfer.route'
-import { StockTransferService } from './stock-transfer/stock-transfer.service'
 
-interface InventoryServiceModuleDeps {
+export interface InventoryModuleDeps {
 	material: MaterialModule
 }
 
-export class InventoryServiceModule {
-	public readonly transaction: StockTransactionService
-	public readonly summary: StockSummaryService
-	public readonly alert: ReturnType<typeof createStockAlertModule>
-	public readonly dashboard: ReturnType<typeof createStockDashboardModule>
-	public readonly stockTransfer: StockTransferService
-
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-		private readonly deps: InventoryServiceModuleDeps,
-	) {
-		const transactionRepo = new StockTransactionRepo(this.db)
-		const summaryRepo = new StockSummaryRepo(this.db)
-		const stockTransferRepo = new StockTransferRepo(this.db)
-
-		this.transaction = new StockTransactionService(this.deps.material.location, transactionRepo)
-		this.summary = new StockSummaryService(
-			summaryRepo,
-			this.deps.material.location,
-			this.cacheClient,
-		)
-		this.alert = createStockAlertModule(this.db, this.cacheClient)
-		this.dashboard = createStockDashboardModule(this.db, this.cacheClient)
-		this.stockTransfer = new StockTransferService(stockTransferRepo, this.cacheClient)
-	}
+export interface InventoryModule {
+	transaction: ReturnType<typeof createStockTransactionModule>
+	summary: ReturnType<typeof createStockSummaryModule>
+	alert: ReturnType<typeof createStockAlertModule>
+	dashboard: ReturnType<typeof createStockDashboardModule>
+	stockTransfer: ReturnType<typeof createStockTransferModule>
 }
 
-export function initInventoryRouteModule(s: InventoryServiceModule) {
+export function createInventoryModule(
+	db: DbClient,
+	cacheClient: CacheClient,
+	deps: InventoryModuleDeps,
+): InventoryModule {
+	const transaction = createStockTransactionModule(db, { location: deps.material.location })
+	const summary = createStockSummaryModule(db, cacheClient, { location: deps.material.location })
+	const alert = createStockAlertModule(db, cacheClient)
+	const dashboard = createStockDashboardModule(db, cacheClient)
+	const stockTransfer = createStockTransferModule(db, cacheClient)
+
+	return { transaction, summary, alert, dashboard, stockTransfer }
+}
+
+export function createInventoryRoute(m: InventoryModule) {
 	return new Elysia({ prefix: '/inventory' })
-		.use(initStockTransactionRoute(s.transaction))
-		.use(initStockSummaryRoute(s.summary))
-		.use(createStockAlertRoute(s.alert))
-		.use(createStockDashboardRoute(s.dashboard))
-		.use(initStockTransferRoute(s.stockTransfer))
+		.use(initStockTransactionRoute(m.transaction))
+		.use(initStockSummaryRoute(m.summary))
+		.use(createStockAlertRoute(m.alert))
+		.use(createStockDashboardRoute(m.dashboard))
+		.use(initStockTransferRoute(m.stockTransfer))
 }
 
 export type { StockTransactionService } from './stock-transaction/stock-transaction.service'

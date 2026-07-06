@@ -3,7 +3,7 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 
-import type { InventoryServiceModule } from '@/modules/inventory'
+import type { InventoryModule } from '@/modules/inventory'
 
 import { createGoodsReceiptModule, type GoodsReceiptModule } from './goods-receipt.module'
 import { createGoodsReceiptRoute } from './goods-receipt.route'
@@ -49,7 +49,7 @@ export class PurchasingServiceModule {
 		db: DbClient,
 		cacheClient: CacheClient,
 		deps: PurchasingDeps,
-		inventory: InventoryServiceModule,
+		inventory: InventoryModule,
 	) {
 		this.purchaseOrder = createPurchaseOrderModule(db, cacheClient, deps)
 
