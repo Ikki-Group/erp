@@ -139,7 +139,7 @@ function SalesTypeTable() {
 			confirmValidationText: salesType.name,
 			onConfirm: async () => {
 				await toast
-					.promise(remove.mutateAsync({ params: { id: salesType.id } }), {
+					.promise(remove.mutateAsync({ body: { id: salesType.id } }), {
 						...toastLabelMessage('delete', 'jenis penjualan'),
 					})
 					.unwrap()

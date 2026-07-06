@@ -18,6 +18,11 @@ export const UserDto = z.object({
 })
 export type UserDto = z.infer<typeof UserDto>
 
+/**
+ * Internal persistence shape — includes `passwordHash`. NOT an HTTP response
+ * DTO; never return this from a route. Used only by the auth/user service and
+ * repo layers.
+ */
 export const UserWithPasswordDto = z.object({
 	...UserDto.shape,
 	passwordHash: zp.str.nullable(),
@@ -49,7 +54,7 @@ export const UserCreateDto = z.object({
 export type UserCreateDto = z.infer<typeof UserCreateDto>
 
 export const UserUpdateDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	...UserMutationDto.shape,
 	password: zc.password.optional(),
 })
@@ -64,7 +69,7 @@ export const UserChangePasswordDto = z.object({
 export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>
 
 export const UserAdminUpdatePasswordDto = z.object({
-	...zc.RecordId.shape,
+	id: zp.id,
 	password: zc.password,
 })
 export type UserAdminUpdatePasswordDto = z.infer<typeof UserAdminUpdatePasswordDto>

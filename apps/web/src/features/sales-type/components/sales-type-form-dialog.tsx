@@ -15,8 +15,8 @@ import { FormDialog } from '@/components/layout/form-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-import { salesTypeApi } from '../api/sales-type.api'
-import type { SalesTypeDto } from '../dto/sales-type.dto'
+import { salesTypeApi } from '../sales-type.api'
+import type { SalesTypeDto } from '../sales-type.dto'
 
 const FormDto = z.object({
 	code: z.string().min(1),
@@ -54,7 +54,7 @@ export const SalesTypeFormDialog = createCallable<SalesTypeFormDialogProps>((pro
 
 	const form = useAppForm({
 		...fopts,
-		defaultValues: getDefaultValues(selected.data?.data),
+		defaultValues: getDefaultValues(selected.data?.data as SalesTypeDto | undefined),
 		onSubmit: async ({ value }) => {
 			const promise = isCreate
 				? create.mutateAsync({ body: value })

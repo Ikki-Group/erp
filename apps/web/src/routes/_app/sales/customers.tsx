@@ -23,12 +23,12 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 
 import { customerApi } from '@/features/crm'
-import type { CustomerDto, CustomerTierDto } from '@/features/crm'
+import type { CustomerDto, CustomerTier } from '@/features/crm'
 import { CustomerFormDialog } from '@/features/crm/components/customer-form-dialog'
 
 export const Route = createFileRoute('/_app/sales/customers')({ component: SalesCustomersPage })
 
-const tierBadge: Record<CustomerTierDto, string> = {
+const tierBadge: Record<CustomerTier, string> = {
 	bronze: 'bg-amber-700/10 text-amber-700 border-amber-700/20',
 	silver: 'bg-slate-400/10 text-slate-500 border-slate-400/20',
 	gold: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',

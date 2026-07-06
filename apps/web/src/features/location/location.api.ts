@@ -11,9 +11,9 @@ import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } 
 const locationKeys = createQueryKeys('location', 'location')
 
 export const locationApi = {
-	list: apiFactory({ method: 'get', url: endpoint.location.list, params: LocationFilterDto, result: createPaginatedResponseSchema(LocationDto), queryKey: locationKeys.list }),
-	detail: apiFactory({ method: 'get', url: endpoint.location.detail, params: zc.RecordId, result: createSuccessResponseSchema(LocationDto), queryKey: (params) => locationKeys.detail(params?.id) }),
-	create: apiFactory({ method: 'post', url: endpoint.location.create, body: LocationCreateDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [locationKeys.lists()] }),
-	update: apiFactory({ method: 'put', url: endpoint.location.update, body: LocationUpdateDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [locationKeys.lists()] }),
-	remove: apiFactory({ method: 'delete', url: endpoint.location.remove, body: zc.RecordId, result: createSuccessResponseSchema(zc.RecordId), invalidates: [locationKeys.lists()] }),
+	list: apiFactory({ method: 'get', url: endpoint['location']['list'], params: LocationFilterDto, result: createPaginatedResponseSchema(LocationDto), queryKey: locationKeys.list }),
+	detail: apiFactory({ method: 'get', url: endpoint['location']['detail'], params: zc.RecordId, result: createSuccessResponseSchema(LocationDto), queryKey: (params) => locationKeys.detail(params?.id) }),
+	create: apiFactory({ method: 'post', url: endpoint['location']['create'], body: LocationCreateDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [locationKeys.lists()] }),
+	update: apiFactory({ method: 'put', url: endpoint['location']['update'], body: LocationUpdateDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [locationKeys.lists()] }),
+	remove: apiFactory({ method: 'delete', url: endpoint['location']['remove'], body: zc.RecordId, result: createSuccessResponseSchema(zc.RecordId), invalidates: [locationKeys.lists()] }),
 }

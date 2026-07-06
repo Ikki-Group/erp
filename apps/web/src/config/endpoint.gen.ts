@@ -2,11 +2,27 @@
 
 /** Generated endpoint URL map. Do not edit by hand. */
 export const endpoint = {
-	auth: {
+	'auth': {
 		login: 'auth/login',
 		me: 'auth/me',
 	},
-	iam: {
+	'company': {
+		detail: 'settings/detail',
+		create: 'settings/create',
+		update: 'settings/update',
+	},
+	'crm': {
+		list: 'customer/list',
+		detail: 'customer/detail',
+		byPhone: 'customer/by-phone',
+		create: 'customer/create',
+		update: 'customer/update',
+		remove: 'customer/remove',
+		addPoints: 'customer/points/add',
+		redeemPoints: 'customer/points/redeem',
+		loyaltyHistory: 'customer/loyalty-history',
+	},
+	'iam': {
 		role: {
 			list: 'iam/role/list',
 			detail: 'iam/role/detail',
@@ -24,11 +40,25 @@ export const endpoint = {
 			remove: 'iam/user/remove',
 		},
 	},
-	location: {
+	'location': {
 		list: 'location/list',
 		detail: 'location/detail',
 		create: 'location/create',
 		update: 'location/update',
 		remove: 'location/remove',
+	},
+	'sales-type': {
+		list: 'sales-type/list',
+		detail: 'sales-type/detail',
+		create: 'sales-type/create',
+		update: 'sales-type/update',
+		remove: 'sales-type/remove',
+	},
+	'supplier': {
+		list: 'supplier/list',
+		detail: 'supplier/detail',
+		create: 'supplier/create',
+		update: 'supplier/update',
+		remove: 'supplier/remove',
 	},
 } as const

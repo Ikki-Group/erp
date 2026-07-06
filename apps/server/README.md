@@ -69,7 +69,7 @@ apps/server/
 └── drizzle/               # Generated migrations
 ```
 
-**Read more:** [docs/architecture/MODULE_STANDARD.md](../../docs/architecture/MODULE_STANDARD.md) — the module source of truth. All architecture docs live centrally at the repo-root [`docs/`](../../docs/README.md).
+**Read more:** [docs/server/MODULE_STANDARD.md](../../docs/server/MODULE_STANDARD.md) — the module source of truth. All architecture docs live centrally at the repo-root [`docs/`](../../docs/README.md).
 
 ---
 
@@ -110,10 +110,10 @@ All docs are centralized at the repo root [`docs/`](../../docs/README.md).
 
 ### For Developers
 
-1. **[MODULE_STANDARD.md](../../docs/architecture/MODULE_STANDARD.md)** - **Source of truth** for module structure
-2. **[SERVER_ARCHITECTURE.md](../../docs/architecture/SERVER_ARCHITECTURE.md)** - Project structure, design philosophy, layer architecture
-3. **[CODE_PATTERNS.md](../../docs/architecture/CODE_PATTERNS.md)** - Common patterns, best practices, examples
-4. **[MODULE_CHECKLIST.md](../../docs/architecture/MODULE_CHECKLIST.md)** - Step-by-step module creation guide
+1. **[MODULE_STANDARD.md](../../docs/server/MODULE_STANDARD.md)** - **Source of truth** for module structure
+2. **[SERVER_ARCHITECTURE.md](../../docs/server/SERVER_ARCHITECTURE.md)** - Project structure, design philosophy, layer architecture
+3. **[CODE_PATTERNS.md](../../docs/server/CODE_PATTERNS.md)** - Common patterns, best practices, examples
+4. **[MODULE_CHECKLIST.md](../../docs/server/MODULE_CHECKLIST.md)** - Step-by-step module creation guide
 
 ### For AI Agents
 
@@ -261,9 +261,9 @@ bun run db:generate
 
 ## 🤝 Contributing
 
-1. Read [MODULE_STANDARD.md](../../docs/architecture/MODULE_STANDARD.md) — the source of truth
-2. Follow patterns in [CODE_PATTERNS.md](../../docs/architecture/CODE_PATTERNS.md)
-3. Use checklist in [MODULE_CHECKLIST.md](../../docs/architecture/MODULE_CHECKLIST.md)
+1. Read [MODULE_STANDARD.md](../../docs/server/MODULE_STANDARD.md) — the source of truth
+2. Follow patterns in [CODE_PATTERNS.md](../../docs/server/CODE_PATTERNS.md)
+3. Use checklist in [MODULE_CHECKLIST.md](../../docs/server/MODULE_CHECKLIST.md)
 4. Copy from the reference modules (`location/`, `iam/`)
 5. Run `bun run verify` before committing
 

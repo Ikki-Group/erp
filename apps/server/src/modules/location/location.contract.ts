@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-import { defineContract } from '@/shared/contract/define-contract'
 import { zc, zp, zq } from '@/shared/schema'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -56,23 +55,3 @@ export const LocationUpdateDto = z.object({
 })
 export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
 
-/* -------------------------------- CONTRACT -------------------------------- */
-
-/**
- * Single source of truth for the Location HTTP surface.
- * Drives both the Elysia route wiring and the web codegen.
- */
-export const locationContract = defineContract({
-	feature: 'location',
-	entity: 'location',
-	prefix: '/location',
-	dtoSource: 'location/location.contract.ts',
-	dtos: { LocationDto, LocationFilterDto, LocationCreateDto, LocationUpdateDto },
-	endpoints: {
-		list: { get: '/list', query: LocationFilterDto, ok: [LocationDto] },
-		detail: { get: '/detail', query: zc.RecordId, ok: LocationDto },
-		create: { post: '/create', body: LocationCreateDto, ok: zc.RecordId },
-		update: { put: '/update', body: LocationUpdateDto, ok: zc.RecordId },
-		remove: { delete: '/remove', body: zc.RecordId, ok: zc.RecordId },
-	},
-})

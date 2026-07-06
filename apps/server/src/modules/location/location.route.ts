@@ -65,12 +65,12 @@ export function createLocationRoute(m: LocationModule) {
 		)
 		.delete(
 			'/remove',
-			async ({ body }) => {
-				const result = await m.handleDelete(body.id)
+			async ({ query }) => {
+				const result = await m.handleDelete(query.id)
 				return res.ok(result)
 			},
 			{
-				body: zc.RecordId,
+				query: zq.recordId,
 				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},

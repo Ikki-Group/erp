@@ -10,8 +10,6 @@
 		"test": "NODE_ENV=test bun test --bail",
 		"test:db:reset": "NODE_ENV=test bun run scripts/db-scripts-helper.ts all",
 		"test:watch": "NODE_ENV=test bun test --watch",
-		"generate:web": "bun run scripts/generate-web.ts",
-		"generate:web:preview": "bun run scripts/generate-web.ts --dry-run",
 		"db:generate": "bunx --bun drizzle-kit generate",
 		"db:migrate": "bunx --bun drizzle-kit migrate",
 		"db:studio": "bunx --bun drizzle-kit studio",

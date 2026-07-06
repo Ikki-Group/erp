@@ -11,11 +11,11 @@ import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserCreateDto, UserD
 const userKeys = createQueryKeys('iam', 'user')
 
 export const userApi = {
-	list: apiFactory({ method: 'get', url: endpoint.iam.user.list, params: UserFilterDto, result: createPaginatedResponseSchema(UserDetailDto), queryKey: userKeys.list }),
-	detail: apiFactory({ method: 'get', url: endpoint.iam.user.detail, params: zc.RecordId, result: createSuccessResponseSchema(UserDetailDto), queryKey: (params) => userKeys.detail(params?.id) }),
-	create: apiFactory({ method: 'post', url: endpoint.iam.user.create, body: UserCreateDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
-	update: apiFactory({ method: 'put', url: endpoint.iam.user.update, body: UserUpdateDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
-	changePassword: apiFactory({ method: 'post', url: endpoint.iam.user.changePassword, body: UserChangePasswordDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
-	adminPasswordReset: apiFactory({ method: 'post', url: endpoint.iam.user.adminPasswordReset, body: UserAdminUpdatePasswordDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
-	remove: apiFactory({ method: 'delete', url: endpoint.iam.user.remove, params: zc.RecordId, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
+	list: apiFactory({ method: 'get', url: endpoint['iam']['user']['list'], params: UserFilterDto, result: createPaginatedResponseSchema(UserDetailDto), queryKey: userKeys.list }),
+	detail: apiFactory({ method: 'get', url: endpoint['iam']['user']['detail'], params: zc.RecordId, result: createSuccessResponseSchema(UserDetailDto), queryKey: (params) => userKeys.detail(params?.id) }),
+	create: apiFactory({ method: 'post', url: endpoint['iam']['user']['create'], body: UserCreateDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
+	update: apiFactory({ method: 'put', url: endpoint['iam']['user']['update'], body: UserUpdateDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
+	changePassword: apiFactory({ method: 'post', url: endpoint['iam']['user']['changePassword'], body: UserChangePasswordDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
+	adminPasswordReset: apiFactory({ method: 'post', url: endpoint['iam']['user']['adminPasswordReset'], body: UserAdminUpdatePasswordDto, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
+	remove: apiFactory({ method: 'delete', url: endpoint['iam']['user']['remove'], params: zc.RecordId, result: createSuccessResponseSchema(zc.RecordId), invalidates: [userKeys.lists()] }),
 }
