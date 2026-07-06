@@ -12,7 +12,7 @@ import { type IamModule, createIamModule } from '@/modules/iam/iam.module'
 import { createInventoryModule, type InventoryModule } from '@/modules/inventory'
 import { type LocationModule, createLocationModule } from '@/modules/location/location.module'
 import { createMaterialModule, type MaterialModule } from '@/modules/material'
-import { MokaServiceModule } from '@/modules/moka'
+import { createMokaServiceModule, type MokaServiceModule } from '@/modules/moka'
 import { createPaymentServiceModule, type PaymentServiceModule } from '@/modules/payment'
 import { createProductModule, type ProductModule } from '@/modules/product/product.module'
 import { createProductionServiceModule, type ProductionServiceModule } from '@/modules/production'
@@ -126,7 +126,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 	const payment = createPaymentServiceModule(db, cacheClient)
 	const sales = createSalesModule(db, cacheClient, { location, crm, product, salesType })
 	const hr = createHRServiceModule(db, cacheClient, { finance })
-	const moka = new MokaServiceModule(db, cacheClient, finance)
+	const moka = createMokaServiceModule(db, cacheClient, finance)
 
 	// ---- Layer 3 (aggregators) -------------------------------------------
 	const dashboard = new DashboardServiceModule(db, cacheClient, {
