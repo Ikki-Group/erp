@@ -237,3 +237,42 @@ Use this when bringing an existing module up to standard (for `location`/`iam` a
 - [ ] Unit test with a typed in-memory fake (no `as any`); integration test for critical flow.
 - [ ] `bun run typecheck && bun run check-deps` pass (no NEW errors).
 
+---
+
+## 11. Documented exceptions
+
+Not every folder under `modules/` is a CRUD entity module. Some are legitimate
+architectural exceptions to this template. Document them explicitly (in a
+module-level `README.md` and/or a comment) rather than force-fitting the
+template — but the exception must be a conscious, written decision, not an
+unreviewed gap.
+
+**Third-party API integration adapter** (e.g. `moka/engine/`): a folder that
+only calls an external service's API (auth, fetch, sync) and has no persisted
+entity of its own. It has no `.contract.ts`/`.repo.ts`/`.module.ts`/`index.ts`
+because there is nothing to model as a DB-backed entity — all persistence for
+that integration lives in sibling sub-entity folders (e.g. `moka/configuration/`,
+`moka/scrap/scrap-history/`, `moka/scrap/scrap-sync-cursor/`), which do follow
+the standard. See `apps/server/src/modules/moka/README.md` for the worked
+example (`engine/` = Moka POS API adapter, no DB pattern; `configuration/`,
+`scrap-history/`, `scrap-sync-cursor/` = standard sub-entity modules).
+
+**No-repo orchestration service** (e.g. `moka/scrap/scrap.service.ts`,
+`moka/scrap/scrap-transformation.service.ts`): a service that composes other
+already-existing services/modules and has no repository of its own because it
+persists nothing directly, or (for `scrap-transformation.service.ts`
+specifically) is a boundary-adapter layer that intentionally takes `db`
+directly instead of a repo port, to perform complex multi-table bulk writes
+under direct transaction control. Its `.module.ts` factory takes the sibling
+services as `deps` instead of constructing a `Repo`.
+
+**No-own-persistence modules** (e.g. `auth/`, `tool/`): modules that
+orchestrate other modules (session, iam, seeding) without owning a table of
+their own. No `.repo.ts` is expected; the module still gets a `.module.ts`
+factory and, where it has a route surface, a `.route.ts`.
+
+When adding a new exception, prefer the narrowest carve-out (skip only the
+file that doesn't apply, e.g. no `.repo.ts`) over skipping the whole template.
+Always still provide a `create{Module}Module` **factory function** for
+wiring — class-wrapper wiring is never an accepted exception.
+
