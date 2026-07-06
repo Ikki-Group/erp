@@ -3,7 +3,7 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/infra/cache'
 import type { DbContext } from '@/infra/database'
 
-import type { FinanceServiceModule as FinanceModule } from '@/modules/finance'
+import type { FinanceModule } from '@/modules/finance'
 import type { IamModule } from '@/modules/iam'
 import type { LocationModule } from '@/modules/location'
 import type { SalesModule } from '@/modules/sales'

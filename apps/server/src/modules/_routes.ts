@@ -3,7 +3,7 @@ import { createAuthRoute } from '@/modules/auth/auth.route'
 import { createCompanyRoute } from '@/modules/company/company.route'
 import { createCrmRouteModule } from '@/modules/crm/crm.route'
 import { initDashboardRouteModule } from '@/modules/dashboard'
-import { initFinanceRouteModule } from '@/modules/finance'
+import { createFinanceRoute } from '@/modules/finance'
 import { initHRRouteModule } from '@/modules/hr'
 import { createIamRoute } from '@/modules/iam/iam.route'
 import { initInventoryRouteModule } from '@/modules/inventory'
@@ -46,7 +46,7 @@ export function createRoutes(m: Modules) {
 		createCrmRouteModule(m.crm),
 		createProductRoute(m.product),
 		createRecipeRoute(m.recipe),
-		initFinanceRouteModule(m.finance),
+		createFinanceRoute(m.finance),
 		createIamRoute(m.iam),
 		initMaterialRoutes(m.material),
 		// Operations

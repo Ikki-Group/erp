@@ -6,7 +6,7 @@ import { createAuditLogModule, type AuditLogModule } from '@/modules/audit/audit
 import { createCompanyModule, type CompanyModule } from '@/modules/company/company.module'
 import { createCrmModule, type CrmModule } from '@/modules/crm/crm.module'
 import { DashboardServiceModule } from '@/modules/dashboard'
-import { FinanceServiceModule } from '@/modules/finance'
+import { createFinanceModule, type FinanceModule } from '@/modules/finance'
 import { HRServiceModule } from '@/modules/hr'
 import { type IamModule, createIamModule } from '@/modules/iam/iam.module'
 import { InventoryServiceModule } from '@/modules/inventory'
@@ -41,7 +41,7 @@ export interface Modules {
 	crm: CrmModule
 	product: ProductModule
 	recipe: RecipeModule
-	finance: FinanceServiceModule
+	finance: FinanceModule
 	iam: IamModule
 	material: MaterialModule
 	// Operations (Layer 2)
@@ -103,7 +103,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 	const crm = createCrmModule(db, cacheClient)
 	const product = createProductModule(db, cacheClient)
 	const recipe = createRecipeModule(db, cacheClient)
-	const finance = new FinanceServiceModule(db, cacheClient)
+	const finance = createFinanceModule(db, cacheClient)
 	const iam = createIamModule(db, cacheClient, { location })
 	const material = createMaterialModule(db, cacheClient, { location })
 

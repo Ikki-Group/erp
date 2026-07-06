@@ -10,29 +10,25 @@ import { createExpenditureRoute } from './expenditure/expenditure.route'
 import { createGeneralLedgerModule, type GeneralLedgerModule } from './general-ledger/general-ledger.module'
 import { createGeneralLedgerRoute } from './general-ledger/general-ledger.route'
 
-export class FinanceServiceModule {
-	public readonly account: AccountModule
-	public readonly journal: GeneralLedgerModule
-	public readonly expenditure: ExpenditureModule
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.account = createAccountModule(db, cacheClient)
-		this.journal = createGeneralLedgerModule(db, cacheClient)
-		this.expenditure = createExpenditureModule(db, cacheClient, this.journal)
-	}
+export interface FinanceModule {
+	account: AccountModule
+	journal: GeneralLedgerModule
+	expenditure: ExpenditureModule
 }
 
-export type FinanceModule = FinanceServiceModule
+export function createFinanceModule(db: DbClient, cacheClient: CacheClient): FinanceModule {
+	const account = createAccountModule(db, cacheClient)
+	const journal = createGeneralLedgerModule(db, cacheClient)
+	const expenditure = createExpenditureModule(db, cacheClient, journal)
+
+	return { account, journal, expenditure }
+}
 
 export function createFinanceRoute(m: FinanceModule) {
 	return new Elysia({ prefix: '/finance' })
 		.use(createAccountRoute(m.account))
 		.use(createExpenditureRoute(m.expenditure))
 		.use(createGeneralLedgerRoute(m.journal))
-}
-
-export function initFinanceRouteModule(s: FinanceServiceModule) {
-	return createFinanceRoute(s)
 }
 
 export type { AccountModule, AccountModule as AccountService } from './account/account.module'

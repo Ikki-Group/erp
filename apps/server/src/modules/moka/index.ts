@@ -5,7 +5,7 @@ import { logger } from '@/infra/logger'
 import type { CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 
-import type { FinanceServiceModule } from '@/modules/finance'
+import type { FinanceModule } from '@/modules/finance'
 
 import { MokaConfigurationRepo } from './configuration/configuration.repo'
 import { initMokaConfigurationRoute } from './configuration/configuration.route'
@@ -28,7 +28,7 @@ export class MokaServiceModule {
 	constructor(
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
-		private readonly deps: FinanceServiceModule,
+		private readonly deps: FinanceModule,
 	) {
 		const configRepo = new MokaConfigurationRepo(this.db)
 		this.configuration = new MokaConfigurationService(configRepo, this.cacheClient)

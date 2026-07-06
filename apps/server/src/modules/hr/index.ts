@@ -3,7 +3,7 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 
-import type { FinanceServiceModule } from '@/modules/finance'
+import type { FinanceModule } from '@/modules/finance'
 
 import { createEmployeeModule, type EmployeeModule } from './employee/employee.module'
 import { createEmployeeRoute } from './employee/employee.route'
@@ -18,7 +18,7 @@ import { initPayrollRoute } from './payroll/payroll.route'
 import { PayrollService } from './payroll/payroll.service'
 
 interface HRServiceModuleDeps {
-	finance: FinanceServiceModule
+	finance: FinanceModule
 }
 
 export class HRServiceModule {
