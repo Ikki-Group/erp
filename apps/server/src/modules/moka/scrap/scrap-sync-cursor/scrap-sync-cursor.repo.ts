@@ -6,7 +6,7 @@ import { mokaSyncCursorsTable } from '@/db/schema'
 import { takeFirst, type DbContext, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type { MokaProvider, MokaScrapType } from '../shared.contract'
+import type { MokaProvider, MokaScrapType } from '../../shared.contract'
 
 export interface IMokaSyncCursorRepo {
 	readonly db: DbContext

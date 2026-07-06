@@ -12,8 +12,8 @@ import { initMokaConfigurationRoute } from './configuration/configuration.route'
 import { MokaConfigurationService } from './configuration/configuration.service'
 import { MokaScrapHistoryRepo } from './scrap/scrap-history/scrap-history.repo'
 import { MokaScrapHistoryService } from './scrap/scrap-history/scrap-history.service'
-import { MokaSyncCursorRepo } from './scrap/scrap-sync-cursor.repo'
-import { MokaSyncCursorService } from './scrap/scrap-sync-cursor.service'
+import { MokaSyncCursorRepo } from './scrap/scrap-sync-cursor/scrap-sync-cursor.repo'
+import { MokaSyncCursorService } from './scrap/scrap-sync-cursor/scrap-sync-cursor.service'
 import { MokaTransformationService } from './scrap/scrap-transformation.service'
 import { initMokaScrapRoute } from './scrap/scrap.route'
 import { MokaScrapService } from './scrap/scrap.service'
@@ -77,10 +77,10 @@ export type {
 
 export type { MokaConfigurationService } from './configuration/configuration.service'
 export type { MokaScrapHistoryService } from './scrap/scrap-history/scrap-history.service'
-export type { MokaSyncCursorService } from './scrap/scrap-sync-cursor.service'
+export type { MokaSyncCursorService } from './scrap/scrap-sync-cursor/scrap-sync-cursor.service'
 export type { MokaScrapService } from './scrap/scrap.service'
 
 // Export repo ports for testing
 export type { IMokaConfigurationRepo } from './configuration/configuration.repo'
 export type { IMokaScrapHistoryRepo } from './scrap/scrap-history/scrap-history.repo'
-export type { IMokaSyncCursorRepo } from './scrap/scrap-sync-cursor.repo'
+export type { IMokaSyncCursorRepo } from './scrap/scrap-sync-cursor/scrap-sync-cursor.repo'
