@@ -7,48 +7,38 @@ import type { FinanceModule } from '@/modules/finance'
 
 import { createEmployeeModule, type EmployeeModule } from './employee/employee.module'
 import { createEmployeeRoute } from './employee/employee.route'
-import { HRRepo } from './hr/hr.repo'
+import { createHRModule, type HRModule } from './hr'
 import { initHRRoute } from './hr/hr.route'
-import { HRService } from './hr/hr.service'
-import { LeaveRequestRepo } from './leave-request/leave-request.repo'
+import { createLeaveRequestModule, type LeaveRequestModule } from './leave-request'
 import { initLeaveRequestRoute } from './leave-request/leave-request.route'
-import { LeaveRequestService } from './leave-request/leave-request.service'
-import { PayrollRepo } from './payroll/payroll.repo'
+import { createPayrollModule, type PayrollModule } from './payroll'
 import { initPayrollRoute } from './payroll/payroll.route'
-import { PayrollService } from './payroll/payroll.service'
 
 interface HRServiceModuleDeps {
 	finance: FinanceModule
 }
 
-export class HRServiceModule {
-	public readonly employee: EmployeeModule
-	public readonly hr: HRService
-	public readonly payroll: PayrollService
-	public readonly leaveRequest: LeaveRequestService
+export interface HRServiceModule {
+	employee: EmployeeModule
+	hr: HRModule
+	payroll: PayrollModule
+	leaveRequest: LeaveRequestModule
+}
 
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-		private readonly deps: HRServiceModuleDeps,
-	) {
-		this.employee = createEmployeeModule(this.db, this.cacheClient)
+export function createHRServiceModule(
+	db: DbClient,
+	cacheClient: CacheClient,
+	deps: HRServiceModuleDeps,
+): HRServiceModule {
+	const employee = createEmployeeModule(db, cacheClient)
+	const hr = createHRModule(db, cacheClient)
+	const payroll = createPayrollModule(db, cacheClient, {
+		account: deps.finance.account,
+		journal: deps.finance.journal,
+	})
+	const leaveRequest = createLeaveRequestModule(db, cacheClient)
 
-		const hrRepo = new HRRepo(this.db)
-		this.hr = new HRService(hrRepo, this.cacheClient)
-
-		const payrollRepo = new PayrollRepo(this.db)
-		this.payroll = new PayrollService(
-			this.deps.finance.account,
-			this.deps.finance.journal,
-			payrollRepo,
-			this.db,
-			this.cacheClient,
-		)
-
-		const leaveRequestRepo = new LeaveRequestRepo(this.db)
-		this.leaveRequest = new LeaveRequestService(leaveRequestRepo, this.cacheClient)
-	}
+	return { employee, hr, payroll, leaveRequest }
 }
 
 export function initHRRouteModule(s: HRServiceModule) {
