@@ -19,9 +19,24 @@ import {
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
 } from './payroll.contract'
+import { PayrollError } from './payroll.internal'
 
-export class PayrollRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IPayrollRepo {
+	readonly db: DbClient
+	findBatchByPeriod(month: number, year: number): Promise<any | undefined>
+	getBatchById(id: number): Promise<any | undefined>
+	getPayrollItemById(id: number): Promise<any | undefined>
+	listBatches(filter: PayrollBatchFilterDto): Promise<{ data: any[]; count: number }>
+	createBatch(data: PayrollBatchCreateDto, actorId: number): Promise<PayrollBatchDto>
+	addAdjustment(
+		data: PayrollAdjustmentCreateDto,
+		actorId: number,
+	): Promise<PayrollAdjustmentDto>
+	finalizeBatch(batchId: number, actorId: number): Promise<PayrollBatchDto>
+}
+
+export class PayrollRepo implements IPayrollRepo {
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -106,7 +121,7 @@ export class PayrollRepo {
 					})
 					.returning()
 
-				if (!batch) throw new Error('Failed to create payroll batch')
+				if (!batch) throw PayrollError.createBatchFailed()
 
 				const employees = await tx
 					.select()
@@ -157,7 +172,7 @@ export class PayrollRepo {
 					})
 					.returning()
 
-				if (!adjustment) throw new Error('Failed to create payroll adjustment')
+				if (!adjustment) throw PayrollError.createAdjustmentFailed()
 
 				const itemResult = await tx
 					.select()
@@ -208,7 +223,7 @@ export class PayrollRepo {
 				.where(eq(payrollBatchesTable.id, batchId))
 				.returning()
 
-			if (!result) throw new Error('Failed to finalize batch')
+			if (!result) throw PayrollError.finalizeBatchFailed()
 			return result as unknown as PayrollBatchDto
 		})
 	}

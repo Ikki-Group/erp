@@ -3,7 +3,6 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
-import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { AccountDto } from '@/modules/finance/account/account.contract'
 import type { GeneralLedgerModule } from '@/modules/finance'
@@ -15,7 +14,8 @@ import type {
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
 } from './payroll.contract'
-import { PayrollRepo } from './payroll.repo'
+import { PayrollError } from './payroll.internal'
+import type { IPayrollRepo } from './payroll.repo'
 
 export interface AccountPayrollPort {
 	getByCode(code: string): Promise<AccountDto | undefined>
@@ -27,7 +27,7 @@ export class PayrollService {
 	constructor(
 		private readonly accountSvc: AccountPayrollPort,
 		private readonly journalSvc: GeneralLedgerModule,
-		private readonly repo: PayrollRepo,
+		private readonly repo: IPayrollRepo,
 		private readonly db: DbClient,
 		cacheClient: CacheClient,
 	) {
@@ -49,9 +49,7 @@ export class PayrollService {
 		return record('PayrollService.handleBatchCreate', async () => {
 			const existing = await this.repo.findBatchByPeriod(data.periodMonth, data.periodYear)
 			if (existing) {
-				throw new ConflictError(
-					`Payroll batch for ${data.periodMonth}/${data.periodYear} already exists`,
-				)
+				throw PayrollError.batchAlreadyExists(data.periodMonth, data.periodYear)
 			}
 
 			const result = await this.repo.createBatch(data, actorId)
@@ -75,11 +73,10 @@ export class PayrollService {
 		return record('PayrollService.handleFinalizeBatch', async () => {
 			return this.db.transaction(async () => {
 				const batch = await this.repo.getBatchById(batchId)
-				if (!batch)
-					throw new NotFoundError('Payroll batch not found', { code: 'PAYROLL_BATCH_NOT_FOUND' })
+				if (!batch) throw PayrollError.batchNotFound(batchId)
 
 				if (batch.status !== 'draft') {
-					throw new ConflictError('Only draft batches can be finalized')
+					throw PayrollError.onlyDraftCanBeFinalized()
 				}
 
 				const finalizedBatch = await this.repo.finalizeBatch(batchId, actorId)
