@@ -42,8 +42,30 @@ The `MokaTransformationService` receives `db` directly (not through repos) becau
 
 ### Dependencies
 
-- Depends on `FinanceServiceModule` for account/journal operations
+- Depends on `FinanceModule` for account/journal operations
 - Depends on external `Logger` for sync operation logging
+
+### `engine/` — Moka POS API Adapter (Intentional Exception)
+
+The `engine/` folder (`moka-auth.service.ts`, `moka-category.service.ts`, `moka-engine.ts`,
+`moka-product.service.ts`, `moka-sales.service.ts`, `moka-utils.ts`) is a **pure third-party
+API adapter** that calls Moka's external POS API directly (authentication, category/product
+fetch, sales fetch).
+
+It intentionally has **no `.contract.ts`, `.repo.ts`, `.module.ts`, or `index.ts`**, and is
+**exempt from the standard CRUD module template**, because:
+
+- It has no persisted entity of its own — it only calls Moka's remote HTTP API and returns
+  raw response shapes (see `scrap/scrap-raw.types.ts`).
+- There is nothing to store via a repo/port — all "repo-like" persistence for Moka data lives
+  in the `configuration/`, `scrap/scrap-history/`, and `scrap/scrap-sync-cursor/` sub-entities,
+  which the `scrap/` orchestration layer (`MokaScrapService`) already wires together.
+- Forcing a contract/repo/module.ts onto a stateless API-client layer would add indirection
+  with no benefit.
+
+This is a deliberate, documented exception to `docs/server/MODULE_STANDARD.md`, consistent
+with how `auth/` has no `.repo.ts` (delegates persistence entirely to other modules) and
+`tool/` has no `.contract.ts`/`.repo.ts` (pure orchestration, no owned entity).
 
 ## Sync Flow
 
