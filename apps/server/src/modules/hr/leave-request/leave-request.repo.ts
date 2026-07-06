@@ -15,9 +15,23 @@ import {
 	LeaveRequestSelectDto,
 	LeaveRequestUpdateDto,
 } from './leave-request.contract'
+import { LeaveRequestError } from './leave-request.internal'
 
-export class LeaveRequestRepo {
-	constructor(private readonly db: DbClient) {}
+export interface ILeaveRequestRepo {
+	readonly db: DbClient
+	getById(id: number): Promise<LeaveRequestDto | undefined>
+	getListPaginated(
+		filter: LeaveRequestFilterDto,
+	): Promise<WithPaginationResult<LeaveRequestSelectDto>>
+	create(data: LeaveRequestCreateDto, actorId: number): Promise<{ id: number }>
+	update(data: LeaveRequestUpdateDto, actorId: number): Promise<{ id: number }>
+	softDelete(id: number, actorId: number): Promise<{ id: number }>
+	hardDelete(id: number): Promise<{ id: number }>
+	updateStatus(id: number, status: string, actorId: number): Promise<{ id: number }>
+}
+
+export class LeaveRequestRepo implements ILeaveRequestRepo {
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -89,7 +103,7 @@ export class LeaveRequestRepo {
 				.values({ ...data, ...meta })
 				.returning({ id: leaveRequestsTable.id })
 
-			if (!result) throw new Error('Leave request creation failed')
+			if (!result) throw LeaveRequestError.createFailed()
 
 			return result
 		})
@@ -106,7 +120,7 @@ export class LeaveRequestRepo {
 				.where(eq(leaveRequestsTable.id, id))
 				.returning({ id: leaveRequestsTable.id })
 
-			if (!result) throw new Error('Leave request not found')
+			if (!result) throw LeaveRequestError.updateFailed(id)
 
 			return result
 		})
@@ -120,7 +134,7 @@ export class LeaveRequestRepo {
 				.where(eq(leaveRequestsTable.id, id))
 				.returning({ id: leaveRequestsTable.id })
 
-			if (!result) throw new Error('Leave request not found')
+			if (!result) throw LeaveRequestError.deleteFailed(id)
 
 			return result
 		})
@@ -133,7 +147,7 @@ export class LeaveRequestRepo {
 				.where(eq(leaveRequestsTable.id, id))
 				.returning({ id: leaveRequestsTable.id })
 
-			if (!result) throw new Error('Leave request not found')
+			if (!result) throw LeaveRequestError.deleteFailed(id)
 
 			return result
 		})
@@ -148,7 +162,7 @@ export class LeaveRequestRepo {
 				.where(eq(leaveRequestsTable.id, id))
 				.returning({ id: leaveRequestsTable.id })
 
-			if (!result) throw new Error('Leave request not found')
+			if (!result) throw LeaveRequestError.deleteFailed(id)
 
 			return result
 		})

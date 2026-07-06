@@ -1,27 +1,17 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type * as dto from './leave-request.contract'
-import { LeaveRequestRepo } from './leave-request.repo'
-
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError(`Leave request with ID ${id} not found`, { code: 'LEAVE_REQUEST_NOT_FOUND' }),
-	invalidStatus: (currentStatus: string) =>
-		new InternalServerError(
-			`Cannot approve/reject/cancel leave request with status ${currentStatus}`,
-			{ code: 'INVALID_LEAVE_STATUS' },
-		),
-}
+import { LeaveRequestError } from './leave-request.internal'
+import type { ILeaveRequestRepo } from './leave-request.repo'
 
 export class LeaveRequestService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: LeaveRequestRepo,
+		private readonly repo: ILeaveRequestRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'hr.leave-request')
@@ -36,7 +26,7 @@ export class LeaveRequestService {
 				key,
 				factory: () => this.repo.getById(id),
 			})
-			if (!request) throw err.notFound(id)
+			if (!request) throw LeaveRequestError.notFound(id)
 			return request
 		})
 	}
@@ -89,10 +79,10 @@ export class LeaveRequestService {
 		return record('LeaveRequestService.handleApprove', async () => {
 			const { id } = data
 			const request = await this.repo.getById(id)
-			if (!request) throw err.notFound(id)
+			if (!request) throw LeaveRequestError.notFound(id)
 
 			if (request.status !== 'pending') {
-				throw err.invalidStatus(request.status)
+				throw LeaveRequestError.invalidStatus(request.status)
 			}
 
 			const result = await this.repo.updateStatus(id, 'approved', actorId)
@@ -105,10 +95,10 @@ export class LeaveRequestService {
 		return record('LeaveRequestService.handleReject', async () => {
 			const { id } = data
 			const request = await this.repo.getById(id)
-			if (!request) throw err.notFound(id)
+			if (!request) throw LeaveRequestError.notFound(id)
 
 			if (request.status !== 'pending') {
-				throw err.invalidStatus(request.status)
+				throw LeaveRequestError.invalidStatus(request.status)
 			}
 
 			const result = await this.repo.updateStatus(id, 'rejected', actorId)
@@ -121,10 +111,10 @@ export class LeaveRequestService {
 		return record('LeaveRequestService.handleCancel', async () => {
 			const { id } = data
 			const request = await this.repo.getById(id)
-			if (!request) throw err.notFound(id)
+			if (!request) throw LeaveRequestError.notFound(id)
 
 			if (request.status !== 'pending' && request.status !== 'approved') {
-				throw err.invalidStatus(request.status)
+				throw LeaveRequestError.invalidStatus(request.status)
 			}
 
 			const result = await this.repo.updateStatus(id, 'cancelled', actorId)
