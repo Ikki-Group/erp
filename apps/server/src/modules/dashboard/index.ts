@@ -20,22 +20,24 @@ interface DashboardServiceModuleDeps {
 	sales: SalesModule
 }
 
-export class DashboardServiceModule {
-	public readonly settings: SettingsModule
-	public readonly analytics: AnalyticsModule
+export interface DashboardServiceModule {
+	settings: SettingsModule
+	analytics: AnalyticsModule
+}
 
-	constructor(
-		db: DbContext,
-		cacheClient: CacheClient,
-		deps: DashboardServiceModuleDeps,
-	) {
-		this.settings = createSettingsModule({
-			iamUser: deps.iam.user,
-			iamRole: deps.iam.role,
-			location: deps.location,
-		})
-		this.analytics = createAnalyticsModule(db, cacheClient)
-	}
+export function createDashboardServiceModule(
+	db: DbContext,
+	cacheClient: CacheClient,
+	deps: DashboardServiceModuleDeps,
+): DashboardServiceModule {
+	const settings = createSettingsModule({
+		iamUser: deps.iam.user,
+		iamRole: deps.iam.role,
+		location: deps.location,
+	})
+	const analytics = createAnalyticsModule(db, cacheClient)
+
+	return { settings, analytics }
 }
 
 export function initDashboardRouteModule(module: DashboardServiceModule) {
