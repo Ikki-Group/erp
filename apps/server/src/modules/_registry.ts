@@ -16,7 +16,7 @@ import { MokaServiceModule } from '@/modules/moka'
 import { createPaymentServiceModule, type PaymentServiceModule } from '@/modules/payment'
 import { createProductModule, type ProductModule } from '@/modules/product/product.module'
 import { createProductionServiceModule, type ProductionServiceModule } from '@/modules/production'
-import { PurchasingServiceModule } from '@/modules/purchasing'
+import { createPurchasingServiceModule, type PurchasingServiceModule } from '@/modules/purchasing'
 import { createRecipeModule, type RecipeModule } from '@/modules/recipe'
 import { ReportingServiceModule } from '@/modules/reporting'
 import { SalesModule } from '@/modules/sales'
@@ -113,7 +113,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 		recipe,
 		stockTransaction: inventory.transaction,
 	})
-	const purchasing = new PurchasingServiceModule(
+	const purchasing = createPurchasingServiceModule(
 		db,
 		cacheClient,
 		{

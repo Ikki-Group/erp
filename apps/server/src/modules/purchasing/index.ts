@@ -41,28 +41,30 @@ export interface PurchasingDeps {
 	material: { getById: (id: number) => Promise<{ id: number; name: string } | undefined> }
 }
 
-export class PurchasingServiceModule {
-	public readonly purchaseOrder: PurchaseOrderModule
-	public readonly goodsReceipt: GoodsReceiptModule
+export interface PurchasingServiceModule {
+	purchaseOrder: PurchaseOrderModule
+	goodsReceipt: GoodsReceiptModule
+}
 
-	constructor(
-		db: DbClient,
-		cacheClient: CacheClient,
-		deps: PurchasingDeps,
-		inventory: InventoryModule,
-	) {
-		this.purchaseOrder = createPurchaseOrderModule(db, cacheClient, deps)
+export function createPurchasingServiceModule(
+	db: DbClient,
+	cacheClient: CacheClient,
+	deps: PurchasingDeps,
+	inventory: InventoryModule,
+): PurchasingServiceModule {
+	const purchaseOrder = createPurchaseOrderModule(db, cacheClient, deps)
 
-		this.goodsReceipt = createGoodsReceiptModule(db, cacheClient, {
-			stockTransaction: inventory.transaction,
-			purchaseOrder: {
-				handleGetById: async (id: number) => {
-					const po = await this.purchaseOrder.handleGetById(id)
-					return { id: po.id, status: po.status }
-				},
+	const goodsReceipt = createGoodsReceiptModule(db, cacheClient, {
+		stockTransaction: inventory.transaction,
+		purchaseOrder: {
+			handleGetById: async (id: number) => {
+				const po = await purchaseOrder.handleGetById(id)
+				return { id: po.id, status: po.status }
 			},
-		})
-	}
+		},
+	})
+
+	return { purchaseOrder, goodsReceipt }
 }
 
 export function initPurchasingRouteModule(s: PurchasingServiceModule) {
