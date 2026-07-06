@@ -7,7 +7,7 @@ import {
 	MokaScrapStatusEnum,
 	MokaScrapType,
 	MokaSyncTriggerMode,
-} from '../shared.contract'
+} from '../../shared.contract'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 

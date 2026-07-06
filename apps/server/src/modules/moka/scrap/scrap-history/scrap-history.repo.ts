@@ -12,7 +12,7 @@ import type {
 	MokaScrapStatus,
 	MokaScrapType,
 	MokaSyncTriggerMode,
-} from '../shared.contract'
+} from '../../shared.contract'
 import * as dto from './scrap-history.contract'
 
 export interface IMokaScrapHistoryRepo {

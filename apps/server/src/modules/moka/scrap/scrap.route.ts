@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import type { MokaScrapHistoryService } from './scrap-history.service'
+import type { MokaScrapHistoryService } from './scrap-history/scrap-history.service'
 import { MokaTriggerInputDto } from './scrap.contract'
 import type { MokaScrapService } from './scrap.service'
 

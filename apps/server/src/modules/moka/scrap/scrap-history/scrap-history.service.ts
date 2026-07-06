@@ -8,7 +8,7 @@ import type {
 	MokaScrapStatus,
 	MokaScrapType,
 	MokaSyncTriggerMode,
-} from '../shared.contract'
+} from '../../shared.contract'
 import * as dto from './scrap-history.contract'
 import { MokaScrapHistoryError } from './scrap-history.internal'
 import type { IMokaScrapHistoryRepo } from './scrap-history.repo'

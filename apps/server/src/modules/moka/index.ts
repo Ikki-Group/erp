@@ -10,8 +10,8 @@ import type { FinanceModule } from '@/modules/finance'
 import { MokaConfigurationRepo } from './configuration/configuration.repo'
 import { initMokaConfigurationRoute } from './configuration/configuration.route'
 import { MokaConfigurationService } from './configuration/configuration.service'
-import { MokaScrapHistoryRepo } from './scrap/scrap-history.repo'
-import { MokaScrapHistoryService } from './scrap/scrap-history.service'
+import { MokaScrapHistoryRepo } from './scrap/scrap-history/scrap-history.repo'
+import { MokaScrapHistoryService } from './scrap/scrap-history/scrap-history.service'
 import { MokaSyncCursorRepo } from './scrap/scrap-sync-cursor.repo'
 import { MokaSyncCursorService } from './scrap/scrap-sync-cursor.service'
 import { MokaTransformationService } from './scrap/scrap-transformation.service'
@@ -66,7 +66,7 @@ export type {
 	MokaConfigurationDto,
 	MokaConfigurationOutputDto,
 } from './configuration/configuration.contract'
-export type { MokaScrapHistoryDto } from './scrap/scrap-history.contract'
+export type { MokaScrapHistoryDto } from './scrap/scrap-history/scrap-history.contract'
 export type { MokaTriggerInputDto } from './scrap/scrap.contract'
 export type {
 	MokaProvider,
@@ -76,11 +76,11 @@ export type {
 } from './shared.contract'
 
 export type { MokaConfigurationService } from './configuration/configuration.service'
-export type { MokaScrapHistoryService } from './scrap/scrap-history.service'
+export type { MokaScrapHistoryService } from './scrap/scrap-history/scrap-history.service'
 export type { MokaSyncCursorService } from './scrap/scrap-sync-cursor.service'
 export type { MokaScrapService } from './scrap/scrap.service'
 
 // Export repo ports for testing
 export type { IMokaConfigurationRepo } from './configuration/configuration.repo'
-export type { IMokaScrapHistoryRepo } from './scrap/scrap-history.repo'
+export type { IMokaScrapHistoryRepo } from './scrap/scrap-history/scrap-history.repo'
 export type { IMokaSyncCursorRepo } from './scrap/scrap-sync-cursor.repo'
