@@ -17,24 +17,26 @@ import { createProcurementReportingRoute } from './procurement-reporting/procure
 import { createSalesReportingModule } from './sales-reporting/sales-reporting.module'
 import { createSalesReportingRoute } from './sales-reporting/sales-reporting.route'
 
-export class ReportingServiceModule {
-	public readonly sales: ReturnType<typeof createSalesReportingModule>
-	public readonly finance: ReturnType<typeof createFinanceReportingModule>
-	public readonly inventory: ReturnType<typeof createInventoryReportingModule>
-	public readonly procurement: ReturnType<typeof createProcurementReportingModule>
-	public readonly crm: ReturnType<typeof createCrmReportingModule>
-	public readonly payment: ReturnType<typeof createPaymentReportingModule>
-	public readonly insights: ReturnType<typeof createBusinessInsightsModule>
+export interface ReportingServiceModule {
+	sales: ReturnType<typeof createSalesReportingModule>
+	finance: ReturnType<typeof createFinanceReportingModule>
+	inventory: ReturnType<typeof createInventoryReportingModule>
+	procurement: ReturnType<typeof createProcurementReportingModule>
+	crm: ReturnType<typeof createCrmReportingModule>
+	payment: ReturnType<typeof createPaymentReportingModule>
+	insights: ReturnType<typeof createBusinessInsightsModule>
+}
 
-	constructor(db: DbContext) {
-		this.sales = createSalesReportingModule(db)
-		this.finance = createFinanceReportingModule(db)
-		this.inventory = createInventoryReportingModule(db)
-		this.procurement = createProcurementReportingModule(db)
-		this.crm = createCrmReportingModule(db)
-		this.payment = createPaymentReportingModule(db)
-		this.insights = createBusinessInsightsModule(db)
-	}
+export function createReportingServiceModule(db: DbContext): ReportingServiceModule {
+	const sales = createSalesReportingModule(db)
+	const finance = createFinanceReportingModule(db)
+	const inventory = createInventoryReportingModule(db)
+	const procurement = createProcurementReportingModule(db)
+	const crm = createCrmReportingModule(db)
+	const payment = createPaymentReportingModule(db)
+	const insights = createBusinessInsightsModule(db)
+
+	return { sales, finance, inventory, procurement, crm, payment, insights }
 }
 
 export function createReportingRouteModule(s: ReportingServiceModule) {

@@ -18,7 +18,7 @@ import { createProductModule, type ProductModule } from '@/modules/product/produ
 import { createProductionServiceModule, type ProductionServiceModule } from '@/modules/production'
 import { createPurchasingServiceModule, type PurchasingServiceModule } from '@/modules/purchasing'
 import { createRecipeModule, type RecipeModule } from '@/modules/recipe'
-import { ReportingServiceModule } from '@/modules/reporting'
+import { createReportingServiceModule, type ReportingServiceModule } from '@/modules/reporting'
 import { createSalesModule, type SalesModule } from '@/modules/sales'
 import { createSalesTypeModule, type SalesTypeModule } from '@/modules/sales-type'
 import { createSessionModule, type SessionModule } from '@/modules/session'
@@ -135,7 +135,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 		finance,
 		sales,
 	})
-	const reporting = new ReportingServiceModule(db)
+	const reporting = createReportingServiceModule(db)
 
 	// ---- Core (late) + tooling -------------------------------------------
 	const auth = createAuthModule(db, cacheClient, { iam, session })
