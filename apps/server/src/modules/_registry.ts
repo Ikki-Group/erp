@@ -13,7 +13,7 @@ import { createInventoryModule, type InventoryModule } from '@/modules/inventory
 import { type LocationModule, createLocationModule } from '@/modules/location/location.module'
 import { createMaterialModule, type MaterialModule } from '@/modules/material'
 import { MokaServiceModule } from '@/modules/moka'
-import { PaymentServiceModule } from '@/modules/payment'
+import { createPaymentServiceModule, type PaymentServiceModule } from '@/modules/payment'
 import { createProductModule, type ProductModule } from '@/modules/product/product.module'
 import { ProductionServiceModule } from '@/modules/production'
 import { PurchasingServiceModule } from '@/modules/purchasing'
@@ -123,7 +123,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 		},
 		inventory,
 	)
-	const payment = new PaymentServiceModule(db, cacheClient)
+	const payment = createPaymentServiceModule(db, cacheClient)
 	const sales = new SalesModule(db, cacheClient, { location, crm, product, salesType })
 	const hr = new HRServiceModule(db, cacheClient, { finance })
 	const moka = new MokaServiceModule(db, cacheClient, finance)

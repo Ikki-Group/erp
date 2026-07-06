@@ -12,31 +12,32 @@ import { initPaymentProviderRoute } from './payment-provider/payment-provider.ro
 import { createPaymentModule, type PaymentModule } from './payment/payment.module'
 import { createPaymentRoute } from './payment/payment.route'
 
-export class PaymentServiceModule {
-	public readonly paymentMethod: ReturnType<typeof createPaymentMethodModule>
-	public readonly payment: PaymentModule
-	public readonly paymentProvider: ReturnType<typeof createPaymentProviderModule>
-	public readonly locationPaymentMethod: ReturnType<typeof createLocationPaymentMethodModule>
+export interface PaymentServiceModule {
+	paymentMethod: ReturnType<typeof createPaymentMethodModule>
+	payment: PaymentModule
+	paymentProvider: ReturnType<typeof createPaymentProviderModule>
+	locationPaymentMethod: ReturnType<typeof createLocationPaymentMethodModule>
+}
 
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-	) {
-		this.paymentMethod = createPaymentMethodModule(this.db, this.cacheClient)
+export function createPaymentServiceModule(
+	db: DbClient,
+	cacheClient: CacheClient,
+): PaymentServiceModule {
+	const paymentMethod = createPaymentMethodModule(db, cacheClient)
 
-		this.payment = createPaymentModule(this.db, this.cacheClient)
+	const payment = createPaymentModule(db, cacheClient)
 
-		this.paymentProvider = createPaymentProviderModule(this.db, this.cacheClient)
+	const paymentProvider = createPaymentProviderModule(db, cacheClient)
 
-		this.locationPaymentMethod = createLocationPaymentMethodModule(
-			this.db,
-			this.cacheClient,
-			{
-				location: this.paymentMethod,
-				paymentMethod: this.paymentMethod,
-			},
-		)
-	}
+	// NOTE: `location` dep is intentionally satisfied by `paymentMethod` here (pre-existing
+	// behavior, preserved as-is) — both narrow ports (`LocationReadPort`/`PaymentMethodReadPort`)
+	// are structurally satisfied by `PaymentMethodService`.
+	const locationPaymentMethod = createLocationPaymentMethodModule(db, cacheClient, {
+		location: paymentMethod,
+		paymentMethod,
+	})
+
+	return { paymentMethod, payment, paymentProvider, locationPaymentMethod }
 }
 
 export function initPaymentRouteModule(s: PaymentServiceModule) {
