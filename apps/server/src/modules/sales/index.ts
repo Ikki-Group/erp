@@ -14,14 +14,13 @@ import {
 	type ISalesOrderPort,
 } from './sales-invoice'
 import { createSalesInvoiceRoute } from './sales-invoice/sales-invoice.route'
-import { SalesOrderRepo } from './sales-order/sales-order.repo'
+import { createSalesOrderModule, type SalesOrderModule } from './sales-order'
 import { createSalesOrderRoute } from './sales-order/sales-order.route'
-import {
-	SalesOrderService,
-	type LocationReadPort,
-	type CustomerReadPort,
-	type SalesTypeReadPort,
-	type ProductReadPort,
+import type {
+	LocationReadPort,
+	CustomerReadPort,
+	SalesTypeReadPort,
+	ProductReadPort,
 } from './sales-order/sales-order.service'
 
 interface SalesServiceModuleDeps {
@@ -31,42 +30,44 @@ interface SalesServiceModuleDeps {
 	salesType: SalesTypeModule
 }
 
-export class SalesModule {
-	public readonly order: SalesOrderService
-	public readonly invoice: SalesInvoiceModule
+export interface SalesModule {
+	order: SalesOrderModule
+	invoice: SalesInvoiceModule
+	deps: SalesServiceModuleDeps
+}
 
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-		public readonly deps: SalesServiceModuleDeps,
-	) {
-		const salesOrderRepo = new SalesOrderRepo(this.db)
-		const orderDeps: {
-			location: LocationReadPort
-			customer: CustomerReadPort
-			salesType: SalesTypeReadPort
-			product: ProductReadPort
-		} = {
-			location: deps.location,
-			customer: deps.crm.customer,
-			salesType: deps.salesType,
-			product: deps.product.product,
-		}
-		this.order = new SalesOrderService(salesOrderRepo, this.cacheClient, orderDeps)
-
-		const salesOrderPort: ISalesOrderPort = {
-			findById: async (orderId: number) => {
-				const result = await this.order.handleDetail(orderId)
-				return result ? { id: result.id, status: result.status } : undefined
-			},
-			findItemsByOrderId: async (orderId: number, _db) => {
-				const result = await this.order.handleDetail(orderId)
-				return result?.items ?? []
-			},
-		}
-
-		this.invoice = createSalesInvoiceModule(this.db, this.cacheClient, salesOrderPort)
+export function createSalesModule(
+	db: DbClient,
+	cacheClient: CacheClient,
+	deps: SalesServiceModuleDeps,
+): SalesModule {
+	const orderDeps: {
+		location: LocationReadPort
+		customer: CustomerReadPort
+		salesType: SalesTypeReadPort
+		product: ProductReadPort
+	} = {
+		location: deps.location,
+		customer: deps.crm.customer,
+		salesType: deps.salesType,
+		product: deps.product.product,
 	}
+	const order = createSalesOrderModule(db, cacheClient, orderDeps)
+
+	const salesOrderPort: ISalesOrderPort = {
+		findById: async (orderId: number) => {
+			const result = await order.handleDetail(orderId)
+			return result ? { id: result.id, status: result.status } : undefined
+		},
+		findItemsByOrderId: async (orderId: number, _db) => {
+			const result = await order.handleDetail(orderId)
+			return result?.items ?? []
+		},
+	}
+
+	const invoice = createSalesInvoiceModule(db, cacheClient, salesOrderPort)
+
+	return { order, invoice, deps }
 }
 
 export function initSalesRouteModule(s: SalesModule) {
