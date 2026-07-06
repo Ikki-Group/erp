@@ -2,7 +2,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
 
 import type {
@@ -14,13 +13,14 @@ import type {
 	ShiftCreateDto,
 	ShiftDto,
 } from './hr.contract'
-import { HRRepo } from './hr.repo'
+import { HRError } from './hr.internal'
+import type { IHRRepo } from './hr.repo'
 
 export class HRService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: HRRepo,
+		private readonly repo: IHRRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'hr')
@@ -61,10 +61,7 @@ export class HRService {
 	async handleClockIn(data: ClockInDto, actorId: number): Promise<AttendanceDto> {
 		return record('HRService.handleClockIn', async () => {
 			const existing = await this.repo.findOpenAttendance(data.employeeId)
-			if (existing)
-				throw new ConflictError(`Employee with ID ${data.employeeId} is already clocked in`, {
-					code: 'ALREADY_CLOCKED_IN',
-				})
+			if (existing) throw HRError.alreadyClockedIn(data.employeeId)
 
 			const result = await this.repo.clockIn(data, actorId)
 			await this.cache.deleteMany({ keys: ['list', 'count'] })
@@ -75,19 +72,10 @@ export class HRService {
 	async handleClockOut(data: ClockOutDto, actorId: number): Promise<AttendanceDto> {
 		return record('HRService.handleClockOut', async () => {
 			const attendance = await this.repo.getAttendanceById(data.id)
-			if (!attendance)
-				throw new NotFoundError(`Attendance with ID ${data.id} not found`, {
-					code: 'ATTENDANCE_NOT_FOUND',
-				})
+			if (!attendance) throw HRError.attendanceNotFound(data.id)
 
-			if (!attendance.clockIn)
-				throw new ConflictError(`Attendance with ID ${data.id} is not clocked in`, {
-					code: 'NOT_CLOCKED_IN',
-				})
-			if (attendance.clockOut)
-				throw new ConflictError(`Attendance with ID ${data.id} is already clocked out`, {
-					code: 'ALREADY_CLOCKED_OUT',
-				})
+			if (!attendance.clockIn) throw HRError.notClockedIn(data.id)
+			if (attendance.clockOut) throw HRError.alreadyClockedOut(data.id)
 
 			const result = await this.repo.clockOut(
 				data.id,

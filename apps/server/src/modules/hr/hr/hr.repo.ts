@@ -17,9 +17,23 @@ import {
 	ShiftCreateDto,
 	ShiftDto,
 } from './hr.contract'
+import { HRError } from './hr.internal'
 
-export class HRRepo {
-	constructor(private readonly db: DbClient) {}
+export interface IHRRepo {
+	readonly db: DbClient
+	getShiftListPaginated(page: number, limit: number): Promise<WithPaginationResult<ShiftDto>>
+	getAttendanceListPaginated(
+		filter: AttendanceFilterDto,
+	): Promise<WithPaginationResult<AttendanceSelectDto>>
+	findOpenAttendance(employeeId: number): Promise<AttendanceDto | undefined>
+	getAttendanceById(id: number): Promise<AttendanceDto | undefined>
+	createShift(data: ShiftCreateDto, actorId: number): Promise<ShiftDto>
+	clockIn(data: ClockInDto, actorId: number): Promise<AttendanceDto>
+	clockOut(id: number, note: string | null, actorId: number): Promise<AttendanceDto>
+}
+
+export class HRRepo implements IHRRepo {
+	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -149,7 +163,7 @@ export class HRRepo {
 				})
 				.returning()
 
-			if (!result) throw new Error('Failed to create shift')
+			if (!result) throw HRError.createShiftFailed()
 			return result as unknown as ShiftDto
 		})
 	}
@@ -169,7 +183,7 @@ export class HRRepo {
 				})
 				.returning()
 
-			if (!result) throw new Error('Failed to clock in')
+			if (!result) throw HRError.clockInFailed()
 			return result as unknown as AttendanceDto
 		})
 	}
@@ -183,7 +197,7 @@ export class HRRepo {
 				.where(eq(attendancesTable.id, id))
 				.returning()
 
-			if (!result) throw new Error('Failed to clock out')
+			if (!result) throw HRError.clockOutFailed()
 			return result as unknown as AttendanceDto
 		})
 	}
