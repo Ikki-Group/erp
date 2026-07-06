@@ -8,13 +8,12 @@ import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 import { RelationMap } from '@/shared/utils'
 
-import type { Material, MaterialType } from '../domain/material.entity'
-import type { IMaterialRepo, MaterialListFilter } from '../domain/ports'
-import type { MaterialDetailDto } from '../dto/material.contract'
-import { MATERIAL_CACHE_NS } from '../material.constants'
-import { MasterErrors } from '../material.errors'
-import type { MaterialCategoryService } from './material-category.service'
-import type { MaterialConversionService } from './material-conversion.service'
+import type { MaterialCategoryService } from './category/category.service'
+import type { MaterialConversionService } from './conversion/conversion.service'
+import { MATERIAL_CACHE_NS } from './material.constants'
+import type { Material, MaterialDetailDto, MaterialType } from './material.contract'
+import { MasterErrors } from './material.errors'
+import type { IMaterialRepo, MaterialListFilter } from './material.repo'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 

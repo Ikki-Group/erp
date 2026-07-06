@@ -6,16 +6,16 @@ import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { LocationModule } from '@/modules/location'
 
-import type { MaterialLocation } from '../domain/material-location.entity'
+import { MATERIAL_CACHE_NS } from '../material.constants'
+import { LocationErrors } from '../material.errors'
+import type { MaterialService } from '../material.service'
+import type { MaterialLocation } from './location.contract'
 import type {
 	IMaterialLocationRepo,
 	LocationStockFilter,
 	MaterialLocationStock,
 	MaterialLocationWithLocation,
-} from '../domain/ports'
-import { MATERIAL_CACHE_NS } from '../material.constants'
-import { LocationErrors } from '../material.errors'
-import type { MaterialService } from './material.service'
+} from './location.repo'
 
 export class MaterialLocationService {
 	private readonly cache: CacheService

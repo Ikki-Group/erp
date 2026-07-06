@@ -1,12 +1,20 @@
 /**
- * Material Category DTOs — HTTP boundary schemas
+ * Material Category — HTTP boundary schemas
  */
 
 import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
 
-import { MaterialCategoryEntity } from '../domain/material-category.entity'
+/* --------------------------------- ENTITY --------------------------------- */
+
+export const MaterialCategoryEntity = z.object({
+	...zc.RecordId.shape,
+	name: zp.str,
+	description: zp.strNullable,
+	...zc.AuditBasic.shape,
+})
+export type MaterialCategory = z.infer<typeof MaterialCategoryEntity>
 
 /* -------------------------------- RESPONSE -------------------------------- */
 

@@ -6,13 +6,51 @@ import { paginate, sortBy, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import type { Material } from '../domain/material.entity'
-import type {
-	IMaterialRepo,
-	MaterialInsertData,
-	MaterialListFilter,
-	MaterialUpdateData,
-} from '../domain/ports'
+import type { Material, MaterialType } from './material.contract'
+
+/* --------------------------------- PORT ------------------------------------ */
+
+export interface MaterialListFilter {
+	page: number
+	limit: number
+	search?: string | undefined
+	type?: MaterialType | undefined
+	categoryId?: number | undefined
+	locationIds?: number[] | undefined
+	excludeLocationIds?: number[] | undefined
+}
+
+export interface MaterialInsertData {
+	name: string
+	description?: string | null | undefined
+	sku: string
+	type: MaterialType
+	categoryId: number
+	baseUomId: number
+	createdBy: number
+}
+
+export interface MaterialUpdateData {
+	name?: string | undefined
+	description?: string | null | undefined
+	sku?: string | undefined
+	type?: MaterialType | undefined
+	categoryId?: number | undefined
+	baseUomId?: number | undefined
+	updatedBy: number
+}
+
+export interface IMaterialRepo {
+	readonly db: DbClient
+	getList(): Promise<Material[]>
+	getById(id: number): Promise<Material | undefined>
+	getByIds(ids: number[]): Promise<Material[]>
+	getListPaginated(filter: MaterialListFilter): Promise<WithPaginationResult<Material>>
+	count(): Promise<number>
+	create(data: MaterialInsertData): Promise<{ id: number }>
+	update(id: number, data: MaterialUpdateData): Promise<{ id: number }>
+	remove(id: number): Promise<number | undefined>
+}
 
 export class MaterialRepo implements IMaterialRepo {
 	constructor(readonly db: DbClient) {}

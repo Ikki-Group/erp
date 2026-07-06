@@ -1,5 +1,0 @@
-export { initMaterialMasterRoute } from './material.route'
-export { initMaterialCategoryRoute } from './material-category.route'
-export { initMaterialConversionRoute } from './material-conversion.route'
-export { initMaterialLocationRoute } from './material-location.route'
-export { initMaterialQueryRoute } from './material-query.route'

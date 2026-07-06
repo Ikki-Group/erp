@@ -6,13 +6,41 @@ import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infr
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import type { MaterialCategory } from '../domain/material-category.entity'
-import type {
-	CategoryFilter,
-	CategoryInsertData,
-	CategoryUpdateData,
-	IMaterialCategoryRepo,
-} from '../domain/ports'
+import type { MaterialCategory } from './category.contract'
+
+/* --------------------------------- PORT ------------------------------------ */
+
+export interface CategoryFilter {
+	page: number
+	limit: number
+	q?: string | undefined
+	parentId?: number | undefined
+}
+
+export interface CategoryInsertData {
+	name: string
+	description?: string | null | undefined
+	parentId?: number | null | undefined
+	createdBy: number
+}
+
+export interface CategoryUpdateData {
+	name?: string | undefined
+	description?: string | null | undefined
+	parentId?: number | null | undefined
+	updatedBy: number
+}
+
+export interface IMaterialCategoryRepo {
+	readonly db: DbClient
+	getList(): Promise<MaterialCategory[]>
+	getById(id: number): Promise<MaterialCategory | undefined>
+	getListPaginated(filter: CategoryFilter): Promise<WithPaginationResult<MaterialCategory>>
+	count(): Promise<number>
+	create(data: CategoryInsertData): Promise<{ id: number } | undefined>
+	update(id: number, data: CategoryUpdateData): Promise<{ id: number } | undefined>
+	remove(id: number): Promise<{ id: number } | undefined>
+}
 
 export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 	constructor(readonly db: DbClient) {}

@@ -1,5 +1,5 @@
 /**
- * Material Location DTOs — HTTP boundary schemas
+ * Material Location — HTTP boundary schemas
  */
 
 import { z } from 'zod'
@@ -9,7 +9,26 @@ import { zc, zp, zq } from '@/shared/schema'
 import { LocationDto } from '@/modules/location'
 import { UomDto } from '@/modules/uom'
 
-import { MaterialLocationEntity } from '../domain/material-location.entity'
+/* --------------------------------- ENTITY --------------------------------- */
+
+export const MaterialLocationEntity = z.object({
+	...zc.RecordId.shape,
+	materialId: zp.id,
+	locationId: zp.id,
+
+	// Per-location configuration
+	minStock: zp.decimal,
+	maxStock: zp.decimal.nullable(),
+	reorderPoint: zp.decimal,
+
+	// Current stock snapshot (maintained by inventory module)
+	currentQty: zp.decimal,
+	currentAvgCost: zp.decimal,
+	currentValue: zp.decimal,
+
+	...zc.AuditBasic.shape,
+})
+export type MaterialLocation = z.infer<typeof MaterialLocationEntity>
 
 /* -------------------------------- RESPONSE -------------------------------- */
 

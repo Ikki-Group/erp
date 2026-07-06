@@ -1,7 +1,4 @@
-export {
-	createMaterialModule,
-	initMaterialRoutes,
-	type MaterialModule,
-} from './material.module'
-export type { MaterialLocationService } from './service/material-location.service'
-export type { MaterialService } from './service/material.service'
+export { createMaterialModule, type MaterialModule } from './material.module'
+export { initMaterialRoutes } from './material.route'
+export type { MaterialLocationService } from './location/location.service'
+export type { MaterialService } from './material.service'

@@ -5,15 +5,15 @@ import type { DbClient, DbTx } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
-import type { MaterialConversion } from '../domain/material-conversion.entity'
+import { MATERIAL_CACHE_NS } from '../material.constants'
+import { ConversionErrors } from '../material.errors'
+import type { MaterialConversion } from './conversion.contract'
 import type {
 	ConversionFilter,
 	ConversionInsertData,
 	ConversionUpdateData,
 	IMaterialConversionRepo,
-} from '../domain/ports'
-import { MATERIAL_CACHE_NS } from '../material.constants'
-import { ConversionErrors } from '../material.errors'
+} from './conversion.repo'
 
 export class MaterialConversionService {
 	private readonly cache: CacheService

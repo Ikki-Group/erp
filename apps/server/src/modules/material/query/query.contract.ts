@@ -1,5 +1,5 @@
 /**
- * Material Query DTOs — composite read-model schemas
+ * Material Query — composite read-model schemas
  */
 
 import { z } from 'zod'
@@ -8,9 +8,9 @@ import { zq } from '@/shared/schema'
 
 import { LocationDto } from '@/modules/location'
 
-import { MaterialCategoryEntity } from '../domain/material-category.entity'
-import { MaterialConversionEntity } from '../domain/material-conversion.entity'
-import { MaterialEntity, MaterialTypeDto } from '../domain/material.entity'
+import { MaterialCategoryEntity } from '../category/category.contract'
+import { MaterialConversionEntity } from '../conversion/conversion.contract'
+import { MaterialEntity, MaterialTypeDto } from '../material.contract'
 
 /* -------------------------------- RESPONSE -------------------------------- */
 

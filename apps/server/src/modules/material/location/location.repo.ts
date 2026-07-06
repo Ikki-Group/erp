@@ -12,20 +12,80 @@ import { paginate, sortBy, type DbClient, type DbTx } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import type { MaterialLocation } from '../domain/material-location.entity'
-import type {
-	IMaterialLocationRepo,
-	LocationStockFilter,
-	MaterialLocationStock,
-	MaterialLocationWithLocation,
-} from '../domain/ports'
+import type { UomDto } from '@/modules/uom'
+
+import type { MaterialLocation } from './location.contract'
+
+/* --------------------------------- PORT ------------------------------------ */
+
+export interface LocationStockFilter {
+	page: number
+	limit: number
+	locationId: number
+	q?: string | undefined
+}
+
+/** MaterialLocation enriched with location details (from join) */
+export interface MaterialLocationWithLocation extends MaterialLocation {
+	location: {
+		id: number
+		name: string
+		[key: string]: unknown
+	}
+}
+
+/** Stock view — used in "stock list per location" */
+export interface MaterialLocationStock {
+	id: number
+	materialId: number
+	locationId: number
+	materialName: string
+	materialSku: string
+	baseUomId: number
+	uom: UomDto | null
+	minStock: string
+	maxStock: string | null
+	reorderPoint: string
+	currentQty: string
+	currentAvgCost: string
+	currentValue: string
+}
+
+export interface IMaterialLocationRepo {
+	readonly db: DbClient
+	getOne(materialId: number, locationId: number): Promise<MaterialLocation | undefined>
+	getByMaterialId(materialId: number): Promise<MaterialLocation[]>
+	getByLocationId(locationId: number): Promise<MaterialLocation[]>
+	getLocationsByMaterial(materialId: number): Promise<MaterialLocationWithLocation[]>
+	getStockByLocationPaginated(
+		filter: LocationStockFilter,
+	): Promise<WithPaginationResult<MaterialLocationStock>>
+	batchAssign(materialIds: number[], locationIds: number[], actorId: number): Promise<number>
+	unassign(materialId: number, locationId: number): Promise<number | undefined>
+	updateConfig(
+		id: number,
+		data: {
+			minStock?: number | undefined
+			maxStock?: number | null | undefined
+			reorderPoint?: number | undefined
+		},
+		actorId: number,
+	): Promise<number | undefined>
+	updateCurrentStock(
+		materialId: number,
+		locationId: number,
+		stock: { currentQty: number; currentAvgCost: number; currentValue: number },
+		actorId: number,
+		tx?: DbTx | DbClient,
+	): Promise<void>
+}
 
 export class MaterialLocationRepo implements IMaterialLocationRepo {
 	constructor(readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getOne(materialId: number, locationId: number): Promise<MaterialLocation | null> {
+	async getOne(materialId: number, locationId: number): Promise<MaterialLocation | undefined> {
 		const [result] = await this.db
 			.select({
 				config: materialLocationsTable,
@@ -46,7 +106,7 @@ export class MaterialLocationRepo implements IMaterialLocationRepo {
 				),
 			)
 
-		if (!result) return null
+		if (!result) return undefined
 		return {
 			...result.config,
 			maxStock: result.config.maxStock ?? null,

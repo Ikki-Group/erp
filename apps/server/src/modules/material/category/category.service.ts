@@ -7,10 +7,10 @@ import { checkConflict, type ConflictField } from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import { RelationMap } from '@/shared/utils'
 
-import type { MaterialCategory } from '../domain/material-category.entity'
-import type { CategoryFilter, IMaterialCategoryRepo } from '../domain/ports'
 import { MATERIAL_CACHE_NS } from '../material.constants'
 import { CategoryErrors } from '../material.errors'
+import type { MaterialCategory } from './category.contract'
+import type { CategoryFilter, IMaterialCategoryRepo } from './category.repo'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 

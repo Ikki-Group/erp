@@ -4,14 +4,14 @@ import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { LocationModule } from '@/modules/location'
 
-import type { MaterialConversion } from '../domain/material-conversion.entity'
-import type { MaterialLocation } from '../domain/material-location.entity'
-import type { MaterialListFilter } from '../domain/ports'
-import type { MaterialQueryDetailDto } from '../dto/material-query.contract'
-import type { MaterialCategoryService } from './material-category.service'
-import type { MaterialConversionService } from './material-conversion.service'
-import type { MaterialLocationService } from './material-location.service'
-import type { MaterialService } from './material.service'
+import type { MaterialCategoryService } from '../category/category.service'
+import type { MaterialConversion } from '../conversion/conversion.contract'
+import type { MaterialConversionService } from '../conversion/conversion.service'
+import type { MaterialLocation } from '../location/location.contract'
+import type { MaterialLocationService } from '../location/location.service'
+import type { MaterialListFilter } from '../material.repo'
+import type { MaterialService } from '../material.service'
+import type { MaterialQueryDetailDto } from './query.contract'
 
 export class MaterialQueryService {
 	constructor(

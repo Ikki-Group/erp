@@ -1,26 +1,17 @@
-import { Elysia } from 'elysia'
-
 import type { CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 
 import type { LocationModule } from '@/modules/location'
 
-import { MaterialCategoryRepo } from './repo/material-category.repo'
-import { MaterialConversionRepo } from './repo/material-conversion.repo'
-import { MaterialLocationRepo } from './repo/material-location.repo'
-import { MaterialRepo } from './repo/material.repo'
-import {
-	initMaterialCategoryRoute,
-	initMaterialConversionRoute,
-	initMaterialLocationRoute,
-	initMaterialMasterRoute,
-	initMaterialQueryRoute,
-} from './route'
-import { MaterialCategoryService } from './service/material-category.service'
-import { MaterialConversionService } from './service/material-conversion.service'
-import { MaterialLocationService } from './service/material-location.service'
-import { MaterialQueryService } from './service/material-query.service'
-import { MaterialService } from './service/material.service'
+import { MaterialCategoryRepo } from './category/category.repo'
+import { MaterialCategoryService } from './category/category.service'
+import { MaterialConversionRepo } from './conversion/conversion.repo'
+import { MaterialConversionService } from './conversion/conversion.service'
+import { MaterialLocationRepo } from './location/location.repo'
+import { MaterialLocationService } from './location/location.service'
+import { MaterialRepo } from './material.repo'
+import { MaterialService } from './material.service'
+import { MaterialQueryService } from './query/query.service'
 
 interface MaterialModuleDeps {
 	location: LocationModule
@@ -66,13 +57,4 @@ export function createMaterialModule(
 	})
 
 	return { category, conversion, master, location, query }
-}
-
-export function initMaterialRoutes(m: MaterialModule) {
-	return new Elysia({ prefix: '/material' })
-		.use(initMaterialCategoryRoute(m.category))
-		.use(initMaterialConversionRoute(m.conversion))
-		.use(initMaterialLocationRoute(m.location))
-		.use(initMaterialQueryRoute(m.query))
-		.use(initMaterialMasterRoute(m.master))
 }

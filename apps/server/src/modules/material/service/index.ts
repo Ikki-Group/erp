@@ -1,5 +1,0 @@
-export { MaterialService } from './material.service'
-export { MaterialCategoryService } from './material-category.service'
-export { MaterialConversionService } from './material-conversion.service'
-export { MaterialLocationService } from './material-location.service'
-export { MaterialQueryService } from './material-query.service'

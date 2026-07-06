@@ -6,13 +6,53 @@ import { paginate, takeFirst, type DbClient, type DbTx } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import type { MaterialConversion } from '../domain/material-conversion.entity'
-import type {
-	ConversionFilter,
-	ConversionInsertData,
-	ConversionUpdateData,
-	IMaterialConversionRepo,
-} from '../domain/ports'
+import type { MaterialConversion } from './conversion.contract'
+
+/* --------------------------------- PORT ------------------------------------ */
+
+export interface ConversionFilter {
+	page: number
+	limit: number
+	materialId?: number | undefined
+	uomId?: number | undefined
+}
+
+export interface ConversionInsertData {
+	materialId: number
+	uomId: number
+	toBaseFactor: string
+}
+
+export interface ConversionUpdateData {
+	id: number
+	materialId: number
+	uomId: number
+	toBaseFactor: string
+}
+
+export interface IMaterialConversionRepo {
+	readonly db: DbClient
+	getList(materialId?: number): Promise<MaterialConversion[]>
+	getById(id: number): Promise<MaterialConversion | undefined>
+	getByMaterialAndUom(materialId: number, uomId: number): Promise<MaterialConversion | undefined>
+	getListPaginated(filter: ConversionFilter): Promise<WithPaginationResult<MaterialConversion>>
+	count(materialId?: number): Promise<number>
+	create(data: ConversionInsertData, actorId: number): Promise<{ id: number } | undefined>
+	update(data: ConversionUpdateData, actorId: number): Promise<{ id: number } | undefined>
+	remove(id: number): Promise<{ id: number } | undefined>
+	batchCreate(
+		materialId: number,
+		conversions: { uomId: number; toBaseFactor: string }[],
+		actorId: number,
+		tx?: DbTx | DbClient,
+	): Promise<void>
+	batchReplace(
+		materialId: number,
+		conversions: { uomId: number; toBaseFactor: string }[],
+		actorId: number,
+		tx?: DbTx | DbClient,
+	): Promise<void>
+}
 
 export class MaterialConversionRepo implements IMaterialConversionRepo {
 	constructor(readonly db: DbClient) {}
