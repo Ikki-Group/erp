@@ -1,4 +1,4 @@
-import ky from 'ky'
+import ky, { type KyInstance } from 'ky'
 
 import { API_URL } from '@/config/constant'
 import { useAppState } from '@/hooks/use-app-state'
@@ -16,7 +16,8 @@ const apiClient = ky.create({
 			},
 		],
 	},
-	retry: { methods: ['get'] },
+	retry: 0,
 })
 
+export type ApiClient = KyInstance
 export { apiClient }
