@@ -27,6 +27,7 @@ export const salesOrderSourceEnum = pgEnum('sales_order_source', [
 	'upload',
 	'machine_fetch',
 ])
+export const salesPaymentStatusEnum = pgEnum('sales_payment_status', ['unpaid', 'partial', 'paid'])
 export const batchStatusEnum = pgEnum('batch_status', [
 	'pending',
 	'prepared',
@@ -64,6 +65,10 @@ export const salesOrdersTable = pgTable(
 		gratuityAmount: numeric('gratuity_amount', { precision: 18, scale: 2 }).notNull().default('0'),
 		refundAmount: numeric('refund_amount', { precision: 18, scale: 2 }).notNull().default('0'),
 
+		// Payment tracking (denormalized from payment_invoices for dashboard performance)
+		paymentStatus: salesPaymentStatusEnum('payment_status').notNull().default('unpaid'),
+		paidAmount: numeric('paid_amount', { precision: 18, scale: 2 }).notNull().default('0'),
+
 		// Moka / third-party sync metadata (split_payment_details, payment_type, etc.)
 		metadata: jsonb('metadata'),
 
@@ -76,6 +81,7 @@ export const salesOrdersTable = pgTable(
 		index('sales_orders_transaction_date_idx').on(t.transactionDate),
 		index('sales_orders_customer_idx').on(t.customerId),
 		index('sales_orders_sales_type_idx').on(t.salesTypeId),
+		index('sales_orders_payment_status_idx').on(t.paymentStatus),
 
 		// Financial amounts must be non-negative
 		check('sales_orders_total_nonneg_chk', gte(t.totalAmount, 0)),
@@ -83,6 +89,7 @@ export const salesOrdersTable = pgTable(
 		check('sales_orders_tax_nonneg_chk', gte(t.taxAmount, 0)),
 		check('sales_orders_gratuity_nonneg_chk', gte(t.gratuityAmount, 0)),
 		check('sales_orders_refund_nonneg_chk', gte(t.refundAmount, 0)),
+		check('sales_orders_paid_nonneg_chk', gte(t.paidAmount, 0)),
 	],
 )
 
@@ -123,6 +130,10 @@ export const salesOrderItemsTable = pgTable(
 
 		// Immutable History: Item name must always be stored
 		itemName: text('item_name').notNull(),
+		/** Snapshot of product SKU at time of sale (decouples from product renames) */
+		productSku: text('product_sku'),
+		/** Snapshot of variant name at time of sale */
+		variantName: text('variant_name'),
 
 		// Qty keeps scale 6 (matches inventory.ts)
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull().default('1'),

@@ -228,6 +228,11 @@ export const materialStockSnapshotsTable = pgTable(
 		snapshotAt: timestamp('snapshot_at', { mode: 'date', withTimezone: true })
 			.notNull()
 			.defaultNow(),
+
+		/** Optimistic concurrency version — incremented on every snapshot update */
+		version: integer('version').notNull().default(0),
+		/** ID of the last stock_transaction applied to this snapshot (rebuild audit trail) */
+		lastTransactionId: integer('last_transaction_id'),
 	},
 	(t) => [
 		uniqueIndex('material_stock_snapshots_material_location_idx').on(t.materialId, t.locationId),

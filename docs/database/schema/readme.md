@@ -35,7 +35,7 @@ Spread into tables via `_helpers.ts`. Not repeated in each file below.
 | File | Domain | Tables |
 |------|--------|--------|
 | [core.md](./core.md) | IAM, Auth, Audit | roles, users, user_assignments, sessions, audit_logs |
-| [master-data.md](./master-data.md) | Locations, UOM, Tax, Supplier, Company, Sales Types | 6 tables |
+| [master-data.md](./master-data.md) | Locations, UOM, Tax, Supplier, Company, Sales Types, Document Sequences | 7 tables |
 | [materials.md](./materials.md) | Materials | categories, materials, conversions, locations, snapshots |
 | [products.md](./products.md) | Products | categories, products, prices, variants, variant_prices |
 | [crm.md](./crm.md) | CRM | customers, loyalty_transactions |
@@ -58,6 +58,7 @@ Spread into tables via `_helpers.ts`. Not repeated in each file below.
 | invoice_status | draft, open, paid, void | Shared |
 | sales_order_status | open, closed, void | Sales |
 | sales_order_source | web, moka, upload, machine_fetch | Sales |
+| sales_payment_status | unpaid, partial, paid | Sales |
 | purchase_order_status | pending_approval, approved, rejected, open, closed, void | Purchasing |
 | transaction_type | purchase, transfer_in/out, adjustment, sell, usage, production_in/out | Inventory |
 | work_order_status | draft, in_progress, completed, cancelled | Production |

@@ -74,3 +74,17 @@ Source: `location.ts`, `uom.ts`, `tax.ts`, `supplier.ts`, `company.ts`, `sales-t
 | code | text | NO | | unique per scope |
 | name | text | NO | | unique per scope |
 | is_system | boolean | NO | false | check: isSystem → locationId IS NULL |
+
+## `document_sequences` (AB)
+
+| Column | Type | Null | Default | Notes |
+|--------|------|------|---------|-------|
+| id | serial | NO | | PK |
+| location_id | int | NO | | FK→locations (restrict) |
+| document_type | text | NO | | SO/PO/GRN/SI/PI/TRF/ADJ/WO/EXP |
+| prefix | text | NO | | location-derived code |
+| year | int | NO | | |
+| month | int | NO | | |
+| last_sequence | int | NO | 0 | atomically incremented |
+
+Unique: `(location_id, document_type, year, month)`

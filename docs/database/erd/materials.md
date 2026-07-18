@@ -33,22 +33,24 @@
 | * is_active      |    |   max_stock      |  | * current_avg_cost  |
 +------------------+    | * reorder_point  |  | * current_value     |
  (unique: mat+uom)      +------------------+  | * snapshot_at       |
-                         (unique: mat+loc)     +---------------------+
+                         (unique: mat+loc)     | * version           |
+                                               |   last_txn_id       |
+                                               +---------------------+
                                                (unique: mat+loc)
 ```
 
 ## Relationships
 
-| Parent | Child | FK | On Delete |
-|--------|-------|-----|-----------|
-| materials | material_conversions | material_id | cascade |
-| materials | material_locations | material_id | cascade |
-| materials | material_stock_snapshots | material_id | cascade |
-| material_categories | materials | category_id | restrict |
-| uoms | materials | base_uom_id | restrict |
-| uoms | material_conversions | uom_id | restrict |
-| locations | material_locations | location_id | restrict |
-| locations | material_stock_snapshots | location_id | restrict |
+| Parent              | Child                    | FK          | On Delete |
+| ------------------- | ------------------------ | ----------- | --------- |
+| materials           | material_conversions     | material_id | cascade   |
+| materials           | material_locations       | material_id | cascade   |
+| materials           | material_stock_snapshots | material_id | cascade   |
+| material_categories | materials                | category_id | restrict  |
+| uoms                | materials                | base_uom_id | restrict  |
+| uoms                | material_conversions     | uom_id      | restrict  |
+| locations           | material_locations       | location_id | restrict  |
+| locations           | material_stock_snapshots | location_id | restrict  |
 
 ## Key Constraints
 

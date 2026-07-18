@@ -160,7 +160,7 @@ export const stockTransactionsTable = pgTable(
 	},
 	(t) => [
 		index('stock_txn_material_location_date_idx').on(t.materialId, t.locationId, t.date),
-		index('stock_txn_location_date_idx').on(t.locationId, t.date),
+		index('stock_txn_location_date_material_idx').on(t.locationId, t.date, t.materialId),
 		index('stock_txn_type_date_idx').on(t.type, t.date),
 		index('stock_txn_transfer_idx').on(t.transferId),
 		index('stock_txn_reference_no_idx').on(t.referenceNo),

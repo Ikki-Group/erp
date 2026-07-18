@@ -6,17 +6,17 @@ Index for all database documentation in the Ikki ERP system.
 
 ## Quick Facts
 
-| Property | Value |
-|----------|-------|
-| Database | PostgreSQL |
-| ORM | Drizzle ORM (bun-sql driver) |
-| Schema source | `apps/server/src/db/schema/` |
-| Migrations | `apps/server/src/db/migrations/` |
-| Config | `apps/server/drizzle.config.ts` |
-| Tables | 48 |
-| Primary keys | Serial integer |
-| Financial precision | `numeric(18,2)` |
-| Quantity precision | `numeric(18,6)` |
+| Property            | Value                            |
+| ------------------- | -------------------------------- |
+| Database            | PostgreSQL                       |
+| ORM                 | Drizzle ORM (bun-sql driver)     |
+| Schema source       | `apps/server/src/db/schema/`     |
+| Migrations          | `apps/server/src/db/migrations/` |
+| Config              | `apps/server/drizzle.config.ts`  |
+| Tables              | 49                               |
+| Primary keys        | Serial integer                   |
+| Financial precision | `numeric(18,2)`                  |
+| Quantity precision  | `numeric(18,6)`                  |
 
 ## Documentation Structure
 
@@ -59,14 +59,14 @@ docs/database/
 
 ## Where to Start
 
-| Goal | Read |
-|------|------|
-| Understand relationships between tables | [erd/readme.md](./erd/readme.md) → pick a domain |
-| Learn naming/design rules | [standards/readme.md](./standards/readme.md) |
-| Look up column types for a table | [schema/readme.md](./schema/readme.md) → pick a domain |
-| Understand module boundaries & data flow | [domain-guide.md](./domain-guide.md) |
-| Find which module owns a table | [domain-guide.md](./domain-guide.md) § Ownership |
-| Add a new domain | [domain-guide.md](./domain-guide.md) § Adding a New Domain |
+| Goal                                     | Read                                                       |
+| ---------------------------------------- | ---------------------------------------------------------- |
+| Understand relationships between tables  | [erd/readme.md](./erd/readme.md) → pick a domain           |
+| Learn naming/design rules                | [standards/readme.md](./standards/readme.md)               |
+| Look up column types for a table         | [schema/readme.md](./schema/readme.md) → pick a domain     |
+| Understand module boundaries & data flow | [domain-guide.md](./domain-guide.md)                       |
+| Find which module owns a table           | [domain-guide.md](./domain-guide.md) § Ownership           |
+| Add a new domain                         | [domain-guide.md](./domain-guide.md) § Adding a New Domain |
 
 ## Domain Map
 

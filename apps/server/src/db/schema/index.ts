@@ -19,6 +19,7 @@ export * from './session'
 export * from './iam'
 
 // Master data
+export * from './document-sequence'
 export * from './location'
 export * from './uom'
 export * from './tax'

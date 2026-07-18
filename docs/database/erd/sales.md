@@ -11,6 +11,8 @@
 | * status (open/closed/void) |
 | * transaction_date        |
 | * total/discount/tax/gratuity/refund >= 0 |
+| * payment_status (unpaid/partial/paid) |
+| * paid_amount >= 0              |
 |   metadata (jsonb)        |
 +---------------------------+
     |       |       |       |            |
@@ -29,6 +31,7 @@
 |   FK batch_id             |
 |   FK product_id, variant_id (set null) |
 | * item_name (immutable)   |
+| * product_sku, variant_name (snapshots) |
 | * quantity > 0            |
 | * unit_price/disc/tax/subtotal >= 0 |
 +---------------------------+

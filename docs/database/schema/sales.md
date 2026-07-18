@@ -20,6 +20,8 @@ Source: `sales.ts`
 | tax_amount | numeric(18,2) | NO | 0 | >= 0 |
 | gratuity_amount | numeric(18,2) | NO | 0 | >= 0 |
 | refund_amount | numeric(18,2) | NO | 0 | >= 0 |
+| payment_status | enum | NO | unpaid | unpaid / partial / paid |
+| paid_amount | numeric(18,2) | NO | 0 | >= 0 |
 | metadata | jsonb | YES | | third-party data |
 
 ## `sales_order_batches` (AB)
@@ -41,6 +43,8 @@ Source: `sales.ts`
 | product_id | int | YES | | FK→products (set null) |
 | variant_id | int | YES | | FK→product_variants (set null) |
 | item_name | text | NO | | immutable |
+| product_sku | text | YES | | snapshot of SKU at sale time |
+| variant_name | text | YES | | snapshot of variant at sale time |
 | quantity | numeric(18,6) | NO | 1 | > 0 |
 | unit_price | numeric(18,2) | NO | 0 | >= 0 |
 | discount_amount | numeric(18,2) | NO | 0 | >= 0 |
