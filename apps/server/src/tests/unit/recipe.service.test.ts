@@ -119,9 +119,17 @@ class FakeRecipeRepo implements IRecipeRepo {
 		if (!existing) return undefined
 		const updated: RecipeDto = {
 			...existing,
-			...data,
+			materialId: data.materialId ?? existing.materialId,
+			productId: data.productId ?? existing.productId,
+			productVariantId: data.productVariantId ?? existing.productVariantId,
 			targetQty: data.targetQty?.toString() ?? existing.targetQty,
+			targetUomId: data.targetUomId ?? existing.targetUomId,
+			isActive: data.isActive ?? existing.isActive,
 			instructions: data.instructions ? data.instructions : existing.instructions,
+			createdAt: existing.createdAt,
+			updatedAt: existing.updatedAt,
+			createdBy: existing.createdBy,
+			updatedBy: existing.updatedBy,
 			items: items.map((item, idx) => ({
 				id: idx + 1,
 				recipeId: id,

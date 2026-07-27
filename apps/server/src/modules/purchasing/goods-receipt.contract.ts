@@ -41,7 +41,8 @@ export type GoodsReceiptNoteSelectDto = z.infer<typeof GoodsReceiptNoteSelectDto
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-// @ts-ignore - Used for reference, will be used in future item creation endpoints
+// @ts-expect-error - Used for reference, will be used in future item creation endpoints
+// oxlint-disable-next-line eslint/no-underscore-dangle -- Reserved for future item mutation endpoint
 const _GoodsReceiptNoteItemMutationDto = z.object({
 	purchaseOrderItemId: zp.id,
 	materialId: zp.id.optional().nullable(),

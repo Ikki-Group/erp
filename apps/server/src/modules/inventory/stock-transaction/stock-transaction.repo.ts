@@ -16,7 +16,10 @@ type StockTransactionInsert = typeof stockTransactionsTable.$inferInsert
 
 export interface IStockTransactionRepo {
 	readonly db: DbContext
-	findPage(filter: StockTransactionFilterDto, db?: DbContext): Promise<WithPaginationResult<StockTransactionSelectDto>>
+	findPage(
+		filter: StockTransactionFilterDto,
+		db?: DbContext,
+	): Promise<WithPaginationResult<StockTransactionSelectDto>>
 	findById(id: number, db?: DbContext): Promise<StockTransactionDto | undefined>
 	findByIds(ids: number[], db?: DbContext): Promise<StockTransactionDto[]>
 	insert(data: StockTransactionInsert, db?: DbContext): Promise<EntityRef | undefined>
@@ -64,6 +67,7 @@ export class StockTransactionRepo implements IStockTransactionRepo {
 	): Promise<WithPaginationResult<StockTransactionSelectDto>> {
 		const where = this.#buildWhere(filter)
 
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return paginate({
 			data: ({ limit, offset }) =>
 				db
@@ -106,6 +110,7 @@ export class StockTransactionRepo implements IStockTransactionRepo {
 	}
 
 	async findById(id: number, db: DbContext = this.db): Promise<StockTransactionDto | undefined> {
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return db
 			.select()
 			.from(stockTransactionsTable)
@@ -116,14 +121,23 @@ export class StockTransactionRepo implements IStockTransactionRepo {
 
 	async findByIds(ids: number[], db: DbContext = this.db): Promise<StockTransactionDto[]> {
 		if (ids.length === 0) return []
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return db
 			.select()
 			.from(stockTransactionsTable)
-			.where(and(inArray(stockTransactionsTable.id, ids), isNull(stockTransactionsTable.deletedAt))) as Promise<StockTransactionDto[]>
+			.where(
+				and(inArray(stockTransactionsTable.id, ids), isNull(stockTransactionsTable.deletedAt)),
+			) as Promise<StockTransactionDto[]>
 	}
 
-	async insert(data: StockTransactionInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
-		const [res] = await db.insert(stockTransactionsTable).values(data).returning({ id: stockTransactionsTable.id })
+	async insert(
+		data: StockTransactionInsert,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [res] = await db
+			.insert(stockTransactionsTable)
+			.values(data)
+			.returning({ id: stockTransactionsTable.id })
 		return res
 	}
 
@@ -131,7 +145,11 @@ export class StockTransactionRepo implements IStockTransactionRepo {
 		await db.insert(stockTransactionsTable).values(items)
 	}
 
-	async softDelete(id: number, deletedBy: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async softDelete(
+		id: number,
+		deletedBy: number,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const timestamp = new Date()
 		const [res] = await db
 			.update(stockTransactionsTable)

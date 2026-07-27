@@ -8,10 +8,26 @@ import { CrmReportRequestDto } from './crm-reporting.contract'
 
 export interface ICrmReportingRepo {
 	readonly db: DbContext
-	getCustomerGrowth(query: CrmReportRequestDto): Promise<Array<{ date: unknown; newCustomers: number }>>
-	getCustomersByTier(query: CrmReportRequestDto): Promise<Array<{ tier: string | null; tierName: string; customerCount: number }>>
-	getTopCustomers(query: CrmReportRequestDto): Promise<Array<{ customerId: number | null; customerName: string; email: string; totalSpent: number; orderCount: number }>>
-	getLoyaltyPointsSummary(query: CrmReportRequestDto): Promise<Array<{ pointsIssued: number; pointsRedeemed: number }>>
+	getCustomerGrowth(
+		query: CrmReportRequestDto,
+	): Promise<Array<{ date: unknown; newCustomers: number }>>
+	getCustomersByTier(
+		query: CrmReportRequestDto,
+	): Promise<Array<{ tier: string | null; tierName: string; customerCount: number }>>
+	getTopCustomers(
+		query: CrmReportRequestDto,
+	): Promise<
+		Array<{
+			customerId: number | null
+			customerName: string
+			email: string
+			totalSpent: number
+			orderCount: number
+		}>
+	>
+	getLoyaltyPointsSummary(
+		query: CrmReportRequestDto,
+	): Promise<Array<{ pointsIssued: number; pointsRedeemed: number }>>
 }
 
 export class CrmReportingRepo implements ICrmReportingRepo {
@@ -24,7 +40,8 @@ export class CrmReportingRepo implements ICrmReportingRepo {
 			gte(customersTable.createdAt, dateFrom),
 			lte(customersTable.createdAt, dateTo),
 			tierId
-				? eq(customersTable.tier, String(tierId) as 'bronze' | 'gold' | 'platinum' | 'silver')
+				? // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
+					eq(customersTable.tier, String(tierId) as 'bronze' | 'gold' | 'platinum' | 'silver')
 				: undefined,
 		)
 

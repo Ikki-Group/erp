@@ -25,8 +25,14 @@ const Env = z.object({
 	JWT_EXPIRES_IN: z
 		.string()
 		.default('7d')
-		// oxlint-disable-next-line typescript/no-unsafe-type-assertion
-		.transform((value) => ms(value as ms.StringValue)),
+		.transform((value) => {
+			// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+			const milliseconds = ms(value as ms.StringValue)
+			if (!milliseconds || milliseconds <= 0) {
+				throw new Error(`Invalid JWT_EXPIRES_IN value: "${value}" resolves to ${milliseconds}ms`)
+			}
+			return Math.floor(milliseconds / 1000) // Convert to seconds for jsonwebtoken
+		}),
 
 	// Observability
 	AXIOM_URL: z.string().optional(),
@@ -48,12 +54,31 @@ const Env = z.object({
 		.string()
 		.optional()
 		.describe('Redis/Upstash connection string (redis:// or rediss://)'),
+
+	// CORS
+	CORS_ORIGINS: z
+		.string()
+		.optional()
+		.transform((v) =>
+			v
+				?.split(',')
+				.map((s) => s.trim())
+				.filter(Boolean),
+		),
 })
 
 const _env = Env.safeParse(Bun.env) // eslint-disable-line no-underscore-dangle
 
 if (!_env.success) {
 	console.error('Invalid environment variables:', z.treeifyError(_env.error))
+	process.exit(1)
+}
+
+if (
+	_env.data.APP_ENV === 'production' &&
+	(!_env.data.CORS_ORIGINS || _env.data.CORS_ORIGINS.length === 0)
+) {
+	console.error('CORS_ORIGINS must be set in production')
 	process.exit(1)
 }
 

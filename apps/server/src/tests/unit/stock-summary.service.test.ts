@@ -69,6 +69,7 @@ class FakeStockSummaryRepo implements IStockSummaryRepo {
 	}
 
 	async insertMany(data: { materialId: number; locationId: number }[]): Promise<number> {
+		// oxlint-disable-next-line eslint/no-underscore-dangle
 		for (const _item of data) {
 			const id = ++this.seq
 			this.summaries.set(id, { id })

@@ -114,6 +114,7 @@ export class ProcurementReportingRepo implements IProcurementReportingRepo {
 			)
 			.orderBy(purchaseOrdersTable.transactionDate)
 
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return rows as unknown as Array<{
 			purchaseOrderId: number
 			date: Date
@@ -160,6 +161,7 @@ export class ProcurementReportingRepo implements IProcurementReportingRepo {
 			.groupBy(suppliersTable.id)
 			.orderBy(sql`totalAmount DESC`)
 
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return rows as unknown as Array<{
 			supplierId: number
 			supplierName: string
@@ -215,6 +217,7 @@ export class ProcurementReportingRepo implements IProcurementReportingRepo {
 			)
 			.orderBy(stockTransfersTable.transferDate)
 
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return rows as unknown as Array<{
 			transferId: number
 			date: Date
@@ -263,6 +266,7 @@ export class ProcurementReportingRepo implements IProcurementReportingRepo {
 			)
 			.orderBy(purchaseOrdersTable.transactionDate)
 
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return rows as unknown as Array<{
 			materialId: number
 			materialName: string

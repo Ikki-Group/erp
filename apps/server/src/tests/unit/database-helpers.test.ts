@@ -6,8 +6,6 @@
  * constraint-based conflict translator (`catchUniqueViolation`).
  */
 
-import { describe, expect, it } from 'bun:test'
-
 import {
 	allOf,
 	anyOf,
@@ -20,6 +18,7 @@ import {
 } from '@/infra/database'
 import { ConflictError } from '@/shared/errors/http-error'
 
+import { describe, expect, it } from 'bun:test'
 import type { SQL } from 'drizzle-orm'
 
 // Minimal SQL-ish sentinels for composition tests (identity by reference).
@@ -87,26 +86,28 @@ describe('where composition', () => {
 })
 
 describe('catchUniqueViolation', () => {
-	const pgError = (constraint: string) => Object.assign(new Error('dup'), { code: '23505', constraint })
+	const pgError = (constraint: string) =>
+		Object.assign(new Error('dup'), { code: '23505', constraint })
 
-	it('passes through the result when no error', async () => {
-		await expect(catchUniqueViolation(() => Promise.resolve(42), [])).resolves.toBe(42)
+	it('passes through the result when no error', () => {
+		expect(catchUniqueViolation(() => Promise.resolve(42), [])).resolves.toBe(42)
 	})
 
-	it('maps a matched constraint → typed ConflictError', async () => {
-		const promise = catchUniqueViolation(() => Promise.reject(pgError('users_email_unique')), [
-			{ constraint: 'users_email_unique', message: 'Email exists', code: 'USER_EMAIL_EXISTS' },
-		])
-		await expect(promise).rejects.toBeInstanceOf(ConflictError)
+	it('maps a matched constraint → typed ConflictError', () => {
+		const promise = catchUniqueViolation(
+			() => Promise.reject(pgError('users_email_unique')),
+			[{ constraint: 'users_email_unique', message: 'Email exists', code: 'USER_EMAIL_EXISTS' }],
+		)
+		expect(promise).rejects.toBeInstanceOf(ConflictError)
 	})
 
-	it('throws a generic ConflictError for an unmapped 23505', async () => {
+	it('throws a generic ConflictError for an unmapped 23505', () => {
 		const promise = catchUniqueViolation(() => Promise.reject(pgError('some_other_idx')), [])
-		await expect(promise).rejects.toBeInstanceOf(ConflictError)
+		expect(promise).rejects.toBeInstanceOf(ConflictError)
 	})
 
-	it('re-throws non-unique errors untouched', async () => {
+	it('re-throws non-unique errors untouched', () => {
 		const other = new Error('boom')
-		await expect(catchUniqueViolation(() => Promise.reject(other), [])).rejects.toBe(other)
+		expect(catchUniqueViolation(() => Promise.reject(other), [])).rejects.toBe(other)
 	})
 })

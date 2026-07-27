@@ -16,28 +16,28 @@ Fix 5 critical/high-priority issues in `apps/server`: type mismatch in `IamAuthP
     - Verify with `bun run typecheck` from `apps/server`
     - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 2. Fix JWT expiresIn units bug
-  - [ ] 2.1 Fix JWT_EXPIRES_IN transform in env.ts
+- [x] 2. Fix JWT expiresIn units bug
+  - [x] 2.1 Fix JWT_EXPIRES_IN transform in env.ts
     - File: `apps/server/src/config/env.ts`
     - Change the `JWT_EXPIRES_IN` transform to divide the `ms()` result by 1000 (milliseconds → seconds)
     - Add validation: throw an error if the resulting value is 0, negative, or `undefined`
     - _Requirements: 2.1, 2.3_
 
-  - [ ] 2.2 Fix session service expiredAt Date math
+  - [x] 2.2 Fix session service expiredAt Date math
     - File: `apps/server/src/modules/session/session.service.ts`
     - Change `new Date(createdAt.getTime() + env.JWT_EXPIRES_IN)` to `new Date(createdAt.getTime() + env.JWT_EXPIRES_IN * 1000)`
     - Since `env.JWT_EXPIRES_IN` is now in seconds, Date math needs milliseconds
     - Verify with `bun run typecheck` from `apps/server`
     - _Requirements: 2.2_
 
-- [ ] 3. Add CORS restriction for production
-  - [ ] 3.1 Add CORS_ORIGINS env var and production validation
+- [x] 3. Add CORS restriction for production
+  - [x] 3.1 Add CORS_ORIGINS env var and production validation
     - File: `apps/server/src/config/env.ts`
     - Add `CORS_ORIGINS` field to the Env schema: optional string, comma-separated, transformed to `string[]`
     - Add post-parse validation: if `APP_ENV === 'production'` and `CORS_ORIGINS` is empty/unset, `process.exit(1)` with error message
     - _Requirements: 3.1, 3.3_
 
-  - [ ] 3.2 Configure CORS in app.ts with env.CORS_ORIGINS
+  - [x] 3.2 Configure CORS in app.ts with env.CORS_ORIGINS
     - File: `apps/server/src/app.ts`
     - Import `env` from `@/config/env`
     - Change `.use(cors())` to `.use(cors({ origin: env.CORS_ORIGINS ?? true }))`
@@ -45,14 +45,14 @@ Fix 5 critical/high-priority issues in `apps/server`: type mismatch in `IamAuthP
     - Verify with `bun run typecheck` from `apps/server`
     - _Requirements: 3.1, 3.2_
 
-- [ ] 4. Fix lint errors blocking verify gate
-  - [ ] 4.1 Fix goods-receipt.contract.ts lint errors
+- [x] 4. Fix lint errors blocking verify gate
+  - [x] 4.1 Fix goods-receipt.contract.ts lint errors
     - File: `apps/server/src/modules/purchasing/goods-receipt.contract.ts`
     - Add `// oxlint-disable-next-line eslint/no-underscore-dangle -- Reserved for future item mutation endpoint` before the `_GoodsReceiptNoteItemMutationDto` declaration
     - Change `// @ts-ignore` to `// @ts-expect-error`
     - _Requirements: 4.1_
 
-  - [ ] 4.2 Fix unsafe type assertion lint errors in repos
+  - [x] 4.2 Fix unsafe type assertion lint errors in repos
     - Files:
       - `apps/server/src/modules/crm/customer.repo.ts` (lines 68, 86, 101, 112)
       - `apps/server/src/modules/inventory/stock-transaction/stock-transaction.repo.ts` (line 67)
@@ -61,19 +61,19 @@ Fix 5 critical/high-priority issues in `apps/server`: type mismatch in `IamAuthP
     - Add `// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape` before each flagged line
     - _Requirements: 4.2_
 
-  - [ ] 4.3 Fix await-thenable errors in database-helpers.test.ts
+  - [x] 4.3 Fix await-thenable errors in database-helpers.test.ts
     - File: `apps/server/src/tests/unit/database-helpers.test.ts`
     - Remove `await` from lines 93, 100, 105, 110 (the `eqIf` and `notDeleted` assertions)
     - These helpers return `SQL | undefined`, not Promises
     - _Requirements: 4.3_
 
-  - [ ] 4.4 Fix underscore-dangle in stock-summary.service.test.ts
+  - [x] 4.4 Fix underscore-dangle in stock-summary.service.test.ts
     - File: `apps/server/src/tests/unit/stock-summary.service.test.ts`
     - Add `// oxlint-disable-next-line eslint/no-underscore-dangle` before line 72 (`for (const _item of data)`)
     - _Requirements: 4.4_
 
-- [ ] 5. Fix TypeScript error in recipe service test
-  - [ ] 5.1 Fix FakeRecipeRepo.update() audit fields
+- [x] 5. Fix TypeScript error in recipe service test
+  - [x] 5.1 Fix FakeRecipeRepo.update() audit fields
     - File: `apps/server/src/tests/unit/recipe.service.test.ts`
     - In `FakeRecipeRepo.update()`, after spreading `...existing` and `...data`, explicitly reassign audit fields from `existing`:
       ```typescript
@@ -86,7 +86,7 @@ Fix 5 critical/high-priority issues in `apps/server`: type mismatch in `IamAuthP
     - Verify with `bun run typecheck` from `apps/server`
     - _Requirements: 5.1, 5.2_
 
-- [ ] 6. Final checkpoint — Run full verify gate
+- [x] 6. Final checkpoint — Run full verify gate
   - Run `bun run verify` from `apps/server`
   - Confirm all listed lint errors and TypeScript errors are resolved
   - Command should exit with code 0

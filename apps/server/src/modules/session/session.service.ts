@@ -34,7 +34,7 @@ export class SessionService {
 	 */
 	async createSession(user: UserDto): Promise<{ session: SessionDto; token: string }> {
 		const createdAt = new Date()
-		const expiredAt = new Date(createdAt.getTime() + env.JWT_EXPIRES_IN)
+		const expiredAt = new Date(createdAt.getTime() + env.JWT_EXPIRES_IN * 1000)
 
 		const session = await this.repo.create({
 			userId: user.id,

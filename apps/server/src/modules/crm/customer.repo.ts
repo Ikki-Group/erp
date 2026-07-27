@@ -65,6 +65,7 @@ export class CustomerRepo implements ICustomerRepo {
 	): Promise<CustomerDto[]> {
 		const where = this.#buildWhere(filter)
 		const rows = await db.select().from(customersTable).where(where)
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return rows.map((r) => ({ ...r, tier: r.tier ?? 'bronze' })) as CustomerDto[]
 	}
 
@@ -83,6 +84,7 @@ export class CustomerRepo implements ICustomerRepo {
 					.orderBy(customersTable.name)
 					.limit(limit)
 					.offset(offset)
+				// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 				return rows.map((r) => ({ ...r, tier: r.tier ?? 'bronze' })) as CustomerDto[]
 			},
 			pq: filter,
@@ -98,6 +100,7 @@ export class CustomerRepo implements ICustomerRepo {
 			.limit(1)
 			.then(takeFirst)
 
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return row ? ({ ...row, tier: row.tier ?? 'bronze' } as CustomerDto) : undefined
 	}
 
@@ -109,6 +112,7 @@ export class CustomerRepo implements ICustomerRepo {
 			.limit(1)
 			.then(takeFirst)
 
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Drizzle raw SQL result matches contract shape
 		return row ? ({ ...row, tier: row.tier ?? 'bronze' } as CustomerDto) : undefined
 	}
 

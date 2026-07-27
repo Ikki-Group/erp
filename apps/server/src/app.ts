@@ -1,6 +1,7 @@
 import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
+import { env } from '@/config/env'
 import { logger } from '@/infra/logger'
 import { otel } from '@/infra/otel/otel'
 import { errorHandler } from '@/server/handlers/error.handler'
@@ -16,7 +17,7 @@ export function createApp(m: Modules): Elysia {
 		.use(errorHandler)
 		.use(otel)
 		.use(requestIdPlugin())
-		.use(cors())
+		.use(cors({ origin: env.CORS_ORIGINS ?? true }))
 		.use(createAuthPlugin(m.auth))
 		.get('/', () => {
 			logger.info('Ikki ERP API is running')

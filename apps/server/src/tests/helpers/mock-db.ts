@@ -27,6 +27,7 @@ export interface MockDbClient extends DbClient {
 export function createMockDb(): MockDbClient {
 	const mockData = new Map<string, any[]>()
 
+	// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Mock client intentionally narrows to test-only interface
 	const mockDb = {
 		_mockData: mockData,
 		_mockReset: () => mockData.clear(),
