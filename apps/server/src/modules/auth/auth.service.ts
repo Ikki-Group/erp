@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { verifyPassword } from '@/shared/utils/password'
 
-import type { UserDto, UserWithPasswordDto } from '@/modules/iam'
+import type { UserDetailDto, UserDto, UserWithPasswordDto } from '@/modules/iam'
 import type { SessionDto } from '@/modules/session/session.contract'
 
 import type { AuthOutputDto, AuthLoginDto } from './auth.contract'
@@ -15,7 +15,7 @@ import { AuthError } from './auth.internal'
  */
 export interface IamAuthPort {
 	getByIdentifier(identifier: string): Promise<UserWithPasswordDto | undefined>
-	getUserDetail(userId: number): Promise<UserDto>
+	getUserDetail(userId: number): Promise<UserDetailDto>
 }
 
 /**
@@ -54,7 +54,7 @@ export class AuthService {
 		})
 	}
 
-	async verifyToken(token: string): Promise<UserDto> {
+	async verifyToken(token: string): Promise<UserDetailDto> {
 		return record('AuthService.verifyToken', async () => {
 			const session = await this.sessionSvc.verifySession(token)
 			if (!session) {
@@ -65,7 +65,7 @@ export class AuthService {
 		})
 	}
 
-	async handleGetById(userId: number): Promise<UserDto | undefined> {
+	async handleGetById(userId: number): Promise<UserDetailDto | undefined> {
 		return record('AuthService.handleGetById', async () => {
 			return this.iam.getUserDetail(userId)
 		})
