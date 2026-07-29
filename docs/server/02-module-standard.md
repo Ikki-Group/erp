@@ -29,13 +29,13 @@ Layer 0  Core (auth, session)
 
 ```
 modules/{module}/
-├── {module}.contract.ts    # Zod DTOs + inferred types (HTTP boundary)
+├── {module}.schema.ts      # Zod schemas + inferred types (HTTP boundary)
 ├── {module}.repo.ts        # I{Module}Repo PORT + concrete class (Drizzle)
 ├── {module}.service.ts     # Business logic (depends on the PORT)
 ├── {module}.route.ts       # Thin Elysia routes → call handleX only
 ├── {module}.internal.ts    # {Module}Error factory (typed HTTP errors)
 ├── {module}.module.ts      # Factory: create{Module}Module(db, cache, deps)
-└── index.ts                # Public exports (contract, port type, module type)
+└── index.ts                # Public exports (schema, port type, module type)
 ```
 
 Complex modules split each entity into folders (`user/`, `role/`, …) with the same file set, plus an aggregate `{module}.module.ts`, `{module}.route.ts`, and a `composed/` submodule for cross-entity reads.
@@ -72,38 +72,38 @@ Always pass `db: this.repo.db`. No global-db fallback.
 
 Thin: validate via Zod DTO → call one `handleX` → wrap in `res.*`. Actor via `auth.userId`.
 
-## Contract (Zod) rules
+## Schema (Zod) rules
 
 - Use spread-shape, NOT `.extend()`:
 
 ```ts
 // correct
-export const XUpdateDto = z.object({ id: zp.id, ...XMutationDto.shape })
+export const XUpdateSchema = z.object({ id: zp.id, ...XMutationSchema.shape })
 // wrong
-export const XUpdateDto = XMutationDto.extend({ id: z.number() })
+export const XUpdateSchema = XMutationSchema.extend({ id: z.number() })
 ```
 
-- Entity DTO includes audit via `...zc.AuditBasic.shape`.
-- Extract a reusable `{Entity}MutationDto` for create/update fields.
+- Entity schema includes audit via `...zc.AuditBasic.shape`.
+- Extract a reusable `{Entity}MutationSchema` (private) for create/update fields.
 - Filters use `...zq.pagination.shape` + `q: zq.search`.
-- Export both schema and inferred type: `export type XDto = z.infer<typeof XDto>`.
-- IDs are serial integers (`zp.id`), never UUIDs. Write id inline as `id: zp.id` in UpdateDto.
+- Export both schema and inferred type: `export type XSchema = z.infer<typeof XSchema>`.
+- IDs are serial integers (`zp.id`), never UUIDs. Write id inline as `id: zp.id` in UpdateSchema.
 
 ### Validation primitives
 
-| Prefix | Use for               | Coerces? |
-| ------ | --------------------- | -------- |
-| `zp.*` | Output / entity DTOs  | No       |
-| `zc.*` | Input / mutation DTOs | No       |
-| `zq.*` | Query params (GET)    | Yes      |
+| Prefix | Use for                  | Coerces? |
+| ------ | ------------------------ | -------- |
+| `zp.*` | Output / entity schemas  | No       |
+| `zc.*` | Input / mutation schemas | No       |
+| `zq.*` | Query params (GET)       | Yes      |
 
 ### Route input conventions
 
-| Operation       | Input source | Schema                         |
-| --------------- | ------------ | ------------------------------ |
-| Detail / remove | query params | `zq.recordId` (coerced `{id}`) |
-| Create / update | body         | `CreateDto` / `UpdateDto`      |
-| Bulk remove     | body         | `{ ids }`                      |
+| Operation       | Input source | Schema                          |
+| --------------- | ------------ | ------------------------------- |
+| Detail / remove | query params | `zq.recordId` (coerced `{id}`)  |
+| Create / update | body         | `CreateSchema` / `UpdateSchema` |
+| Bulk remove     | body         | `{ ids }`                       |
 
 ## Error factory
 

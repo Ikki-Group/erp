@@ -10,24 +10,51 @@ Day-to-day code writing rules for the Ikki ERP server: naming, imports, TypeScri
 | ---------------- | ------------------------------------------------ | ----------------------------------------- |
 | Module directory | `kebab-case`                                     | `sales-type/`, `audit-log/`               |
 | Module files     | `{module}.{layer}.ts`                            | `location.repo.ts`, `location.service.ts` |
-| Submodule files  | `{sub}.{layer}.ts`                               | `user.contract.ts`, `role.repo.ts`        |
+| Zod schemas      | `{module}.schema.ts`                             | `location.schema.ts`, `user.schema.ts`    |
+| Submodule files  | `{sub}.{layer}.ts`                               | `user.repo.ts`, `role.service.ts`         |
 | DB schema files  | `kebab-case.ts`                                  | `db/schema/inventory.ts`                  |
 | Test files       | `{module}.test.ts` or `{module}.service.test.ts` | `iam.test.ts`                             |
 
 ### Identifiers
 
-| Element                  | Convention                   | Example                                 |
-| ------------------------ | ---------------------------- | --------------------------------------- |
-| Classes                  | `PascalCase`                 | `LocationService`, `LocationRepo`       |
-| Interfaces (ports)       | `I{Module}Repo`              | `ILocationRepo`, `ISupplierRepo`        |
-| Type aliases             | `PascalCase`                 | `LocationDto`, `ActorId`                |
-| Functions                | `camelCase`                  | `createLocationModule`, `stampCreate`   |
-| Variables / params       | `camelCase`                  | `actorId`, `cacheClient`                |
-| Constants (module-level) | `camelCase`                  | `uniqueFields`                          |
-| Constants (env/config)   | `UPPER_SNAKE`                | `DATABASE_URL`                          |
-| Zod schemas              | `PascalCase` (matches type)  | `LocationDto`, `LocationCreateDto`      |
-| Error factories          | `PascalCase` object          | `LocationError.notFound(id)`            |
-| Enums (Zod)              | `PascalCase` + `Enum` suffix | `LocationTypeEnum`, `ProductStatusEnum` |
+| Element                  | Convention                     | Example                                  |
+| ------------------------ | ------------------------------ | ---------------------------------------- |
+| Classes                  | `PascalCase`                   | `LocationService`, `LocationRepo`        |
+| Interfaces (ports)       | `I{Module}Repo`                | `ILocationRepo`, `ISupplierRepo`         |
+| Type aliases             | `PascalCase`                   | `LocationSchema`, `ActorId`              |
+| Functions                | `camelCase`                    | `createLocationModule`, `stampCreate`    |
+| Variables / params       | `camelCase`                    | `actorId`, `cacheClient`                 |
+| Constants (module-level) | `camelCase`                    | `uniqueFields`                           |
+| Constants (env/config)   | `UPPER_SNAKE`                  | `DATABASE_URL`                           |
+| Zod schemas              | `PascalCase` + `Schema` suffix | `LocationSchema`, `LocationCreateSchema` |
+| Error factories          | `PascalCase` object            | `LocationError.notFound(id)`             |
+| Enums (Zod)              | `PascalCase` + `Enum` suffix   | `LocationTypeEnum`, `ProductStatusEnum`  |
+
+### Zod schema naming
+
+All Zod runtime schemas use `Schema` suffix. The inferred type shares the same name (TypeScript handles value/type namespace separation).
+
+```ts
+// location.schema.ts
+export const LocationSchema = z.object({ id: zp.id, code: zp.str, ... })
+export type LocationSchema = z.infer<typeof LocationSchema>
+
+export const LocationCreateSchema = z.object({ code: zc.strTrim, ... })
+export type LocationCreateSchema = z.infer<typeof LocationCreateSchema>
+```
+
+| Pattern                  | Role                                       | Example                           |
+| ------------------------ | ------------------------------------------ | --------------------------------- |
+| `{Entity}Schema`         | Entity / response shape                    | `LocationSchema`, `UserSchema`    |
+| `{Entity}CreateSchema`   | Create input                               | `LocationCreateSchema`            |
+| `{Entity}UpdateSchema`   | Update input                               | `LocationUpdateSchema`            |
+| `{Entity}FilterSchema`   | List query params                          | `LocationFilterSchema`            |
+| `{Entity}DetailSchema`   | Enriched response (with joins)             | `UserDetailSchema`                |
+| `{Entity}{Action}Schema` | Domain-specific action input               | `ClockInSchema`, `ClockOutSchema` |
+| `{Entity}MutationSchema` | Reusable create/update base (NOT exported) | `LocationMutationSchema`          |
+| `{Name}Enum`             | Enum values                                | `LocationTypeEnum`                |
+
+`MutationSchema` is always private (not exported) — it exists only to DRY the create/update schemas via spread-shape.
 
 ### Factory & route functions
 
@@ -55,7 +82,7 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 // 3. Relative (sibling module files)
-import type { LocationDto, LocationFilterDto } from './location.contract'
+import type { LocationSchema, LocationFilterSchema } from './location.schema'
 import { LocationError } from './location.internal'
 import type { ILocationRepo } from './location.repo'
 ```
@@ -90,11 +117,11 @@ import type { ILocationRepo } from './location.repo'
 
 ### Null vs undefined
 
-| Scenario                 | Use                                            |
-| ------------------------ | ---------------------------------------------- |
-| Repo not-found           | Return `undefined` (never `null`, never throw) |
-| DTO field nullable in DB | `.nullable()`                                  |
-| DTO field may be absent  | `.optional()`                                  |
+| Scenario                    | Use                                            |
+| --------------------------- | ---------------------------------------------- |
+| Repo not-found              | Return `undefined` (never `null`, never throw) |
+| Schema field nullable in DB | `.nullable()`                                  |
+| Schema field may be absent  | `.optional()`                                  |
 
 A field can be both optional AND nullable — separate concerns.
 
@@ -102,17 +129,17 @@ A field can be both optional AND nullable — separate concerns.
 
 ### Methods
 
-| Operation        | Method   | Input                        | Response                |
-| ---------------- | -------- | ---------------------------- | ----------------------- |
-| List             | `GET`    | query (FilterDto)            | `res.paginated(result)` |
-| Detail           | `GET`    | query `zq.recordId`          | `res.ok(result)`        |
-| Create           | `POST`   | body (CreateDto)             | `res.created(result)`   |
-| Update (full)    | `PUT`    | body (UpdateDto, all fields) | `res.ok(result)`        |
-| Update (partial) | `PATCH`  | body (partial UpdateDto)     | `res.ok(result)`        |
-| Remove (single)  | `DELETE` | query `zq.recordId`          | `res.ok(result)`        |
-| Remove (bulk)    | `DELETE` | body `{ ids }`               | `res.ok(result)`        |
+| Operation        | Method   | Input                           | Response                |
+| ---------------- | -------- | ------------------------------- | ----------------------- |
+| List             | `GET`    | query (FilterSchema)            | `res.paginated(result)` |
+| Detail           | `GET`    | query `zq.recordId`             | `res.ok(result)`        |
+| Create           | `POST`   | body (CreateSchema)             | `res.created(result)`   |
+| Update (full)    | `PUT`    | body (UpdateSchema, all fields) | `res.ok(result)`        |
+| Update (partial) | `PATCH`  | body (partial UpdateSchema)     | `res.ok(result)`        |
+| Remove (single)  | `DELETE` | query `zq.recordId`             | `res.ok(result)`        |
+| Remove (bulk)    | `DELETE` | body `{ ids }`                  | `res.ok(result)`        |
 
-Use `PUT` when UpdateDto includes all mutation fields (default). Use `PATCH` only when omitted fields must remain unchanged.
+Use `PUT` when UpdateSchema includes all mutation fields (default). Use `PATCH` only when omitted fields must remain unchanged.
 
 ### Remove convention
 
@@ -122,9 +149,9 @@ Remove takes `id` via **query** (`zq.recordId`, coerced). Never use body for sin
 
 Every route declares `response:` for contract generation:
 
-- Success with entity: `createSuccessResponseDto(EntityDto)`
+- Success with entity: `createSuccessResponseDto(EntitySchema)`
 - Success with ID: `createSuccessResponseDto(zc.RecordId)`
-- Paginated: `createPaginatedResponseDto(EntityDto)`
+- Paginated: `createPaginatedResponseDto(EntitySchema)`
 
 ## Deletion strategy
 
@@ -168,8 +195,10 @@ Both return `WithPaginationResult<T>`. The choice is internal to the repo.
 | Hard or soft delete?                 | Hard unless referenced by transactions         |
 | `paginate` or `paginateWindow`?      | `paginateWindow` for new code                  |
 | Barrel or sub-path schema import?    | Barrel (`@/db/schema`)                         |
-| `null` or `undefined` for not-found? | `undefined` (repos); `null` in DTO fields      |
+| `null` or `undefined` for not-found? | `undefined` (repos); `null` in schema fields   |
 | Factory naming?                      | `create{Module}Module` / `create{Module}Route` |
+| Zod schema suffix?                   | `Schema` (e.g. `LocationCreateSchema`)         |
+| File for Zod schemas?                | `{module}.schema.ts`                           |
 
 ---
 

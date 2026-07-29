@@ -2,14 +2,14 @@
 
 Copy-ready patterns for the Ikki ERP server — complements [02-module-standard.md](./02-module-standard.md) and [03-code-standard.md](./03-code-standard.md).
 
-## Zod / Contract
+## Zod / Schema
 
 ```ts
 import { z } from 'zod'
 import { zc, zp, zq } from '@/shared/schema'
 
-// Entity DTO (output) — use zp.* (no coercion)
-export const LocationDto = z.object({
+// Entity schema (output) — use zp.* (no coercion)
+export const LocationSchema = z.object({
 	id: zp.id,
 	code: zp.str,
 	name: zp.str,
@@ -18,18 +18,18 @@ export const LocationDto = z.object({
 	isActive: zp.bool,
 	...zc.AuditBasic.shape,
 })
-export type LocationDto = z.infer<typeof LocationDto>
+export type LocationSchema = z.infer<typeof LocationSchema>
 
-// Filter DTO (query) — use zq.* (coerced)
-export const LocationFilterDto = z.object({
+// Filter schema (query) — use zq.* (coerced)
+export const LocationFilterSchema = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	type: LocationTypeEnum.optional(),
 })
-export type LocationFilterDto = z.infer<typeof LocationFilterDto>
+export type LocationFilterSchema = z.infer<typeof LocationFilterSchema>
 
-// Reusable mutation shape — use zc.* (trimmed/validated)
-const LocationMutationDto = z.object({
+// Reusable mutation shape (private) — use zc.* (trimmed/validated)
+const LocationMutationSchema = z.object({
 	code: zc.strTrim,
 	name: zc.strTrim.min(3).max(100),
 	type: LocationTypeEnum,
@@ -37,13 +37,13 @@ const LocationMutationDto = z.object({
 	isActive: zp.bool.default(true),
 })
 
-// Create DTO
-export const LocationCreateDto = LocationMutationDto
-export type LocationCreateDto = z.infer<typeof LocationCreateDto>
+// Create schema
+export const LocationCreateSchema = LocationMutationSchema
+export type LocationCreateSchema = z.infer<typeof LocationCreateSchema>
 
-// Update DTO — id inline, spread-shape (never .extend())
-export const LocationUpdateDto = z.object({ id: zp.id, ...LocationMutationDto.shape })
-export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
+// Update schema — id inline, spread-shape (never .extend())
+export const LocationUpdateSchema = z.object({ id: zp.id, ...LocationMutationSchema.shape })
+export type LocationUpdateSchema = z.infer<typeof LocationUpdateSchema>
 ```
 
 ## Repository
@@ -53,9 +53,9 @@ Declare a port; class implements it. Reads return `undefined`; writes return `En
 ```ts
 export interface ILocationRepo {
 	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<LocationDto | undefined>
-	findByIds(ids: number[], db?: DbContext): Promise<LocationDto[]>
-	findPage(filter: LocationFilterDto, db?: DbContext): Promise<WithPaginationResult<LocationDto>>
+	findById(id: number, db?: DbContext): Promise<LocationSchema | undefined>
+	findByIds(ids: number[], db?: DbContext): Promise<LocationSchema[]>
+	findPage(filter: LocationFilterSchema, db?: DbContext): Promise<WithPaginationResult<LocationSchema>>
 	insert(data: LocationInsert, db?: DbContext): Promise<EntityRef | undefined>
 	update(id: number, data: LocationUpdate, db?: DbContext): Promise<EntityRef | undefined>
 	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
@@ -91,7 +91,7 @@ export class LocationRepo implements ILocationRepo {
 ### Pagination (paginateWindow)
 
 ```ts
-async findPage(filter: LocationFilterDto, db: DbContext = this.db) {
+async findPage(filter: LocationFilterSchema, db: DbContext = this.db) {
   const where = this.#buildWhere(filter)
   const { limit, offset } = toLimitOffset(filter)
 
@@ -126,11 +126,11 @@ export class LocationService {
 		await this.cache.deleteFromKeys(keys)
 	}
 
-	async handleCreate(data: LocationCreateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: LocationCreateSchema, actorId: ActorId): Promise<EntityRef> {
 		return record('LocationService.handleCreate', async () => this.create(data, actorId))
 	}
 
-	async create(data: LocationCreateDto, actorId: ActorId): Promise<EntityRef> {
+	async create(data: LocationCreateSchema, actorId: ActorId): Promise<EntityRef> {
 		await checkConflict({ db: this.repo.db, table, pkColumn, fields: uniqueFields, input: data })
 		const result = await this.repo.insert({ ...data, ...stampCreate(actorId) })
 		if (!result) throw LocationError.createFailed()
@@ -235,8 +235,8 @@ export function createLocationRoute(m: LocationModule) {
 				return res.paginated(result)
 			},
 			{
-				query: LocationFilterDto,
-				response: createPaginatedResponseDto(LocationDto),
+				query: LocationFilterSchema,
+				response: createPaginatedResponseDto(LocationSchema),
 				auth: true,
 			},
 		)
@@ -247,7 +247,7 @@ export function createLocationRoute(m: LocationModule) {
 				return res.created(result)
 			},
 			{
-				body: LocationCreateDto,
+				body: LocationCreateSchema,
 				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},

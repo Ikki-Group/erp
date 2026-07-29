@@ -16,7 +16,7 @@ Step-by-step guide to create a new module, aligned to [02-module-standard.md](./
 
 ```bash
 src/modules/{module}/
-├── {module}.contract.ts
+├── {module}.schema.ts
 ├── {module}.repo.ts
 ├── {module}.service.ts
 ├── {module}.route.ts
@@ -34,7 +34,7 @@ src/modules/{module}/
 ├── index.ts
 ├── constants.ts            # Module-wide constants (if needed)
 ├── {sub-1}/
-│   ├── {sub-1}.contract.ts
+│   ├── {sub-1}.schema.ts
 │   ├── {sub-1}.repo.ts
 │   └── {sub-1}.service.ts
 ├── {sub-2}/
@@ -50,9 +50,9 @@ src/modules/{module}/
 
 - [ ] Define entity DTO with `zp.*` + `...zc.AuditBasic.shape`
 - [ ] Define filter DTO with `...zq.pagination.shape` + `q: zq.search`
-- [ ] Extract `{Entity}MutationDto` with `zc.*`
-- [ ] Define `CreateDto = MutationDto`
-- [ ] Define `UpdateDto = z.object({ id: zp.id, ...MutationDto.shape })`
+- [ ] Extract `{Entity}MutationSchema` with `zc.*`
+- [ ] Define `CreateSchema = MutationSchema`
+- [ ] Define `UpdateSchema = z.object({ id: zp.id, ...MutationSchema.shape })`
 - [ ] Export schemas + inferred types
 
 ### Step 2: Repository
@@ -93,16 +93,16 @@ src/modules/{module}/
 
 - [ ] `create{Module}Route(m)` with `new Elysia({ prefix: '/{module}' })`
 - [ ] `.use(authPluginMacro)` + `auth: true` on every endpoint
-- [ ] GET `/list` → `res.paginated`, query: FilterDto
+- [ ] GET `/list` → `res.paginated`, query: FilterSchema
 - [ ] GET `/detail` → `res.ok`, query: `zq.recordId`
-- [ ] POST `/create` → `res.created`, body: CreateDto
-- [ ] PUT `/update` → `res.ok`, body: UpdateDto
+- [ ] POST `/create` → `res.created`, body: CreateSchema
+- [ ] PUT `/update` → `res.ok`, body: UpdateSchema
 - [ ] DELETE `/remove` → `res.ok`, query: `zq.recordId`
 - [ ] Declare `response:` DTO on every endpoint
 
 ### Step 7: Public API (`index.ts`)
 
-- [ ] Export contract DTOs
+- [ ] Export schema types
 - [ ] Export port type (`type { I{Module}Repo }`)
 - [ ] Export module type and factory
 
