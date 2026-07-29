@@ -3,68 +3,68 @@ inclusion: fileMatch
 fileMatchPattern: ['docs/**/*.md', '**/README.md']
 ---
 
-# Documentation
+# Documentation Standards
 
-Guidelines for reading and writing documentation in the Ikki ERP monorepo.
+Rules for writing and maintaining documentation across the Ikki ERP monorepo.
 
 ## Reading Documentation
 
 When you need context about a topic, follow this lookup order:
 
-1. **Start at the index.** Read the `README.md` in the relevant `docs/` subdirectory first — it maps available docs and tells you where to look.
-2. **Follow the hierarchy.** `docs/README.md` (root index) → subdirectory README → specific doc.
+1. **Start at the index.** Read the `readme.md` in the relevant `docs/` subdirectory first — it maps available docs and tells you where to look.
+2. **Follow the hierarchy.** `docs/readme.md` (root index) → subdirectory readme → specific doc.
 3. **Respect authority.** Each doc type has a canonical home (see Doc Locations below). If you find conflicting info, the canonical location wins.
 4. **Check for superseded markers.** Docs prefixed with `> ⚠️` are historical — do not treat them as current guidance.
-5. **Prioritize MODULE_STANDARD.md** for any question about server module structure — it is the single source of truth.
+5. **Prioritize 02-module-standard.md** for any question about server module structure — it is the single source of truth.
 
 ### What to read for common tasks
 
-| Task | Read first |
-|------|-----------|
-| Building a new server module | `docs/server/MODULE_STANDARD.md` → `MODULE_CHECKLIST.md` |
-| Understanding server layers/architecture | `docs/server/SERVER_ARCHITECTURE.md` |
-| Writing Zod schemas, services, repos | `docs/server/CODE_PATTERNS.md` |
-| Database schema changes | `docs/database/readme.md` → `standards/` |
-| Understanding business workflows | `docs/product/WORKFLOWS.md` |
-| Product requirements & vision | `docs/product/PRD.md`, `VISION.md` |
-| Toolchain, commands, deploy | `AGENTS.md` (root) |
+| Task                                     | Read first                                                     |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| Building a new server module             | `docs/server/02-module-standard.md` → `05-module-checklist.md` |
+| Understanding server layers/architecture | `docs/server/01-server-architecture.md`                        |
+| Writing Zod schemas, services, repos     | `docs/server/04-code-patterns.md`                              |
+| Naming, imports, TS style, HTTP rules    | `docs/server/03-code-standard.md`                              |
+| Database schema changes                  | `docs/database/readme.md` → `standards/`                       |
+| Understanding business workflows         | `docs/product/WORKFLOWS.md`                                    |
+| Product requirements & vision            | `docs/product/PRD.md`, `VISION.md`                             |
+| Toolchain, commands, deploy              | `AGENTS.md` (root)                                             |
 
-## Writing Documentation
+## Structure & Organization
 
-### Structure & Organization
-
-- One topic per file, max ~300 lines. Split longer docs.
-- Every folder with multiple docs gets a `README.md` as index/TOC.
-- Use `#[[file:path]]` references in steering files instead of duplicating content.
-- Filenames: `UPPER_SNAKE.md` for primary docs (e.g. `MODULE_STANDARD.md`), `kebab-case.md` for secondary/generated docs.
+- **One topic per file**, max ~300 lines. If it's longer, split it.
+- Every folder with multiple docs gets a `readme.md` as index/TOC.
+- Use `#[[file:path]]` references instead of duplicating content across files.
+- Filenames: `kebab-case.md`. Use numeric prefix for ordered content (`01-`, `02-`, `03-`).
 - Headings max 3 levels deep (`#`, `##`, `###`). Deeper nesting means the doc should be split.
 
-### Content Formatting
+## Content Formatting
 
-- Start every doc with a one-sentence summary after the title.
-- Use tables for structured data (features, comparisons, status lists, mappings).
-- Use ASCII/Mermaid diagrams for flows and architecture — not images.
-- Use fenced code blocks with language tags for all code/config/commands.
+- Start every doc with a **one-sentence summary** of what it covers (first line after the title).
+- Use **tables** for structured data (features, comparisons, status lists, mappings).
+- Use **ASCII diagrams** for flows and architecture — not images. AI agents can read text; images are opaque.
+- Use fenced code blocks with language tags for code/config/commands.
 - Short paragraphs: 3–4 sentences max. One idea per paragraph.
 
-### Language & Tone
+## Language & Tone
 
-- English, plain and accessible.
+- **English** (plain, accessible) for all documentation.
 - Active voice, present tense: "The system processes..." not "The system will process..."
 - Define domain terms inline on first use or reference the glossary.
-- Be direct. No hedging ("basically", "kind of", "should probably").
-- No filler intros. Start with the substance.
+- Be direct. Avoid hedging ("basically", "kind of", "should probably").
+- No filler intros ("In this document we will discuss..."). Start with the substance.
 
-### Cross-Referencing
+## Cross-Referencing
 
-- Use relative links (`./other-file.md`, `../server/README.md`).
-- Link to the canonical source rather than restating rules. `MODULE_STANDARD.md` is the single source of truth for module conventions.
+- Use **relative links** (`./other-file.md`) not absolute paths.
+- Every doc ends with a `**Next:**` link to the logical next document.
+- Link to the canonical source rather than restating rules. `02-module-standard.md` is the single source of truth for module conventions.
 
-### Maintenance
+## Maintenance
 
-- Docs are updated in the same PR as the code they describe.
+- Docs are updated in the **same PR** as the code they describe. No orphan docs.
 - Outdated docs are deleted, not left with "TODO: update" markers.
-- If a feature changes significantly, rewrite the doc — don't patch with addendums.
+- If a feature changes significantly, the doc is rewritten — not patched with addendums.
 - Historical/superseded docs are clearly marked with a `> ⚠️` callout and retained only for context.
 
 ## Doc Locations
@@ -85,3 +85,23 @@ When you need context about a topic, follow this lookup order:
 2. **AI-friendly.** Structured Markdown with clear headers, bullets, and tables. Prefer text over images.
 3. **Business-first in `product/`.** No code/SQL there — that belongs in `server/` or `database/`.
 4. **Code-adjacent when useful.** Module READMEs and component registries stay next to the code they describe.
+
+## Template for New Docs
+
+```markdown
+# Title
+
+One-sentence summary of what this document covers.
+
+## Section 1
+
+Content here.
+
+## Section 2
+
+Content here.
+
+---
+
+**Next:** [Next Document](./next-doc.md) — Brief description.
+```

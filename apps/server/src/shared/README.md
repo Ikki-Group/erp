@@ -23,34 +23,34 @@ Shared validation building blocks for contracts. Import from `@/shared/schema`.
 
 **`zc.*` — validated/trimmed input primitives + reusable shapes:**
 
-| Member            | Purpose                                                        |
-| ----------------- | ------------------------------------------------------------- |
-| `strTrim`         | trimmed string                                                |
-| `strTrimNullable` | trimmed string, `''` → `null`                                 |
-| `email`           | validated, lowercased, max 255                                |
-| `username`        | 3–30, `[a-zA-Z0-9_]`                                          |
-| `password`        | 8–100                                                         |
-| `fullname`        | trimmed, 3–100                                                |
-| `RecordId`        | `{ id }`                                                       |
+| Member            | Purpose                                                             |
+| ----------------- | ------------------------------------------------------------------- |
+| `strTrim`         | trimmed string                                                      |
+| `strTrimNullable` | trimmed string, `''` → `null`                                       |
+| `email`           | validated, lowercased, max 255                                      |
+| `username`        | 3–30, `[a-zA-Z0-9_]`                                                |
+| `password`        | 8–100                                                               |
+| `fullname`        | trimmed, 3–100                                                      |
+| `RecordId`        | `{ id }`                                                            |
 | `AuditBasic`      | `createdAt/updatedAt/createdBy/updatedBy` — spread into entity DTOs |
-| `AuditFull`       | `AuditBasic` + `deletedAt/deletedBy` (soft delete)            |
-| `PaginationMeta`  | list-response meta schema (used by `createPaginatedResponseDto`) |
+| `AuditFull`       | `AuditBasic` + `deletedAt/deletedBy` (soft delete)                  |
+| `PaginationMeta`  | list-response meta schema (used by `createPaginatedResponseDto`)    |
 
 **`zq.*` — query primitives that COERCE (query params arrive as strings):**
 
-| Member       | Purpose                                     |
-| ------------ | ------------------------------------------- |
-| `id`         | coerced positive int                        |
-| `ids`        | `?id=1&id=2` or `?id=1` → `number[]`         |
-| `recordId`   | `{ id }` (coerced) — for detail/remove       |
-| `search`     | trimmed, `''` → `undefined`                 |
-| `boolean`    | `'true'`/`'1'` → `boolean`                  |
-| `pagination` | `{ page, limit }` with defaults + `.catch`  |
+| Member       | Purpose                                    |
+| ------------ | ------------------------------------------ |
+| `id`         | coerced positive int                       |
+| `ids`        | `?id=1&id=2` or `?id=1` → `number[]`       |
+| `recordId`   | `{ id }` (coerced) — for detail/remove     |
+| `search`     | trimmed, `''` → `undefined`                |
+| `boolean`    | `'true'`/`'1'` → `boolean`                 |
+| `pagination` | `{ page, limit }` with defaults + `.catch` |
 
 **`response.ts`** — `createSuccessResponseDto(dto)` / `createPaginatedResponseDto(dto)`
 build the `{ success, code, data(, meta) }` envelope schemas used as route `response`.
 
-See [docs/server/MODULE_STANDARD.md § 7](../../../../docs/server/MODULE_STANDARD.md) for when to use which prefix.
+See [docs/server/02-module-standard.md](../../../../docs/server/02-module-standard.md) for when to use which prefix.
 
 ## `errors/`
 
@@ -94,7 +94,7 @@ Import from `@/shared/utils` (barrel) or the sub-path.
 
   ```ts
   const total = sum(entry.items, (i) => i.debit) // Decimal, exact
-  row.totalAmount = total.toString()             // back to numeric string
+  row.totalAmount = total.toString() // back to numeric string
   ```
 
 - **`relation-map.ts`** — `RelationMap` (extends `Map`) for in-memory joins:
