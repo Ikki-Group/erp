@@ -9,12 +9,7 @@ import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
 export type SortDirection = 'asc' | 'desc'
 
-/**
- * Drizzle orderBy clause for a column + direction (defaults to `desc`).
- *
- * @example
- * db.select().from(users).orderBy(sortBy(users.updatedAt, 'desc'))
- */
+/** OrderBy clause for a column + direction. */
 export function sortBy(column: AnyColumn, direction: SortDirection = 'desc'): SQL {
 	return direction === 'asc' ? asc(column) : desc(column)
 }
@@ -24,23 +19,19 @@ export function sortBy(column: AnyColumn, direction: SortDirection = 'desc'): SQ
 /* -------------------------------------------------------------------------- */
 
 /**
- * Combine conditions with `AND`, dropping any `undefined` (so optional filters
- * can be inlined). Returns `undefined` when nothing is left — safe for `.where()`.
+ * AND combiner that drops falsy conditions. Safe for `.where()`.
  *
  * @example
  * const where = allOf(
- *   isNull(users.deletedAt),
- *   status && eq(users.status, status), // skipped when falsy
+ *   searchAcross(filter.q, [users.name, users.email]),
+ *   eqIf(users.locationId, filter.locationId),
  * )
  */
 export function allOf(...conditions: (SQL | undefined | false | null)[]): SQL | undefined {
 	return and(...conditions.filter((c): c is SQL => Boolean(c)))
 }
 
-/**
- * Combine conditions with `OR`, dropping any `undefined`. Returns `undefined`
- * when nothing is left.
- */
+/** OR combiner that drops falsy conditions. */
 export function anyOf(...conditions: (SQL | undefined | false | null)[]): SQL | undefined {
 	return or(...conditions.filter((c): c is SQL => Boolean(c)))
 }
@@ -49,14 +40,7 @@ export function anyOf(...conditions: (SQL | undefined | false | null)[]): SQL | 
 /*                             SEARCH / FILTERS                               */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Case-insensitive `ILIKE '%term%'` filter, or `undefined` when the term is
- * empty. Escapes `%`, `_`, `\` so user input is a literal substring, never a
- * wildcard pattern.
- *
- * @example
- * const where = searchFilter(users.email, query.q)
- */
+/** Case-insensitive ILIKE filter. Returns `undefined` when term is empty. */
 export function searchFilter(column: AnyColumn, search?: string | null): SQL | undefined {
 	const term = search?.trim()
 	if (!term) return undefined
@@ -65,13 +49,7 @@ export function searchFilter(column: AnyColumn, search?: string | null): SQL | u
 	return ilike(column, `%${escaped}%`)
 }
 
-/**
- * `ILIKE` search across MULTIPLE columns, OR-ed together. Returns `undefined`
- * when the term is empty.
- *
- * @example
- * const where = searchAcross(query.q, [users.name, users.email, users.username])
- */
+/** ILIKE search OR-ed across multiple columns. */
 export function searchAcross(
 	search: string | null | undefined,
 	columns: AnyColumn[],
@@ -85,13 +63,7 @@ export function searchAcross(
 /*                          EXISTENCE / COUNT PROBES                          */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Whether at least one row in `table` matches `where`. Uses `LIMIT 1` so it
- * stops at the first hit.
- *
- * @example
- * if (await existsWhere(db, users, eq(users.email, email))) throw ...
- */
+/** Returns true if at least one row matches. Uses LIMIT 1. */
 export async function existsWhere(
 	db: DbContext,
 	table: PgTable,
@@ -105,17 +77,8 @@ export async function existsWhere(
 	return row !== undefined
 }
 
-/**
- * Count rows in `table` matching `where` (0 when none).
- *
- * @example
- * const active = await countWhere(db, users, eq(users.isActive, true))
- */
-export async function countWhere(
-	db: DbContext,
-	table: PgTable,
-	where?: SQL,
-): Promise<number> {
+/** Count rows matching `where` (0 when none). */
+export async function countWhere(db: DbContext, table: PgTable, where?: SQL): Promise<number> {
 	const [row] = await db
 		.select({ count: sql<number>`count(*)::int` })
 		.from(table)
@@ -127,13 +90,7 @@ export async function countWhere(
 /*                                 EQUALITY                                   */
 /* -------------------------------------------------------------------------- */
 
-/**
- * `eq(column, value)` when `value` is defined, else `undefined` — for inlining
- * optional equality filters inside {@link allOf}.
- *
- * @example
- * allOf(eqIf(users.locationId, filter.locationId), eqIf(users.isActive, filter.isActive))
- */
+/** `eq(column, value)` when value is defined, else `undefined`. For optional filters. */
 export function eqIf<T>(column: PgColumn, value: T | undefined | null): SQL | undefined {
 	return value === undefined || value === null ? undefined : eq(column, value)
 }
@@ -142,13 +99,7 @@ export function eqIf<T>(column: PgColumn, value: T | undefined | null): SQL | un
 /*                                SOFT DELETE                                 */
 /* -------------------------------------------------------------------------- */
 
-/**
- * "Row is not soft-deleted" condition — `isNull(deletedAt)`. Compose it into a
- * `where` with {@link allOf} so soft-deleted rows are excluded consistently.
- *
- * @example
- * const where = allOf(notDeleted(recipes.deletedAt), eqIf(recipes.materialId, materialId))
- */
+/** `isNull(deletedAt)` — filter for non-deleted rows. */
 export function notDeleted(deletedAtColumn: PgColumn): SQL {
 	return isNull(deletedAtColumn)
 }

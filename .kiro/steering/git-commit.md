@@ -12,11 +12,12 @@ Format: `type(scope): subject`
 
 Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `perf`
 
-Scopes: `agents`, `workers`, `infrastructure`, `services`, `ui`, `api`, `models`, `terraform`, `config`, `tooling`, `workflows`, `prompts`
+Scopes: `server`, `web`
 
 Multi-scope: `feat(agents,ui): Add test case editing`
 
 Examples:
+
 ```
 feat(workers): Add Playwright script retry logic
 fix(api): Return 404 for missing scenario

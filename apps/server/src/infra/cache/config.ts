@@ -1,79 +1,19 @@
-/**
- * TTL tiers — pick the one matching the data's write frequency, don't invent
- * a bespoke value per module. Keeps cache behavior predictable and makes it
- * obvious during review whether a new `getOrSet()` call is well-considered.
- *
- * All tiers are cheap on Neon free tier compute: reference/config data is
- * invalidated eagerly on write anyway (see CacheService.deleteFromKeys /
- * deleteByTags), the TTL here is just the worst-case staleness bound if an
- * invalidation is ever missed (bug, direct SQL, etc.) or during the grace
- * period while Neon is unreachable.
- */
+/** TTL tiers — pick by data write frequency. Don't invent per-module values. */
 export const CACHE_TTL = {
-	/** Rarely-changes master/reference data: locations, UOMs, roles, taxes,
-	 *  payment methods & providers, sales types, material/product categories. */
+	/** Rarely-changes master data: locations, UOMs, roles, categories. */
 	REFERENCE: '1d',
-	/** Per-location/tenant configuration: material-location thresholds,
-	 *  location-payment-method config, company settings. */
+	/** Per-location config: thresholds, payment methods, company settings. */
 	CONFIG: '1h',
-	/** Paginated/filtered list results. Always pair with a `tags` invalidation
-	 *  (see entityTag) — DO NOT rely on TTL alone to keep lists correct. */
+	/** Paginated lists. Always pair with tag-based invalidation. */
 	LIST: '2m',
-	/** High-churn operational reads that still benefit from de-duplicating
-	 *  bursts of requests (e.g. dashboard widgets, stock summaries). */
+	/** High-churn reads: dashboard widgets, stock summaries. */
 	VOLATILE: '30s',
-	/** Security-sensitive lookups (session validation). Cache only to absorb
-	 *  request bursts — invalidate explicitly (revoke/logout) rather than
-	 *  relying on this TTL to reflect state changes. */
+	/** Security-sensitive: session validation. Invalidate explicitly. */
 	SECURITY: '10s',
 } as const
 
-export type ConfigNamespace =
-	| 'location'
-	| 'iam.user'
-	| 'iam.user.assignment'
-	| 'iam.role'
-	| 'iam.session'
-	| 'product-category'
-	| 'product'
-	// Material module - new standardized format
-	| 'material.category'
-	| 'material.uom'
-	| 'material.master'
-	| 'material.location'
-	| 'material.conversion'
-	| 'material.query'
-	| 'supplier'
-	| 'employee'
-	| 'finance.account'
-	| 'finance.expenditure'
-	| 'finance.gl'
-	| 'customer'
-	| 'company-settings'
-	| 'audit-log'
-	| 'session'
-	| 'inventory.dashboard'
-	| 'inventory.summary'
-	| 'inventory.stock-transfer'
-	| 'inventory.alert'
-	| 'recipe'
-	| 'sales-type'
-	| 'sales.order'
-	| 'sales.invoice'
-	| 'purchasing.order'
-	| 'purchasing.receipt'
-	| 'moka.config'
-	| 'moka.scrap-history'
-	| 'moka.sync-cursor'
-	| 'production.work-order'
-	| 'hr'
-	| 'hr.payroll'
-	| 'hr.leave-request'
-	| 'analytics'
-	| 'payment-method-config'
-	| 'payment-method'
-	| 'payment'
-	| 'payment.provider'
-	| 'location-payment-method'
-	| 'uom'
-	| 'system.audit'
+/**
+ * Cache namespace identifier. Each service registers its own namespace string.
+ * No centralized union — namespaces are validated by usage, not by type.
+ */
+export type ConfigNamespace = string
