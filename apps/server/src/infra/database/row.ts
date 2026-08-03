@@ -1,26 +1,11 @@
 import { NotFoundError } from '@/shared/errors/http-error'
 
-/**
- * Extracts the first result from an array, or returns undefined.
- * Convenient for Drizzle queries that return arrays.
- *
- * @example
- * const user = takeFirst(await db.select().from(users).where(eq(users.id, id)))
- */
+/** First element or `undefined`. Standard Drizzle result extractor. */
 export function takeFirst<T>(results: T[]): T | undefined {
 	return results[0]
 }
 
-/**
- * Extracts the first result from an array, or throws NotFoundError.
- *
- * @example
- * const user = takeFirstOrThrow(
- *   await db.select().from(users).where(eq(users.id, id)),
- *   'User not found',
- *   'USER_NOT_FOUND'
- * )
- */
+/** First element or throw NotFoundError. Use sparingly — NOT in repos. */
 export function takeFirstOrThrow<T>(
 	results: T[],
 	message = 'Resource not found',
@@ -28,4 +13,16 @@ export function takeFirstOrThrow<T>(
 ): T {
 	if (!results.length) throw new NotFoundError(message, { code })
 	return results[0]!
+}
+
+/**
+ * Assert a value is not `undefined`/`null`, otherwise throw the provided error.
+ * Useful in service `handle*` methods to avoid repeated null-check boilerplate.
+ *
+ * @example
+ * const user = assertFound(await this.getById(id), () => UserError.notFound(id))
+ */
+export function assertFound<T>(value: T | undefined | null, errorFactory: () => Error): T {
+	if (value === undefined || value === null) throw errorFactory()
+	return value
 }

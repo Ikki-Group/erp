@@ -4,7 +4,6 @@ import { type CacheClient } from './cache'
 import type { ConfigNamespace } from './config'
 import type { CacheProvider, DeleteManyOptions, GetOrSetOptions } from 'bentocache/types'
 
-/** A cache key is either a literal string or a builder producing one. */
 type KeyFactory = string | ((...args: (string | number)[]) => string)
 type CacheKeys = Record<string, KeyFactory>
 
@@ -43,6 +42,7 @@ export class CacheService<T extends CacheKeys = typeof DEFAULT_KEYS> {
 		)
 	}
 
+	/** Same as getOrSet but skips caching when factory returns `undefined`. */
 	async getOrSetWithSkip<T>({
 		key,
 		...options
@@ -77,45 +77,58 @@ export class CacheService<T extends CacheKeys = typeof DEFAULT_KEYS> {
 		})
 	}
 
-	/**
-	 * Ergonomic alias for `deleteMany({ keys })` — the common "invalidate these
-	 * keys" case with no extra options. Skips `null`/`undefined` keys.
-	 */
+	/** Alias for `deleteMany({ keys })` — the common invalidation case. */
 	async deleteFromKeys(keys: (KeyFactory | undefined | null)[]): Promise<boolean> {
-		return this.deleteMany({ keys })
+		return this.#safeInvalidate(() => this.deleteMany({ keys }))
 	}
 
 	/**
-	 * Invalidate every cache entry (in this namespace or any other) tagged with
-	 * any of the given tags — including composed/"runtime join" reads cached by
-	 * OTHER modules that referenced this entity.
+	 * Standard cache invalidation: clears `list`, `count`, and optionally `byId(id)`.
+	 * Covers the common 90% pattern across all CRUD services.
 	 *
-	 * Prefer this over enumerating derived keys by hand: a composed read (e.g.
-	 * "sales order with items + customer + location") only needs to tag itself
-	 * with the ids it touched; every module that mutates those ids can then
-	 * invalidate by tag without knowing which composed views exist.
-	 *
-	 * Tags are backend-agnostic (bentocache tracks invalidation timestamps
-	 * client-side), so this works even in L1-memory-only mode.
+	 * @example
+	 * await this.cache.invalidateStandard()       // after create (no specific id)
+	 * await this.cache.invalidateStandard(id)     // after update/delete
 	 */
+	async invalidateStandard(id?: number | string): Promise<void> {
+		const keys: (KeyFactory | undefined | null)[] = [
+			DEFAULT_KEYS.list,
+			DEFAULT_KEYS.count,
+			id !== undefined ? DEFAULT_KEYS.byId(id) : null,
+		]
+		await this.deleteFromKeys(keys)
+	}
+
+	/** Invalidate cache entries by tag across all namespaces. */
 	async deleteByTags(tags: (string | undefined | null)[]): Promise<boolean> {
-		return withSpan('CacheService.deleteByTags', { 'cache.namespace': this.ns }, () => {
-			const filteredTags = tags.filter((tag): tag is string => tag !== undefined && tag !== null)
-			if (filteredTags.length === 0) return Promise.resolve(false)
-			return this.cache.deleteByTag({ tags: filteredTags })
-		})
+		return this.#safeInvalidate(() =>
+			withSpan('CacheService.deleteByTags', { 'cache.namespace': this.ns }, () => {
+				const filteredTags = tags.filter((tag): tag is string => tag !== undefined && tag !== null)
+				if (filteredTags.length === 0) return Promise.resolve(false)
+				return this.cache.deleteByTag({ tags: filteredTags })
+			}),
+		)
+	}
+
+	/**
+	 * Wrap invalidation so cache failures don't crash mutations.
+	 * A failed invalidation = temporary staleness (self-heals via TTL), not a fatal error.
+	 */
+	async #safeInvalidate(fn: () => Promise<boolean>): Promise<boolean> {
+		try {
+			return await fn()
+		} catch (err) {
+			const { logger } = await import('@/infra/logger')
+			logger.warn('Cache invalidation failed (non-fatal)', {
+				namespace: this.ns,
+				error: err instanceof Error ? err.message : String(err),
+			})
+			return false
+		}
 	}
 }
 
-/**
- * Stable tag builder — `entityTag('location', 5)` → `'location:5'`.
- *
- * Use these as `tags` on `getOrSet()` calls for any cached read that embeds
- * data from a foreign entity (RelationMap joins, composed DTOs, dashboards).
- * The owning module's service can then call `deleteByTags([entityTag('location', id)])`
- * on mutation to invalidate every dependent cache entry across ALL modules,
- * without either module knowing about the other's cache keys.
- */
+/** Stable tag: `entityTag('location', 5)` → `'location:5'`. */
 export function entityTag(entity: string, id: number | string): string {
 	return `${entity}:${id}`
 }

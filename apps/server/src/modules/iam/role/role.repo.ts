@@ -1,8 +1,15 @@
-import { and, count, eq, SQL } from 'drizzle-orm'
+import { and, count, eq, getColumns, sql, type SQL } from 'drizzle-orm'
 
 import { rolesTable } from '@/db/schema'
 
-import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
+import {
+	paginateWindow,
+	searchFilter,
+	sortBy,
+	takeFirst,
+	toLimitOffset,
+	type DbContext,
+} from '@/infra/database'
 import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
@@ -58,19 +65,17 @@ export class RoleRepo implements IRoleRepo {
 		db: DbContext = this.db,
 	): Promise<WithPaginationResult<RoleDto>> {
 		const where = this.#buildQuery(filter)
+		const { limit, offset } = toLimitOffset(filter)
 
-		return paginate<RoleDto>({
-			data: ({ limit, offset }) =>
-				db
-					.select()
-					.from(rolesTable)
-					.where(where)
-					.orderBy(sortBy(rolesTable.updatedAt, 'desc'))
-					.limit(limit)
-					.offset(offset),
-			pq: filter,
-			countQuery: () => db.select({ count: count() }).from(rolesTable).where(where),
-		})
+		const rows = await db
+			.select({ ...getColumns(rolesTable), rowCount: sql<number>`count(*) over()` })
+			.from(rolesTable)
+			.where(where)
+			.orderBy(sortBy(rolesTable.updatedAt, 'desc'))
+			.limit(limit)
+			.offset(offset)
+
+		return paginateWindow(rows, filter)
 	}
 
 	async findById(id: number, db: DbContext = this.db): Promise<RoleDto | undefined> {

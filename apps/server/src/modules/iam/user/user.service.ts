@@ -4,9 +4,10 @@ import { usersTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 import {
+	assertFound,
 	checkConflict,
+	defineConflictFields,
 	withTransaction,
-	type ConflictField,
 	type DbContext,
 } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
@@ -28,7 +29,7 @@ import type {
 import { UserError } from './user.internal'
 import type { IUserRepo } from './user.repo'
 
-const userConflictFields: ConflictField<{ email: string; username: string }>[] = [
+const userConflictFields = defineConflictFields<{ email: string; username: string }>()([
 	{
 		field: 'email',
 		column: usersTable.email,
@@ -41,7 +42,7 @@ const userConflictFields: ConflictField<{ email: string; username: string }>[] =
 		message: 'Username already exists',
 		code: 'USER_USERNAME_ALREADY_EXISTS',
 	},
-]
+])
 
 interface ServiceDeps {
 	assignment: UserAssignmentService
@@ -63,13 +64,6 @@ export class UserService {
 		cacheClient: CacheClient,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.user')
-	}
-
-	/** Invalidate list/count caches, plus the byId cache when an id is given. */
-	private async invalidate(id?: number): Promise<void> {
-		const keys = [this.cache.keys.list, this.cache.keys.count]
-		if (id !== undefined) keys.push(this.cache.keys.byId(id))
-		await this.cache.deleteFromKeys(keys)
 	}
 
 	/* --------------------------------- PUBLIC -------------------------------- */
@@ -165,7 +159,7 @@ export class UserService {
 				return created
 			})
 
-			await this.invalidate()
+			await this.cache.invalidateStandard()
 			return result
 		})
 	}
@@ -178,8 +172,7 @@ export class UserService {
 		return record('UserService.update', async () => {
 			const { assignments, isRoot } = data
 
-			const existing = await this.repo.getById(id)
-			if (!existing) throw UserError.notFound(id)
+			const existing = assertFound(await this.repo.getById(id), () => UserError.notFound(id))
 
 			await checkConflict({
 				db: this.repo.db,
@@ -206,7 +199,7 @@ export class UserService {
 				return updated
 			})
 
-			await this.invalidate(id)
+			await this.cache.invalidateStandard(id)
 			return result
 		})
 	}
@@ -224,8 +217,7 @@ export class UserService {
 		return record('UserService.handleUpdate', async () => {
 			const { password, id } = data
 
-			const existing = await this.getById(id)
-			if (!existing) throw UserError.notFound(id)
+			assertFound(await this.getById(id), () => UserError.notFound(id))
 
 			const passwordHash = password ? await hashPassword(password) : undefined
 			return this.update(id, { ...data, ...(passwordHash ? { passwordHash } : {}) }, actorId)
@@ -237,7 +229,7 @@ export class UserService {
 			const result = await this.repo.remove(id)
 			if (!result) throw UserError.notFound(id)
 
-			await this.invalidate(id)
+			await this.cache.invalidateStandard(id)
 			return result
 		})
 	}
@@ -248,10 +240,10 @@ export class UserService {
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('UserService.handleChangePassword', async () => {
-			const passwordHash = await this.repo.getById(id).then((u) => u?.passwordHash)
-			if (!passwordHash) throw UserError.notFound(id)
+			const user = assertFound(await this.repo.getById(id), () => UserError.notFound(id))
+			if (!user.passwordHash) throw UserError.notFound(id)
 
-			const isMatch = await verifyPassword(data.oldPassword, passwordHash)
+			const isMatch = await verifyPassword(data.oldPassword, user.passwordHash)
 			if (!isMatch) throw UserError.passwordMismatch()
 
 			const newPasswordHash = await hashPassword(data.newPassword)
@@ -261,8 +253,7 @@ export class UserService {
 			})
 			if (!result) throw UserError.notFound(id)
 
-			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
-
+			await this.cache.invalidateStandard(id)
 			return result
 		})
 	}
@@ -280,8 +271,7 @@ export class UserService {
 			})
 			if (!result) throw UserError.notFound(id)
 
-			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
-
+			await this.cache.invalidateStandard(id)
 			return result
 		})
 	}

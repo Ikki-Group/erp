@@ -1,5 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { assertFound } from '@/infra/database'
 import { logger } from '@/infra/logger'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
@@ -112,8 +113,7 @@ export class IamComposedService {
 
 	async getDetailById(id: number): Promise<UserDetailDto> {
 		return record('IamComposedService.getDetailById', async () => {
-			const user = await this.deps.user.getById(id)
-			if (!user) throw UserError.notFound(id)
+			const user = assertFound(await this.deps.user.getById(id), () => UserError.notFound(id))
 			return this.#mapUserDetail(user, await this.#loadRelations([user.id]))
 		})
 	}

@@ -3,7 +3,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { rolesTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
+import { assertFound, checkConflict, defineConflictFields, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
@@ -20,7 +20,7 @@ import { SYSTEM_ROLES } from '../constants'
 import { RoleError } from './role.internal'
 import type { IRoleRepo } from './role.repo'
 
-const roleConflictFields: ConflictField<{ code: string; name: string }>[] = [
+const roleConflictFields = defineConflictFields<RoleCreateDto>()([
 	{
 		field: 'code',
 		column: rolesTable.code,
@@ -33,7 +33,7 @@ const roleConflictFields: ConflictField<{ code: string; name: string }>[] = [
 		message: 'Role name already exists',
 		code: 'ROLE_NAME_ALREADY_EXISTS',
 	},
-]
+])
 
 export class RoleService {
 	private readonly cache: CacheService
@@ -77,11 +77,11 @@ export class RoleService {
 	}
 
 	async getSuperadmin(): Promise<RoleDto> {
-		return record('RoleService.getSuperadmin', async () => {
-			const result = await this.getById(SYSTEM_ROLES.SUPERADMIN_ID)
-			if (!result) throw RoleError.notFound(SYSTEM_ROLES.SUPERADMIN_ID)
-			return result
-		})
+		return record('RoleService.getSuperadmin', async () =>
+			assertFound(await this.getById(SYSTEM_ROLES.SUPERADMIN_ID), () =>
+				RoleError.notFound(SYSTEM_ROLES.SUPERADMIN_ID),
+			),
+		)
 	}
 
 	async seed(data: (RoleCreateDto & { createdBy: ActorId })[], db: DbContext): Promise<void> {
@@ -99,18 +99,13 @@ export class RoleService {
 	/* --------------------------------- HANDLE --------------------------------- */
 
 	async handleList(filter: RoleFilterDto): Promise<WithPaginationResult<RoleDto>> {
-		return record('RoleService.handleList', async () => {
-			const result = await this.repo.findPage(filter)
-			return result
-		})
+		return record('RoleService.handleList', async () => this.repo.findPage(filter))
 	}
 
 	async handleGetById(id: number): Promise<RoleDto> {
-		return record('RoleService.handleGetById', async () => {
-			const result = await this.getById(id)
-			if (!result) throw RoleError.notFound(id)
-			return result
-		})
+		return record('RoleService.handleGetById', async () =>
+			assertFound(await this.getById(id), () => RoleError.notFound(id)),
+		)
 	}
 
 	async handleCreate(data: RoleCreateDto, actorId: ActorId): Promise<EntityRef> {
@@ -129,7 +124,7 @@ export class RoleService {
 			})
 			if (!result) throw RoleError.createFailed()
 
-			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
+			await this.cache.invalidateStandard()
 			return result
 		})
 	}
@@ -138,8 +133,7 @@ export class RoleService {
 		return record('RoleService.handleUpdate', async () => {
 			const { id } = data
 
-			const existing = await this.repo.findById(id)
-			if (!existing) throw RoleError.notFound(id)
+			const existing = assertFound(await this.repo.findById(id), () => RoleError.notFound(id))
 			if (existing.isSystem) throw RoleError.updateSystemRole()
 
 			await checkConflict({
@@ -154,26 +148,20 @@ export class RoleService {
 			const result = await this.repo.update(id, { ...data, ...stampUpdate(actorId) })
 			if (!result) throw RoleError.notFound(id)
 
-			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.byId(id)])
+			await this.cache.invalidateStandard(id)
 			return result
 		})
 	}
 
 	async handleDelete(id: number): Promise<EntityRef> {
 		return record('RoleService.handleDelete', async () => {
-			const existing = await this.repo.findById(id)
-			if (!existing) throw RoleError.notFound(id)
+			const existing = assertFound(await this.repo.findById(id), () => RoleError.notFound(id))
 			if (existing.isSystem) throw RoleError.deleteSystemRole()
 
 			const result = await this.repo.remove(id)
 			if (!result) throw RoleError.notFound(id)
 
-			await this.cache.deleteFromKeys([
-				this.cache.keys.list,
-				this.cache.keys.count,
-				this.cache.keys.byId(id),
-			])
-
+			await this.cache.invalidateStandard(id)
 			return result
 		})
 	}

@@ -3,7 +3,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { locationsTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
+import { assertFound, checkConflict, defineConflictFields, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
@@ -18,7 +18,7 @@ import type {
 import { LocationError } from './location.internal'
 import type { ILocationRepo } from './location.repo'
 
-const uniqueFields: ConflictField<{ name: string; code: string }>[] = [
+const uniqueFields = defineConflictFields<LocationCreateDto>()([
 	{
 		field: 'name',
 		column: locationsTable.name,
@@ -31,7 +31,7 @@ const uniqueFields: ConflictField<{ name: string; code: string }>[] = [
 		message: 'Location code already exists',
 		code: 'LOCATION_CODE_ALREADY_EXISTS',
 	},
-]
+])
 
 export class LocationService {
 	private readonly cache: CacheService
@@ -45,13 +45,6 @@ export class LocationService {
 
 	toRelationMap(items: LocationDto[]): RelationMap<number, LocationDto> {
 		return RelationMap.fromArray(items, (v) => v.id)
-	}
-
-	/** Invalidate list/count caches, plus the byId cache when an id is given. */
-	private async invalidate(id?: number): Promise<void> {
-		const keys = [this.cache.keys.list, this.cache.keys.count]
-		if (id !== undefined) keys.push(this.cache.keys.byId(id))
-		await this.cache.deleteFromKeys(keys)
 	}
 
 	/* --------------------------------- READ ---------------------------------- */
@@ -113,14 +106,13 @@ export class LocationService {
 		})
 		if (!result) throw LocationError.createFailed()
 
-		await this.invalidate()
+		await this.cache.invalidateStandard()
 		return result
 	}
 
 	async update(data: LocationUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		const { id } = data
-		const existing = await this.getById(id)
-		if (!existing) throw LocationError.notFound(id)
+		const existing = assertFound(await this.getById(id), () => LocationError.notFound(id))
 
 		await checkConflict({
 			db: this.repo.db,
@@ -137,7 +129,7 @@ export class LocationService {
 		})
 		if (!result) throw LocationError.notFound(id)
 
-		await this.invalidate(id)
+		await this.cache.invalidateStandard(id)
 		return result
 	}
 
@@ -145,7 +137,7 @@ export class LocationService {
 		const result = await this.repo.remove(id)
 		if (!result) throw LocationError.notFound(id)
 
-		await this.invalidate(id)
+		await this.cache.invalidateStandard(id)
 		return result
 	}
 
@@ -159,11 +151,9 @@ export class LocationService {
 	}
 
 	async handleGetById(id: number): Promise<LocationDto> {
-		return record('LocationService.handleGetById', async () => {
-			const result = await this.getById(id)
-			if (!result) throw LocationError.notFound(id)
-			return result
-		})
+		return record('LocationService.handleGetById', async () =>
+			assertFound(await this.getById(id), () => LocationError.notFound(id)),
+		)
 	}
 
 	async handleCreate(data: LocationCreateDto, actorId: ActorId): Promise<EntityRef> {
