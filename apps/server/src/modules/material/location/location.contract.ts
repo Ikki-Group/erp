@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
 
-import { LocationDto } from '@/modules/location'
+import { LocationSchema } from '@/modules/location'
 import { UomDto } from '@/modules/uom'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -37,7 +37,7 @@ export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
 
 /** Enriched view with location details */
 const MaterialLocationWithLocationMutation = z.object({
-	location: LocationDto,
+	location: LocationSchema,
 })
 export const MaterialLocationWithLocationDto = z.object({
 	...MaterialLocationEntity.shape,

@@ -21,7 +21,7 @@ export interface ConflictField<T extends Record<string, unknown> = Record<string
  * Type-safe conflict field builder. Constrains `field` to keys of `T`.
  *
  * @example
- * const fields = defineConflictFields<LocationCreateDto>()([
+ * const fields = defineConflictFields<LocationCreateSchema>()([
  *   { field: 'name', column: locationsTable.name, message: '...', code: '...' },
  *   { field: 'code', column: locationsTable.code, message: '...', code: '...' },
  * ])

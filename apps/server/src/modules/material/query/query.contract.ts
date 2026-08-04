@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 import { zq } from '@/shared/schema'
 
-import { LocationDto } from '@/modules/location'
+import { LocationSchema } from '@/modules/location'
 
 import { MaterialCategoryEntity } from '../category/category.contract'
 import { MaterialConversionEntity } from '../conversion/conversion.contract'
@@ -18,7 +18,7 @@ export const MaterialQueryDetailDto = z.object({
 	...MaterialEntity.shape,
 	category: MaterialCategoryEntity.nullable(),
 	conversions: z.array(MaterialConversionEntity),
-	locations: z.array(LocationDto),
+	locations: z.array(LocationSchema),
 })
 export type MaterialQueryDetailDto = z.infer<typeof MaterialQueryDetailDto>
 

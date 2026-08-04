@@ -5,10 +5,10 @@ import { res } from '@/shared/http/response'
 import { createPaginatedResponseDto, createSuccessResponseDto, zc, zq } from '@/shared/schema'
 
 import {
-	LocationCreateDto,
-	LocationDto,
-	LocationFilterDto,
-	LocationUpdateDto,
+	LocationCreateSchema,
+	LocationFilterSchema,
+	LocationSchema,
+	LocationUpdateSchema,
 } from './location.contract'
 import type { LocationModule } from './location.module'
 
@@ -22,8 +22,8 @@ export function createLocationRoute(m: LocationModule) {
 				return res.paginated(result)
 			},
 			{
-				query: LocationFilterDto,
-				response: createPaginatedResponseDto(LocationDto),
+				query: LocationFilterSchema,
+				response: createPaginatedResponseDto(LocationSchema),
 				auth: true,
 			},
 		)
@@ -35,7 +35,7 @@ export function createLocationRoute(m: LocationModule) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseDto(LocationDto),
+				response: createSuccessResponseDto(LocationSchema),
 				auth: true,
 			},
 		)
@@ -46,7 +46,7 @@ export function createLocationRoute(m: LocationModule) {
 				return res.created(result)
 			},
 			{
-				body: LocationCreateDto,
+				body: LocationCreateSchema,
 				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},
@@ -58,7 +58,7 @@ export function createLocationRoute(m: LocationModule) {
 				return res.ok(result)
 			},
 			{
-				body: LocationUpdateDto,
+				body: LocationUpdateSchema,
 				response: createSuccessResponseDto(zc.RecordId),
 				auth: true,
 			},

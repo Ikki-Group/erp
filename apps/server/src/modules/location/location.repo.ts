@@ -1,11 +1,12 @@
 import { eq, getColumns, sql, type SQL } from 'drizzle-orm'
 
-import { locationsTable } from '@/db/schema'
+import { locationsTable, materialLocationsTable, userAssignmentsTable } from '@/db/schema'
 
 import {
 	allOf,
 	countWhere,
 	eqIf,
+	existsWhere,
 	paginateWindow,
 	searchAcross,
 	sortBy,
@@ -16,7 +17,7 @@ import {
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
-import type { LocationDto, LocationFilterDto } from './location.contract'
+import type { LocationFilterSchema, LocationSchema } from './location.contract'
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 type LocationInsert = typeof locationsTable.$inferInsert
@@ -33,10 +34,14 @@ type LocationUpdate = PgUpdateSetSource<typeof locationsTable>
 export interface ILocationRepo {
 	/** The default database context this repo is bound to (client or tx). */
 	readonly db: DbContext
-	findMany(filter?: LocationFilterDto, db?: DbContext): Promise<LocationDto[]>
-	findPage(filter: LocationFilterDto, db?: DbContext): Promise<WithPaginationResult<LocationDto>>
-	findById(id: number, db?: DbContext): Promise<LocationDto | undefined>
+	findMany(filter?: LocationFilterSchema, db?: DbContext): Promise<LocationSchema[]>
+	findPage(
+		filter: LocationFilterSchema,
+		db?: DbContext,
+	): Promise<WithPaginationResult<LocationSchema>>
+	findById(id: number, db?: DbContext): Promise<LocationSchema | undefined>
 	count(db?: DbContext): Promise<number>
+	hasReferences(id: number, db?: DbContext): Promise<boolean>
 	insert(data: LocationInsert, db?: DbContext): Promise<EntityRef | undefined>
 	insertMany(items: LocationInsert[], db?: DbContext): Promise<void>
 	update(id: number, data: LocationUpdate, db?: DbContext): Promise<EntityRef | undefined>
@@ -46,7 +51,7 @@ export interface ILocationRepo {
 export class LocationRepo implements ILocationRepo {
 	constructor(readonly db: DbContext) {}
 
-	#buildWhere(filter: Partial<Pick<LocationFilterDto, 'q' | 'type'>>): SQL | undefined {
+	#buildWhere(filter: Partial<Pick<LocationFilterSchema, 'q' | 'type'>>): SQL | undefined {
 		return allOf(
 			searchAcross(filter.q, [locationsTable.name, locationsTable.code]),
 			eqIf(locationsTable.type, filter.type),
@@ -54,17 +59,17 @@ export class LocationRepo implements ILocationRepo {
 	}
 
 	async findMany(
-		filter: Partial<Pick<LocationFilterDto, 'q' | 'type'>> = {},
+		filter: Partial<Pick<LocationFilterSchema, 'q' | 'type'>> = {},
 		db: DbContext = this.db,
-	): Promise<LocationDto[]> {
+	): Promise<LocationSchema[]> {
 		const where = this.#buildWhere(filter)
 		return db.select().from(locationsTable).where(where)
 	}
 
 	async findPage(
-		filter: LocationFilterDto,
+		filter: LocationFilterSchema,
 		db: DbContext = this.db,
-	): Promise<WithPaginationResult<LocationDto>> {
+	): Promise<WithPaginationResult<LocationSchema>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
 
@@ -80,7 +85,7 @@ export class LocationRepo implements ILocationRepo {
 		return paginateWindow(rows, filter)
 	}
 
-	async findById(id: number, db: DbContext = this.db): Promise<LocationDto | undefined> {
+	async findById(id: number, db: DbContext = this.db): Promise<LocationSchema | undefined> {
 		return db
 			.select()
 			.from(locationsTable)
@@ -117,6 +122,17 @@ export class LocationRepo implements ILocationRepo {
 			.where(eq(locationsTable.id, id))
 			.returning({ id: locationsTable.id })
 		return res
+	}
+
+	async hasReferences(id: number, db: DbContext = this.db): Promise<boolean> {
+		const hasAssignments = await existsWhere(
+			db,
+			userAssignmentsTable,
+			eq(userAssignmentsTable.locationId, id),
+		)
+		if (hasAssignments) return true
+
+		return existsWhere(db, materialLocationsTable, eq(materialLocationsTable.locationId, id))
 	}
 
 	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {

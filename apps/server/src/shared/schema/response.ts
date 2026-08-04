@@ -7,7 +7,7 @@ import { zc } from './common'
  * `{ success: true, code: string, data: T }`.
  *
  * @example
- * response: createSuccessResponseDto(LocationDto)
+ * response: createSuccessResponseDto(LocationSchema)
  */
 export function createSuccessResponseDto<T extends z.ZodType>(dataDto: T) {
 	return z.object({
@@ -22,7 +22,7 @@ export function createSuccessResponseDto<T extends z.ZodType>(dataDto: T) {
  * `{ success: true, code: string, data: T[], meta: PaginationMeta }`.
  *
  * @example
- * response: createPaginatedResponseDto(LocationDto)
+ * response: createPaginatedResponseDto(LocationSchema)
  */
 export function createPaginatedResponseDto<T extends z.ZodType>(itemDto: T) {
 	return z.object({

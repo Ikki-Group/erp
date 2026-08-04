@@ -13,9 +13,9 @@ import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
 import type {
-	LocationDto,
-	LocationFilterDto,
-	LocationUpdateDto,
+	LocationSchema,
+	LocationFilterSchema,
+	LocationUpdateSchema,
 } from '@/modules/location/location.contract'
 import type { ILocationRepo } from '@/modules/location/location.repo'
 import { LocationService } from '@/modules/location/location.service'
@@ -48,21 +48,21 @@ const noConflictDb = {
 /** Typed in-memory fake implementing the ILocationRepo port. */
 class FakeLocationRepo implements ILocationRepo {
 	readonly db = noConflictDb
-	store = new Map<number, LocationDto>()
+	store = new Map<number, LocationSchema>()
 	private seq = 0
 
-	seed(rows: LocationDto[]): void {
+	seed(rows: LocationSchema[]): void {
 		for (const r of rows) {
 			this.store.set(r.id, r)
 			this.seq = Math.max(this.seq, r.id)
 		}
 	}
 
-	async findMany(_filter: LocationFilterDto): Promise<LocationDto[]> {
+	async findMany(_filter: LocationFilterSchema): Promise<LocationSchema[]> {
 		return [...this.store.values()]
 	}
 
-	async findPage(filter: LocationFilterDto): Promise<WithPaginationResult<LocationDto>> {
+	async findPage(filter: LocationFilterSchema): Promise<WithPaginationResult<LocationSchema>> {
 		const data = [...this.store.values()]
 		const limit = filter.limit ?? 10
 		return {
@@ -76,7 +76,7 @@ class FakeLocationRepo implements ILocationRepo {
 		}
 	}
 
-	async findById(id: number): Promise<LocationDto | undefined> {
+	async findById(id: number): Promise<LocationSchema | undefined> {
 		return this.store.get(id)
 	}
 
@@ -84,9 +84,13 @@ class FakeLocationRepo implements ILocationRepo {
 		return this.store.size
 	}
 
+	async hasReferences(_id: number): Promise<boolean> {
+		return false
+	}
+
 	async insert(data: Parameters<ILocationRepo['insert']>[0]): Promise<EntityRef | undefined> {
 		const id = ++this.seq
-		this.store.set(id, { ...(data as unknown as LocationDto), id })
+		this.store.set(id, { ...(data as unknown as LocationSchema), id })
 		return { id }
 	}
 
@@ -100,7 +104,7 @@ class FakeLocationRepo implements ILocationRepo {
 	): Promise<EntityRef | undefined> {
 		const existing = this.store.get(id)
 		if (!existing) return undefined
-		this.store.set(id, { ...existing, ...(data as Partial<LocationDto>), id })
+		this.store.set(id, { ...existing, ...(data as Partial<LocationSchema>), id })
 		return { id }
 	}
 
@@ -111,7 +115,7 @@ class FakeLocationRepo implements ILocationRepo {
 	}
 }
 
-function makeLocation(overrides: Partial<LocationDto> = {}): LocationDto {
+function makeLocation(overrides: Partial<LocationSchema> = {}): LocationSchema {
 	return {
 		id: 1,
 		code: 'WH-001',
@@ -178,9 +182,8 @@ describe('LocationService (unit)', () => {
 		test('updates an existing location and stamps updatedBy', async () => {
 			repo.seed([makeLocation({ id: 1, name: 'Old' })])
 
-			const dto: LocationUpdateDto = {
+			const dto: LocationUpdateSchema = {
 				id: 1,
-				code: 'WH-001',
 				name: 'Updated',
 				type: 'warehouse',
 				description: null,
@@ -197,9 +200,8 @@ describe('LocationService (unit)', () => {
 		})
 
 		test('throws NotFound when updating a missing location', async () => {
-			const dto: LocationUpdateDto = {
+			const dto: LocationUpdateSchema = {
 				id: 404,
-				code: 'X',
 				name: 'X',
 				type: 'store',
 				description: null,

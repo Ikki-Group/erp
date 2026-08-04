@@ -3,8 +3,7 @@
  *
  * Runs WITHOUT a database. The composed service depends on sibling services and
  * its own repo port (`IIamComposedRepo`); we pass typed fakes. This covers the
- * two branches with real logic: the superadmin (isRoot) synthetic-assignment
- * path, and the dangling-FK guard for normal users.
+ * global-scope role access detection and the dangling-FK guard for normal users.
  */
 
 import type { WithPaginationResult } from '@/shared/types/pagination'
@@ -16,7 +15,7 @@ import type { IIamComposedRepo } from '@/modules/iam/composed/composed.repo'
 import { IamComposedService } from '@/modules/iam/composed/composed.service'
 import type { RoleDto } from '@/modules/iam/role/role.contract'
 import type { UserDto } from '@/modules/iam/user/user.contract'
-import type { LocationDto } from '@/modules/location'
+import type { LocationSchema } from '@/modules/location'
 
 import { describe, expect, test } from 'bun:test'
 
@@ -31,12 +30,13 @@ async function expectReject(promise: Promise<unknown>): Promise<void> {
 	expect(threw).toBe(true)
 }
 
-const SUPERADMIN_ROLE: RoleDto = {
+const OWNER_ROLE: RoleDto = {
 	id: 1,
-	code: 'SUPERADMIN',
-	name: 'Superadmin',
+	code: 'OWNER',
+	name: 'Owner',
 	description: null,
-	permissions: [],
+	scope: 'global',
+	permissions: ['*'],
 	isSystem: true,
 	createdBy: 1,
 	updatedBy: 1,
@@ -44,9 +44,17 @@ const SUPERADMIN_ROLE: RoleDto = {
 	updatedAt: new Date(),
 }
 
-const ROLE_2: RoleDto = { ...SUPERADMIN_ROLE, id: 2, code: 'STAFF', name: 'Staff', isSystem: false }
+const STAFF_ROLE: RoleDto = {
+	...OWNER_ROLE,
+	id: 2,
+	code: 'STAFF',
+	name: 'Staff',
+	scope: 'location',
+	permissions: [],
+	isSystem: false,
+}
 
-const LOCATION_1: LocationDto = {
+const LOCATION_1: LocationSchema = {
 	id: 10,
 	code: 'WH-1',
 	name: 'Warehouse',
@@ -68,8 +76,6 @@ function makeUser(overrides: Partial<UserDto> = {}): UserDto {
 		username: 'u',
 		fullname: 'User',
 		pinCode: null,
-		isRoot: false,
-		isSystem: false,
 		isActive: true,
 		defaultLocationId: null,
 		createdBy: 1,
@@ -85,32 +91,23 @@ function buildService(opts: {
 	users: UserDto[]
 	assignmentsByUser?: Record<number, UserAssignmentDto[]>
 	roles?: RoleDto[]
-	locations?: LocationDto[]
+	locations?: LocationSchema[]
 }) {
-	const roles = opts.roles ?? [SUPERADMIN_ROLE, ROLE_2]
+	const roles = opts.roles ?? [OWNER_ROLE, STAFF_ROLE]
 	const locations = opts.locations ?? [LOCATION_1]
 	const assignmentsByUser = opts.assignmentsByUser ?? {}
 
 	const deps = {
 		assignment: {
 			getRecordByUserId: async (_ids: number[]) => assignmentsByUser,
-			getDefaultAssignmentForSuperadmin: (): UserAssignmentDto => ({
-				id: 999999,
-				userId: 999999,
-				roleId: SUPERADMIN_ROLE.id,
-				locationId: 999999,
-				addedAt: new Date(),
-				addedBy: 999999,
-			}),
 		},
 		role: {
-			getSuperadmin: async () => SUPERADMIN_ROLE,
 			getAll: async () => roles,
 			toRelationMap: (r: RoleDto[]) => RelationMap.fromArray(r, (x) => x.id),
 		},
 		location: {
 			getListAll: async () => locations,
-			toRelationMap: (l: LocationDto[]) => RelationMap.fromArray(l, (x) => x.id),
+			toRelationMap: (l: LocationSchema[]) => RelationMap.fromArray(l, (x) => x.id),
 		},
 		user: {
 			getById: async (id: number) => opts.users.find((u) => u.id === id),
@@ -139,20 +136,35 @@ function buildService(opts: {
 }
 
 describe('IamComposedService (unit)', () => {
-	test('root user gets a synthetic assignment for every location', async () => {
-		const service = buildService({ users: [makeUser({ id: 1, isRoot: true })] })
+	test('user with global-scoped role has hasGlobalAccess = true', async () => {
+		const service = buildService({
+			users: [makeUser({ id: 1 })],
+			assignmentsByUser: {
+				1: [
+					{
+						id: 1,
+						userId: 1,
+						roleId: OWNER_ROLE.id,
+						locationId: 10,
+						addedAt: new Date(),
+						addedBy: 1,
+					},
+				],
+			},
+		})
 
 		const result = await service.getListPaginated({ page: 1, limit: 10, q: undefined })
 
 		expect(result.data).toHaveLength(1)
-		expect(result.data[0]!.assignments).toHaveLength(1) // one location
-		expect(result.data[0]!.assignments[0]!.role.code).toBe('SUPERADMIN')
+		expect(result.data[0]!.hasGlobalAccess).toBe(true)
+		expect(result.data[0]!.assignments).toHaveLength(1)
+		expect(result.data[0]!.assignments[0]!.role.code).toBe('OWNER')
 		expect(result.data[0]!.assignments[0]!.location.id).toBe(LOCATION_1.id)
 	})
 
 	test('normal user maps real assignments through the relation maps', async () => {
 		const service = buildService({
-			users: [makeUser({ id: 100, isRoot: false })],
+			users: [makeUser({ id: 100 })],
 			assignmentsByUser: {
 				100: [{ id: 1, userId: 100, roleId: 2, locationId: 10, addedAt: new Date(), addedBy: 1 }],
 			},
@@ -160,6 +172,7 @@ describe('IamComposedService (unit)', () => {
 
 		const result = await service.getListPaginated({ page: 1, limit: 10, q: undefined })
 
+		expect(result.data[0]!.hasGlobalAccess).toBe(false)
 		expect(result.data[0]!.assignments).toHaveLength(1)
 		expect(result.data[0]!.assignments[0]!.role.code).toBe('STAFF')
 		expect(result.data[0]!.assignments[0]!.location.id).toBe(10)
@@ -167,7 +180,7 @@ describe('IamComposedService (unit)', () => {
 
 	test('dangling FK (missing role/location) is skipped, not fatal', async () => {
 		const service = buildService({
-			users: [makeUser({ id: 100, isRoot: false })],
+			users: [makeUser({ id: 100 })],
 			assignmentsByUser: {
 				// roleId 999 does not exist in the roles map → must be skipped
 				100: [{ id: 1, userId: 100, roleId: 999, locationId: 10, addedAt: new Date(), addedBy: 1 }],
