@@ -19,16 +19,16 @@ When you need context about a topic, follow this lookup order:
 
 ### What to read for common tasks
 
-| Task                                     | Read first                                                     |
-| ---------------------------------------- | -------------------------------------------------------------- |
-| Building a new server module             | `docs/server/02-module-standard.md` → `05-module-checklist.md` |
-| Understanding server layers/architecture | `docs/server/01-server-architecture.md`                        |
-| Writing Zod schemas, services, repos     | `docs/server/04-code-patterns.md`                              |
-| Naming, imports, TS style, HTTP rules    | `docs/server/03-code-standard.md`                              |
-| Database schema changes                  | `docs/database/readme.md` → `standards/`                       |
-| Understanding business workflows         | `docs/product/WORKFLOWS.md`                                    |
-| Product requirements & vision            | `docs/product/PRD.md`, `VISION.md`                             |
-| Toolchain, commands, deploy              | `AGENTS.md` (root)                                             |
+| Task                                     | Read first                                               |
+| ---------------------------------------- | -------------------------------------------------------- |
+| Building a new server module             | `docs/server/02-module-standard.md` → `06-module-map.md` |
+| Understanding server layers/architecture | `docs/server/01-server-architecture.md`                  |
+| Writing Zod schemas, services, repos     | `docs/server/04-code-patterns.md`                        |
+| Naming, imports, TS style, HTTP rules    | `docs/server/03-code-standard.md`                        |
+| Database schema changes                  | `docs/database/readme.md` → `standards/`                 |
+| Understanding business workflows         | `docs/product/10-workflows.md`                           |
+| Product requirements & vision            | `docs/product/01-vision.md`, `readme.md`                 |
+| Toolchain, commands, deploy              | `AGENTS.md` (root)                                       |
 
 ## Structure & Organization
 
