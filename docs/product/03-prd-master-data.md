@@ -10,18 +10,20 @@ Raw materials consumed by recipes. Tracked per location. **Global catalog** — 
 
 ### Fields
 
-| Field                | Type     | Description                                              |
-| -------------------- | -------- | -------------------------------------------------------- |
-| code                 | string   | Unique material code                                     |
-| name                 | string   | Material name (e.g. "Espresso Beans", "Susu Full Cream") |
-| categoryId           | FK?      | Material category                                        |
-| baseUomId            | FK       | Base unit of measure (source of truth for stock balance) |
-| defaultPurchaseUomId | FK?      | Default UoM shown in receiving forms (fallback: baseUom) |
-| defaultStockUomId    | FK?      | Default UoM shown in stock views (fallback: baseUom)     |
-| defaultRecipeUomId   | FK?      | Default UoM shown in recipe forms (fallback: baseUom)    |
-| minStock             | decimal? | Alert threshold (in base UoM, across all locations)      |
+| Field                | Type     | Description                                                |
+| -------------------- | -------- | ---------------------------------------------------------- |
+| code                 | string   | Unique material code                                       |
+| name                 | string   | Material name (e.g. "Espresso Beans", "Susu Full Cream")   |
+| type                 | enum     | `raw` (purchased) or `semi_finished` (produced internally) |
+| categoryId           | FK?      | Material category                                          |
+| baseUomId            | FK       | Base unit of measure (source of truth for stock balance)   |
+| defaultPurchaseUomId | FK?      | Default UoM shown in receiving forms (fallback: baseUom)   |
+| defaultStockUomId    | FK?      | Default UoM shown in stock views (fallback: baseUom)       |
+| defaultRecipeUomId   | FK?      | Default UoM shown in recipe forms (fallback: baseUom)      |
+| minStock             | decimal? | Alert threshold (in base UoM, across all locations)        |
 
 > Note: `cost_price` lives on `stock_balances` (per-location), not here. See [03-prd-master-data-costing.md](./03-prd-master-data-costing.md).
+> For semi-finished items and production, see [03-prd-master-data-production.md](./03-prd-master-data-production.md).
 
 ### Material Category
 

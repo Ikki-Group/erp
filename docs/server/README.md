@@ -15,13 +15,14 @@ Index for Ikki ERP backend architecture and code standards.
 
 ## Documents
 
-| File | Purpose |
-|------|---------|
-| [01-server-architecture.md](./01-server-architecture.md) | System design, layering, infra |
-| [02-module-standard.md](./02-module-standard.md) | Module structure (source of truth) |
-| [03-code-standard.md](./03-code-standard.md) | Naming, imports, TS style, HTTP rules |
-| [04-code-patterns.md](./04-code-patterns.md) | Zod, service, repo, cache patterns |
-| [05-module-checklist.md](./05-module-checklist.md) | Step-by-step module build guide |
+| File                                                     | Purpose                                        |
+| -------------------------------------------------------- | ---------------------------------------------- |
+| [01-server-architecture.md](./01-server-architecture.md) | System design, layering, infra                 |
+| [02-module-standard.md](./02-module-standard.md)         | Module structure (source of truth)             |
+| [03-code-standard.md](./03-code-standard.md)             | Naming, imports, TS style, HTTP rules          |
+| [04-code-patterns.md](./04-code-patterns.md)             | Zod, service, repo, cache patterns             |
+| [05-module-checklist.md](./05-module-checklist.md)       | Step-by-step module build guide                |
+| [06-module-map.md](./06-module-map.md)                   | Complete module registry, layers, dependencies |
 
 ## Module Dependency Layers
 
