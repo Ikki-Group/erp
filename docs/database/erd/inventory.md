@@ -1,6 +1,6 @@
 # ERD: Inventory
 
-Stock Balances, Movements, Transfer Requests, Opname, Receiving.
+Stock Balances, Movements, Transfer Requests, Opname, Receiving, Production.
 
 ## Mermaid
 
@@ -11,12 +11,13 @@ erDiagram
         int material_id FK
         int location_id FK
         decimal quantity
+        decimal cost_price "weighted avg per location"
     }
     STOCK_MOVEMENTS {
         int id PK
         int material_id FK
         int location_id FK
-        string type
+        string type "purchase_receipt | transfer | sales | production | adjustment"
         string direction "in | out"
         decimal quantity
         decimal cost_price
@@ -53,27 +54,60 @@ erDiagram
         int material_id FK
         decimal system_qty
         decimal actual_qty
-        string reason
     }
     RECEIVINGS {
         int id PK
+        string receiving_no UK
         int location_id FK
         int supplier_id FK
         int received_by FK
     }
+    RECEIVING_LINES {
+        int id PK
+        int receiving_id FK
+        int material_id FK
+        decimal quantity
+        decimal unit_cost
+        int uom_id FK
+    }
+    PRODUCTION_RECIPES {
+        int id PK
+        int material_id FK "output semi_finished"
+        string name
+        decimal yield_qty
+        int yield_uom_id FK
+        boolean is_active
+    }
+    PRODUCTION_RECIPE_LINES {
+        int id PK
+        int recipe_id FK
+        int material_id FK "input"
+        decimal quantity
+        int uom_id FK
+    }
+    PRODUCTION_ORDERS {
+        int id PK
+        string production_no UK
+        int location_id FK
+        int material_id FK
+        int recipe_id FK
+        string status "draft | completed | cancelled"
+        decimal planned_qty
+        decimal actual_qty
+        int produced_by FK
+    }
 
     LOCATIONS ||--o{ STOCK_BALANCES : "stores"
-    MATERIALS ||--o{ STOCK_BALANCES : "tracked at"
-    LOCATIONS ||--o{ STOCK_MOVEMENTS : "occurs at"
-    LOCATIONS ||--o{ TRANSFER_REQUESTS : "from"
-    LOCATIONS ||--o{ TRANSFER_REQUESTS : "to"
+    MATERIALS ||--o{ STOCK_BALANCES : "tracked"
+    LOCATIONS ||--o{ STOCK_MOVEMENTS : "at"
     TRANSFER_REQUESTS ||--|{ TRANSFER_LINES : "contains"
     STOCK_OPNAMES ||--|{ STOCK_OPNAME_LINES : "counts"
-    LOCATIONS ||--o{ STOCK_OPNAMES : "counted at"
-    LOCATIONS ||--o{ RECEIVINGS : "receives at"
+    RECEIVINGS ||--|{ RECEIVING_LINES : "contains"
+    PRODUCTION_RECIPES ||--|{ PRODUCTION_RECIPE_LINES : "inputs"
+    MATERIALS ||--o| PRODUCTION_RECIPES : "produced by"
 ```
 
-[Open/Edit diagram](https://l.mermaid.ai/kUjn0S)
+[Open/Edit diagram](https://l.mermaid.ai/JTM44m)
 
 ## Diagram
 

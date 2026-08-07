@@ -6,22 +6,32 @@ Materials, UoM (chain), Suppliers. All global (not scoped to location).
 
 ```mermaid
 erDiagram
+    MATERIAL_CATEGORIES {
+        int id PK
+        string name
+    }
     MATERIALS {
         int id PK
         string code UK
         string name
+        string type "raw | semi_finished"
         int category_id FK
-        int purchase_uom_id FK
-        int storage_uom_id FK
-        int recipe_uom_id FK
-        decimal cost_price
-        decimal min_stock
+        int base_uom_id FK
+        int default_purchase_uom_id FK "nullable"
+        int default_stock_uom_id FK "nullable"
+        int default_recipe_uom_id FK "nullable"
+        decimal min_stock "nullable"
+    }
+    MATERIAL_LOCATIONS {
+        int id PK
+        int material_id FK
+        int location_id FK
     }
     UOMS {
         int id PK
         string code UK
         string name
-        string category
+        string category "weight | volume | quantity"
     }
     UOM_CONVERSIONS {
         int id PK
@@ -44,14 +54,17 @@ erDiagram
         int uom_id FK
     }
 
+    MATERIAL_CATEGORIES ||--o{ MATERIALS : "groups"
+    UOMS ||--o{ MATERIALS : "base unit"
     UOMS ||--o{ UOM_CONVERSIONS : "from"
     UOMS ||--o{ UOM_CONVERSIONS : "to"
-    UOMS ||--o{ MATERIALS : "measured in"
+    MATERIALS ||--o{ MATERIAL_LOCATIONS : "assigned to"
+    LOCATIONS ||--o{ MATERIAL_LOCATIONS : "has"
     SUPPLIERS ||--o{ SUPPLIER_MATERIALS : "provides"
     MATERIALS ||--o{ SUPPLIER_MATERIALS : "supplied by"
 ```
 
-[Open/Edit diagram](https://l.mermaid.ai/BgXScj)
+[Open/Edit diagram](https://l.mermaid.ai/IRMjep)
 
 ## Diagram
 
