@@ -19,13 +19,13 @@ A single web application connecting: POS → Inventory → Recipe → Finance, w
 
 ## Target Users
 
-| Persona | Primary need |
-|---------|--------------|
-| Owner | P&L visibility, multi-location overview, decision support |
-| Manager | Daily operations: stock alerts, sales summary, staffing |
-| Cashier | Fast order entry, open/close bill, shift management |
-| Warehouse Staff | Receive goods, fulfill transfer requests, stock opname |
-| Accountant | Journal entries, financial reports, reconciliation |
+| Persona         | Primary need                                              |
+| --------------- | --------------------------------------------------------- |
+| Owner           | P&L visibility, multi-location overview, decision support |
+| Manager         | Daily operations: stock alerts, sales summary, staffing   |
+| Cashier         | Fast order entry, open/close bill, shift management       |
+| Warehouse Staff | Receive goods, fulfill transfer requests, stock opname    |
+| Accountant      | Journal entries, financial reports, reconciliation        |
 
 ## Product Principles
 
@@ -38,12 +38,12 @@ A single web application connecting: POS → Inventory → Recipe → Finance, w
 
 ## Success Metrics
 
-| Metric | Target |
-|--------|--------|
-| Stock accuracy | > 95% (physical count vs system) |
-| HPP visibility | Real-time per menu item |
-| Daily close time | < 15 min (shift close → journals posted) |
-| New location onboarding | < 1 day |
+| Metric                  | Target                                   |
+| ----------------------- | ---------------------------------------- |
+| Stock accuracy          | > 95% (physical count vs system)         |
+| HPP visibility          | Real-time per menu item                  |
+| Daily close time        | < 15 min (shift close → journals posted) |
+| New location onboarding | < 1 day                                  |
 
 ## Non-Goals (Phase 1)
 
@@ -54,16 +54,16 @@ A single web application connecting: POS → Inventory → Recipe → Finance, w
 
 ## Tech Stack
 
-| Layer | Choice |
-|-------|--------|
-| Runtime | Bun |
-| API | Elysia |
-| Database | PostgreSQL |
-| ORM | Drizzle |
-| Cache | Redis (BentoCache) |
-| Validation | Zod |
-| Frontend | React 19 + Vite + TanStack Router |
-| Auth | Session-based (Redis-backed) |
+| Layer      | Choice                            |
+| ---------- | --------------------------------- |
+| Runtime    | Bun                               |
+| API        | Elysia                            |
+| Database   | PostgreSQL (Neon — serverless)    |
+| ORM        | Drizzle                           |
+| Cache      | In-memory (single instance)       |
+| Validation | Zod                               |
+| Frontend   | React 19 + Vite + TanStack Router |
+| Auth       | Session-based (in-memory store)   |
 
 ---
 

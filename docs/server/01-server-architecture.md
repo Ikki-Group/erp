@@ -4,16 +4,16 @@ System design and layering for the Ikki ERP backend.
 
 ## Stack
 
-| Component | Technology |
-|-----------|-----------|
-| Runtime | Bun |
-| Framework | Elysia |
-| Database | PostgreSQL |
-| ORM | Drizzle |
-| Cache | Redis via BentoCache |
-| Validation | Zod |
-| Auth | Session-based (Redis) |
-| Telemetry | OpenTelemetry (record wrapper) |
+| Component  | Technology                     |
+| ---------- | ------------------------------ |
+| Runtime    | Bun                            |
+| Framework  | Elysia                         |
+| Database   | PostgreSQL                     |
+| ORM        | Drizzle                        |
+| Cache      | In-memory (single instance)    |
+| Validation | Zod                            |
+| Auth       | Session-based (Redis)          |
+| Telemetry  | OpenTelemetry (record wrapper) |
 
 ## Project Layout
 
@@ -78,9 +78,9 @@ Every authenticated request carries `auth.locationId` (from session). Services u
 
 ```ts
 // Route extracts location from session
-async ({ auth }) => {
-  const result = await m.handleList(query, auth.locationId)
-  return res.paginated(result)
+;async ({ auth }) => {
+	const result = await m.handleList(query, auth.locationId)
+	return res.paginated(result)
 }
 ```
 
@@ -99,17 +99,19 @@ async ({ auth }) => {
 
 ## Caching Strategy
 
+- In-memory cache (single server instance, no Redis).
 - Read-through: `cache.getOrSet` / `cache.getOrSetWithSkip`.
-- Invalidation: `cache.invalidateStandard()` after every mutation.
-- Cache keys: `{module}:byId:{id}`, `{module}:list`, `{module}:count`.
+- Hybrid invalidation: event-based for entity/reference data, TTL for lists/aggregates.
+- Cache warming on startup for near-static reference data.
+- See `docs/database/caching.md` for full strategy per data tier.
 
 ## Testing Strategy
 
-| Type | Location | Approach |
-|------|----------|----------|
-| Unit | `src/tests/unit/` | Typed in-memory fake implementing repo port. No DB. |
-| Integration | `src/tests/services/` | Real DB (test container), full service + repo. |
-| E2E | `apps/e2e/` | Playwright against running server + web. |
+| Type        | Location              | Approach                                            |
+| ----------- | --------------------- | --------------------------------------------------- |
+| Unit        | `src/tests/unit/`     | Typed in-memory fake implementing repo port. No DB. |
+| Integration | `src/tests/services/` | Real DB (test container), full service + repo.      |
+| E2E         | `apps/e2e/`           | Playwright against running server + web.            |
 
 ---
 
