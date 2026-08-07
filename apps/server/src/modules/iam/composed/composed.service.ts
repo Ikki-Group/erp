@@ -7,6 +7,7 @@ import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { LocationModule } from '@/modules/location'
 
 import type { UserAssignmentService } from '../assignment/assignment.service'
+import { isGlobalRole } from '../role/role.contract'
 import type { RoleService } from '../role/role.service'
 import type { UserDto } from '../user/user.contract'
 import { UserError } from '../user/user.internal'
@@ -16,7 +17,6 @@ import type { IIamComposedRepo } from './composed.repo'
 
 interface UserRelations {
 	assignments: Awaited<ReturnType<UserAssignmentService['getRecordByUserId']>>
-	superadmin: Awaited<ReturnType<RoleService['getSuperadmin']>>
 	rolesMap: Awaited<ReturnType<RoleService['toRelationMap']>>
 	locationsMap: Awaited<ReturnType<LocationModule['toRelationMap']>>
 }
@@ -35,15 +35,13 @@ export class IamComposedService {
 	) {}
 
 	async #loadRelations(userIds: number[]): Promise<UserRelations> {
-		const [assignments, superadmin, rolesMap, locationsMap] = await Promise.all([
+		const [assignments, rolesMap, locationsMap] = await Promise.all([
 			this.deps.assignment.getRecordByUserId(userIds),
-			this.deps.role.getSuperadmin(),
 			this.deps.role.getAll().then((x) => this.deps.role.toRelationMap(x)),
 			this.deps.location.getListAll().then((x) => this.deps.location.toRelationMap(x)),
 		])
 
 		return {
-			superadmin,
 			assignments,
 			rolesMap,
 			locationsMap,
@@ -51,45 +49,47 @@ export class IamComposedService {
 	}
 
 	#mapUserDetail(rawUser: UserDto, relations: UserRelations): UserDetailDto {
-		const user: UserDetailDto = {
-			...rawUser,
-			assignments: [],
-		}
+		const uas = relations.assignments[rawUser.id] ?? []
+		const assignments: UserDetailDto['assignments'] = []
+		let hasGlobalAccess = false
 
-		if (user.isRoot) {
-			user.assignments = relations.locationsMap
-				.mapToArray((v) => v)
-				.map((location) => ({
-					...this.deps.assignment.getDefaultAssignmentForSuperadmin(),
-					location,
-					role: relations.superadmin,
-				}))
-		} else {
-			const uas = relations.assignments[user.id]
-			if (uas && uas.length > 0) {
-				user.assignments = uas.flatMap((ua) => {
-					const role = relations.rolesMap.get(ua.roleId)
-					const location = relations.locationsMap.get(ua.locationId)
-					// Degrade gracefully on a dangling FK (e.g. removed role/location)
-					// instead of crashing the entire list page.
-					if (!role || !location) {
-						logger.warn(
-							'Skipping assignment {assignmentId} for user {userId}: missing role/location',
-							{
-								assignmentId: ua.id,
-								userId: user.id,
-								roleId: ua.roleId,
-								locationId: ua.locationId,
-							},
-						)
-						return []
-					}
-					return [{ ...ua, role, location }]
+		for (const ua of uas) {
+			const role = relations.rolesMap.get(ua.roleId)
+			const location = relations.locationsMap.get(ua.locationId)
+
+			// Degrade gracefully on a dangling FK (e.g. removed role/location)
+			// instead of crashing the entire list page.
+			if (!role || !location) {
+				logger.warn('Skipping assignment {assignmentId} for user {userId}: missing role/location', {
+					assignmentId: ua.id,
+					userId: rawUser.id,
+					roleId: ua.roleId,
+					locationId: ua.locationId,
 				})
+				continue
 			}
+
+			if (isGlobalRole(role)) {
+				hasGlobalAccess = true
+			}
+
+			assignments.push({ ...ua, role, location })
 		}
 
-		return user
+		// A user might have a global-scoped role without any assignment rows.
+		// Check all roles this user is assigned to determine global access.
+		if (!hasGlobalAccess && uas.length > 0) {
+			hasGlobalAccess = uas.some((ua) => {
+				const role = relations.rolesMap.get(ua.roleId)
+				return role ? isGlobalRole(role) : false
+			})
+		}
+
+		return {
+			...rawUser,
+			hasGlobalAccess,
+			assignments,
+		}
 	}
 
 	async getListPaginated(filter: UserFilterDto): Promise<WithPaginationResult<UserDetailDto>> {

@@ -11,12 +11,6 @@ import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 type UserInsert = typeof usersTable.$inferInsert
 type UserUpdate = PgUpdateSetSource<typeof usersTable>
 
-/**
- * Repository port for the user submodule. Services depend on this interface so
- * they can be unit-tested with in-memory fakes. Reads return `undefined` for
- * not-found (never `null`, never throw). Every write accepts an optional `db`
- * override so it can join a caller's transaction.
- */
 export interface IUserRepo {
 	readonly db: DbContext
 	getList(db?: DbContext): Promise<UserDto[]>

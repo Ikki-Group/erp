@@ -15,8 +15,6 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 import { RelationMap } from '@/shared/utils'
 import { hashPassword, verifyPassword } from '@/shared/utils/password'
 
-import type { LocationModule } from '@/modules/location'
-
 import type { UserAssignmentService } from '../assignment/assignment.service'
 import type {
 	UserDto,
@@ -46,10 +44,9 @@ const userConflictFields = defineConflictFields<{ email: string; username: strin
 
 interface ServiceDeps {
 	assignment: UserAssignmentService
-	location: LocationModule
 }
 
-/** Strip the password hash before a user record leaves the service boundary. */
+// Strip passwordHash before a user record leaves the service boundary.
 function toUserDto(user: UserWithPasswordDto): UserDto {
 	const { passwordHash: _passwordHash, ...rest } = user
 	return rest
@@ -93,7 +90,7 @@ export class UserService {
 	}
 
 	async seed(
-		items: (Pick<UserDto, 'id' | 'email' | 'username' | 'fullname' | 'isRoot' | 'createdBy'> & {
+		items: (Pick<UserDto, 'id' | 'email' | 'username' | 'fullname' | 'createdBy'> & {
 			password: string
 		})[],
 		db: DbContext,
@@ -132,7 +129,7 @@ export class UserService {
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('UserService.create', async () => {
-			const { assignments, isRoot } = data
+			const { assignments } = data
 
 			await checkConflict({
 				db: this.repo.db,
@@ -147,7 +144,7 @@ export class UserService {
 				const created = await this.repo.insert({ ...data, ...stampCreate(actorId) }, tx)
 				if (!created) throw UserError.createFailed()
 
-				if (!isRoot && assignments.length > 0) {
+				if (assignments.length > 0) {
 					await this.deps.assignment.replaceByUserId(
 						created.id,
 						assignments.map((a) => ({ roleId: a.roleId, locationId: a.locationId })),
@@ -170,7 +167,7 @@ export class UserService {
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('UserService.update', async () => {
-			const { assignments, isRoot } = data
+			const { assignments } = data
 
 			const existing = assertFound(await this.repo.getById(id), () => UserError.notFound(id))
 
@@ -187,14 +184,12 @@ export class UserService {
 				const updated = await this.repo.update(id, { ...data, ...stampUpdate(actorId) }, tx)
 				if (!updated) throw UserError.notFound(id)
 
-				if (!isRoot) {
-					await this.deps.assignment.replaceByUserId(
-						id,
-						assignments.map((a) => ({ roleId: a.roleId, locationId: a.locationId })),
-						actorId,
-						tx,
-					)
-				}
+				await this.deps.assignment.replaceByUserId(
+					id,
+					assignments.map((a) => ({ roleId: a.roleId, locationId: a.locationId })),
+					actorId,
+					tx,
+				)
 
 				return updated
 			})

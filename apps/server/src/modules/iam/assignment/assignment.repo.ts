@@ -13,11 +13,6 @@ interface FindManyOpts {
 	locationIds?: number | number[]
 }
 
-/**
- * Repository port for user-role-location assignments. Services depend on this
- * interface for unit testing. Writes accept an optional `db` override to join a
- * caller's transaction.
- */
 export interface IUserAssignmentRepo {
 	readonly db: DbContext
 	findMany(opts?: FindManyOpts, db?: DbContext): Promise<UserAssignmentDto[]>
@@ -45,9 +40,6 @@ export class UserAssignmentRepo implements IUserAssignmentRepo {
 			.where(where.length > 0 ? and(...where) : undefined)
 	}
 
-	/**
-	 * Replaces all assignments for the specified user.
-	 */
 	async replaceByUserId(
 		userId: number,
 		assignments: Omit<UserAssignmentDto, 'id'>[],

@@ -1,18 +1,51 @@
 /**
- * System role IDs (hardcoded in DB, immutable)
+ * System role codes — stable machine identifiers used in seeding and lookups.
+ * These match the `code` column in the roles table.
  */
-export const SYSTEM_ROLES = {
-	SUPERADMIN_ID: 1,
+export const SYSTEM_ROLE_CODES = {
+	OWNER: 'OWNER',
+	MANAGER: 'MANAGER',
+	CASHIER: 'CASHIER',
+	STAFF: 'STAFF',
 } as const
 
 /**
- * IAM configuration
+ * System role definitions for seeding.
+ *
+ * Each role has a fixed scope and default permission set.
+ * The OWNER role uses `['*']` (wildcard) meaning all permissions.
  */
-export const IAM_CONFIG = {
-	// Placeholder ID used for superadmin dynamic assignments
-	SUPERADMIN_PLACEHOLDER_ID: 999999,
-
-	// Cache TTL (in seconds) - optional, if using explicit TTL
-	CACHE_TTL_SHORT: 300, // 5 minutes
-	CACHE_TTL_LONG: 3600, // 1 hour
-} as const
+export const SYSTEM_ROLE_DEFINITIONS = [
+	{
+		code: SYSTEM_ROLE_CODES.OWNER,
+		name: 'Owner',
+		description: 'Business owner — full access to all locations and features',
+		scope: 'global' as const,
+		permissions: ['*'],
+		isSystem: true,
+	},
+	{
+		code: SYSTEM_ROLE_CODES.MANAGER,
+		name: 'Manager',
+		description: 'Location manager — manages assigned location operations',
+		scope: 'location' as const,
+		permissions: [],
+		isSystem: true,
+	},
+	{
+		code: SYSTEM_ROLE_CODES.CASHIER,
+		name: 'Cashier',
+		description: 'Cashier — handles sales transactions at assigned location',
+		scope: 'location' as const,
+		permissions: [],
+		isSystem: true,
+	},
+	{
+		code: SYSTEM_ROLE_CODES.STAFF,
+		name: 'Staff',
+		description: 'General staff — basic operational access at assigned location',
+		scope: 'location' as const,
+		permissions: [],
+		isSystem: true,
+	},
+] as const

@@ -10,19 +10,14 @@ export const UserDto = z.object({
 	username: zp.str,
 	fullname: zp.str,
 	pinCode: zp.str.nullable(),
-	isRoot: zp.bool,
-	isSystem: zp.bool,
 	isActive: zp.bool,
 	defaultLocationId: zp.id.nullable(),
 	...zc.AuditBasic.shape,
 })
 export type UserDto = z.infer<typeof UserDto>
 
-/**
- * Internal persistence shape — includes `passwordHash`. NOT an HTTP response
- * DTO; never return this from a route. Used only by the auth/user service and
- * repo layers.
- */
+// Internal persistence shape — includes passwordHash.
+// NOT an HTTP response DTO; never return this from a route.
 export const UserWithPasswordDto = z.object({
 	...UserDto.shape,
 	passwordHash: zp.str.nullable(),
@@ -37,7 +32,6 @@ const UserMutationDto = z.object({
 	fullname: zc.fullname,
 	pinCode: zp.strNullable,
 	isActive: zp.bool.default(true),
-	isRoot: zp.bool.default(false),
 	defaultLocationId: zp.id.nullable(),
 	assignments: z.array(
 		z.object({

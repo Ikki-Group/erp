@@ -31,14 +31,7 @@ export function createIamModule(db: DbContext, cacheClient: CacheClient, deps: D
 
 	const role = new RoleService(roleRepo, cacheClient)
 	const assignment = new UserAssignmentService(assignmentRepo, cacheClient)
-	const user = new UserService(
-		{
-			location: deps.location,
-			assignment,
-		},
-		userRepo,
-		cacheClient,
-	)
+	const user = new UserService({ assignment }, userRepo, cacheClient)
 	const composed = new IamComposedService(
 		{
 			role,

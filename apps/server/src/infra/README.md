@@ -19,14 +19,14 @@ because `logger.ts` and `otel/otel.ts` have module-load side effects):
 Drizzle helpers shared by every repo. Pure functions + types, no state. One
 file per concern:
 
-| File             | Exports                                                                                  |
-| ---------------- | ---------------------------------------------------------------------------------------- |
-| `types.ts`       | `DbClient` / `DbTx` / `DbContext`                                                        |
-| `row.ts`         | `takeFirst`, `takeFirstOrThrow`                                                          |
+| File             | Exports                                                                                                     |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| `types.ts`       | `DbClient` / `DbTx` / `DbContext`                                                                           |
+| `row.ts`         | `takeFirst`, `takeFirstOrThrow`, `assertFound`                                                              |
 | `query.ts`       | `sortBy`, `allOf`/`anyOf`, `searchFilter`/`searchAcross`, `eqIf`, `notDeleted`, `existsWhere`, `countWhere` |
-| `pagination.ts`  | `paginate`, `paginateWindow`, `buildPaginationMeta`, `toLimitOffset`                     |
-| `transaction.ts` | `withTransaction`                                                                        |
-| `conflict.ts`    | `checkConflict` (pre-check) + `catchUniqueViolation` (constraint-based)                  |
+| `pagination.ts`  | `paginate`, `paginateWindow`, `buildPaginationMeta`, `toLimitOffset`                                        |
+| `transaction.ts` | `withTransaction`                                                                                           |
+| `conflict.ts`    | `checkConflict`, `catchUniqueViolation`, `defineConflictFields`, `CheckConflictOptions`                     |
 
 ### Types
 
@@ -37,6 +37,7 @@ service can thread its `DbTx` into every write for atomic multi-write ops.
 
 - `takeFirst(rows)` → `rows[0] | undefined` — the standard "not found = undefined".
 - `takeFirstOrThrow(rows, msg, code)` → throws `NotFoundError` (use sparingly).
+- `assertFound(value, errorFactory)` → returns `value` if defined, otherwise calls `errorFactory()` and throws. The standard "get-or-throw" in service `handleX` methods.
 - `existsWhere(db, table, where)` → `boolean` (`LIMIT 1`).
 - `countWhere(db, table, where?)` → `number`.
 
@@ -45,9 +46,9 @@ service can thread its `DbTx` into every write for atomic multi-write ops.
 ```ts
 // drops undefined/false/null so optional filters inline cleanly
 const where = allOf(
-  searchAcross(filter.q, [users.name, users.email]), // ILIKE across columns
-  eqIf(users.locationId, filter.locationId),          // eq() only when defined
-  eqIf(users.isActive, filter.isActive),
+	searchAcross(filter.q, [users.name, users.email]), // ILIKE across columns
+	eqIf(users.locationId, filter.locationId), // eq() only when defined
+	eqIf(users.isActive, filter.isActive),
 )
 ```
 
@@ -63,16 +64,19 @@ const where = allOf(
 Two strategies:
 
 - **`paginateWindow(rows, pq)`** — **preferred.** Single round-trip: select
-  `rowCount: sql\`count(*) over()\`` alongside your columns; it reads the total
-  from the first row and strips `rowCount` from the data. Best on network-bound
+  `rowCount: sql\`count(\*) over()\``alongside your columns; it reads the total
+from the first row and strips`rowCount` from the data. Best on network-bound
   DBs (Neon).
 
   ```ts
   const { limit, offset } = toLimitOffset(filter)
   const rows = await db
-    .select({ ...getColumns(users), rowCount: sql<number>`count(*) over()` })
-    .from(users).where(where).orderBy(sortBy(users.updatedAt))
-    .limit(limit).offset(offset)
+  	.select({ ...getColumns(users), rowCount: sql<number>`count(*) over()` })
+  	.from(users)
+  	.where(where)
+  	.orderBy(sortBy(users.updatedAt))
+  	.limit(limit)
+  	.offset(offset)
   return paginateWindow(rows, filter)
   ```
 
@@ -88,22 +92,41 @@ Two complementary tools:
 
 - **`checkConflict(opts)`** — read-before-write. Queries each **changed** field
   independently for precise per-field error attribution; on update excludes the
-  current row. Great UX (exact field message). Requires explicit `db` (stays in
-  the caller's transaction). Not race-proof on its own.
-- **`catchUniqueViolation(fn, map)`** — wraps a write, catches Postgres
-  `23505 unique_violation`, and maps the violated **constraint name** → a typed
-  `ConflictError`. Race-free (DB is the source of truth). Use when the table has
-  real unique constraints; pair with `checkConflict` for best UX + safety.
+  current row. Throws `ConflictError` directly — no manual null-check needed.
+  Requires explicit `db` (stays in the caller's transaction). Not race-proof on
+  its own.
+
+- **`defineConflictFields<T>()([...])`** — type-safe conflict field builder.
+  Constrains `field` to keys of `T`, catching typos at compile time:
 
   ```ts
-  return catchUniqueViolation(() => this.repo.insert(data), [
-    { constraint: 'users_email_unique', message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
+  const uniqueFields = defineConflictFields<LocationCreateDto>()([
+  	{ field: 'name', column: locationsTable.name, message: '...', code: '...' },
   ])
+  ```
+
+- **`catchUniqueViolation(fn, map)`** — wraps a write, catches Postgres
+  `23505 unique_violation`, and throws a typed `ConflictError` mapped from the
+  violated **constraint name**. Race-free (DB is the source of truth). Use when
+  the table has real unique constraints; pair with `checkConflict` for best UX +
+  safety.
+
+  ```ts
+  const result = await catchUniqueViolation(
+  	() => this.repo.insert(data),
+  	[
+  		{
+  			constraint: 'users_email_unique',
+  			message: 'Email already exists',
+  			code: 'USER_EMAIL_ALREADY_EXISTS',
+  		},
+  	],
+  )
   ```
 
 **Repo contract reminder:** reads return `T | undefined` (never `null`, never
 throw); writes return `EntityRef | undefined`. See
-[docs/server/MODULE_STANDARD.md](../../../../docs/server/MODULE_STANDARD.md).
+[docs/server/02-module-standard.md](../../../../docs/server/02-module-standard.md).
 
 ---
 
@@ -124,21 +147,22 @@ thin `CacheService` wrapper per module namespace.
   `CacheService.createWithDefaultKeys(client, 'location')`. Default keys:
   `list`, `count`, `byId(id)`.
 
-  | Method                       | Use                                                                 |
-  | ---------------------------- | ------------------------------------------------------------------- |
-  | `getOrSet({ key, factory })` | Read-through cache.                                                  |
-  | `getOrSetWithSkip(...)`      | Same, but `undefined` from the factory is NOT cached (skip).        |
-  | `deleteMany({ keys, ...})`   | Invalidate keys with extra bentocache options.                      |
-  | `deleteFromKeys(keys)`       | Ergonomic alias for `deleteMany({ keys })` — the common case.       |
-  | `deleteByTags(tags)`         | Cross-module invalidation by tag (see `entityTag`).                 |
+  | Method                       | Use                                                           |
+  | ---------------------------- | ------------------------------------------------------------- |
+  | `getOrSet({ key, factory })` | Read-through cache.                                           |
+  | `getOrSetWithSkip(...)`      | Same, but `undefined` from the factory is NOT cached (skip).  |
+  | `deleteMany({ keys, ...})`   | Invalidate keys with extra bentocache options.                |
+  | `deleteFromKeys(keys)`       | Ergonomic alias for `deleteMany({ keys })` — the common case. |
+  | `deleteByTags(tags)`         | Cross-module invalidation by tag (see `entityTag`).           |
+  | `invalidateStandard(id?)`    | Clears `list` + `count` + optional `byId(id)`. The go-to.     |
 
   `entityTag(entity, id)` → `'entity:id'`. Tag a cached read that embeds a
   foreign entity, then the owning module invalidates by tag on mutation without
   either side knowing the other's keys.
 
-  **Convention:** invalidate via a private `invalidate(id?)` helper on the
-  service that deletes `keys.list` + `keys.count` (+ `keys.byId(id)`). Prefer the
-  typed `this.cache.keys.*` over hardcoded `'list'`/`'count'` strings.
+  **Convention:** every mutation calls `this.cache.invalidateStandard(id?)` which
+  clears the standard keys (`list`, `count`, `byId(id)`). Use `deleteFromKeys`
+  or `deleteByTags` only when extra keys or cross-module invalidation is needed.
 
 ---
 

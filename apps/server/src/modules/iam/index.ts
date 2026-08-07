@@ -2,6 +2,7 @@ export * from './role/role.contract'
 export * from './user/user.contract'
 export * from './assignment/assignment.contract'
 export * from './composed/composed.contract'
+export * from './constants'
 
 export * from './iam.module'
 export type { RoleService } from './role/role.service'

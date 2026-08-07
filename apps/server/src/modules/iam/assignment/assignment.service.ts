@@ -4,7 +4,6 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 import type { DbContext } from '@/infra/database'
 import type { ActorId } from '@/shared/types/utils'
 
-import { IAM_CONFIG, SYSTEM_ROLES } from '../constants'
 import type { UserAssignmentDto } from './assignment.contract'
 import type { IUserAssignmentRepo } from './assignment.repo'
 
@@ -18,18 +17,6 @@ export class UserAssignmentService {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.user.assignment')
 	}
 
-	getDefaultAssignmentForSuperadmin(): UserAssignmentDto {
-		const now = new Date()
-		return {
-			id: IAM_CONFIG.SUPERADMIN_PLACEHOLDER_ID,
-			userId: IAM_CONFIG.SUPERADMIN_PLACEHOLDER_ID,
-			roleId: SYSTEM_ROLES.SUPERADMIN_ID,
-			locationId: IAM_CONFIG.SUPERADMIN_PLACEHOLDER_ID,
-			addedAt: now,
-			addedBy: IAM_CONFIG.SUPERADMIN_PLACEHOLDER_ID,
-		}
-	}
-
 	async getByUserId(userId: number): Promise<UserAssignmentDto[]> {
 		return record('UserAssignmentService.getByUserId', async () =>
 			this.cache.getOrSet({
@@ -39,11 +26,6 @@ export class UserAssignmentService {
 		)
 	}
 
-	/**
-	 * Batch-load assignments for many users in a single query (no N+1), grouped
-	 * by userId. Every requested id is present in the result (empty array when
-	 * the user has no assignments).
-	 */
 	async getRecordByUserId(userIds: number[]): Promise<Record<number, UserAssignmentDto[]>> {
 		return record('UserAssignmentService.getRecordByUserId', async () => {
 			const result: Record<number, UserAssignmentDto[]> = {}
@@ -80,7 +62,6 @@ export class UserAssignmentService {
 				db,
 			)
 
-			// Invalidate cache for this user's assignments
 			await this.cache.deleteFromKeys([this.cache.keys.byId(userId)])
 		})
 	}

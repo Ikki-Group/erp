@@ -4,6 +4,7 @@ import { SEED_CONFIG } from '@/config/seed-config'
 import type { DbContext } from '@/infra/database'
 
 import type { IamModule } from '@/modules/iam'
+import { SYSTEM_ROLE_DEFINITIONS } from '@/modules/iam/constants'
 import type { LocationModule } from '@/modules/location'
 
 interface Deps {
@@ -19,43 +20,32 @@ export class SeedService {
 
 	async seed(): Promise<void> {
 		return record('SeedService.seed', async () => {
-			// Use Drizzle transaction for the entire seed process
 			await this.db.transaction(async (db) => {
 				const SYSTEM_ACTOR_ID = 1
 
-				// 1. Seed Roles
+				// 1. Seed Roles (OWNER, MANAGER, CASHIER, STAFF)
 				await this.deps.iam.role.seed(
-					[
-						{
-							code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
-							name: 'Administrator',
-							description: 'Super administrator',
-							permissions: ['*'],
-							isSystem: true,
-							createdBy: SYSTEM_ACTOR_ID,
-						},
-						{
-							code: 'MANAGER',
-							name: 'Manager',
-							description: null,
-							permissions: [],
-							isSystem: false,
-							createdBy: SYSTEM_ACTOR_ID,
-						},
-					],
+					SYSTEM_ROLE_DEFINITIONS.map((r) => ({
+						code: r.code,
+						name: r.name,
+						description: r.description,
+						scope: r.scope,
+						permissions: [...r.permissions],
+						isSystem: r.isSystem,
+						createdBy: SYSTEM_ACTOR_ID,
+					})),
 					db,
 				)
 
-				// 2. Seed Users
+				// 2. Seed Users (owner account)
 				await this.deps.iam.user.seed(
 					[
 						{
 							id: 1,
-							email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
-							username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
-							fullname: 'Administrator',
-							password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
-							isRoot: true,
+							email: SEED_CONFIG.USER_OWNER_EMAIL,
+							username: SEED_CONFIG.USER_OWNER_USERNAME,
+							fullname: 'Owner',
+							password: SEED_CONFIG.USER_OWNER_PASSWORD,
 							createdBy: SYSTEM_ACTOR_ID,
 						},
 					],
@@ -75,20 +65,16 @@ export class SeedService {
 					db,
 				)
 
-				// 4. Seed Sales Types
-				// await this.salesTypeSvc.seed(
-				// 	SEED_CONFIG.SALES_TYPES.map((st) => ({
-				// 		code: st.code,
-				// 		name: st.name,
-				// 		isSystem: st.isSystem,
-				// 		createdBy: SYSTEM_ACTOR_ID,
-				// 	})),
-				// )
-
-				// 5. Seed UOMs
-				// await this.materialUomSvc.seed(
-				// 	SEED_CONFIG.UOMS.map((u) => ({ code: u.code, createdBy: SYSTEM_ACTOR_ID })),
-				// )
+				// 4. Assign owner user to first location with OWNER role.
+				// OWNER role has global scope so assignment is optional (for default location preference).
+				// Role ID 1 = OWNER (first seeded role).
+				const firstLocationId = 0
+				await this.deps.iam.assignment.replaceByUserId(
+					SYSTEM_ACTOR_ID,
+					[{ roleId: 1, locationId: firstLocationId }],
+					SYSTEM_ACTOR_ID,
+					db,
+				)
 			})
 		})
 	}

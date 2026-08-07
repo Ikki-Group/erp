@@ -11,7 +11,6 @@ function createMockUser(suffix: string): Parameters<UserService['handleCreate']>
 		fullname: `Test User Svc ${suffix}`,
 		password: 'password12345',
 		isActive: true,
-		isRoot: true,
 		pinCode: '1234',
 		defaultLocationId: null,
 		assignments: [],
@@ -23,6 +22,7 @@ function createMockRole(suffix: string): Parameters<RoleService['handleCreate']>
 		code: `TEST_ROLE_${suffix}`,
 		name: `Test Role ${suffix}`,
 		description: 'Test Description',
+		scope: 'location',
 		permissions: ['iam.user.read'],
 		isSystem: false,
 	}
@@ -61,8 +61,8 @@ describe('services/iam', () => {
 		expect(removed.id).toBe(updated.id)
 	})
 
-	test('user CRUD (isRoot)', async () => {
-		const mockUser = createMockUser(`crud-isroot-${run}`)
+	test('user CRUD', async () => {
+		const mockUser = createMockUser(`crud-${run}`)
 
 		const created = await iamSvc.user.handleCreate(mockUser, 1)
 		expect(created.id).toBeDefined()

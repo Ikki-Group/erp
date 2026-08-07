@@ -1,18 +1,21 @@
-import { and, count, eq, exists, getColumns, or } from 'drizzle-orm'
+import { eq, exists, getColumns, sql, and } from 'drizzle-orm'
 
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
-import { paginate, searchFilter, sortBy, type DbContext } from '@/infra/database'
+import {
+	allOf,
+	eqIf,
+	paginateWindow,
+	searchAcross,
+	sortBy,
+	toLimitOffset,
+	type DbContext,
+} from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { UserDto } from '../user/user.contract'
 import type { UserFilterDto } from './composed.contract'
 
-/**
- * Repository port for cross-submodule (composed) user reads. Owns the
- * user-list filtering logic (search, isActive, isRoot, location membership)
- * that the plain `UserRepo` does not, while still stripping the password hash.
- */
 export interface IIamComposedRepo {
 	readonly db: DbContext
 	getListPaginated(filter: UserFilterDto): Promise<WithPaginationResult<UserDto>>
@@ -21,18 +24,11 @@ export interface IIamComposedRepo {
 export class IamComposedRepo implements IIamComposedRepo {
 	constructor(readonly db: DbContext) {}
 
-	async getListPaginated(filter: UserFilterDto): Promise<WithPaginationResult<UserDto>> {
-		const { q, isActive, isRoot, locationId } = filter
-		const where = and(
-			q === undefined
-				? undefined
-				: or(
-						searchFilter(usersTable.fullname, q),
-						searchFilter(usersTable.username, q),
-						searchFilter(usersTable.email, q),
-					),
-			isActive === undefined ? undefined : eq(usersTable.isActive, isActive),
-			isRoot === undefined ? undefined : eq(usersTable.isRoot, isRoot),
+	#buildWhere(filter: UserFilterDto) {
+		const { q, isActive, locationId, roleId } = filter
+		return allOf(
+			searchAcross(q, [usersTable.fullname, usersTable.username, usersTable.email]),
+			eqIf(usersTable.isActive, isActive),
 			locationId === undefined
 				? undefined
 				: exists(
@@ -46,21 +42,35 @@ export class IamComposedRepo implements IIamComposedRepo {
 								),
 							),
 					),
+			roleId === undefined
+				? undefined
+				: exists(
+						this.db
+							.select()
+							.from(userAssignmentsTable)
+							.where(
+								and(
+									eq(userAssignmentsTable.userId, usersTable.id),
+									eq(userAssignmentsTable.roleId, roleId),
+								),
+							),
+					),
 		)
+	}
 
+	async getListPaginated(filter: UserFilterDto): Promise<WithPaginationResult<UserDto>> {
+		const where = this.#buildWhere(filter)
+		const { limit, offset } = toLimitOffset(filter)
 		const { passwordHash: _, ...columns } = getColumns(usersTable)
 
-		return paginate<UserDto>({
-			data: ({ limit, offset }) =>
-				this.db
-					.select(columns)
-					.from(usersTable)
-					.where(where)
-					.orderBy(sortBy(usersTable.updatedAt, 'desc'))
-					.limit(limit)
-					.offset(offset),
-			pq: filter,
-			countQuery: () => this.db.select({ count: count() }).from(usersTable).where(where),
-		})
+		const rows = await this.db
+			.select({ ...columns, rowCount: sql<number>`count(*) over()` })
+			.from(usersTable)
+			.where(where)
+			.orderBy(sortBy(usersTable.updatedAt, 'desc'))
+			.limit(limit)
+			.offset(offset)
+
+		return paginateWindow(rows, filter)
 	}
 }

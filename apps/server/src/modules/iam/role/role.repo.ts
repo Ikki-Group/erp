@@ -3,6 +3,8 @@ import { and, count, eq, getColumns, sql, type SQL } from 'drizzle-orm'
 import { rolesTable } from '@/db/schema'
 
 import {
+	allOf,
+	eqIf,
 	paginateWindow,
 	searchFilter,
 	sortBy,
@@ -13,21 +15,17 @@ import {
 import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
 import type { EntityRef } from '@/shared/types/utils'
 
-import type { RoleDto } from '@/modules/iam/role/role.contract'
-
+import type { RoleDto, RoleScopeEnum } from './role.contract'
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 
 interface RoleFilter {
 	q?: string | undefined
+	scope?: RoleScopeEnum | undefined
 }
 
 type RoleInsert = typeof rolesTable.$inferInsert
 type RoleUpdate = PgUpdateSetSource<typeof rolesTable>
 
-/**
- * Repository port for the role submodule. Reads return `undefined` for
- * not-found; writes accept an optional `db` override for transactions.
- */
 export interface IRoleRepo {
 	readonly db: DbContext
 	findMany(filter?: RoleFilter, db?: DbContext): Promise<RoleDto[]>
@@ -46,25 +44,23 @@ export interface IRoleRepo {
 export class RoleRepo implements IRoleRepo {
 	constructor(readonly db: DbContext) {}
 
-	#buildQuery(filter: RoleFilter): SQL | undefined {
-		const { q } = filter
-
-		return q === undefined ? undefined : searchFilter(rolesTable.name, q)
+	#buildWhere(filter: RoleFilter): SQL | undefined {
+		return allOf(searchFilter(rolesTable.name, filter.q), eqIf(rolesTable.scope, filter.scope))
 	}
 
 	async findMany(filter: RoleFilter = {}, db: DbContext = this.db): Promise<RoleDto[]> {
 		return db
 			.select()
 			.from(rolesTable)
+			.where(this.#buildWhere(filter))
 			.orderBy(sortBy(rolesTable.updatedAt, 'desc'))
-			.where(this.#buildQuery(filter))
 	}
 
 	async findPage(
 		filter: RoleFilter & PaginationQuery,
 		db: DbContext = this.db,
 	): Promise<WithPaginationResult<RoleDto>> {
-		const where = this.#buildQuery(filter)
+		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
 
 		const rows = await db
@@ -113,7 +109,7 @@ export class RoleRepo implements IRoleRepo {
 	}
 
 	async remove(id: number, force = false, db: DbContext = this.db): Promise<EntityRef | undefined> {
-		const where = and(eq(rolesTable.id, id), !force ? eq(rolesTable.isSystem, false) : undefined)
+		const where = and(eq(rolesTable.id, id), force ? undefined : eq(rolesTable.isSystem, false))
 		const [res] = await db.delete(rolesTable).where(where).returning({ id: rolesTable.id })
 
 		return res

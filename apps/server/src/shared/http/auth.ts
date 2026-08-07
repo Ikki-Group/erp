@@ -6,6 +6,8 @@ export interface AuthenticatedUser {
 	username: string
 	fullname: string
 	isActive: boolean
+	/** Whether the user holds a global-scoped role (e.g. OWNER). */
+	hasGlobalAccess: boolean
 	createdAt: Date
 	updatedAt: Date
 	createdBy: number
@@ -23,5 +25,11 @@ export class AuthContext {
 		if (!this.isAuthenticated)
 			throw new UnauthorizedError('Unauthorized', { code: 'AUTH_UNAUTHORIZED' })
 		return this.user!.id
+	}
+
+	/** True if the authenticated user has a global-scoped role. */
+	get hasGlobalAccess(): boolean {
+		if (!this.isAuthenticated) return false
+		return this.user!.hasGlobalAccess
 	}
 }

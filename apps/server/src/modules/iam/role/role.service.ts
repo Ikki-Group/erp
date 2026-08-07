@@ -9,14 +9,8 @@ import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 import { RelationMap } from '@/shared/utils'
 
-import type {
-	RoleCreateDto,
-	RoleDto,
-	RoleFilterDto,
-	RoleUpdateDto,
-} from '@/modules/iam/role/role.contract'
-
-import { SYSTEM_ROLES } from '../constants'
+import { SYSTEM_ROLE_CODES } from '../constants'
+import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from './role.contract'
 import { RoleError } from './role.internal'
 import type { IRoleRepo } from './role.repo'
 
@@ -76,12 +70,13 @@ export class RoleService {
 		)
 	}
 
-	async getSuperadmin(): Promise<RoleDto> {
-		return record('RoleService.getSuperadmin', async () =>
-			assertFound(await this.getById(SYSTEM_ROLES.SUPERADMIN_ID), () =>
-				RoleError.notFound(SYSTEM_ROLES.SUPERADMIN_ID),
-			),
-		)
+	async getOwnerRole(): Promise<RoleDto> {
+		return record('RoleService.getOwnerRole', async () => {
+			const all = await this.getAll()
+			const owner = all.find((r) => r.code === SYSTEM_ROLE_CODES.OWNER)
+			if (!owner) throw RoleError.notFound(0)
+			return owner
+		})
 	}
 
 	async seed(data: (RoleCreateDto & { createdBy: ActorId })[], db: DbContext): Promise<void> {

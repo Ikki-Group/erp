@@ -16,3 +16,14 @@ import { pgEnum } from 'drizzle-orm/pg-core'
  * neither has to import the other purely to reuse a type.
  */
 export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'open', 'paid', 'void'])
+
+/**
+ * Role scope determines where a role's permissions apply:
+ *
+ * - `global`: Role grants access to ALL locations without requiring explicit
+ *   assignment rows. Used exclusively for the OWNER role.
+ *
+ * - `location`: Role only applies at locations where the user has an explicit
+ *   assignment row in `user_assignments`.
+ */
+export const roleScopeEnum = pgEnum('role_scope', ['global', 'location'])

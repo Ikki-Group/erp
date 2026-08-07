@@ -1,5 +1,6 @@
 import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
+import { roleScopeEnum } from './_enums'
 import { auditBasicColumns, pk } from './_helpers'
 import { locationsTable } from './location'
 
@@ -12,11 +13,17 @@ import { locationsTable } from './location'
  *                `name`. Used in application logic and seeding. Never changes
  *                after creation. Globally unique.
  *
+ * `scope`      — determines where the role's permissions apply:
+ *                - `global`: access to ALL locations without assignment rows.
+ *                  Reserved for the OWNER role.
+ *                - `location`: access only where user has assignment rows.
+ *
  * `isSystem`   — true for roles created by the system seeder. Built-in roles
  *                are protected from mutation and deletion by the service layer.
  *
  * `permissions` — array of permission strings (e.g., "iam.user.read").
  *                 Validation enforced at application layer (Zod schema).
+ *                 `['*']` means all permissions (OWNER role).
  */
 export const rolesTable = pgTable(
 	'roles',
@@ -25,6 +32,7 @@ export const rolesTable = pgTable(
 		code: text('code').notNull(),
 		name: text('name').notNull(),
 		description: text('description'),
+		scope: roleScopeEnum('scope').notNull().default('location'),
 		permissions: text('permissions').array().notNull().default([]),
 		isSystem: boolean('is_system').notNull().default(false),
 		...auditBasicColumns,
@@ -35,38 +43,30 @@ export const rolesTable = pgTable(
 /**
  * Users Table
  *
- * Core identity entity. Covers both human operators and built-in service
- * accounts (seeded by the system).
+ * Core identity entity. Covers both human operators (owner + staff).
  *
- * `isRoot`     — grants implicit superadmin access to all locations.
- *                Root users bypass assignment checks entirely.
- *
- * `isSystem`   — true for accounts created by the system seeder (e.g. the
- *                default superadmin). Not operator-created. Protected from
- *                deletion by the service layer.
+ * Access control is determined entirely by role assignments:
+ *   - A user with a GLOBAL-scoped role (e.g. OWNER) has access to all locations.
+ *   - A user with only LOCATION-scoped roles has access only to assigned locations.
  *
  * `isActive`   — soft-disable without deletion. Inactive users must be
  *                rejected at the session/auth layer on every request.
  *
  * `defaultLocationId`
- *   Root users   → optional preference. Null = no preference set.
- *                  Can be set to any location (implicit access everywhere).
- *                  Only updated via explicit setDefaultLocation() call.
+ *   Global-scope users → optional preference. Null = no preference set.
+ *                         Can be set to any location (implicit access everywhere).
  *
- *   Non-root     → auto-managed by UserAssignmentRepo:
- *                  - Set to first location on first assignment.
- *                  - Promoted to oldest remaining assignment when default is removed.
- *                  - Cleared (null) when all assignments are removed.
- *                  Can also be set explicitly (validated against assignments).
+ *   Location-scope     → auto-managed by UserAssignmentRepo:
+ *                         - Set to first location on first assignment.
+ *                         - Promoted to oldest remaining assignment when default is removed.
+ *                         - Cleared (null) when all assignments are removed.
+ *                         Can also be set explicitly (validated against assignments).
  *
  *   onDelete: 'set null' — location hard-delete must not be blocked by user
  *   preference. Caller must handle null defaultLocationId at login.
  *
  * `lastLoginAt` — timestamp of last successful login. Updated on each login.
  *                 Used for "last seen" display and inactive user cleanup.
- *
- * Note: `isRoot` and `isSystem` are not mutually exclusive —
- * a seeded root account has both flags set to true.
  */
 export const usersTable = pgTable(
 	'users',
@@ -78,13 +78,11 @@ export const usersTable = pgTable(
 		pinCode: text('pin_code'),
 
 		/**
-		 * Null for isSystem service accounts that authenticate via other means
+		 * Null for service accounts that authenticate via other means
 		 * (e.g. API tokens). Always set for human operator accounts.
 		 */
 		passwordHash: text('password_hash'),
 
-		isRoot: boolean('is_root').notNull().default(false),
-		isSystem: boolean('is_system').notNull().default(false),
 		isActive: boolean('is_active').notNull().default(true),
 
 		defaultLocationId: integer('default_location_id').references(() => locationsTable.id, {
@@ -109,15 +107,12 @@ export const usersTable = pgTable(
  * Grants a user a specific role at a specific location.
  *
  * Business rules:
- *   - Root users  : assignments are optional. Root has implicit superadmin
- *                   access to all locations. A row here only exists when a
- *                   root user needs a non-superadmin role at a specific location.
- *   - Non-root    : access is strictly limited to locations with a row here.
+ *   - Users with a GLOBAL-scoped role: assignments are optional. They have
+ *     implicit access to all locations. A row here only exists as default
+ *     location preference.
+ *   - Users with only LOCATION-scoped roles: access is strictly limited to
+ *     locations with a row here.
  *   - One role per user per location (unique on userId + locationId).
- *
- * `effectiveTo`   — optional expiry for time-bounded access (contractors,
- *                   temporary grants). Null = indefinite. A background job or
- *                   session-validation layer must enforce this.
  *
  * `addedBy`       — audit trail for who created the assignment.
  *                   onDelete: 'set null' so deleting a user does not block
