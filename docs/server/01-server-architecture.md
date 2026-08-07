@@ -10,7 +10,7 @@ System design and layering for the Ikki ERP backend.
 | Framework  | Elysia                         |
 | Database   | PostgreSQL                     |
 | ORM        | Drizzle                        |
-| Cache      | In-memory (single instance)    |
+| Cache      | BentoCache (memory driver)     |
 | Validation | Zod                            |
 | Auth       | Session-based (Redis)          |
 | Telemetry  | OpenTelemetry (record wrapper) |
@@ -99,9 +99,10 @@ Every authenticated request carries `auth.locationId` (from session). Services u
 
 ## Caching Strategy
 
-- In-memory cache (single server instance, no Redis).
+- BentoCache with memory driver (single server instance).
 - Read-through: `cache.getOrSet` / `cache.getOrSetWithSkip`.
 - Hybrid invalidation: event-based for entity/reference data, TTL for lists/aggregates.
+- Stampede protection built-in.
 - Cache warming on startup for near-static reference data.
 - See `docs/database/caching.md` for full strategy per data tier.
 

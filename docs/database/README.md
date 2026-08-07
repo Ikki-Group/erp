@@ -14,7 +14,7 @@ Index for all database documentation in Ikki ERP.
 | Primary keys        | Serial integer                           |
 | Financial precision | `numeric(18,2)`                          |
 | Quantity precision  | `numeric(18,6)`                          |
-| Cache layer         | In-memory (single instance)              |
+| Cache layer         | BentoCache (memory driver)               |
 | Cache strategy      | Hybrid (event-based entity, TTL lists)   |
 
 ## Neon Considerations

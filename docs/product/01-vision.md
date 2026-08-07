@@ -60,10 +60,10 @@ A single web application connecting: POS → Inventory → Recipe → Finance, w
 | API        | Elysia                            |
 | Database   | PostgreSQL (Neon — serverless)    |
 | ORM        | Drizzle                           |
-| Cache      | In-memory (single instance)       |
+| Cache      | BentoCache (memory driver)        |
 | Validation | Zod                               |
 | Frontend   | React 19 + Vite + TanStack Router |
-| Auth       | Session-based (in-memory store)   |
+| Auth       | Session-based (BentoCache memory) |
 
 ---
 
