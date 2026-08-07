@@ -1,51 +1,19 @@
 {
   "mcpServers": {
-    "codegraph": {
-      "args": [
-        "serve",
-        "--mcp"
-      ],
-      "command": "codegraph",
-      "disabledTools": [],
-      "type": "stdio"
-    },
-    "gortex": {
-      "args": [
-        "mcp"
-      ],
-      "autoApprove": [
-        "analyze",
-        "capabilities",
-        "change",
-        "explore",
-        "read",
-        "recall",
-        "relations",
-        "response",
-        "search",
-        "trace",
-        "workspace"
-      ],
-      "command": "gortex",
-      "disabled": false,
-      "env": {
-        "GORTEX_INDEX_WORKERS": "8"
-      }
-    },
-    "memory": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-memory"
-      ],
-      "autoApprove": [],
-      "command": "npx",
-      "disabled": false
-    },
+    // "codegraph": {
+    //   "type": "stdio",
+    //   "command": "codegraph",
+    //   "args": [
+    //     "serve",
+    //     "--mcp"
+    //   ],
+    //   "disabledTools": []
+    // },
     "playwright": {
+      "command": "npx",
       "args": [
         "@playwright/mcp@latest"
       ],
-      "command": "npx",
       "disabledTools": [
         "browser_close",
         "browser_resize",
@@ -72,6 +40,10 @@
         "browser_tabs",
         "browser_wait_for"
       ]
+    },
+    "codebase-memory-mcp": {
+      "command": "codebase-memory-mcp",
+      "disabledTools": []
     }
   }
 }
