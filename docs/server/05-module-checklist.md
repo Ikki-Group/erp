@@ -1,22 +1,22 @@
 # Module Checklist
 
-Step-by-step guide to create a new module, aligned to [02-module-standard.md](./02-module-standard.md).
+Step-by-step guide to create a new module.
 
-## Pre-implementation
+## Pre-Implementation
 
 - [ ] Define module name (kebab-case directory)
-- [ ] Identify entities and determine complexity (simple vs complex)
+- [ ] Identify entities and complexity (simple vs complex)
 - [ ] Identify dependencies — verify layer (no upward imports)
 - [ ] List unique fields for conflict checking
 - [ ] List business rules
 
-## File structure
+## File Structure
 
-### Simple module
+### Simple
 
-```bash
+```
 src/modules/{module}/
-├── {module}.schema.ts
+├── {module}.contract.ts
 ├── {module}.repo.ts
 ├── {module}.service.ts
 ├── {module}.route.ts
@@ -25,132 +25,46 @@ src/modules/{module}/
 └── index.ts
 ```
 
-### Complex module
+### Complex
 
-```bash
+```
 src/modules/{module}/
-├── {module}.module.ts      # Aggregate factory
-├── {module}.route.ts       # Aggregate routes
+├── {module}.module.ts
+├── {module}.route.ts
 ├── index.ts
-├── constants.ts            # Module-wide constants (if needed)
 ├── {sub-1}/
-│   ├── {sub-1}.schema.ts
+│   ├── {sub-1}.contract.ts
 │   ├── {sub-1}.repo.ts
-│   └── {sub-1}.service.ts
+│   ├── {sub-1}.service.ts
+│   └── {sub-1}.internal.ts
 ├── {sub-2}/
 │   └── ...
-└── composed/               # Cross-submodule reads (JOINs)
+└── composed/
+    ├── composed.contract.ts
     ├── composed.repo.ts
     └── composed.service.ts
 ```
 
-## Implementation steps
+## Implementation Steps
 
-### Step 1: Contract
+1. **Schema** — Define Drizzle table in `src/db/schema/{domain}.ts`
+2. **Contract** — Zod DTOs (Entity, Create, Update, Filter)
+3. **Repo** — Interface + implementation (CRUD + pagination)
+4. **Internal** — Error factories
+5. **Service** — Business logic + cache + audit stamps
+6. **Route** — Elysia handlers (thin: validate → handleX → res.*)
+7. **Module** — Factory wiring repo + service + route
+8. **Index** — Export module factory
+9. **Register** — Add route to app.ts
+10. **Test** — Integration test in `src/tests/`
 
-- [ ] Define entity DTO with `zp.*` + `...zc.AuditBasic.shape`
-- [ ] Define filter DTO with `...zq.pagination.shape` + `q: zq.search`
-- [ ] Extract `{Entity}MutationSchema` with `zc.*`
-- [ ] Define `CreateSchema = MutationSchema`
-- [ ] Define `UpdateSchema = z.object({ id: zp.id, ...MutationSchema.shape })`
-- [ ] Export schemas + inferred types
+## Post-Implementation
 
-### Step 2: Repository
-
-- [ ] Declare `I{Module}Repo` port with `readonly db: DbContext`
-- [ ] Implement `findById(id, db?)` → `T | undefined`
-- [ ] Implement `findByIds(ids, db?)` (guard empty array)
-- [ ] Implement `findPage(filter, db?)` via `paginateWindow`
-- [ ] Implement `insert(data, db?)` → `EntityRef | undefined`
-- [ ] Implement `update(id, data, db?)`
-- [ ] Implement `remove(id, db?)`
-- [ ] All writes accept `db?: DbContext = this.db`
-
-### Step 3: Service
-
-- [ ] Depend on the port (not the class)
-- [ ] Initialize `CacheService` with namespace
-- [ ] Define `uniqueFields` for conflict checking
-- [ ] Implement `create` (checkConflict → insert with stampCreate → invalidate)
-- [ ] Implement `update` (check exists → checkConflict with existing → update with stampUpdate → invalidate)
-- [ ] Implement `remove` (remove → invalidate)
-- [ ] Implement `getById` (cache read-through)
-- [ ] Implement `handleX` wrappers with `record(...)` span
-- [ ] Private `invalidate(id?)` helper
-
-### Step 4: Internal errors
-
-- [ ] Define `{Module}Error` factory with only errors actually thrown
-- [ ] Use `NotFoundError`, `ConflictError`, `InternalServerError`
-- [ ] Include `code` and `context` in every error
-
-### Step 5: Module factory
-
-- [ ] Define `create{Module}Module(db, cacheClient, deps?)` factory
-- [ ] Instantiate repo → service → return
-
-### Step 6: Routes
-
-- [ ] `create{Module}Route(m)` with `new Elysia({ prefix: '/{module}' })`
-- [ ] `.use(authPluginMacro)` + `auth: true` on every endpoint
-- [ ] GET `/list` → `res.paginated`, query: FilterSchema
-- [ ] GET `/detail` → `res.ok`, query: `zq.recordId`
-- [ ] POST `/create` → `res.created`, body: CreateSchema
-- [ ] PUT `/update` → `res.ok`, body: UpdateSchema
-- [ ] DELETE `/remove` → `res.ok`, query: `zq.recordId`
-- [ ] Declare `response:` DTO on every endpoint
-
-### Step 7: Public API (`index.ts`)
-
-- [ ] Export schema types
-- [ ] Export port type (`type { I{Module}Repo }`)
-- [ ] Export module type and factory
-
-## Integration
-
-### Step 8: Register module
-
-- [ ] `_registry.ts`: add field to `Modules`, create in dependency order, return
-- [ ] `_routes.ts`: add `create{Module}Route(m.{module})`
-
-### Step 9: Database
-
-- [ ] Create/update schema in `db/schema/`
-- [ ] Include audit fields + indexes + FK constraints
-- [ ] `bun run db:generate` → review migration → `bun run db:migrate`
-
-## Testing
-
-### Step 10: Write tests
-
-- [ ] Unit test: `src/tests/unit/{module}.service.test.ts`
-  - Typed in-memory fake implementing port (no `as any`)
-  - Test create (success + conflict), update (success + not-found + conflict), getById, delete
-- [ ] Integration test: `src/tests/services/{module}.test.ts`
-  - Real module graph against test DB for critical flows
-
-## Verification
-
-### Step 11: Gate
-
-```bash
-bun run verify    # lint + typecheck + knip + check-deps
-bun run test      # all tests pass
-```
-
-## Common pitfalls
-
-| Pitfall                          | Fix                                                 |
-| -------------------------------- | --------------------------------------------------- |
-| Using `.extend()` on Zod schemas | Use spread-shape                                    |
-| Throwing in repo                 | Return `undefined`, let service decide              |
-| Forgetting cache invalidation    | Every mutation calls `invalidate(id?)`              |
-| Missing conflict checks          | `checkConflict` on create AND update                |
-| Missing audit stamps             | `stampCreate`/`stampUpdate` on every write          |
-| N+1 queries                      | `findByIds` + `inArray` + `RelationMap`             |
-| Circular dependencies            | Check layer; use `composed/` for cross-entity reads |
-| Empty array in `inArray`         | Guard: `if (ids.length === 0) return []`            |
+- [ ] Run `bun run verify` (lint + typecheck + knip + check-deps)
+- [ ] Run `bun run test` (ensure no regressions)
+- [ ] Update `docs/database/` if schema changed
+- [ ] Commit with conventional prefix
 
 ---
 
-**Next:** [readme.md](./readme.md) — Back to the index.
+**Next:** [readme.md](./readme.md) — Back to server index.

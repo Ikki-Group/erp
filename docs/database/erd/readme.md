@@ -1,51 +1,51 @@
-# ERD Diagrams
+# ERD Documentation
 
-ASCII entity-relationship diagrams organized by domain.
-
----
+Entity-Relationship Diagrams organized by domain.
 
 ## Notation
 
 ```
-[table_name]       = table
-PK                 = primary key
-FK --> table       = foreign key
-*                  = not null
-?                  = nullable
-||--o{             = one-to-many
+[table_name]          → table
+  PK id               → primary key (serial)
+  FK column           → foreign key
+  -- column           → regular column
+  UK column           → unique constraint
+  ───── (solid)       → required FK (NOT NULL)
+  - - - (dashed)      → optional FK (nullable)
 ```
 
-## Files
+## Documents
 
-| File | Domain | Tables |
-|------|--------|--------|
-| [core.md](./core.md) | IAM, Auth, Audit | roles, users, user_assignments, sessions, audit_logs |
-| [materials.md](./materials.md) | Materials | material_categories, materials, conversions, locations, snapshots |
-| [products.md](./products.md) | Products & Pricing | products, variants, prices, categories, sales_types |
-| [sales.md](./sales.md) | Sales | orders, items, batches, voids, refunds, invoices, external_refs |
-| [purchasing.md](./purchasing.md) | Purchasing | requests, POs, GRN, invoices |
-| [inventory.md](./inventory.md) | Inventory | transactions, adjustments, transfers, summaries, batches |
-| [finance.md](./finance.md) | Finance & Payments | accounts, journals, expenditures, payments |
-| [hr.md](./hr.md) | HR | employees, attendance, payroll, leave |
-| [crm.md](./crm.md) | CRM | customers, loyalty transactions |
-| [integrations.md](./integrations.md) | Moka POS | configurations, scrap histories, sync cursors |
+| File | Domain |
+|------|--------|
+| [core.md](./core.md) | Locations, IAM, Sessions, Company |
+| [master-data.md](./master-data.md) | Materials, UoM (chain), Suppliers |
+| [menu.md](./menu.md) | Menu Items, Modifiers, Recipes |
+| [pos.md](./pos.md) | Orders, Payments, Shifts, Tables |
+| [inventory.md](./inventory.md) | Stock, Movements, Transfers, Opname |
+| [finance.md](./finance.md) | CoA, Journals, AP, Fiscal Periods |
+| [hr.md](./hr.md) | Employees, Shifts, Attendance, Payroll |
+| [crm.md](./crm.md) | Customers, Loyalty, Promotions |
 
 ## Cross-Domain FK Map
 
-```
-sales_orders.customer_id        --> customers
-sales_orders.location_id        --> locations
-sales_orders.sales_type_id      --> sales_types
-sales_order_items.product_id    --> products
-purchase_orders.supplier_id     --> suppliers
-purchase_orders.location_id     --> locations
-stock_transactions.material_id  --> materials
-stock_transactions.location_id  --> locations
-work_orders.recipe_id           --> recipes
-work_orders.location_id         --> locations
-payments.account_id             --> accounts
-payment_invoices.sales_invoice  --> sales_invoices
-payment_invoices.purchase_inv   --> purchase_invoices
-employees.user_id               --> users
-expenditures.supplier_id        --> suppliers
-```
+| From | To | Purpose |
+|------|----|---------|
+| orders.location_id | locations | POS scoped to store |
+| orders.customer_id | customers | Loyalty link |
+| order_lines.menu_item_id | menu_items | What was sold |
+| stock_balances.location_id | locations | Stock per location |
+| stock_balances.material_id | materials | Which material |
+| transfer_requests.from_location_id | locations | Source |
+| transfer_requests.to_location_id | locations | Destination |
+| menu_items.location_id | locations | Menu per-location |
+| recipes.menu_item_id | menu_items | BOM for item |
+| recipe_lines.material_id | materials | Ingredient |
+| journal_entries.location_id | locations | Scoped journals |
+| employees.primary_location_id | locations | Primary workplace |
+| cashier_shifts.location_id | locations | Shift at store |
+| user_assignments.location_id | locations | Role per location |
+
+---
+
+**Next:** [core.md](./core.md) — Core domain ERD.

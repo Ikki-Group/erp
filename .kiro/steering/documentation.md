@@ -69,15 +69,12 @@ When you need context about a topic, follow this lookup order:
 
 ## Doc Locations
 
-| Type                                    | Location                                                          |
-| --------------------------------------- | ----------------------------------------------------------------- |
-| Product docs (vision, PRD, workflows)   | `docs/product/`                                                   |
-| Server architecture & module patterns   | `docs/server/`                                                    |
-| Database schema, ERDs, conventions      | `docs/database/`                                                  |
-| Codegen (historical, superseded)        | `docs/codegen/`                                                   |
-| App quick-starts, module-specific notes | `apps/{app}/README.md`, `apps/server/src/modules/{mod}/README.md` |
-| AI steering instructions                | `.kiro/steering/`                                                 |
-| Toolchain, commands, deploy             | `AGENTS.md` (root)                                                |
+| Type                                  | Location           |
+| ------------------------------------- | ------------------ |
+| Server architecture & module patterns | `docs/server/`     |
+| Database schema, ERDs, conventions    | `docs/database/`   |
+| AI steering instructions              | `.kiro/steering/`  |
+| Toolchain, commands, deploy           | `AGENTS.md` (root) |
 
 ## Principles
 

@@ -4,27 +4,31 @@ Index for Ikki ERP product documentation — vision, requirements, workflows, an
 
 ## Documents
 
-| #   | File                                               | Purpose                                                                     |
-| --- | -------------------------------------------------- | --------------------------------------------------------------------------- |
-| 01  | [01-vision.md](./01-vision.md)                     | Product vision, target market, success metrics                              |
-| 02  | [02-prd-core.md](./02-prd-core.md)                 | Core modules: IAM, Auth, Company, Location                                  |
-| 03  | [03-prd-master-data.md](./03-prd-master-data.md)   | Master data: Product, Material, Recipe, UoM, Supplier, Customer, Sales Type |
-| 04  | [04-prd-operations.md](./04-prd-operations.md)     | Operations: Inventory, Purchasing, Production, Sales, Payment               |
-| 05  | [05-prd-finance.md](./05-prd-finance.md)           | Finance: Chart of Accounts, Journal, Ledger, Reporting                      |
-| 06  | [06-prd-hr.md](./06-prd-hr.md)                     | HR: Employee, Attendance, Payroll                                           |
-| 07  | [07-prd-integrations.md](./07-prd-integrations.md) | Integrations: POS sync, e-commerce, payment gateway                         |
-| 08  | [08-prd-analytics.md](./08-prd-analytics.md)       | Analytics: Dashboard, Reporting, Audit Log                                  |
-| 09  | [09-workflows.md](./09-workflows.md)               | Business workflows and state machines                                       |
-| 10  | [10-glossary.md](./10-glossary.md)                 | Domain terminology and definitions                                          |
-| 11  | [11-timeline.md](./11-timeline.md)                 | Development timeline and phasing                                            |
+| # | File | Purpose |
+|---|------|---------|
+| 01 | [01-vision.md](./01-vision.md) | Product vision, target users, success metrics |
+| 02 | [02-prd-core.md](./02-prd-core.md) | Core: Location, IAM, Auth, Company Settings |
+| 03 | [03-prd-master-data.md](./03-prd-master-data.md) | Master data: Material, UoM (chain), Supplier |
+| 04 | [04-prd-menu.md](./04-prd-menu.md) | Menu: Items, Categories, Modifier Groups, Recipes |
+| 05 | [05-prd-pos.md](./05-prd-pos.md) | POS: orders, table, open/close bill, split, payments, void |
+| 06 | [06-prd-inventory.md](./06-prd-inventory.md) | Inventory: stock balance, movements, transfer, opname |
+| 07 | [07-prd-finance.md](./07-prd-finance.md) | Finance: CoA, journals, AP/AR, reports |
+| 08 | [08-prd-hr.md](./08-prd-hr.md) | HR: employees, shifts, attendance, payroll |
+| 09 | [09-prd-crm.md](./09-prd-crm.md) | CRM: customers, loyalty, promotions |
+| 10 | [10-workflows.md](./10-workflows.md) | Business workflows and state machines |
+| 11 | [11-glossary.md](./11-glossary.md) | Domain terminology |
+| 12 | [12-timeline.md](./12-timeline.md) | Development phases and timeline |
 
-## Principles
+## Context
 
-1. **F&B/Retail focused.** Designed for food & beverage businesses with production, multi-location, and POS integration.
-2. **Multi-location first.** Every transaction is location-scoped. Stock, sales, and production are per-location.
-3. **Financial integrity.** Double-entry accounting. Every monetary event produces a journal entry.
-4. **Progressive complexity.** Start simple (sales + inventory), grow into production + finance without rearchitecting.
+Ikki ERP serves a single F&B business (Ikki Group) operating:
+
+- **2 stores:** Ikki Coffee (cafe), Ikki Resto (restaurant)
+- **Multiple warehouses:** Central warehouses for bulk storage and distribution
+- **Roles:** Owner, managers, cashiers, warehouse staff, accountants
+
+Each store has its own menu, its own inventory, and its own POS. Materials (bahan baku) are shared globally across all locations for easy transfer.
 
 ---
 
-**Next:** [01-vision.md](./01-vision.md) — Product vision and strategy.
+**Next:** [01-vision.md](./01-vision.md) — Product vision.

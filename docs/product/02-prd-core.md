@@ -1,116 +1,153 @@
 # PRD: Core Modules
 
-Specifications for IAM, Authentication, Company Settings, and Location — the foundational modules every other module depends on.
-
-## IAM (Identity & Access Management)
-
-### Purpose
-
-Manage users, roles, and granular permissions. Every API call is authenticated and authorized.
-
-### Entities
-
-| Entity | Description |
-| ------ | ----------- |
-| User | System user with credentials (username, email, password hash) |
-| Role | Named set of permissions (e.g. "Store Manager", "Finance") |
-| Permission | Granular action (e.g. `inventory:stock:read`, `sales:order:create`) |
-| User Assignment | Maps user → role → location(s) |
-
-### Key features
-
-- Role-based access control (RBAC) with location scoping.
-- A user can have different roles at different locations.
-- System roles (admin, owner) are immutable.
-- Permission format: `{module}:{entity}:{action}` (e.g. `purchasing:order:approve`).
-
-### Business rules
-
-- At least one user must have the `owner` role at all times.
-- Deleting a user soft-deletes (preserves audit trail).
-- Password requirements: min 8 chars.
-- Session expires after configurable idle timeout.
-
-## Authentication
-
-### Purpose
-
-Handle login, session management, and token lifecycle.
-
-### Flows
-
-| Flow | Method |
-| ---- | ------ |
-| Login | Username/email + password → session token |
-| Logout | Invalidate session |
-| Refresh | Extend session before expiry |
-| Password change | Requires current password |
-| Password reset | Email-based (future) |
-
-### Session model
-
-- Server-side sessions stored in Redis.
-- Session token returned as HTTP-only cookie + response body (for mobile).
-- Configurable TTL (default: 7 days active, 30 min idle).
-
-## Company Settings
-
-### Purpose
-
-Global configuration for the business entity — applies across all locations.
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| name | string | Business legal name |
-| address | string? | Head office address |
-| phone | string? | Contact phone |
-| email | string? | Contact email |
-| taxId | string? | Tax registration number (NPWP) |
-| taxRate | decimal | Default tax rate (%) |
-| currencyCode | string | ISO currency (default: IDR) |
-| currencySymbol | string | Display symbol (default: Rp) |
-| logoUrl | string? | Company logo |
-| invoiceFooter | string? | Default text on invoices |
-| receiptFooter | string? | Default text on receipts |
-
-### Business rules
-
-- Only one company settings record exists (singleton).
-- Only `owner` role can modify company settings.
-- Currency cannot be changed after the first financial transaction is posted.
+Specifications for Location, IAM (users, roles, permissions), Authentication, and Company Settings.
 
 ## Location
 
 ### Purpose
 
-Represent physical operational locations (stores, warehouses, kitchens). Every transactional record is location-scoped.
+The fundamental operational unit. Every transaction, stock record, shift, and report is scoped to a location. Users switch context by selecting a location.
 
-### Entity fields
+### Fields
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
-| code | string | Unique short code (e.g. "WH-01", "STORE-CBD") |
-| name | string | Human-readable name |
-| type | enum | `store`, `warehouse`, `kitchen`, `office` |
+|-------|------|-------------|
+| code | string | Unique short code (e.g. "COFFEE", "RESTO", "WH-A") |
+| name | string | Display name ("Ikki Coffee", "Gudang Pusat A") |
+| type | enum | `store`, `warehouse` |
 | address | string? | Physical address |
-| phone | string? | Location contact |
+| phone | string? | Contact number |
 | isActive | boolean | Active/inactive toggle |
 
-### Key features
+### Location Types
 
-- Every stock record, sales order, and production order belongs to exactly one location.
-- Users are assigned to locations via IAM (can access multiple).
-- Inter-location stock transfers are explicit operations.
-- Deactivating a location prevents new transactions but preserves history.
+| Type | Has POS | Has Inventory | Has Menu | Description |
+|------|---------|---------------|----------|-------------|
+| `store` | Yes | Yes | Yes | Sells to customers + stores operational stock |
+| `warehouse` | No | Yes | No | Bulk storage, distribution to stores |
 
-### Business rules
+### Topology
 
-- Location code is unique and immutable after creation.
-- At least one active location must exist.
-- A location cannot be deactivated if it has pending (non-completed) transactions.
+```
+Ikki Group
+├── Ikki Coffee       (store)  — POS + stok operasional
+├── Ikki Resto        (store)  — POS + stok operasional
+├── Gudang Pusat A    (warehouse) — bulk storage
+└── Gudang Pusat B    (warehouse) — bulk storage
+```
+
+### Context Switcher (UI)
+
+```
+[🔽 Ikki Coffee ▾]
+├── 📊 Semua              (owner only — aggregate view)
+├── ───────────────
+├── Ikki Coffee           (store)
+├── Ikki Resto            (store)
+├── ───────────────
+├── Gudang Pusat A        (warehouse)
+└── Gudang Pusat B        (warehouse)
+```
+
+Menu/sidebar adapts based on location type:
+- `store` → full menu (POS, Inventory, Sales, Menu, etc.)
+- `warehouse` → inventory only (Stock, Transfers, Receiving, Opname)
+- `Semua` → aggregate dashboard, cross-location reports
+
+### Business Rules
+
+- Code is unique and immutable after creation.
+- Cannot deactivate a location with stock balance > 0 (must transfer out first).
+- At least one store must be active.
+- Location determines: what data user sees, what they can create, what reports show.
+
+## IAM (Identity & Access Management)
+
+### Purpose
+
+Manage users, roles, and permissions. Every API call is authenticated and authorized.
+
+### Entities
+
+| Entity | Description |
+|--------|-------------|
+| User | System user with credentials |
+| Role | Named permission set (e.g. "Manager", "Cashier") |
+| Permission | Granular action (e.g. `pos:order:create`, `inventory:transfer:approve`) |
+| Location Assignment | Maps user → role → location(s) they can access |
+
+### Default Roles
+
+| Role | Scope | Description |
+|------|-------|-------------|
+| owner | Global (all locations) | Full access to everything |
+| manager | Per-location | Manages specific locations: stock, sales, staff |
+| cashier | Per-location | POS operations, shift open/close |
+| warehouse_staff | Per-location (warehouse) | Stock receiving, transfers, opname |
+| accountant | Global | Finance module: journals, reports |
+
+### Business Rules
+
+- A user can have different roles at different locations.
+- A user can work at multiple locations (assigned to each).
+- At least one user must have `owner` role at all times.
+- Soft-delete users (preserve audit trail).
+- Permission format: `{module}:{entity}:{action}`.
+- System roles (`owner`) are immutable.
+
+## Authentication
+
+### Flows
+
+| Flow | Method |
+|------|--------|
+| Login | Username/email + password → session token |
+| Logout | Invalidate session |
+| Session refresh | Extend before expiry |
+| Password change | Requires current password |
+
+### Session Model
+
+- Server-side sessions in Redis.
+- Session token as HTTP-only cookie.
+- TTL: 7 days active, 30 min idle timeout (configurable).
+- Session stores: userId, active locationId, role context.
+
+### Location Context in Session
+
+When user switches location in the UI:
+1. Frontend sends location switch request.
+2. Backend validates user has access to that location.
+3. Session updates `activeLocationId`.
+4. All subsequent API calls are scoped to that location.
+
+## Company Settings
+
+### Purpose
+
+Global configuration for Ikki Group — applies across all locations.
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| name | string | Business name ("Ikki Group") |
+| address | string? | Head office address |
+| phone | string? | Contact phone |
+| email | string? | Contact email |
+| taxId | string? | NPWP |
+| taxRate | decimal | Default tax rate (%) |
+| currencyCode | string | ISO currency (IDR) |
+| currencySymbol | string | Display symbol (Rp) |
+| logoUrl | string? | Company logo |
+| receiptFooter | string? | Default receipt text |
+
+### Business Rules
+
+- Singleton record — only one exists.
+- Only `owner` can modify.
+- Currency cannot change after first financial transaction is posted.
 
 ---
 
-**Next:** [03-prd-master-data.md](./03-prd-master-data.md) — Master data modules.
+**Next:** [03-prd-master-data.md](./03-prd-master-data.md) — Materials, UoM, Suppliers.

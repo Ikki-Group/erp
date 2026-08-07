@@ -1,188 +1,154 @@
 # PRD: Master Data
 
-Specifications for Product, Material, Recipe, UoM, Supplier, Customer, and Sales Type.
+Specifications for Material (bahan baku), Unit of Measure (chain conversion), and Supplier.
 
-## Product
-
-### Purpose
-
-Catalog of sellable items — what the business offers to customers.
-
-### Entity fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| sku | string | Unique stock-keeping unit |
-| name | string | Product name |
-| description | string? | Optional description |
-| categoryId | FK? | Product category |
-| basePrice | decimal | Default selling price |
-| status | enum | `active`, `inactive`, `archived` |
-| hasVariants | boolean | Whether product has size/flavor variants |
-| hasSalesTypePricing | boolean | Different prices per sales channel |
-| locationId | FK | Location this product belongs to |
-
-### Key features
-
-- Product categories (hierarchical: Food > Main Course > Nasi Goreng).
-- Variants: size, flavor, temperature (each with own SKU and price).
-- Sales-type pricing: different price for dine-in vs GoFood vs grab.
-- Product can exist per-location (different locations can have different menus).
-
-### Business rules
-
-- SKU is unique within a location.
-- Archived products cannot be sold but appear in historical reports.
-- Price changes take effect immediately (no future-dated pricing in v1).
-
-## Material (Raw Material / Bahan Baku)
+## Material (Bahan Baku)
 
 ### Purpose
 
-Inventory items consumed in production — not sold directly.
+Raw materials consumed by recipes. Tracked per location. **Global catalog** — shared across all locations for easy transfer.
 
-### Entity fields
+### Fields
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+|-------|------|-------------|
 | code | string | Unique material code |
-| name | string | Material name |
+| name | string | Material name (e.g. "Espresso Beans", "Susu Full Cream") |
 | categoryId | FK? | Material category |
-| uomId | FK | Default unit of measure |
-| minStock | decimal? | Reorder point (per location) |
-| maxStock | decimal? | Maximum stock level |
-| costMethod | enum | `weighted_average`, `fifo` |
+| purchaseUomId | FK | Unit used when purchasing from supplier |
+| storageUomId | FK | Unit used for stock balance tracking |
+| recipeUomId | FK | Unit used in recipes |
+| costPrice | decimal | Current weighted average cost (in storage UoM) |
+| minStock | decimal? | Alert threshold (in storage UoM) |
 
-### Key features
+### Material Category
 
-- Stock tracked per location.
-- Automatic reorder alerts when stock < minStock.
-- Cost calculation: weighted average (default) or FIFO.
-- Material can be linked to multiple suppliers with different prices.
+Flat grouping: Dairy, Dry Goods, Frozen, Fresh Produce, Packaging, Cleaning, etc.
 
-## Recipe (Bill of Materials)
+### Three-Level UoM per Material
 
-### Purpose
+```
+Susu Full Cream:
+  Purchase UoM: Karton     (beli 1 karton dari supplier)
+  Storage UoM:  Liter      (simpan 12 liter di gudang)
+  Recipe UoM:   Mililiter  (pakai 200ml per cup)
+```
 
-Define how materials are combined to produce a product — enables COGS calculation.
+System resolves conversions via UoM chain:
+- Receiving: convert purchase UoM → storage UoM for stock balance
+- Auto-deduct: convert recipe UoM → storage UoM for balance deduction
 
-### Entity fields
+### Business Rules
 
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| productId | FK | Output product |
-| name | string | Recipe name (a product can have multiple recipes) |
-| yieldQty | decimal | How many units this recipe produces |
-| isDefault | boolean | Default recipe for this product |
-
-### Recipe lines
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| materialId | FK | Input material |
-| quantity | decimal | Amount consumed per batch |
-| uomId | FK | Unit of the quantity |
-| wastagePercent | decimal | Expected waste (0–100%) |
-
-### Key features
-
-- One product can have multiple recipes (seasonal, experimental).
-- Theoretical COGS = sum(material cost × quantity × (1 + wastage%)) / yieldQty.
-- Recipe versioning: mark old recipes inactive, create new ones.
-
-### Business rules
-
-- A recipe must have at least one material line.
-- Yield must be > 0.
-- Default recipe is used for automatic COGS calculation.
+- Code is globally unique.
+- `costPrice` auto-recalculates on purchase receipt (weighted average).
+- `minStock` alert fires when total stock across all locations < threshold.
+- Materials cannot be deleted if stock balance > 0 anywhere (deactivate instead).
 
 ## Unit of Measure (UoM)
 
 ### Purpose
 
-Standardize measurement units across the system.
+Standardize measurement units with **chain conversions** — enabling multi-hop resolution.
 
-### Entity fields
+### UoM Fields
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
-| code | string | Short code (kg, pcs, ml, L) |
-| name | string | Full name (Kilogram, Pieces) |
-| isSystem | boolean | System-defined (cannot delete) |
+|-------|------|-------------|
+| code | string | Short code (kg, g, L, ml, pcs, karton, sak) |
+| name | string | Full name (Kilogram, Gram, Liter) |
+| category | enum | `weight`, `volume`, `quantity`, `length` |
 
-### Key features
+### UoM Conversion (Chain)
 
-- UoM conversion: 1 kg = 1000 g, 1 L = 1000 ml.
-- Used in materials, recipe lines, and inventory transactions.
+| Field | Type | Description |
+|-------|------|-------------|
+| fromUomId | FK | Source unit |
+| toUomId | FK | Target unit |
+| factor | decimal | Multiply source by this to get target |
+
+### Chain Example
+
+```
+Karton ──(×12)──→ Liter ──(×1000)──→ Mililiter
+
+Resolution: 1 Karton = ? Mililiter
+  → 1 × 12 × 1000 = 12,000 ml
+```
+
+```
+Sak ──(×50)──→ Kilogram ──(×1000)──→ Gram
+
+Resolution: 1 Sak = ? Gram
+  → 1 × 50 × 1000 = 50,000 g
+```
+
+### Conversion Rules
+
+- Conversions only within the same category (weight↔weight, volume↔volume).
+- System resolves multi-hop by traversing the chain (max depth configurable, default 5).
+- Conversion factor must be > 0.
+- If no path exists between two UoMs, the conversion fails (explicit error).
+- System UoMs (kg, g, L, ml, pcs) cannot be deleted.
+- Custom UoMs can be created (karton, sak, botol, sachet, etc.).
+
+### Resolving Conversions
+
+```
+Input: fromUom=Karton, toUom=Mililiter, qty=2
+
+1. Find path: Karton → Liter → Mililiter
+2. Apply factors: 2 × 12 × 1000 = 24,000
+3. Result: 24,000 ml
+```
+
+If path goes the other direction (e.g. Mililiter → Liter), use inverse (÷ factor):
+```
+Input: fromUom=Mililiter, toUom=Liter, qty=500
+
+1. Find path: Mililiter → Liter (inverse of Liter→Mililiter)
+2. Apply: 500 ÷ 1000 = 0.5
+3. Result: 0.5 L
+```
 
 ## Supplier
 
 ### Purpose
 
-Manage vendor/supplier data for purchasing.
+Vendors who supply materials. Reference data for purchasing.
 
-### Entity fields
+### Fields
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+|-------|------|-------------|
 | code | string | Unique supplier code |
 | name | string | Supplier name |
-| email | string? | Contact email |
-| phone | string? | Contact phone |
+| contactPerson | string? | Contact name |
+| phone | string? | Phone |
+| email | string? | Email |
 | address | string? | Address |
-| taxId | string? | Supplier tax ID |
-| paymentTerms | integer? | Default payment term (days) |
+| paymentTerms | integer? | Default credit days (e.g. 30 = NET 30) |
+| isActive | boolean | Active/inactive |
 
-### Key features
+### Supplier-Material Price
 
-- Supplier-material price list (each material can have multiple supplier options).
-- Track supplier performance (delivery time, quality — future).
-- Soft-delete to preserve purchase history.
-
-## Customer (CRM)
-
-### Purpose
-
-Track customer data and loyalty programs.
-
-### Entity fields
+Track which suppliers provide which materials at what reference price.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
-| code | string | Unique customer code |
-| name | string | Customer name |
-| phone | string? | Phone (primary identifier for loyalty) |
-| email | string? | Email |
-| tier | enum | `bronze`, `silver`, `gold`, `platinum` |
-| pointsBalance | integer | Current loyalty points |
+|-------|------|-------------|
+| supplierId | FK | Supplier |
+| materialId | FK | Material |
+| unitPrice | decimal | Reference price per unit |
+| uomId | FK | Unit the price refers to (usually purchase UoM) |
+| minOrderQty | decimal? | Minimum order quantity |
 
-### Key features
+### Business Rules
 
-- Loyalty points: earn on purchase, redeem for discounts.
-- Tier progression based on total points earned.
-- Customer lookup by phone at POS.
-
-## Sales Type
-
-### Purpose
-
-Define sales channels with different pricing and behavior.
-
-### Examples
-
-| Code | Name | Use case |
-| ---- | ---- | -------- |
-| DINE | Dine In | In-store dining |
-| TAKE | Takeaway | Counter pickup |
-| GOFOOD | GoFood | Delivery via GoFood |
-| GRAB | GrabFood | Delivery via Grab |
-
-### Key features
-
-- Products can have different prices per sales type.
-- Sales reports filterable by sales type.
-- System sales types (DINE, TAKE) cannot be deleted.
+- A material can have multiple suppliers.
+- Supplier-material prices are reference data — actual PO prices can differ.
+- Soft-delete suppliers to preserve purchase history.
+- `paymentTerms` determines default due date on AP entries.
 
 ---
 
-**Next:** [04-prd-operations.md](./04-prd-operations.md) — Operations modules.
+**Next:** [04-prd-menu.md](./04-prd-menu.md) — Menu, Modifiers, Recipes.

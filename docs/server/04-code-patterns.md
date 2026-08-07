@@ -1,260 +1,158 @@
 # Code Patterns
 
-Copy-ready patterns for the Ikki ERP server — complements [02-module-standard.md](./02-module-standard.md) and [03-code-standard.md](./03-code-standard.md).
+Copy-ready patterns for the Ikki ERP server.
 
-## Zod / Schema
+## Contract (Zod)
 
 ```ts
 import { z } from 'zod'
 import { zc, zp, zq } from '@/shared/schema'
 
-// Entity schema (output) — use zp.* (no coercion)
-export const LocationSchema = z.object({
-	id: zp.id,
-	code: zp.str,
-	name: zp.str,
-	type: LocationTypeEnum,
-	description: zp.str.nullable(),
-	isActive: zp.bool,
-	...zc.AuditBasic.shape,
-})
-export type LocationSchema = z.infer<typeof LocationSchema>
+export const LocationTypeEnum = z.enum(['store', 'warehouse'])
 
-// Filter schema (query) — use zq.* (coerced)
-export const LocationFilterSchema = z.object({
-	...zq.pagination.shape,
-	q: zq.search,
-	type: LocationTypeEnum.optional(),
-})
-export type LocationFilterSchema = z.infer<typeof LocationFilterSchema>
-
-// Reusable mutation shape (private) — use zc.* (trimmed/validated)
-const LocationMutationSchema = z.object({
-	code: zc.strTrim,
-	name: zc.strTrim.min(3).max(100),
-	type: LocationTypeEnum,
-	description: zc.strTrimNullable,
-	isActive: zp.bool.default(true),
+const LocationMutationDto = z.object({
+  code: zc.strTrim,
+  name: zc.strTrim.min(3).max(100),
+  type: LocationTypeEnum,
+  isActive: zp.bool.default(true),
 })
 
-// Create schema
-export const LocationCreateSchema = LocationMutationSchema
-export type LocationCreateSchema = z.infer<typeof LocationCreateSchema>
+export const LocationDto = z.object({
+  id: zp.id,
+  code: zp.str,
+  name: zp.str,
+  type: LocationTypeEnum,
+  isActive: zp.bool,
+  ...zc.AuditBasic.shape,
+})
+export type LocationDto = z.infer<typeof LocationDto>
 
-// Update schema — id inline, spread-shape (never .extend())
-export const LocationUpdateSchema = z.object({ id: zp.id, ...LocationMutationSchema.shape })
-export type LocationUpdateSchema = z.infer<typeof LocationUpdateSchema>
+export const LocationFilterDto = z.object({
+  ...zq.pagination.shape,
+  q: zq.search,
+  type: LocationTypeEnum.optional(),
+})
+export type LocationFilterDto = z.infer<typeof LocationFilterDto>
+
+export const LocationCreateDto = LocationMutationDto
+export type LocationCreateDto = z.infer<typeof LocationCreateDto>
+
+export const LocationUpdateDto = z.object({ id: zp.id, ...LocationMutationDto.shape })
+export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
 ```
 
 ## Repository
 
-Declare a port; class implements it. Reads return `undefined`; writes return `EntityRef | undefined`.
-
 ```ts
 export interface ILocationRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<LocationSchema | undefined>
-	findByIds(ids: number[], db?: DbContext): Promise<LocationSchema[]>
-	findPage(filter: LocationFilterSchema, db?: DbContext): Promise<WithPaginationResult<LocationSchema>>
-	insert(data: LocationInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: LocationUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+  readonly db: DbContext
+  findById(id: number, db?: DbContext): Promise<LocationDto | undefined>
+  findByIds(ids: number[], db?: DbContext): Promise<LocationDto[]>
+  findPage(filter: LocationFilterDto, db?: DbContext): Promise<WithPaginationResult<LocationDto>>
+  insert(data: LocationInsert, db?: DbContext): Promise<EntityRef | undefined>
+  update(id: number, data: LocationUpdate, db?: DbContext): Promise<EntityRef | undefined>
 }
 
 export class LocationRepo implements ILocationRepo {
-	constructor(readonly db: DbContext) {}
+  constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db) {
-		return db
-			.select()
-			.from(locationsTable)
-			.where(eq(locationsTable.id, id))
-			.limit(1)
-			.then(takeFirst)
-	}
+  async findById(id: number, db: DbContext = this.db) {
+    return db.select().from(locationsTable)
+      .where(eq(locationsTable.id, id))
+      .limit(1).then(takeFirst)
+  }
 
-	async findByIds(ids: number[], db: DbContext = this.db) {
-		if (ids.length === 0) return []
-		return db.select().from(locationsTable).where(inArray(locationsTable.id, ids))
-	}
-
-	async insert(data: LocationInsert, db: DbContext = this.db) {
-		const [res] = await db
-			.insert(locationsTable)
-			.values({ ...data })
-			.returning({ id: locationsTable.id })
-		return res
-	}
-}
-```
-
-### Pagination (paginateWindow)
-
-```ts
-async findPage(filter: LocationFilterSchema, db: DbContext = this.db) {
-  const where = this.#buildWhere(filter)
-  const { limit, offset } = toLimitOffset(filter)
-
-  const rows = await db
-    .select({ ...getColumns(locationsTable), rowCount: sql<number>`count(*) over()` })
-    .from(locationsTable).where(where)
-    .orderBy(sortBy(locationsTable.updatedAt, 'desc'))
-    .limit(limit).offset(offset)
-
-  return paginateWindow(rows, filter)
+  async insert(data: LocationInsert, db: DbContext = this.db) {
+    const [res] = await db.insert(locationsTable)
+      .values({ ...data })
+      .returning({ id: locationsTable.id })
+    return res
+  }
 }
 ```
 
 ## Service
 
-Depend on the port. `handleX` = route entrypoints. `record(...)` wraps telemetry at ONE level.
-
 ```ts
 export class LocationService {
-	private readonly cache: CacheService
+  private readonly cache: CacheService
 
-	constructor(
-		private readonly repo: ILocationRepo,
-		cacheClient: CacheClient,
-	) {
-		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'location')
-	}
+  constructor(private readonly repo: ILocationRepo, cacheClient: CacheClient) {
+    this.cache = CacheService.createWithDefaultKeys(cacheClient, 'location')
+  }
 
-	private async invalidate(id?: number): Promise<void> {
-		const keys = [this.cache.keys.list, this.cache.keys.count]
-		if (id !== undefined) keys.push(this.cache.keys.byId(id))
-		await this.cache.deleteFromKeys(keys)
-	}
+  async getById(id: number): Promise<LocationDto | undefined> {
+    return this.cache.getOrSetWithSkip({
+      key: this.cache.keys.byId(id),
+      factory: () => this.repo.findById(id),
+    })
+  }
 
-	async handleCreate(data: LocationCreateSchema, actorId: ActorId): Promise<EntityRef> {
-		return record('LocationService.handleCreate', async () => this.create(data, actorId))
-	}
+  async handleGetById(id: number): Promise<LocationDto> {
+    return assertFound(await this.getById(id), () => LocationError.notFound(id))
+  }
 
-	async create(data: LocationCreateSchema, actorId: ActorId): Promise<EntityRef> {
-		await checkConflict({ db: this.repo.db, table, pkColumn, fields: uniqueFields, input: data })
-		const result = await this.repo.insert({ ...data, ...stampCreate(actorId) })
-		if (!result) throw LocationError.createFailed()
-		await this.invalidate()
-		return result
-	}
+  async handleCreate(data: LocationCreateDto, actorId: ActorId): Promise<EntityRef> {
+    await checkConflict({ db: this.repo.db, table, pkColumn, fields: uniqueFields, input: data })
+    const result = await this.repo.insert({ ...data, ...stampCreate(actorId) })
+    if (!result) throw LocationError.createFailed()
+    await this.cache.invalidateStandard()
+    return result
+  }
 }
-```
-
-## Conflict checking
-
-```ts
-const uniqueFields: ConflictField<{ name: string; code: string }>[] = [
-	{ field: 'name', column: locationsTable.name, message: 'Name exists', code: 'NAME_EXISTS' },
-	{ field: 'code', column: locationsTable.code, message: 'Code exists', code: 'CODE_EXISTS' },
-]
-
-// Create (no existing)
-await checkConflict({ db: this.repo.db, table, pkColumn, fields: uniqueFields, input: data })
-
-// Update (pass existing to skip unchanged + exclude current row)
-await checkConflict({
-	db: this.repo.db,
-	table,
-	pkColumn,
-	fields: uniqueFields,
-	input: data,
-	existing,
-})
-```
-
-## Transactions
-
-```ts
-const result = await withTransaction(this.repo.db, async (tx) => {
-	const created = await this.repo.insert({ ...data, ...stampCreate(actorId) }, tx)
-	if (!created) throw XError.createFailed()
-	await this.deps.child.replaceByParentId(created.id, items, actorId, tx)
-	return created
-})
-await this.invalidate()
-return result
-```
-
-## Caching
-
-```ts
-// Read-through
-await this.cache.getOrSet({ key: this.cache.keys.list, factory: () => this.repo.findMany() })
-
-// Read-through, skip undefined
-await this.cache.getOrSetWithSkip({
-	key: this.cache.keys.byId(id),
-	factory: () => this.repo.findById(id),
-})
-
-// Invalidate (called by every mutation)
-await this.cache.deleteFromKeys([
-	this.cache.keys.list,
-	this.cache.keys.count,
-	this.cache.keys.byId(id),
-])
 ```
 
 ## Errors
 
 ```ts
 // location.internal.ts
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
-
 export const LocationError = {
-	notFound: (id: number) =>
-		new NotFoundError('Location not found', { code: 'LOCATION_NOT_FOUND', context: { id } }),
-	createFailed: () =>
-		new InternalServerError('Location creation failed', { code: 'LOCATION_CREATE_FAILED' }),
+  notFound: (id: number) =>
+    new NotFoundError('Location not found', { code: 'LOCATION_NOT_FOUND', context: { id } }),
+  createFailed: () =>
+    new InternalServerError('Location creation failed', { code: 'LOCATION_CREATE_FAILED' }),
 }
 ```
 
-## RelationMap (avoid N+1)
+## Conflict Checking
 
 ```ts
-const locationIds = users.map((u) => u.locationId).filter(Boolean)
-const locations = await locationRepo.findByIds(locationIds)
-const locationMap = RelationMap.fromArray(locations, (v) => v.id)
+const uniqueFields = defineConflictFields<LocationCreateDto>()([
+  { field: 'code', column: locationsTable.code, message: 'Code exists', code: 'LOCATION_CODE_EXISTS' },
+  { field: 'name', column: locationsTable.name, message: 'Name exists', code: 'LOCATION_NAME_EXISTS' },
+])
+```
 
-const result = users.map((user) => ({
-	...user,
-	location: user.locationId ? locationMap.get(user.locationId) : null,
-}))
+## Transactions
+
+```ts
+const result = await withTransaction(this.repo.db, async (tx) => {
+  const created = await this.repo.insert({ ...data, ...stampCreate(actorId) }, tx)
+  if (!created) throw XError.createFailed()
+  await this.deps.child.replaceByParentId(created.id, items, actorId, tx)
+  return created
+})
+await this.cache.invalidateStandard()
+return result
 ```
 
 ## Routes
 
 ```ts
-export function createLocationRoute(m: LocationModule) {
-	return new Elysia({ prefix: '/location' })
-		.use(authPluginMacro)
-		.get(
-			'/list',
-			async ({ query }) => {
-				const result = await m.handleList(query)
-				return res.paginated(result)
-			},
-			{
-				query: LocationFilterSchema,
-				response: createPaginatedResponseDto(LocationSchema),
-				auth: true,
-			},
-		)
-		.post(
-			'/create',
-			async ({ body, auth }) => {
-				const result = await m.handleCreate(body, auth.userId)
-				return res.created(result)
-			},
-			{
-				body: LocationCreateSchema,
-				response: createSuccessResponseDto(zc.RecordId),
-				auth: true,
-			},
-		)
+export function createLocationRoute(svc: LocationService) {
+  return new Elysia({ prefix: '/location' })
+    .use(authPluginMacro)
+    .get('/list', async ({ query, auth }) => {
+      const result = await svc.handleList(query)
+      return res.paginated(result)
+    }, { query: LocationFilterDto, auth: true })
+    .post('/create', async ({ body, auth }) => {
+      const result = await svc.handleCreate(body, auth.userId)
+      return res.created(result)
+    }, { body: LocationCreateDto, auth: true })
 }
 ```
 
 ---
 
-**Next:** [05-module-checklist.md](./05-module-checklist.md) — Step-by-step build guide.
+**Next:** [05-module-checklist.md](./05-module-checklist.md) — Build guide.
