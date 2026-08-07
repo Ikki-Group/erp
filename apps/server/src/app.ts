@@ -1,28 +1,8 @@
-import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
+import cors from '@elysiajs/cors'
+import { errorPlugin } from './server/plugins/error.plugin.ts'
 
-import { env } from '@/config/env'
-import { logger } from '@/infra/logger'
-import { otel } from '@/infra/otel/otel'
-import { errorHandler } from '@/server/handlers/error.handler'
-import { createAuthPlugin } from '@/server/plugins/auth.plugin'
-import { requestIdPlugin } from '@/server/plugins/request-id.plugin'
-
-import type { Modules } from './modules/_registry'
-
-export function createApp(m: Modules): Elysia {
-	const app = new Elysia({ precompile: true })
-
-	app
-		.use(errorHandler)
-		.use(otel)
-		.use(requestIdPlugin())
-		.use(cors({ origin: env.CORS_ORIGINS ?? true }))
-		.use(createAuthPlugin(m.auth))
-		.get('/', () => {
-			logger.info('Ikki ERP API is running')
-			return { status: 'ok', name: 'Ikki ERP API' }
-		})
-
-	return app
-}
+export const app = new Elysia()
+	.use(cors())
+	.use(errorPlugin)
+	.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))

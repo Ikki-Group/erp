@@ -4,9 +4,9 @@ export interface PaginationQuery {
 }
 
 export interface PaginationMeta {
-	total: number
 	page: number
 	limit: number
+	total: number
 	totalPages: number
 }
 

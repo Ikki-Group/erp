@@ -1,5 +1,0 @@
-export * from './sales-type.contract'
-export type { ISalesTypeRepo } from './sales-type.repo'
-export type { SalesTypeModule } from './sales-type.module'
-export { createSalesTypeModule } from './sales-type.module'
-export { createSalesTypeRoute } from './sales-type.route'

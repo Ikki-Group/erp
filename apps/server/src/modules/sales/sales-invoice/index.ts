@@ -1,5 +1,0 @@
-export * from './sales-invoice.contract'
-export type { ISalesInvoiceRepo } from './sales-invoice.repo'
-export { createSalesInvoiceModule } from './sales-invoice.module'
-export type { SalesInvoiceModule } from './sales-invoice.module'
-export type { ISalesOrderPort } from './sales-invoice.service'

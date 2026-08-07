@@ -1,84 +1,53 @@
-import type { PrimitiveId } from '@/shared/types/utils'
-
-import { AppError, type AppErrorOptions } from './app-error'
-
-interface HttpErrorOptions extends AppErrorOptions {
-	code?: string
+export interface HttpErrorOptions {
+	code: string
+	context?: Record<string, unknown>
 }
 
-export abstract class HttpError extends AppError {
-	protected constructor(
-		/** HTTP status code */
-		public readonly statusCode: number,
-		message: string,
-		options: HttpErrorOptions,
-	) {
-		super(message, options.code ?? 'HTTP_ERROR', {
-			cause: options.cause,
-			context: options.context,
-		})
+export class HttpError extends Error {
+	readonly statusCode: number
+	readonly code: string
+	readonly context: Record<string, unknown> | undefined
+
+	constructor(message: string, statusCode: number, options: HttpErrorOptions) {
+		super(message)
+		this.statusCode = statusCode
+		this.code = options.code
+		this.context = options.context
 	}
 }
 
 export class BadRequestError extends HttpError {
-	constructor(message = 'Bad request', options?: HttpErrorOptions) {
-		super(400, message, {
-			...options,
-			code: options?.code ?? 'BAD_REQUEST',
-		})
+	constructor(message: string, options: HttpErrorOptions) {
+		super(message, 400, options)
 	}
 }
 
 export class UnauthorizedError extends HttpError {
-	constructor(message = 'Unauthorized', options?: HttpErrorOptions) {
-		super(401, message, {
-			...options,
-			code: options?.code ?? 'UNAUTHORIZED',
-		})
+	constructor(message = 'Unauthorized', options: HttpErrorOptions = { code: 'UNAUTHORIZED' }) {
+		super(message, 401, options)
 	}
 }
 
 export class ForbiddenError extends HttpError {
-	constructor(message = 'Forbidden', options?: HttpErrorOptions) {
-		super(403, message, {
-			...options,
-			code: options?.code ?? 'FORBIDDEN',
-		})
+	constructor(message = 'Forbidden', options: HttpErrorOptions = { code: 'FORBIDDEN' }) {
+		super(message, 403, options)
 	}
 }
 
 export class NotFoundError extends HttpError {
-	constructor(message = 'Resource not found', options?: HttpErrorOptions) {
-		super(404, message, {
-			...options,
-			code: options?.code ?? 'NOT_FOUND',
-		})
-	}
-
-	static fromEntity(entity: string, id: PrimitiveId) {
-		// oxlint-disable-next-line require-unicode-regexp
-		const code = `${entity.toUpperCase().replace(/\s+/g, '_')}_NOT_FOUND`
-		return new NotFoundError(`Resource with ID ${id} not found`, {
-			code,
-			context: { entity, id },
-		})
+	constructor(message: string, options: HttpErrorOptions) {
+		super(message, 404, options)
 	}
 }
 
 export class ConflictError extends HttpError {
-	constructor(message = 'Conflict', options?: HttpErrorOptions) {
-		super(409, message, {
-			...options,
-			code: options?.code ?? 'CONFLICT',
-		})
+	constructor(message: string, options: HttpErrorOptions) {
+		super(message, 409, options)
 	}
 }
 
 export class InternalServerError extends HttpError {
-	constructor(message = 'Internal server error', options?: HttpErrorOptions) {
-		super(500, message, {
-			...options,
-			code: options?.code ?? 'INTERNAL_SERVER_ERROR',
-		})
+	constructor(message: string, options: HttpErrorOptions = { code: 'INTERNAL_SERVER_ERROR' }) {
+		super(message, 500, options)
 	}
 }
