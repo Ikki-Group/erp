@@ -35,7 +35,7 @@ export function paginateWindow<T extends { rowCount: number }>(
 	pq: PaginationQuery,
 ): WithPaginationResult<Omit<T, 'rowCount'>> {
 	const total = rows[0]?.rowCount ?? 0
-	const data = rows.map(({ rowCount: _, ...rest }) => rest) as Omit<T, 'rowCount'>[]
+	const data = rows.map(({ rowCount: _, ...rest }) => rest)
 	return {
 		data,
 		meta: {
@@ -54,14 +54,14 @@ export function sortBy(column: PgColumn, dir: 'asc' | 'desc' = 'desc') {
 // ─── WHERE Composition ───
 
 export function allOf(...conditions: (SQL | undefined)[]): SQL | undefined {
-	const valid = conditions.filter(Boolean) as SQL[]
+	const valid = conditions.filter((c): c is SQL => Boolean(c))
 	if (valid.length === 0) return undefined
 	if (valid.length === 1) return valid[0]
 	return and(...valid)
 }
 
 export function anyOf(...conditions: (SQL | undefined)[]): SQL | undefined {
-	const valid = conditions.filter(Boolean) as SQL[]
+	const valid = conditions.filter((c): c is SQL => Boolean(c))
 	if (valid.length === 0) return undefined
 	if (valid.length === 1) return valid[0]
 	return or(...valid)
@@ -74,7 +74,7 @@ export function eqIf<T>(column: PgColumn, value: T | undefined): SQL | undefined
 
 export function searchFilter(column: PgColumn, term: string | undefined): SQL | undefined {
 	if (!term || term.trim() === '') return undefined
-	const escaped = term.replace(/%/g, '\\%').replace(/_/g, '\\_')
+	const escaped = term.replace(/%/gu, '\\%').replace(/_/gu, '\\_')
 	return ilike(column, `%${escaped}%`)
 }
 

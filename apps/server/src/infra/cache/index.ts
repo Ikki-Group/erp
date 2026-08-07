@@ -48,9 +48,9 @@ export class CacheService {
 		ttl?: number
 	}): Promise<T> {
 		if (ttl) {
-			return this.client.getOrSet({ key, factory, ttl }) as Promise<T>
+			return this.client.getOrSet({ key, factory, ttl })
 		}
-		return this.client.getOrSet({ key, factory }) as Promise<T>
+		return this.client.getOrSet({ key, factory })
 	}
 
 	async getOrSetWithSkip<T>({
