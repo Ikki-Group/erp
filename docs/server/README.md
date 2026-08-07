@@ -28,9 +28,9 @@ Index for Ikki ERP backend architecture and code standards.
 
 ```
 Layer 3  Aggregators   dashboard, reporting
-Layer 2  Operations    pos, inventory, finance, hr, crm
-Layer 1  Master data   iam, location, material, menu-item, uom, supplier, recipe
-Layer 0  Core          auth, session, company
+Layer 2  Operations    pos, inventory, production, finance, hr, crm
+Layer 1  Master data   iam, location, material, menu, uom, supplier, recipe, payment-method
+Layer 0  Core          auth, company, audit
 ```
 
 Lower layers cannot import from upper layers. Same-layer cross-references are OK.

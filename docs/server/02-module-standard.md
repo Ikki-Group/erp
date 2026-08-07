@@ -48,11 +48,11 @@ src/modules/iam/
 ```
 Layer 3  Aggregators (dashboard, reporting)
    ↓
-Layer 2  Operations (pos, inventory, finance, hr, crm)
+Layer 2  Operations (pos, inventory, production, finance, hr, crm)
    ↓
-Layer 1  Master data (iam, location, material, menu-item, uom, supplier, recipe)
+Layer 1  Master data (iam, location, material, menu, uom, supplier, recipe, payment-method)
    ↓
-Layer 0  Core (auth, session, company)
+Layer 0  Core (auth, company, audit)
 ```
 
 - Import **downward** only (Layer 2 can import Layer 1, not vice versa).
@@ -61,25 +61,25 @@ Layer 0  Core (auth, session, company)
 
 ## File Responsibilities
 
-| File | Responsibility |
-|------|---------------|
-| `*.contract.ts` | Zod schemas: DTOs, enums, filters. No logic. |
-| `*.repo.ts` | Port interface + implementation. DB queries only. |
-| `*.service.ts` | Business logic, validation, orchestration. |
-| `*.route.ts` | HTTP layer. Validation → handleX → response wrapper. |
-| `*.internal.ts` | Error factories, module constants. Not exported. |
-| `*.module.ts` | Wires dependencies. Creates service + repo + route. |
-| `index.ts` | Public API. Exports module factory only. |
+| File            | Responsibility                                       |
+| --------------- | ---------------------------------------------------- |
+| `*.contract.ts` | Zod schemas: DTOs, enums, filters. No logic.         |
+| `*.repo.ts`     | Port interface + implementation. DB queries only.    |
+| `*.service.ts`  | Business logic, validation, orchestration.           |
+| `*.route.ts`    | HTTP layer. Validation → handleX → response wrapper. |
+| `*.internal.ts` | Error factories, module constants. Not exported.     |
+| `*.module.ts`   | Wires dependencies. Creates service + repo + route.  |
+| `index.ts`      | Public API. Exports module factory only.             |
 
 ## Module Factory Pattern
 
 ```ts
 // location.module.ts
 export function createLocationModule(db: DbContext, cache: CacheClient) {
-  const repo = new LocationRepo(db)
-  const service = new LocationService(repo, cache)
-  const route = createLocationRoute(service)
-  return { route, service }
+	const repo = new LocationRepo(db)
+	const service = new LocationService(repo, cache)
+	const route = createLocationRoute(service)
+	return { route, service }
 }
 ```
 

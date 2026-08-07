@@ -4,16 +4,15 @@ System design and layering for the Ikki ERP backend.
 
 ## Stack
 
-| Component  | Technology                     |
-| ---------- | ------------------------------ |
-| Runtime    | Bun                            |
-| Framework  | Elysia                         |
-| Database   | PostgreSQL                     |
-| ORM        | Drizzle                        |
-| Cache      | BentoCache (memory driver)     |
-| Validation | Zod                            |
-| Auth       | Session-based (Redis)          |
-| Telemetry  | OpenTelemetry (record wrapper) |
+| Component  | Technology                        |
+| ---------- | --------------------------------- |
+| Runtime    | Bun                               |
+| Framework  | Elysia                            |
+| Database   | PostgreSQL (Neon — serverless)    |
+| ORM        | Drizzle                           |
+| Cache      | BentoCache (memory driver)        |
+| Validation | Zod                               |
+| Auth       | Session-based (BentoCache memory) |
 
 ## Project Layout
 
@@ -21,27 +20,32 @@ System design and layering for the Ikki ERP backend.
 apps/server/
 ├── src/
 │   ├── app.ts                  # Elysia app + plugin registration
+│   ├── server.ts               # Entry point (listen on PORT)
 │   ├── modules/                # Vertical slices (one dir per domain)
 │   │   ├── auth/
-│   │   ├── iam/
+│   │   ├── company/
+│   │   ├── audit/
 │   │   ├── location/
-│   │   ├── material/
-│   │   ├── menu-item/
+│   │   ├── iam/
 │   │   ├── uom/
+│   │   ├── material/
 │   │   ├── supplier/
+│   │   ├── menu/
 │   │   ├── recipe/
+│   │   ├── payment-method/
 │   │   ├── pos/
 │   │   ├── inventory/
+│   │   ├── production/
 │   │   ├── finance/
 │   │   ├── hr/
-│   │   ├── crm/
-│   │   └── company/
+│   │   └── crm/
 │   ├── db/
 │   │   ├── schema/             # Drizzle table definitions
-│   │   ├── migrations/         # Generated migrations
-│   │   └── index.ts            # DB client
-│   ├── infra/                  # Cross-cutting (database utils, cache, errors)
+│   │   └── migrations/         # Generated migrations
+│   ├── infra/                  # Cross-cutting (database utils, cache)
 │   ├── shared/                 # Schema primitives, types, helpers
+│   ├── server/plugins/         # Elysia plugins (error, auth)
+│   ├── config/                 # Environment config
 │   └── tests/                  # Integration + unit tests
 ├── drizzle.config.ts
 └── package.json
@@ -51,9 +55,9 @@ apps/server/
 
 ```
 Layer 3  Aggregators   dashboard, reporting
-Layer 2  Operations    pos, inventory, finance, hr, crm
-Layer 1  Master data   iam, location, material, menu-item, uom, supplier, recipe
-Layer 0  Core          auth, session, company
+Layer 2  Operations    pos, inventory, production, finance, hr, crm
+Layer 1  Master data   iam, location, material, menu, uom, supplier, recipe, payment-method
+Layer 0  Core          auth, company, audit
 ```
 
 **Rule:** Modules only import from the same layer or below. Never upward.
