@@ -4,15 +4,15 @@ Per-location cost calculation, material-location assignment, and HPP derivation.
 
 ## Key Decisions
 
-| Decision | Choice |
-|----------|--------|
-| Cost scope | Per-location (each location has its own cost per material) |
-| Cost storage | `stock_balances.cost_price` (not on materials table) |
-| Recalculation trigger | Receiving from supplier + Transfer received |
-| Transfer cost | Source cost flows to destination (Opsi A) |
-| HPP source | Location cost where the order happens |
-| Adjustment impact on cost | None — adjustments change qty only, not cost |
-| Material visibility | Hard constraint — material must be assigned to location |
+| Decision                  | Choice                                                     |
+| ------------------------- | ---------------------------------------------------------- |
+| Cost scope                | Per-location (each location has its own cost per material) |
+| Cost storage              | `stock_balances.cost_price` (not on materials table)       |
+| Recalculation trigger     | Receiving from supplier + Transfer received                |
+| Transfer cost             | Source cost flows to destination (Opsi A)                  |
+| HPP source                | Location cost where the order happens                      |
+| Adjustment impact on cost | None — adjustments change qty only, not cost               |
+| Material visibility       | Hard constraint — material must be assigned to location    |
 
 ## Material-Location Assignment
 
@@ -24,10 +24,10 @@ Materials are defined globally but **assigned manually** to locations. This cont
 
 ### Assignment Table
 
-| Field | Type | Description |
-|-------|------|-------------|
-| materialId | FK | Global material |
-| locationId | FK | Assigned location |
+| Field      | Type | Description       |
+| ---------- | ---- | ----------------- |
+| materialId | FK   | Global material   |
+| locationId | FK   | Assigned location |
 
 Unique: `(material_id, location_id)`
 
@@ -46,8 +46,8 @@ Each `stock_balances` record holds the cost for that material at that location:
 stock_balances {
   material_id
   location_id
-  quantity        -- on-hand qty (storage UoM)
-  cost_price      -- weighted average cost per unit at THIS location
+  quantity        -- on-hand qty (base UoM)
+  cost_price      -- weighted average cost per unit at THIS location (base UoM)
 }
 ```
 
@@ -63,10 +63,11 @@ new_cost = (existing_qty × existing_cost + received_qty × received_unit_cost)
 ```
 
 Where:
+
 - `existing_qty` = current `stock_balances.quantity` at this location
 - `existing_cost` = current `stock_balances.cost_price` at this location
-- `received_qty` = quantity received (converted to storage UoM)
-- `received_unit_cost` = cost per unit from the receiving record (converted to storage UoM)
+- `received_qty` = quantity received (converted to base UoM)
+- `received_unit_cost` = cost per unit from the receiving record (converted to base UoM)
 
 ### On Transfer Received (from another location)
 
@@ -76,17 +77,18 @@ new_cost = (existing_qty × existing_cost + transferred_qty × source_cost)
 ```
 
 Where:
+
 - `source_cost` = `stock_balances.cost_price` of the material at the **source** location at time of shipment
 - Captured in `stock_movements.cost_price` when the transfer_out movement is created
 
 ### Edge Cases
 
-| Scenario | Behavior |
-|----------|----------|
-| Existing qty = 0, receive new stock | `cost_price = received_unit_cost` |
-| Existing qty = 0, transfer in | `cost_price = source_cost` |
-| Stock adjustment (waste, opname) | Cost unchanged — only qty changes |
-| Void sale (stock returned) | Cost unchanged — only qty restored |
+| Scenario                               | Behavior                                        |
+| -------------------------------------- | ----------------------------------------------- |
+| Existing qty = 0, receive new stock    | `cost_price = received_unit_cost`               |
+| Existing qty = 0, transfer in          | `cost_price = source_cost`                      |
+| Stock adjustment (waste, opname)       | Cost unchanged — only qty changes               |
+| Void sale (stock returned)             | Cost unchanged — only qty restored              |
 | Material newly assigned (no stock yet) | `cost_price = 0` until first receiving/transfer |
 
 ## Transfer Cost Flow
@@ -129,21 +131,22 @@ HPP uses the **location's cost** (not global) — reflecting actual cost of mate
 
 ## UoM Conversion in Cost
 
-Costs are always stored in **storage UoM**. When receiving, convert:
+Costs are always stored in **base UoM**. When receiving, convert:
 
 ```
 Example:
-  Material: Susu (purchase=Karton, storage=Liter, recipe=Mililiter)
+  Material: Susu (baseUom=Liter, defaultPurchaseUom=Karton)
   Receive: 2 Karton × Rp 180.000/Karton
   Conversion: 1 Karton = 12 Liter
 
-  received_qty_storage = 2 × 12 = 24 Liter
-  received_cost_storage = 180.000 / 12 = Rp 15.000/Liter
+  received_qty_base = 2 × 12 = 24 Liter
+  received_cost_base = 180.000 / 12 = Rp 15.000/Liter
 
   Weighted average uses: 24L at Rp 15.000/L
 ```
 
-For HPP, convert recipe UoM to storage UoM:
+For HPP, convert recipe UoM to base UoM:
+
 ```
   Recipe: 200ml susu
   Conversion: 1 Liter = 1000 Mililiter → 200ml = 0.2L
@@ -152,13 +155,12 @@ For HPP, convert recipe UoM to storage UoM:
 
 ## Impact on Data Model
 
-Previous assumption was `materials.cost_price` (global). This changes to:
-
-| Before | After |
-|--------|-------|
-| `materials.cost_price` | Removed — no global cost |
-| — | `stock_balances.cost_price` — per location per material |
-| `stock_movements.cost_price` | Kept — records cost at time of movement |
+| Field                                              | Status                                       |
+| -------------------------------------------------- | -------------------------------------------- |
+| `materials.cost_price`                             | Removed — cost is per-location, not global   |
+| `materials.purchaseUomId/storageUomId/recipeUomId` | Replaced by `baseUomId` + optional defaults  |
+| `stock_balances.cost_price`                        | Added — per location per material (base UoM) |
+| `stock_movements.cost_price`                       | Kept — records cost at time of movement      |
 
 ## Reports Affected
 

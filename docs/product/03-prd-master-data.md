@@ -10,15 +10,16 @@ Raw materials consumed by recipes. Tracked per location. **Global catalog** — 
 
 ### Fields
 
-| Field         | Type     | Description                                              |
-| ------------- | -------- | -------------------------------------------------------- |
-| code          | string   | Unique material code                                     |
-| name          | string   | Material name (e.g. "Espresso Beans", "Susu Full Cream") |
-| categoryId    | FK?      | Material category                                        |
-| purchaseUomId | FK       | Unit used when purchasing from supplier                  |
-| storageUomId  | FK       | Unit used for stock balance tracking                     |
-| recipeUomId   | FK       | Unit used in recipes                                     |
-| minStock      | decimal? | Alert threshold (in storage UoM, across all locations)   |
+| Field                | Type     | Description                                              |
+| -------------------- | -------- | -------------------------------------------------------- |
+| code                 | string   | Unique material code                                     |
+| name                 | string   | Material name (e.g. "Espresso Beans", "Susu Full Cream") |
+| categoryId           | FK?      | Material category                                        |
+| baseUomId            | FK       | Base unit of measure (source of truth for stock balance) |
+| defaultPurchaseUomId | FK?      | Default UoM shown in receiving forms (fallback: baseUom) |
+| defaultStockUomId    | FK?      | Default UoM shown in stock views (fallback: baseUom)     |
+| defaultRecipeUomId   | FK?      | Default UoM shown in recipe forms (fallback: baseUom)    |
+| minStock             | decimal? | Alert threshold (in base UoM, across all locations)      |
 
 > Note: `cost_price` lives on `stock_balances` (per-location), not here. See [03-prd-master-data-costing.md](./03-prd-master-data-costing.md).
 
@@ -26,26 +27,44 @@ Raw materials consumed by recipes. Tracked per location. **Global catalog** — 
 
 Flat grouping: Dairy, Dry Goods, Frozen, Fresh Produce, Packaging, Cleaning, etc.
 
-### Three-Level UoM per Material
+### UoM Model
+
+Each material has one **base UoM**. Conversions are defined in the UoM conversion table (not on material). Default display UoMs are optional hints for the UI.
 
 ```
 Susu Full Cream:
-  Purchase UoM: Karton     (beli 1 karton dari supplier)
-  Storage UoM:  Liter      (simpan 12 liter di gudang)
-  Recipe UoM:   Mililiter  (pakai 200ml per cup)
+  baseUom: Liter
+  defaultPurchaseUom: Karton   (UI pre-selects "Karton" on receiving forms)
+  defaultStockUom: Liter       (UI shows stock in "Liter")
+  defaultRecipeUom: Mililiter  (UI pre-selects "ml" in recipe ingredient)
+  conversions (via uom_conversions): Karton→Liter ×12, Liter→Mililiter ×1000
+
+Cup 12oz:
+  baseUom: Pcs
+  defaultPurchaseUom: null     (fallback to Pcs)
+  defaultStockUom: null        (fallback to Pcs)
+  defaultRecipeUom: null       (fallback to Pcs)
+  conversions: (none needed — single UoM)
+
+Gula Pasir:
+  baseUom: Kilogram
+  defaultPurchaseUom: Sak      (UI shows "Sak" on receiving)
+  defaultStockUom: Kilogram    (stock shown in Kg)
+  defaultRecipeUom: Gram       (recipe in Gram)
+  conversions: Sak→Kg ×50, Kg→Gram ×1000
 ```
 
-System resolves conversions via UoM chain:
-
-- Receiving: convert purchase UoM → storage UoM for stock balance
-- Auto-deduct: convert recipe UoM → storage UoM for balance deduction
+- **base UoM** = how stock_balances.quantity is stored internally.
+- **default UoMs** = pre-selected UoM in UI forms. User can still override.
+- **Conversions** = defined in the UoM system, not on the material itself. Material just references which UoMs it uses.
 
 ### Business Rules
 
 - Code is globally unique.
-- `costPrice` auto-recalculates on purchase receipt (weighted average).
-- `minStock` alert fires when total stock across all locations < threshold.
+- `minStock` alert fires when total stock across all locations < threshold (in base UoM).
 - Materials cannot be deleted if stock balance > 0 anywhere (deactivate instead).
+- Default display UoMs must be convertible to base UoM via the conversion chain.
+- If default UoM is null, UI falls back to base UoM.
 
 ## Unit of Measure (UoM)
 
