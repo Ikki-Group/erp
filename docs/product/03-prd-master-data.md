@@ -10,16 +10,17 @@ Raw materials consumed by recipes. Tracked per location. **Global catalog** — 
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| code | string | Unique material code |
-| name | string | Material name (e.g. "Espresso Beans", "Susu Full Cream") |
-| categoryId | FK? | Material category |
-| purchaseUomId | FK | Unit used when purchasing from supplier |
-| storageUomId | FK | Unit used for stock balance tracking |
-| recipeUomId | FK | Unit used in recipes |
-| costPrice | decimal | Current weighted average cost (in storage UoM) |
-| minStock | decimal? | Alert threshold (in storage UoM) |
+| Field         | Type     | Description                                              |
+| ------------- | -------- | -------------------------------------------------------- |
+| code          | string   | Unique material code                                     |
+| name          | string   | Material name (e.g. "Espresso Beans", "Susu Full Cream") |
+| categoryId    | FK?      | Material category                                        |
+| purchaseUomId | FK       | Unit used when purchasing from supplier                  |
+| storageUomId  | FK       | Unit used for stock balance tracking                     |
+| recipeUomId   | FK       | Unit used in recipes                                     |
+| minStock      | decimal? | Alert threshold (in storage UoM, across all locations)   |
+
+> Note: `cost_price` lives on `stock_balances` (per-location), not here. See [03-prd-master-data-costing.md](./03-prd-master-data-costing.md).
 
 ### Material Category
 
@@ -35,6 +36,7 @@ Susu Full Cream:
 ```
 
 System resolves conversions via UoM chain:
+
 - Receiving: convert purchase UoM → storage UoM for stock balance
 - Auto-deduct: convert recipe UoM → storage UoM for balance deduction
 
@@ -53,19 +55,19 @@ Standardize measurement units with **chain conversions** — enabling multi-hop 
 
 ### UoM Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| code | string | Short code (kg, g, L, ml, pcs, karton, sak) |
-| name | string | Full name (Kilogram, Gram, Liter) |
-| category | enum | `weight`, `volume`, `quantity`, `length` |
+| Field    | Type   | Description                                 |
+| -------- | ------ | ------------------------------------------- |
+| code     | string | Short code (kg, g, L, ml, pcs, karton, sak) |
+| name     | string | Full name (Kilogram, Gram, Liter)           |
+| category | enum   | `weight`, `volume`, `quantity`, `length`    |
 
 ### UoM Conversion (Chain)
 
-| Field | Type | Description |
-|-------|------|-------------|
-| fromUomId | FK | Source unit |
-| toUomId | FK | Target unit |
-| factor | decimal | Multiply source by this to get target |
+| Field     | Type    | Description                           |
+| --------- | ------- | ------------------------------------- |
+| fromUomId | FK      | Source unit                           |
+| toUomId   | FK      | Target unit                           |
+| factor    | decimal | Multiply source by this to get target |
 
 ### Chain Example
 
@@ -103,6 +105,7 @@ Input: fromUom=Karton, toUom=Mililiter, qty=2
 ```
 
 If path goes the other direction (e.g. Mililiter → Liter), use inverse (÷ factor):
+
 ```
 Input: fromUom=Mililiter, toUom=Liter, qty=500
 
@@ -119,28 +122,28 @@ Vendors who supply materials. Reference data for purchasing.
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| code | string | Unique supplier code |
-| name | string | Supplier name |
-| contactPerson | string? | Contact name |
-| phone | string? | Phone |
-| email | string? | Email |
-| address | string? | Address |
-| paymentTerms | integer? | Default credit days (e.g. 30 = NET 30) |
-| isActive | boolean | Active/inactive |
+| Field         | Type     | Description                            |
+| ------------- | -------- | -------------------------------------- |
+| code          | string   | Unique supplier code                   |
+| name          | string   | Supplier name                          |
+| contactPerson | string?  | Contact name                           |
+| phone         | string?  | Phone                                  |
+| email         | string?  | Email                                  |
+| address       | string?  | Address                                |
+| paymentTerms  | integer? | Default credit days (e.g. 30 = NET 30) |
+| isActive      | boolean  | Active/inactive                        |
 
 ### Supplier-Material Price
 
 Track which suppliers provide which materials at what reference price.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| supplierId | FK | Supplier |
-| materialId | FK | Material |
-| unitPrice | decimal | Reference price per unit |
-| uomId | FK | Unit the price refers to (usually purchase UoM) |
-| minOrderQty | decimal? | Minimum order quantity |
+| Field       | Type     | Description                                     |
+| ----------- | -------- | ----------------------------------------------- |
+| supplierId  | FK       | Supplier                                        |
+| materialId  | FK       | Material                                        |
+| unitPrice   | decimal  | Reference price per unit                        |
+| uomId       | FK       | Unit the price refers to (usually purchase UoM) |
+| minOrderQty | decimal? | Minimum order quantity                          |
 
 ### Business Rules
 
