@@ -11,6 +11,7 @@ import { createLocationModule } from './modules/location/index.ts'
 import { createMaterialModule } from './modules/material/index.ts'
 import { createMenuModule } from './modules/menu/index.ts'
 import { createPaymentMethodModule } from './modules/payment-method/index.ts'
+import { createRecipeModule } from './modules/recipe/index.ts'
 import { createSupplierModule } from './modules/supplier/index.ts'
 import { createUomModule } from './modules/uom/index.ts'
 import { errorPlugin } from './server/plugins/error.plugin.ts'
@@ -33,6 +34,11 @@ const paymentMethod = createPaymentMethodModule(db, cache, {
 })
 const menu = createMenuModule(db, cache, {
 	locationService: location.service,
+})
+const recipe = createRecipeModule(db, cache, {
+	materialService: material.service,
+	uomService: uom.service,
+	itemService: menu.itemService,
 })
 const iam = createIamModule(db, cache, { locationService: location.service })
 const auth = createAuthModule({
@@ -57,3 +63,4 @@ export const app = new Elysia()
 	.use(supplier.route)
 	.use(paymentMethod.route)
 	.use(menu.route)
+	.use(recipe.route)
