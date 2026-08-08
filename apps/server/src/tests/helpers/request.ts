@@ -31,9 +31,10 @@ function buildHeaders(opts: RequestOptions): Record<string, string> {
 	return headers
 }
 
-/** Parse response body as JSON with `any` type for test assertions. */
-export async function json(res: Response): Promise<Json> {
-	return res.json()
+/** Parse response body as JSON with optional type parameter for test assertions. */
+export async function json<T extends Json = Json>(res: Response): Promise<T> {
+	// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+	return res.json() as unknown as Promise<T>
 }
 
 // ─── Request Methods ───

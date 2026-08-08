@@ -21,7 +21,7 @@ describe('auth', () => {
 		expect(res.status).toBe(200)
 		expect(res.headers.get('set-cookie')).toBeTruthy()
 
-		const body: Json = await json(res)
+		const body = await json(res)
 		expect(body.data.user.username).toBe('owner')
 		expect(body.data.locations).toBeInstanceOf(Array)
 	})
