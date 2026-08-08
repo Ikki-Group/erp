@@ -1,15 +1,15 @@
-import type { LocationIds } from './core.ts'
-import type { UserIds } from './iam.ts'
-import type { MenuItemIds } from './menu.ts'
-import type { ModifierOptionIds } from './menu.ts'
-import type { PaymentMethodIds } from './pos.ts'
-import type { TableIds } from './pos.ts'
 /* oxlint-disable typescript/no-unsafe-type-assertion, typescript/no-unsafe-argument, typescript/no-unsafe-assignment */
 /**
  * Seed: Sample completed order with full lifecycle
  * Opens a shift, creates an order with lines, records payment, completes order.
  * Also seeds initial stock balances so the order makes sense.
  */
+import type { LocationIds } from './core.ts'
+import type { UserIds } from './iam.ts'
+import type { MenuItemIds } from './menu.ts'
+import type { ModifierOptionIds } from './menu.ts'
+import type { PaymentMethodIds } from './pos.ts'
+import type { TableIds } from './pos.ts'
 import type { Sql } from 'postgres'
 
 interface SeedOrderContext {

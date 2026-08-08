@@ -1,10 +1,10 @@
-import type { LocationIds } from './core.ts'
-import type { MaterialIds } from './material.ts'
-import type { UomIds } from './uom.ts'
 /* oxlint-disable typescript/no-unsafe-type-assertion, typescript/no-unsafe-argument, typescript/no-unsafe-assignment */
 /**
  * Seed: Menu Categories, Menu Items, Modifier Groups/Options, Recipes
  */
+import type { LocationIds } from './core.ts'
+import type { MaterialIds } from './material.ts'
+import type { UomIds } from './uom.ts'
 import type { Sql } from 'postgres'
 
 export interface MenuCategoryIds {

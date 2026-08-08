@@ -1,9 +1,9 @@
-import type { LocationIds } from './core.ts'
-import type { UomIds } from './uom.ts'
 /* oxlint-disable typescript/no-unsafe-type-assertion, typescript/no-unsafe-argument, typescript/no-unsafe-assignment */
 /**
  * Seed: Material Categories, Materials, Material-Location assignments
  */
+import type { LocationIds } from './core.ts'
+import type { UomIds } from './uom.ts'
 import type { Sql } from 'postgres'
 
 export interface MaterialCategoryIds {

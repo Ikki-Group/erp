@@ -1,9 +1,9 @@
-import type { MaterialIds } from './material.ts'
-import type { UomIds } from './uom.ts'
 /* oxlint-disable typescript/no-unsafe-type-assertion, typescript/no-unsafe-argument, typescript/no-unsafe-assignment */
 /**
  * Seed: Suppliers + Supplier Material Pricing
  */
+import type { MaterialIds } from './material.ts'
+import type { UomIds } from './uom.ts'
 import type { Sql } from 'postgres'
 
 export interface SupplierIds {

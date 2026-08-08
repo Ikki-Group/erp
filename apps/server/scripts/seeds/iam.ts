@@ -1,8 +1,8 @@
-import type { LocationIds } from './core.ts'
 /* oxlint-disable typescript/no-unsafe-type-assertion, typescript/no-unsafe-argument, typescript/no-unsafe-assignment */
 /**
  * Seed: Roles, Users, User Assignments
  */
+import type { LocationIds } from './core.ts'
 import type { Sql } from 'postgres'
 
 export interface RoleIds {
