@@ -9,7 +9,11 @@ if (!url) {
 const sql = postgres(url)
 
 const tables = await sql`SELECT tablename FROM pg_tables WHERE schemaname = 'public'`
-console.log('Existing tables:', tables.map((t) => t.tablename))
+console.log(
+	'Existing tables:',
+	// oxlint-disable-next-line typescript/no-unsafe-return
+	tables.map((t) => t.tablename),
+)
 
 if (tables.length > 0) {
 	await sql.unsafe('DROP SCHEMA public CASCADE')
