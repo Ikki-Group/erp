@@ -8,10 +8,14 @@ import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
 import type { CompanyService } from '@/modules/company/company.service.ts'
+import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
+import type { MaterialService } from '@/modules/material/material.service.ts'
 import type { ComposedService } from '@/modules/menu/composed/composed.service.ts'
 import type { ItemService } from '@/modules/menu/item/item.service.ts'
 import type { PaymentMethodService } from '@/modules/payment-method/payment-method.service.ts'
+import type { RecipeService } from '@/modules/recipe/recipe.service.ts'
+import type { UomService } from '@/modules/uom/uom.service.ts'
 
 import type { ShiftService } from '../shift/shift.service.ts'
 import type { TableService } from '../table/table.service.ts'
@@ -29,6 +33,7 @@ import type {
 	OrderRemoveVoucherDto,
 	OrderVoidDto,
 } from './order.contract.ts'
+import { deductStockForOrder } from './order.deduction.ts'
 import { OrderError } from './order.internal.ts'
 import type { IOrderRepo } from './order.repo.ts'
 
@@ -43,6 +48,10 @@ export interface OrderServiceDeps {
 	itemService: ItemService
 	composedService: ComposedService
 	locationService: LocationService
+	recipeService: RecipeService
+	stockService: StockService
+	uomService: UomService
+	materialService: MaterialService
 }
 
 // ─── Service ───
@@ -451,6 +460,20 @@ export class OrderService {
 			summary: `Completed order #${orderId} (${order.orderNo})`,
 			oldValues: { status: 'open' },
 			newValues: { status: 'completed' },
+		})
+
+		// 8. Deduct inventory stock via recipe (fire-and-forget)
+		const orderLines = await this.repo.findLinesByOrderId(orderId)
+		deductStockForOrder(orderId, order.locationId, orderLines, actorId, {
+			recipeService: this.deps.recipeService,
+			stockService: this.deps.stockService,
+			uomService: this.deps.uomService,
+			materialService: this.deps.materialService,
+		}).catch((err) => {
+			console.warn(
+				`[pos:deduction] Unexpected error during stock deduction for order #${orderId}:`,
+				err,
+			)
 		})
 
 		return result

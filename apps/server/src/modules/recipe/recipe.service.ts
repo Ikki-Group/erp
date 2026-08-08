@@ -57,6 +57,10 @@ export class RecipeService {
 		})
 	}
 
+	async getLinesByRecipeId(recipeId: number): Promise<RecipeLineDto[]> {
+		return this.repo.findLinesByRecipeId(recipeId)
+	}
+
 	// ─── Handlers ───
 
 	async handleGetById(id: number): Promise<RecipeDto> {

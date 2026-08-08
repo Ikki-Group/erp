@@ -39,13 +39,6 @@ const paymentMethod = createPaymentMethodModule(db, cache, {
 const menu = createMenuModule(db, cache, {
 	locationService: location.service,
 })
-const pos = createPosModule(db, cache, {
-	locationService: location.service,
-	paymentMethodService: paymentMethod.service,
-	companyService: company.service,
-	itemService: menu.itemService,
-	composedService: menu.composedService,
-})
 const inventory = createInventoryModule(db, cache, {
 	assignmentService: material.assignmentService,
 	locationService: location.service,
@@ -57,6 +50,17 @@ const recipe = createRecipeModule(db, cache, {
 	materialService: material.service,
 	uomService: uom.service,
 	itemService: menu.itemService,
+})
+const pos = createPosModule(db, cache, {
+	locationService: location.service,
+	paymentMethodService: paymentMethod.service,
+	companyService: company.service,
+	itemService: menu.itemService,
+	composedService: menu.composedService,
+	recipeService: recipe.service,
+	stockService: inventory.stockService,
+	uomService: uom.service,
+	materialService: material.service,
 })
 const production = createProductionModule(db, cache, {
 	stockService: inventory.stockService,
