@@ -11,6 +11,7 @@ import { createLocationModule } from './modules/location/index.ts'
 import { createMaterialModule } from './modules/material/index.ts'
 import { createMenuModule } from './modules/menu/index.ts'
 import { createPaymentMethodModule } from './modules/payment-method/index.ts'
+import { createPosModule } from './modules/pos/index.ts'
 import { createRecipeModule } from './modules/recipe/index.ts'
 import { createSupplierModule } from './modules/supplier/index.ts'
 import { createUomModule } from './modules/uom/index.ts'
@@ -30,6 +31,9 @@ const supplier = createSupplierModule(db, cache, {
 	uomService: uom.service,
 })
 const paymentMethod = createPaymentMethodModule(db, cache, {
+	locationService: location.service,
+})
+const pos = createPosModule(db, cache, {
 	locationService: location.service,
 })
 const menu = createMenuModule(db, cache, {
@@ -62,5 +66,6 @@ export const app = new Elysia()
 	.use(material.route)
 	.use(supplier.route)
 	.use(paymentMethod.route)
+	.use(pos.route)
 	.use(menu.route)
 	.use(recipe.route)
