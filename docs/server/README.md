@@ -23,6 +23,8 @@ Index for Ikki ERP backend architecture and code standards.
 | [04-code-patterns.md](./04-code-patterns.md)             | Zod, service, repo, cache patterns             |
 | [05-module-checklist.md](./05-module-checklist.md)       | Step-by-step module build guide                |
 | [06-module-map.md](./06-module-map.md)                   | Complete module registry, layers, dependencies |
+| [07-observability.md](./07-observability.md)             | OTel tracing + LogTape logging guide           |
+| [08-money-precision.md](./08-money-precision.md)         | Decimal arithmetic, weighted avg, rounding     |
 
 ## Module Dependency Layers
 

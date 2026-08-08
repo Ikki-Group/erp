@@ -4,40 +4,40 @@ Naming conventions, import order, TypeScript style, and HTTP rules.
 
 ## Naming
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Module directory | `kebab-case` | `menu-item/`, `audit-log/` |
-| Module files | `{module}.{layer}.ts` | `location.repo.ts`, `location.service.ts` |
-| Contract files | `{module}.contract.ts` | `location.contract.ts`, `user.contract.ts` |
-| Classes | `PascalCase` | `LocationService`, `LocationRepo` |
-| Interfaces (ports) | `I{Module}Repo` | `ILocationRepo`, `ISupplierRepo` |
-| Type aliases | `PascalCase` | `LocationDto`, `ActorId` |
-| Functions | `camelCase` | `createLocationModule`, `stampCreate` |
-| Variables / params | `camelCase` | `actorId`, `cacheClient` |
-| Constants (module) | `camelCase` | `uniqueFields` |
-| Constants (env) | `UPPER_SNAKE` | `DATABASE_URL` |
-| Zod schemas | `PascalCase` + `Dto` | `LocationDto`, `LocationCreateDto` |
-| Error factories | `PascalCase` object | `LocationError.notFound(id)` |
-| Enums (Zod) | `PascalCase` + `Enum` | `LocationTypeEnum`, `OrderStatusEnum` |
+| Element            | Convention             | Example                                    |
+| ------------------ | ---------------------- | ------------------------------------------ |
+| Module directory   | `kebab-case`           | `menu-item/`, `audit-log/`                 |
+| Module files       | `{module}.{layer}.ts`  | `location.repo.ts`, `location.service.ts`  |
+| Contract files     | `{module}.contract.ts` | `location.contract.ts`, `user.contract.ts` |
+| Classes            | `PascalCase`           | `LocationService`, `LocationRepo`          |
+| Interfaces (ports) | `I{Module}Repo`        | `ILocationRepo`, `ISupplierRepo`           |
+| Type aliases       | `PascalCase`           | `LocationDto`, `ActorId`                   |
+| Functions          | `camelCase`            | `createLocationModule`, `stampCreate`      |
+| Variables / params | `camelCase`            | `actorId`, `cacheClient`                   |
+| Constants (module) | `camelCase`            | `uniqueFields`                             |
+| Constants (env)    | `UPPER_SNAKE`          | `DATABASE_URL`                             |
+| Zod schemas        | `PascalCase` + `Dto`   | `LocationDto`, `LocationCreateDto`         |
+| Error factories    | `PascalCase` object    | `LocationError.notFound(id)`               |
+| Enums (Zod)        | `PascalCase` + `Enum`  | `LocationTypeEnum`, `OrderStatusEnum`      |
 
 ## Contract Naming
 
-| Pattern | Role | Example |
-|---------|------|---------|
-| `{Entity}Dto` | Entity / response | `LocationDto`, `OrderDto` |
-| `{Entity}CreateDto` | Create input | `LocationCreateDto` |
-| `{Entity}UpdateDto` | Update input | `LocationUpdateDto` |
-| `{Entity}FilterDto` | List query params | `LocationFilterDto` |
-| `{Entity}DetailDto` | Enriched response | `OrderDetailDto` |
-| `{Entity}MutationDto` | Shared base (NOT exported) | `LocationMutationDto` |
-| `{Name}Enum` | Enum values | `LocationTypeEnum` |
+| Pattern               | Role                       | Example                   |
+| --------------------- | -------------------------- | ------------------------- |
+| `{Entity}Dto`         | Entity / response          | `LocationDto`, `OrderDto` |
+| `{Entity}CreateDto`   | Create input               | `LocationCreateDto`       |
+| `{Entity}UpdateDto`   | Update input               | `LocationUpdateDto`       |
+| `{Entity}FilterDto`   | List query params          | `LocationFilterDto`       |
+| `{Entity}DetailDto`   | Enriched response          | `OrderDetailDto`          |
+| `{Entity}MutationDto` | Shared base (NOT exported) | `LocationMutationDto`     |
+| `{Name}Enum`          | Enum values                | `LocationTypeEnum`        |
 
 ## Module Factories
 
-| Purpose | Pattern | Example |
-|---------|---------|---------|
+| Purpose        | Pattern                | Example                |
+| -------------- | ---------------------- | ---------------------- |
 | Module factory | `create{Module}Module` | `createLocationModule` |
-| Route factory | `create{Module}Route` | `createLocationRoute` |
+| Route factory  | `create{Module}Route`  | `createLocationRoute`  |
 
 ## Import Order
 
@@ -80,6 +80,49 @@ import type { ILocationRepo } from './location.repo'
 - JSDoc on exported module APIs and non-obvious business logic.
 - Step comments in long functions (`// 1. Validate`, `// 2. Check conflicts`).
 - No redundant comments that restate the type signature.
+
+## Environment & Configuration
+
+All env var access is centralized. Modules never read env directly.
+
+### Env vars — `src/shared/config/env.ts`
+
+- Zod-validated schema parsed at import time (fail-fast on startup)
+- All env vars typed: `env.PORT` is `number`, `env.DATABASE_URL` is `string`
+- Derived helpers: `isTest`, `isProd`, `isDev`
+- Never use `Bun.env['X']` or `process.env.X` in modules — always import from `env.ts`
+
+```ts
+import { env, isTest, isProd } from '@/shared/config/env.ts'
+
+const port = env.PORT // number, guaranteed
+const dbUrl = env.DATABASE_URL // string, guaranteed
+```
+
+### App constants — `src/shared/config/index.ts`
+
+Cross-cutting values used by multiple modules:
+
+```ts
+import { SESSION_COOKIE_NAME, SESSION_TTL_DAYS } from '@/shared/config/index.ts'
+```
+
+### Module-specific constants
+
+Values only used within one module stay in that module's `internal.ts` or top of service:
+
+```ts
+// pos/order/order.internal.ts
+export const ORDER_NUMBER_PREFIX = 'ORD'
+```
+
+### Where things live
+
+| Type                    | Location                 | Examples                                  |
+| ----------------------- | ------------------------ | ----------------------------------------- |
+| Runtime env vars        | `shared/config/env.ts`   | PORT, DATABASE*URL, AXIOM*\*              |
+| Cross-cutting constants | `shared/config/index.ts` | SESSION_TTL, COOKIE_NAME, OWNER_ROLE_CODE |
+| Module-specific values  | Module's `internal.ts`   | Number prefixes, max limits, enums        |
 
 ---
 
