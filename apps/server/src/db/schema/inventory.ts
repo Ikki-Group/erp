@@ -33,6 +33,7 @@ export const opnameStatusEnum = pgEnum('opname_status', [
 	'completed',
 	'cancelled',
 ])
+export const receivingStatusEnum = pgEnum('receiving_status', ['draft', 'confirmed'])
 
 // ─── Stock Balances ───
 
@@ -202,6 +203,7 @@ export const receivings = pgTable(
 		supplierId: integer('supplier_id')
 			.notNull()
 			.references(() => suppliers.id, { onDelete: 'restrict' }),
+		status: receivingStatusEnum('status').notNull().default('draft'),
 		notes: varchar('notes', { length: 1000 }),
 		receivedBy: integer('received_by').references(() => users.id, { onDelete: 'set null' }),
 		...auditBasicColumns,

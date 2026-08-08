@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia'
 
+import type { createReceivingModule } from './receiving/receiving.module.ts'
 import type { createStockModule } from './stock/stock.module.ts'
 import type { createTransferModule } from './transfer/transfer.module.ts'
 
@@ -7,7 +8,15 @@ import type { createTransferModule } from './transfer/transfer.module.ts'
 
 type StockModule = ReturnType<typeof createStockModule>
 type TransferModule = ReturnType<typeof createTransferModule>
+type ReceivingModule = ReturnType<typeof createReceivingModule>
 
-export function createInventoryRoute(modules: { stock: StockModule; transfer: TransferModule }) {
-	return new Elysia({ prefix: '/inventory' }).use(modules.stock.route).use(modules.transfer.route)
+export function createInventoryRoute(modules: {
+	stock: StockModule
+	transfer: TransferModule
+	receiving: ReceivingModule
+}) {
+	return new Elysia({ prefix: '/inventory' })
+		.use(modules.stock.route)
+		.use(modules.transfer.route)
+		.use(modules.receiving.route)
 }

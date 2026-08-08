@@ -47,6 +47,9 @@ const pos = createPosModule(db, cache, {
 const inventory = createInventoryModule(db, cache, {
 	assignmentService: material.assignmentService,
 	locationService: location.service,
+	materialService: material.service,
+	supplierService: supplier.service,
+	uomService: uom.service,
 })
 const recipe = createRecipeModule(db, cache, {
 	materialService: material.service,

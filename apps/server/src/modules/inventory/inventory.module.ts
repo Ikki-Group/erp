@@ -3,8 +3,12 @@ import type { DbContext } from '@/infra/database/index.ts'
 
 import type { LocationService } from '@/modules/location/location.service.ts'
 import type { AssignmentService } from '@/modules/material/assignment/assignment.service.ts'
+import type { MaterialService } from '@/modules/material/material.service.ts'
+import type { SupplierService } from '@/modules/supplier/supplier.service.ts'
+import type { UomService } from '@/modules/uom/uom.service.ts'
 
 import { createInventoryRoute } from './inventory.route.ts'
+import { createReceivingModule } from './receiving/receiving.module.ts'
 import { createStockModule } from './stock/stock.module.ts'
 import { createTransferModule } from './transfer/transfer.module.ts'
 
@@ -13,6 +17,9 @@ import { createTransferModule } from './transfer/transfer.module.ts'
 export interface InventoryModuleDeps {
 	assignmentService: AssignmentService
 	locationService: LocationService
+	materialService: MaterialService
+	supplierService: SupplierService
+	uomService: UomService
 }
 
 // ─── Module Factory ───
@@ -30,6 +37,19 @@ export function createInventoryModule(
 		assignmentService: deps.assignmentService,
 		locationService: deps.locationService,
 	})
-	const route = createInventoryRoute({ stock, transfer })
-	return { route, stockService: stock.service, transferService: transfer.service }
+	const receiving = createReceivingModule(db, cacheClient, {
+		stockService: stock.service,
+		assignmentService: deps.assignmentService,
+		locationService: deps.locationService,
+		materialService: deps.materialService,
+		supplierService: deps.supplierService,
+		uomService: deps.uomService,
+	})
+	const route = createInventoryRoute({ stock, transfer, receiving })
+	return {
+		route,
+		stockService: stock.service,
+		transferService: transfer.service,
+		receivingService: receiving.service,
+	}
 }
