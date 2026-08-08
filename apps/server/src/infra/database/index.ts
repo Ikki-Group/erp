@@ -51,6 +51,10 @@ export function sortBy(column: PgColumn, dir: 'asc' | 'desc' = 'desc') {
 	return dir === 'asc' ? asc(column) : desc(column)
 }
 
+export function buildPaginationMeta(page: number, limit: number, total: number) {
+	return { page, limit, total, totalPages: Math.ceil(total / limit) }
+}
+
 // ─── WHERE Composition ───
 
 export function allOf(...conditions: (SQL | undefined)[]): SQL | undefined {

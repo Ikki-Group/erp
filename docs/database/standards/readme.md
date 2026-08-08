@@ -4,22 +4,22 @@ Naming conventions, column patterns, constraints, and index strategy.
 
 ## Naming
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Tables | Plural snake_case | `stock_movements`, `menu_items` |
-| Columns | snake_case | `location_id`, `base_price` |
-| Foreign keys | `{singular}_id` | `location_id`, `material_id` |
-| Indexes | `{table}_{columns}_idx` | `orders_location_status_idx` |
-| Unique | `{table}_{columns}_uniq` | `stock_balances_material_location_uniq` |
-| Check | `{table}_{desc}_chk` | `stock_balances_qty_nonneg_chk` |
+| Element      | Convention               | Example                                 |
+| ------------ | ------------------------ | --------------------------------------- |
+| Tables       | Plural snake_case        | `stock_movements`, `menu_items`         |
+| Columns      | snake_case               | `location_id`, `base_price`             |
+| Foreign keys | `{singular}_id`          | `location_id`, `material_id`            |
+| Indexes      | `{table}_{columns}_idx`  | `orders_location_status_idx`            |
+| Unique       | `{table}_{columns}_uniq` | `stock_balances_material_location_uniq` |
+| Check        | `{table}_{desc}_chk`     | `stock_balances_qty_nonneg_chk`         |
 
 ## Schema Files
 
-| Rule | Example |
-|------|---------|
+| Rule                | Example                                 |
+| ------------------- | --------------------------------------- |
 | One file per domain | `location.ts`, `pos.ts`, `inventory.ts` |
-| File maps to module | `pos.ts` → `modules/pos/` |
-| Enums before tables | Define pgEnum, then reference in table |
+| File maps to module | `pos.ts` → `modules/pos/`               |
+| Enums before tables | Define pgEnum, then reference in table  |
 
 ## Column Patterns
 
@@ -40,12 +40,12 @@ updated_by  integer    FK → users.id
 
 ### Numeric Precision
 
-| Use | Type |
-|-----|------|
-| Money (price, salary) | `numeric(18,2)` |
+| Use                      | Type            |
+| ------------------------ | --------------- |
+| Money (price, salary)    | `numeric(18,2)` |
 | Quantity (stock, recipe) | `numeric(18,6)` |
-| Percentage (tax rate) | `numeric(5,2)` |
-| UoM factor | `numeric(18,6)` |
+| Percentage (tax rate)    | `numeric(5,2)`  |
+| UoM factor               | `numeric(18,6)` |
 
 ### Booleans
 
@@ -55,6 +55,7 @@ updated_by  integer    FK → users.id
 ### JSONB
 
 Only for truly variable-structure data:
+
 - `order_lines.modifiers` — selected modifiers (denormalized snapshot)
 - `roles.permissions` — permission string array
 
@@ -87,12 +88,12 @@ Never for relational data that should be a normalized FK.
 
 ### Required Indexes
 
-| Scenario | Type |
-|----------|------|
-| Every FK column | `index()` |
-| Natural key / code | `uniqueIndex()` |
-| Frequent filter (status, date) | `index()` |
-| Composite lookup | Composite `index()` |
+| Scenario                       | Type                |
+| ------------------------------ | ------------------- |
+| Every FK column                | `index()`           |
+| Natural key / code             | `uniqueIndex()`     |
+| Frequent filter (status, date) | `index()`           |
+| Composite lookup               | Composite `index()` |
 
 ### Key Indexes
 
@@ -119,8 +120,10 @@ uniqueIndex on menu_items(location_id, sku)
 ## Enum Strategy
 
 - Domain-specific enums live in the same schema file as their table.
-- Use `varchar` + CHECK constraint (not pgEnum) for flexibility.
+- Use `pgEnum` from `drizzle-orm/pg-core` — provides type safety and maps to a real PostgreSQL `CREATE TYPE`.
+- Define enums before tables in each file (Drizzle requires forward declaration).
 - Values are lowercase snake_case strings.
+- Naming: `{domain}_{concept}` e.g. `location_type`, `order_status`, `movement_direction`.
 
 ---
 
