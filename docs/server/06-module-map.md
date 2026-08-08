@@ -42,46 +42,46 @@ Layer 0  Core
 
 ### Layer 0 — Core
 
-| Module | Type | Entities | Description |
-|--------|------|----------|-------------|
-| `auth` | Simple | sessions | Login, logout, session management |
-| `company` | Simple | company_settings | Singleton company configuration |
-| `audit` | Simple | audit_logs | Comprehensive mutation logging |
+| Module    | Type   | Entities         | Description                               |
+| --------- | ------ | ---------------- | ----------------------------------------- |
+| `auth`    | Simple | sessions         | Login, logout, session management         |
+| `company` | Simple | company_settings | Singleton company configuration           |
+| `audit`   | Simple | audit_logs       | Audit log writes (infra) + read endpoints |
 
 ### Layer 1 — Master Data
 
-| Module | Type | Entities | Description |
-|--------|------|----------|-------------|
-| `location` | Simple | locations | Stores and warehouses |
-| `iam` | Complex | users, roles, user_assignments | Identity & access management |
-| `uom` | Simple | uoms, uom_conversions | Units of measure + chain conversions |
-| `material` | Medium | materials, material_categories, material_locations | Raw + semi-finished materials, location assignment |
-| `supplier` | Simple | suppliers, supplier_materials | Vendor management + material pricing |
-| `menu` | Complex | menu_items, menu_categories, modifier_groups, modifier_options, menu_item_modifiers | Per-location menu catalog + modifiers |
-| `recipe` | Simple | recipes, recipe_lines | Menu item BOM (links menu → materials) |
-| `payment-method` | Simple | payment_methods, payment_method_locations | Payment types + per-location config |
+| Module           | Type    | Entities                                                                            | Description                                        |
+| ---------------- | ------- | ----------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `location`       | Simple  | locations                                                                           | Stores and warehouses                              |
+| `iam`            | Complex | users, roles, user_assignments                                                      | Identity & access management                       |
+| `uom`            | Simple  | uoms, uom_conversions                                                               | Units of measure + chain conversions               |
+| `material`       | Medium  | materials, material_categories, material_locations                                  | Raw + semi-finished materials, location assignment |
+| `supplier`       | Simple  | suppliers, supplier_materials                                                       | Vendor management + material pricing               |
+| `menu`           | Complex | menu_items, menu_categories, modifier_groups, modifier_options, menu_item_modifiers | Per-location menu catalog + modifiers              |
+| `recipe`         | Simple  | recipes, recipe_lines                                                               | Menu item BOM (links menu → materials)             |
+| `payment-method` | Simple  | payment_methods, payment_method_locations                                           | Payment types + per-location config                |
 
 ### Layer 2 — Operations
 
-| Module | Type | Entities | Description |
-|--------|------|----------|-------------|
-| `pos/order` | Complex | orders, order_lines, payments | Order lifecycle, billing, payments |
-| `pos/shift` | Simple | cashier_shifts | Cashier shift open/close |
-| `pos/table` | Simple | tables | Dine-in table management |
-| `pos/voucher` | Simple | vouchers | Discount voucher codes |
-| `inventory/stock` | Simple | stock_balances, stock_movements | Real-time stock + movement history |
-| `inventory/transfer` | Simple | transfer_requests, transfer_lines | Inter-location stock transfers |
-| `inventory/opname` | Simple | stock_opnames, stock_opname_lines | Physical count reconciliation |
-| `inventory/receiving` | Simple | receivings, receiving_lines | Goods receipt from supplier |
-| `production` | Simple | production_recipes, production_recipe_lines, production_orders | Semi-finished item production |
-| `finance` | Complex | accounts, journal_entries, journal_lines, accounts_payable, fiscal_periods | Double-entry accounting |
-| `hr` | Complex | employees, shift_templates, shift_assignments, attendances, payroll_runs, payslips, leaves | Staff management |
-| `crm` | Complex | customers, loyalty_transactions, promotions | Customer loyalty + promos |
+| Module                | Type    | Entities                                                                                   | Description                        |
+| --------------------- | ------- | ------------------------------------------------------------------------------------------ | ---------------------------------- |
+| `pos/order`           | Complex | orders, order_lines, payments                                                              | Order lifecycle, billing, payments |
+| `pos/shift`           | Simple  | cashier_shifts                                                                             | Cashier shift open/close           |
+| `pos/table`           | Simple  | tables                                                                                     | Dine-in table management           |
+| `pos/voucher`         | Simple  | vouchers                                                                                   | Discount voucher codes             |
+| `inventory/stock`     | Simple  | stock_balances, stock_movements                                                            | Real-time stock + movement history |
+| `inventory/transfer`  | Simple  | transfer_requests, transfer_lines                                                          | Inter-location stock transfers     |
+| `inventory/opname`    | Simple  | stock_opnames, stock_opname_lines                                                          | Physical count reconciliation      |
+| `inventory/receiving` | Simple  | receivings, receiving_lines                                                                | Goods receipt from supplier        |
+| `production`          | Simple  | production_recipes, production_recipe_lines, production_orders                             | Semi-finished item production      |
+| `finance`             | Complex | accounts, journal_entries, journal_lines, accounts_payable, fiscal_periods                 | Double-entry accounting            |
+| `hr`                  | Complex | employees, shift_templates, shift_assignments, attendances, payroll_runs, payslips, leaves | Staff management                   |
+| `crm`                 | Complex | customers, loyalty_transactions, promotions                                                | Customer loyalty + promos          |
 
 ### Layer 3 — Aggregators
 
-| Module | Type | Entities | Description |
-|--------|------|----------|-------------|
+| Module      | Type       | Entities                   | Description                         |
+| ----------- | ---------- | -------------------------- | ----------------------------------- |
 | `reporting` | Aggregator | (none — reads from others) | Cross-module reports and dashboards |
 
 ## File Structure
@@ -229,11 +229,11 @@ hr → finance (payroll → journal)
 
 ## Phase Mapping
 
-| Phase | Modules |
-|-------|---------|
-| 1 | auth, company, audit, location, iam, uom, material, supplier, menu, recipe, payment-method, pos/*, inventory/*, production |
-| 2 | finance, hr |
-| 3 | crm, reporting |
+| Phase | Modules                                                                                                                    |
+| ----- | -------------------------------------------------------------------------------------------------------------------------- |
+| 1     | auth, company, audit, location, iam, uom, material, supplier, menu, recipe, payment-method, pos/_, inventory/_, production |
+| 2     | finance, hr                                                                                                                |
+| 3     | crm, reporting                                                                                                             |
 
 ---
 

@@ -4,6 +4,7 @@ import { Elysia } from 'elysia'
 import { cache } from './infra/cache/index.ts'
 import { db } from './infra/database/index.ts'
 import { sessionStore } from './infra/session/index.ts'
+import { createAuditModule } from './modules/audit/index.ts'
 import { createAuthModule } from './modules/auth/index.ts'
 import { createCompanyModule } from './modules/company/index.ts'
 import { createIamModule } from './modules/iam/index.ts'
@@ -64,6 +65,7 @@ const production = createProductionModule(db, cache, {
 	uomService: uom.service,
 })
 const iam = createIamModule(db, cache, { locationService: location.service })
+const audit = createAuditModule(db)
 const auth = createAuthModule({
 	userRepo: iam.userRepo,
 	assignmentService: iam.assignmentService,
@@ -78,6 +80,7 @@ export const app = new Elysia()
 	.use(errorPlugin)
 	.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))
 	.use(auth.route)
+	.use(audit.route)
 	.use(company.route)
 	.use(location.route)
 	.use(iam.route)
