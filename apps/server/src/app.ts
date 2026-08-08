@@ -13,6 +13,7 @@ import { createMaterialModule } from './modules/material/index.ts'
 import { createMenuModule } from './modules/menu/index.ts'
 import { createPaymentMethodModule } from './modules/payment-method/index.ts'
 import { createPosModule } from './modules/pos/index.ts'
+import { createProductionModule } from './modules/production/index.ts'
 import { createRecipeModule } from './modules/recipe/index.ts'
 import { createSupplierModule } from './modules/supplier/index.ts'
 import { createUomModule } from './modules/uom/index.ts'
@@ -56,6 +57,12 @@ const recipe = createRecipeModule(db, cache, {
 	uomService: uom.service,
 	itemService: menu.itemService,
 })
+const production = createProductionModule(db, cache, {
+	stockService: inventory.stockService,
+	locationService: location.service,
+	materialService: material.service,
+	uomService: uom.service,
+})
 const iam = createIamModule(db, cache, { locationService: location.service })
 const auth = createAuthModule({
 	userRepo: iam.userRepo,
@@ -82,3 +89,4 @@ export const app = new Elysia()
 	.use(inventory.route)
 	.use(menu.route)
 	.use(recipe.route)
+	.use(production.route)
