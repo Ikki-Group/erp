@@ -9,9 +9,9 @@ export const zp = {
 	str: z.string(),
 	bool: z.boolean(),
 	num: z.number(),
-	date: z.string().date(),
-	datetime: z.string().datetime(),
-	decimal: z.string().regex(/^\d+(\.\d+)?$/),
+	date: z.coerce.date(),
+	datetime: z.coerce.date(),
+	decimal: z.string().regex(/^\d+(\.\d+)?$/u),
 } as const
 
 // ─── Input primitives (zc) — trimmed/validated, used in create/update DTOs ───
@@ -22,8 +22,8 @@ export const zc = {
 	strOptional: z.string().trim().optional(),
 
 	AuditBasic: z.object({
-		createdAt: z.string().datetime(),
-		updatedAt: z.string().datetime(),
+		createdAt: z.coerce.date(),
+		updatedAt: z.coerce.date(),
 		createdBy: z.number().int().nullable(),
 		updatedBy: z.number().int().nullable(),
 	}),
@@ -50,14 +50,14 @@ export const zq = {
 
 // ─── Response wrappers ───
 
-export function createSuccessResponseDto<T extends z.ZodTypeAny>(dataSchema: T) {
+export function createSuccessResponseDto<T extends z.ZodType>(dataSchema: T) {
 	return z.object({
 		success: z.literal(true),
 		data: dataSchema,
 	})
 }
 
-export function createPaginatedResponseDto<T extends z.ZodTypeAny>(itemSchema: T) {
+export function createPaginatedResponseDto<T extends z.ZodType>(itemSchema: T) {
 	return z.object({
 		success: z.literal(true),
 		data: z.array(itemSchema),
