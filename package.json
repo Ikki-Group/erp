@@ -37,10 +37,10 @@
 		"clean": "rm -rf node_modules apps/web/node_modules apps/server/node_modules"
 	},
 	"devDependencies": {
-		"dpdm": "^4.2.0",
-		"knip": "^6.16.0",
+		"dpdm": "^4.3.0",
+		"knip": "^6.32.0",
 		"oxfmt": "^0.53.0",
-		"oxlint": "^1.68.0",
+		"oxlint": "^1.77.0",
 		"oxlint-tsgolint": "^0.23.0",
 		"typescript": "^6.0.3"
 	}
