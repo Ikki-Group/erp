@@ -133,6 +133,8 @@ export const orders = pgTable(
 		discountAmount: numeric('discount_amount', { precision: 18, scale: 2 }).notNull().default('0'),
 		taxAmount: numeric('tax_amount', { precision: 18, scale: 2 }).notNull().default('0'),
 		total: numeric('total', { precision: 18, scale: 2 }).notNull().default('0'),
+		voucherId: integer('voucher_id').references(() => vouchers.id, { onDelete: 'set null' }),
+		voucherCode: varchar('voucher_code', { length: 50 }),
 		customerId: integer('customer_id'),
 		source: orderSourceEnum('source').notNull().default('internal'),
 		externalRef: varchar('external_ref', { length: 255 }),
@@ -149,6 +151,7 @@ export const orders = pgTable(
 		index('orders_location_status_ordered_idx').on(t.locationId, t.status, t.orderedAt),
 		index('orders_table_id_idx').on(t.tableId),
 		index('orders_shift_id_idx').on(t.shiftId),
+		index('orders_voucher_id_idx').on(t.voucherId),
 	],
 )
 

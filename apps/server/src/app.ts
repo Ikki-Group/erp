@@ -34,12 +34,18 @@ const supplier = createSupplierModule(db, cache, {
 const paymentMethod = createPaymentMethodModule(db, cache, {
 	locationService: location.service,
 })
-const pos = createPosModule(db, cache, { locationService: location.service })
-const inventory = createInventoryModule(db, cache, {
-	assignmentService: material.assignmentService,
-})
 const menu = createMenuModule(db, cache, {
 	locationService: location.service,
+})
+const pos = createPosModule(db, cache, {
+	locationService: location.service,
+	paymentMethodService: paymentMethod.service,
+	companyService: company.service,
+	itemService: menu.itemService,
+	composedService: menu.composedService,
+})
+const inventory = createInventoryModule(db, cache, {
+	assignmentService: material.assignmentService,
 })
 const recipe = createRecipeModule(db, cache, {
 	materialService: material.service,
