@@ -10,45 +10,87 @@ DB Schema → Core Modules → Master Data → Menu/Recipe → POS → Inventory
 
 ## Status
 
-### Active
+### Phase 1 — COMPLETE ✅
 
-(none yet)
+All 24 tasks done (TASK-003 through TASK-026).
 
-### Backlog — Phase 1
+| Task     | Title                                                    | Status  |
+| -------- | -------------------------------------------------------- | ------- |
+| TASK-003 | Database Schema (all Phase 1 tables)                     | ✅ DONE |
+| TASK-004 | Infra: Auth plugin, Number Generator, Audit logger       | ✅ DONE |
+| TASK-005 | Module: Location                                         | ✅ DONE |
+| TASK-006 | Module: IAM (User, Role, Assignment)                     | ✅ DONE |
+| TASK-007 | Module: Auth (Login, Session, Context Switch)            | ✅ DONE |
+| TASK-008 | Module: Company Settings                                 | ✅ DONE |
+| TASK-009 | Module: UoM + Conversions                                | ✅ DONE |
+| TASK-010 | Module: Material (+ Category, Location Assignment)       | ✅ DONE |
+| TASK-011 | Module: Supplier (+ Material Pricing)                    | ✅ DONE |
+| TASK-012 | Module: Menu (Items, Categories, Modifiers)              | ✅ DONE |
+| TASK-013 | Module: Recipe (BOM, HPP calculation)                    | ✅ DONE |
+| TASK-014 | Module: Payment Method (+ Location Assignment)           | ✅ DONE |
+| TASK-015 | Module: POS/Table                                        | ✅ DONE |
+| TASK-016 | Module: POS/Shift (Cashier Shifts)                       | ✅ DONE |
+| TASK-017 | Module: POS/Voucher                                      | ✅ DONE |
+| TASK-018 | Module: POS/Order (Orders, Lines, Payments)              | ✅ DONE |
+| TASK-019 | Module: Inventory/Stock (Balances, Movements)            | ✅ DONE |
+| TASK-020 | Module: Inventory/Transfer (Requests, Ship, Receive)     | ✅ DONE |
+| TASK-021 | Module: Inventory/Receiving (from Supplier, Cost Recalc) | ✅ DONE |
+| TASK-022 | Module: Inventory/Opname (Physical Count)                | ✅ DONE |
+| TASK-023 | Module: Production (Recipes, Orders for semi-finished)   | ✅ DONE |
+| TASK-024 | Module: Audit (Audit Log read endpoints)                 | ✅ DONE |
+| TASK-025 | Integration: POS → Inventory auto-deduct via Recipe      | ✅ DONE |
+| TASK-026 | Seed Data + Dev Environment                              | ✅ DONE |
 
-| Task | Title | Depends on | Status |
-|------|-------|-----------|--------|
-| TASK-003 | Database Schema (all Phase 1 tables) | — | DRAFT |
-| TASK-004 | Infra: Auth plugin, Number Generator, Audit logger | TASK-003 | DRAFT |
-| TASK-005 | Module: Location | TASK-003, TASK-004 | DRAFT |
-| TASK-006 | Module: IAM (User, Role, Assignment) | TASK-005 | DRAFT |
-| TASK-007 | Module: Auth (Login, Session, Context Switch) | TASK-006 | DRAFT |
-| TASK-008 | Module: Company Settings | TASK-007 | DRAFT |
-| TASK-009 | Module: UoM + Conversions | TASK-005 | DRAFT |
-| TASK-010 | Module: Material (+ Category, Location Assignment) | TASK-009 | DRAFT |
-| TASK-011 | Module: Supplier (+ Material Pricing) | TASK-010 | DRAFT |
-| TASK-012 | Module: Menu (Items, Categories, Modifiers) | TASK-005 | DRAFT |
-| TASK-013 | Module: Recipe (BOM, HPP calculation) | TASK-010, TASK-012 | DRAFT |
-| TASK-014 | Module: Payment Method (+ Location Assignment) | TASK-005 | DRAFT |
-| TASK-015 | Module: POS/Table | TASK-005 | DRAFT |
-| TASK-016 | Module: POS/Shift (Cashier Shifts) | TASK-007, TASK-014 | DRAFT |
-| TASK-017 | Module: POS/Voucher | TASK-005 | DRAFT |
-| TASK-018 | Module: POS/Order (Orders, Lines, Payments, Auto-deduct) | TASK-013, TASK-015, TASK-016, TASK-017 | DRAFT |
-| TASK-019 | Module: Inventory/Stock (Balances, Movements) | TASK-010 | DRAFT |
-| TASK-020 | Module: Inventory/Transfer (Requests, Ship, Receive) | TASK-019 | DRAFT |
-| TASK-021 | Module: Inventory/Receiving (from Supplier, Cost Recalc) | TASK-011, TASK-019 | DRAFT |
-| TASK-022 | Module: Inventory/Opname (Physical Count) | TASK-019 | DRAFT |
-| TASK-023 | Module: Production (Recipes, Orders for semi-finished) | TASK-019, TASK-010 | DRAFT |
-| TASK-024 | Module: Audit (Audit Log + UI endpoint) | TASK-004 | DRAFT |
-| TASK-025 | Integration: POS → Inventory auto-deduct via Recipe | TASK-018, TASK-019 | DRAFT |
-| TASK-026 | Seed Data + Dev Environment | TASK-018 | DRAFT |
+### Skipped
 
-### Done
+| Task     | Title                  | Reason                              |
+| -------- | ---------------------- | ----------------------------------- |
+| TASK-001 | IAM RBAC Overhaul      | Legacy task, absorbed into TASK-006 |
+| TASK-002 | Location Module Review | Legacy task, absorbed into TASK-005 |
 
-| Task | Title |
-|------|-------|
-| ~~TASK-001~~ | ~~IAM RBAC Overhaul (obsolete — old codebase)~~ |
-| ~~TASK-002~~ | ~~Location Module Review (obsolete — old codebase)~~ |
+### Phase 2 — Hardening & Refinement
+
+| Task     | Title                            | Status   |
+| -------- | -------------------------------- | -------- |
+| TASK-027 | Decimal/Money Precision Refactor | GROOMING |
+
+---
+
+## Phase 1 Notes & Deferred Items
+
+### Pending items (carry to Phase 2+)
+
+| Item                                                | Origin   | Priority                            |
+| --------------------------------------------------- | -------- | ----------------------------------- |
+| Location-based auth on transfer ship/receive        | TASK-020 | Medium                              |
+| Rate limiting on /auth/login                        | TASK-007 | Low                                 |
+| Voucher `decrementUsage` on void-after-complete     | TASK-018 | Low (void only from open currently) |
+| Web codegen (`generate:endpoints` + `generate:web`) | All      | High — do before frontend           |
+| Audit log entries in seed scripts                   | TASK-026 | Low                                 |
+
+### Key design decisions (reference)
+
+| Decision                                   | Context                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| DB enum `'open'` not `'draft'` for orders  | TASK-018 — matches existing schema                                 |
+| taxRate stored as percentage (11.00 = 11%) | Divided by 100 in calculation                                      |
+| Transfer uses `in_transit` DB enum         | TASK-020 — partial receive stays `in_transit` until all lines done |
+| Multiple auth sessions coexist             | TASK-007 — no forced logout on re-login                            |
+| Stock opname uses snapshot-at-creation     | TASK-022 — subsequent movements don't affect comparison            |
+| Overpayment blocked (strict sum ≤ total)   | TASK-018 — cashier cannot overpay                                  |
+| Seed uses raw postgres.js not drizzle      | TASK-026 — scripts are standalone                                  |
+| POS deduction: floor at 0, log shortage    | TASK-025 — never block cashier                                     |
+| Negative stock prevented in stock engine   | TASK-019 — except POS deduction (Option C)                         |
+
+### Known tech debt
+
+| Issue                                | Impact                                         | Fix                                     |
+| ------------------------------------ | ---------------------------------------------- | --------------------------------------- |
+| Float/decimal precision in JS        | Money rounding errors, weighted avg drift      | TASK-027                                |
+| FK name truncation (Postgres NOTICE) | Cosmetic — constraint works, name is truncated | Low priority — explicit names if needed |
+| Table module was built but not wired | Fixed in TASK-018 session                      | ✅ Resolved                             |
+
+---
 
 ## Dependency Graph
 
@@ -81,30 +123,3 @@ TASK-003 (DB Schema)
         └── TASK-025 (Integration)
             └── TASK-026 (Seed Data)
 ```
-
-## Execution Order (Critical Path)
-
-Recommended sequential order respecting dependencies:
-
-```
-Session 1:  TASK-003 (DB Schema)
-Session 2:  TASK-004 (Infra utilities)
-Session 3:  TASK-005 (Location)
-Session 4:  TASK-006 (IAM)
-Session 5:  TASK-007 (Auth)
-Session 6:  TASK-009 (UoM) + TASK-008 (Company) — parallel, no interdep
-Session 7:  TASK-010 (Material)
-Session 8:  TASK-011 (Supplier) + TASK-014 (Payment Method) — parallel
-Session 9:  TASK-012 (Menu + Modifiers)
-Session 10: TASK-013 (Recipe)
-Session 11: TASK-015 (POS/Table) + TASK-017 (POS/Voucher) — parallel
-Session 12: TASK-016 (POS/Shift)
-Session 13: TASK-019 (Inventory/Stock)
-Session 14: TASK-018 (POS/Order)
-Session 15: TASK-020 (Transfer) + TASK-021 (Receiving) + TASK-022 (Opname) — parallel
-Session 16: TASK-023 (Production)
-Session 17: TASK-024 (Audit) + TASK-025 (POS→Inventory integration)
-Session 18: TASK-026 (Seed Data + Final verification)
-```
-
-~18 sessions to complete Phase 1.

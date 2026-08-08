@@ -9,11 +9,13 @@ CREATE TYPE "public"."order_status" AS ENUM('open', 'completed', 'voided');--> s
 CREATE TYPE "public"."order_type" AS ENUM('dine_in', 'takeaway');--> statement-breakpoint
 CREATE TYPE "public"."payment_method_type" AS ENUM('cash', 'digital');--> statement-breakpoint
 CREATE TYPE "public"."production_order_status" AS ENUM('draft', 'completed', 'cancelled');--> statement-breakpoint
+CREATE TYPE "public"."receiving_status" AS ENUM('draft', 'confirmed');--> statement-breakpoint
 CREATE TYPE "public"."selection_type" AS ENUM('single', 'multiple');--> statement-breakpoint
 CREATE TYPE "public"."shift_status" AS ENUM('open', 'closed');--> statement-breakpoint
 CREATE TYPE "public"."table_status" AS ENUM('available', 'occupied', 'reserved');--> statement-breakpoint
 CREATE TYPE "public"."transfer_status" AS ENUM('requested', 'in_transit', 'received', 'cancelled');--> statement-breakpoint
 CREATE TYPE "public"."uom_category" AS ENUM('weight', 'volume', 'quantity', 'length');--> statement-breakpoint
+CREATE TYPE "public"."voucher_type" AS ENUM('percentage', 'fixed');--> statement-breakpoint
 CREATE TABLE "audit_logs" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"timestamp" timestamp with time zone DEFAULT now() NOT NULL,
@@ -208,6 +210,8 @@ CREATE TABLE "orders" (
 	"discount_amount" numeric(18, 2) DEFAULT '0' NOT NULL,
 	"tax_amount" numeric(18, 2) DEFAULT '0' NOT NULL,
 	"total" numeric(18, 2) DEFAULT '0' NOT NULL,
+	"voucher_id" integer,
+	"voucher_code" varchar(50),
 	"customer_id" integer,
 	"source" "order_source" DEFAULT 'internal' NOT NULL,
 	"external_ref" varchar(255),
@@ -303,6 +307,7 @@ CREATE TABLE "receivings" (
 	"receiving_no" varchar(100) NOT NULL,
 	"location_id" integer NOT NULL,
 	"supplier_id" integer NOT NULL,
+	"status" "receiving_status" DEFAULT 'draft' NOT NULL,
 	"notes" varchar(1000),
 	"received_by" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -504,6 +509,25 @@ CREATE TABLE "users" (
 	"updated_by" integer
 );
 --> statement-breakpoint
+CREATE TABLE "vouchers" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"code" varchar(50) NOT NULL,
+	"name" varchar(255) NOT NULL,
+	"type" "voucher_type" NOT NULL,
+	"value" numeric(18, 2) NOT NULL,
+	"min_purchase" numeric(18, 2),
+	"max_discount" numeric(18, 2),
+	"valid_from" timestamp with time zone NOT NULL,
+	"valid_until" timestamp with time zone NOT NULL,
+	"usage_limit" integer,
+	"usage_count" integer DEFAULT 0 NOT NULL,
+	"is_active" integer DEFAULT 1 NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_by" integer,
+	"updated_by" integer
+);
+--> statement-breakpoint
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_location_id_locations_id_fk" FOREIGN KEY ("location_id") REFERENCES "public"."locations"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "cashier_shifts" ADD CONSTRAINT "cashier_shifts_location_id_locations_id_fk" FOREIGN KEY ("location_id") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -529,6 +553,7 @@ ALTER TABLE "order_lines" ADD CONSTRAINT "order_lines_voided_by_users_id_fk" FOR
 ALTER TABLE "orders" ADD CONSTRAINT "orders_location_id_locations_id_fk" FOREIGN KEY ("location_id") REFERENCES "public"."locations"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "orders" ADD CONSTRAINT "orders_table_id_tables_id_fk" FOREIGN KEY ("table_id") REFERENCES "public"."tables"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "orders" ADD CONSTRAINT "orders_shift_id_cashier_shifts_id_fk" FOREIGN KEY ("shift_id") REFERENCES "public"."cashier_shifts"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "orders" ADD CONSTRAINT "orders_voucher_id_vouchers_id_fk" FOREIGN KEY ("voucher_id") REFERENCES "public"."vouchers"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payment_method_locations" ADD CONSTRAINT "payment_method_locations_payment_method_id_payment_methods_id_fk" FOREIGN KEY ("payment_method_id") REFERENCES "public"."payment_methods"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payment_method_locations" ADD CONSTRAINT "payment_method_locations_location_id_locations_id_fk" FOREIGN KEY ("location_id") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -611,6 +636,7 @@ CREATE UNIQUE INDEX "orders_external_ref_uniq" ON "orders" USING btree ("externa
 CREATE INDEX "orders_location_status_ordered_idx" ON "orders" USING btree ("location_id","status","ordered_at");--> statement-breakpoint
 CREATE INDEX "orders_table_id_idx" ON "orders" USING btree ("table_id");--> statement-breakpoint
 CREATE INDEX "orders_shift_id_idx" ON "orders" USING btree ("shift_id");--> statement-breakpoint
+CREATE INDEX "orders_voucher_id_idx" ON "orders" USING btree ("voucher_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "payment_method_locations_method_location_uniq" ON "payment_method_locations" USING btree ("payment_method_id","location_id");--> statement-breakpoint
 CREATE INDEX "payment_method_locations_payment_method_id_idx" ON "payment_method_locations" USING btree ("payment_method_id");--> statement-breakpoint
 CREATE INDEX "payment_method_locations_location_id_idx" ON "payment_method_locations" USING btree ("location_id");--> statement-breakpoint
@@ -677,4 +703,6 @@ CREATE INDEX "user_assignments_user_id_idx" ON "user_assignments" USING btree ("
 CREATE INDEX "user_assignments_role_id_idx" ON "user_assignments" USING btree ("role_id");--> statement-breakpoint
 CREATE INDEX "user_assignments_location_id_idx" ON "user_assignments" USING btree ("location_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "users_username_uniq" ON "users" USING btree ("username");--> statement-breakpoint
-CREATE UNIQUE INDEX "users_email_uniq" ON "users" USING btree ("email");
+CREATE UNIQUE INDEX "users_email_uniq" ON "users" USING btree ("email");--> statement-breakpoint
+CREATE UNIQUE INDEX "vouchers_code_uniq" ON "vouchers" USING btree ("code");--> statement-breakpoint
+CREATE INDEX "vouchers_is_active_idx" ON "vouchers" USING btree ("is_active");
