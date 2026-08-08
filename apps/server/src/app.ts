@@ -9,6 +9,7 @@ import { createCompanyModule } from './modules/company/index.ts'
 import { createIamModule } from './modules/iam/index.ts'
 import { createLocationModule } from './modules/location/index.ts'
 import { createMaterialModule } from './modules/material/index.ts'
+import { createSupplierModule } from './modules/supplier/index.ts'
 import { createUomModule } from './modules/uom/index.ts'
 import { errorPlugin } from './server/plugins/error.plugin.ts'
 
@@ -20,6 +21,10 @@ const uom = createUomModule(db, cache)
 const material = createMaterialModule(db, cache, {
 	uomService: uom.service,
 	locationService: location.service,
+})
+const supplier = createSupplierModule(db, cache, {
+	materialService: material.service,
+	uomService: uom.service,
 })
 const iam = createIamModule(db, cache, { locationService: location.service })
 const auth = createAuthModule({
@@ -41,3 +46,4 @@ export const app = new Elysia()
 	.use(iam.route)
 	.use(uom.route)
 	.use(material.route)
+	.use(supplier.route)
