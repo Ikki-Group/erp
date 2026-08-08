@@ -7,6 +7,7 @@ import { sessionStore } from './infra/session/index.ts'
 import { createAuthModule } from './modules/auth/index.ts'
 import { createCompanyModule } from './modules/company/index.ts'
 import { createIamModule } from './modules/iam/index.ts'
+import { createInventoryModule } from './modules/inventory/index.ts'
 import { createLocationModule } from './modules/location/index.ts'
 import { createMaterialModule } from './modules/material/index.ts'
 import { createMenuModule } from './modules/menu/index.ts'
@@ -34,6 +35,9 @@ const paymentMethod = createPaymentMethodModule(db, cache, {
 	locationService: location.service,
 })
 const pos = createPosModule(db, cache, { locationService: location.service })
+const inventory = createInventoryModule(db, cache, {
+	assignmentService: material.assignmentService,
+})
 const menu = createMenuModule(db, cache, {
 	locationService: location.service,
 })
@@ -65,5 +69,6 @@ export const app = new Elysia()
 	.use(supplier.route)
 	.use(paymentMethod.route)
 	.use(pos.route)
+	.use(inventory.route)
 	.use(menu.route)
 	.use(recipe.route)

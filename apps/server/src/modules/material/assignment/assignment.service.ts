@@ -44,6 +44,12 @@ export class AssignmentService {
 
 	// ─── Reads ───
 
+	/** Check if a material is assigned to a location. Used by inventory/stock. */
+	async isAssigned(materialId: number, locationId: number): Promise<boolean> {
+		const row = await this.repo.findOne(materialId, locationId)
+		return row !== undefined
+	}
+
 	async handleByLocation(locationId: number): Promise<MaterialLocationDto[]> {
 		return this.repo.findByLocationId(locationId)
 	}
