@@ -135,4 +135,12 @@ describe('pos/order lifecycle', () => {
 		})
 		expect(res.status).toBeGreaterThanOrEqual(400)
 	})
+
+	// ─── Known Gaps (future tests) ───
+
+	test.todo('void order reverses stock deductions', () => {})
+	test.todo('partial payment prevents order completion', () => {})
+	test.todo('order with modifiers calculates correct total', () => {})
+	test.todo('voucher discount applies to order total', () => {})
+	test.todo('concurrent order payments are serialized correctly', () => {})
 })

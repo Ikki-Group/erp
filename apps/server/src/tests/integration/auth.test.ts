@@ -1,10 +1,8 @@
 import { loginAs } from '../helpers/auth.ts'
-import { POST, GET } from '../helpers/request.ts'
+import { POST, GET, json } from '../helpers/request.ts'
+import type { Json } from '../helpers/request.ts'
 import { SEED_USERS, SEED_LOCATION_ID } from '../helpers/seed.ts'
 import { describe, expect, test, beforeAll } from 'bun:test'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test assertions on untyped JSON
-type Json = any
 
 /**
  * NOTE: Auth errors thrown inside `record()` (OTel span wrapper) or Elysia's
@@ -23,7 +21,7 @@ describe('auth', () => {
 		expect(res.status).toBe(200)
 		expect(res.headers.get('set-cookie')).toBeTruthy()
 
-		const body: Json = await res.json()
+		const body: Json = await json(res)
 		expect(body.data.user.username).toBe('owner')
 		expect(body.data.locations).toBeInstanceOf(Array)
 	})
@@ -72,7 +70,7 @@ describe('auth', () => {
 			const res = await GET('/auth/me', { cookie })
 			expect(res.status).toBe(200)
 
-			const body: Json = await res.json()
+			const body: Json = await json(res)
 			expect(body.data.user.username).toBe('owner')
 			expect(body.data.permissions).toBeInstanceOf(Array)
 			expect(body.data.isOwner).toBe(true)
@@ -85,7 +83,7 @@ describe('auth', () => {
 			})
 			expect(res.status).toBe(200)
 
-			const body: Json = await res.json()
+			const body: Json = await json(res)
 			expect(body.data.activeLocation.id).toBe(SEED_LOCATION_ID)
 		})
 
@@ -123,9 +121,40 @@ describe('auth', () => {
 			const res = await GET('/auth/me', { cookie })
 			expect(res.status).toBe(200)
 
-			const body: Json = await res.json()
+			const body: Json = await json(res)
 			expect(body.data.user.username).toBe('cashier')
 			expect(body.data.isOwner).toBe(false)
 		})
 	})
+
+	// ─── Error Envelope Format ───
+
+	describe('error response format', () => {
+		test('validation error (422) has structured envelope', async () => {
+			const res = await POST('/auth/login', { body: {} })
+			expect(res.status).toBe(422)
+
+			const body: Json = await json(res)
+			// Elysia validation error structure
+			expect(body.type).toBe('validation')
+			expect(body.on).toBe('body')
+			expect(body.errors).toBeInstanceOf(Array)
+			expect(body.errors.length).toBeGreaterThan(0)
+		})
+
+		test('success response has envelope with data', async () => {
+			const res = await POST('/auth/login', {
+				body: { username: SEED_USERS.owner.username, password: SEED_USERS.owner.password },
+			})
+			const body: Json = await json(res)
+			expect(body.success).toBe(true)
+			expect(body.data).toBeDefined()
+		})
+	})
+
+	// ─── Known Gaps (future tests) ───
+
+	test.todo('session expiration after TTL', () => {})
+	test.todo('concurrent logins create separate sessions', () => {})
+	test.todo('deactivated user cannot login', () => {})
 })

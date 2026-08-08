@@ -220,4 +220,10 @@ describe('inventory/stock', () => {
 		})
 		expect(res.status).toBeGreaterThanOrEqual(400)
 	})
+
+	// ─── Known Gaps (future tests) ───
+
+	test.todo('negative stock is blocked on outbound movement', () => {})
+	test.todo('stock transfer between locations updates both balances', () => {})
+	test.todo('stock opname adjusts balance to counted qty', () => {})
 })

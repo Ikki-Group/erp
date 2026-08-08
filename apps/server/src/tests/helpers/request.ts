@@ -6,6 +6,9 @@ import { testApp } from './app.ts'
 
 // ─── Types ───
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test utility for untyped JSON
+export type Json = any
+
 type RequestOptions = {
 	body?: unknown
 	cookie?: string
@@ -26,6 +29,11 @@ function buildHeaders(opts: RequestOptions): Record<string, string> {
 	const headers: Record<string, string> = {}
 	if (opts.cookie) headers['cookie'] = opts.cookie
 	return headers
+}
+
+/** Parse response body as JSON with `any` type for test assertions. */
+export async function json(res: Response): Promise<Json> {
+	return res.json()
 }
 
 // ─── Request Methods ───
