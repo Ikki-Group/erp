@@ -25,6 +25,7 @@ export const orderTypeEnum = pgEnum('order_type', ['dine_in', 'takeaway'])
 export const orderStatusEnum = pgEnum('order_status', ['open', 'completed', 'voided'])
 export const orderSourceEnum = pgEnum('order_source', ['internal', 'moka', 'manual'])
 export const orderLineStatusEnum = pgEnum('order_line_status', ['active', 'voided'])
+export const voucherTypeEnum = pgEnum('voucher_type', ['percentage', 'fixed'])
 
 // ─── Payment Methods ───
 
@@ -200,5 +201,30 @@ export const payments = pgTable(
 	(t) => [
 		index('payments_order_id_idx').on(t.orderId),
 		index('payments_payment_method_id_idx').on(t.paymentMethodId),
+	],
+)
+
+// ─── Vouchers ───
+
+export const vouchers = pgTable(
+	'vouchers',
+	{
+		...pk,
+		code: varchar('code', { length: 50 }).notNull(),
+		name: varchar('name', { length: 255 }).notNull(),
+		type: voucherTypeEnum('type').notNull(),
+		value: numeric('value', { precision: 18, scale: 2 }).notNull(),
+		minPurchase: numeric('min_purchase', { precision: 18, scale: 2 }),
+		maxDiscount: numeric('max_discount', { precision: 18, scale: 2 }),
+		validFrom: timestamp('valid_from', { withTimezone: true }).notNull(),
+		validUntil: timestamp('valid_until', { withTimezone: true }).notNull(),
+		usageLimit: integer('usage_limit'),
+		usageCount: integer('usage_count').notNull().default(0),
+		isActive: integer('is_active').notNull().default(1),
+		...auditBasicColumns,
+	},
+	(t) => [
+		uniqueIndex('vouchers_code_uniq').on(t.code),
+		index('vouchers_is_active_idx').on(t.isActive),
 	],
 )

@@ -33,9 +33,7 @@ const supplier = createSupplierModule(db, cache, {
 const paymentMethod = createPaymentMethodModule(db, cache, {
 	locationService: location.service,
 })
-const pos = createPosModule(db, cache, {
-	locationService: location.service,
-})
+const pos = createPosModule(db, cache)
 const menu = createMenuModule(db, cache, {
 	locationService: location.service,
 })

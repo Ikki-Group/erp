@@ -1,6 +1,6 @@
 # ERD: POS
 
-Orders, Payments, Cashier Shifts, Tables.
+Orders, Payments, Cashier Shifts, Tables, Vouchers.
 
 ## Mermaid
 
@@ -59,6 +59,20 @@ erDiagram
         string number
         int capacity
         string status "available | occupied"
+    }
+    VOUCHERS {
+        int id PK
+        string code UK
+        string name
+        string type "percentage | fixed"
+        decimal value
+        decimal min_purchase
+        decimal max_discount
+        timestamp valid_from
+        timestamp valid_until
+        int usage_limit
+        int usage_count
+        int is_active
     }
 
     LOCATIONS ||--o{ ORDERS : "processes"
@@ -154,6 +168,22 @@ erDiagram
   -- amount numeric(18,2)
   -- reference
   -- created_at
+
+
+[vouchers]
+  PK id
+  UK code
+  -- name
+  -- type (percentage/fixed)
+  -- value numeric(18,2)
+  -- min_purchase numeric(18,2) nullable
+  -- max_discount numeric(18,2) nullable
+  -- valid_from timestamptz
+  -- valid_until timestamptz
+  -- usage_limit nullable
+  -- usage_count (default 0)
+  -- is_active
+  -- audit stamps
 ```
 
 ## Notes
@@ -163,6 +193,8 @@ erDiagram
 - `payment_method_locations` controls which methods are available per store.
 - `orders.external_ref` unique constraint prevents duplicate Moka imports.
 - Table status auto-updates via application logic on order lifecycle.
+- `vouchers.usage_count` incremented atomically when a voucher is applied to a completed order.
+- One voucher per order max. Validation checks: active, date range, usage limit, min purchase.
 
 ---
 
