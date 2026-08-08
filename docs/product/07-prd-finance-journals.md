@@ -12,12 +12,12 @@ Detailed rules for automatic journal entry generation from operational events.
 
 Each payment method type maps to a specific account:
 
-| Payment Type | Target Account | Rationale |
-|-------------|----------------|-----------|
-| `cash` | Kas (1-1001) | Physical cash in register |
-| `digital` (QRIS, GoPay, OVO, etc.) | Bank (1-1002) | Assumed immediate settlement |
-| `card` (debit/credit) | Bank (1-1002) | Same as digital |
-| `transfer` | Bank (1-1002) | Direct bank transfer |
+| Payment Type                       | Target Account | Rationale                    |
+| ---------------------------------- | -------------- | ---------------------------- |
+| `cash`                             | Kas (1-1001)   | Physical cash in register    |
+| `digital` (QRIS, GoPay, OVO, etc.) | Bank (1-1002)  | Assumed immediate settlement |
+| `card` (debit/credit)              | Bank (1-1002)  | Same as digital              |
+| `transfer`                         | Bank (1-1002)  | Direct bank transfer         |
 
 Digital payments use "Bank" directly (Opsi A — no intermediary receivable account). This simplifies bookkeeping while remaining accurate for most F&B operations where settlements are near-instant.
 
@@ -37,26 +37,26 @@ When an order status changes to `completed`:
 
 ### Revenue Entry
 
-| Line | Account | Debit | Credit |
-|------|---------|-------|--------|
-| 1 | Kas (if cash payment) | order.total | — |
-| 1 | Bank (if digital payment) | order.total | — |
-| 2 | Pendapatan Penjualan (4-1001) | — | order.total |
+| Line | Account                       | Debit       | Credit      |
+| ---- | ----------------------------- | ----------- | ----------- |
+| 1    | Kas (if cash payment)         | order.total | —           |
+| 1    | Bank (if digital payment)     | order.total | —           |
+| 2    | Pendapatan Penjualan (4-1001) | —           | order.total |
 
 If **split payment** (part cash, part digital):
 
-| Line | Account | Debit | Credit |
-|------|---------|-------|--------|
-| 1 | Kas | cash_amount | — |
-| 2 | Bank | digital_amount | — |
-| 3 | Pendapatan Penjualan | — | order.total |
+| Line | Account              | Debit          | Credit      |
+| ---- | -------------------- | -------------- | ----------- |
+| 1    | Kas                  | cash_amount    | —           |
+| 2    | Bank                 | digital_amount | —           |
+| 3    | Pendapatan Penjualan | —              | order.total |
 
 ### COGS Entry (simultaneous)
 
-| Line | Account | Debit | Credit |
-|------|---------|-------|--------|
-| 1 | HPP (5-1001) | total_hpp | — |
-| 2 | Persediaan Bahan Baku (1-2001) | — | total_hpp |
+| Line | Account                        | Debit     | Credit    |
+| ---- | ------------------------------ | --------- | --------- |
+| 1    | HPP (5-1001)                   | total_hpp | —         |
+| 2    | Persediaan Bahan Baku (1-2001) | —         | total_hpp |
 
 Where `total_hpp` = sum of (recipe ingredient qty × material cost_price) for all order lines.
 
@@ -75,12 +75,12 @@ description: 'Penjualan {order_no}'
 
 When a completed order is voided, create a **reversing entry**:
 
-| Line | Account | Debit | Credit |
-|------|---------|-------|--------|
-| 1 | Pendapatan Penjualan | void_amount | — |
-| 2 | Kas / Bank | — | void_amount |
-| 3 | Persediaan Bahan Baku | total_hpp | — |
-| 4 | HPP | — | total_hpp |
+| Line | Account               | Debit       | Credit      |
+| ---- | --------------------- | ----------- | ----------- |
+| 1    | Pendapatan Penjualan  | void_amount | —           |
+| 2    | Kas / Bank            | —           | void_amount |
+| 3    | Persediaan Bahan Baku | total_hpp   | —           |
+| 4    | HPP                   | —           | total_hpp   |
 
 ```
 source: 'auto_sales'
@@ -93,10 +93,10 @@ When a receiving is recorded:
 
 ### Credit Purchase (supplier with payment terms)
 
-| Line | Account | Debit | Credit |
-|------|---------|-------|--------|
-| 1 | Persediaan Bahan Baku (1-2001) | total_cost | — |
-| 2 | Hutang Usaha (2-1001) | — | total_cost |
+| Line | Account                        | Debit      | Credit     |
+| ---- | ------------------------------ | ---------- | ---------- |
+| 1    | Persediaan Bahan Baku (1-2001) | total_cost | —          |
+| 2    | Hutang Usaha (2-1001)          | —          | total_cost |
 
 ```
 source: 'auto_purchase'
@@ -106,10 +106,10 @@ reference_id: receiving.id
 
 ### Cash Purchase (no credit, paid immediately)
 
-| Line | Account | Debit | Credit |
-|------|---------|-------|--------|
-| 1 | Persediaan Bahan Baku (1-2001) | total_cost | — |
-| 2 | Kas / Bank | — | total_cost |
+| Line | Account                        | Debit      | Credit     |
+| ---- | ------------------------------ | ---------- | ---------- |
+| 1    | Persediaan Bahan Baku (1-2001) | total_cost | —          |
+| 2    | Kas / Bank                     | —          | total_cost |
 
 ```
 source: 'auto_purchase'
@@ -121,10 +121,10 @@ Decision (credit vs cash) is based on: if `receiving.supplier_id` is set AND sup
 
 When an AP record is (partially) paid:
 
-| Line | Account | Debit | Credit |
-|------|---------|-------|--------|
-| 1 | Hutang Usaha (2-1001) | payment_amount | — |
-| 2 | Kas / Bank | — | payment_amount |
+| Line | Account               | Debit          | Credit         |
+| ---- | --------------------- | -------------- | -------------- |
+| 1    | Hutang Usaha (2-1001) | payment_amount | —              |
+| 2    | Kas / Bank            | —              | payment_amount |
 
 ```
 source: 'auto_purchase'
@@ -136,10 +136,10 @@ reference_id: accounts_payable.id
 
 When payroll run status becomes `paid`:
 
-| Line | Account | Debit | Credit |
-|------|---------|-------|--------|
-| 1 | Beban Gaji (5-2001) | total_net_salary | — |
-| 2 | Bank | — | total_net_salary |
+| Line | Account             | Debit            | Credit           |
+| ---- | ------------------- | ---------------- | ---------------- |
+| 1    | Beban Gaji (5-2001) | total_net_salary | —                |
+| 2    | Bank                | —                | total_net_salary |
 
 ```
 source: 'auto_payroll'
@@ -152,10 +152,10 @@ location_id: payroll_run.location_id (or null for company-wide)
 
 When user records an expense via the expense form:
 
-| Line | Account | Debit | Credit |
-|------|---------|-------|--------|
-| 1 | {selected expense account} | amount | — |
-| 2 | Kas / Bank | — | amount |
+| Line | Account                    | Debit  | Credit |
+| ---- | -------------------------- | ------ | ------ |
+| 1    | {selected expense account} | amount | —      |
+| 2    | Kas / Bank                 | —      | amount |
 
 ```
 source: 'manual'
@@ -165,31 +165,31 @@ location_id: active location
 
 ## Summary of Triggers
 
-| Event | Source | Accounts Affected |
-|-------|--------|-------------------|
-| Order completed | `auto_sales` | Kas/Bank ↔ Pendapatan, HPP ↔ Persediaan |
-| Order voided | `auto_sales` | Reverse of above |
-| Goods received (credit) | `auto_purchase` | Persediaan ↔ Hutang Usaha |
-| Goods received (cash) | `auto_purchase` | Persediaan ↔ Kas/Bank |
-| Supplier paid | `auto_purchase` | Hutang Usaha ↔ Kas/Bank |
-| Payroll paid | `auto_payroll` | Beban Gaji ↔ Bank |
-| Expense recorded | `manual` | {Expense account} ↔ Kas/Bank |
+| Event                   | Source          | Accounts Affected                       |
+| ----------------------- | --------------- | --------------------------------------- |
+| Order completed         | `auto_sales`    | Kas/Bank ↔ Pendapatan, HPP ↔ Persediaan |
+| Order voided            | `auto_sales`    | Reverse of above                        |
+| Goods received (credit) | `auto_purchase` | Persediaan ↔ Hutang Usaha               |
+| Goods received (cash)   | `auto_purchase` | Persediaan ↔ Kas/Bank                   |
+| Supplier paid           | `auto_purchase` | Hutang Usaha ↔ Kas/Bank                 |
+| Payroll paid            | `auto_payroll`  | Beban Gaji ↔ Bank                       |
+| Expense recorded        | `manual`        | {Expense account} ↔ Kas/Bank            |
 
 ## System Accounts (Minimum Required)
 
-| Code | Name | Type | Normal Balance |
-|------|------|------|----------------|
-| 1-1001 | Kas | asset | debit |
-| 1-1002 | Bank | asset | debit |
-| 1-2001 | Persediaan Bahan Baku | asset | debit |
-| 2-1001 | Hutang Usaha | liability | credit |
-| 3-1001 | Modal | equity | credit |
-| 4-1001 | Pendapatan Penjualan | revenue | credit |
-| 5-1001 | HPP | expense | debit |
-| 5-2001 | Beban Gaji | expense | debit |
-| 5-3001 | Beban Sewa | expense | debit |
-| 5-4001 | Beban Listrik dan Air | expense | debit |
-| 5-5001 | Beban Operasional Lainnya | expense | debit |
+| Code   | Name                      | Type      | Normal Balance |
+| ------ | ------------------------- | --------- | -------------- |
+| 1-1001 | Kas                       | asset     | debit          |
+| 1-1002 | Bank                      | asset     | debit          |
+| 1-2001 | Persediaan Bahan Baku     | asset     | debit          |
+| 2-1001 | Hutang Usaha              | liability | credit         |
+| 3-1001 | Modal                     | equity    | credit         |
+| 4-1001 | Pendapatan Penjualan      | revenue   | credit         |
+| 5-1001 | HPP                       | expense   | debit          |
+| 5-2001 | Beban Gaji                | expense   | debit          |
+| 5-3001 | Beban Sewa                | expense   | debit          |
+| 5-4001 | Beban Listrik dan Air     | expense   | debit          |
+| 5-5001 | Beban Operasional Lainnya | expense   | debit          |
 
 These are auto-created on first setup. Owner can add more expense accounts as needed.
 

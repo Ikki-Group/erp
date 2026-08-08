@@ -4,22 +4,22 @@ Specifications for stock balance tracking, stock movements, transfer requests, a
 
 ## Core Concepts
 
-| Concept | Description |
-|---------|-------------|
-| Stock Balance | Current quantity of a material at a specific location |
-| Stock Movement | Any event that changes stock (receipt, sale, transfer, adjustment) |
-| Transfer Request | Request to move materials from one location to another |
-| Stock Opname | Physical count reconciliation against system balance |
+| Concept          | Description                                                        |
+| ---------------- | ------------------------------------------------------------------ |
+| Stock Balance    | Current quantity of a material at a specific location              |
+| Stock Movement   | Any event that changes stock (receipt, sale, transfer, adjustment) |
+| Transfer Request | Request to move materials from one location to another             |
+| Stock Opname     | Physical count reconciliation against system balance               |
 
 ## Stock Balance
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| materialId | FK | Which material |
-| locationId | FK | Which location (store or warehouse) |
-| quantity | decimal | Current on-hand (in storage UoM) |
+| Field      | Type    | Description                         |
+| ---------- | ------- | ----------------------------------- |
+| materialId | FK      | Which material                      |
+| locationId | FK      | Which location (store or warehouse) |
+| quantity   | decimal | Current on-hand (in storage UoM)    |
 
 ### Business Rules
 
@@ -32,29 +32,29 @@ Specifications for stock balance tracking, stock movements, transfer requests, a
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| materialId | FK | Material affected |
-| locationId | FK | Location affected |
-| type | enum | Movement type |
-| direction | enum | `in`, `out` |
-| quantity | decimal | Amount moved (always positive) |
-| costPrice | decimal | Unit cost at time of movement (storage UoM) |
-| referenceType | string? | Source document type |
-| referenceId | string? | Source document ID |
-| notes | string? | Explanation |
+| Field         | Type    | Description                                 |
+| ------------- | ------- | ------------------------------------------- |
+| materialId    | FK      | Material affected                           |
+| locationId    | FK      | Location affected                           |
+| type          | enum    | Movement type                               |
+| direction     | enum    | `in`, `out`                                 |
+| quantity      | decimal | Amount moved (always positive)              |
+| costPrice     | decimal | Unit cost at time of movement (storage UoM) |
+| referenceType | string? | Source document type                        |
+| referenceId   | string? | Source document ID                          |
+| notes         | string? | Explanation                                 |
 
 ### Movement Types
 
-| Type | Direction | Trigger |
-|------|-----------|---------|
-| `purchase_receipt` | in | Goods received from supplier |
-| `transfer_in` | in | Received from another location |
-| `adjustment_in` | in | Manual correction (surplus) |
-| `return_in` | in | Void/refund restoration |
-| `sales` | out | POS order completed (via recipe) |
-| `transfer_out` | out | Sent to another location |
-| `adjustment_out` | out | Manual correction (waste, expired, shortage) |
+| Type               | Direction | Trigger                                      |
+| ------------------ | --------- | -------------------------------------------- |
+| `purchase_receipt` | in        | Goods received from supplier                 |
+| `transfer_in`      | in        | Received from another location               |
+| `adjustment_in`    | in        | Manual correction (surplus)                  |
+| `return_in`        | in        | Void/refund restoration                      |
+| `sales`            | out       | POS order completed (via recipe)             |
+| `transfer_out`     | out       | Sent to another location                     |
+| `adjustment_out`   | out       | Manual correction (waste, expired, shortage) |
 
 ### Business Rules
 
@@ -71,25 +71,25 @@ Move materials between any two locations. Request-based flow: requester creates 
 
 ### Transfer Header
 
-| Field | Type | Description |
-|-------|------|-------------|
-| transferNo | string | Auto-generated number |
-| fromLocationId | FK | Source location |
-| toLocationId | FK | Destination location (the requester) |
-| status | enum | `requested`, `in_transit`, `received`, `cancelled` |
-| requestedBy | FK | User who created the request |
-| notes | string? | Transfer notes |
+| Field          | Type    | Description                                        |
+| -------------- | ------- | -------------------------------------------------- |
+| transferNo     | string  | Auto-generated number                              |
+| fromLocationId | FK      | Source location                                    |
+| toLocationId   | FK      | Destination location (the requester)               |
+| status         | enum    | `requested`, `in_transit`, `received`, `cancelled` |
+| requestedBy    | FK      | User who created the request                       |
+| notes          | string? | Transfer notes                                     |
 
 ### Transfer Line
 
-| Field | Type | Description |
-|-------|------|-------------|
-| transferId | FK | Parent transfer |
-| materialId | FK | Material being transferred |
-| requestedQty | decimal | Amount requested (storage UoM) |
-| shippedQty | decimal? | Amount actually shipped |
-| receivedQty | decimal? | Amount confirmed received |
-| uomId | FK | Unit (should be storage UoM) |
+| Field        | Type     | Description                    |
+| ------------ | -------- | ------------------------------ |
+| transferId   | FK       | Parent transfer                |
+| materialId   | FK       | Material being transferred     |
+| requestedQty | decimal  | Amount requested (storage UoM) |
+| shippedQty   | decimal? | Amount actually shipped        |
+| receivedQty  | decimal? | Amount confirmed received      |
+| uomId        | FK       | Unit (should be storage UoM)   |
 
 ### Status Flow
 
@@ -120,24 +120,24 @@ Reconcile system stock with actual physical count. Differences auto-create adjus
 
 ### Opname Header
 
-| Field | Type | Description |
-|-------|------|-------------|
-| opnameNo | string | Auto-generated |
-| locationId | FK | Location being counted |
-| status | enum | `draft`, `in_progress`, `completed`, `cancelled` |
-| startedAt | timestamp | When counting began |
-| completedAt | timestamp? | When finalized |
-| conductedBy | FK | User performing count |
+| Field       | Type       | Description                                      |
+| ----------- | ---------- | ------------------------------------------------ |
+| opnameNo    | string     | Auto-generated                                   |
+| locationId  | FK         | Location being counted                           |
+| status      | enum       | `draft`, `in_progress`, `completed`, `cancelled` |
+| startedAt   | timestamp  | When counting began                              |
+| completedAt | timestamp? | When finalized                                   |
+| conductedBy | FK         | User performing count                            |
 
 ### Opname Line
 
-| Field | Type | Description |
-|-------|------|-------------|
-| opnameId | FK | Parent opname |
-| materialId | FK | Material counted |
-| systemQty | decimal | System balance at time of opname |
-| actualQty | decimal | Physical count |
-| reason | string? | Explanation for variance |
+| Field      | Type    | Description                      |
+| ---------- | ------- | -------------------------------- |
+| opnameId   | FK      | Parent opname                    |
+| materialId | FK      | Material counted                 |
+| systemQty  | decimal | System balance at time of opname |
+| actualQty  | decimal | Physical count                   |
+| reason     | string? | Explanation for variance         |
 
 ### Business Rules
 
@@ -171,21 +171,21 @@ Record goods arriving from a supplier into a location (warehouse or store).
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| locationId | FK | Where goods arrive |
-| supplierId | FK? | Which supplier (null for misc) |
-| receivedBy | FK | User who received |
-| notes | string? | |
+| Field      | Type    | Description                    |
+| ---------- | ------- | ------------------------------ |
+| locationId | FK      | Where goods arrive             |
+| supplierId | FK?     | Which supplier (null for misc) |
+| receivedBy | FK      | User who received              |
+| notes      | string? |                                |
 
 ### Receiving Line
 
-| Field | Type | Description |
-|-------|------|-------------|
-| materialId | FK | Material received |
-| quantity | decimal | Amount received (in purchase UoM) |
-| unitCost | decimal | Cost per unit (purchase UoM) |
-| uomId | FK | Purchase UoM |
+| Field      | Type    | Description                       |
+| ---------- | ------- | --------------------------------- |
+| materialId | FK      | Material received                 |
+| quantity   | decimal | Amount received (in purchase UoM) |
+| unitCost   | decimal | Cost per unit (purchase UoM)      |
+| uomId      | FK      | Purchase UoM                      |
 
 ### On Save
 

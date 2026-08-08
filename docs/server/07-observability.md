@@ -18,11 +18,11 @@ preload = ["./src/infra/otel/otel.ts"]
 
 ### Auto-Instrumented (zero code)
 
-| What | Span source |
-|------|------------|
-| HTTP requests (method, path, status, duration) | `@elysiajs/opentelemetry` |
-| Elysia lifecycle hooks | Named function → span name |
-| All Postgres queries | `PgInstrumentation` (query text, rows, duration) |
+| What                                           | Span source                                      |
+| ---------------------------------------------- | ------------------------------------------------ |
+| HTTP requests (method, path, status, duration) | `@elysiajs/opentelemetry`                        |
+| Elysia lifecycle hooks                         | Named function → span name                       |
+| All Postgres queries                           | `PgInstrumentation` (query text, rows, duration) |
 
 ### Manual `record()` — Placement Rules
 
@@ -38,21 +38,21 @@ async handleComplete(data, actorId) {
 
 **When to record:**
 
-| Scenario | Why | Examples |
-|----------|-----|---------|
-| Cross-module orchestration | Multiple service calls in one handler | `order.complete`, `auth.login` |
-| Batch operations | Loop with multiple DB writes | `order.deductStock`, `receiving.confirm` |
-| Expensive computation | CPU + I/O combined | `stock.recordMovement` (check + calc + upsert) |
+| Scenario                   | Why                                   | Examples                                       |
+| -------------------------- | ------------------------------------- | ---------------------------------------------- |
+| Cross-module orchestration | Multiple service calls in one handler | `order.complete`, `auth.login`                 |
+| Batch operations           | Loop with multiple DB writes          | `order.deductStock`, `receiving.confirm`       |
+| Expensive computation      | CPU + I/O combined                    | `stock.recordMovement` (check + calc + upsert) |
 
 **Never record:**
 
-| Anti-pattern | Reason |
-|-------------|--------|
-| Pure functions (calculator, validators) | No I/O, instant |
-| Simple repo calls (`findById`, `findPage`) | Already traced by PgInstrumentation |
-| Zod validation | Microseconds |
-| Cache get/set | In-memory, instant |
-| Individual loop iterations | N spans per request = unreadable trace |
+| Anti-pattern                               | Reason                                 |
+| ------------------------------------------ | -------------------------------------- |
+| Pure functions (calculator, validators)    | No I/O, instant                        |
+| Simple repo calls (`findById`, `findPage`) | Already traced by PgInstrumentation    |
+| Zod validation                             | Microseconds                           |
+| Cache get/set                              | In-memory, instant                     |
+| Individual loop iterations                 | N spans per request = unreadable trace |
 
 **Golden rule:** 3-7 custom spans per complex request. If >15, over-instrumented.
 
@@ -62,25 +62,25 @@ Format: `{module}.{action}` — lowercase, dot-separated.
 
 ### Current Placements
 
-| Module | Method | Span |
-|--------|--------|------|
-| auth | handleLogin | `auth.login` |
-| pos/order | handleComplete | `order.complete` |
-| pos/order | handleSyncLines | `order.syncLines` |
-| pos/order | deductStockForOrder | `order.deductStock` |
-| inventory/stock | recordMovement | `stock.recordMovement` |
-| inventory/receiving | handleConfirm | `receiving.confirm` |
-| inventory/transfer | handleShip | `transfer.ship` |
-| inventory/transfer | handleReceive | `transfer.receive` |
-| production | handleOrderConfirm | `production.confirm` |
+| Module              | Method              | Span                   |
+| ------------------- | ------------------- | ---------------------- |
+| auth                | handleLogin         | `auth.login`           |
+| pos/order           | handleComplete      | `order.complete`       |
+| pos/order           | handleSyncLines     | `order.syncLines`      |
+| pos/order           | deductStockForOrder | `order.deductStock`    |
+| inventory/stock     | recordMovement      | `stock.recordMovement` |
+| inventory/receiving | handleConfirm       | `receiving.confirm`    |
+| inventory/transfer  | handleShip          | `transfer.ship`        |
+| inventory/transfer  | handleReceive       | `transfer.receive`     |
+| production          | handleOrderConfirm  | `production.confirm`   |
 
 ### Environment Behavior
 
-| Env | Behavior |
-|-----|----------|
-| development | OTel active, exports to Axiom if env vars present |
-| test | `otelPlugin = undefined`, `record()` callable but no-op |
-| production | OTel active, exports to Axiom, BatchSpanProcessor |
+| Env         | Behavior                                                |
+| ----------- | ------------------------------------------------------- |
+| development | OTel active, exports to Axiom if env vars present       |
+| test        | `otelPlugin = undefined`, `record()` callable but no-op |
+| production  | OTel active, exports to Axiom, BatchSpanProcessor       |
 
 ---
 
@@ -108,26 +108,26 @@ logger.error('Audit log write failed', { error: err.message, entity, entityId })
 
 ### Log Levels
 
-| Level | When | Prod visible |
-|-------|------|-------------|
+| Level | When                                              | Prod visible  |
+| ----- | ------------------------------------------------- | ------------- |
 | debug | Dev-only intermediate state, DB result inspection | No (filtered) |
-| info | Business events: created, completed, shipped | Yes |
-| warn | Recoverable degraded paths: no recipe, low stock | Yes |
-| error | Failures needing human attention: write failures | Yes |
+| info  | Business events: created, completed, shipped      | Yes           |
+| warn  | Recoverable degraded paths: no recipe, low stock  | Yes           |
+| error | Failures needing human attention: write failures  | Yes           |
 
 ### Logger Categories
 
 Hierarchical, filterable. Always prefix with module path:
 
 ```ts
-getLogger(['server'])             // startup, shutdown
-getLogger(['otel'])               // OTel init
-getLogger(['auth'])               // login, logout, session
-getLogger(['pos', 'order'])       // order lifecycle
-getLogger(['pos', 'deduction'])   // stock deduction
+getLogger(['server']) // startup, shutdown
+getLogger(['otel']) // OTel init
+getLogger(['auth']) // login, logout, session
+getLogger(['pos', 'order']) // order lifecycle
+getLogger(['pos', 'deduction']) // stock deduction
 getLogger(['inventory', 'stock']) // movements
 getLogger(['inventory', 'receiving']) // goods receipt
-getLogger(['audit'])              // audit write failures
+getLogger(['audit']) // audit write failures
 ```
 
 ### Request Context
@@ -143,6 +143,7 @@ import { withLogContext } from '@/infra/logger/request-context.ts'
 ```
 
 Every log inside that handler (and all nested service calls) automatically gets:
+
 - `requestId` — unique per request
 - `userId` — from auth context
 - `locationId` — from auth context
@@ -164,11 +165,11 @@ Don't add these manually to log properties.
 
 ### Environment Behavior
 
-| Env | Sink | Level |
-|-----|------|-------|
+| Env         | Sink                         | Level  |
+| ----------- | ---------------------------- | ------ |
 | development | `@logtape/pretty` (terminal) | debug+ |
-| test | None (silent) | — |
-| production | `@logtape/otel` → Axiom | info+ |
+| test        | None (silent)                | —      |
+| production  | `@logtape/otel` → Axiom      | info+  |
 
 ---
 

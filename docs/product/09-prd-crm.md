@@ -6,19 +6,19 @@ Specifications for Customer management, Loyalty program, and Promotions.
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| code | string | Auto-generated |
-| name | string | Customer name |
-| phone | string | Phone (primary identifier at POS) |
-| email | string? | Email |
-| birthDate | date? | For birthday promos |
-| tier | enum | `regular`, `silver`, `gold`, `platinum` |
-| totalPoints | integer | Lifetime points earned |
-| currentPoints | integer | Available redeemable balance |
-| registeredAt | timestamp | Registration date |
-| lastVisitAt | timestamp? | Last purchase date |
-| notes | string? | Internal notes |
+| Field         | Type       | Description                             |
+| ------------- | ---------- | --------------------------------------- |
+| code          | string     | Auto-generated                          |
+| name          | string     | Customer name                           |
+| phone         | string     | Phone (primary identifier at POS)       |
+| email         | string?    | Email                                   |
+| birthDate     | date?      | For birthday promos                     |
+| tier          | enum       | `regular`, `silver`, `gold`, `platinum` |
+| totalPoints   | integer    | Lifetime points earned                  |
+| currentPoints | integer    | Available redeemable balance            |
+| registeredAt  | timestamp  | Registration date                       |
+| lastVisitAt   | timestamp? | Last purchase date                      |
+| notes         | string?    | Internal notes                          |
 
 ### Business Rules
 
@@ -31,12 +31,12 @@ Specifications for Customer management, Loyalty program, and Promotions.
 
 ### Tier Thresholds
 
-| Tier | Lifetime Points | Benefits |
-|------|----------------|----------|
-| regular | 0+ | Earn points |
-| silver | 500+ | 1.2× earn multiplier |
-| gold | 2000+ | 1.5× earn multiplier, birthday reward |
-| platinum | 5000+ | 2× earn multiplier, birthday reward, priority |
+| Tier     | Lifetime Points | Benefits                                      |
+| -------- | --------------- | --------------------------------------------- |
+| regular  | 0+              | Earn points                                   |
+| silver   | 500+            | 1.2× earn multiplier                          |
+| gold     | 2000+           | 1.5× earn multiplier, birthday reward         |
+| platinum | 5000+           | 2× earn multiplier, birthday reward, priority |
 
 Thresholds are configurable.
 
@@ -52,12 +52,12 @@ points = floor(order_total / earn_ratio) × tier_multiplier
 
 ### Redemption
 
-| Field | Type | Description |
-|-------|------|-------------|
-| customerId | FK | Customer |
-| orderId | FK? | Applied to which order |
-| pointsUsed | integer | Points redeemed |
-| discountValue | decimal | Rupiah equivalent |
+| Field         | Type    | Description            |
+| ------------- | ------- | ---------------------- |
+| customerId    | FK      | Customer               |
+| orderId       | FK?     | Applied to which order |
+| pointsUsed    | integer | Points redeemed        |
+| discountValue | decimal | Rupiah equivalent      |
 
 ### Redemption Rules
 
@@ -68,13 +68,13 @@ points = floor(order_total / earn_ratio) × tier_multiplier
 
 ### Points Transaction Log
 
-| Field | Type | Description |
-|-------|------|-------------|
-| customerId | FK | Customer |
-| orderId | FK? | Related order |
-| type | enum | `earn`, `redeem`, `expire`, `adjust` |
-| points | integer | Positive for earn, negative for redeem |
-| description | string | What happened |
+| Field       | Type    | Description                            |
+| ----------- | ------- | -------------------------------------- |
+| customerId  | FK      | Customer                               |
+| orderId     | FK?     | Related order                          |
+| type        | enum    | `earn`, `redeem`, `expire`, `adjust`   |
+| points      | integer | Positive for earn, negative for redeem |
+| description | string  | What happened                          |
 
 Append-only log — full history of points movement.
 
@@ -82,17 +82,17 @@ Append-only log — full history of points movement.
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| name | string | Promo name |
-| description | string? | Details |
-| type | enum | `discount_percentage`, `discount_fixed`, `bonus_points`, `free_item` |
-| value | decimal | Discount amount or multiplier |
-| targetTier | enum? | Target tier (null = all) |
-| locationId | FK? | Specific location (null = all) |
-| validFrom | date | Start |
-| validUntil | date | End |
-| isActive | boolean | Toggle |
+| Field       | Type    | Description                                                          |
+| ----------- | ------- | -------------------------------------------------------------------- |
+| name        | string  | Promo name                                                           |
+| description | string? | Details                                                              |
+| type        | enum    | `discount_percentage`, `discount_fixed`, `bonus_points`, `free_item` |
+| value       | decimal | Discount amount or multiplier                                        |
+| targetTier  | enum?   | Target tier (null = all)                                             |
+| locationId  | FK?     | Specific location (null = all)                                       |
+| validFrom   | date    | Start                                                                |
+| validUntil  | date    | End                                                                  |
+| isActive    | boolean | Toggle                                                               |
 
 ### Business Rules
 

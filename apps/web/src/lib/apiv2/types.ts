@@ -1,4 +1,5 @@
 import type { DataTag } from '@tanstack/react-query'
+
 import type { z, ZodType } from 'zod'
 
 /** HTTP verbs supported by the endpoint factory. */
@@ -48,7 +49,10 @@ export type Output<T extends MaybeSchema> = T extends ZodType ? z.output<T> : un
  * `{ query }` / `{ body }`) is the common case and reads better at call
  * sites: `endpoint.fetch({ page: 1 })` instead of `endpoint.fetch({ query: { page: 1 } })`.
  */
-export type Args<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined> = TQuery extends ZodType
+export type Args<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+> = TQuery extends ZodType
 	? TBody extends ZodType
 		? { query: Input<TQuery>; body: Input<TBody> }
 		: Input<TQuery>

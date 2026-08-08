@@ -10,27 +10,27 @@ Sellable products — what customers order at POS. Each location (store) has its
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| locationId | FK | Which store this item belongs to |
-| sku | string | Unique within the location |
-| name | string | Item name (e.g. "Iced Latte", "Nasi Goreng") |
-| description | string? | Optional description |
-| categoryId | FK? | Menu category |
-| basePrice | decimal | Default selling price |
-| status | enum | `active`, `inactive` |
-| imageUrl | string? | Product image |
+| Field       | Type    | Description                                  |
+| ----------- | ------- | -------------------------------------------- |
+| locationId  | FK      | Which store this item belongs to             |
+| sku         | string  | Unique within the location                   |
+| name        | string  | Item name (e.g. "Iced Latte", "Nasi Goreng") |
+| description | string? | Optional description                         |
+| categoryId  | FK?     | Menu category                                |
+| basePrice   | decimal | Default selling price                        |
+| status      | enum    | `active`, `inactive`                         |
+| imageUrl    | string? | Product image                                |
 
 ### Menu Category
 
 Hierarchical per-location: Beverages > Coffee > Espresso-based.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| locationId | FK | Belongs to which store |
-| name | string | Category name |
-| parentId | FK? | Parent category (null for root) |
-| sortOrder | integer | Display order |
+| Field      | Type    | Description                     |
+| ---------- | ------- | ------------------------------- |
+| locationId | FK      | Belongs to which store          |
+| name       | string  | Category name                   |
+| parentId   | FK?     | Parent category (null for root) |
+| sortOrder  | integer | Display order                   |
 
 ### Business Rules
 
@@ -47,35 +47,35 @@ Define customization options for menu items: sizes, sugar levels, toppings, temp
 
 ### Modifier Group Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| locationId | FK | Which store |
-| name | string | Group name (e.g. "Size", "Sugar Level", "Topping") |
-| selectionType | enum | `single` (pick one), `multiple` (pick many) |
-| isRequired | boolean | Must select at least one option? |
-| minSelect | integer | Minimum selections (for multiple) |
-| maxSelect | integer? | Maximum selections (null = unlimited) |
+| Field         | Type     | Description                                        |
+| ------------- | -------- | -------------------------------------------------- |
+| locationId    | FK       | Which store                                        |
+| name          | string   | Group name (e.g. "Size", "Sugar Level", "Topping") |
+| selectionType | enum     | `single` (pick one), `multiple` (pick many)        |
+| isRequired    | boolean  | Must select at least one option?                   |
+| minSelect     | integer  | Minimum selections (for multiple)                  |
+| maxSelect     | integer? | Maximum selections (null = unlimited)              |
 
 ### Modifier Option Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| groupId | FK | Parent modifier group |
-| name | string | Option name (e.g. "Regular", "Large", "Extra Shot") |
-| priceAdjustment | decimal | Price change (+5000, 0, -2000) |
-| isDefault | boolean | Pre-selected option |
-| sortOrder | integer | Display order |
-| isActive | boolean | Available toggle |
+| Field           | Type    | Description                                         |
+| --------------- | ------- | --------------------------------------------------- |
+| groupId         | FK      | Parent modifier group                               |
+| name            | string  | Option name (e.g. "Regular", "Large", "Extra Shot") |
+| priceAdjustment | decimal | Price change (+5000, 0, -2000)                      |
+| isDefault       | boolean | Pre-selected option                                 |
+| sortOrder       | integer | Display order                                       |
+| isActive        | boolean | Available toggle                                    |
 
 ### Menu Item ↔ Modifier Group (Many-to-Many)
 
 A menu item can have multiple modifier groups. A modifier group can be shared across menu items within the same location.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| menuItemId | FK | Menu item |
-| modifierGroupId | FK | Modifier group |
-| sortOrder | integer | Display order of this group on the item |
+| Field           | Type    | Description                             |
+| --------------- | ------- | --------------------------------------- |
+| menuItemId      | FK      | Menu item                               |
+| modifierGroupId | FK      | Modifier group                          |
+| sortOrder       | integer | Display order of this group on the item |
 
 ### Example
 
@@ -114,21 +114,21 @@ Define which materials (and quantities) produce one menu item. Enables auto-dedu
 
 ### Recipe Header
 
-| Field | Type | Description |
-|-------|------|-------------|
-| menuItemId | FK | Output menu item |
-| name | string | Recipe name (e.g. "Iced Latte - Standard") |
-| yieldQty | decimal | Units produced per batch (usually 1) |
-| isActive | boolean | Active toggle |
+| Field      | Type    | Description                                |
+| ---------- | ------- | ------------------------------------------ |
+| menuItemId | FK      | Output menu item                           |
+| name       | string  | Recipe name (e.g. "Iced Latte - Standard") |
+| yieldQty   | decimal | Units produced per batch (usually 1)       |
+| isActive   | boolean | Active toggle                              |
 
 ### Recipe Line (Ingredient)
 
-| Field | Type | Description |
-|-------|------|-------------|
-| recipeId | FK | Parent recipe |
-| materialId | FK | Material consumed (global catalog) |
-| quantity | decimal | Amount per batch |
-| uomId | FK | Unit of the quantity (usually recipe UoM of the material) |
+| Field      | Type    | Description                                               |
+| ---------- | ------- | --------------------------------------------------------- |
+| recipeId   | FK      | Parent recipe                                             |
+| materialId | FK      | Material consumed (global catalog)                        |
+| quantity   | decimal | Amount per batch                                          |
+| uomId      | FK      | Unit of the quantity (usually recipe UoM of the material) |
 
 ### HPP Calculation
 
@@ -137,6 +137,7 @@ HPP per serving = Σ(line.quantity × material.costPrice × uom_conversion_facto
 ```
 
 Example:
+
 ```
 Iced Latte recipe:
   Espresso Beans: 18g × Rp 0.15/g = Rp 2.700

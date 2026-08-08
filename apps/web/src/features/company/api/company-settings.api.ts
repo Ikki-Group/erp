@@ -1,8 +1,7 @@
-import { createSuccessResponseSchema, zc } from '@/lib/validation'
-
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory, createQueryKeys } from '@/lib/api'
+import { createSuccessResponseSchema, zc } from '@/lib/validation'
 
 import { CompanySettingsDto, CompanySettingsCreateDto, CompanySettingsUpdateDto } from '../dto'
 

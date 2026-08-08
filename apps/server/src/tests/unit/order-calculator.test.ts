@@ -1,9 +1,6 @@
-import { describe, expect, test } from 'bun:test'
+import { calculateLineTotal, calculateOrderTotals } from '@/modules/pos/order/order.calculator.ts'
 
-import {
-	calculateLineTotal,
-	calculateOrderTotals,
-} from '@/modules/pos/order/order.calculator.ts'
+import { describe, expect, test } from 'bun:test'
 
 // ─── calculateLineTotal ───
 

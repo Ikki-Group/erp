@@ -2,11 +2,12 @@ import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
 
-import { z, zc } from '@/lib/validation'
 import { ArrowRightIcon, CheckCircle2Icon, CommandIcon, Loader2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useAppState } from '@/hooks/use-app-state'
+
+import { z, zc } from '@/lib/validation'
 
 import { useAppForm } from '@/components/form'
 

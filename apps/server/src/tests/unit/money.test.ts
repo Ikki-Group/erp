@@ -1,5 +1,3 @@
-import { describe, expect, test } from 'bun:test'
-
 import {
 	Decimal,
 	roundCost,
@@ -9,6 +7,8 @@ import {
 	toDecimal,
 	weightedAvgCost,
 } from '@/shared/utils/money.ts'
+
+import { describe, expect, test } from 'bun:test'
 
 // ─── toDecimal ───
 

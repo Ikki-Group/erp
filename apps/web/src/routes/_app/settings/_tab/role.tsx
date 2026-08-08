@@ -20,8 +20,8 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 
 import { roleApi } from '@/features/iam'
-import { RoleFormDialog } from '@/features/iam/components/role-form-dialog'
 import type { RoleDto } from '@/features/iam'
+import { RoleFormDialog } from '@/features/iam/components/role-form-dialog'
 
 export const Route = createFileRoute('/_app/settings/_tab/role')({
 	component: RouteComponent,

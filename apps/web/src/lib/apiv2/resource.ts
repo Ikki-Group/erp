@@ -1,11 +1,11 @@
-import type { KyInstance } from 'ky'
 import { z } from 'zod'
 
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
-import type { ZodType } from 'zod'
 
 import { defineMutation, defineQuery } from './endpoint'
 import type { HttpMethod, QueryKey } from './types'
+import type { KyInstance } from 'ky'
+import type { ZodType } from 'zod'
 
 type IdLike = string | number | boolean | null | undefined
 

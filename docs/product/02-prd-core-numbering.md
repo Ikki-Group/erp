@@ -8,23 +8,23 @@ Auto-generated document numbers for all transactional records. Daily reset, loca
 {PREFIX}-{LOCATION_CODE}-{YYYYMMDD}-{SEQ}
 ```
 
-| Part | Source | Example |
-|------|--------|---------|
-| PREFIX | Fixed per document type | `ORD`, `TRF`, `OPN` |
-| LOCATION_CODE | `locations.code` | `COFFEE`, `RESTO`, `WHA` |
-| YYYYMMDD | Date (local timezone) | `20260806` |
-| SEQ | Daily sequence, zero-padded 3 digits | `001`, `002`, `099` |
+| Part          | Source                               | Example                  |
+| ------------- | ------------------------------------ | ------------------------ |
+| PREFIX        | Fixed per document type              | `ORD`, `TRF`, `OPN`      |
+| LOCATION_CODE | `locations.code`                     | `COFFEE`, `RESTO`, `WHA` |
+| YYYYMMDD      | Date (local timezone)                | `20260806`               |
+| SEQ           | Daily sequence, zero-padded 3 digits | `001`, `002`, `099`      |
 
 ## Document Types
 
-| Document | Prefix | Example |
-|----------|--------|---------|
-| Order | `ORD` | `ORD-COFFEE-20260806-001` |
-| Transfer Request | `TRF` | `TRF-WHA-20260806-003` |
-| Stock Opname | `OPN` | `OPN-RESTO-20260806-001` |
-| Journal Entry | `JRN` | `JRN-COFFEE-20260806-012` |
-| Payroll Run | `PAY` | `PAY-COFFEE-202608-001` |
-| Receiving | `RCV` | `RCV-WHA-20260806-002` |
+| Document         | Prefix | Example                   |
+| ---------------- | ------ | ------------------------- |
+| Order            | `ORD`  | `ORD-COFFEE-20260806-001` |
+| Transfer Request | `TRF`  | `TRF-WHA-20260806-003`    |
+| Stock Opname     | `OPN`  | `OPN-RESTO-20260806-001`  |
+| Journal Entry    | `JRN`  | `JRN-COFFEE-20260806-012` |
+| Payroll Run      | `PAY`  | `PAY-COFFEE-202608-001`   |
+| Receiving        | `RCV`  | `RCV-WHA-20260806-002`    |
 
 ## Rules
 

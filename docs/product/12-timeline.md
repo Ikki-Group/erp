@@ -4,11 +4,11 @@ Phased delivery plan for Ikki ERP.
 
 ## Phase Overview
 
-| Phase | Name | Core Deliverable |
-|-------|------|------------------|
-| 1 | Foundation & Daily Ops | POS + Inventory + Recipe auto-deduct |
-| 2 | People & Money | Finance (full accounting) + HR (payroll) |
-| 3 | Growth | CRM/Loyalty + Moka import + Advanced reporting |
+| Phase | Name                   | Core Deliverable                               |
+| ----- | ---------------------- | ---------------------------------------------- |
+| 1     | Foundation & Daily Ops | POS + Inventory + Recipe auto-deduct           |
+| 2     | People & Money         | Finance (full accounting) + HR (payroll)       |
+| 3     | Growth                 | CRM/Loyalty + Moka import + Advanced reporting |
 
 ## Phase 1 — Foundation & Daily Ops
 
@@ -16,13 +16,13 @@ Phased delivery plan for Ikki ERP.
 
 ### Modules
 
-| Module | Scope |
-|--------|-------|
-| Core | Location (store/warehouse), IAM, Auth, Company Settings |
-| Master Data | Materials (global), UoM (chain), Suppliers |
-| Menu | Menu Items (per-location), Categories, Modifier Groups, Recipes |
-| Inventory | Stock Balance, Stock Movements, Transfer Requests, Receiving, Stock Opname |
-| POS | Orders (open/close bill), Table management, Payments, Cashier Shifts, Void |
+| Module      | Scope                                                                      |
+| ----------- | -------------------------------------------------------------------------- |
+| Core        | Location (store/warehouse), IAM, Auth, Company Settings                    |
+| Master Data | Materials (global), UoM (chain), Suppliers                                 |
+| Menu        | Menu Items (per-location), Categories, Modifier Groups, Recipes            |
+| Inventory   | Stock Balance, Stock Movements, Transfer Requests, Receiving, Stock Opname |
+| POS         | Orders (open/close bill), Table management, Payments, Cashier Shifts, Void |
 
 ### Key Capabilities After Phase 1
 
@@ -45,11 +45,11 @@ Phased delivery plan for Ikki ERP.
 
 ### Modules
 
-| Module | Scope |
-|--------|-------|
-| Finance | Chart of Accounts, Journal Entries (auto + manual), AP, Fiscal Periods, P&L, Balance Sheet |
-| HR | Employees, Shift Templates, Shift Assignments, Attendance, Payroll, Leave |
-| Expenses | Operational expense recording (rent, utilities, etc.) |
+| Module   | Scope                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------ |
+| Finance  | Chart of Accounts, Journal Entries (auto + manual), AP, Fiscal Periods, P&L, Balance Sheet |
+| HR       | Employees, Shift Templates, Shift Assignments, Attendance, Payroll, Leave                  |
+| Expenses | Operational expense recording (rent, utilities, etc.)                                      |
 
 ### Key Capabilities After Phase 2
 
@@ -70,11 +70,11 @@ Phased delivery plan for Ikki ERP.
 
 ### Modules
 
-| Module | Scope |
-|--------|-------|
-| CRM | Customer profiles, Loyalty (points, tiers, redemption), Promotions |
-| Integration | Moka import (sales + master data mapping) |
-| Reporting | Dashboard v2, Sales analytics, Margin analysis, Stock reports |
+| Module      | Scope                                                              |
+| ----------- | ------------------------------------------------------------------ |
+| CRM         | Customer profiles, Loyalty (points, tiers, redemption), Promotions |
+| Integration | Moka import (sales + master data mapping)                          |
+| Reporting   | Dashboard v2, Sales analytics, Margin analysis, Stock reports      |
 
 ### Key Capabilities After Phase 3
 
@@ -98,12 +98,12 @@ Phased delivery plan for Ikki ERP.
 
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| UoM chain complexity | Validate all conversion paths at material creation |
-| Modifier + recipe complexity | Backlog modifier→recipe for Phase 1, base recipe only |
-| Finance module scope | Auto-journals first, manual entries and reports follow |
-| Moka API reliability | CSV fallback for import |
+| Risk                         | Mitigation                                             |
+| ---------------------------- | ------------------------------------------------------ |
+| UoM chain complexity         | Validate all conversion paths at material creation     |
+| Modifier + recipe complexity | Backlog modifier→recipe for Phase 1, base recipe only  |
+| Finance module scope         | Auto-journals first, manual entries and reports follow |
+| Moka API reliability         | CSV fallback for import                                |
 
 ---
 

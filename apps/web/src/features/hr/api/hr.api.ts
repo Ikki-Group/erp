@@ -1,13 +1,12 @@
+import { endpoint } from '@/config/endpoint'
+
+import { apiFactory } from '@/lib/api'
 import {
 	zc,
 	zq,
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 } from '@/lib/validation'
-
-import { endpoint } from '@/config/endpoint'
-
-import { apiFactory } from '@/lib/api'
 
 import {
 	AttendanceDto,

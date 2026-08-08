@@ -1,12 +1,7 @@
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@/lib/validation'
-
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
 
 import {
 	CustomerDto,

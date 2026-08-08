@@ -1,5 +1,4 @@
 import type { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query'
-import type { z, ZodType } from 'zod'
 
 import { queryClient } from '@/lib/tanstack-query'
 
@@ -7,13 +6,18 @@ import type { ApiClient } from './client'
 import { requestJson } from './http'
 import type { Args, HttpMethod, Input, MaybeSchema, QueryKey, TaggedQueryKey } from './types'
 import { parseOrThrow } from './validate'
+import type { z, ZodType } from 'zod'
 
 /* -------------------------------------------------------------------------- */
 /*  Shared plumbing                                                            */
 /* -------------------------------------------------------------------------- */
 
 /** Splits the public bare-or-wrapped `Args` shape back into `{ query, body }` for the wire. */
-function splitArgs(args: unknown, hasQuery: boolean, hasBody: boolean): { query?: unknown; body?: unknown } {
+function splitArgs(
+	args: unknown,
+	hasQuery: boolean,
+	hasBody: boolean,
+): { query?: unknown; body?: unknown } {
 	if (hasQuery && hasBody) {
 		const wrapped = (args ?? {}) as { query?: unknown; body?: unknown }
 		return { query: wrapped.query, body: wrapped.body }
@@ -23,7 +27,11 @@ function splitArgs(args: unknown, hasQuery: boolean, hasBody: boolean): { query?
 	return {}
 }
 
-interface BaseEndpointConfig<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType> {
+interface BaseEndpointConfig<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+> {
 	method: HttpMethod
 	/**
 	 * Sourced from the centralized `@/config/endpoint` registry (generated
@@ -53,9 +61,11 @@ interface BaseEndpointConfig<TQuery extends MaybeSchema = undefined, TBody exten
  * `createQueryEndpoint` and `createMutationEndpoint` differ *only* in their
  * React Query wiring, not in how the network call happens.
  */
-function createCoreFetch<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>(
-	config: BaseEndpointConfig<TQuery, TBody, TResult>,
-) {
+function createCoreFetch<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+>(config: BaseEndpointConfig<TQuery, TBody, TResult>) {
 	const hasQuery = config.query !== undefined
 	const hasBody = config.body !== undefined
 
@@ -84,8 +94,11 @@ function createCoreFetch<TQuery extends MaybeSchema = undefined, TBody extends M
 /*  Query endpoints                                                            */
 /* -------------------------------------------------------------------------- */
 
-export interface QueryEndpointConfig<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>
-	extends BaseEndpointConfig<TQuery, TBody, TResult> {
+export interface QueryEndpointConfig<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+> extends BaseEndpointConfig<TQuery, TBody, TResult> {
 	type: 'query'
 	/** Builds the React Query key from the call args. Defaults to `[url, args ?? null]`. */
 	queryKey?: (args: Args<TQuery, TBody>) => QueryKey
@@ -96,7 +109,11 @@ type QueryOptionsOverrides<TResult extends ZodType = ZodType> = Omit<
 	'queryKey' | 'queryFn'
 >
 
-export interface QueryEndpoint<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType> {
+export interface QueryEndpoint<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+> {
 	type: 'query'
 	method: HttpMethod
 	fetch: (args: Args<TQuery, TBody>, signal?: AbortSignal) => Promise<z.output<TResult>>
@@ -114,11 +131,14 @@ export interface QueryEndpoint<TQuery extends MaybeSchema = undefined, TBody ext
 	) => UseQueryOptions<z.output<TResult>, Error, z.output<TResult>, QueryKey>
 }
 
-function createQueryEndpoint<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>(
-	config: QueryEndpointConfig<TQuery, TBody, TResult>,
-): QueryEndpoint<TQuery, TBody, TResult> {
+function createQueryEndpoint<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+>(config: QueryEndpointConfig<TQuery, TBody, TResult>): QueryEndpoint<TQuery, TBody, TResult> {
 	const coreFetch = createCoreFetch(config)
-	const buildKey = (config.queryKey ?? ((args: Args<TQuery, TBody>) => [config.url, args ?? null])) as (
+	const buildKey = (config.queryKey ??
+		((args: Args<TQuery, TBody>) => [config.url, args ?? null])) as (
 		args: Args<TQuery, TBody>,
 	) => TaggedQueryKey<z.output<TResult>>
 
@@ -145,19 +165,27 @@ export type InvalidateTarget<TArgs, TResult> =
 	| QueryKey
 	| ((args: TArgs, result: TResult) => string | QueryKey)
 
-export interface MutationEndpointConfig<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>
-	extends BaseEndpointConfig<TQuery, TBody, TResult> {
+export interface MutationEndpointConfig<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+> extends BaseEndpointConfig<TQuery, TBody, TResult> {
 	type: 'mutation'
 	/** Query keys to invalidate after a successful mutation. */
 	invalidates?: ReadonlyArray<InvalidateTarget<Args<TQuery, TBody>, z.output<TResult>>>
 }
 
-type MutationOptionsOverrides<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType> = Omit<
-	UseMutationOptions<z.output<TResult>, Error, Args<TQuery, TBody>>,
-	'mutationFn'
->
+type MutationOptionsOverrides<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+> = Omit<UseMutationOptions<z.output<TResult>, Error, Args<TQuery, TBody>>, 'mutationFn'>
 
-export interface MutationEndpoint<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType> {
+export interface MutationEndpoint<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+> {
 	type: 'mutation'
 	method: HttpMethod
 	fetch: (args: Args<TQuery, TBody>, signal?: AbortSignal) => Promise<z.output<TResult>>
@@ -171,12 +199,19 @@ function toQueryKey(target: string | QueryKey): QueryKey {
 	return typeof target === 'string' ? [target] : target
 }
 
-function createMutationEndpoint<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>(
+function createMutationEndpoint<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+>(
 	config: MutationEndpointConfig<TQuery, TBody, TResult>,
 ): MutationEndpoint<TQuery, TBody, TResult> {
 	const coreFetch = createCoreFetch(config)
 
-	const fetchImpl = async (args: Args<TQuery, TBody>, signal?: AbortSignal): Promise<z.output<TResult>> => {
+	const fetchImpl = async (
+		args: Args<TQuery, TBody>,
+		signal?: AbortSignal,
+	): Promise<z.output<TResult>> => {
 		const result = await coreFetch(args, signal)
 
 		if (config.invalidates?.length) {
@@ -218,27 +253,45 @@ function createMutationEndpoint<TQuery extends MaybeSchema = undefined, TBody ex
  * case — use `defineEndpoint` directly only when `type` needs to be
  * decided dynamically.
  */
-export function defineEndpoint<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>(
-	config: QueryEndpointConfig<TQuery, TBody, TResult>,
-): QueryEndpoint<TQuery, TBody, TResult>
-export function defineEndpoint<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>(
-	config: MutationEndpointConfig<TQuery, TBody, TResult>,
-): MutationEndpoint<TQuery, TBody, TResult>
-export function defineEndpoint<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>(
-	config: QueryEndpointConfig<TQuery, TBody, TResult> | MutationEndpointConfig<TQuery, TBody, TResult>,
+export function defineEndpoint<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+>(config: QueryEndpointConfig<TQuery, TBody, TResult>): QueryEndpoint<TQuery, TBody, TResult>
+export function defineEndpoint<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+>(config: MutationEndpointConfig<TQuery, TBody, TResult>): MutationEndpoint<TQuery, TBody, TResult>
+export function defineEndpoint<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+>(
+	config:
+		| QueryEndpointConfig<TQuery, TBody, TResult>
+		| MutationEndpointConfig<TQuery, TBody, TResult>,
 ): QueryEndpoint<TQuery, TBody, TResult> | MutationEndpoint<TQuery, TBody, TResult> {
 	return config.type === 'query' ? createQueryEndpoint(config) : createMutationEndpoint(config)
 }
 
 /** Sugar for `defineEndpoint({ ...config, type: 'query' })` — the common case. */
-export function defineQuery<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>(
+export function defineQuery<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+>(
 	config: Omit<QueryEndpointConfig<TQuery, TBody, TResult>, 'type'>,
 ): QueryEndpoint<TQuery, TBody, TResult> {
 	return createQueryEndpoint({ ...config, type: 'query' })
 }
 
 /** Sugar for `defineEndpoint({ ...config, type: 'mutation' })` — the common case. */
-export function defineMutation<TQuery extends MaybeSchema = undefined, TBody extends MaybeSchema = undefined, TResult extends ZodType = ZodType>(
+export function defineMutation<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+	TResult extends ZodType = ZodType,
+>(
 	config: Omit<MutationEndpointConfig<TQuery, TBody, TResult>, 'type'>,
 ): MutationEndpoint<TQuery, TBody, TResult> {
 	return createMutationEndpoint({ ...config, type: 'mutation' })

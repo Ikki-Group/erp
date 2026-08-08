@@ -19,50 +19,50 @@ A customer's order at a location. Can be linked to a table (dine-in) or standalo
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| orderNo | string | Auto-generated order number |
-| locationId | FK | Which store |
-| tableId | FK? | Linked table (null for takeaway/counter) |
-| shiftId | FK | Cashier shift this order belongs to |
-| type | enum | `dine_in`, `takeaway` |
-| billingMode | enum | `open`, `closed` |
-| status | enum | `open`, `completed`, `voided` |
-| subtotal | decimal | Sum of line totals |
-| discountAmount | decimal | Order-level discount |
-| taxAmount | decimal | Tax |
-| total | decimal | Final amount |
-| customerId | FK? | Linked customer (for loyalty) |
-| source | enum | `internal`, `moka`, `manual` |
-| externalRef | string? | External system reference (dedup) |
-| notes | string? | Order notes |
-| orderedAt | timestamp | When first created |
-| completedAt | timestamp? | When payment finalized |
+| Field          | Type       | Description                              |
+| -------------- | ---------- | ---------------------------------------- |
+| orderNo        | string     | Auto-generated order number              |
+| locationId     | FK         | Which store                              |
+| tableId        | FK?        | Linked table (null for takeaway/counter) |
+| shiftId        | FK         | Cashier shift this order belongs to      |
+| type           | enum       | `dine_in`, `takeaway`                    |
+| billingMode    | enum       | `open`, `closed`                         |
+| status         | enum       | `open`, `completed`, `voided`            |
+| subtotal       | decimal    | Sum of line totals                       |
+| discountAmount | decimal    | Order-level discount                     |
+| taxAmount      | decimal    | Tax                                      |
+| total          | decimal    | Final amount                             |
+| customerId     | FK?        | Linked customer (for loyalty)            |
+| source         | enum       | `internal`, `moka`, `manual`             |
+| externalRef    | string?    | External system reference (dedup)        |
+| notes          | string?    | Order notes                              |
+| orderedAt      | timestamp  | When first created                       |
+| completedAt    | timestamp? | When payment finalized                   |
 
 ### Order Line
 
-| Field | Type | Description |
-|-------|------|-------------|
-| orderId | FK | Parent order |
-| menuItemId | FK | Menu item ordered |
-| menuItemName | string | Snapshot of item name |
-| quantity | decimal | Qty ordered |
-| unitPrice | decimal | Base price at time of order |
-| modifiers | jsonb | Selected modifiers with price adjustments |
-| modifierTotal | decimal | Sum of modifier price adjustments |
-| discountAmount | decimal | Line-level discount |
-| lineTotal | decimal | (qty × (unitPrice + modifierTotal)) - discount |
-| status | enum | `active`, `voided` |
-| notes | string? | Special instructions |
-| voidedBy | FK? | Who voided this line |
-| voidedAt | timestamp? | When voided |
+| Field          | Type       | Description                                    |
+| -------------- | ---------- | ---------------------------------------------- |
+| orderId        | FK         | Parent order                                   |
+| menuItemId     | FK         | Menu item ordered                              |
+| menuItemName   | string     | Snapshot of item name                          |
+| quantity       | decimal    | Qty ordered                                    |
+| unitPrice      | decimal    | Base price at time of order                    |
+| modifiers      | jsonb      | Selected modifiers with price adjustments      |
+| modifierTotal  | decimal    | Sum of modifier price adjustments              |
+| discountAmount | decimal    | Line-level discount                            |
+| lineTotal      | decimal    | (qty × (unitPrice + modifierTotal)) - discount |
+| status         | enum       | `active`, `voided`                             |
+| notes          | string?    | Special instructions                           |
+| voidedBy       | FK?        | Who voided this line                           |
+| voidedAt       | timestamp? | When voided                                    |
 
 ### Order Line Modifier (stored in jsonb)
 
 ```json
 [
-  { "groupName": "Size", "optionName": "Large", "priceAdjustment": 5000 },
-  { "groupName": "Sugar", "optionName": "Less", "priceAdjustment": 0 }
+	{ "groupName": "Size", "optionName": "Large", "priceAdjustment": 5000 },
+	{ "groupName": "Sugar", "optionName": "Less", "priceAdjustment": 0 }
 ]
 ```
 
@@ -83,13 +83,13 @@ Track dine-in tables/seats at store locations.
 
 ### Table Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| locationId | FK | Which store |
-| number | string | Table identifier ("1", "2", "A1", "Outdoor-3") |
-| capacity | integer? | Seats |
-| status | enum | `available`, `occupied`, `reserved` |
-| isActive | boolean | Table exists/removed |
+| Field      | Type     | Description                                    |
+| ---------- | -------- | ---------------------------------------------- |
+| locationId | FK       | Which store                                    |
+| number     | string   | Table identifier ("1", "2", "A1", "Outdoor-3") |
+| capacity   | integer? | Seats                                          |
+| status     | enum     | `available`, `occupied`, `reserved`            |
+| isActive   | boolean  | Table exists/removed                           |
 
 ### Business Rules
 
@@ -154,31 +154,31 @@ Alternative: split by items (Person A pays items 1-3, Person B pays items 4-5). 
 
 ### Payment Method
 
-| Field | Type | Description |
-|-------|------|-------------|
-| code | string | Unique (CASH, QRIS, DEBIT, CREDIT, GOPAY, OVO, etc.) |
-| name | string | Display name |
-| type | enum | `cash`, `digital` |
-| isActive | boolean | Available for use |
+| Field    | Type    | Description                                          |
+| -------- | ------- | ---------------------------------------------------- |
+| code     | string  | Unique (CASH, QRIS, DEBIT, CREDIT, GOPAY, OVO, etc.) |
+| name     | string  | Display name                                         |
+| type     | enum    | `cash`, `digital`                                    |
+| isActive | boolean | Available for use                                    |
 
 Payment methods are **configurable per location** — each store can enable/disable different methods.
 
 ### Payment Method Assignment
 
-| Field | Type | Description |
-|-------|------|-------------|
-| paymentMethodId | FK | Method |
-| locationId | FK | Location |
-| isEnabled | boolean | Active at this location |
+| Field           | Type    | Description             |
+| --------------- | ------- | ----------------------- |
+| paymentMethodId | FK      | Method                  |
+| locationId      | FK      | Location                |
+| isEnabled       | boolean | Active at this location |
 
 ### Payment Record
 
-| Field | Type | Description |
-|-------|------|-------------|
-| orderId | FK | Linked order |
-| paymentMethodId | FK | How they paid |
-| amount | decimal | Amount paid |
-| reference | string? | Approval code, transfer ref |
+| Field           | Type    | Description                 |
+| --------------- | ------- | --------------------------- |
+| orderId         | FK      | Linked order                |
+| paymentMethodId | FK      | How they paid               |
+| amount          | decimal | Amount paid                 |
+| reference       | string? | Approval code, transfer ref |
 
 ### Business Rules
 
@@ -191,17 +191,17 @@ Payment methods are **configurable per location** — each store can enable/disa
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| locationId | FK | Store |
-| userId | FK | Cashier |
-| status | enum | `open`, `closed` |
-| openedAt | timestamp | Shift start |
-| closedAt | timestamp? | Shift end |
-| openingCash | decimal | Cash in drawer at open |
-| closingCash | decimal? | Actual cash at close |
-| expectedCash | decimal? | System-calculated expected |
-| notes | string? | Shift notes |
+| Field        | Type       | Description                |
+| ------------ | ---------- | -------------------------- |
+| locationId   | FK         | Store                      |
+| userId       | FK         | Cashier                    |
+| status       | enum       | `open`, `closed`           |
+| openedAt     | timestamp  | Shift start                |
+| closedAt     | timestamp? | Shift end                  |
+| openingCash  | decimal    | Cash in drawer at open     |
+| closingCash  | decimal?   | Actual cash at close       |
+| expectedCash | decimal?   | System-calculated expected |
+| notes        | string?    | Shift notes                |
 
 ### Business Rules
 
@@ -269,11 +269,11 @@ Moka data (API / CSV)
 
 ### Types
 
-| Type | Scope | Example |
-|------|-------|---------|
-| Percentage | Line or Order | 10% off item |
-| Fixed amount | Line or Order | Rp 5.000 off |
-| Voucher code | Order | Promo code "WEEKEND20" |
+| Type         | Scope         | Example                |
+| ------------ | ------------- | ---------------------- |
+| Percentage   | Line or Order | 10% off item           |
+| Fixed amount | Line or Order | Rp 5.000 off           |
+| Voucher code | Order         | Promo code "WEEKEND20" |
 
 ### Business Rules
 

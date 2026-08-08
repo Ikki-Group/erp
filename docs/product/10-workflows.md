@@ -121,80 +121,80 @@ End of day:
 
 ### Order
 
-| From | To | Trigger |
-|------|----|---------|
-| — | `open` | Order created |
-| `open` | `completed` | Payment recorded (total covered) |
-| `open` | `voided` | Full void (before payment) |
-| `completed` | `voided` | Full void (after payment, reversal) |
+| From        | To          | Trigger                             |
+| ----------- | ----------- | ----------------------------------- |
+| —           | `open`      | Order created                       |
+| `open`      | `completed` | Payment recorded (total covered)    |
+| `open`      | `voided`    | Full void (before payment)          |
+| `completed` | `voided`    | Full void (after payment, reversal) |
 
 ### Order Line
 
-| From | To | Trigger |
-|------|----|---------|
-| — | `active` | Line added |
+| From     | To       | Trigger      |
+| -------- | -------- | ------------ |
+| —        | `active` | Line added   |
 | `active` | `voided` | Partial void |
 
 ### Transfer Request
 
-| From | To | Trigger |
-|------|----|---------|
-| — | `requested` | Created |
-| `requested` | `in_transit` | Source confirms shipment |
-| `in_transit` | `received` | Destination confirms receipt |
-| `requested` | `cancelled` | Requester cancels |
+| From         | To           | Trigger                      |
+| ------------ | ------------ | ---------------------------- |
+| —            | `requested`  | Created                      |
+| `requested`  | `in_transit` | Source confirms shipment     |
+| `in_transit` | `received`   | Destination confirms receipt |
+| `requested`  | `cancelled`  | Requester cancels            |
 
 ### Stock Opname
 
-| From | To | Trigger |
-|------|----|---------|
-| — | `draft` | Created |
-| `draft` | `in_progress` | Counting starts |
-| `in_progress` | `completed` | Counts finalized |
-| `draft` | `cancelled` | Cancelled |
+| From          | To            | Trigger          |
+| ------------- | ------------- | ---------------- |
+| —             | `draft`       | Created          |
+| `draft`       | `in_progress` | Counting starts  |
+| `in_progress` | `completed`   | Counts finalized |
+| `draft`       | `cancelled`   | Cancelled        |
 
 ### Cashier Shift
 
-| From | To | Trigger |
-|------|----|---------|
-| — | `open` | Cashier opens |
+| From   | To       | Trigger                     |
+| ------ | -------- | --------------------------- |
+| —      | `open`   | Cashier opens               |
 | `open` | `closed` | Shift closed (cash counted) |
 
 ### Payroll Run
 
-| From | To | Trigger |
-|------|----|---------|
-| — | `draft` | Created |
-| `draft` | `calculated` | System computes |
-| `calculated` | `approved` | Owner approves |
-| `approved` | `paid` | Payment disbursed |
+| From         | To           | Trigger           |
+| ------------ | ------------ | ----------------- |
+| —            | `draft`      | Created           |
+| `draft`      | `calculated` | System computes   |
+| `calculated` | `approved`   | Owner approves    |
+| `approved`   | `paid`       | Payment disbursed |
 
 ### Journal Entry
 
-| From | To | Trigger |
-|------|----|---------|
-| — | `draft` | Created (manual) |
-| `draft` | `posted` | User posts |
+| From     | To       | Trigger                 |
+| -------- | -------- | ----------------------- |
+| —        | `draft`  | Created (manual)        |
+| `draft`  | `posted` | User posts              |
 | `posted` | `voided` | Reversing entry created |
 
 Auto-generated journals skip `draft` → created directly as `posted`.
 
 ### Leave Request
 
-| From | To | Trigger |
-|------|----|---------|
-| — | `pending` | Employee submits |
+| From      | To         | Trigger          |
+| --------- | ---------- | ---------------- |
+| —         | `pending`  | Employee submits |
 | `pending` | `approved` | Manager approves |
-| `pending` | `rejected` | Manager rejects |
+| `pending` | `rejected` | Manager rejects  |
 
 ### AP (Accounts Payable)
 
-| From | To | Trigger |
-|------|----|---------|
-| — | `unpaid` | Credit purchase received |
-| `unpaid` | `partial` | Partial payment made |
-| `partial` | `paid` | Remaining paid |
-| `unpaid` | `paid` | Full payment at once |
+| From      | To        | Trigger                  |
+| --------- | --------- | ------------------------ |
+| —         | `unpaid`  | Credit purchase received |
+| `unpaid`  | `partial` | Partial payment made     |
+| `partial` | `paid`    | Remaining paid           |
+| `unpaid`  | `paid`    | Full payment at once     |
 
 ---
 

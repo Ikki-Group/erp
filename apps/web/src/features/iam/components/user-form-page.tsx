@@ -4,11 +4,11 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
 
-import { z } from '@/lib/validation'
 import { PlusIcon, ShieldAlertIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { toastLabelMessage } from '@/lib/toast-message'
+import { z } from '@/lib/validation'
 
 import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useFormConfig, useTypedAppFormContext } from '@/components/form'
@@ -28,9 +28,9 @@ import {
 	TableRow,
 } from '@/components/ui/table'
 
-import { roleApi } from '..'
 import { locationApi } from '@/features/location'
 
+import { roleApi } from '..'
 import { userApi } from '..'
 import type { UserDetailDto } from '..'
 

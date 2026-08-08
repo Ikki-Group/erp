@@ -1,3 +1,6 @@
+import { endpoint } from '@/config/endpoint'
+
+import { apiFactory } from '@/lib/api'
 import {
 	z,
 	zc,
@@ -5,10 +8,6 @@ import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 } from '@/lib/validation'
-
-import { endpoint } from '@/config/endpoint'
-
-import { apiFactory } from '@/lib/api'
 
 import {
 	SalesOrderAddBatchDto,

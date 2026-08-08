@@ -10,13 +10,15 @@
  * Do not import this file from application code.
  */
 import { endpoint } from '@/config/endpoint'
+
+import { createSuccessResponseSchema } from '@/lib/validation'
+
 import {
 	LocationCreateDto,
 	LocationDto,
 	LocationFilterDto,
 	LocationUpdateDto,
 } from '@/features/location/location.dto'
-import { createSuccessResponseSchema } from '@/lib/validation'
 
 import { defineMutation, defineQuery } from '../endpoint'
 import { defineResource } from '../resource'

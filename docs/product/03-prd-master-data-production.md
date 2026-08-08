@@ -18,18 +18,20 @@ Semi-finished items are tracked as regular materials in stock. They just have a 
 
 ## Material Type
 
-| Type | Source | Example |
-|------|--------|---------|
-| `raw` | Purchased from supplier | Gula, Susu, Kopi, Cup, Sedotan |
-| `semi_finished` | Produced internally from other materials | Gula Cair, Bumbu Racik |
+| Type            | Source                                   | Example                        |
+| --------------- | ---------------------------------------- | ------------------------------ |
+| `raw`           | Purchased from supplier                  | Gula, Susu, Kopi, Cup, Sedotan |
+| `semi_finished` | Produced internally from other materials | Gula Cair, Bumbu Racik         |
 
 Both types:
+
 - Have stock balances (per-location)
 - Can be used in menu recipes
 - Can be transferred between locations
 - Have weighted average cost
 
 Difference:
+
 - `raw` → restocked via **receiving** (from supplier)
 - `semi_finished` → restocked via **production order**
 
@@ -39,22 +41,22 @@ Defines the BOM (Bill of Materials) for producing a semi-finished item.
 
 ### Header
 
-| Field | Type | Description |
-|-------|------|-------------|
-| materialId | FK | Output material (must be `semi_finished`) |
-| name | string | Recipe name (e.g. "Gula Cair - Standard") |
-| yieldQty | decimal | Output quantity per batch |
-| yieldUomId | FK | Output unit (should match material's base UoM) |
-| isActive | boolean | Active toggle |
+| Field      | Type    | Description                                    |
+| ---------- | ------- | ---------------------------------------------- |
+| materialId | FK      | Output material (must be `semi_finished`)      |
+| name       | string  | Recipe name (e.g. "Gula Cair - Standard")      |
+| yieldQty   | decimal | Output quantity per batch                      |
+| yieldUomId | FK      | Output unit (should match material's base UoM) |
+| isActive   | boolean | Active toggle                                  |
 
 ### Line (Input)
 
-| Field | Type | Description |
-|-------|------|-------------|
-| recipeId | FK | Parent production recipe |
-| materialId | FK | Input material (can be `raw` or `semi_finished`) |
-| quantity | decimal | Amount consumed per batch |
-| uomId | FK | Unit of the input quantity |
+| Field      | Type    | Description                                      |
+| ---------- | ------- | ------------------------------------------------ |
+| recipeId   | FK      | Parent production recipe                         |
+| materialId | FK      | Input material (can be `raw` or `semi_finished`) |
+| quantity   | decimal | Amount consumed per batch                        |
+| uomId      | FK      | Unit of the input quantity                       |
 
 ### Example
 
@@ -79,18 +81,18 @@ Records an actual production event — "I made X amount of semi-finished item to
 
 ### Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| productionNo | string | Auto-generated (format: `PRD-{LOC}-{DATE}-{SEQ}`) |
-| locationId | FK | Where production happens |
-| materialId | FK | Output material (semi_finished) |
-| recipeId | FK | Which production recipe was used |
-| status | enum | `draft`, `completed`, `cancelled` |
-| plannedQty | decimal | How much was planned to produce |
-| actualQty | decimal? | How much was actually produced (set on complete) |
-| notes | string? | Production notes (e.g. "slightly thicker today") |
-| producedBy | FK | User who performed production |
-| completedAt | timestamp? | When completed |
+| Field        | Type       | Description                                       |
+| ------------ | ---------- | ------------------------------------------------- |
+| productionNo | string     | Auto-generated (format: `PRD-{LOC}-{DATE}-{SEQ}`) |
+| locationId   | FK         | Where production happens                          |
+| materialId   | FK         | Output material (semi_finished)                   |
+| recipeId     | FK         | Which production recipe was used                  |
+| status       | enum       | `draft`, `completed`, `cancelled`                 |
+| plannedQty   | decimal    | How much was planned to produce                   |
+| actualQty    | decimal?   | How much was actually produced (set on complete)  |
+| notes        | string?    | Production notes (e.g. "slightly thicker today")  |
+| producedBy   | FK         | User who performed production                     |
+| completedAt  | timestamp? | When completed                                    |
 
 ### Status Flow
 
@@ -144,17 +146,17 @@ On complete:
 
 ## Stock Movement Types (Updated)
 
-| Type | Direction | Trigger |
-|------|-----------|---------|
-| `purchase_receipt` | in | Receiving from supplier |
-| `transfer_in` | in | Received from another location |
-| `production_in` | in | **Production output** |
-| `adjustment_in` | in | Manual correction |
-| `return_in` | in | Void/refund restoration |
-| `sales` | out | POS order (via menu recipe) |
-| `transfer_out` | out | Sent to another location |
-| `production_out` | out | **Production input consumed** |
-| `adjustment_out` | out | Manual correction (waste, expired) |
+| Type               | Direction | Trigger                            |
+| ------------------ | --------- | ---------------------------------- |
+| `purchase_receipt` | in        | Receiving from supplier            |
+| `transfer_in`      | in        | Received from another location     |
+| `production_in`    | in        | **Production output**              |
+| `adjustment_in`    | in        | Manual correction                  |
+| `return_in`        | in        | Void/refund restoration            |
+| `sales`            | out       | POS order (via menu recipe)        |
+| `transfer_out`     | out       | Sent to another location           |
+| `production_out`   | out       | **Production input consumed**      |
+| `adjustment_out`   | out       | Manual correction (waste, expired) |
 
 ## Relationship to Menu Recipe
 
@@ -172,19 +174,19 @@ When Iced Latte is sold, stock of Gula Cair is deducted. Staff must ensure Gula 
 
 ## New Module: `production`
 
-| Entity | Purpose |
-|--------|---------|
-| production_recipes | BOM for semi-finished items |
-| production_recipe_lines | Input materials for production |
-| production_orders | Record of each production batch |
+| Entity                  | Purpose                         |
+| ----------------------- | ------------------------------- |
+| production_recipes      | BOM for semi-finished items     |
+| production_recipe_lines | Input materials for production  |
+| production_orders       | Record of each production batch |
 
 Layer: **2 (Operations)** — depends on `material` (layer 1) and `inventory` (layer 2, for stock movements).
 
 ## Number Generation
 
-| Document | Prefix | Example |
-|----------|--------|---------|
-| Production Order | `PRD` | `PRD-COFFEE-20260806-001` |
+| Document         | Prefix | Example                   |
+| ---------------- | ------ | ------------------------- |
+| Production Order | `PRD`  | `PRD-COFFEE-20260806-001` |
 
 ---
 

@@ -1,5 +1,5 @@
-import { Elysia } from 'elysia'
 import { withContext } from '@logtape/logtape'
+import { Elysia } from 'elysia'
 
 /**
  * Elysia plugin that wraps each request in a LogTape implicit context.

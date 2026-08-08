@@ -1,21 +1,8 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
-	"entry": [
-		"src/server.ts"
-	],
-	"project": [
-		"src/**/*.ts"
-	],
-	"ignoreDependencies": [
-		"@total-typescript/ts-reset",
-		"bcrypt",
-		"lint-staged",
-	],
-	"ignoreBinaries": [
-		"flyctl"
-	],
-	"ignore": [
-		"src/infra/logger/request-context.ts",
-		"src/shared/config/env.ts"
-	],
+	"entry": ["src/server.ts"],
+	"project": ["src/**/*.ts"],
+	"ignoreDependencies": ["@total-typescript/ts-reset", "bcrypt", "lint-staged"],
+	"ignoreBinaries": ["flyctl"],
+	"ignore": ["src/infra/logger/request-context.ts", "src/shared/config/env.ts"],
 }

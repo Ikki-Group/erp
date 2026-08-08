@@ -52,7 +52,7 @@ src/modules/{module}/
 3. **Repo** — Interface + implementation (CRUD + pagination)
 4. **Internal** — Error factories
 5. **Service** — Business logic + cache + audit stamps
-6. **Route** — Elysia handlers (thin: validate → handleX → res.*)
+6. **Route** — Elysia handlers (thin: validate → handleX → res.\*)
 7. **Module** — Factory wiring repo + service + route
 8. **Index** — Export module factory
 9. **Register** — Add route to app.ts

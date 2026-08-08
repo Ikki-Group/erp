@@ -1,10 +1,10 @@
 import { isHTTPError, isTimeoutError } from 'ky'
-import type { KyInstance } from 'ky'
 
 import { httpClient } from './client'
 import { ApiError } from './errors'
 import type { ApiErrorPayload } from './errors'
 import type { HttpMethod } from './types'
+import type { KyInstance } from 'ky'
 
 /**
  * Flattens a query object into a `URLSearchParams` instance.

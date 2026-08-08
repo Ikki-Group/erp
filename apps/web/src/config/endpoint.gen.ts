@@ -2,16 +2,16 @@
 
 /** Generated endpoint URL map. Do not edit by hand. */
 export const endpoint = {
-	'auth': {
+	auth: {
 		login: 'auth/login',
 		me: 'auth/me',
 	},
-	'company': {
+	company: {
 		detail: 'settings/detail',
 		create: 'settings/create',
 		update: 'settings/update',
 	},
-	'crm': {
+	crm: {
 		list: 'customer/list',
 		detail: 'customer/detail',
 		byPhone: 'customer/by-phone',
@@ -22,7 +22,7 @@ export const endpoint = {
 		redeemPoints: 'customer/points/redeem',
 		loyaltyHistory: 'customer/loyalty-history',
 	},
-	'iam': {
+	iam: {
 		role: {
 			list: 'iam/role/list',
 			detail: 'iam/role/detail',
@@ -40,7 +40,7 @@ export const endpoint = {
 			remove: 'iam/user/remove',
 		},
 	},
-	'location': {
+	location: {
 		list: 'location/list',
 		detail: 'location/detail',
 		create: 'location/create',
@@ -54,7 +54,7 @@ export const endpoint = {
 		update: 'sales-type/update',
 		remove: 'sales-type/remove',
 	},
-	'supplier': {
+	supplier: {
 		list: 'supplier/list',
 		detail: 'supplier/detail',
 		create: 'supplier/create',

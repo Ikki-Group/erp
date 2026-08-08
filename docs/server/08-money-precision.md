@@ -7,8 +7,8 @@ Rules for monetary arithmetic in the Ikki server — how to avoid floating-point
 Native JS `number` (IEEE 754 double) has precision issues with money:
 
 ```ts
-0.1 + 0.2 === 0.30000000000000004  // classic
-19.99 * 100 === 1998.9999999999998  // real money bug
+0.1 + 0.2 === 0.30000000000000004 // classic
+19.99 * 100 === 1998.9999999999998 // real money bug
 ```
 
 Over time, weighted average cost calculations and UoM conversions accumulate drift, leading to incorrect inventory valuations.
@@ -21,33 +21,33 @@ All cost/conversion arithmetic uses `decimal.js` via shared helpers. Prices (int
 
 ```ts
 import {
-  Decimal,
-  toDecimal,
-  roundPrice,
-  roundCost,
-  roundQty,
-  weightedAvgCost,
-  safeDivide,
+	Decimal,
+	toDecimal,
+	roundPrice,
+	roundCost,
+	roundQty,
+	weightedAvgCost,
+	safeDivide,
 } from '@/shared/utils/money.ts'
 ```
 
-| Helper | Purpose | Returns |
-|--------|---------|---------|
-| `toDecimal(v)` | Parse string/number to Decimal | `Decimal` |
-| `roundPrice(d)` | Round to integer (IDR, no subunit) | `number` |
-| `roundCost(d)` | Round to 4dp (cost precision) | `string` (for DB) |
-| `roundQty(d)` | Round to 6dp (quantity/factor) | `string` |
-| `weightedAvgCost(oldQty, oldCost, inQty, inCost)` | Weighted average formula | `Decimal` |
-| `safeDivide(num, div)` | Division with zero-guard | `Decimal` |
+| Helper                                            | Purpose                            | Returns           |
+| ------------------------------------------------- | ---------------------------------- | ----------------- |
+| `toDecimal(v)`                                    | Parse string/number to Decimal     | `Decimal`         |
+| `roundPrice(d)`                                   | Round to integer (IDR, no subunit) | `number`          |
+| `roundCost(d)`                                    | Round to 4dp (cost precision)      | `string` (for DB) |
+| `roundQty(d)`                                     | Round to 6dp (quantity/factor)     | `string`          |
+| `weightedAvgCost(oldQty, oldCost, inQty, inCost)` | Weighted average formula           | `Decimal`         |
+| `safeDivide(num, div)`                            | Division with zero-guard           | `Decimal`         |
 
 ## Domain Rules
 
-| Domain | Type | Precision | Example | Zod |
-|--------|------|-----------|---------|-----|
-| Menu price, order total, payment | `number` (integer) | 0 dp | `25000` | `z.coerce.number().int().min(0)` |
-| Cost price (weighted avg) | `Decimal` → `string` | 4 dp | `"5333.3333"` | `z.string()` |
-| UoM conversion factor | `Decimal` | 6 dp | `"0.083333"` | `z.string()` |
-| Tax amount (final) | `roundPrice(decimal)` | Rounded once | `4400` | `z.number().int()` |
+| Domain                           | Type                  | Precision    | Example       | Zod                              |
+| -------------------------------- | --------------------- | ------------ | ------------- | -------------------------------- |
+| Menu price, order total, payment | `number` (integer)    | 0 dp         | `25000`       | `z.coerce.number().int().min(0)` |
+| Cost price (weighted avg)        | `Decimal` → `string`  | 4 dp         | `"5333.3333"` | `z.string()`                     |
+| UoM conversion factor            | `Decimal`             | 6 dp         | `"0.083333"`  | `z.string()`                     |
+| Tax amount (final)               | `roundPrice(decimal)` | Rounded once | `4400`        | `z.number().int()`               |
 
 ## Patterns
 
@@ -55,10 +55,10 @@ import {
 
 ```ts
 const newCost = weightedAvgCost(
-  toDecimal(balance.qty),
-  toDecimal(balance.costPrice),
-  toDecimal(input.qty),
-  toDecimal(input.unitCost),
+	toDecimal(balance.qty),
+	toDecimal(balance.costPrice),
+	toDecimal(input.qty),
+	toDecimal(input.unitCost),
 )
 const costForDb = roundCost(newCost) // "5333.3333"
 ```
@@ -83,8 +83,8 @@ const taxAmount = roundPrice(taxDecimal) // 4400 (integer IDR)
 
 ```ts
 const totalInputCost = inputs.reduce(
-  (sum, i) => sum.add(toDecimal(i.qty).mul(toDecimal(i.costPrice))),
-  new Decimal(0),
+	(sum, i) => sum.add(toDecimal(i.qty).mul(toDecimal(i.costPrice))),
+	new Decimal(0),
 )
 const outputUnitCost = safeDivide(totalInputCost, toDecimal(outputQty))
 const costForDb = roundCost(outputUnitCost) // "75000.0000"
@@ -92,13 +92,13 @@ const costForDb = roundCost(outputUnitCost) // "75000.0000"
 
 ## Anti-Patterns
 
-| Don't | Why | Do instead |
-|-------|-----|-----------|
-| `parseFloat(costPrice)` | Loses precision | `toDecimal(costPrice)` |
-| `price * 1.11` for tax | Float multiplication | `toDecimal(price).mul(taxRate).div(100)` |
-| Round in intermediate steps | Compounds rounding error | Round once at final boundary |
-| Store cost as `number` in code | Precision drift | Keep as `Decimal` until DB write |
-| `Number(costString)` | Same as parseFloat | `toDecimal(costString)` |
+| Don't                          | Why                      | Do instead                               |
+| ------------------------------ | ------------------------ | ---------------------------------------- |
+| `parseFloat(costPrice)`        | Loses precision          | `toDecimal(costPrice)`                   |
+| `price * 1.11` for tax         | Float multiplication     | `toDecimal(price).mul(taxRate).div(100)` |
+| Round in intermediate steps    | Compounds rounding error | Round once at final boundary             |
+| Store cost as `number` in code | Precision drift          | Keep as `Decimal` until DB write         |
+| `Number(costString)`           | Same as parseFloat       | `toDecimal(costString)`                  |
 
 ## DB Column Types
 

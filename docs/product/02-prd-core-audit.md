@@ -11,21 +11,21 @@ Two layers of tracking:
 
 ## Audit Log Record
 
-| Field | Type | Description |
-|-------|------|-------------|
-| id | serial | PK |
-| timestamp | timestamp | When the action occurred |
-| userId | FK | Who performed it |
-| userName | string | Snapshot of user's name (for display without join) |
-| locationId | FK? | Active location context (null for global actions) |
-| module | string | Module name (e.g. `pos`, `inventory`, `iam`) |
-| entity | string | Entity name (e.g. `order`, `material`, `user`) |
-| entityId | integer | ID of the affected record |
-| action | enum | `create`, `update`, `delete` |
-| summary | string | Human-readable summary (e.g. "Voided order ORD-COFFEE-20260806-003") |
-| oldValues | jsonb? | Previous field values (null for create) |
-| newValues | jsonb? | New field values (null for delete) |
-| metadata | jsonb? | Extra context (e.g. `{ reason: "customer complaint" }`) |
+| Field      | Type      | Description                                                          |
+| ---------- | --------- | -------------------------------------------------------------------- |
+| id         | serial    | PK                                                                   |
+| timestamp  | timestamp | When the action occurred                                             |
+| userId     | FK        | Who performed it                                                     |
+| userName   | string    | Snapshot of user's name (for display without join)                   |
+| locationId | FK?       | Active location context (null for global actions)                    |
+| module     | string    | Module name (e.g. `pos`, `inventory`, `iam`)                         |
+| entity     | string    | Entity name (e.g. `order`, `material`, `user`)                       |
+| entityId   | integer   | ID of the affected record                                            |
+| action     | enum      | `create`, `update`, `delete`                                         |
+| summary    | string    | Human-readable summary (e.g. "Voided order ORD-COFFEE-20260806-003") |
+| oldValues  | jsonb?    | Previous field values (null for create)                              |
+| newValues  | jsonb?    | New field values (null for delete)                                   |
+| metadata   | jsonb?    | Extra context (e.g. `{ reason: "customer complaint" }`)              |
 
 ## What Gets Logged
 
@@ -33,14 +33,14 @@ Two layers of tracking:
 
 ### Examples
 
-| Action | Summary | oldValues | newValues |
-|--------|---------|-----------|-----------|
-| Create order | "Created order ORD-COFFEE-20260806-001" | null | `{ status: "open", total: 0 }` |
-| Void order | "Voided order ORD-COFFEE-20260806-001" | `{ status: "completed" }` | `{ status: "voided" }` |
-| Update price | "Updated Iced Latte price" | `{ base_price: 25000 }` | `{ base_price: 28000 }` |
-| Stock adjust | "Adjusted Espresso Beans at Coffee" | `{ quantity: 5.2 }` | `{ quantity: 4.8 }` |
-| Deactivate user | "Deactivated user john@ikki.id" | `{ is_active: true }` | `{ is_active: false }` |
-| Approve payroll | "Approved payroll PAY-COFFEE-202608-001" | `{ status: "calculated" }` | `{ status: "approved" }` |
+| Action          | Summary                                  | oldValues                  | newValues                      |
+| --------------- | ---------------------------------------- | -------------------------- | ------------------------------ |
+| Create order    | "Created order ORD-COFFEE-20260806-001"  | null                       | `{ status: "open", total: 0 }` |
+| Void order      | "Voided order ORD-COFFEE-20260806-001"   | `{ status: "completed" }`  | `{ status: "voided" }`         |
+| Update price    | "Updated Iced Latte price"               | `{ base_price: 25000 }`    | `{ base_price: 28000 }`        |
+| Stock adjust    | "Adjusted Espresso Beans at Coffee"      | `{ quantity: 5.2 }`        | `{ quantity: 4.8 }`            |
+| Deactivate user | "Deactivated user john@ikki.id"          | `{ is_active: true }`      | `{ is_active: false }`         |
+| Approve payroll | "Approved payroll PAY-COFFEE-202608-001" | `{ status: "calculated" }` | `{ status: "approved" }`       |
 
 ## Old/New Values
 
@@ -68,8 +68,8 @@ Unchanged fields are NOT included in update entries (reduce noise).
 
 ### Permission
 
-| Permission | Description |
-|------------|-------------|
+| Permission       | Description                |
+| ---------------- | -------------------------- |
 | `audit:log:read` | View audit log (UI access) |
 
 Default: only `owner` role has this. Can be assigned to custom roles.
