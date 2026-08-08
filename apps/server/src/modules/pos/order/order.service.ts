@@ -1,6 +1,7 @@
 import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
+import { getLogger } from '@/infra/logger/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { record } from '@/infra/otel/otel.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
@@ -56,6 +57,8 @@ export interface OrderServiceDeps {
 }
 
 // ─── Service ───
+
+const logger = getLogger(['pos', 'order'])
 
 export class OrderService {
 	private readonly cache: CacheService
@@ -474,10 +477,10 @@ export class OrderService {
 				uomService: this.deps.uomService,
 				materialService: this.deps.materialService,
 			}).catch((err) => {
-				console.warn(
-					`[pos:deduction] Unexpected error during stock deduction for order #${orderId}:`,
-					err,
-				)
+				logger.warn('Unexpected error during stock deduction for order', {
+					orderId,
+					error: err instanceof Error ? err.message : String(err),
+				})
 			})
 
 			return result

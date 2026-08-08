@@ -1,3 +1,4 @@
+import { getLogger } from '@/infra/logger/index.ts'
 import { record } from '@/infra/otel/otel.ts'
 import { type Decimal, roundQty, safeDivide, toDecimal } from '@/shared/utils/money.ts'
 
@@ -9,6 +10,8 @@ import { resolveConversion } from '@/modules/uom/uom.resolver.ts'
 import type { UomService } from '@/modules/uom/uom.service.ts'
 
 import type { OrderLineDto } from './order.contract.ts'
+
+const logger = getLogger(['pos', 'deduction'])
 
 // ─── Dependencies ───
 
@@ -53,9 +56,11 @@ export async function deductStockForOrder(
 				})
 			} catch (err) {
 				const errorMessage = err instanceof Error ? err.message : String(err)
-				console.warn(
-					`[pos:deduction] Deduction failed for menuItemId=${line.menuItemId} in order #${orderId}: ${errorMessage}`,
-				)
+				logger.warn('Deduction failed for menu item in order', {
+					menuItemId: line.menuItemId,
+					orderId,
+					error: errorMessage,
+				})
 			}
 		}
 	})
@@ -82,9 +87,10 @@ async function deductForOrderLine(
 	// 1. Get active recipe for menu item
 	const recipe = await recipeService.getActiveByMenuItemId(line.menuItemId)
 	if (!recipe) {
-		console.warn(
-			`[pos:deduction] No active recipe for menuItemId=${line.menuItemId}, skipping deduction for order #${orderId}`,
-		)
+		logger.warn('No active recipe for menu item, skipping deduction', {
+			menuItemId: line.menuItemId,
+			orderId,
+		})
 		return
 	}
 
@@ -135,9 +141,10 @@ async function deductRecipeLine(
 		// 2. Resolve UoM conversion to material base UoM
 		const material = await materialService.getById(recipeLine.materialId)
 		if (!material) {
-			console.warn(
-				`[pos:deduction] Material #${recipeLine.materialId} not found, skipping for order #${orderId}`,
-			)
+			logger.warn('Material not found, skipping deduction', {
+				materialId: recipeLine.materialId,
+				orderId,
+			})
 			return
 		}
 
@@ -166,9 +173,11 @@ async function deductRecipeLine(
 	} catch (err) {
 		// Insufficient stock or material not assigned — log and continue
 		const errorMessage = err instanceof Error ? err.message : String(err)
-		console.warn(
-			`[pos:deduction] Failed to deduct material #${recipeLine.materialId} for order #${orderId}: ${errorMessage}`,
-		)
+		logger.warn('Failed to deduct material for order', {
+			materialId: recipeLine.materialId,
+			orderId,
+			error: errorMessage,
+		})
 	}
 }
 
@@ -186,8 +195,11 @@ function convertToBaseUom(
 	const conversion = resolveConversion(fromUomId, toUomId, qty.toString(), conversions)
 	if (conversion) return toDecimal(conversion.result)
 
-	console.warn(
-		`[pos:deduction] No UoM conversion path from ${fromUomId} to ${toUomId} for material #${context.materialId}, using raw qty for order #${context.orderId}`,
-	)
+	logger.warn('No UoM conversion path, using raw qty', {
+		fromUomId,
+		toUomId,
+		materialId: context.materialId,
+		orderId: context.orderId,
+	})
 	return qty
 }

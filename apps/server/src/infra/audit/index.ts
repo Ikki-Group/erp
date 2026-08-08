@@ -2,6 +2,9 @@ import { auditLogs } from '@/db/schema/audit.ts'
 
 import { db } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import { getLogger } from '@/infra/logger/index.ts'
+
+const logger = getLogger(['audit'])
 
 // ─── Types ───
 
@@ -51,7 +54,11 @@ export const auditLog = {
 				metadata: entry.metadata ?? null,
 			})
 			.catch((err) => {
-				console.error('[audit-log] Failed to write audit entry:', err)
+				logger.error('Failed to write audit entry', {
+					error: err instanceof Error ? err.message : String(err),
+					entity: entry.entity,
+					entityId: entry.entityId,
+				})
 			})
 	},
 
@@ -75,7 +82,11 @@ export const auditLog = {
 				metadata: entry.metadata ?? null,
 			})
 		} catch (err) {
-			console.error('[audit-log] Failed to write audit entry:', err)
+			logger.error('Failed to write audit entry', {
+				error: err instanceof Error ? err.message : String(err),
+				entity: entry.entity,
+				entityId: entry.entityId,
+			})
 		}
 	},
 }

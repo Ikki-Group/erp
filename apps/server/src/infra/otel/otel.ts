@@ -45,8 +45,15 @@ export const otelPlugin = isTest
 				: [],
 		})
 
+// Note: logger may not be configured yet (otel.ts is preloaded), so use
+// getLogger lazily. The message is emitted at import-time but LogTape
+// buffers until configure() is called.
+import { getLogger } from '@/infra/logger/index.ts'
+
+const logger = getLogger(['otel'])
+
 if (!isTest && hasAxiomConfig) {
-	console.log('[otel] OpenTelemetry initialized → exporting to Axiom')
+	logger.info('OpenTelemetry initialized, exporting to Axiom')
 } else if (!isTest) {
-	console.log('[otel] OpenTelemetry initialized (no Axiom config — spans dropped)')
+	logger.info('OpenTelemetry initialized (no Axiom config, spans dropped)')
 }
