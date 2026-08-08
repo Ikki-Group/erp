@@ -1,11 +1,38 @@
-import { pgTable, varchar, numeric, integer, timestamp, check, index, uniqueIndex } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
+import {
+	pgTable,
+	pgEnum,
+	varchar,
+	numeric,
+	integer,
+	timestamp,
+	check,
+	index,
+	uniqueIndex,
+} from 'drizzle-orm/pg-core'
+
 import { pk, auditBasicColumns } from './_helpers.ts'
 import { locations } from './core.ts'
 import { users } from './iam.ts'
 import { materials } from './material.ts'
-import { uoms } from './uom.ts'
 import { suppliers } from './supplier.ts'
+import { uoms } from './uom.ts'
+
+// ─── Enums ───
+
+export const movementDirectionEnum = pgEnum('movement_direction', ['in', 'out'])
+export const transferStatusEnum = pgEnum('transfer_status', [
+	'requested',
+	'in_transit',
+	'received',
+	'cancelled',
+])
+export const opnameStatusEnum = pgEnum('opname_status', [
+	'draft',
+	'in_progress',
+	'completed',
+	'cancelled',
+])
 
 // ─── Stock Balances ───
 
@@ -13,8 +40,12 @@ export const stockBalances = pgTable(
 	'stock_balances',
 	{
 		...pk,
-		materialId: integer('material_id').notNull().references(() => materials.id, { onDelete: 'restrict' }),
-		locationId: integer('location_id').notNull().references(() => locations.id, { onDelete: 'restrict' }),
+		materialId: integer('material_id')
+			.notNull()
+			.references(() => materials.id, { onDelete: 'restrict' }),
+		locationId: integer('location_id')
+			.notNull()
+			.references(() => locations.id, { onDelete: 'restrict' }),
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull().default('0'),
 		costPrice: numeric('cost_price', { precision: 18, scale: 6 }).notNull().default('0'),
 	},
@@ -32,10 +63,14 @@ export const stockMovements = pgTable(
 	'stock_movements',
 	{
 		...pk,
-		materialId: integer('material_id').notNull().references(() => materials.id, { onDelete: 'restrict' }),
-		locationId: integer('location_id').notNull().references(() => locations.id, { onDelete: 'restrict' }),
+		materialId: integer('material_id')
+			.notNull()
+			.references(() => materials.id, { onDelete: 'restrict' }),
+		locationId: integer('location_id')
+			.notNull()
+			.references(() => locations.id, { onDelete: 'restrict' }),
 		type: varchar('type', { length: 50 }).notNull(),
-		direction: varchar('direction', { length: 10 }).notNull(),
+		direction: movementDirectionEnum('direction').notNull(),
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull(),
 		costPrice: numeric('cost_price', { precision: 18, scale: 6 }).notNull(),
 		referenceType: varchar('reference_type', { length: 50 }),
@@ -45,8 +80,11 @@ export const stockMovements = pgTable(
 		createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
 	},
 	(t) => [
-		check('stock_movements_direction_chk', sql`${t.direction} IN ('in', 'out')`),
-		index('stock_movements_material_location_created_idx').on(t.materialId, t.locationId, t.createdAt),
+		index('stock_movements_material_location_created_idx').on(
+			t.materialId,
+			t.locationId,
+			t.createdAt,
+		),
 		index('stock_movements_material_id_idx').on(t.materialId),
 		index('stock_movements_location_id_idx').on(t.locationId),
 		index('stock_movements_created_by_idx').on(t.createdBy),
@@ -60,16 +98,19 @@ export const transferRequests = pgTable(
 	{
 		...pk,
 		transferNo: varchar('transfer_no', { length: 100 }).notNull(),
-		fromLocationId: integer('from_location_id').notNull().references(() => locations.id, { onDelete: 'restrict' }),
-		toLocationId: integer('to_location_id').notNull().references(() => locations.id, { onDelete: 'restrict' }),
-		status: varchar('status', { length: 20 }).notNull().default('requested'),
+		fromLocationId: integer('from_location_id')
+			.notNull()
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		toLocationId: integer('to_location_id')
+			.notNull()
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		status: transferStatusEnum('status').notNull().default('requested'),
 		notes: varchar('notes', { length: 1000 }),
 		requestedBy: integer('requested_by').references(() => users.id, { onDelete: 'set null' }),
 		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('transfer_requests_transfer_no_uniq').on(t.transferNo),
-		check('transfer_requests_status_chk', sql`${t.status} IN ('requested', 'in_transit', 'received', 'cancelled')`),
 		check('transfer_requests_diff_location_chk', sql`${t.fromLocationId} != ${t.toLocationId}`),
 		index('transfer_requests_from_location_id_idx').on(t.fromLocationId),
 		index('transfer_requests_to_location_id_idx').on(t.toLocationId),
@@ -83,12 +124,18 @@ export const transferLines = pgTable(
 	'transfer_lines',
 	{
 		...pk,
-		transferId: integer('transfer_id').notNull().references(() => transferRequests.id, { onDelete: 'cascade' }),
-		materialId: integer('material_id').notNull().references(() => materials.id, { onDelete: 'restrict' }),
+		transferId: integer('transfer_id')
+			.notNull()
+			.references(() => transferRequests.id, { onDelete: 'cascade' }),
+		materialId: integer('material_id')
+			.notNull()
+			.references(() => materials.id, { onDelete: 'restrict' }),
 		requestedQty: numeric('requested_qty', { precision: 18, scale: 6 }).notNull(),
 		shippedQty: numeric('shipped_qty', { precision: 18, scale: 6 }),
 		receivedQty: numeric('received_qty', { precision: 18, scale: 6 }),
-		uomId: integer('uom_id').notNull().references(() => uoms.id, { onDelete: 'restrict' }),
+		uomId: integer('uom_id')
+			.notNull()
+			.references(() => uoms.id, { onDelete: 'restrict' }),
 	},
 	(t) => [
 		index('transfer_lines_transfer_id_idx').on(t.transferId),
@@ -104,8 +151,10 @@ export const stockOpnames = pgTable(
 	{
 		...pk,
 		opnameNo: varchar('opname_no', { length: 100 }).notNull(),
-		locationId: integer('location_id').notNull().references(() => locations.id, { onDelete: 'restrict' }),
-		status: varchar('status', { length: 20 }).notNull().default('draft'),
+		locationId: integer('location_id')
+			.notNull()
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		status: opnameStatusEnum('status').notNull().default('draft'),
 		startedAt: timestamp('started_at', { withTimezone: true }),
 		completedAt: timestamp('completed_at', { withTimezone: true }),
 		conductedBy: integer('conducted_by').references(() => users.id, { onDelete: 'set null' }),
@@ -113,7 +162,6 @@ export const stockOpnames = pgTable(
 	},
 	(t) => [
 		uniqueIndex('stock_opnames_opname_no_uniq').on(t.opnameNo),
-		check('stock_opnames_status_chk', sql`${t.status} IN ('draft', 'in_progress', 'completed', 'cancelled')`),
 		index('stock_opnames_location_id_idx').on(t.locationId),
 		index('stock_opnames_conducted_by_idx').on(t.conductedBy),
 	],
@@ -125,8 +173,12 @@ export const stockOpnameLines = pgTable(
 	'stock_opname_lines',
 	{
 		...pk,
-		opnameId: integer('opname_id').notNull().references(() => stockOpnames.id, { onDelete: 'cascade' }),
-		materialId: integer('material_id').notNull().references(() => materials.id, { onDelete: 'restrict' }),
+		opnameId: integer('opname_id')
+			.notNull()
+			.references(() => stockOpnames.id, { onDelete: 'cascade' }),
+		materialId: integer('material_id')
+			.notNull()
+			.references(() => materials.id, { onDelete: 'restrict' }),
 		systemQty: numeric('system_qty', { precision: 18, scale: 6 }).notNull(),
 		actualQty: numeric('actual_qty', { precision: 18, scale: 6 }).notNull(),
 		reason: varchar('reason', { length: 500 }),
@@ -144,8 +196,12 @@ export const receivings = pgTable(
 	{
 		...pk,
 		receivingNo: varchar('receiving_no', { length: 100 }).notNull(),
-		locationId: integer('location_id').notNull().references(() => locations.id, { onDelete: 'restrict' }),
-		supplierId: integer('supplier_id').notNull().references(() => suppliers.id, { onDelete: 'restrict' }),
+		locationId: integer('location_id')
+			.notNull()
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		supplierId: integer('supplier_id')
+			.notNull()
+			.references(() => suppliers.id, { onDelete: 'restrict' }),
 		notes: varchar('notes', { length: 1000 }),
 		receivedBy: integer('received_by').references(() => users.id, { onDelete: 'set null' }),
 		...auditBasicColumns,
@@ -164,11 +220,17 @@ export const receivingLines = pgTable(
 	'receiving_lines',
 	{
 		...pk,
-		receivingId: integer('receiving_id').notNull().references(() => receivings.id, { onDelete: 'cascade' }),
-		materialId: integer('material_id').notNull().references(() => materials.id, { onDelete: 'restrict' }),
+		receivingId: integer('receiving_id')
+			.notNull()
+			.references(() => receivings.id, { onDelete: 'cascade' }),
+		materialId: integer('material_id')
+			.notNull()
+			.references(() => materials.id, { onDelete: 'restrict' }),
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull(),
 		unitCost: numeric('unit_cost', { precision: 18, scale: 6 }).notNull(),
-		uomId: integer('uom_id').notNull().references(() => uoms.id, { onDelete: 'restrict' }),
+		uomId: integer('uom_id')
+			.notNull()
+			.references(() => uoms.id, { onDelete: 'restrict' }),
 	},
 	(t) => [
 		index('receiving_lines_receiving_id_idx').on(t.receivingId),

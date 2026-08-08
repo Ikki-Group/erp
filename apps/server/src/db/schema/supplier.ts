@@ -1,4 +1,5 @@
 import { pgTable, varchar, numeric, integer, index, uniqueIndex } from 'drizzle-orm/pg-core'
+
 import { pk, auditBasicColumns } from './_helpers.ts'
 import { materials } from './material.ts'
 import { uoms } from './uom.ts'
@@ -19,9 +20,7 @@ export const suppliers = pgTable(
 		isActive: integer('is_active').notNull().default(1),
 		...auditBasicColumns,
 	},
-	(t) => [
-		uniqueIndex('suppliers_code_uniq').on(t.code),
-	],
+	(t) => [uniqueIndex('suppliers_code_uniq').on(t.code)],
 )
 
 // ─── Supplier Materials ───
@@ -30,10 +29,16 @@ export const supplierMaterials = pgTable(
 	'supplier_materials',
 	{
 		...pk,
-		supplierId: integer('supplier_id').notNull().references(() => suppliers.id, { onDelete: 'cascade' }),
-		materialId: integer('material_id').notNull().references(() => materials.id, { onDelete: 'restrict' }),
+		supplierId: integer('supplier_id')
+			.notNull()
+			.references(() => suppliers.id, { onDelete: 'cascade' }),
+		materialId: integer('material_id')
+			.notNull()
+			.references(() => materials.id, { onDelete: 'restrict' }),
 		unitPrice: numeric('unit_price', { precision: 18, scale: 2 }).notNull(),
-		uomId: integer('uom_id').notNull().references(() => uoms.id, { onDelete: 'restrict' }),
+		uomId: integer('uom_id')
+			.notNull()
+			.references(() => uoms.id, { onDelete: 'restrict' }),
 		minOrderQty: numeric('min_order_qty', { precision: 18, scale: 6 }),
 		...auditBasicColumns,
 	},

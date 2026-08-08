@@ -1,7 +1,10 @@
-import { sql } from 'drizzle-orm'
-import { pgTable, varchar, integer, numeric, check, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, pgEnum, varchar, integer, numeric, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
+
+// ─── Enums ───
+
+export const locationTypeEnum = pgEnum('location_type', ['store', 'warehouse'])
 
 // ─── Locations ───
 
@@ -11,16 +14,13 @@ export const locations = pgTable(
 		...pk,
 		code: varchar('code', { length: 50 }).notNull(),
 		name: varchar('name', { length: 255 }).notNull(),
-		type: varchar('type', { length: 20 }).notNull(),
+		type: locationTypeEnum('type').notNull(),
 		address: varchar('address', { length: 500 }),
 		phone: varchar('phone', { length: 50 }),
 		isActive: integer('is_active').notNull().default(1),
 		...auditBasicColumns,
 	},
-	(t) => [
-		uniqueIndex('locations_code_uniq').on(t.code),
-		check('locations_type_chk', sql`${t.type} IN ('store', 'warehouse')`),
-	],
+	(t) => [uniqueIndex('locations_code_uniq').on(t.code)],
 )
 
 // ─── Company Settings ───

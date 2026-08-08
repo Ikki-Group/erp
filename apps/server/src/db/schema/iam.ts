@@ -1,4 +1,13 @@
-import { pgTable, varchar, integer, jsonb, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import {
+	pgTable,
+	varchar,
+	integer,
+	jsonb,
+	timestamp,
+	index,
+	uniqueIndex,
+} from 'drizzle-orm/pg-core'
+
 import { pk, auditBasicColumns } from './_helpers.ts'
 import { locations } from './core.ts'
 
@@ -14,9 +23,7 @@ export const roles = pgTable(
 		permissions: jsonb('permissions').notNull().default([]),
 		...auditBasicColumns,
 	},
-	(t) => [
-		uniqueIndex('roles_code_uniq').on(t.code),
-	],
+	(t) => [uniqueIndex('roles_code_uniq').on(t.code)],
 )
 
 // ─── Users ───
@@ -44,8 +51,12 @@ export const userAssignments = pgTable(
 	'user_assignments',
 	{
 		...pk,
-		userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-		roleId: integer('role_id').notNull().references(() => roles.id, { onDelete: 'restrict' }),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		roleId: integer('role_id')
+			.notNull()
+			.references(() => roles.id, { onDelete: 'restrict' }),
 		locationId: integer('location_id').references(() => locations.id, { onDelete: 'set null' }),
 	},
 	(t) => [
@@ -62,11 +73,11 @@ export const sessions = pgTable(
 	'sessions',
 	{
 		id: varchar('id', { length: 255 }).primaryKey(),
-		userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
 		locationId: integer('location_id'),
 		expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 	},
-	(t) => [
-		index('sessions_user_id_idx').on(t.userId),
-	],
+	(t) => [index('sessions_user_id_idx').on(t.userId)],
 )
