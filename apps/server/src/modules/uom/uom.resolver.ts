@@ -1,3 +1,5 @@
+import { Decimal, toDecimal } from '@/shared/utils/money.ts'
+
 import type { ConversionStepDto, UomConversionDto } from './uom.contract.ts'
 import { MAX_CONVERSION_HOPS } from './uom.internal.ts'
 
@@ -40,16 +42,16 @@ export function resolveConversion(
 	const path = bfs(graph, fromUomId, toUomId)
 	if (!path) return null
 
-	// Calculate result by accumulating factors along the path
-	let accumulated = parseFloat(quantity)
+	// Calculate result by accumulating factors along the path using Decimal
+	let accumulated = toDecimal(quantity)
 	const steps: ConversionStepDto[] = []
 
 	for (const edge of path) {
-		const factor = parseFloat(edge.factor)
+		const factor = toDecimal(edge.factor)
 		if (edge.direction === 'forward') {
-			accumulated *= factor
+			accumulated = accumulated.mul(factor)
 		} else {
-			accumulated /= factor
+			accumulated = accumulated.div(factor)
 		}
 		steps.push({
 			fromUomId: edge.direction === 'forward' ? edge.fromUomId : edge.toUomId,
@@ -58,7 +60,7 @@ export function resolveConversion(
 		})
 	}
 
-	// Format result — remove trailing zeros but keep decimal precision
+	// Format result — 6 decimal places, strip trailing zeros
 	const result = formatDecimal(accumulated)
 
 	return { result, path: steps }
@@ -125,9 +127,7 @@ function bfs(graph: Map<number, ConversionEdge[]>, start: number, end: number): 
 	return null
 }
 
-function formatDecimal(value: number): string {
-	// Use sufficient precision and strip trailing zeros
-	const str = value.toPrecision(15)
-	const num = parseFloat(str)
-	return num.toString()
+function formatDecimal(value: Decimal): string {
+	// toDecimalPlaces(6) for consistent precision, then strip trailing zeros
+	return value.toDecimalPlaces(6).toNumber().toString()
 }

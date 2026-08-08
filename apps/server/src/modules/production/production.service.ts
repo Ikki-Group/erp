@@ -7,6 +7,7 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
+import { roundCost, roundQty, safeDivide, toDecimal } from '@/shared/utils/money.ts'
 
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
@@ -254,7 +255,7 @@ export class ProductionService {
 		const location = await this.deps.locationService.handleGetById(data.locationId)
 
 		// 3. Calculate planned output quantity
-		const plannedQty = (parseFloat(recipe.yieldQty) * data.multiplier).toFixed(6)
+		const plannedQty = roundQty(toDecimal(recipe.yieldQty).mul(toDecimal(data.multiplier)))
 
 		// 4. Generate production number
 		const productionNo = await generateNumber({
@@ -321,16 +322,16 @@ export class ProductionService {
 		)
 
 		// 3. Calculate multiplier from order
-		const multiplier = parseFloat(order.plannedQty) / parseFloat(recipe.yieldQty)
+		const multiplier = safeDivide(toDecimal(order.plannedQty), toDecimal(recipe.yieldQty))
 
 		// 4. Process within transaction
 		const result = await withTransaction(this.repo.db, async (tx) => {
-			let totalInputCost = 0
+			let totalInputCost = toDecimal(0)
 
 			// 4a. For each input line: convert to base UoM, get cost, record movement out
 			for (const line of recipe.lines) {
 				const material = await this.deps.materialService.handleGetById(line.materialId)
-				const requiredQty = (parseFloat(line.quantity) * multiplier).toFixed(6)
+				const requiredQty = roundQty(toDecimal(line.quantity).mul(multiplier))
 
 				// Convert to base UoM
 				const baseConversion = await this.#resolveConversion(
@@ -345,8 +346,8 @@ export class ProductionService {
 					materialId: line.materialId,
 					locationId: order.locationId,
 				})
-				const costPrice = parseFloat(balance.costPrice)
-				totalInputCost += parseFloat(baseQty) * costPrice
+				const costPrice = toDecimal(balance.costPrice)
+				totalInputCost = totalInputCost.add(toDecimal(baseQty).mul(costPrice))
 
 				// Record outbound movement (stockService handles insufficient stock check)
 				await this.deps.stockService.recordMovement(
@@ -375,10 +376,9 @@ export class ProductionService {
 				order.plannedQty,
 			)
 			const baseOutputQty = yieldConversion.result
-			const outputUnitCost =
-				parseFloat(baseOutputQty) > 0
-					? (totalInputCost / parseFloat(baseOutputQty)).toFixed(6)
-					: '0'
+			const outputUnitCost = toDecimal(baseOutputQty).isZero()
+				? '0'
+				: roundCost(safeDivide(totalInputCost, toDecimal(baseOutputQty)))
 
 			// 4c. Record inbound movement for output
 			await this.deps.stockService.recordMovement(

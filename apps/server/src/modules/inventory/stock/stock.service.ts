@@ -3,6 +3,7 @@ import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
+import { roundCost, roundQty, toDecimal, weightedAvgCost } from '@/shared/utils/money.ts'
 
 import type { AssignmentService } from '@/modules/material/assignment/assignment.service.ts'
 
@@ -37,7 +38,18 @@ export class StockService {
 	// ─── Core Engine (called by other modules) ───
 
 	async recordMovement(input: RecordMovementInput, db?: DbContext): Promise<EntityRef> {
-		const { materialId, locationId, type, direction, qty, unitCost, referenceType, referenceId, notes, actorId } = input
+		const {
+			materialId,
+			locationId,
+			type,
+			direction,
+			qty,
+			unitCost,
+			referenceType,
+			referenceId,
+			notes,
+			actorId,
+		} = input
 		const dbCtx = db ?? this.repo.db
 
 		// 1. Validate material is assigned to location
@@ -48,38 +60,36 @@ export class StockService {
 
 		// 2. Get current balance (default zeros if first movement)
 		const current = await this.repo.findBalance(materialId, locationId, dbCtx)
-		const oldQty = parseFloat(current?.quantity ?? '0')
-		const oldCost = parseFloat(current?.costPrice ?? '0')
-		const moveQty = parseFloat(qty)
+		const oldQty = toDecimal(current?.quantity ?? '0')
+		const oldCost = toDecimal(current?.costPrice ?? '0')
+		const moveQty = toDecimal(qty)
 
-		// 3. Compute new balance
-		let newQty: number
-		let newCost: number
+		// 3. Compute new balance using Decimal for precision
+		let newQty = oldQty
+		let newCost = oldCost
 
 		if (direction === 'in') {
-			newQty = oldQty + moveQty
+			newQty = oldQty.add(moveQty)
 			// Weighted average cost recalculation on inbound
-			if (unitCost && newQty > 0) {
-				const moveCost = parseFloat(unitCost)
-				newCost = ((oldQty * oldCost) + (moveQty * moveCost)) / newQty
-			} else {
-				newCost = oldCost
+			if (unitCost && !newQty.isZero()) {
+				const moveCost = toDecimal(unitCost)
+				newCost = weightedAvgCost(oldQty, oldCost, moveQty, moveCost)
 			}
 		} else {
 			// direction === 'out'
-			if (oldQty < moveQty) {
-				throw StockError.insufficientStock(materialId, locationId, String(oldQty), qty)
+			if (oldQty.lt(moveQty)) {
+				throw StockError.insufficientStock(materialId, locationId, oldQty.toString(), qty)
 			}
-			newQty = oldQty - moveQty
-			newCost = oldCost // cost unchanged on outbound
+			newQty = oldQty.sub(moveQty)
+			// cost unchanged on outbound
 		}
 
 		// 4. Upsert balance
 		await this.repo.upsertBalance(
 			materialId,
 			locationId,
-			newQty.toFixed(6),
-			newCost.toFixed(6),
+			roundQty(newQty),
+			roundCost(newCost),
 			dbCtx,
 		)
 
@@ -91,7 +101,7 @@ export class StockService {
 				type,
 				direction,
 				quantity: qty,
-				costPrice: newCost.toFixed(6),
+				costPrice: roundCost(newCost),
 				referenceType: referenceType ?? null,
 				referenceId: referenceId ?? null,
 				notes: notes ?? null,
@@ -121,7 +131,9 @@ export class StockService {
 		return balance
 	}
 
-	async handleGetBalances(filter: StockBalanceFilterDto): Promise<WithPaginationResult<StockBalanceDto>> {
+	async handleGetBalances(
+		filter: StockBalanceFilterDto,
+	): Promise<WithPaginationResult<StockBalanceDto>> {
 		return this.cache.getOrSet({
 			key: `${this.cache.namespace}:balances:loc:${filter.locationId}:p${filter.page}:l${filter.limit}:m${filter.materialId ?? 'all'}`,
 			factory: () => this.repo.findBalancesByLocation(filter),
@@ -129,7 +141,9 @@ export class StockService {
 		})
 	}
 
-	async handleGetMovements(filter: StockMovementFilterDto): Promise<WithPaginationResult<StockMovementDto>> {
+	async handleGetMovements(
+		filter: StockMovementFilterDto,
+	): Promise<WithPaginationResult<StockMovementDto>> {
 		// Movements are append-only, no cache needed (Tier 3 — fresh reads)
 		return this.repo.findMovements(filter)
 	}

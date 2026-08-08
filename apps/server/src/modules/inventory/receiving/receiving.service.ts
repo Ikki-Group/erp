@@ -7,6 +7,7 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
+import { roundCost, safeDivide, toDecimal } from '@/shared/utils/money.ts'
 
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
@@ -241,10 +242,11 @@ export class ReceivingService {
 
 			// baseQty = line.qty × conversionFactor
 			const baseQty = conversion.result
-			// baseUnitCost = line.unitCost / conversionFactor (proportional)
-			const conversionFactor = parseFloat(baseQty) / parseFloat(line.quantity)
-			const baseUnitCost =
-				conversionFactor > 0 ? (parseFloat(line.unitCost) / conversionFactor).toFixed(6) : '0'
+			// baseUnitCost = line.unitCost / conversionFactor (proportional) — use Decimal for precision
+			const conversionFactor = safeDivide(toDecimal(baseQty), toDecimal(line.quantity))
+			const baseUnitCost = conversionFactor.isZero()
+				? '0'
+				: roundCost(safeDivide(toDecimal(line.unitCost), conversionFactor))
 
 			await this.deps.stockService.recordMovement({
 				materialId: line.materialId,
