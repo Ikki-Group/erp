@@ -1,5 +1,6 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+
 import type { LocationService } from '@/modules/location/location.service.ts'
 
 import { AssignmentRepo } from './assignment/assignment.repo.ts'
@@ -38,5 +39,5 @@ export function createIamModule(db: DbContext, cacheClient: CacheClient, deps: I
 	// Route
 	const route = createIamRoute(roleService, userService, assignmentService, composedService)
 
-	return { route, roleService, userService, assignmentService, composedService }
+	return { route, roleService, userService, assignmentService, composedService, userRepo }
 }
