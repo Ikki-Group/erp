@@ -8,6 +8,7 @@ import type { SupplierService } from '@/modules/supplier/supplier.service.ts'
 import type { UomService } from '@/modules/uom/uom.service.ts'
 
 import { createInventoryRoute } from './inventory.route.ts'
+import { createOpnameModule } from './opname/opname.module.ts'
 import { createReceivingModule } from './receiving/receiving.module.ts'
 import { createStockModule } from './stock/stock.module.ts'
 import { createTransferModule } from './transfer/transfer.module.ts'
@@ -45,11 +46,17 @@ export function createInventoryModule(
 		supplierService: deps.supplierService,
 		uomService: deps.uomService,
 	})
-	const route = createInventoryRoute({ stock, transfer, receiving })
+	const opname = createOpnameModule(db, cacheClient, {
+		stockService: stock.service,
+		assignmentService: deps.assignmentService,
+		locationService: deps.locationService,
+	})
+	const route = createInventoryRoute({ stock, transfer, receiving, opname })
 	return {
 		route,
 		stockService: stock.service,
 		transferService: transfer.service,
 		receivingService: receiving.service,
+		opnameService: opname.service,
 	}
 }
