@@ -1,7 +1,8 @@
 import { app } from './app.ts'
 import { getLogger, setupLogger } from './infra/logger/index.ts'
+import { env } from './shared/config/env.ts'
 
-const port = Bun.env['PORT'] ?? 3000
+const port = env.PORT
 
 await setupLogger()
 

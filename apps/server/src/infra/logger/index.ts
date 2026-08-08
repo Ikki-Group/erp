@@ -2,11 +2,10 @@ import { configure, getConsoleSink, getLogger as _getLogger } from '@logtape/log
 import { getOpenTelemetrySink } from '@logtape/otel'
 import { prettyFormatter } from '@logtape/pretty'
 
+import { isProd, isTest } from '@/shared/config/env.ts'
+
 import type { Logger, Sink } from '@logtape/logtape'
 import { AsyncLocalStorage } from 'node:async_hooks'
-
-const isTest = process.env.NODE_ENV === 'test'
-const isProd = process.env.NODE_ENV === 'production'
 
 /**
  * Initialize LogTape. Call once at app startup (after OTel, before listen).

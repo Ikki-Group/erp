@@ -15,6 +15,7 @@
 		"flyctl"
 	],
 	"ignore": [
-		"src/infra/logger/request-context.ts"
+		"src/infra/logger/request-context.ts",
+		"src/shared/config/env.ts"
 	],
 }

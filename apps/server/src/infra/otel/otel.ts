@@ -10,15 +10,12 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 import { PgInstrumentation } from '@opentelemetry/instrumentation-pg'
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
 
+import { env, isTest } from '@/shared/config/env.ts'
+
 // Re-export record for manual spans
 export { record } from '@elysiajs/opentelemetry'
 
-const isTest = process.env.NODE_ENV === 'test'
-
-const axiomUrl = process.env.AXIOM_URL
-const axiomToken = process.env.AXIOM_TOKEN
-const axiomDataset = process.env.AXIOM_DATASET
-
+const { AXIOM_URL: axiomUrl, AXIOM_TOKEN: axiomToken, AXIOM_DATASET: axiomDataset } = env
 const hasAxiomConfig = axiomUrl && axiomToken && axiomDataset
 
 /**

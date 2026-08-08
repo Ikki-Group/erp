@@ -2,6 +2,7 @@ import { neon } from '@neondatabase/serverless'
 import { sql, eq, and, or, ilike, inArray, asc, desc } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/neon-http'
 
+import { env } from '@/shared/config/env.ts'
 import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination.ts'
 
 import type { SQL } from 'drizzle-orm'
@@ -9,10 +10,7 @@ import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
 // ─── DB Client ───
 
-const databaseUrl = Bun.env['DATABASE_URL']
-if (!databaseUrl) throw new Error('DATABASE_URL is required')
-
-const queryClient = neon(databaseUrl)
+const queryClient = neon(env.DATABASE_URL)
 export const db = drizzle({ client: queryClient })
 
 export type DbContext = typeof db
