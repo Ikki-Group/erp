@@ -1,4 +1,5 @@
 import cors from '@elysiajs/cors'
+import { openapi } from '@elysiajs/openapi'
 import { Elysia } from 'elysia'
 
 import { cache } from './infra/cache/index.ts'
@@ -20,6 +21,7 @@ import { createRecipeModule } from './modules/recipe/index.ts'
 import { createSupplierModule } from './modules/supplier/index.ts'
 import { createUomModule } from './modules/uom/index.ts'
 import { errorPlugin } from './server/plugins/error.plugin.ts'
+import { isDev } from './shared/config/env.ts'
 
 // ─── Modules ───
 
@@ -84,8 +86,26 @@ const base = new Elysia().use(cors())
 if (otelPlugin) base.use(otelPlugin)
 
 export const app = base
+	.use(
+		openapi({
+			enabled: isDev,
+			path: '/openapi',
+			documentation: {
+				info: {
+					title: 'Ikki ERP API',
+					version: '1.0.0',
+					description: 'API documentation for Ikki ERP server',
+				},
+			},
+			exclude: {
+				paths: ['/health'],
+			},
+		}),
+	)
 	.use(errorPlugin)
-	.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))
+	.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }), {
+		detail: { hide: true },
+	})
 	.use(auth.route)
 	.use(audit.route)
 	.use(company.route)

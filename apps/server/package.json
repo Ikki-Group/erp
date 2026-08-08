@@ -29,6 +29,7 @@
 	},
 	"dependencies": {
 		"@elysiajs/cors": "^1.4.2",
+		"@elysiajs/openapi": "^1.4.15",
 		"@elysiajs/opentelemetry": "^1.4.11",
 		"@logtape/logtape": "^2.3.0",
 		"@logtape/otel": "^2.3.0",
