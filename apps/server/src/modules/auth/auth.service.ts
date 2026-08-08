@@ -1,3 +1,4 @@
+import { record } from '@/infra/otel/otel.ts'
 import type { sessionStore as SessionStore } from '@/infra/session/index.ts'
 import { invalidateAuthCache } from '@/server/plugins/auth.plugin.ts'
 import { SESSION_TTL_DAYS } from '@/shared/config/index.ts'
@@ -40,61 +41,63 @@ export class AuthService {
 	// ─── Login ───
 
 	async handleLogin(data: LoginDto): Promise<LoginResult> {
-		// 1. Find user by username
-		const user = await this.deps.userRepo.findByUsername(data.username)
-		if (!user) throw AuthError.invalidCredentials()
+		return record('auth.login', async () => {
+			// 1. Find user by username
+			const user = await this.deps.userRepo.findByUsername(data.username)
+			if (!user) throw AuthError.invalidCredentials()
 
-		// 2. Check if user is active
-		if (user.isActive !== 1) throw AuthError.userDeactivated()
+			// 2. Check if user is active
+			if (user.isActive !== 1) throw AuthError.userDeactivated()
 
-		// 3. Verify password
-		const valid = await verifyPassword(data.password, user.passwordHash)
-		if (!valid) throw AuthError.invalidCredentials()
+			// 3. Verify password
+			const valid = await verifyPassword(data.password, user.passwordHash)
+			if (!valid) throw AuthError.invalidCredentials()
 
-		// 4. Resolve user's assigned locations
-		const assignments = await this.deps.assignmentService.findByUserId(user.id)
-		const locationIds = [
-			...new Set(assignments.map((a) => a.locationId).filter((id): id is number => id !== null)),
-		]
+			// 4. Resolve user's assigned locations
+			const assignments = await this.deps.assignmentService.findByUserId(user.id)
+			const locationIds = [
+				...new Set(assignments.map((a) => a.locationId).filter((id): id is number => id !== null)),
+			]
 
-		const locations = await Promise.all(
-			locationIds.map((id) => this.deps.locationService.getById(id)),
-		)
-		const validLocations = locations.filter(
-			(loc): loc is NonNullable<typeof loc> => loc !== undefined,
-		)
+			const locations = await Promise.all(
+				locationIds.map((id) => this.deps.locationService.getById(id)),
+			)
+			const validLocations = locations.filter(
+				(loc): loc is NonNullable<typeof loc> => loc !== undefined,
+			)
 
-		// 5. Create session
-		const sessionId = crypto.randomUUID()
-		const expiresAt = new Date()
-		expiresAt.setDate(expiresAt.getDate() + SESSION_TTL_DAYS)
+			// 5. Create session
+			const sessionId = crypto.randomUUID()
+			const expiresAt = new Date()
+			expiresAt.setDate(expiresAt.getDate() + SESSION_TTL_DAYS)
 
-		await this.deps.sessionStore.create({
-			id: sessionId,
-			userId: user.id,
-			locationId: null,
-			expiresAt,
-		})
+			await this.deps.sessionStore.create({
+				id: sessionId,
+				userId: user.id,
+				locationId: null,
+				expiresAt,
+			})
 
-		return {
-			sessionId,
-			expiresAt,
-			response: {
-				user: {
-					id: user.id,
-					username: user.username,
-					name: user.name,
-					email: user.email,
+			return {
+				sessionId,
+				expiresAt,
+				response: {
+					user: {
+						id: user.id,
+						username: user.username,
+						name: user.name,
+						email: user.email,
+					},
+					locations: validLocations.map((loc) => ({
+						id: loc.id,
+						code: loc.code,
+						name: loc.name,
+						type: loc.type,
+					})),
+					activeLocationId: null,
 				},
-				locations: validLocations.map((loc) => ({
-					id: loc.id,
-					code: loc.code,
-					name: loc.name,
-					type: loc.type,
-				})),
-				activeLocationId: null,
-			},
-		}
+			}
+		})
 	}
 
 	// ─── Logout ───

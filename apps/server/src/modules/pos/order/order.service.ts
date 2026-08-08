@@ -2,6 +2,7 @@ import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
+import { record } from '@/infra/otel/otel.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
@@ -154,99 +155,101 @@ export class OrderService {
 	// ─── Sync Lines ───
 
 	async handleSyncLines(data: OrderLineSyncDto, actorId: ActorId): Promise<OrderDetailDto> {
-		const { orderId, lines } = data
+		return record('order.syncLines', async () => {
+			const { orderId, lines } = data
 
-		// 1. Validate order exists and is open
-		const order = await this.handleGetById(orderId)
-		if (order.status !== 'open') throw OrderError.notOpen(orderId)
+			// 1. Validate order exists and is open
+			const order = await this.handleGetById(orderId)
+			if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
-		// 2. Resolve menu items and calculate prices
-		const lineInserts = []
-		const lineTotals: number[] = []
+			// 2. Resolve menu items and calculate prices
+			const lineInserts = []
+			const lineTotals: number[] = []
 
-		for (const line of lines) {
-			// Fetch item detail (with modifier groups + options)
-			const itemDetail = await this.deps.composedService.handleDetail(line.menuItemId)
+			for (const line of lines) {
+				// Fetch item detail (with modifier groups + options)
+				const itemDetail = await this.deps.composedService.handleDetail(line.menuItemId)
 
-			// Validate item belongs to same location
-			if (itemDetail.locationId !== order.locationId) {
-				throw OrderError.menuItemWrongLocation(line.menuItemId, order.locationId)
-			}
+				// Validate item belongs to same location
+				if (itemDetail.locationId !== order.locationId) {
+					throw OrderError.menuItemWrongLocation(line.menuItemId, order.locationId)
+				}
 
-			// Resolve modifier option prices
-			const modifierPrices: number[] = []
-			const modifierSnapshot: Array<{ optionId: number; name: string; price: string }> = []
+				// Resolve modifier option prices
+				const modifierPrices: number[] = []
+				const modifierSnapshot: Array<{ optionId: number; name: string; price: string }> = []
 
-			if (line.modifierOptionIds && line.modifierOptionIds.length > 0) {
-				// Build a flat map of all available options for this item
-				const optionMap = new Map<number, { name: string; priceAdjustment: string }>()
-				for (const group of itemDetail.modifierGroups) {
-					for (const opt of group.options) {
-						optionMap.set(opt.id, { name: opt.name, priceAdjustment: opt.priceAdjustment })
+				if (line.modifierOptionIds && line.modifierOptionIds.length > 0) {
+					// Build a flat map of all available options for this item
+					const optionMap = new Map<number, { name: string; priceAdjustment: string }>()
+					for (const group of itemDetail.modifierGroups) {
+						for (const opt of group.options) {
+							optionMap.set(opt.id, { name: opt.name, priceAdjustment: opt.priceAdjustment })
+						}
+					}
+
+					for (const optionId of line.modifierOptionIds) {
+						const option = optionMap.get(optionId)
+						if (option) {
+							modifierPrices.push(Number(option.priceAdjustment))
+							modifierSnapshot.push({
+								optionId,
+								name: option.name,
+								price: option.priceAdjustment,
+							})
+						}
 					}
 				}
 
-				for (const optionId of line.modifierOptionIds) {
-					const option = optionMap.get(optionId)
-					if (option) {
-						modifierPrices.push(Number(option.priceAdjustment))
-						modifierSnapshot.push({
-							optionId,
-							name: option.name,
-							price: option.priceAdjustment,
-						})
-					}
-				}
+				// Calculate line prices
+				const priceResult = calculateLineTotal({
+					basePrice: Number(itemDetail.basePrice),
+					modifierPrices,
+					qty: line.qty,
+				})
+
+				lineTotals.push(priceResult.lineTotal)
+
+				lineInserts.push({
+					orderId,
+					menuItemId: line.menuItemId,
+					menuItemName: itemDetail.name,
+					quantity: String(line.qty),
+					unitPrice: String(priceResult.unitPrice),
+					modifiers: modifierSnapshot.length > 0 ? modifierSnapshot : null,
+					modifierTotal: String(priceResult.modifierTotal),
+					discountAmount: '0',
+					lineTotal: String(priceResult.lineTotal),
+					status: 'active' as const,
+					notes: line.notes ?? null,
+				})
 			}
 
-			// Calculate line prices
-			const priceResult = calculateLineTotal({
-				basePrice: Number(itemDetail.basePrice),
-				modifierPrices,
-				qty: line.qty,
+			// 3. Replace lines (delete old + insert new)
+			await this.repo.deleteLinesByOrderId(orderId)
+			await this.repo.insertLines(lineInserts)
+
+			// 4. Recalculate order totals
+			const taxRate = await this.#getTaxRate()
+			const discountAmount = Number(order.discountAmount)
+			const totals = calculateOrderTotals({ lineTotals, discountAmount, taxRate })
+
+			// 5. Update order totals
+			const updateResult = await this.repo.update(orderId, {
+				subtotal: String(totals.subtotal),
+				discountAmount: String(totals.discountAmount),
+				taxAmount: String(totals.taxAmount),
+				total: String(totals.total),
+				...stampUpdate(actorId),
 			})
+			if (!updateResult) throw OrderError.updateFailed(orderId)
 
-			lineTotals.push(priceResult.lineTotal)
+			// 6. Invalidate cache
+			await this.cache.invalidateStandard(orderId)
 
-			lineInserts.push({
-				orderId,
-				menuItemId: line.menuItemId,
-				menuItemName: itemDetail.name,
-				quantity: String(line.qty),
-				unitPrice: String(priceResult.unitPrice),
-				modifiers: modifierSnapshot.length > 0 ? modifierSnapshot : null,
-				modifierTotal: String(priceResult.modifierTotal),
-				discountAmount: '0',
-				lineTotal: String(priceResult.lineTotal),
-				status: 'active' as const,
-				notes: line.notes ?? null,
-			})
-		}
-
-		// 3. Replace lines (delete old + insert new)
-		await this.repo.deleteLinesByOrderId(orderId)
-		await this.repo.insertLines(lineInserts)
-
-		// 4. Recalculate order totals
-		const taxRate = await this.#getTaxRate()
-		const discountAmount = Number(order.discountAmount)
-		const totals = calculateOrderTotals({ lineTotals, discountAmount, taxRate })
-
-		// 5. Update order totals
-		const updateResult = await this.repo.update(orderId, {
-			subtotal: String(totals.subtotal),
-			discountAmount: String(totals.discountAmount),
-			taxAmount: String(totals.taxAmount),
-			total: String(totals.total),
-			...stampUpdate(actorId),
+			// 7. Return updated detail
+			return this.handleDetail(orderId)
 		})
-		if (!updateResult) throw OrderError.updateFailed(orderId)
-
-		// 6. Invalidate cache
-		await this.cache.invalidateStandard(orderId)
-
-		// 7. Return updated detail
-		return this.handleDetail(orderId)
 	}
 
 	// ─── Apply Voucher ───
@@ -413,70 +416,72 @@ export class OrderService {
 	// ─── Complete ───
 
 	async handleComplete(data: OrderCompleteDto, actorId: ActorId): Promise<EntityRef> {
-		const { orderId } = data
+		return record('order.complete', async () => {
+			const { orderId } = data
 
-		// 1. Validate order exists and is open
-		const order = await this.handleGetById(orderId)
-		if (order.status !== 'open') throw OrderError.notOpen(orderId)
+			// 1. Validate order exists and is open
+			const order = await this.handleGetById(orderId)
+			if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
-		// 2. Validate fully paid (or total is 0)
-		const orderTotal = Number(order.total)
-		if (orderTotal > 0) {
-			const totalPaid = await this.repo.sumPaymentsByOrderId(orderId)
-			const remaining = orderTotal - totalPaid
-			if (remaining > 0) throw OrderError.notFullyPaid(orderId, remaining)
-		}
+			// 2. Validate fully paid (or total is 0)
+			const orderTotal = Number(order.total)
+			if (orderTotal > 0) {
+				const totalPaid = await this.repo.sumPaymentsByOrderId(orderId)
+				const remaining = orderTotal - totalPaid
+				if (remaining > 0) throw OrderError.notFullyPaid(orderId, remaining)
+			}
 
-		// 3. Update order status
-		const result = await this.repo.update(orderId, {
-			status: 'completed',
-			completedAt: new Date(),
-			...stampUpdate(actorId),
+			// 3. Update order status
+			const result = await this.repo.update(orderId, {
+				status: 'completed',
+				completedAt: new Date(),
+				...stampUpdate(actorId),
+			})
+			if (!result) throw OrderError.updateFailed(orderId)
+
+			// 4. Increment voucher usage if applied
+			if (order.voucherId) {
+				await this.deps.voucherService.incrementUsage(order.voucherId)
+			}
+
+			// 5. Update table status to available
+			if (order.tableId) {
+				await this.deps.tableService.updateStatus(order.tableId, 'available')
+			}
+
+			// 6. Invalidate cache
+			await this.cache.invalidateStandard(orderId)
+
+			// 7. Audit log
+			auditLog.record({
+				userId: actorId,
+				userName: '',
+				locationId: order.locationId,
+				module: 'pos-order',
+				entity: 'order',
+				entityId: orderId,
+				action: 'update',
+				summary: `Completed order #${orderId} (${order.orderNo})`,
+				oldValues: { status: 'open' },
+				newValues: { status: 'completed' },
+			})
+
+			// 8. Deduct inventory stock via recipe (fire-and-forget)
+			const orderLines = await this.repo.findLinesByOrderId(orderId)
+			deductStockForOrder(orderId, order.locationId, orderLines, actorId, {
+				recipeService: this.deps.recipeService,
+				stockService: this.deps.stockService,
+				uomService: this.deps.uomService,
+				materialService: this.deps.materialService,
+			}).catch((err) => {
+				console.warn(
+					`[pos:deduction] Unexpected error during stock deduction for order #${orderId}:`,
+					err,
+				)
+			})
+
+			return result
 		})
-		if (!result) throw OrderError.updateFailed(orderId)
-
-		// 4. Increment voucher usage if applied
-		if (order.voucherId) {
-			await this.deps.voucherService.incrementUsage(order.voucherId)
-		}
-
-		// 5. Update table status to available
-		if (order.tableId) {
-			await this.deps.tableService.updateStatus(order.tableId, 'available')
-		}
-
-		// 6. Invalidate cache
-		await this.cache.invalidateStandard(orderId)
-
-		// 7. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			locationId: order.locationId,
-			module: 'pos-order',
-			entity: 'order',
-			entityId: orderId,
-			action: 'update',
-			summary: `Completed order #${orderId} (${order.orderNo})`,
-			oldValues: { status: 'open' },
-			newValues: { status: 'completed' },
-		})
-
-		// 8. Deduct inventory stock via recipe (fire-and-forget)
-		const orderLines = await this.repo.findLinesByOrderId(orderId)
-		deductStockForOrder(orderId, order.locationId, orderLines, actorId, {
-			recipeService: this.deps.recipeService,
-			stockService: this.deps.stockService,
-			uomService: this.deps.uomService,
-			materialService: this.deps.materialService,
-		}).catch((err) => {
-			console.warn(
-				`[pos:deduction] Unexpected error during stock deduction for order #${orderId}:`,
-				err,
-			)
-		})
-
-		return result
 	}
 
 	// ─── Void ───

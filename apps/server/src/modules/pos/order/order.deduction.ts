@@ -1,3 +1,4 @@
+import { record } from '@/infra/otel/otel.ts'
 import { type Decimal, roundQty, safeDivide, toDecimal } from '@/shared/utils/money.ts'
 
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
@@ -36,26 +37,28 @@ export async function deductStockForOrder(
 	actorId: number,
 	deps: DeductionDeps,
 ): Promise<void> {
-	const { recipeService, stockService, uomService, materialService } = deps
+	return record('order.deductStock', async () => {
+		const { recipeService, stockService, uomService, materialService } = deps
 
-	// Pre-fetch all UoM conversions (single query, reused across lines)
-	const conversions = await uomService.getAllConversions()
+		// Pre-fetch all UoM conversions (single query, reused across lines)
+		const conversions = await uomService.getAllConversions()
 
-	for (const line of orderLines) {
-		try {
-			await deductForOrderLine(orderId, locationId, line, actorId, {
-				recipeService,
-				stockService,
-				materialService,
-				conversions,
-			})
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : String(err)
-			console.warn(
-				`[pos:deduction] Deduction failed for menuItemId=${line.menuItemId} in order #${orderId}: ${errorMessage}`,
-			)
+		for (const line of orderLines) {
+			try {
+				await deductForOrderLine(orderId, locationId, line, actorId, {
+					recipeService,
+					stockService,
+					materialService,
+					conversions,
+				})
+			} catch (err) {
+				const errorMessage = err instanceof Error ? err.message : String(err)
+				console.warn(
+					`[pos:deduction] Deduction failed for menuItemId=${line.menuItemId} in order #${orderId}: ${errorMessage}`,
+				)
+			}
 		}
-	}
+	})
 }
 
 // ─── Per-Line Deduction ───

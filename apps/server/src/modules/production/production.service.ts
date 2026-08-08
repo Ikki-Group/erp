@@ -3,6 +3,7 @@ import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { withTransaction } from '@/infra/database/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
+import { record } from '@/infra/otel/otel.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
@@ -304,59 +305,92 @@ export class ProductionService {
 	}
 
 	async handleOrderConfirm(data: ProductionOrderConfirmDto, actorId: ActorId): Promise<EntityRef> {
-		// 1. Get order and validate status
-		const order = assertFound(await this.repo.findOrderById(data.orderId), () =>
-			ProductionError.orderNotFound(data.orderId),
-		)
+		return record('production.confirm', async () => {
+			// 1. Get order and validate status
+			const order = assertFound(await this.repo.findOrderById(data.orderId), () =>
+				ProductionError.orderNotFound(data.orderId),
+			)
 
-		if (order.status === 'completed') {
-			throw ProductionError.alreadyConfirmed(data.orderId)
-		}
-		if (order.status !== 'draft') {
-			throw ProductionError.notDraft(data.orderId)
-		}
+			if (order.status === 'completed') {
+				throw ProductionError.alreadyConfirmed(data.orderId)
+			}
+			if (order.status !== 'draft') {
+				throw ProductionError.notDraft(data.orderId)
+			}
 
-		// 2. Get recipe with lines
-		const recipe = assertFound(await this.repo.findRecipeDetailById(order.recipeId), () =>
-			ProductionError.recipeNotFound(order.recipeId),
-		)
+			// 2. Get recipe with lines
+			const recipe = assertFound(await this.repo.findRecipeDetailById(order.recipeId), () =>
+				ProductionError.recipeNotFound(order.recipeId),
+			)
 
-		// 3. Calculate multiplier from order
-		const multiplier = safeDivide(toDecimal(order.plannedQty), toDecimal(recipe.yieldQty))
+			// 3. Calculate multiplier from order
+			const multiplier = safeDivide(toDecimal(order.plannedQty), toDecimal(recipe.yieldQty))
 
-		// 4. Process within transaction
-		const result = await withTransaction(this.repo.db, async (tx) => {
-			let totalInputCost = toDecimal(0)
+			// 4. Process within transaction
+			const result = await withTransaction(this.repo.db, async (tx) => {
+				let totalInputCost = toDecimal(0)
 
-			// 4a. For each input line: convert to base UoM, get cost, record movement out
-			for (const line of recipe.lines) {
-				const material = await this.deps.materialService.handleGetById(line.materialId)
-				const requiredQty = roundQty(toDecimal(line.quantity).mul(multiplier))
+				// 4a. For each input line: convert to base UoM, get cost, record movement out
+				for (const line of recipe.lines) {
+					const material = await this.deps.materialService.handleGetById(line.materialId)
+					const requiredQty = roundQty(toDecimal(line.quantity).mul(multiplier))
 
-				// Convert to base UoM
-				const baseConversion = await this.#resolveConversion(
-					line.uomId,
-					material.baseUomId,
-					requiredQty,
-				)
-				const baseQty = baseConversion.result
+					// Convert to base UoM
+					const baseConversion = await this.#resolveConversion(
+						line.uomId,
+						material.baseUomId,
+						requiredQty,
+					)
+					const baseQty = baseConversion.result
 
-				// Get current cost price BEFORE deduction (cost unchanged on outbound)
-				const balance = await this.deps.stockService.handleGetBalance({
-					materialId: line.materialId,
-					locationId: order.locationId,
-				})
-				const costPrice = toDecimal(balance.costPrice)
-				totalInputCost = totalInputCost.add(toDecimal(baseQty).mul(costPrice))
-
-				// Record outbound movement (stockService handles insufficient stock check)
-				await this.deps.stockService.recordMovement(
-					{
+					// Get current cost price BEFORE deduction (cost unchanged on outbound)
+					const balance = await this.deps.stockService.handleGetBalance({
 						materialId: line.materialId,
 						locationId: order.locationId,
-						type: 'production_out',
-						direction: 'out',
-						qty: baseQty,
+					})
+					const costPrice = toDecimal(balance.costPrice)
+					totalInputCost = totalInputCost.add(toDecimal(baseQty).mul(costPrice))
+
+					// Record outbound movement (stockService handles insufficient stock check)
+					await this.deps.stockService.recordMovement(
+						{
+							materialId: line.materialId,
+							locationId: order.locationId,
+							type: 'production_out',
+							direction: 'out',
+							qty: baseQty,
+							referenceType: 'production_order',
+							referenceId: order.id,
+							notes: `Production: ${order.productionNo}`,
+							actorId,
+						},
+						tx,
+					)
+				}
+
+				// 4b. Calculate output unit cost (absorbed costing)
+				const outputMaterial = await this.deps.materialService.handleGetById(recipe.materialId)
+
+				// Convert yield to base UoM if needed
+				const yieldConversion = await this.#resolveConversion(
+					recipe.yieldUomId,
+					outputMaterial.baseUomId,
+					order.plannedQty,
+				)
+				const baseOutputQty = yieldConversion.result
+				const outputUnitCost = toDecimal(baseOutputQty).isZero()
+					? '0'
+					: roundCost(safeDivide(totalInputCost, toDecimal(baseOutputQty)))
+
+				// 4c. Record inbound movement for output
+				await this.deps.stockService.recordMovement(
+					{
+						materialId: recipe.materialId,
+						locationId: order.locationId,
+						type: 'production_in',
+						direction: 'in',
+						qty: baseOutputQty,
+						unitCost: outputUnitCost,
 						referenceType: 'production_order',
 						referenceId: order.id,
 						notes: `Production: ${order.productionNo}`,
@@ -364,71 +398,40 @@ export class ProductionService {
 					},
 					tx,
 				)
-			}
 
-			// 4b. Calculate output unit cost (absorbed costing)
-			const outputMaterial = await this.deps.materialService.handleGetById(recipe.materialId)
+				// 4d. Update order status
+				const updated = await this.repo.updateOrder(
+					order.id,
+					{
+						status: 'completed',
+						actualQty: baseOutputQty,
+						completedAt: new Date(),
+						...stampUpdate(actorId),
+					},
+					tx,
+				)
+				if (!updated) throw ProductionError.orderNotFound(order.id)
 
-			// Convert yield to base UoM if needed
-			const yieldConversion = await this.#resolveConversion(
-				recipe.yieldUomId,
-				outputMaterial.baseUomId,
-				order.plannedQty,
-			)
-			const baseOutputQty = yieldConversion.result
-			const outputUnitCost = toDecimal(baseOutputQty).isZero()
-				? '0'
-				: roundCost(safeDivide(totalInputCost, toDecimal(baseOutputQty)))
+				return updated
+			})
 
-			// 4c. Record inbound movement for output
-			await this.deps.stockService.recordMovement(
-				{
-					materialId: recipe.materialId,
-					locationId: order.locationId,
-					type: 'production_in',
-					direction: 'in',
-					qty: baseOutputQty,
-					unitCost: outputUnitCost,
-					referenceType: 'production_order',
-					referenceId: order.id,
-					notes: `Production: ${order.productionNo}`,
-					actorId,
-				},
-				tx,
-			)
+			// 5. Invalidate cache
+			await this.cache.invalidateStandard()
 
-			// 4d. Update order status
-			const updated = await this.repo.updateOrder(
-				order.id,
-				{
-					status: 'completed',
-					actualQty: baseOutputQty,
-					completedAt: new Date(),
-					...stampUpdate(actorId),
-				},
-				tx,
-			)
-			if (!updated) throw ProductionError.orderNotFound(order.id)
+			// 6. Audit log
+			auditLog.record({
+				userId: actorId,
+				userName: '',
+				module: 'production',
+				entity: 'order',
+				entityId: order.id,
+				action: 'update',
+				summary: `Confirmed production order ${order.productionNo} (${recipe.lines.length} inputs)`,
+				newValues: { status: 'completed', lineCount: recipe.lines.length },
+			})
 
-			return updated
+			return result
 		})
-
-		// 5. Invalidate cache
-		await this.cache.invalidateStandard()
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'production',
-			entity: 'order',
-			entityId: order.id,
-			action: 'update',
-			summary: `Confirmed production order ${order.productionNo} (${recipe.lines.length} inputs)`,
-			newValues: { status: 'completed', lineCount: recipe.lines.length },
-		})
-
-		return result
 	}
 
 	// ─── Private ───

@@ -3,6 +3,7 @@ import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { withTransaction } from '@/infra/database/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
+import { record } from '@/infra/otel/otel.ts'
 import { stampCreate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
@@ -135,144 +136,148 @@ export class TransferService {
 	}
 
 	async handleShip(data: TransferShipDto, actorId: ActorId): Promise<EntityRef> {
-		// 1. Get transfer and validate status
-		const transfer = assertFound(await this.repo.findById(data.transferId), () =>
-			TransferError.notFound(data.transferId),
-		)
+		return record('transfer.ship', async () => {
+			// 1. Get transfer and validate status
+			const transfer = assertFound(await this.repo.findById(data.transferId), () =>
+				TransferError.notFound(data.transferId),
+			)
 
-		if (transfer.status !== 'requested') {
-			throw TransferError.notRequested(data.transferId)
-		}
+			if (transfer.status !== 'requested') {
+				throw TransferError.notRequested(data.transferId)
+			}
 
-		// 2. Get lines
-		const lines = await this.repo.findLinesByTransferId(data.transferId)
+			// 2. Get lines
+			const lines = await this.repo.findLinesByTransferId(data.transferId)
 
-		// 3. Deduct stock at source for each line
-		for (const line of lines) {
-			await this.deps.stockService.recordMovement({
-				materialId: line.materialId,
-				locationId: transfer.fromLocationId,
-				type: 'transfer_out',
-				direction: 'out',
-				qty: line.requestedQty,
-				referenceType: 'transfer_request',
-				referenceId: data.transferId,
-				notes: `Transfer out: ${transfer.transferNo}`,
-				actorId,
+			// 3. Deduct stock at source for each line
+			for (const line of lines) {
+				await this.deps.stockService.recordMovement({
+					materialId: line.materialId,
+					locationId: transfer.fromLocationId,
+					type: 'transfer_out',
+					direction: 'out',
+					qty: line.requestedQty,
+					referenceType: 'transfer_request',
+					referenceId: data.transferId,
+					notes: `Transfer out: ${transfer.transferNo}`,
+					actorId,
+				})
+			}
+
+			// 4. Update status + set shipped qty
+			await this.repo.updateLineShippedQty(data.transferId)
+			const result = await this.repo.updateStatus(data.transferId, 'in_transit', actorId)
+			if (!result) throw TransferError.notFound(data.transferId)
+
+			// 5. Invalidate cache
+			await this.cache.invalidateStandard()
+
+			// 6. Audit log
+			auditLog.record({
+				userId: actorId,
+				userName: '',
+				module: 'inventory',
+				entity: 'transfer_request',
+				entityId: data.transferId,
+				action: 'update',
+				summary: `Shipped transfer ${transfer.transferNo}`,
+				newValues: { status: 'in_transit' },
 			})
-		}
 
-		// 4. Update status + set shipped qty
-		await this.repo.updateLineShippedQty(data.transferId)
-		const result = await this.repo.updateStatus(data.transferId, 'in_transit', actorId)
-		if (!result) throw TransferError.notFound(data.transferId)
-
-		// 5. Invalidate cache
-		await this.cache.invalidateStandard()
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'inventory',
-			entity: 'transfer_request',
-			entityId: data.transferId,
-			action: 'update',
-			summary: `Shipped transfer ${transfer.transferNo}`,
-			newValues: { status: 'in_transit' },
+			return result
 		})
-
-		return result
 	}
 
 	async handleReceive(data: TransferReceiveDto, actorId: ActorId): Promise<EntityRef> {
-		// 1. Get transfer and validate status
-		const transfer = assertFound(await this.repo.findById(data.transferId), () =>
-			TransferError.notFound(data.transferId),
-		)
-
-		if (transfer.status === 'received') {
-			throw TransferError.alreadyReceived(data.transferId)
-		}
-		if (transfer.status !== 'in_transit') {
-			throw TransferError.notInTransit(data.transferId)
-		}
-
-		// 2. Get existing lines
-		const existingLines = await this.repo.findLinesByTransferId(data.transferId)
-
-		// 3. Validate and process each receive line
-		for (const receiveLine of data.lines) {
-			const transferLine = existingLines.find((l) => l.materialId === receiveLine.materialId)
-			if (!transferLine) {
-				throw TransferError.lineMaterialMismatch(receiveLine.materialId)
-			}
-
-			// Validate received qty does not exceed requested
-			const requestedQty = toDecimal(transferLine.requestedQty)
-			const alreadyReceived = toDecimal(transferLine.receivedQty ?? '0')
-			const newReceived = toDecimal(receiveLine.receivedQty)
-
-			if (alreadyReceived.add(newReceived).gt(requestedQty)) {
-				throw TransferError.receivedExceedsRequested(
-					receiveLine.materialId,
-					alreadyReceived.add(newReceived).toString(),
-					transferLine.requestedQty,
-				)
-			}
-
-			// Get source cost price for weighted avg at destination
-			const sourceCostPrice = await this.#getSourceCostPrice(
-				transferLine.materialId,
-				transfer.fromLocationId,
+		return record('transfer.receive', async () => {
+			// 1. Get transfer and validate status
+			const transfer = assertFound(await this.repo.findById(data.transferId), () =>
+				TransferError.notFound(data.transferId),
 			)
 
-			// Record movement at destination
-			await this.deps.stockService.recordMovement({
-				materialId: receiveLine.materialId,
-				locationId: transfer.toLocationId,
-				type: 'transfer_in',
-				direction: 'in',
-				qty: receiveLine.receivedQty,
-				unitCost: sourceCostPrice,
-				referenceType: 'transfer_request',
-				referenceId: data.transferId,
-				notes: `Transfer in: ${transfer.transferNo}`,
-				actorId,
+			if (transfer.status === 'received') {
+				throw TransferError.alreadyReceived(data.transferId)
+			}
+			if (transfer.status !== 'in_transit') {
+				throw TransferError.notInTransit(data.transferId)
+			}
+
+			// 2. Get existing lines
+			const existingLines = await this.repo.findLinesByTransferId(data.transferId)
+
+			// 3. Validate and process each receive line
+			for (const receiveLine of data.lines) {
+				const transferLine = existingLines.find((l) => l.materialId === receiveLine.materialId)
+				if (!transferLine) {
+					throw TransferError.lineMaterialMismatch(receiveLine.materialId)
+				}
+
+				// Validate received qty does not exceed requested
+				const requestedQty = toDecimal(transferLine.requestedQty)
+				const alreadyReceived = toDecimal(transferLine.receivedQty ?? '0')
+				const newReceived = toDecimal(receiveLine.receivedQty)
+
+				if (alreadyReceived.add(newReceived).gt(requestedQty)) {
+					throw TransferError.receivedExceedsRequested(
+						receiveLine.materialId,
+						alreadyReceived.add(newReceived).toString(),
+						transferLine.requestedQty,
+					)
+				}
+
+				// Get source cost price for weighted avg at destination
+				const sourceCostPrice = await this.#getSourceCostPrice(
+					transferLine.materialId,
+					transfer.fromLocationId,
+				)
+
+				// Record movement at destination
+				await this.deps.stockService.recordMovement({
+					materialId: receiveLine.materialId,
+					locationId: transfer.toLocationId,
+					type: 'transfer_in',
+					direction: 'in',
+					qty: receiveLine.receivedQty,
+					unitCost: sourceCostPrice,
+					referenceType: 'transfer_request',
+					referenceId: data.transferId,
+					notes: `Transfer in: ${transfer.transferNo}`,
+					actorId,
+				})
+
+				// Update line received qty
+				const totalReceived = roundQty(alreadyReceived.add(newReceived))
+				await this.repo.updateLineReceivedQty(transferLine.id, totalReceived)
+			}
+
+			// 4. Determine final status: received if all lines fully received
+			const updatedLines = await this.repo.findLinesByTransferId(data.transferId)
+			const allFullyReceived = updatedLines.every((l) =>
+				toDecimal(l.receivedQty ?? '0').gte(toDecimal(l.requestedQty)),
+			)
+			const newStatus = allFullyReceived ? 'received' : 'in_transit'
+
+			// 5. Update status
+			const result = await this.repo.updateStatus(data.transferId, newStatus, actorId)
+			if (!result) throw TransferError.notFound(data.transferId)
+
+			// 6. Invalidate cache
+			await this.cache.invalidateStandard()
+
+			// 7. Audit log
+			auditLog.record({
+				userId: actorId,
+				userName: '',
+				module: 'inventory',
+				entity: 'transfer_request',
+				entityId: data.transferId,
+				action: 'update',
+				summary: `Received transfer ${transfer.transferNo} (${newStatus})`,
+				newValues: { status: newStatus, receivedLines: data.lines.length },
 			})
 
-			// Update line received qty
-			const totalReceived = roundQty(alreadyReceived.add(newReceived))
-			await this.repo.updateLineReceivedQty(transferLine.id, totalReceived)
-		}
-
-		// 4. Determine final status: received if all lines fully received
-		const updatedLines = await this.repo.findLinesByTransferId(data.transferId)
-		const allFullyReceived = updatedLines.every((l) =>
-			toDecimal(l.receivedQty ?? '0').gte(toDecimal(l.requestedQty)),
-		)
-		const newStatus = allFullyReceived ? 'received' : 'in_transit'
-
-		// 5. Update status
-		const result = await this.repo.updateStatus(data.transferId, newStatus, actorId)
-		if (!result) throw TransferError.notFound(data.transferId)
-
-		// 6. Invalidate cache
-		await this.cache.invalidateStandard()
-
-		// 7. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'inventory',
-			entity: 'transfer_request',
-			entityId: data.transferId,
-			action: 'update',
-			summary: `Received transfer ${transfer.transferNo} (${newStatus})`,
-			newValues: { status: newStatus, receivedLines: data.lines.length },
+			return result
 		})
-
-		return result
 	}
 
 	async handleList(filter: TransferFilterDto): Promise<WithPaginationResult<TransferDto>> {

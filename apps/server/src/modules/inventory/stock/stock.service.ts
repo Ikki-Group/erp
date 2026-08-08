@@ -1,6 +1,7 @@
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import { record } from '@/infra/otel/otel.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import { roundCost, roundQty, toDecimal, weightedAvgCost } from '@/shared/utils/money.ts'
@@ -38,84 +39,86 @@ export class StockService {
 	// ─── Core Engine (called by other modules) ───
 
 	async recordMovement(input: RecordMovementInput, db?: DbContext): Promise<EntityRef> {
-		const {
-			materialId,
-			locationId,
-			type,
-			direction,
-			qty,
-			unitCost,
-			referenceType,
-			referenceId,
-			notes,
-			actorId,
-		} = input
-		const dbCtx = db ?? this.repo.db
-
-		// 1. Validate material is assigned to location
-		const assigned = await this.assignmentService.isAssigned(materialId, locationId)
-		if (!assigned) {
-			throw StockError.materialNotAssigned(materialId, locationId)
-		}
-
-		// 2. Get current balance (default zeros if first movement)
-		const current = await this.repo.findBalance(materialId, locationId, dbCtx)
-		const oldQty = toDecimal(current?.quantity ?? '0')
-		const oldCost = toDecimal(current?.costPrice ?? '0')
-		const moveQty = toDecimal(qty)
-
-		// 3. Compute new balance using Decimal for precision
-		let newQty = oldQty
-		let newCost = oldCost
-
-		if (direction === 'in') {
-			newQty = oldQty.add(moveQty)
-			// Weighted average cost recalculation on inbound
-			if (unitCost && !newQty.isZero()) {
-				const moveCost = toDecimal(unitCost)
-				newCost = weightedAvgCost(oldQty, oldCost, moveQty, moveCost)
-			}
-		} else {
-			// direction === 'out'
-			if (oldQty.lt(moveQty)) {
-				throw StockError.insufficientStock(materialId, locationId, oldQty.toString(), qty)
-			}
-			newQty = oldQty.sub(moveQty)
-			// cost unchanged on outbound
-		}
-
-		// 4. Upsert balance
-		await this.repo.upsertBalance(
-			materialId,
-			locationId,
-			roundQty(newQty),
-			roundCost(newCost),
-			dbCtx,
-		)
-
-		// 5. Insert movement
-		const movementResult = await this.repo.insertMovement(
-			{
+		return record('stock.recordMovement', async () => {
+			const {
 				materialId,
 				locationId,
 				type,
 				direction,
-				quantity: qty,
-				costPrice: roundCost(newCost),
-				referenceType: referenceType ?? null,
-				referenceId: referenceId ?? null,
-				notes: notes ?? null,
-				createdBy: actorId,
-			},
-			dbCtx,
-		)
-		if (!movementResult) throw StockError.movementFailed()
+				qty,
+				unitCost,
+				referenceType,
+				referenceId,
+				notes,
+				actorId,
+			} = input
+			const dbCtx = db ?? this.repo.db
 
-		// 6. Invalidate cache
-		await this.cache.invalidateStandard()
-		await this.cache.deleteFromKeys([this.#balanceCacheKey(materialId, locationId)])
+			// 1. Validate material is assigned to location
+			const assigned = await this.assignmentService.isAssigned(materialId, locationId)
+			if (!assigned) {
+				throw StockError.materialNotAssigned(materialId, locationId)
+			}
 
-		return movementResult
+			// 2. Get current balance (default zeros if first movement)
+			const current = await this.repo.findBalance(materialId, locationId, dbCtx)
+			const oldQty = toDecimal(current?.quantity ?? '0')
+			const oldCost = toDecimal(current?.costPrice ?? '0')
+			const moveQty = toDecimal(qty)
+
+			// 3. Compute new balance using Decimal for precision
+			let newQty = oldQty
+			let newCost = oldCost
+
+			if (direction === 'in') {
+				newQty = oldQty.add(moveQty)
+				// Weighted average cost recalculation on inbound
+				if (unitCost && !newQty.isZero()) {
+					const moveCost = toDecimal(unitCost)
+					newCost = weightedAvgCost(oldQty, oldCost, moveQty, moveCost)
+				}
+			} else {
+				// direction === 'out'
+				if (oldQty.lt(moveQty)) {
+					throw StockError.insufficientStock(materialId, locationId, oldQty.toString(), qty)
+				}
+				newQty = oldQty.sub(moveQty)
+				// cost unchanged on outbound
+			}
+
+			// 4. Upsert balance
+			await this.repo.upsertBalance(
+				materialId,
+				locationId,
+				roundQty(newQty),
+				roundCost(newCost),
+				dbCtx,
+			)
+
+			// 5. Insert movement
+			const movementResult = await this.repo.insertMovement(
+				{
+					materialId,
+					locationId,
+					type,
+					direction,
+					quantity: qty,
+					costPrice: roundCost(newCost),
+					referenceType: referenceType ?? null,
+					referenceId: referenceId ?? null,
+					notes: notes ?? null,
+					createdBy: actorId,
+				},
+				dbCtx,
+			)
+			if (!movementResult) throw StockError.movementFailed()
+
+			// 6. Invalidate cache
+			await this.cache.invalidateStandard()
+			await this.cache.deleteFromKeys([this.#balanceCacheKey(materialId, locationId)])
+
+			return movementResult
+		})
 	}
 
 	// ─── Read Handlers (route-facing) ───

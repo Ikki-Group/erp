@@ -3,6 +3,7 @@ import { Elysia } from 'elysia'
 
 import { cache } from './infra/cache/index.ts'
 import { db } from './infra/database/index.ts'
+import { otelPlugin } from './infra/otel/otel.ts'
 import { sessionStore } from './infra/session/index.ts'
 import { createAuditModule } from './modules/audit/index.ts'
 import { createAuthModule } from './modules/auth/index.ts'
@@ -79,8 +80,10 @@ const auth = createAuthModule({
 
 // ─── App ───
 
-export const app = new Elysia()
-	.use(cors())
+const base = new Elysia().use(cors())
+if (otelPlugin) base.use(otelPlugin)
+
+export const app = base
 	.use(errorPlugin)
 	.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))
 	.use(auth.route)

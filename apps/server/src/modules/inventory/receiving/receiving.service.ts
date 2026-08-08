@@ -3,6 +3,7 @@ import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { withTransaction } from '@/infra/database/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
+import { record } from '@/infra/otel/otel.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
@@ -216,72 +217,74 @@ export class ReceivingService {
 	}
 
 	async handleConfirm(data: ReceivingConfirmDto, actorId: ActorId): Promise<EntityRef> {
-		// 1. Get receiving and validate status
-		const receiving = assertFound(await this.repo.findById(data.receivingId), () =>
-			ReceivingError.notFound(data.receivingId),
-		)
-
-		if (receiving.status === 'confirmed') {
-			throw ReceivingError.alreadyConfirmed(data.receivingId)
-		}
-		if (receiving.status !== 'draft') {
-			throw ReceivingError.notDraft(data.receivingId)
-		}
-
-		// 2. Get lines
-		const lines = await this.repo.findLinesByReceivingId(data.receivingId)
-
-		// 3. For each line: convert UoM, record stock movement
-		for (const line of lines) {
-			const material = await this.deps.materialService.handleGetById(line.materialId)
-			const conversion = await this.#resolveConversion(
-				line.uomId,
-				material.baseUomId,
-				line.quantity,
+		return record('receiving.confirm', async () => {
+			// 1. Get receiving and validate status
+			const receiving = assertFound(await this.repo.findById(data.receivingId), () =>
+				ReceivingError.notFound(data.receivingId),
 			)
 
-			// baseQty = line.qty × conversionFactor
-			const baseQty = conversion.result
-			// baseUnitCost = line.unitCost / conversionFactor (proportional) — use Decimal for precision
-			const conversionFactor = safeDivide(toDecimal(baseQty), toDecimal(line.quantity))
-			const baseUnitCost = conversionFactor.isZero()
-				? '0'
-				: roundCost(safeDivide(toDecimal(line.unitCost), conversionFactor))
+			if (receiving.status === 'confirmed') {
+				throw ReceivingError.alreadyConfirmed(data.receivingId)
+			}
+			if (receiving.status !== 'draft') {
+				throw ReceivingError.notDraft(data.receivingId)
+			}
 
-			await this.deps.stockService.recordMovement({
-				materialId: line.materialId,
-				locationId: receiving.locationId,
-				type: 'receiving',
-				direction: 'in',
-				qty: baseQty,
-				unitCost: baseUnitCost,
-				referenceType: 'receiving',
-				referenceId: data.receivingId,
-				notes: `Receiving: ${receiving.receivingNo}`,
-				actorId,
+			// 2. Get lines
+			const lines = await this.repo.findLinesByReceivingId(data.receivingId)
+
+			// 3. For each line: convert UoM, record stock movement
+			for (const line of lines) {
+				const material = await this.deps.materialService.handleGetById(line.materialId)
+				const conversion = await this.#resolveConversion(
+					line.uomId,
+					material.baseUomId,
+					line.quantity,
+				)
+
+				// baseQty = line.qty × conversionFactor
+				const baseQty = conversion.result
+				// baseUnitCost = line.unitCost / conversionFactor (proportional) — use Decimal for precision
+				const conversionFactor = safeDivide(toDecimal(baseQty), toDecimal(line.quantity))
+				const baseUnitCost = conversionFactor.isZero()
+					? '0'
+					: roundCost(safeDivide(toDecimal(line.unitCost), conversionFactor))
+
+				await this.deps.stockService.recordMovement({
+					materialId: line.materialId,
+					locationId: receiving.locationId,
+					type: 'receiving',
+					direction: 'in',
+					qty: baseQty,
+					unitCost: baseUnitCost,
+					referenceType: 'receiving',
+					referenceId: data.receivingId,
+					notes: `Receiving: ${receiving.receivingNo}`,
+					actorId,
+				})
+			}
+
+			// 4. Update status to confirmed
+			const result = await this.repo.updateStatus(data.receivingId, 'confirmed', actorId)
+			if (!result) throw ReceivingError.notFound(data.receivingId)
+
+			// 5. Invalidate cache
+			await this.cache.invalidateStandard()
+
+			// 6. Audit log
+			auditLog.record({
+				userId: actorId,
+				userName: '',
+				module: 'inventory',
+				entity: 'receiving',
+				entityId: data.receivingId,
+				action: 'update',
+				summary: `Confirmed receiving ${receiving.receivingNo} (${lines.length} lines)`,
+				newValues: { status: 'confirmed', lineCount: lines.length },
 			})
-		}
 
-		// 4. Update status to confirmed
-		const result = await this.repo.updateStatus(data.receivingId, 'confirmed', actorId)
-		if (!result) throw ReceivingError.notFound(data.receivingId)
-
-		// 5. Invalidate cache
-		await this.cache.invalidateStandard()
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'inventory',
-			entity: 'receiving',
-			entityId: data.receivingId,
-			action: 'update',
-			summary: `Confirmed receiving ${receiving.receivingNo} (${lines.length} lines)`,
-			newValues: { status: 'confirmed', lineCount: lines.length },
+			return result
 		})
-
-		return result
 	}
 
 	async handleList(filter: ReceivingFilterDto): Promise<WithPaginationResult<ReceivingDto>> {
