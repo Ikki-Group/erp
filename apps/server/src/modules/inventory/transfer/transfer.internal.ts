@@ -31,7 +31,12 @@ export const TransferError = {
 			code: 'TRANSFER_ALREADY_RECEIVED',
 			context: { id },
 		}),
-	insufficientStock: (materialId: number, locationId: number, available: string, requested: string) =>
+	insufficientStock: (
+		materialId: number,
+		locationId: number,
+		available: string,
+		requested: string,
+	) =>
 		new BadRequestError('Insufficient stock at source location', {
 			code: 'TRANSFER_INSUFFICIENT_STOCK',
 			context: { materialId, locationId, available, requested },

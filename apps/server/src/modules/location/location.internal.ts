@@ -1,4 +1,5 @@
 import { locations } from '@/db/schema/core.ts'
+
 import { defineConflictFields } from '@/infra/database/index.ts'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 

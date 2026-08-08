@@ -5,7 +5,6 @@ import { res } from '@/shared/http/response.ts'
 import { zq } from '@/shared/schema/index.ts'
 
 import { TableCreateDto, TableFilterDto, TableUpdateDto } from './table.contract.ts'
-
 import type { TableService } from './table.service.ts'
 
 // ─── Route Factory ───

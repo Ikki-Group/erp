@@ -27,7 +27,11 @@ function toDto(row: AssignmentRow): MaterialLocationDto {
 
 export interface IAssignmentRepo {
 	readonly db: DbContext
-	findOne(materialId: number, locationId: number, db?: DbContext): Promise<MaterialLocationDto | undefined>
+	findOne(
+		materialId: number,
+		locationId: number,
+		db?: DbContext,
+	): Promise<MaterialLocationDto | undefined>
 	findByMaterialId(materialId: number, db?: DbContext): Promise<MaterialLocationDto[]>
 	findByLocationId(locationId: number, db?: DbContext): Promise<MaterialLocationDto[]>
 	insert(data: AssignmentInsert, db?: DbContext): Promise<EntityRef | undefined>
@@ -47,16 +51,21 @@ export class AssignmentRepo implements IAssignmentRepo {
 		const row = await db
 			.select()
 			.from(materialLocations)
-			.where(and(
-				eq(materialLocations.materialId, materialId),
-				eq(materialLocations.locationId, locationId),
-			))
+			.where(
+				and(
+					eq(materialLocations.materialId, materialId),
+					eq(materialLocations.locationId, locationId),
+				),
+			)
 			.limit(1)
 			.then(takeFirst)
 		return row ? toDto(row) : undefined
 	}
 
-	async findByMaterialId(materialId: number, db: DbContext = this.db): Promise<MaterialLocationDto[]> {
+	async findByMaterialId(
+		materialId: number,
+		db: DbContext = this.db,
+	): Promise<MaterialLocationDto[]> {
 		const rows = await db
 			.select()
 			.from(materialLocations)
@@ -64,7 +73,10 @@ export class AssignmentRepo implements IAssignmentRepo {
 		return rows.map(toDto)
 	}
 
-	async findByLocationId(locationId: number, db: DbContext = this.db): Promise<MaterialLocationDto[]> {
+	async findByLocationId(
+		locationId: number,
+		db: DbContext = this.db,
+	): Promise<MaterialLocationDto[]> {
 		const rows = await db
 			.select()
 			.from(materialLocations)
@@ -87,10 +99,12 @@ export class AssignmentRepo implements IAssignmentRepo {
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.delete(materialLocations)
-			.where(and(
-				eq(materialLocations.materialId, materialId),
-				eq(materialLocations.locationId, locationId),
-			))
+			.where(
+				and(
+					eq(materialLocations.materialId, materialId),
+					eq(materialLocations.locationId, locationId),
+				),
+			)
 			.returning({ id: materialLocations.id })
 		return result
 	}

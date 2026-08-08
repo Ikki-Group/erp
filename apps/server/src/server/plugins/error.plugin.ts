@@ -1,4 +1,5 @@
 import { Elysia } from 'elysia'
+
 import { HttpError } from '@/shared/errors/http-error.ts'
 
 export const errorPlugin = new Elysia({ name: 'error-plugin' }).onError(({ error, set }) => {

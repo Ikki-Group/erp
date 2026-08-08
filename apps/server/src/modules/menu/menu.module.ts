@@ -35,11 +35,29 @@ export function createMenuModule(db: DbContext, cacheClient: CacheClient, _deps:
 	const categoryService = new CategoryService(categoryRepo, cacheClient)
 	const modifierService = new ModifierService(modifierRepo, cacheClient)
 	const itemService = new ItemService(itemRepo, cacheClient, categoryService)
-	const assignmentService = new AssignmentService(assignmentRepo, cacheClient, itemService, modifierService)
+	const assignmentService = new AssignmentService(
+		assignmentRepo,
+		cacheClient,
+		itemService,
+		modifierService,
+	)
 	const composedService = new ComposedService(composedRepo, cacheClient)
 
 	// Route
-	const route = createMenuRoute(categoryService, itemService, modifierService, assignmentService, composedService)
+	const route = createMenuRoute(
+		categoryService,
+		itemService,
+		modifierService,
+		assignmentService,
+		composedService,
+	)
 
-	return { route, categoryService, itemService, modifierService, assignmentService, composedService }
+	return {
+		route,
+		categoryService,
+		itemService,
+		modifierService,
+		assignmentService,
+		composedService,
+	}
 }

@@ -79,12 +79,7 @@ export class UomRepo implements IUomRepo {
 	// ─── UoM ───
 
 	async findById(id: number, db: DbContext = this.db): Promise<UomDto | undefined> {
-		const row = await db
-			.select()
-			.from(uoms)
-			.where(eq(uoms.id, id))
-			.limit(1)
-			.then(takeFirst)
+		const row = await db.select().from(uoms).where(eq(uoms.id, id)).limit(1).then(takeFirst)
 		return row ? toDto(row) : undefined
 	}
 
@@ -150,10 +145,7 @@ export class UomRepo implements IUomRepo {
 	}
 
 	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
-		const [result] = await db
-			.delete(uoms)
-			.where(eq(uoms.id, id))
-			.returning({ id: uoms.id })
+		const [result] = await db.delete(uoms).where(eq(uoms.id, id)).returning({ id: uoms.id })
 		return result
 	}
 

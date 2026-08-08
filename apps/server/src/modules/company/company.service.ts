@@ -1,13 +1,17 @@
 import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import { requirePermission } from '@/shared/auth/index.ts'
 import type { AuthContext } from '@/shared/auth/index.ts'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
-import type { CompanySettingsCreateDto, CompanySettingsDto, CompanySettingsUpdateDto } from './company.contract.ts'
+import type {
+	CompanySettingsCreateDto,
+	CompanySettingsDto,
+	CompanySettingsUpdateDto,
+} from './company.contract.ts'
 import { CompanyError } from './company.internal.ts'
 import type { ICompanyRepo } from './company.repo.ts'
 

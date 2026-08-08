@@ -25,7 +25,11 @@ export interface IAssignmentRepo {
 	readonly db: DbContext
 	findByMenuItemId(menuItemId: number, db?: DbContext): Promise<MenuItemModifierDto[]>
 	findByMenuItemIds(menuItemIds: number[], db?: DbContext): Promise<MenuItemModifierDto[]>
-	replaceForItem(menuItemId: number, assignments: ModifierGroupAssignmentInput[], db?: DbContext): Promise<void>
+	replaceForItem(
+		menuItemId: number,
+		assignments: ModifierGroupAssignmentInput[],
+		db?: DbContext,
+	): Promise<void>
 }
 
 // ─── Implementation ───
@@ -33,7 +37,10 @@ export interface IAssignmentRepo {
 export class AssignmentRepo implements IAssignmentRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findByMenuItemId(menuItemId: number, db: DbContext = this.db): Promise<MenuItemModifierDto[]> {
+	async findByMenuItemId(
+		menuItemId: number,
+		db: DbContext = this.db,
+	): Promise<MenuItemModifierDto[]> {
 		const rows = await db
 			.select()
 			.from(menuItemModifiers)
@@ -42,7 +49,10 @@ export class AssignmentRepo implements IAssignmentRepo {
 		return rows.map(toDto)
 	}
 
-	async findByMenuItemIds(menuItemIds: number[], db: DbContext = this.db): Promise<MenuItemModifierDto[]> {
+	async findByMenuItemIds(
+		menuItemIds: number[],
+		db: DbContext = this.db,
+	): Promise<MenuItemModifierDto[]> {
 		if (menuItemIds.length === 0) return []
 		const rows = await db
 			.select()

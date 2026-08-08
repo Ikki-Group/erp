@@ -18,7 +18,12 @@ export const ProductionError = {
 			code: 'PRODUCTION_NOT_SEMI_FINISHED',
 			context: { materialId },
 		}),
-	insufficientStock: (materialId: number, locationId: number, available: string, required: string) =>
+	insufficientStock: (
+		materialId: number,
+		locationId: number,
+		available: string,
+		required: string,
+	) =>
 		new BadRequestError('Insufficient stock for production input', {
 			code: 'PRODUCTION_INSUFFICIENT_STOCK',
 			context: { materialId, locationId, available, required },

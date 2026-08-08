@@ -3,7 +3,12 @@ import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/er
 // ─── Error Factories ───
 
 export const StockError = {
-	insufficientStock: (materialId: number, locationId: number, available: string, requested: string) =>
+	insufficientStock: (
+		materialId: number,
+		locationId: number,
+		available: string,
+		requested: string,
+	) =>
 		new BadRequestError('Insufficient stock for this operation', {
 			code: 'STOCK_INSUFFICIENT',
 			context: { materialId, locationId, available, requested },

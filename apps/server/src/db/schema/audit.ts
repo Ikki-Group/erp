@@ -1,7 +1,8 @@
 import { pgTable, varchar, integer, jsonb, timestamp, index } from 'drizzle-orm/pg-core'
+
 import { pk } from './_helpers.ts'
-import { users } from './iam.ts'
 import { locations } from './core.ts'
+import { users } from './iam.ts'
 
 // ─── Audit Logs ───
 
@@ -10,7 +11,9 @@ export const auditLogs = pgTable(
 	{
 		...pk,
 		timestamp: timestamp('timestamp', { withTimezone: true }).notNull().defaultNow(),
-		userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
 		userName: varchar('user_name', { length: 255 }).notNull(),
 		locationId: integer('location_id').references(() => locations.id, { onDelete: 'set null' }),
 		module: varchar('module', { length: 50 }).notNull(),

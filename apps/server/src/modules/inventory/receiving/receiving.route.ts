@@ -10,7 +10,6 @@ import {
 	ReceivingFilterDto,
 	ReceivingUpdateDto,
 } from './receiving.contract.ts'
-
 import type { ReceivingService } from './receiving.service.ts'
 
 // ─── Route Factory ───

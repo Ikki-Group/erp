@@ -234,7 +234,10 @@ export class OrderRepo implements IOrderRepo {
 		return rows.map(toPaymentDto)
 	}
 
-	async insertPayment(data: PaymentInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insertPayment(
+		data: PaymentInsert,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(payments).values(data).returning({ id: payments.id })
 		return result
 	}

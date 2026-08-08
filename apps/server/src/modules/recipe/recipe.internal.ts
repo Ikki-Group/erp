@@ -13,9 +13,15 @@ export const RecipeError = {
 	createFailed: () =>
 		new InternalServerError('Recipe creation failed', { code: 'RECIPE_CREATE_FAILED' }),
 	updateFailed: (id: number) =>
-		new InternalServerError('Recipe update failed', { code: 'RECIPE_UPDATE_FAILED', context: { id } }),
+		new InternalServerError('Recipe update failed', {
+			code: 'RECIPE_UPDATE_FAILED',
+			context: { id },
+		}),
 	deleteFailed: (id: number) =>
-		new InternalServerError('Recipe deletion failed', { code: 'RECIPE_DELETE_FAILED', context: { id } }),
+		new InternalServerError('Recipe deletion failed', {
+			code: 'RECIPE_DELETE_FAILED',
+			context: { id },
+		}),
 	deactivateFailed: (menuItemId: number) =>
 		new InternalServerError('Recipe deactivation failed', {
 			code: 'RECIPE_DEACTIVATE_FAILED',

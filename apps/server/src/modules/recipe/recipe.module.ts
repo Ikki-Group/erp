@@ -19,9 +19,19 @@ export interface RecipeModuleDeps {
 
 // ─── Module Factory ───
 
-export function createRecipeModule(db: DbContext, cacheClient: CacheClient, deps: RecipeModuleDeps) {
+export function createRecipeModule(
+	db: DbContext,
+	cacheClient: CacheClient,
+	deps: RecipeModuleDeps,
+) {
 	const repo = new RecipeRepo(db)
-	const service = new RecipeService(repo, cacheClient, deps.materialService, deps.uomService, deps.itemService)
+	const service = new RecipeService(
+		repo,
+		cacheClient,
+		deps.materialService,
+		deps.uomService,
+		deps.itemService,
+	)
 	const route = createRecipeRoute(service)
 
 	return { route, service }

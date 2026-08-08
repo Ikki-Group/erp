@@ -1,4 +1,9 @@
-import { BadRequestError, ConflictError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import {
+	BadRequestError,
+	ConflictError,
+	InternalServerError,
+	NotFoundError,
+} from '@/shared/errors/http-error.ts'
 
 // ─── Error Factories ───
 

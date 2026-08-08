@@ -13,11 +13,7 @@ import {
 } from './category/category.contract.ts'
 import type { CategoryService } from './category/category.service.ts'
 import type { ComposedService } from './composed/composed.service.ts'
-import {
-	MenuItemCreateDto,
-	MenuItemFilterDto,
-	MenuItemUpdateDto,
-} from './item/item.contract.ts'
+import { MenuItemCreateDto, MenuItemFilterDto, MenuItemUpdateDto } from './item/item.contract.ts'
 import type { ItemService } from './item/item.service.ts'
 import {
 	ModifierGroupCreateDto,

@@ -2,8 +2,8 @@ import { eq, and } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 
 import { sessions } from '@/db/schema/iam.ts'
-import { db, takeFirst } from '@/infra/database/index.ts'
 
+import { db, takeFirst } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 
 // ─── Types ───
@@ -51,11 +51,12 @@ export const sessionStore = {
 	},
 
 	/** Update the active location for a session (context switch). */
-	async updateLocation(sessionId: string, locationId: number, database: DbContext = db): Promise<void> {
-		await database
-			.update(sessions)
-			.set({ locationId })
-			.where(eq(sessions.id, sessionId))
+	async updateLocation(
+		sessionId: string,
+		locationId: number,
+		database: DbContext = db,
+	): Promise<void> {
+		await database.update(sessions).set({ locationId }).where(eq(sessions.id, sessionId))
 	},
 
 	/** Delete all sessions for a user (force logout everywhere). */

@@ -10,7 +10,6 @@ import {
 	TransferReceiveDto,
 	TransferShipDto,
 } from './transfer.contract.ts'
-
 import type { TransferService } from './transfer.service.ts'
 
 // ─── Route Factory ───

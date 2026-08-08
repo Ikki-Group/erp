@@ -84,10 +84,21 @@ export interface ISupplierRepo {
 
 	// ─── Supplier-Material Pricing ───
 	findPricingById(id: number, db?: DbContext): Promise<SupplierMaterialDto | undefined>
-	findPricingPage(filter: SupplierMaterialFilterDto, db?: DbContext): Promise<WithPaginationResult<SupplierMaterialDto>>
-	findPricingByPair(supplierId: number, materialId: number, db?: DbContext): Promise<SupplierMaterialDto | undefined>
+	findPricingPage(
+		filter: SupplierMaterialFilterDto,
+		db?: DbContext,
+	): Promise<WithPaginationResult<SupplierMaterialDto>>
+	findPricingByPair(
+		supplierId: number,
+		materialId: number,
+		db?: DbContext,
+	): Promise<SupplierMaterialDto | undefined>
 	insertPricing(data: SupplierMaterialInsert, db?: DbContext): Promise<EntityRef | undefined>
-	updatePricing(id: number, data: SupplierMaterialUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	updatePricing(
+		id: number,
+		data: SupplierMaterialUpdate,
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
 	removePricing(id: number, db?: DbContext): Promise<EntityRef | undefined>
 }
 
@@ -161,7 +172,11 @@ export class SupplierRepo implements ISupplierRepo {
 		return result
 	}
 
-	async update(id: number, data: SupplierUpdate, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async update(
+		id: number,
+		data: SupplierUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(suppliers)
 			.set(data)
@@ -170,7 +185,11 @@ export class SupplierRepo implements ISupplierRepo {
 		return result
 	}
 
-	async remove(id: number, data: SupplierUpdate, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async remove(
+		id: number,
+		data: SupplierUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(suppliers)
 			.set({ ...data, isActive: 0 })
@@ -181,7 +200,10 @@ export class SupplierRepo implements ISupplierRepo {
 
 	// ─── Supplier-Material Pricing ───
 
-	async findPricingById(id: number, db: DbContext = this.db): Promise<SupplierMaterialDto | undefined> {
+	async findPricingById(
+		id: number,
+		db: DbContext = this.db,
+	): Promise<SupplierMaterialDto | undefined> {
 		const row = await db
 			.select()
 			.from(supplierMaterials)
@@ -238,16 +260,21 @@ export class SupplierRepo implements ISupplierRepo {
 		const row = await db
 			.select()
 			.from(supplierMaterials)
-			.where(and(
-				eq(supplierMaterials.supplierId, supplierId),
-				eq(supplierMaterials.materialId, materialId),
-			))
+			.where(
+				and(
+					eq(supplierMaterials.supplierId, supplierId),
+					eq(supplierMaterials.materialId, materialId),
+				),
+			)
 			.limit(1)
 			.then(takeFirst)
 		return row ? toPricingDto(row) : undefined
 	}
 
-	async insertPricing(data: SupplierMaterialInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insertPricing(
+		data: SupplierMaterialInsert,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(supplierMaterials)
 			.values(data)

@@ -5,7 +5,6 @@ import { res } from '@/shared/http/response.ts'
 import { zq } from '@/shared/schema/index.ts'
 
 import { ShiftCloseDto, ShiftFilterDto, ShiftOpenDto } from './shift.contract.ts'
-
 import type { ShiftService } from './shift.service.ts'
 
 // ─── Route Factory ───

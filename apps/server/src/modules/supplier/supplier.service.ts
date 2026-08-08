@@ -167,7 +167,9 @@ export class SupplierService {
 
 	// ─── Pricing Handlers ───
 
-	async handlePricingList(filter: SupplierMaterialFilterDto): Promise<WithPaginationResult<SupplierMaterialDto>> {
+	async handlePricingList(
+		filter: SupplierMaterialFilterDto,
+	): Promise<WithPaginationResult<SupplierMaterialDto>> {
 		return this.repo.findPricingPage(filter)
 	}
 
@@ -203,7 +205,11 @@ export class SupplierService {
 			entityId: result.id,
 			action: 'create',
 			summary: `Created pricing for supplier #${data.supplierId} / material #${data.materialId}`,
-			newValues: { supplierId: data.supplierId, materialId: data.materialId, unitPrice: data.unitPrice },
+			newValues: {
+				supplierId: data.supplierId,
+				materialId: data.materialId,
+				unitPrice: data.unitPrice,
+			},
 		})
 
 		return result

@@ -17,7 +17,11 @@ export interface SupplierModuleDeps {
 
 // ─── Module Factory ───
 
-export function createSupplierModule(db: DbContext, cacheClient: CacheClient, deps: SupplierModuleDeps) {
+export function createSupplierModule(
+	db: DbContext,
+	cacheClient: CacheClient,
+	deps: SupplierModuleDeps,
+) {
 	const repo = new SupplierRepo(db)
 	const service = new SupplierService(repo, cacheClient, deps.materialService, deps.uomService)
 	const route = createSupplierRoute(service)

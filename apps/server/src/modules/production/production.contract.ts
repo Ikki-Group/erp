@@ -89,7 +89,10 @@ export type ProductionRecipeCreateDto = z.infer<typeof ProductionRecipeCreateDto
 export const ProductionRecipeUpdateDto = z.object({
 	recipeId: z.number().int().positive(),
 	name: zc.strTrim.min(2).max(255).optional(),
-	yieldQty: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a positive number').optional(),
+	yieldQty: z
+		.string()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive number')
+		.optional(),
 	yieldUomId: z.number().int().positive().optional(),
 	lines: z.array(RecipeLineInputDto).min(1).optional(),
 })

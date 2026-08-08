@@ -25,7 +25,10 @@ import type {
 export interface IComposedRepo {
 	readonly db: DbContext
 	findUserDetail(userId: number, db?: DbContext): Promise<UserDetailDto | undefined>
-	findUserList(filter: ComposedUserFilterDto, db?: DbContext): Promise<WithPaginationResult<UserListItemDto>>
+	findUserList(
+		filter: ComposedUserFilterDto,
+		db?: DbContext,
+	): Promise<WithPaginationResult<UserListItemDto>>
 }
 
 // ─── Implementation ───
@@ -33,7 +36,10 @@ export interface IComposedRepo {
 export class ComposedRepo implements IComposedRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findUserDetail(userId: number, db: DbContext = this.db): Promise<UserDetailDto | undefined> {
+	async findUserDetail(
+		userId: number,
+		db: DbContext = this.db,
+	): Promise<UserDetailDto | undefined> {
 		// 1. Load user
 		const [user] = await db
 			.select({

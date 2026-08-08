@@ -3,8 +3,7 @@ import { ConflictError, InternalServerError, NotFoundError } from '@/shared/erro
 // ─── Error Factories ───
 
 export const CompanyError = {
-	notFound: () =>
-		new NotFoundError('Company settings not found', { code: 'COMPANY_NOT_FOUND' }),
+	notFound: () => new NotFoundError('Company settings not found', { code: 'COMPANY_NOT_FOUND' }),
 	createFailed: () =>
 		new InternalServerError('Company settings creation failed', {
 			code: 'COMPANY_CREATE_FAILED',

@@ -19,7 +19,11 @@ export interface OpnameModuleDeps {
 
 // ─── Module Factory ───
 
-export function createOpnameModule(db: DbContext, cacheClient: CacheClient, deps: OpnameModuleDeps) {
+export function createOpnameModule(
+	db: DbContext,
+	cacheClient: CacheClient,
+	deps: OpnameModuleDeps,
+) {
 	const repo = new OpnameRepo(db)
 	const service = new OpnameService(repo, cacheClient, {
 		stockService: deps.stockService,

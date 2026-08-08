@@ -45,7 +45,11 @@ export interface IItemRepo {
 	readonly db: DbContext
 	findById(id: number, db?: DbContext): Promise<MenuItemDto | undefined>
 	findPage(filter: MenuItemFilterDto, db?: DbContext): Promise<WithPaginationResult<MenuItemDto>>
-	findBySkuAndLocation(sku: string, locationId: number, db?: DbContext): Promise<MenuItemDto | undefined>
+	findBySkuAndLocation(
+		sku: string,
+		locationId: number,
+		db?: DbContext,
+	): Promise<MenuItemDto | undefined>
 	insert(data: ItemInsert, db?: DbContext): Promise<EntityRef | undefined>
 	update(id: number, data: ItemUpdate, db?: DbContext): Promise<EntityRef | undefined>
 	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
@@ -117,14 +121,15 @@ export class ItemRepo implements IItemRepo {
 	}
 
 	async insert(data: ItemInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
-		const [result] = await db
-			.insert(menuItems)
-			.values(data)
-			.returning({ id: menuItems.id })
+		const [result] = await db.insert(menuItems).values(data).returning({ id: menuItems.id })
 		return result
 	}
 
-	async update(id: number, data: ItemUpdate, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async update(
+		id: number,
+		data: ItemUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(menuItems)
 			.set(data)

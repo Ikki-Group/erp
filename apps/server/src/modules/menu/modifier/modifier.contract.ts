@@ -22,7 +22,10 @@ export type ModifierOptionDto = z.infer<typeof ModifierOptionDto>
 
 export const ModifierOptionInputDto = z.object({
 	name: zc.strTrim.min(1).max(100),
-	priceAdjustment: z.string().regex(/^-?\d+(\.\d+)?$/u).default('0'),
+	priceAdjustment: z
+		.string()
+		.regex(/^-?\d+(\.\d+)?$/u)
+		.default('0'),
 	isDefault: z.number().int().min(0).max(1).default(0),
 	sortOrder: z.number().int().min(0).default(0),
 	isActive: z.number().int().min(0).max(1).default(1),

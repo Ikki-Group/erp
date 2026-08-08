@@ -154,10 +154,7 @@ export class ShiftRepo implements IShiftRepo {
 	}
 
 	async insert(data: ShiftInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
-		const [result] = await db
-			.insert(cashierShifts)
-			.values(data)
-			.returning({ id: cashierShifts.id })
+		const [result] = await db.insert(cashierShifts).values(data).returning({ id: cashierShifts.id })
 		return result
 	}
 

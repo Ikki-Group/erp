@@ -9,6 +9,10 @@ import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
+import { resolveConversion } from '@/modules/uom/uom.resolver.ts'
+import type { UomService } from '@/modules/uom/uom.service.ts'
+
+import type { CategoryService } from './category/category.service.ts'
 import type {
 	MaterialCreateDto,
 	MaterialDto,
@@ -17,10 +21,6 @@ import type {
 } from './material.contract.ts'
 import { MaterialError, uniqueFields } from './material.internal.ts'
 import type { IMaterialRepo } from './material.repo.ts'
-
-import type { UomService } from '@/modules/uom/uom.service.ts'
-import { resolveConversion } from '@/modules/uom/uom.resolver.ts'
-import type { CategoryService } from './category/category.service.ts'
 
 // ─── Service ───
 
@@ -200,7 +200,11 @@ export class MaterialService {
 	 */
 	private async validateDefaultUoms(
 		baseUomId: number,
-		uoms: { purchaseUomId?: number | null; stockUomId?: number | null; recipeUomId?: number | null },
+		uoms: {
+			purchaseUomId?: number | null
+			stockUomId?: number | null
+			recipeUomId?: number | null
+		},
 	): Promise<void> {
 		const conversions = await this.uomService.getAllConversions()
 

@@ -18,7 +18,11 @@ import type {
 	PaymentMethodLocationAssignDto,
 	PaymentMethodUpdateDto,
 } from './payment-method.contract.ts'
-import { LocationAssignmentError, PaymentMethodError, uniqueFields } from './payment-method.internal.ts'
+import {
+	LocationAssignmentError,
+	PaymentMethodError,
+	uniqueFields,
+} from './payment-method.internal.ts'
 import type { IPaymentMethodRepo } from './payment-method.repo.ts'
 
 // ─── Cache Keys ───
@@ -69,7 +73,9 @@ export class PaymentMethodService {
 		return assertFound(await this.getById(id), () => PaymentMethodError.notFound(id))
 	}
 
-	async handleList(filter: PaymentMethodFilterDto): Promise<WithPaginationResult<PaymentMethodDto>> {
+	async handleList(
+		filter: PaymentMethodFilterDto,
+	): Promise<WithPaginationResult<PaymentMethodDto>> {
 		return this.repo.findPage(filter)
 	}
 
@@ -209,7 +215,11 @@ export class PaymentMethodService {
 			entityId: result.id,
 			action: 'create',
 			summary: `Assigned payment method #${data.paymentMethodId} to location #${data.locationId} (enabled: ${data.isEnabled})`,
-			newValues: { paymentMethodId: data.paymentMethodId, locationId: data.locationId, isEnabled: data.isEnabled },
+			newValues: {
+				paymentMethodId: data.paymentMethodId,
+				locationId: data.locationId,
+				isEnabled: data.isEnabled,
+			},
 		})
 
 		return result

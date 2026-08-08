@@ -21,7 +21,11 @@ export interface MaterialModuleDeps {
 
 // ─── Module Factory ───
 
-export function createMaterialModule(db: DbContext, cacheClient: CacheClient, deps: MaterialModuleDeps) {
+export function createMaterialModule(
+	db: DbContext,
+	cacheClient: CacheClient,
+	deps: MaterialModuleDeps,
+) {
 	// Repos
 	const categoryRepo = new CategoryRepo(db)
 	const materialRepo = new MaterialRepo(db)
@@ -29,8 +33,18 @@ export function createMaterialModule(db: DbContext, cacheClient: CacheClient, de
 
 	// Services
 	const categoryService = new CategoryService(categoryRepo, cacheClient)
-	const materialService = new MaterialService(materialRepo, cacheClient, deps.uomService, categoryService)
-	const assignmentService = new AssignmentService(assignmentRepo, cacheClient, materialService, deps.locationService)
+	const materialService = new MaterialService(
+		materialRepo,
+		cacheClient,
+		deps.uomService,
+		categoryService,
+	)
+	const assignmentService = new AssignmentService(
+		assignmentRepo,
+		cacheClient,
+		materialService,
+		deps.locationService,
+	)
 
 	// Route
 	const route = createMaterialRoute(materialService, categoryService, assignmentService)

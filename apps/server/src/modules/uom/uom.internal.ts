@@ -1,10 +1,7 @@
 import { uoms } from '@/db/schema/uom.ts'
+
 import { defineConflictFields } from '@/infra/database/index.ts'
-import {
-	BadRequestError,
-	InternalServerError,
-	NotFoundError,
-} from '@/shared/errors/http-error.ts'
+import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
 import type { UomCreateDto } from './uom.contract.ts'
 
@@ -19,8 +16,7 @@ export const MAX_CONVERSION_HOPS = 5
 export const UomError = {
 	notFound: (id: number) =>
 		new NotFoundError('UoM not found', { code: 'UOM_NOT_FOUND', context: { id } }),
-	createFailed: () =>
-		new InternalServerError('UoM creation failed', { code: 'UOM_CREATE_FAILED' }),
+	createFailed: () => new InternalServerError('UoM creation failed', { code: 'UOM_CREATE_FAILED' }),
 	updateFailed: (id: number) =>
 		new InternalServerError('UoM update failed', { code: 'UOM_UPDATE_FAILED', context: { id } }),
 	deleteFailed: (id: number) =>

@@ -1,4 +1,10 @@
-import { menuCategories, menuItemModifiers, menuItems, modifierGroups, modifierOptions } from '@/db/schema/menu.ts'
+import {
+	menuCategories,
+	menuItemModifiers,
+	menuItems,
+	modifierGroups,
+	modifierOptions,
+} from '@/db/schema/menu.ts'
 
 import { eq, sql, takeFirst } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
@@ -17,7 +23,10 @@ export interface IComposedRepo {
 export class ComposedRepo implements IComposedRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findDetailById(id: number, db: DbContext = this.db): Promise<MenuItemDetailDto | undefined> {
+	async findDetailById(
+		id: number,
+		db: DbContext = this.db,
+	): Promise<MenuItemDetailDto | undefined> {
 		// 1. Load menu item
 		const item = await db
 			.select()

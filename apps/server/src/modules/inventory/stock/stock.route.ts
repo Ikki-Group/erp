@@ -3,8 +3,11 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
 import { res } from '@/shared/http/response.ts'
 
-import { StockBalanceFilterDto, StockBalanceQueryDto, StockMovementFilterDto } from './stock.contract.ts'
-
+import {
+	StockBalanceFilterDto,
+	StockBalanceQueryDto,
+	StockMovementFilterDto,
+} from './stock.contract.ts'
 import type { StockService } from './stock.service.ts'
 
 // ─── Route Factory ───

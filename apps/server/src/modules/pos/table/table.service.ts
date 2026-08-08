@@ -119,7 +119,10 @@ export class TableService {
 				}
 			}
 
-			const existing = await this.repo.findByLocationAndNumber(updateData.locationId, updateData.number)
+			const existing = await this.repo.findByLocationAndNumber(
+				updateData.locationId,
+				updateData.number,
+			)
 			if (existing && existing.id !== id) {
 				throw TableError.numberExists(updateData.locationId, updateData.number)
 			}
@@ -150,7 +153,11 @@ export class TableService {
 			entityId: id,
 			action: 'update',
 			summary: `Updated table "${updateData.number}" at location #${updateData.locationId}`,
-			newValues: { number: updateData.number, capacity: updateData.capacity, locationId: updateData.locationId },
+			newValues: {
+				number: updateData.number,
+				capacity: updateData.capacity,
+				locationId: updateData.locationId,
+			},
 		})
 
 		return result

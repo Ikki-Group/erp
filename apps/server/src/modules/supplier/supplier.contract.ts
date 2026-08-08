@@ -80,7 +80,12 @@ export const SupplierMaterialCreateDto = z.object({
 	materialId: zp.id,
 	unitPrice: zc.strTrim.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
 	uomId: zp.id,
-	minOrderQty: z.string().trim().regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal').nullable().default(null),
+	minOrderQty: z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal')
+		.nullable()
+		.default(null),
 })
 export type SupplierMaterialCreateDto = z.infer<typeof SupplierMaterialCreateDto>
 
@@ -90,6 +95,11 @@ export const SupplierMaterialUpdateDto = z.object({
 	id: zp.id,
 	unitPrice: zc.strTrim.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
 	uomId: zp.id,
-	minOrderQty: z.string().trim().regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal').nullable().default(null),
+	minOrderQty: z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal')
+		.nullable()
+		.default(null),
 })
 export type SupplierMaterialUpdateDto = z.infer<typeof SupplierMaterialUpdateDto>

@@ -10,7 +10,11 @@ const CompanySettingsMutationDto = z.object({
 	phone: zc.strTrimNullable.optional(),
 	email: zc.strTrimNullable.optional(),
 	taxId: zc.strTrimNullable.optional(),
-	taxRate: z.string().regex(/^\d+(\.\d{1,2})?$/u).optional().default('0'),
+	taxRate: z
+		.string()
+		.regex(/^\d+(\.\d{1,2})?$/u)
+		.optional()
+		.default('0'),
 	currencyCode: zc.strTrim.max(10).optional().default('IDR'),
 	currencySymbol: zc.strTrim.max(10).optional().default('Rp'),
 	logoUrl: zc.strTrimNullable.optional(),

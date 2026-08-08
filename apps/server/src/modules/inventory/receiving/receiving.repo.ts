@@ -137,10 +137,7 @@ export class ReceivingRepo implements IReceivingRepo {
 	}
 
 	async insert(data: ReceivingInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
-		const [result] = await db
-			.insert(receivings)
-			.values(data)
-			.returning({ id: receivings.id })
+		const [result] = await db.insert(receivings).values(data).returning({ id: receivings.id })
 		return result
 	}
 

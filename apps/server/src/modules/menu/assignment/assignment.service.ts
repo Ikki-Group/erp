@@ -7,7 +7,6 @@ import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 
 import type { ItemService } from '../item/item.service.ts'
 import type { ModifierService } from '../modifier/modifier.service.ts'
-
 import type { MenuItemModifierSyncDto } from './assignment.contract.ts'
 import type { IAssignmentRepo } from './assignment.repo.ts'
 

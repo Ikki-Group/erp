@@ -49,22 +49,19 @@ export class CompanyRepo implements ICompanyRepo {
 	constructor(readonly db: DbContext) {}
 
 	async findOne(db: DbContext = this.db): Promise<CompanySettingsDto | undefined> {
-		const row = await db
-			.select()
-			.from(companySettings)
-			.limit(1)
-			.then(takeFirst)
+		const row = await db.select().from(companySettings).limit(1).then(takeFirst)
 		return row ? toDto(row) : undefined
 	}
 
 	async count(db: DbContext = this.db): Promise<number> {
-		const [result] = await db
-			.select({ count: sql<number>`count(*)::int` })
-			.from(companySettings)
+		const [result] = await db.select({ count: sql<number>`count(*)::int` }).from(companySettings)
 		return result?.count ?? 0
 	}
 
-	async insert(data: CompanySettingsInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(
+		data: CompanySettingsInsert,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(companySettings)
 			.values(data)

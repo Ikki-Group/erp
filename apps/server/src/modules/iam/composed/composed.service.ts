@@ -17,7 +17,9 @@ export class ComposedService {
 		return result
 	}
 
-	async handleUserList(filter: ComposedUserFilterDto): Promise<WithPaginationResult<UserListItemDto>> {
+	async handleUserList(
+		filter: ComposedUserFilterDto,
+	): Promise<WithPaginationResult<UserListItemDto>> {
 		return this.repo.findUserList(filter)
 	}
 }

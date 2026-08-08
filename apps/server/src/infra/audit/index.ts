@@ -1,6 +1,6 @@
-import { db } from '@/infra/database/index.ts'
 import { auditLogs } from '@/db/schema/audit.ts'
 
+import { db } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 
 // ─── Types ───

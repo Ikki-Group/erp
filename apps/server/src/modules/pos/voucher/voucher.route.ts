@@ -10,7 +10,6 @@ import {
 	VoucherUpdateDto,
 	VoucherValidateDto,
 } from './voucher.contract.ts'
-
 import type { VoucherService } from './voucher.service.ts'
 
 // ─── Route Factory ───

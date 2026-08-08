@@ -7,9 +7,7 @@ import postgres from 'postgres'
 
 import { seedCompany, seedLocations } from './seeds/core.ts'
 import { seedRoles, seedUsers, seedAssignments } from './seeds/iam.ts'
-import { seedUoms, seedUomConversions } from './seeds/uom.ts'
 import { seedMaterialCategories, seedMaterials, seedMaterialLocations } from './seeds/material.ts'
-import { seedSuppliers, seedSupplierMaterials } from './seeds/supplier.ts'
 import {
 	seedMenuCategories,
 	seedMenuItems,
@@ -21,6 +19,8 @@ import {
 } from './seeds/menu.ts'
 import { seedPaymentMethods, seedPaymentMethodLocations, seedTables } from './seeds/pos.ts'
 import { seedSampleOrder } from './seeds/sample-order.ts'
+import { seedSuppliers, seedSupplierMaterials } from './seeds/supplier.ts'
+import { seedUoms, seedUomConversions } from './seeds/uom.ts'
 
 const url = process.env['DATABASE_URL']
 if (!url) {

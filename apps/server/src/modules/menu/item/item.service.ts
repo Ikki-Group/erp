@@ -2,13 +2,17 @@ import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
-import { BadRequestError, ConflictError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import {
+	BadRequestError,
+	ConflictError,
+	InternalServerError,
+	NotFoundError,
+} from '@/shared/errors/http-error.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
 import type { CategoryService } from '../category/category.service.ts'
-
 import type {
 	MenuItemCreateDto,
 	MenuItemDto,

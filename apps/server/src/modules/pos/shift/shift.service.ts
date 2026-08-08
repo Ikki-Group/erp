@@ -86,9 +86,8 @@ export class ShiftService {
 
 	async handleClose(data: ShiftCloseDto, auth: AuthContext): Promise<EntityRef> {
 		// 1. Find shift, assert found and open
-		const shift = assertFound(
-			await this.repo.findById(data.shiftId),
-			() => ShiftError.notFound(data.shiftId),
+		const shift = assertFound(await this.repo.findById(data.shiftId), () =>
+			ShiftError.notFound(data.shiftId),
 		)
 		if (shift.status !== 'open') {
 			throw ShiftError.notOpen(data.shiftId)

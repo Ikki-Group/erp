@@ -10,7 +10,6 @@ import {
 	OpnameFilterDto,
 	OpnameUpdateCountsDto,
 } from './opname.contract.ts'
-
 import type { OpnameService } from './opname.service.ts'
 
 // ─── Route Factory ───

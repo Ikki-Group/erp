@@ -21,7 +21,11 @@ export interface ProductionModuleDeps {
 
 // ─── Module Factory ───
 
-export function createProductionModule(db: DbContext, cacheClient: CacheClient, deps: ProductionModuleDeps) {
+export function createProductionModule(
+	db: DbContext,
+	cacheClient: CacheClient,
+	deps: ProductionModuleDeps,
+) {
 	const repo = new ProductionRepo(db)
 	const service = new ProductionService(repo, cacheClient, {
 		stockService: deps.stockService,

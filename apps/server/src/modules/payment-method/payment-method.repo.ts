@@ -148,10 +148,7 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 		}
 	}
 
-	async insert(
-		data: PaymentMethodInsert,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async insert(data: PaymentMethodInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(paymentMethods)
 			.values(data)

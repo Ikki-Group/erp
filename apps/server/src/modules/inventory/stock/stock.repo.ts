@@ -58,11 +58,27 @@ function toMovementDto(row: MovementRow): StockMovementDto {
 
 export interface IStockRepo {
 	readonly db: DbContext
-	findBalance(materialId: number, locationId: number, db?: DbContext): Promise<StockBalanceDto | undefined>
-	findBalancesByLocation(filter: StockBalanceFilterDto, db?: DbContext): Promise<WithPaginationResult<StockBalanceDto>>
-	upsertBalance(materialId: number, locationId: number, quantity: string, costPrice: string, db?: DbContext): Promise<EntityRef | undefined>
+	findBalance(
+		materialId: number,
+		locationId: number,
+		db?: DbContext,
+	): Promise<StockBalanceDto | undefined>
+	findBalancesByLocation(
+		filter: StockBalanceFilterDto,
+		db?: DbContext,
+	): Promise<WithPaginationResult<StockBalanceDto>>
+	upsertBalance(
+		materialId: number,
+		locationId: number,
+		quantity: string,
+		costPrice: string,
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
 	insertMovement(data: MovementInsert, db?: DbContext): Promise<EntityRef | undefined>
-	findMovements(filter: StockMovementFilterDto, db?: DbContext): Promise<WithPaginationResult<StockMovementDto>>
+	findMovements(
+		filter: StockMovementFilterDto,
+		db?: DbContext,
+	): Promise<WithPaginationResult<StockMovementDto>>
 }
 
 // ─── Implementation ───
@@ -79,10 +95,7 @@ export class StockRepo implements IStockRepo {
 			.select()
 			.from(stockBalances)
 			.where(
-				and(
-					eq(stockBalances.materialId, materialId),
-					eq(stockBalances.locationId, locationId),
-				),
+				and(eq(stockBalances.materialId, materialId), eq(stockBalances.locationId, locationId)),
 			)
 			.limit(1)
 			.then(takeFirst)
@@ -136,7 +149,10 @@ export class StockRepo implements IStockRepo {
 		return result
 	}
 
-	async insertMovement(data: MovementInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insertMovement(
+		data: MovementInsert,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(stockMovements)
 			.values(data)

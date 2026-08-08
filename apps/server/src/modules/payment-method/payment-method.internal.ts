@@ -1,4 +1,5 @@
 import { paymentMethods } from '@/db/schema/pos.ts'
+
 import { defineConflictFields } from '@/infra/database/index.ts'
 import { ConflictError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 

@@ -48,14 +48,20 @@ export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
 
 const RecipeLineMutationDto = z.object({
 	materialId: zp.id,
-	quantity: z.string().trim().regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
+	quantity: z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
 	uomId: zp.id,
 })
 
 export const RecipeCreateDto = z.object({
 	menuItemId: zp.id,
 	name: zc.strTrim.min(2).max(255),
-	yieldQty: z.string().trim().regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
+	yieldQty: z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
 	lines: z.array(RecipeLineMutationDto).min(1, 'At least one recipe line is required'),
 })
 export type RecipeCreateDto = z.infer<typeof RecipeCreateDto>
@@ -63,7 +69,10 @@ export type RecipeCreateDto = z.infer<typeof RecipeCreateDto>
 export const RecipeUpdateDto = z.object({
 	id: zp.id,
 	name: zc.strTrim.min(2).max(255),
-	yieldQty: z.string().trim().regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
+	yieldQty: z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
 	lines: z.array(RecipeLineMutationDto).min(1, 'At least one recipe line is required'),
 })
 export type RecipeUpdateDto = z.infer<typeof RecipeUpdateDto>

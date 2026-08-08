@@ -41,7 +41,10 @@ export interface ICategoryRepo {
 	readonly db: DbContext
 	findById(id: number, db?: DbContext): Promise<MenuCategoryDto | undefined>
 	findByLocation(locationId: number, db?: DbContext): Promise<MenuCategoryDto[]>
-	findPage(filter: MenuCategoryFilterDto, db?: DbContext): Promise<WithPaginationResult<MenuCategoryDto>>
+	findPage(
+		filter: MenuCategoryFilterDto,
+		db?: DbContext,
+	): Promise<WithPaginationResult<MenuCategoryDto>>
 	insert(data: CategoryInsert, db?: DbContext): Promise<EntityRef | undefined>
 	update(id: number, data: CategoryUpdate, db?: DbContext): Promise<EntityRef | undefined>
 	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
@@ -112,7 +115,11 @@ export class CategoryRepo implements ICategoryRepo {
 		return result
 	}
 
-	async update(id: number, data: CategoryUpdate, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async update(
+		id: number,
+		data: CategoryUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(menuCategories)
 			.set(data)

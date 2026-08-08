@@ -47,7 +47,12 @@ const MaterialMutationDto = z.object({
 	defaultPurchaseUomId: zp.id.nullable().default(null),
 	defaultStockUomId: zp.id.nullable().default(null),
 	defaultRecipeUomId: zp.id.nullable().default(null),
-	minStock: z.string().trim().regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal').nullable().default(null),
+	minStock: z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal')
+		.nullable()
+		.default(null),
 	isActive: z.boolean().default(true),
 })
 
