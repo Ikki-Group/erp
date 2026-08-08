@@ -32,7 +32,7 @@ export function paginateWindow<T extends { rowCount: number }>(
 	rows: T[],
 	pq: PaginationQuery,
 ): WithPaginationResult<Omit<T, 'rowCount'>> {
-	const total = rows[0]?.rowCount ?? 0
+	const total = Number(rows[0]?.rowCount ?? 0)
 	const data = rows.map(({ rowCount: _, ...rest }) => rest)
 	return {
 		data,
@@ -49,8 +49,9 @@ export function sortBy(column: PgColumn, dir: 'asc' | 'desc' = 'desc') {
 	return dir === 'asc' ? asc(column) : desc(column)
 }
 
-export function buildPaginationMeta(page: number, limit: number, total: number) {
-	return { page, limit, total, totalPages: Math.ceil(total / limit) }
+export function buildPaginationMeta(page: number, limit: number, total: number | string) {
+	const t = Number(total)
+	return { page, limit, total: t, totalPages: Math.ceil(t / limit) }
 }
 
 // ─── WHERE Composition ───

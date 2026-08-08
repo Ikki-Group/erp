@@ -48,17 +48,16 @@ describe('pos/order lifecycle', () => {
 			body: { orderId, lines: [{ menuItemId: SEED_MENU_ITEM_ID, qty: 2 }] },
 		})
 		expect(syncRes.status).toBe(200)
-		const syncBody: Json = await syncRes.json()
-		expect(syncBody.data.lines.length).toBeGreaterThanOrEqual(1)
-		expect(Number(syncBody.data.lines[0].quantity)).toBe(2)
 
-		// 3. Get detail to verify total
+		// 3. Get detail to verify lines and total
 		const detailRes = await GET('/pos/order/detail', {
 			cookie,
 			query: { id: String(orderId) },
 		})
 		expect(detailRes.status).toBe(200)
 		const detail: Json = await detailRes.json()
+		expect(detail.data.lines.length).toBeGreaterThanOrEqual(1)
+		expect(Number(detail.data.lines[0].quantity)).toBe(2)
 		const total = Number(detail.data.total)
 		expect(total).toBeGreaterThan(0)
 
