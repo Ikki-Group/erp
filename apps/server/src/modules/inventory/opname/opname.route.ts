@@ -1,12 +1,16 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
+import { EntityRefDto } from '@/shared/schema/index.ts'
 
 import {
 	OpnameApproveDto,
 	OpnameCreateDto,
+	OpnameDetailDto,
 	OpnameDetailQueryDto,
+	OpnameDto,
 	OpnameFilterDto,
 	OpnameUpdateCountsDto,
 } from './opname.contract.ts'
@@ -24,7 +28,7 @@ export function createOpnameRoute(service: OpnameService) {
 				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
-			{ query: OpnameFilterDto },
+			{ query: OpnameFilterDto, response: zRes.paginated(OpnameDto) },
 		)
 		.get(
 			'/detail',
@@ -32,7 +36,7 @@ export function createOpnameRoute(service: OpnameService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: OpnameDetailQueryDto },
+			{ query: OpnameDetailQueryDto, response: zRes.ok(OpnameDetailDto) },
 		)
 		.post(
 			'/create',
@@ -40,7 +44,7 @@ export function createOpnameRoute(service: OpnameService) {
 				const result = await service.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
-			{ body: OpnameCreateDto, auth: true },
+			{ body: OpnameCreateDto, auth: true, response: zRes.created(EntityRefDto) },
 		)
 		.put(
 			'/counts',
@@ -48,7 +52,7 @@ export function createOpnameRoute(service: OpnameService) {
 				const result = await service.handleUpdateCounts(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: OpnameUpdateCountsDto, auth: true },
+			{ body: OpnameUpdateCountsDto, auth: true, response: zRes.ok(EntityRefDto) },
 		)
 		.post(
 			'/approve',
@@ -56,6 +60,6 @@ export function createOpnameRoute(service: OpnameService) {
 				const result = await service.handleApprove(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: OpnameApproveDto, auth: true },
+			{ body: OpnameApproveDto, auth: true, response: zRes.ok(EntityRefDto) },
 		)
 }

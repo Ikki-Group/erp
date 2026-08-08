@@ -3,9 +3,16 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
 import { isProd } from '@/shared/config/env.ts'
 import { SESSION_COOKIE_NAME, SESSION_TTL_DAYS } from '@/shared/config/index.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 
-import { LoginDto, SwitchLocationDto } from './auth.contract.ts'
+import {
+	LoginDto,
+	LoginResponseDto,
+	MeResponseDto,
+	SwitchLocationDto,
+	SwitchLocationResponseDto,
+} from './auth.contract.ts'
 import type { AuthService } from './auth.service.ts'
 
 // ─── Cookie Helpers ───
@@ -37,30 +44,34 @@ export function createAuthRoute(service: AuthService) {
 
 					return res.ok(result.response)
 				},
-				{ body: LoginDto },
+				{ body: LoginDto, response: zRes.ok(LoginResponseDto) },
 			)
 
 			// ─── Logout (auth required) ───
 
 			.use(authPluginMacro)
-			.post('/logout', async ({ cookie }) => {
-				const sessionCookie = cookie[SESSION_COOKIE_NAME]
-				const sessionId = sessionCookie ? String(sessionCookie.value) : ''
+			.post(
+				'/logout',
+				async ({ cookie }) => {
+					const sessionCookie = cookie[SESSION_COOKIE_NAME]
+					const sessionId = sessionCookie ? String(sessionCookie.value) : ''
 
-				await service.handleLogout(sessionId)
+					await service.handleLogout(sessionId)
 
-				// Clear cookie
-				cookie[SESSION_COOKIE_NAME]!.set({
-					value: '',
-					httpOnly: true,
-					secure: isProd,
-					sameSite: 'lax',
-					maxAge: 0,
-					path: '/',
-				})
+					// Clear cookie
+					cookie[SESSION_COOKIE_NAME]!.set({
+						value: '',
+						httpOnly: true,
+						secure: isProd,
+						sameSite: 'lax',
+						maxAge: 0,
+						path: '/',
+					})
 
-				return res.noData()
-			})
+					return res.noData()
+				},
+				{ response: zRes.noData },
+			)
 
 			// ─── Switch Location (auth required) ───
 
@@ -72,14 +83,18 @@ export function createAuthRoute(service: AuthService) {
 					const result = await service.handleSwitchLocation(sessionId, body.locationId, auth.userId)
 					return res.ok(result)
 				},
-				{ body: SwitchLocationDto },
+				{ body: SwitchLocationDto, response: zRes.ok(SwitchLocationResponseDto) },
 			)
 
 			// ─── Me (auth required) ───
 
-			.get('/me', async ({ auth }) => {
-				const result = await service.handleMe(auth)
-				return res.ok(result)
-			})
+			.get(
+				'/me',
+				async ({ auth }) => {
+					const result = await service.handleMe(auth)
+					return res.ok(result)
+				},
+				{ response: zRes.ok(MeResponseDto) },
+			)
 	)
 }

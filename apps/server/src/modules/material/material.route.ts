@@ -2,18 +2,25 @@ import { Elysia } from 'elysia'
 import { z } from 'zod'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
-import { MaterialAssignDto } from './assignment/assignment.contract.ts'
+import { MaterialAssignDto, MaterialLocationDto } from './assignment/assignment.contract.ts'
 import type { AssignmentService } from './assignment/assignment.service.ts'
 import {
 	MaterialCategoryCreateDto,
+	MaterialCategoryDto,
 	MaterialCategoryFilterDto,
 	MaterialCategoryUpdateDto,
 } from './category/category.contract.ts'
 import type { CategoryService } from './category/category.service.ts'
-import { MaterialCreateDto, MaterialFilterDto, MaterialUpdateDto } from './material.contract.ts'
+import {
+	MaterialCreateDto,
+	MaterialDto,
+	MaterialFilterDto,
+	MaterialUpdateDto,
+} from './material.contract.ts'
 import type { MaterialService } from './material.service.ts'
 
 // ─── Route Factory ───
@@ -35,7 +42,7 @@ export function createMaterialRoute(
 					const result = await materialService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: MaterialFilterDto },
+				{ query: MaterialFilterDto, response: zRes.paginated(MaterialDto) },
 			)
 			.get(
 				'/detail',
@@ -43,7 +50,7 @@ export function createMaterialRoute(
 					const result = await materialService.handleGetById(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(MaterialDto) },
 			)
 			.post(
 				'/create',
@@ -51,7 +58,7 @@ export function createMaterialRoute(
 					const result = await materialService.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: MaterialCreateDto },
+				{ body: MaterialCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/update',
@@ -59,7 +66,7 @@ export function createMaterialRoute(
 					const result = await materialService.handleUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: MaterialUpdateDto },
+				{ body: MaterialUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/remove',
@@ -67,7 +74,7 @@ export function createMaterialRoute(
 					const result = await materialService.handleDelete(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Category CRUD ───
@@ -78,7 +85,7 @@ export function createMaterialRoute(
 					const result = await categoryService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: MaterialCategoryFilterDto },
+				{ query: MaterialCategoryFilterDto, response: zRes.paginated(MaterialCategoryDto) },
 			)
 			.post(
 				'/category/create',
@@ -86,7 +93,7 @@ export function createMaterialRoute(
 					const result = await categoryService.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: MaterialCategoryCreateDto },
+				{ body: MaterialCategoryCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/category/update',
@@ -94,7 +101,7 @@ export function createMaterialRoute(
 					const result = await categoryService.handleUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: MaterialCategoryUpdateDto },
+				{ body: MaterialCategoryUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/category/remove',
@@ -102,7 +109,7 @@ export function createMaterialRoute(
 					const result = await categoryService.handleDelete(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Assignment ───
@@ -113,7 +120,7 @@ export function createMaterialRoute(
 					const result = await assignmentService.handleAssign(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: MaterialAssignDto },
+				{ body: MaterialAssignDto, response: zRes.created(EntityRefDto) },
 			)
 			.post(
 				'/assignment/unassign',
@@ -121,7 +128,7 @@ export function createMaterialRoute(
 					const result = await assignmentService.handleUnassign(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: MaterialAssignDto },
+				{ body: MaterialAssignDto, response: zRes.ok(EntityRefDto) },
 			)
 			.get(
 				'/assignment/by-location',
@@ -129,7 +136,10 @@ export function createMaterialRoute(
 					const result = await assignmentService.handleByLocation(query.locationId)
 					return res.ok(result)
 				},
-				{ query: z.object({ locationId: z.coerce.number().int().positive() }) },
+				{
+					query: z.object({ locationId: z.coerce.number().int().positive() }),
+					response: zRes.ok(z.array(MaterialLocationDto)),
+				},
 			)
 	)
 }

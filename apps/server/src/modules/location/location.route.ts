@@ -1,10 +1,16 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
-import { LocationCreateDto, LocationFilterDto, LocationUpdateDto } from './location.contract.ts'
+import {
+	LocationCreateDto,
+	LocationDto,
+	LocationFilterDto,
+	LocationUpdateDto,
+} from './location.contract.ts'
 import type { LocationService } from './location.service.ts'
 
 // ─── Route Factory ───
@@ -18,7 +24,7 @@ export function createLocationRoute(service: LocationService) {
 				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
-			{ query: LocationFilterDto },
+			{ query: LocationFilterDto, response: zRes.paginated(LocationDto) },
 		)
 		.get(
 			'/detail',
@@ -26,7 +32,7 @@ export function createLocationRoute(service: LocationService) {
 				const result = await service.handleGetById(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId },
+			{ query: zq.recordId, response: zRes.ok(LocationDto) },
 		)
 		.post(
 			'/create',
@@ -34,7 +40,7 @@ export function createLocationRoute(service: LocationService) {
 				const result = await service.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
-			{ body: LocationCreateDto },
+			{ body: LocationCreateDto, response: zRes.created(EntityRefDto) },
 		)
 		.put(
 			'/update',
@@ -42,7 +48,7 @@ export function createLocationRoute(service: LocationService) {
 				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: LocationUpdateDto },
+			{ body: LocationUpdateDto, response: zRes.ok(EntityRefDto) },
 		)
 		.delete(
 			'/remove',
@@ -50,6 +56,6 @@ export function createLocationRoute(service: LocationService) {
 				const result = await service.handleDelete(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zq.recordId },
+			{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 		)
 }

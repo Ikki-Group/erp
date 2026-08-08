@@ -1,11 +1,15 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
+import { EntityRefDto } from '@/shared/schema/index.ts'
 
 import {
 	TransferCreateDto,
+	TransferDetailDto,
 	TransferDetailQueryDto,
+	TransferDto,
 	TransferFilterDto,
 	TransferReceiveDto,
 	TransferShipDto,
@@ -24,7 +28,7 @@ export function createTransferRoute(service: TransferService) {
 				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
-			{ query: TransferFilterDto },
+			{ query: TransferFilterDto, response: zRes.paginated(TransferDto) },
 		)
 		.get(
 			'/detail',
@@ -32,7 +36,7 @@ export function createTransferRoute(service: TransferService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: TransferDetailQueryDto },
+			{ query: TransferDetailQueryDto, response: zRes.ok(TransferDetailDto) },
 		)
 		.post(
 			'/create',
@@ -40,7 +44,7 @@ export function createTransferRoute(service: TransferService) {
 				const result = await service.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
-			{ body: TransferCreateDto, auth: true },
+			{ body: TransferCreateDto, auth: true, response: zRes.created(EntityRefDto) },
 		)
 		.post(
 			'/ship',
@@ -48,7 +52,7 @@ export function createTransferRoute(service: TransferService) {
 				const result = await service.handleShip(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: TransferShipDto, auth: true },
+			{ body: TransferShipDto, auth: true, response: zRes.ok(EntityRefDto) },
 		)
 		.post(
 			'/receive',
@@ -56,6 +60,6 @@ export function createTransferRoute(service: TransferService) {
 				const result = await service.handleReceive(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: TransferReceiveDto, auth: true },
+			{ body: TransferReceiveDto, auth: true, response: zRes.ok(EntityRefDto) },
 		)
 }

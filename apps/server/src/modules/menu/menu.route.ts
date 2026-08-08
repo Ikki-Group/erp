@@ -1,24 +1,34 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
 import { MenuItemModifierSyncDto } from './assignment/assignment.contract.ts'
 import type { AssignmentService } from './assignment/assignment.service.ts'
 import {
 	MenuCategoryCreateDto,
+	MenuCategoryDto,
 	MenuCategoryFilterDto,
 	MenuCategoryUpdateDto,
 } from './category/category.contract.ts'
 import type { CategoryService } from './category/category.service.ts'
+import { MenuItemDetailDto } from './composed/composed.contract.ts'
 import type { ComposedService } from './composed/composed.service.ts'
-import { MenuItemCreateDto, MenuItemFilterDto, MenuItemUpdateDto } from './item/item.contract.ts'
+import {
+	MenuItemCreateDto,
+	MenuItemDto,
+	MenuItemFilterDto,
+	MenuItemUpdateDto,
+} from './item/item.contract.ts'
 import type { ItemService } from './item/item.service.ts'
 import {
 	ModifierGroupCreateDto,
+	ModifierGroupDto,
 	ModifierGroupFilterDto,
 	ModifierGroupUpdateDto,
+	ModifierGroupWithOptionsDto,
 } from './modifier/modifier.contract.ts'
 import type { ModifierService } from './modifier/modifier.service.ts'
 
@@ -43,7 +53,7 @@ export function createMenuRoute(
 					const result = await categoryService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: MenuCategoryFilterDto },
+				{ query: MenuCategoryFilterDto, response: zRes.paginated(MenuCategoryDto) },
 			)
 			.post(
 				'/category/create',
@@ -51,7 +61,7 @@ export function createMenuRoute(
 					const result = await categoryService.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: MenuCategoryCreateDto },
+				{ body: MenuCategoryCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/category/update',
@@ -59,7 +69,7 @@ export function createMenuRoute(
 					const result = await categoryService.handleUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: MenuCategoryUpdateDto },
+				{ body: MenuCategoryUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/category/remove',
@@ -67,7 +77,7 @@ export function createMenuRoute(
 					const result = await categoryService.handleDelete(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Menu Item Routes ───
@@ -78,7 +88,7 @@ export function createMenuRoute(
 					const result = await itemService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: MenuItemFilterDto },
+				{ query: MenuItemFilterDto, response: zRes.paginated(MenuItemDto) },
 			)
 			.get(
 				'/item/detail',
@@ -86,7 +96,7 @@ export function createMenuRoute(
 					const result = await composedService.handleDetail(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(MenuItemDetailDto) },
 			)
 			.post(
 				'/item/create',
@@ -94,7 +104,7 @@ export function createMenuRoute(
 					const result = await itemService.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: MenuItemCreateDto },
+				{ body: MenuItemCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/item/update',
@@ -102,7 +112,7 @@ export function createMenuRoute(
 					const result = await itemService.handleUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: MenuItemUpdateDto },
+				{ body: MenuItemUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/item/remove',
@@ -110,7 +120,7 @@ export function createMenuRoute(
 					const result = await itemService.handleDelete(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Item Modifier Assignment ───
@@ -121,7 +131,7 @@ export function createMenuRoute(
 					const result = await assignmentService.handleSync(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: MenuItemModifierSyncDto },
+				{ body: MenuItemModifierSyncDto, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Modifier Group Routes ───
@@ -132,7 +142,7 @@ export function createMenuRoute(
 					const result = await modifierService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: ModifierGroupFilterDto },
+				{ query: ModifierGroupFilterDto, response: zRes.paginated(ModifierGroupDto) },
 			)
 			.get(
 				'/modifier/detail',
@@ -140,7 +150,7 @@ export function createMenuRoute(
 					const result = await modifierService.handleDetail(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(ModifierGroupWithOptionsDto) },
 			)
 			.post(
 				'/modifier/create',
@@ -148,7 +158,7 @@ export function createMenuRoute(
 					const result = await modifierService.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: ModifierGroupCreateDto },
+				{ body: ModifierGroupCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/modifier/update',
@@ -156,7 +166,7 @@ export function createMenuRoute(
 					const result = await modifierService.handleUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: ModifierGroupUpdateDto },
+				{ body: ModifierGroupUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/modifier/remove',
@@ -164,7 +174,7 @@ export function createMenuRoute(
 					const result = await modifierService.handleDelete(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 	)
 }

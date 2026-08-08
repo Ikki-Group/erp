@@ -1,13 +1,16 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
 import {
 	SupplierCreateDto,
+	SupplierDto,
 	SupplierFilterDto,
 	SupplierMaterialCreateDto,
+	SupplierMaterialDto,
 	SupplierMaterialFilterDto,
 	SupplierMaterialUpdateDto,
 	SupplierUpdateDto,
@@ -29,7 +32,7 @@ export function createSupplierRoute(svc: SupplierService) {
 					const result = await svc.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: SupplierFilterDto },
+				{ query: SupplierFilterDto, response: zRes.paginated(SupplierDto) },
 			)
 			.get(
 				'/detail',
@@ -37,7 +40,7 @@ export function createSupplierRoute(svc: SupplierService) {
 					const result = await svc.handleGetById(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(SupplierDto) },
 			)
 			.post(
 				'/create',
@@ -45,7 +48,7 @@ export function createSupplierRoute(svc: SupplierService) {
 					const result = await svc.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: SupplierCreateDto },
+				{ body: SupplierCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/update',
@@ -53,7 +56,7 @@ export function createSupplierRoute(svc: SupplierService) {
 					const result = await svc.handleUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: SupplierUpdateDto },
+				{ body: SupplierUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/remove',
@@ -61,7 +64,7 @@ export function createSupplierRoute(svc: SupplierService) {
 					const result = await svc.handleDelete(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Supplier-Material Pricing ───
@@ -72,7 +75,7 @@ export function createSupplierRoute(svc: SupplierService) {
 					const result = await svc.handlePricingList(query)
 					return res.paginated(result)
 				},
-				{ query: SupplierMaterialFilterDto },
+				{ query: SupplierMaterialFilterDto, response: zRes.paginated(SupplierMaterialDto) },
 			)
 			.post(
 				'/material/create',
@@ -80,7 +83,7 @@ export function createSupplierRoute(svc: SupplierService) {
 					const result = await svc.handlePricingCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: SupplierMaterialCreateDto },
+				{ body: SupplierMaterialCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/material/update',
@@ -88,7 +91,7 @@ export function createSupplierRoute(svc: SupplierService) {
 					const result = await svc.handlePricingUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: SupplierMaterialUpdateDto },
+				{ body: SupplierMaterialUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/material/remove',
@@ -96,7 +99,7 @@ export function createSupplierRoute(svc: SupplierService) {
 					const result = await svc.handlePricingDelete(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 	)
 }

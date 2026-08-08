@@ -154,3 +154,12 @@ export const OrderFilterDto = z.object({
 	q: zq.search,
 })
 export type OrderFilterDto = z.infer<typeof OrderFilterDto>
+
+// ─── Response: Voucher Apply Result ───
+
+export const OrderVoucherApplyResultDto = z.object({
+	applied: zp.bool,
+	reason: zp.str.optional(),
+	discountAmount: zp.num.optional(),
+})
+export type OrderVoucherApplyResultDto = z.infer<typeof OrderVoucherApplyResultDto>

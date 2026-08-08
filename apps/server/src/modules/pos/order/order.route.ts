@@ -1,18 +1,22 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
 import {
 	OrderApplyVoucherDto,
 	OrderCompleteDto,
 	OrderCreateDto,
+	OrderDetailDto,
+	OrderDto,
 	OrderFilterDto,
 	OrderLineSyncDto,
 	OrderPaymentDto,
 	OrderRemoveVoucherDto,
 	OrderVoidDto,
+	OrderVoucherApplyResultDto,
 } from './order.contract.ts'
 import type { OrderService } from './order.service.ts'
 
@@ -31,7 +35,7 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: OrderFilterDto },
+				{ query: OrderFilterDto, response: zRes.paginated(OrderDto) },
 			)
 			.get(
 				'/detail',
@@ -39,7 +43,7 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleDetail(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(OrderDetailDto) },
 			)
 
 			// ─── Order Lifecycle ───
@@ -50,7 +54,7 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: OrderCreateDto },
+				{ body: OrderCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.post(
 				'/complete',
@@ -58,7 +62,7 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleComplete(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: OrderCompleteDto },
+				{ body: OrderCompleteDto, response: zRes.ok(EntityRefDto) },
 			)
 			.post(
 				'/void',
@@ -66,7 +70,7 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleVoid(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: OrderVoidDto },
+				{ body: OrderVoidDto, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Lines ───
@@ -77,7 +81,7 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleSyncLines(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: OrderLineSyncDto },
+				{ body: OrderLineSyncDto, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Voucher ───
@@ -88,7 +92,7 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleApplyVoucher(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: OrderApplyVoucherDto },
+				{ body: OrderApplyVoucherDto, response: zRes.ok(OrderVoucherApplyResultDto) },
 			)
 			.post(
 				'/voucher/remove',
@@ -96,7 +100,7 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleRemoveVoucher(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: OrderRemoveVoucherDto },
+				{ body: OrderRemoveVoucherDto, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Payment ───
@@ -107,7 +111,7 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleRecordPayment(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: OrderPaymentDto },
+				{ body: OrderPaymentDto, response: zRes.created(EntityRefDto) },
 			)
 	)
 }

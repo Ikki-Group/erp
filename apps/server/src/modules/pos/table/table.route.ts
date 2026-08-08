@@ -1,10 +1,11 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
-import { TableCreateDto, TableFilterDto, TableUpdateDto } from './table.contract.ts'
+import { TableCreateDto, TableDto, TableFilterDto, TableUpdateDto } from './table.contract.ts'
 import type { TableService } from './table.service.ts'
 
 // ─── Route Factory ───
@@ -18,7 +19,7 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
-			{ query: TableFilterDto },
+			{ query: TableFilterDto, response: zRes.paginated(TableDto) },
 		)
 		.get(
 			'/detail',
@@ -26,7 +27,7 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleGetById(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId },
+			{ query: zq.recordId, response: zRes.ok(TableDto) },
 		)
 		.post(
 			'/create',
@@ -34,7 +35,7 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
-			{ body: TableCreateDto },
+			{ body: TableCreateDto, response: zRes.created(EntityRefDto) },
 		)
 		.put(
 			'/update',
@@ -42,7 +43,7 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: TableUpdateDto },
+			{ body: TableUpdateDto, response: zRes.ok(EntityRefDto) },
 		)
 		.delete(
 			'/remove',
@@ -50,6 +51,6 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleDelete(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zq.recordId },
+			{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 		)
 }

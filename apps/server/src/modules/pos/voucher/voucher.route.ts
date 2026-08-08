@@ -1,14 +1,17 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
 import {
 	VoucherCreateDto,
+	VoucherDto,
 	VoucherFilterDto,
 	VoucherUpdateDto,
 	VoucherValidateDto,
+	VoucherValidateResponseDto,
 } from './voucher.contract.ts'
 import type { VoucherService } from './voucher.service.ts'
 
@@ -24,7 +27,7 @@ export function createVoucherRoute(service: VoucherService) {
 				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
-			{ query: VoucherFilterDto },
+			{ query: VoucherFilterDto, response: zRes.paginated(VoucherDto) },
 		)
 		.get(
 			'/detail',
@@ -32,7 +35,7 @@ export function createVoucherRoute(service: VoucherService) {
 				const result = await service.handleGetById(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId },
+			{ query: zq.recordId, response: zRes.ok(VoucherDto) },
 		)
 		.post(
 			'/create',
@@ -40,7 +43,7 @@ export function createVoucherRoute(service: VoucherService) {
 				const result = await service.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
-			{ body: VoucherCreateDto },
+			{ body: VoucherCreateDto, response: zRes.created(EntityRefDto) },
 		)
 		.put(
 			'/update',
@@ -48,7 +51,7 @@ export function createVoucherRoute(service: VoucherService) {
 				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: VoucherUpdateDto },
+			{ body: VoucherUpdateDto, response: zRes.ok(EntityRefDto) },
 		)
 		.delete(
 			'/remove',
@@ -56,7 +59,7 @@ export function createVoucherRoute(service: VoucherService) {
 				const result = await service.handleDelete(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zq.recordId },
+			{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 		)
 		.post(
 			'/validate',
@@ -64,6 +67,6 @@ export function createVoucherRoute(service: VoucherService) {
 				const result = await service.handleValidate(body.code, body.orderTotal)
 				return res.ok(result)
 			},
-			{ body: VoucherValidateDto },
+			{ body: VoucherValidateDto, response: zRes.ok(VoucherValidateResponseDto) },
 		)
 }

@@ -48,6 +48,12 @@ export const zq = {
 	}),
 } as const
 
+// ─── Shared Response DTOs ───
+
+/** Most mutations return `{ id: number }`. Reusable across all modules. */
+export const EntityRefDto = z.object({ id: zp.id })
+export type EntityRefDto = z.infer<typeof EntityRefDto>
+
 // ─── Response wrappers ───
 
 export function createSuccessResponseDto<T extends z.ZodType>(dataSchema: T) {

@@ -1,11 +1,14 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 
 import {
+	StockBalanceDto,
 	StockBalanceFilterDto,
 	StockBalanceQueryDto,
+	StockMovementDto,
 	StockMovementFilterDto,
 } from './stock.contract.ts'
 import type { StockService } from './stock.service.ts'
@@ -22,7 +25,7 @@ export function createStockRoute(service: StockService) {
 				const result = await service.handleGetBalance(query)
 				return res.ok(result)
 			},
-			{ query: StockBalanceQueryDto },
+			{ query: StockBalanceQueryDto, response: zRes.ok(StockBalanceDto) },
 		)
 		.get(
 			'/list',
@@ -30,7 +33,7 @@ export function createStockRoute(service: StockService) {
 				const result = await service.handleGetBalances(query)
 				return res.paginated(result)
 			},
-			{ query: StockBalanceFilterDto },
+			{ query: StockBalanceFilterDto, response: zRes.paginated(StockBalanceDto) },
 		)
 		.get(
 			'/movements',
@@ -38,6 +41,6 @@ export function createStockRoute(service: StockService) {
 				const result = await service.handleGetMovements(query)
 				return res.paginated(result)
 			},
-			{ query: StockMovementFilterDto },
+			{ query: StockMovementFilterDto, response: zRes.paginated(StockMovementDto) },
 		)
 }

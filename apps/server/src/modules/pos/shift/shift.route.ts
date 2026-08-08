@@ -1,10 +1,17 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
-import { ShiftCloseDto, ShiftFilterDto, ShiftOpenDto } from './shift.contract.ts'
+import {
+	ShiftCloseDto,
+	ShiftDetailDto,
+	ShiftDto,
+	ShiftFilterDto,
+	ShiftOpenDto,
+} from './shift.contract.ts'
 import type { ShiftService } from './shift.service.ts'
 
 // ─── Route Factory ───
@@ -19,7 +26,7 @@ export function createShiftRoute(service: ShiftService) {
 				const result = await service.handleOpen(body, auth.userId)
 				return res.created(result)
 			},
-			{ body: ShiftOpenDto },
+			{ body: ShiftOpenDto, response: zRes.created(EntityRefDto) },
 		)
 		.post(
 			'/close',
@@ -27,7 +34,7 @@ export function createShiftRoute(service: ShiftService) {
 				const result = await service.handleClose(body, auth)
 				return res.ok(result)
 			},
-			{ body: ShiftCloseDto },
+			{ body: ShiftCloseDto, response: zRes.ok(EntityRefDto) },
 		)
 		.post(
 			'/close-other',
@@ -35,7 +42,7 @@ export function createShiftRoute(service: ShiftService) {
 				const result = await service.handleClose(body, auth)
 				return res.ok(result)
 			},
-			{ body: ShiftCloseDto },
+			{ body: ShiftCloseDto, response: zRes.ok(EntityRefDto) },
 		)
 		.get(
 			'/active',
@@ -43,7 +50,7 @@ export function createShiftRoute(service: ShiftService) {
 				const result = await service.handleGetActive(auth.userId, auth.locationId!)
 				return res.ok(result)
 			},
-			{},
+			{ response: zRes.ok(ShiftDto.nullable()) },
 		)
 		.get(
 			'/list',
@@ -51,7 +58,7 @@ export function createShiftRoute(service: ShiftService) {
 				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
-			{ query: ShiftFilterDto },
+			{ query: ShiftFilterDto, response: zRes.paginated(ShiftDto) },
 		)
 		.get(
 			'/detail',
@@ -59,6 +66,6 @@ export function createShiftRoute(service: ShiftService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId },
+			{ query: zq.recordId, response: zRes.ok(ShiftDetailDto) },
 		)
 }

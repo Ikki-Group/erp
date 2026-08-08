@@ -2,11 +2,13 @@ import { Elysia } from 'elysia'
 import { z } from 'zod'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
 import {
 	PaymentMethodCreateDto,
+	PaymentMethodDto,
 	PaymentMethodFilterDto,
 	PaymentMethodLocationAssignDto,
 	PaymentMethodUpdateDto,
@@ -28,7 +30,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 					const result = await service.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: PaymentMethodFilterDto },
+				{ query: PaymentMethodFilterDto, response: zRes.paginated(PaymentMethodDto) },
 			)
 			.get(
 				'/detail',
@@ -36,7 +38,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 					const result = await service.handleGetById(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(PaymentMethodDto) },
 			)
 			.get(
 				'/by-location',
@@ -44,7 +46,10 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 					const result = await service.handleByLocation(query.locationId)
 					return res.ok(result)
 				},
-				{ query: z.object({ locationId: z.coerce.number().int().positive() }) },
+				{
+					query: z.object({ locationId: z.coerce.number().int().positive() }),
+					response: zRes.ok(z.array(PaymentMethodDto)),
+				},
 			)
 			.post(
 				'/create',
@@ -52,7 +57,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 					const result = await service.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: PaymentMethodCreateDto },
+				{ body: PaymentMethodCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/update',
@@ -60,7 +65,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 					const result = await service.handleUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: PaymentMethodUpdateDto },
+				{ body: PaymentMethodUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/remove',
@@ -68,7 +73,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 					const result = await service.handleDelete(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Location Assignment ───
@@ -79,7 +84,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 					const result = await service.handleAssign(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: PaymentMethodLocationAssignDto },
+				{ body: PaymentMethodLocationAssignDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/location/unassign',
@@ -87,7 +92,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 					const result = await service.handleUnassign(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: PaymentMethodLocationAssignDto },
+				{ body: PaymentMethodLocationAssignDto, response: zRes.ok(EntityRefDto) },
 			)
 	)
 }

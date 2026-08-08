@@ -1,18 +1,24 @@
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
 import {
 	AssignmentCreateDto,
+	AssignmentDto,
 	AssignmentFilterDto,
 	AssignmentRemoveDto,
 } from './assignment/assignment.contract.ts'
 import type { AssignmentService } from './assignment/assignment.service.ts'
-import { ComposedUserFilterDto } from './composed/composed.contract.ts'
+import {
+	ComposedUserFilterDto,
+	UserDetailDto,
+	UserListItemDto,
+} from './composed/composed.contract.ts'
 import type { ComposedService } from './composed/composed.service.ts'
-import { RoleCreateDto, RoleFilterDto, RoleUpdateDto } from './role/role.contract.ts'
+import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from './role/role.contract.ts'
 import type { RoleService } from './role/role.service.ts'
 import { UserCreateDto, UserUpdateDto } from './user/user.contract.ts'
 import type { UserService } from './user/user.service.ts'
@@ -37,7 +43,7 @@ export function createIamRoute(
 					const result = await roleService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: RoleFilterDto },
+				{ query: RoleFilterDto, response: zRes.paginated(RoleDto) },
 			)
 			.get(
 				'/role/detail',
@@ -45,7 +51,7 @@ export function createIamRoute(
 					const result = await roleService.handleGetById(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(RoleDto) },
 			)
 			.post(
 				'/role/create',
@@ -53,7 +59,7 @@ export function createIamRoute(
 					const result = await roleService.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: RoleCreateDto },
+				{ body: RoleCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/role/update',
@@ -61,7 +67,7 @@ export function createIamRoute(
 					const result = await roleService.handleUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: RoleUpdateDto },
+				{ body: RoleUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/role/remove',
@@ -69,7 +75,7 @@ export function createIamRoute(
 					const result = await roleService.handleDelete(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── User Routes ───
@@ -80,7 +86,7 @@ export function createIamRoute(
 					const result = await composedService.handleUserList(query)
 					return res.paginated(result)
 				},
-				{ query: ComposedUserFilterDto },
+				{ query: ComposedUserFilterDto, response: zRes.paginated(UserListItemDto) },
 			)
 			.get(
 				'/user/detail',
@@ -88,7 +94,7 @@ export function createIamRoute(
 					const result = await composedService.handleUserDetail(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(UserDetailDto) },
 			)
 			.post(
 				'/user/create',
@@ -96,7 +102,7 @@ export function createIamRoute(
 					const result = await userService.handleCreate(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: UserCreateDto },
+				{ body: UserCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.put(
 				'/user/update',
@@ -104,7 +110,7 @@ export function createIamRoute(
 					const result = await userService.handleUpdate(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: UserUpdateDto },
+				{ body: UserUpdateDto, response: zRes.ok(EntityRefDto) },
 			)
 			.delete(
 				'/user/deactivate',
@@ -112,7 +118,7 @@ export function createIamRoute(
 					const result = await userService.handleDeactivate(query.id, auth.userId)
 					return res.ok(result)
 				},
-				{ query: zq.recordId },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
 			)
 
 			// ─── Assignment Routes ───
@@ -123,7 +129,7 @@ export function createIamRoute(
 					const result = await assignmentService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: AssignmentFilterDto },
+				{ query: AssignmentFilterDto, response: zRes.paginated(AssignmentDto) },
 			)
 			.post(
 				'/assignment/assign',
@@ -131,7 +137,7 @@ export function createIamRoute(
 					const result = await assignmentService.handleAssign(body, auth.userId)
 					return res.created(result)
 				},
-				{ body: AssignmentCreateDto },
+				{ body: AssignmentCreateDto, response: zRes.created(EntityRefDto) },
 			)
 			.delete(
 				'/assignment/remove',
@@ -139,7 +145,7 @@ export function createIamRoute(
 					const result = await assignmentService.handleRemove(body, auth.userId)
 					return res.ok(result)
 				},
-				{ body: AssignmentRemoveDto },
+				{ body: AssignmentRemoveDto, response: zRes.ok(EntityRefDto) },
 			)
 	)
 }
