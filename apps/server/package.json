@@ -8,6 +8,7 @@
 		"build": "bun build --compile --outfile ./dist/server ./src/server.ts",
 		"start": "bun run dist/server.js",
 		"test": "NODE_ENV=test bun test --bail",
+		"test:coverage": "NODE_ENV=test bun test --coverage",
 		"test:db:reset": "NODE_ENV=test bun run scripts/db-scripts-helper.ts all",
 		"test:watch": "NODE_ENV=test bun test --watch",
 		"db:generate": "bunx --bun drizzle-kit generate",
