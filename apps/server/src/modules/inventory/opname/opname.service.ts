@@ -7,6 +7,7 @@ import { stampCreate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
+import { roundQty, toDecimal } from '@/shared/utils/money.ts'
 
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
@@ -201,14 +202,14 @@ export class OpnameService {
 
 		// 3. For each line with variance, record stock adjustment
 		for (const line of lines) {
-			const systemQty = parseFloat(line.systemQty)
-			const actualQty = parseFloat(line.actualQty)
-			const variance = actualQty - systemQty
+			const systemQty = toDecimal(line.systemQty)
+			const actualQty = toDecimal(line.actualQty)
+			const variance = actualQty.sub(systemQty)
 
-			if (variance === 0) continue // No adjustment needed
+			if (variance.isZero()) continue // No adjustment needed
 
-			const direction = variance > 0 ? 'in' : 'out'
-			const qty = Math.abs(variance).toFixed(6)
+			const direction = variance.gt(0) ? 'in' : 'out'
+			const qty = roundQty(variance.abs())
 
 			await this.deps.stockService.recordMovement({
 				materialId: line.materialId,
@@ -232,7 +233,7 @@ export class OpnameService {
 		await this.cache.invalidateStandard()
 
 		// 6. Audit log
-		const adjustedLines = lines.filter((l) => parseFloat(l.actualQty) !== parseFloat(l.systemQty))
+		const adjustedLines = lines.filter((l) => !toDecimal(l.actualQty).eq(toDecimal(l.systemQty)))
 		auditLog.record({
 			userId: actorId,
 			userName: '',

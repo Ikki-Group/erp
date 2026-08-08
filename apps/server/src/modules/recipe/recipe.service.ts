@@ -8,6 +8,7 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
+import { roundCost, safeDivide, toDecimal } from '@/shared/utils/money.ts'
 
 import type { MaterialService } from '@/modules/material/material.service.ts'
 import type { ItemService } from '@/modules/menu/item/item.service.ts'
@@ -231,7 +232,7 @@ export class RecipeService {
 
 		// 4. Calculate cost per line
 		const breakdown: HppResponseDto['breakdown'] = []
-		let totalCost = 0
+		let totalCost = toDecimal(0)
 
 		for (const line of lines) {
 			// Get material for base UoM and name
@@ -256,7 +257,7 @@ export class RecipeService {
 			const costPrice = await this.getCostPrice(line.materialId, locationId)
 
 			// Convert quantity to material base UoM
-			let convertedQty = parseFloat(line.quantity)
+			let convertedQty = toDecimal(line.quantity)
 			if (line.uomId !== material.baseUomId) {
 				const conversion = resolveConversion(
 					line.uomId,
@@ -265,15 +266,15 @@ export class RecipeService {
 					conversions,
 				)
 				if (conversion) {
-					convertedQty = parseFloat(conversion.result)
+					convertedQty = toDecimal(conversion.result)
 				}
 				// If no conversion path, use raw quantity (best effort)
 			}
 
 			// Calculate line cost
-			const unitCostNum = parseFloat(costPrice)
-			const lineCost = convertedQty * unitCostNum
-			totalCost += lineCost
+			const unitCostDec = toDecimal(costPrice)
+			const lineCost = convertedQty.mul(unitCostDec)
+			totalCost = totalCost.add(lineCost)
 
 			breakdown.push({
 				materialId: line.materialId,
@@ -281,18 +282,18 @@ export class RecipeService {
 				quantity: line.quantity,
 				uomCode,
 				unitCost: costPrice,
-				lineCost: lineCost.toString(),
+				lineCost: roundCost(lineCost),
 			})
 		}
 
 		// 5. Divide by yield qty
-		const yieldQty = parseFloat(recipe.yieldQty)
-		const hpp = yieldQty > 0 ? totalCost / yieldQty : 0
+		const yieldQty = toDecimal(recipe.yieldQty)
+		const hpp = yieldQty.isZero() ? '0' : roundCost(safeDivide(totalCost, yieldQty))
 
 		return {
 			menuItemId,
 			locationId,
-			hpp: hpp.toString(),
+			hpp,
 			breakdown,
 		}
 	}

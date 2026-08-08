@@ -1,3 +1,5 @@
+import { type Decimal, roundQty, safeDivide, toDecimal } from '@/shared/utils/money.ts'
+
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { MaterialService } from '@/modules/material/material.service.ts'
 import type { RecipeService } from '@/modules/recipe/recipe.service.ts'
@@ -85,8 +87,8 @@ async function deductForOrderLine(
 
 	// 2. Get recipe lines and calculate deduction for each
 	const recipeLines = await recipeService.getLinesByRecipeId(recipe.id)
-	const orderQty = parseFloat(line.quantity)
-	const yieldQty = parseFloat(recipe.yieldQty)
+	const orderQty = toDecimal(line.quantity)
+	const yieldQty = toDecimal(recipe.yieldQty)
 
 	for (const recipeLine of recipeLines) {
 		await deductRecipeLine(orderId, locationId, recipeLine, orderQty, yieldQty, actorId, {
@@ -115,8 +117,8 @@ async function deductRecipeLine(
 	orderId: number,
 	locationId: number,
 	recipeLine: RecipeLineInput,
-	orderQty: number,
-	yieldQty: number,
+	orderQty: Decimal,
+	yieldQty: Decimal,
 	actorId: number,
 	ctx: RecipeLineCtx,
 ): Promise<void> {
@@ -124,8 +126,8 @@ async function deductRecipeLine(
 
 	try {
 		// 1. Calculate deduction: recipeLine.qty × orderLine.qty / yieldQty
-		const recipeQty = parseFloat(recipeLine.quantity)
-		const deductQty = (recipeQty * orderQty) / yieldQty
+		const recipeQty = toDecimal(recipeLine.quantity)
+		const deductQty = safeDivide(recipeQty.mul(orderQty), yieldQty)
 
 		// 2. Resolve UoM conversion to material base UoM
 		const material = await materialService.getById(recipeLine.materialId)
@@ -153,7 +155,7 @@ async function deductRecipeLine(
 			locationId,
 			type: 'sale',
 			direction: 'out',
-			qty: baseDeductQty.toFixed(6),
+			qty: roundQty(baseDeductQty),
 			referenceType: 'order',
 			referenceId: orderId,
 			actorId,
@@ -170,16 +172,16 @@ async function deductRecipeLine(
 // ─── Helpers ───
 
 function convertToBaseUom(
-	qty: number,
+	qty: Decimal,
 	fromUomId: number,
 	toUomId: number,
 	conversions: UomConversionDto[],
 	context: { materialId: number; orderId: number },
-): number {
+): Decimal {
 	if (fromUomId === toUomId) return qty
 
 	const conversion = resolveConversion(fromUomId, toUomId, qty.toString(), conversions)
-	if (conversion) return parseFloat(conversion.result)
+	if (conversion) return toDecimal(conversion.result)
 
 	console.warn(
 		`[pos:deduction] No UoM conversion path from ${fromUomId} to ${toUomId} for material #${context.materialId}, using raw qty for order #${context.orderId}`,

@@ -7,10 +7,11 @@ import { stampCreate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
+import { roundQty, toDecimal } from '@/shared/utils/money.ts'
 
+import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 import type { AssignmentService } from '@/modules/material/assignment/assignment.service.ts'
-import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 
 import type {
 	TransferCreateDto,
@@ -58,11 +59,17 @@ export class TransferService {
 
 		// 3. Validate all materials assigned to BOTH locations
 		for (const line of data.lines) {
-			const assignedSource = await this.deps.assignmentService.isAssigned(line.materialId, data.fromLocationId)
+			const assignedSource = await this.deps.assignmentService.isAssigned(
+				line.materialId,
+				data.fromLocationId,
+			)
 			if (!assignedSource) {
 				throw TransferError.materialNotAssigned(line.materialId, data.fromLocationId)
 			}
-			const assignedDest = await this.deps.assignmentService.isAssigned(line.materialId, data.toLocationId)
+			const assignedDest = await this.deps.assignmentService.isAssigned(
+				line.materialId,
+				data.toLocationId,
+			)
 			if (!assignedDest) {
 				throw TransferError.materialNotAssigned(line.materialId, data.toLocationId)
 			}
@@ -116,7 +123,12 @@ export class TransferService {
 			entityId: result.id,
 			action: 'create',
 			summary: `Created transfer ${transferNo} from location #${data.fromLocationId} to #${data.toLocationId}`,
-			newValues: { transferNo, fromLocationId: data.fromLocationId, toLocationId: data.toLocationId, lineCount: data.lines.length },
+			newValues: {
+				transferNo,
+				fromLocationId: data.fromLocationId,
+				toLocationId: data.toLocationId,
+				lineCount: data.lines.length,
+			},
 		})
 
 		return result
@@ -124,9 +136,8 @@ export class TransferService {
 
 	async handleShip(data: TransferShipDto, actorId: ActorId): Promise<EntityRef> {
 		// 1. Get transfer and validate status
-		const transfer = assertFound(
-			await this.repo.findById(data.transferId),
-			() => TransferError.notFound(data.transferId),
+		const transfer = assertFound(await this.repo.findById(data.transferId), () =>
+			TransferError.notFound(data.transferId),
 		)
 
 		if (transfer.status !== 'requested') {
@@ -176,9 +187,8 @@ export class TransferService {
 
 	async handleReceive(data: TransferReceiveDto, actorId: ActorId): Promise<EntityRef> {
 		// 1. Get transfer and validate status
-		const transfer = assertFound(
-			await this.repo.findById(data.transferId),
-			() => TransferError.notFound(data.transferId),
+		const transfer = assertFound(await this.repo.findById(data.transferId), () =>
+			TransferError.notFound(data.transferId),
 		)
 
 		if (transfer.status === 'received') {
@@ -199,20 +209,23 @@ export class TransferService {
 			}
 
 			// Validate received qty does not exceed requested
-			const requestedQty = parseFloat(transferLine.requestedQty)
-			const alreadyReceived = parseFloat(transferLine.receivedQty ?? '0')
-			const newReceived = parseFloat(receiveLine.receivedQty)
+			const requestedQty = toDecimal(transferLine.requestedQty)
+			const alreadyReceived = toDecimal(transferLine.receivedQty ?? '0')
+			const newReceived = toDecimal(receiveLine.receivedQty)
 
-			if (alreadyReceived + newReceived > requestedQty) {
+			if (alreadyReceived.add(newReceived).gt(requestedQty)) {
 				throw TransferError.receivedExceedsRequested(
 					receiveLine.materialId,
-					String(alreadyReceived + newReceived),
+					alreadyReceived.add(newReceived).toString(),
 					transferLine.requestedQty,
 				)
 			}
 
 			// Get source cost price for weighted avg at destination
-			const sourceCostPrice = await this.#getSourceCostPrice(transferLine.materialId, transfer.fromLocationId)
+			const sourceCostPrice = await this.#getSourceCostPrice(
+				transferLine.materialId,
+				transfer.fromLocationId,
+			)
 
 			// Record movement at destination
 			await this.deps.stockService.recordMovement({
@@ -229,14 +242,14 @@ export class TransferService {
 			})
 
 			// Update line received qty
-			const totalReceived = (alreadyReceived + newReceived).toFixed(6)
+			const totalReceived = roundQty(alreadyReceived.add(newReceived))
 			await this.repo.updateLineReceivedQty(transferLine.id, totalReceived)
 		}
 
 		// 4. Determine final status: received if all lines fully received
 		const updatedLines = await this.repo.findLinesByTransferId(data.transferId)
-		const allFullyReceived = updatedLines.every(
-			(l) => parseFloat(l.receivedQty ?? '0') >= parseFloat(l.requestedQty),
+		const allFullyReceived = updatedLines.every((l) =>
+			toDecimal(l.receivedQty ?? '0').gte(toDecimal(l.requestedQty)),
 		)
 		const newStatus = allFullyReceived ? 'received' : 'in_transit'
 
@@ -267,10 +280,7 @@ export class TransferService {
 	}
 
 	async handleDetail(id: number): Promise<TransferDetailDto> {
-		return assertFound(
-			await this.repo.findDetailById(id),
-			() => TransferError.notFound(id),
-		)
+		return assertFound(await this.repo.findDetailById(id), () => TransferError.notFound(id))
 	}
 
 	// ─── Private ───
