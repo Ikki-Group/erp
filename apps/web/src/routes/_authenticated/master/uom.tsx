@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
-import { ArrowRightIcon, EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import { ArrowRightIcon, EditIcon, LoaderIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table/data-table'
 import { useServerTable } from '@/components/data-table/use-server-table'
@@ -18,14 +18,22 @@ import { SearchToolbar } from '@/components/shared/search-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
-import { conversionResource, uomResource } from '@/features/uom/api.ts'
+import { conversionResource, uomListAll, uomResource } from '@/features/uom/api.ts'
 import { ConversionForm } from '@/features/uom/components/conversion-form.tsx'
 import type { ConversionFormRef } from '@/features/uom/components/conversion-form.tsx'
 import { UomForm } from '@/features/uom/components/uom-form.tsx'
 import type { UomFormRef } from '@/features/uom/components/uom-form.tsx'
-import type { UomConversionDto, UomDto } from '@/features/uom/dto/index.ts'
+import { UOM_CATEGORY_OPTIONS } from '@/features/uom/dto/index.ts'
+import type { UomCategoryEnum, UomConversionDto, UomDto } from '@/features/uom/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/master/uom')({
 	component: UomPage,
@@ -58,9 +66,11 @@ function UomPage() {
 		page: 1,
 		limit: 10,
 		q: undefined as string | undefined,
+		category: undefined as UomCategoryEnum | undefined,
 	})
 
 	const listQuery = useQuery(uomResource.list.queryOptions(listParams))
+	const allUnitsQuery = useQuery(uomListAll.queryOptions({ page: 1, limit: 999 }))
 	const conversionsQuery = useQuery(conversionResource.list.queryOptions(undefined))
 
 	const createMut = useMutation(uomResource.create.mutationOptions())
@@ -71,15 +81,16 @@ function UomPage() {
 
 	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
+	const allUnits = allUnitsQuery.data?.data ?? []
 	const conversions = conversionsQuery.data?.data ?? []
 
 	const unitMap = useMemo(() => {
 		const map = new Map<number, UomDto>()
-		for (const unit of data) {
+		for (const unit of allUnits) {
 			map.set(unit.id, unit)
 		}
 		return map
-	}, [data])
+	}, [allUnits])
 
 	const getUnitLabel = useCallback(
 		(id: number) => {
@@ -186,7 +197,7 @@ function UomPage() {
 					ref={(el) => {
 						formRef.current = el
 					}}
-					units={data}
+					units={allUnits}
 				/>
 			),
 			onSubmit: async () => {
@@ -204,7 +215,7 @@ function UomPage() {
 		if (saved) {
 			toast.add({ title: 'Conversion created successfully.', type: 'success' })
 		}
-	}, [convCreateMut, data])
+	}, [convCreateMut, allUnits])
 
 	const handleDeleteConversion = useCallback(
 		async (conversion: UomConversionDto) => {
@@ -262,15 +273,16 @@ function UomPage() {
 		totalCount,
 		pageSize: listParams.limit,
 		onStateChange: (params) => {
-			setListParams({
+			setListParams((prev) => ({
+				...prev,
 				page: params.page + 1,
 				limit: params.pageSize,
 				q: params.search || undefined,
-			})
+			}))
 		},
 	})
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
+	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !listParams.category
 
 	return (
 		<div className="space-y-6">
@@ -279,7 +291,12 @@ function UomPage() {
 				description="Manage units and conversion factors."
 				actions={
 					<div className="flex gap-2">
-						<Button size="sm" variant="outline" onClick={handleAddConversion} disabled={data.length < 2}>
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={handleAddConversion}
+							disabled={allUnits.length < 2}
+						>
 							<ArrowRightIcon className="size-4" />
 							Add Conversion
 						</Button>
@@ -309,18 +326,51 @@ function UomPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="No units match your search."
 					toolbar={
-						<SearchToolbar
-							value={globalFilter}
-							onChange={setGlobalFilter}
-							placeholder="Search units..."
-						/>
+						<div className="flex items-center gap-2">
+							<SearchToolbar
+								value={globalFilter}
+								onChange={setGlobalFilter}
+								placeholder="Search units..."
+							/>
+							<Select
+								value={listParams.category ?? 'all'}
+								onValueChange={(v) =>
+									setListParams((prev) => ({
+										...prev,
+										page: 1,
+										category: v === 'all' ? undefined : (v as UomCategoryEnum),
+									}))
+								}
+							>
+								<SelectTrigger className="h-9 w-[140px]">
+									<SelectValue placeholder="Category" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All categories</SelectItem>
+									{UOM_CATEGORY_OPTIONS.map((opt) => (
+										<SelectItem key={opt.value} value={opt.value}>
+											{opt.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 					}
 				/>
 			)}
 
-			{conversions.length > 0 && (
-				<div className="space-y-3">
-					<h3 className="text-sm font-medium">Conversions</h3>
+			<div className="space-y-3">
+				<h3 className="text-sm font-medium">Conversions</h3>
+				{conversionsQuery.isLoading ? (
+					<div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+						<LoaderIcon className="size-4 animate-spin" />
+						Loading conversions...
+					</div>
+				) : conversions.length === 0 ? (
+					<p className="py-4 text-sm text-muted-foreground">
+						No conversions defined yet. Add at least two units, then create a conversion.
+					</p>
+				) : (
 					<div className="divide-y rounded-md border">
 						{conversions.map((conv) => (
 							<div key={conv.id} className="flex items-center justify-between px-4 py-3">
@@ -341,8 +391,8 @@ function UomPage() {
 							</div>
 						))}
 					</div>
-				</div>
-			)}
+				)}
+			</div>
 		</div>
 	)
 }
