@@ -1,13 +1,8 @@
-import { describe, expect, test } from 'bun:test'
-
+import { hasPermission, requireAnyPermission, requirePermission } from '@/shared/auth/permission.ts'
+import type { AuthContext } from '@/shared/auth/permission.ts'
 import { ForbiddenError } from '@/shared/errors/http-error.ts'
 
-import {
-	hasPermission,
-	requireAnyPermission,
-	requirePermission,
-} from '@/shared/auth/permission.ts'
-import type { AuthContext } from '@/shared/auth/permission.ts'
+import { describe, expect, test } from 'bun:test'
 
 // ─── Fixtures ───
 

@@ -1,6 +1,6 @@
-import { describe, expect, test } from 'bun:test'
-
 import { assertFound, hashPassword, RelationMap, verifyPassword } from '@/shared/utils/index.ts'
+
+import { describe, expect, test } from 'bun:test'
 
 // ─── hashPassword + verifyPassword ───
 
