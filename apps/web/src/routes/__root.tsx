@@ -2,6 +2,8 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { Outlet, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
+import { Confirm } from '@/components/shared/confirm'
+
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 import appCss from '../styles.css?url'
@@ -40,6 +42,7 @@ function RootComponent() {
 	return (
 		<TooltipProvider>
 			<Outlet />
+			<Confirm />
 			<TanStackDevtools
 				config={{
 					position: 'bottom-right',

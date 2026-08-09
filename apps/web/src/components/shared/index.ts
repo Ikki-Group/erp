@@ -1,4 +1,5 @@
 export { ActionMenu } from './action-menu'
+export { Confirm, confirm } from './confirm'
 export { ConfirmDialog } from './confirm-dialog'
 export { DataCard } from './data-card'
 export { DetailList } from './detail-list'

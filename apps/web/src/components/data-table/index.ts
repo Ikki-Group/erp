@@ -1,4 +1,5 @@
 export { DataTable } from './data-table'
+export { DataTableEmpty, DataTableError, DataTableLoading } from './data-table-states'
 export { DataTableToolbar } from './data-table-toolbar'
 export { useClientTable } from './use-client-table'
 export { useServerTable } from './use-server-table'

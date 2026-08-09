@@ -15,7 +15,14 @@ import {
 import { AreaChart } from '@/components/charts/area-chart'
 import { BarChart } from '@/components/charts/bar-chart'
 import { LineChart } from '@/components/charts/line-chart'
-import { DataTable, DataTableToolbar, useClientTable } from '@/components/data-table'
+import {
+	DataTable,
+	DataTableEmpty,
+	DataTableError,
+	DataTableLoading,
+	DataTableToolbar,
+	useClientTable,
+} from '@/components/data-table'
 import {
 	FormCombobox,
 	FormDatePicker,
@@ -28,6 +35,7 @@ import {
 import {
 	ActionMenu,
 	ConfirmDialog,
+	confirm,
 	DataCard,
 	DetailList,
 	EmptyState,
@@ -526,6 +534,78 @@ function DesignSystemPage() {
 			{/* ─── PAGE SKELETON ─── */}
 			<PageSection title="Page Skeleton" description="Loading state for pages.">
 				<PageSkeleton />
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── CONFIRM (react-call) ─── */}
+			<PageSection
+				title="Confirm (react-call)"
+				description="Imperative awaitable confirm dialog. No state management needed."
+			>
+				<div className="flex gap-3">
+					<Button
+						variant="destructive"
+						size="sm"
+						onClick={async () => {
+							const accepted = await confirm({
+								title: 'Delete material?',
+								description:
+									'This action cannot be undone. The material will be permanently removed.',
+								confirmLabel: 'Delete',
+								variant: 'destructive',
+							})
+							if (accepted) alert('Deleted!')
+						}}
+					>
+						Delete (await confirm)
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={async () => {
+							const accepted = await confirm({
+								title: 'Approve transfer?',
+								description: 'Once approved, stock will be deducted from the source location.',
+								confirmLabel: 'Approve',
+							})
+							if (accepted) alert('Approved!')
+						}}
+					>
+						Approve (await confirm)
+					</Button>
+				</div>
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── DATA TABLE STATES ─── */}
+			<PageSection
+				title="Data Table States"
+				description="Loading, error, and empty states for tables."
+			>
+				<div className="space-y-8">
+					<div>
+						<p className="mb-2 text-xs font-medium text-muted-foreground">Loading State</p>
+						<DataTableLoading rows={3} columns={4} />
+					</div>
+					<div>
+						<p className="mb-2 text-xs font-medium text-muted-foreground">Error State</p>
+						<DataTableError
+							title="Failed to load materials"
+							message="Connection timed out. Please check your network."
+							onRetry={() => {}}
+						/>
+					</div>
+					<div>
+						<p className="mb-2 text-xs font-medium text-muted-foreground">Empty State</p>
+						<DataTableEmpty
+							title="No materials found"
+							description="Try adjusting your search or add a new material."
+							action={<Button size="sm">Add Material</Button>}
+						/>
+					</div>
+				</div>
 			</PageSection>
 		</div>
 	)
