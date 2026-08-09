@@ -57,6 +57,7 @@ import {
 	SegmentedBar,
 	StatCard,
 	StatusBadge,
+	ThemeToggle,
 } from '@/components/shared'
 
 import { Button } from '@/components/ui/button'
@@ -241,10 +242,11 @@ const stockChartConfig: ChartConfig = {
 
 function DesignSystemPage() {
 	return (
-		<div className="space-y-12">
+		<div className="space-y-12 py-8 px-4">
 			<PageHeader
 				title="Design System"
 				description="Complete catalog of reusable components used across the application."
+				actions={<ThemeToggle />}
 			/>
 
 			{/* ─── STAT CARDS ─── */}

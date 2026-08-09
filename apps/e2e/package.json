@@ -7,8 +7,12 @@
 		"test:ui": "playwright test --ui",
 		"test:headed": "playwright test --headed",
 		"test:debug": "playwright test --debug",
-		"test:report": "playwright show-report",
+		"test:only": "playwright test --grep",
+		"test:failed": "playwright test --last-failed",
+		"test:report": "playwright show-report ./playwright-report/html",
+		"test:trace": "playwright show-trace",
 		"typecheck": "tsc --noEmit",
+		"clean:report": "rm -rf ./playwright-report ./test-results",
 		"upload:report": "bunx tdpw upload ./playwright-report --token=trx_production_27764b9688effd3ec978da7aa5d3567b638c93b659d564adba41608b4062b194"
 	},
 	"devDependencies": {

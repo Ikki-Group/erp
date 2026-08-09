@@ -13,9 +13,9 @@ export function AppShell({ children }: AppShellProps) {
 	return (
 		<SidebarProvider>
 			<SidebarNav />
-			<SidebarInset>
+			<SidebarInset className="contain-inline-size">
 				<AppHeader />
-				<main className="flex-1 overflow-y-auto p-6">{children}</main>
+				<main className="flex-1 overflow-y-auto p-6 contain-inline-size">{children}</main>
 			</SidebarInset>
 		</SidebarProvider>
 	)

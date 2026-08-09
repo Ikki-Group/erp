@@ -51,8 +51,8 @@ function shouldRetry(failureCount: number, error: unknown): boolean {
  *     (4xx, 5xx) stay in query `error` state for per-component handling.
  */
 function shouldThrowOnError(error: unknown): boolean {
-	if (IS_DEV) return true
-	if (isApiError(error) && error.isNetworkError) return true
+	// if (IS_DEV) return true
+	// if (isApiError(error) && error.isNetworkError) return true
 	return false
 }
 

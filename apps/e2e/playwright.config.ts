@@ -11,11 +11,11 @@ export default defineConfig({
 	reporter: [
 		// Mandatory reporter for JSON results
 		['json', { outputFile: './playwright-report/report.json' }],
-		// Optional, enables native HTML upload
-		// ['html', { outputDir: './playwright-report' }],
+		// HTML reporter for better visualization
+		['html', { outputFolder: './playwright-report/html', open: 'never' }],
 	],
 	use: {
-		baseURL: 'http://localhost:3000',
+		baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 	},

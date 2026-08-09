@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import
+import './styles.css'
 import ReactDOM from 'react-dom/client'
 
 import { RouterProvider } from '@tanstack/react-router'

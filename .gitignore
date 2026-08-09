@@ -49,3 +49,5 @@ docs/draft
 .claude
 .notes
 .codegraph
+.playwright-mcp
+.gortex
