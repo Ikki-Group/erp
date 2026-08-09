@@ -4,13 +4,13 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
-import { CheckCircleIcon, PackageIcon, PlusIcon } from 'lucide-react'
+import { ArrowLeftIcon, CheckCircleIcon, PackageIcon, PlusIcon } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table/data-table'
 import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
 import { confirm } from '@/components/shared/confirm'
+import { DetailList } from '@/components/shared/detail-list'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
@@ -26,6 +26,9 @@ import { ReceivingForm } from '@/features/inventory/components/receiving-form.ts
 import type { ReceivingFormRef } from '@/features/inventory/components/receiving-form.tsx'
 import { RECEIVING_STATUS_LABELS } from '@/features/inventory/dto/index.ts'
 import type { ReceivingDto, ReceivingStatusEnum } from '@/features/inventory/dto/index.ts'
+import { materialResource } from '@/features/material/api.ts'
+import { supplierResource } from '@/features/supplier/api.ts'
+import { uomResource } from '@/features/uom/api.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
@@ -61,11 +64,6 @@ const baseColumns = [
 			)
 		},
 	}),
-	col.accessor('supplierId', {
-		header: 'Supplier',
-		size: 100,
-		cell: ({ getValue }) => `#${getValue()}`,
-	}),
 	col.accessor('notes', {
 		header: 'Catatan',
 		size: 200,
@@ -84,17 +82,17 @@ function ReceivingPage() {
 	const { activeLocation } = useLocationContext()
 	const locationId = activeLocation?.id
 
+	const [selectedReceivingId, setSelectedReceivingId] = useState<number | null>(null)
+
 	const [listParams, setListParams] = useState({
 		page: 1,
 		limit: 10,
-		locationId: locationId,
-		status: undefined as ReceivingStatusEnum | undefined,
 	})
 
 	const listQuery = useQuery({
 		...receivingResource.list.queryOptions({
 			...listParams,
-			locationId: locationId,
+			locationId,
 		}),
 		enabled: !!locationId,
 	})
@@ -104,6 +102,44 @@ function ReceivingPage() {
 
 	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
+
+	// ─── Lookup queries for name resolution ───
+
+	const suppliersQuery = useQuery(supplierResource.list.queryOptions({ page: 1, limit: 100 }))
+	const materialsQuery = useQuery(materialResource.list.queryOptions({ page: 1, limit: 200 }))
+	const uomsQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 100 }))
+
+	const suppliersMap = useMemo(() => {
+		const map = new Map<number, string>()
+		for (const s of suppliersQuery.data?.data ?? []) {
+			map.set(s.id, s.name)
+		}
+		return map
+	}, [suppliersQuery.data])
+
+	const materialsMap = useMemo(() => {
+		const map = new Map<number, string>()
+		for (const m of materialsQuery.data?.data ?? []) {
+			map.set(m.id, `${m.name} (${m.code})`)
+		}
+		return map
+	}, [materialsQuery.data])
+
+	const uomsMap = useMemo(() => {
+		const map = new Map<number, string>()
+		for (const u of uomsQuery.data?.data ?? []) {
+			map.set(u.id, u.code)
+		}
+		return map
+	}, [uomsQuery.data])
+
+	// ─── Detail query ───
+
+	const detailQuery = useQuery({
+		...receivingResource.detail.queryOptions({ id: selectedReceivingId! }),
+		enabled: !!selectedReceivingId,
+	})
+	const detail = detailQuery.data?.data
 
 	// ─── Create ───
 
@@ -151,13 +187,13 @@ function ReceivingPage() {
 	// ─── Confirm ───
 
 	const handleConfirm = useCallback(
-		async (receiving: ReceivingDto) => {
+		async (receivingId: number, receivingNo: string) => {
 			await confirm({
 				title: 'Konfirmasi penerimaan?',
-				description: `Penerimaan ${receiving.receivingNo} akan dikonfirmasi dan stok akan diperbarui. Lanjutkan?`,
+				description: `Penerimaan ${receivingNo} akan dikonfirmasi dan stok akan diperbarui. Lanjutkan?`,
 				confirmLabel: 'Konfirmasi',
 				onConfirm: async () => {
-					await confirmMut.mutateAsync({ receivingId: receiving.id })
+					await confirmMut.mutateAsync({ receivingId })
 					toast.add({ title: 'Penerimaan berhasil dikonfirmasi.', type: 'success' })
 				},
 			})
@@ -167,31 +203,47 @@ function ReceivingPage() {
 
 	// ─── Columns with actions ───
 
+	const supplierColumn = useMemo(() => {
+		return col.display({
+			id: 'supplierName',
+			header: 'Supplier',
+			size: 160,
+			cell: ({ row }) => {
+				const name = suppliersMap.get(row.original.supplierId)
+				return name ?? `#${row.original.supplierId}`
+			},
+		})
+	}, [suppliersMap])
+
 	const actionsColumn = useMemo(() => {
 		return col.display({
 			id: 'actions',
-			size: 60,
+			size: 80,
 			cell: ({ row }) => {
 				const receiving = row.original
-				const items = []
-
-				if (receiving.status === 'draft') {
-					items.push({
-						label: 'Konfirmasi',
-						icon: <CheckCircleIcon className="size-4" />,
-						onClick: () => handleConfirm(receiving),
-					})
-				}
-
-				if (items.length === 0) return null
-				return <ActionMenu items={items} />
+				return (
+					<div className="flex gap-1">
+						<Button
+							size="sm"
+							variant="ghost"
+							aria-label={`Detail ${receiving.receivingNo}`}
+							onClick={() => setSelectedReceivingId(receiving.id)}
+						>
+							Detail
+						</Button>
+					</div>
+				)
 			},
 		})
-	}, [handleConfirm])
+	}, [])
 
 	const columns = useMemo(
-		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, ReceivingDto>[],
-		[actionsColumn],
+		() =>
+			[...baseColumns, supplierColumn, actionsColumn] as ColumnDef<
+				DataGridFeatures,
+				ReceivingDto
+			>[],
+		[supplierColumn, actionsColumn],
 	)
 
 	const { table, globalFilter, setGlobalFilter } = useServerTable({
@@ -226,7 +278,120 @@ function ReceivingPage() {
 		)
 	}
 
-	// ─── Render ───
+	// ─── Detail View ───
+
+	if (selectedReceivingId && detail) {
+		const canConfirm = detail.status === 'draft'
+
+		return (
+			<div className="space-y-6">
+				<PageHeader
+					title={detail.receivingNo}
+					description={`Status: ${RECEIVING_STATUS_LABELS[detail.status]}`}
+					actions={
+						canConfirm ? (
+							<Button size="sm" onClick={() => handleConfirm(detail.id, detail.receivingNo)}>
+								<CheckCircleIcon className="size-4" />
+								Konfirmasi
+							</Button>
+						) : undefined
+					}
+				/>
+
+				<Button size="sm" variant="ghost" onClick={() => setSelectedReceivingId(null)}>
+					<ArrowLeftIcon className="size-3.5" />
+					Kembali ke daftar
+				</Button>
+
+				<DetailList
+					items={[
+						{
+							label: 'Supplier',
+							value: suppliersMap.get(detail.supplierId) ?? `#${detail.supplierId}`,
+						},
+						{
+							label: 'Status',
+							value: (
+								<StatusBadge variant={STATUS_VARIANTS[detail.status]}>
+									{RECEIVING_STATUS_LABELS[detail.status]}
+								</StatusBadge>
+							),
+						},
+						{
+							label: 'Tanggal',
+							value: new Date(detail.createdAt).toLocaleDateString('id-ID'),
+						},
+						{ label: 'Catatan', value: detail.notes ?? '—' },
+					]}
+				/>
+
+				<div className="space-y-3">
+					<h3 className="text-sm font-medium">Item Penerimaan ({detail.lines.length})</h3>
+					<div className="overflow-x-auto rounded-md border">
+						<table className="w-full text-sm">
+							<thead className="bg-muted/50">
+								<tr>
+									<th className="px-3 py-2 text-left font-medium">Material</th>
+									<th className="px-3 py-2 text-right font-medium">Jumlah</th>
+									<th className="px-3 py-2 text-left font-medium">Satuan</th>
+									<th className="px-3 py-2 text-right font-medium">Harga Satuan</th>
+									<th className="px-3 py-2 text-right font-medium">Subtotal</th>
+								</tr>
+							</thead>
+							<tbody>
+								{detail.lines.map((line) => {
+									const subtotal = Number(line.quantity) * Number(line.unitCost)
+									return (
+										<tr key={line.id} className="border-t">
+											<td className="px-3 py-2">
+												{materialsMap.get(line.materialId) ?? `#${line.materialId}`}
+											</td>
+											<td className="px-3 py-2 text-right">{line.quantity}</td>
+											<td className="px-3 py-2">{uomsMap.get(line.uomId) ?? `#${line.uomId}`}</td>
+											<td className="px-3 py-2 text-right">
+												{Number(line.unitCost).toLocaleString('id-ID')}
+											</td>
+											<td className="px-3 py-2 text-right font-medium">
+												{subtotal.toLocaleString('id-ID')}
+											</td>
+										</tr>
+									)
+								})}
+							</tbody>
+							<tfoot className="border-t bg-muted/30">
+								<tr>
+									<td colSpan={4} className="px-3 py-2 text-right font-medium">
+										Total
+									</td>
+									<td className="px-3 py-2 text-right font-medium">
+										{detail.lines
+											.reduce((sum, l) => sum + Number(l.quantity) * Number(l.unitCost), 0)
+											.toLocaleString('id-ID')}
+									</td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+				</div>
+			</div>
+		)
+	}
+
+	// ─── Loading detail ───
+
+	if (selectedReceivingId && !detail) {
+		return (
+			<div className="space-y-6">
+				<PageHeader title="Detail Penerimaan" description="Memuat..." />
+				<Button size="sm" variant="ghost" onClick={() => setSelectedReceivingId(null)}>
+					<ArrowLeftIcon className="size-3.5" />
+					Kembali ke daftar
+				</Button>
+			</div>
+		)
+	}
+
+	// ─── List View ───
 
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
 

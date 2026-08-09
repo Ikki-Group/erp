@@ -12,8 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 
 import { materialResource } from '@/features/material/api.ts'
-import { pricingResource } from '@/features/supplier/api.ts'
-import { supplierResource } from '@/features/supplier/api.ts'
+import { pricingResource, supplierResource } from '@/features/supplier/api.ts'
 import { uomResource } from '@/features/uom/api.ts'
 
 import { ReceivingCreateDto } from '../dto/index.ts'
@@ -53,12 +52,8 @@ export const ReceivingForm = forwardRef<ReceivingFormRef, ReceivingFormProps>(
 		})
 		const [errors, setErrors] = useState<Record<string, string>>({})
 
-		const suppliersQuery = useQuery(
-			supplierResource.list.queryOptions({ page: 1, limit: 100 }),
-		)
-		const materialsQuery = useQuery(
-			materialResource.list.queryOptions({ page: 1, limit: 200 }),
-		)
+		const suppliersQuery = useQuery(supplierResource.list.queryOptions({ page: 1, limit: 100 }))
+		const materialsQuery = useQuery(materialResource.list.queryOptions({ page: 1, limit: 200 }))
 		const uomsQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 100 }))
 
 		const pricingQuery = useQuery({
@@ -93,13 +88,10 @@ export const ReceivingForm = forwardRef<ReceivingFormRef, ReceivingFormProps>(
 		}))
 
 		// Pre-populate lines when supplier materials are loaded
-		const handleSupplierChange = useCallback(
-			(supplierId: string) => {
-				setValues((prev) => ({ ...prev, supplierId, lines: [] }))
-				setErrors({})
-			},
-			[],
-		)
+		const handleSupplierChange = useCallback((supplierId: string) => {
+			setValues((prev) => ({ ...prev, supplierId, lines: [] }))
+			setErrors({})
+		}, [])
 
 		useEffect(() => {
 			if (supplierMaterials.length > 0 && values.lines.length === 0) {
@@ -189,8 +181,7 @@ export const ReceivingForm = forwardRef<ReceivingFormRef, ReceivingFormProps>(
 						const parts = key.split('.')
 						const idx = parts[1]
 						const field = parts[2]
-						if (field === 'materialId')
-							mapped[`lines.${idx}.materialId`] = 'Material wajib dipilih'
+						if (field === 'materialId') mapped[`lines.${idx}.materialId`] = 'Material wajib dipilih'
 						else if (field === 'qty') mapped[`lines.${idx}.qty`] = 'Jumlah harus positif'
 						else if (field === 'unitCost')
 							mapped[`lines.${idx}.unitCost`] = 'Harga satuan wajib diisi'
@@ -279,13 +270,7 @@ export const ReceivingForm = forwardRef<ReceivingFormRef, ReceivingFormProps>(
 								/>
 							</div>
 							<div className={i === 0 ? 'pt-6' : ''}>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									onClick={() => removeLine(i)}
-									disabled={values.lines.length === 1}
-								>
+								<Button type="button" variant="ghost" size="icon" onClick={() => removeLine(i)}>
 									<Trash2Icon className="size-4" />
 								</Button>
 							</div>

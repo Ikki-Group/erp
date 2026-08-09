@@ -75,6 +75,25 @@ test.describe('Inventory Receiving - Create Dialog', () => {
 	})
 })
 
+test.describe('Inventory Receiving - Detail View', () => {
+	/** Detail button is visible when receivings exist */
+	test('shows detail button in table rows', async ({ page, login }) => {
+		await login()
+		await page.goto('/inventory/receiving')
+
+		const hasTable = page.locator('table')
+		const hasEmpty = page.getByText(/belum ada penerimaan/i)
+
+		const tableVisible = await hasTable.isVisible().catch(() => false)
+		if (tableVisible) {
+			const detailBtn = page.getByRole('button', { name: /detail/i }).first()
+			await expect(detailBtn).toBeVisible()
+		} else {
+			await expect(hasEmpty).toBeVisible()
+		}
+	})
+})
+
 test.describe('Inventory Receiving - Navigation', () => {
 	/** Receiving link is accessible from sidebar */
 	test('can navigate to receiving page from sidebar', async ({ page, login }) => {
