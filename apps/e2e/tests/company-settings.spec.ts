@@ -33,7 +33,8 @@ test.describe('Company Settings - View & Edit', () => {
 		await login()
 		await page.goto('/settings/company')
 
-		await page.waitForLoadState('networkidle')
+		// Wait for form to be ready
+		await expect(page.getByLabel('Company Name')).toBeVisible()
 
 		const nameField = page.getByLabel('Company Name')
 		await nameField.clear()
@@ -57,7 +58,7 @@ test.describe('Company Settings - View & Edit', () => {
 		await login()
 		await page.goto('/settings/company')
 
-		await page.waitForLoadState('networkidle')
+		await expect(page.getByLabel('Company Name')).toBeVisible()
 
 		const nameField = page.getByLabel('Company Name')
 		await nameField.clear()
@@ -67,7 +68,6 @@ test.describe('Company Settings - View & Edit', () => {
 		await expect(page.getByText(/settings (created|updated)/i)).toBeVisible()
 
 		await page.reload()
-		await page.waitForLoadState('networkidle')
 
 		await expect(page.getByLabel('Company Name')).toHaveValue('PT. Persist Test')
 	})
@@ -77,7 +77,7 @@ test.describe('Company Settings - View & Edit', () => {
 		await login()
 		await page.goto('/settings/company')
 
-		await page.waitForLoadState('networkidle')
+		await expect(page.getByLabel('Company Name')).toBeVisible()
 
 		const nameField = page.getByLabel('Company Name')
 		await nameField.clear()

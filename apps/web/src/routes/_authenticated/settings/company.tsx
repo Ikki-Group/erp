@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
@@ -45,6 +45,30 @@ const EMPTY_FORM: FormValues = {
 	receiptFooter: '',
 }
 
+function toFormValues(data: {
+	name: string
+	address: string | null
+	phone: string | null
+	email: string | null
+	taxId: string | null
+	taxRate: string
+	currencyCode: string
+	currencySymbol: string
+	receiptFooter: string | null
+}): FormValues {
+	return {
+		name: data.name ?? '',
+		address: data.address ?? '',
+		phone: data.phone ?? '',
+		email: data.email ?? '',
+		taxId: data.taxId ?? '',
+		taxRate: data.taxRate ?? '0',
+		currencyCode: data.currencyCode ?? 'IDR',
+		currencySymbol: data.currencySymbol ?? 'Rp',
+		receiptFooter: data.receiptFooter ?? '',
+	}
+}
+
 function CompanySettingsPage() {
 	const canWrite = useHasPermission('company:write')
 
@@ -55,26 +79,36 @@ function CompanySettingsPage() {
 	const [values, setValues] = useState<FormValues>(EMPTY_FORM)
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [initialized, setInitialized] = useState(false)
+	const baselineRef = useRef<FormValues>(EMPTY_FORM)
 
 	const existing = detailQuery.data?.data
 	const isCreate = !existing
 
 	useEffect(() => {
 		if (existing && !initialized) {
-			setValues({
-				name: existing.name ?? '',
-				address: existing.address ?? '',
-				phone: existing.phone ?? '',
-				email: existing.email ?? '',
-				taxId: existing.taxId ?? '',
-				taxRate: existing.taxRate ?? '0',
-				currencyCode: existing.currencyCode ?? 'IDR',
-				currencySymbol: existing.currencySymbol ?? 'Rp',
-				receiptFooter: existing.receiptFooter ?? '',
-			})
+			const initial = toFormValues(existing)
+			setValues(initial)
+			baselineRef.current = initial
 			setInitialized(true)
 		}
 	}, [existing, initialized])
+
+	const isDirty = useMemo(() => {
+		const baseline = baselineRef.current
+		return (Object.keys(values) as Array<keyof FormValues>).some(
+			(key) => values[key] !== baseline[key],
+		)
+	}, [values])
+
+	useEffect(() => {
+		if (!isDirty) return
+
+		const handler = (e: BeforeUnloadEvent) => {
+			e.preventDefault()
+		}
+		window.addEventListener('beforeunload', handler)
+		return () => window.removeEventListener('beforeunload', handler)
+	}, [isDirty])
 
 	const update = useCallback((field: keyof FormValues, value: string) => {
 		setValues((prev) => ({ ...prev, [field]: value }))
@@ -127,12 +161,17 @@ function CompanySettingsPage() {
 			receiptFooter: values.receiptFooter || null,
 		}
 
-		if (isCreate) {
-			await createMut.mutateAsync(payload)
-			toast.add({ title: 'Company settings created.', type: 'success' })
-		} else {
-			await updateMut.mutateAsync({ ...payload, id: existing!.id })
-			toast.add({ title: 'Company settings updated.', type: 'success' })
+		try {
+			if (isCreate) {
+				await createMut.mutateAsync(payload)
+				toast.add({ title: 'Company settings created.', type: 'success' })
+			} else {
+				await updateMut.mutateAsync({ ...payload, id: existing!.id })
+				toast.add({ title: 'Company settings updated.', type: 'success' })
+			}
+			baselineRef.current = values
+		} catch {
+			toast.add({ title: 'Failed to save company settings.', type: 'error' })
 		}
 	}, [validate, values, isCreate, createMut, updateMut, existing])
 
@@ -149,7 +188,7 @@ function CompanySettingsPage() {
 				description="Manage your company profile and tax configuration."
 				actions={
 					canWrite ? (
-						<LoadingButton size="sm" loading={isSaving} onClick={handleSubmit}>
+						<LoadingButton size="sm" loading={isSaving} disabled={!isDirty} onClick={handleSubmit}>
 							Save Changes
 						</LoadingButton>
 					) : undefined
