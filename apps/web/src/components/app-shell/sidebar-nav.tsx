@@ -8,6 +8,7 @@ import {
 	LayersIcon,
 	MapPinIcon,
 	PackageIcon,
+	RulerIcon,
 	SettingsIcon,
 	ShieldCheckIcon,
 	ShoppingCartIcon,
@@ -40,6 +41,7 @@ const navGroups = [
 		label: 'Master',
 		items: [
 			{ title: 'Locations', icon: MapPinIcon, href: '/master/locations' },
+			{ title: 'UoM', icon: RulerIcon, href: '/master/uom' },
 			{ title: 'Materials', icon: BoxesIcon, href: '#' },
 			{ title: 'Suppliers', icon: TruckIcon, href: '#' },
 			{ title: 'Menu', icon: UtensilsCrossedIcon, href: '#' },

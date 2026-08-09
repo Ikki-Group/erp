@@ -34,10 +34,20 @@ const iam = {
 	},
 }
 
+const uom = {
+	...crud('uom'),
+	conversion: {
+		list: p('uom', 'conversion', 'list'),
+		create: p('uom', 'conversion', 'create'),
+		remove: p('uom', 'conversion', 'remove'),
+	},
+}
+
 export const endpoint = {
 	auth,
 	location,
 	iam,
+	uom,
 } as const
 
 export { crud, p }
