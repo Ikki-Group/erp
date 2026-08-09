@@ -17,7 +17,7 @@ import type { AuditService } from './audit.service.ts'
 // ─── Route Factory ───
 
 export function createAuditRoute(service: AuditService) {
-	return new Elysia({ prefix: '/audit' })
+	return new Elysia({ prefix: '/audit', tags: ['audit'] })
 		.use(authPluginMacro)
 		.get(
 			'/list',

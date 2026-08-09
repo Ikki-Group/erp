@@ -31,7 +31,7 @@ export function createMaterialRoute(
 	assignmentService: AssignmentService,
 ) {
 	return (
-		new Elysia({ prefix: '/material' })
+		new Elysia({ prefix: '/material', tags: ['material'] })
 			.use(authPluginMacro)
 
 			// ─── Material CRUD ───

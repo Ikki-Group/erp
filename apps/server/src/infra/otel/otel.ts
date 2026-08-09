@@ -10,6 +10,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 import { PgInstrumentation } from '@opentelemetry/instrumentation-pg'
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
 
+import { SERVICE_NAME } from '@/shared/config'
 import { env, isTest } from '@/shared/config/env.ts'
 
 // Re-export record for manual spans
@@ -25,7 +26,7 @@ const hasAxiomConfig = axiomUrl && axiomToken && axiomDataset
 export const otelPlugin = isTest
 	? undefined
 	: opentelemetry({
-			serviceName: 'ikki-server',
+			serviceName: SERVICE_NAME,
 			instrumentations: [new PgInstrumentation()],
 			spanProcessors: hasAxiomConfig
 				? [

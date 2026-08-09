@@ -2,7 +2,7 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
 import { isProd } from '@/shared/config/env.ts'
-import { SESSION_COOKIE_NAME, SESSION_TTL_DAYS } from '@/shared/config/index.ts'
+import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from '@/shared/config/index.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 
@@ -15,18 +15,12 @@ import {
 } from './auth.contract.ts'
 import type { AuthService } from './auth.service.ts'
 
-// ─── Cookie Helpers ───
-
-const SESSION_MAX_AGE_SECONDS = SESSION_TTL_DAYS * 24 * 60 * 60
-
 // ─── Route Factory ───
 
 export function createAuthRoute(service: AuthService) {
 	return (
-		new Elysia({ prefix: '/auth' })
-
+		new Elysia({ prefix: '/auth', tags: ['auth'] })
 			// ─── Login (public — no auth required) ───
-
 			.post(
 				'/login',
 				async ({ body, cookie }) => {
@@ -44,7 +38,10 @@ export function createAuthRoute(service: AuthService) {
 
 					return res.ok(result.response)
 				},
-				{ body: LoginDto, response: zRes.ok(LoginResponseDto) },
+				{
+					body: LoginDto,
+					response: zRes.ok(LoginResponseDto),
+				},
 			)
 
 			// ─── Logout (auth required) ───

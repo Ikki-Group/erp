@@ -18,7 +18,7 @@ export function createInventoryRoute(modules: {
 	receiving: ReceivingModule
 	opname: OpnameModule
 }) {
-	return new Elysia({ prefix: '/inventory' })
+	return new Elysia({ prefix: '/inventory', tags: ['inventory'] })
 		.use(modules.stock.route)
 		.use(modules.transfer.route)
 		.use(modules.receiving.route)

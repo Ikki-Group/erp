@@ -83,10 +83,17 @@ const auth = createAuthModule({
 
 // ─── App ───
 
-const base = new Elysia().use(cors())
+const base = new Elysia({ normalize: true, encodeSchema: true })
+	.use(cors())
+	.onParse(({ request, contentType }) => {
+		if (contentType === 'application/custom-type') return request.text()
+		return undefined
+	})
+
 if (otelPlugin) base.use(otelPlugin)
 
 export const app = base
+	.use(errorPlugin)
 	.use(
 		openapi({
 			enabled: isDev,
@@ -102,10 +109,7 @@ export const app = base
 				// oxlint-disable-next-line typescript/consistent-return
 				zod: (schema: any) => {
 					return z.toJSONSchema(schema, {
-						io: 'output',
-						target: 'openapi-3.0',
 						unrepresentable: 'any',
-						reused: 'ref',
 						override(ctx) {
 							// oxlint-disable-next-line no-underscore-dangle
 							const def = ctx.zodSchema._zod.def
@@ -120,12 +124,8 @@ export const app = base
 					})
 				},
 			},
-			exclude: {
-				paths: ['/health'],
-			},
-		}),
+		}).as('global'),
 	)
-	.use(errorPlugin)
 	.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }), {
 		detail: { hide: true },
 	})

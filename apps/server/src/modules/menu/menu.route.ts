@@ -42,7 +42,7 @@ export function createMenuRoute(
 	composedService: ComposedService,
 ) {
 	return (
-		new Elysia({ prefix: '/menu' })
+		new Elysia({ prefix: '/menu', tags: ['menu'] })
 			.use(authPluginMacro)
 
 			// ─── Category Routes ───

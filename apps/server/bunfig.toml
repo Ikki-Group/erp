@@ -1,7 +1,7 @@
 preload = ["./src/infra/otel/otel.ts"]
 
 [console]
-depth = 10
+depth = 1000
 
 [test]
 root = "src/tests"

@@ -21,7 +21,7 @@ import type { SupplierService } from './supplier.service.ts'
 
 export function createSupplierRoute(svc: SupplierService) {
 	return (
-		new Elysia({ prefix: '/supplier' })
+		new Elysia({ prefix: '/supplier', tags: ['supplier'] })
 			.use(authPluginMacro)
 
 			// ─── Supplier CRUD ───

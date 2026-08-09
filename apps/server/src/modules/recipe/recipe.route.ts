@@ -20,7 +20,7 @@ import type { RecipeService } from './recipe.service.ts'
 
 export function createRecipeRoute(recipeService: RecipeService) {
 	return (
-		new Elysia({ prefix: '/recipe' })
+		new Elysia({ prefix: '/recipe', tags: ['recipe'] })
 			.use(authPluginMacro)
 
 			// ─── Reads ───

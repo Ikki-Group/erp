@@ -22,7 +22,7 @@ import type { UomService } from './uom.service.ts'
 
 export function createUomRoute(service: UomService) {
 	return (
-		new Elysia({ prefix: '/uom' })
+		new Elysia({ prefix: '/uom', tags: ['uom'] })
 			.use(authPluginMacro)
 			// ─── UoM CRUD ───
 			.get(

@@ -1,6 +1,6 @@
 import { configure, getConsoleSink, getLogger as _getLogger } from '@logtape/logtape'
 import { getOpenTelemetrySink } from '@logtape/otel'
-import { prettyFormatter } from '@logtape/pretty'
+import { getPrettyFormatter } from '@logtape/pretty'
 
 import { isProd, isTest } from '@/shared/config/env.ts'
 
@@ -20,7 +20,13 @@ export async function setupLogger(): Promise<void> {
 			sinks.otel = getOpenTelemetrySink({ serviceName: 'ikki-server' })
 			activeSinks = ['otel']
 		} else {
-			sinks.console = getConsoleSink({ formatter: prettyFormatter })
+			sinks.console = getConsoleSink({
+				formatter: getPrettyFormatter({
+					icons: false,
+					properties: true,
+					align: true,
+				}),
+			})
 			activeSinks = ['console']
 		}
 	}

@@ -1,4 +1,5 @@
 {
+	// ─── Formatter & Linter ─────────────────────────────────────────────────
 	"prettier.enable": false,
 	"eslint.enable": false,
 	"oxc.enable": true,
@@ -8,38 +9,60 @@
 	"editor.codeActionsOnSave": {
 		"source.fixAll.oxc": "always"
 	},
-	// "[markdown]": {
-	//   "editor.defaultFormatter": "vscode.markdown-language-features",
-	//   "editor.formatOnSave": true
-	// },
-	// read-only generated files
+	// ─── TypeScript / tsgo ────────────────────────────────────────────────
+	"js/ts.experimental.useTsgo": true,
+	"js/ts.tsserver.tracing.enabled": false,
+	"js/ts.suggest.autoImports": true,
+	"js/ts.preferences.importModuleSpecifier": "non-relative",
+	"typescript.tsserver.maxTsServerMemory": 2048,
+	// ─── Editor (lightweight but still helpful) ─────────────────────────────
+	"editor.bracketPairColorization.enabled": true,
+	"editor.guides.bracketPairs": true,
+	"editor.linkedEditing": true,
+	"editor.minimap.enabled": false,
+	"editor.renderWhitespace": "none",
+	"editor.occurrencesHighlight": "off",
+	"editor.codeLens": false,
+	// ─── File Watcher Exclude (biggest perf win) ────────────────────────────
+	"files.watcherExclude": {
+		"**/.git/objects/**": true,
+		"**/.git/subtree-cache/**": true,
+		"**/node_modules/**": true,
+		"**/dist/**": true,
+		"**/.tanstack/**/*": true,
+		"**/routeTree.gen.ts": true,
+		"bun.lock": true,
+		".codegraph/**": true,
+		".gortex/**": true,
+		".playwright-mcp/**": true
+	},
+	// ─── Search Exclude ───────────────────────────────────────────────────
+	"search.exclude": {
+		"**/node_modules/**": true,
+		"**/dist/**": true,
+		"**/.tanstack/**/*": true,
+		"**/routeTree.gen.ts": true,
+		"bun.lock": true,
+		"dump-cherio/**": true,
+		"postman/**": true,
+		".codegraph/**": true,
+		".gortex/**": true
+	},
+	// ─── Explorer: hide noise ────────────────────────────────────────────────
+	"files.exclude": {
+		"**/.DS_Store": true,
+		".codegraph": true,
+		".gortex": true,
+		".playwright-mcp": true
+	},
+	// ─── Read-only generated files ────────────────────────────────────────
 	"files.readonlyInclude": {
 		"**/routeTree.gen.ts": true,
 		"**/.tanstack/**/*": true,
 		"bun.lock": true
 	},
-	"files.watcherExclude": {
-		"**/routeTree.gen.ts": true,
-		"**/.tanstack/**/*": true,
-		"bun.lock": true,
-		"**/node_modules/**": true
-	},
-	"search.exclude": {
-		"**/routeTree.gen.ts": true,
-		"**/.tanstack/**/*": true,
-		"bun.lock": true,
-		"**/node_modules/**": true,
-		"**/dist/**": true,
-		"dump-cherio/**": true,
-		"postman/**": true
-	},
+	// ─── Language overrides ───────────────────────────────────────────────
 	"[jsonc]": {
 		"editor.defaultFormatter": "vscode.json-language-features"
-	},
-	"js/ts.experimental.useTsgo": true,
-	"js/ts.tsserver.tracing.enabled": false,
-	// "js/ts.tsserver.maxMemory": 4096,
-	"js/ts.suggest.autoImports": true,
-	"js/ts.preferences.importModuleSpecifier": "non-relative"
-	// "js/ts.tsdk.path": "node_modules/typescript/lib",
+	}
 }

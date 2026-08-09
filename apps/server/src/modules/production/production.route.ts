@@ -24,7 +24,7 @@ import type { ProductionService } from './production.service.ts'
 
 export function createProductionRoute(service: ProductionService) {
 	return (
-		new Elysia({ prefix: '/production' })
+		new Elysia({ prefix: '/production', tags: ['production'] })
 			.use(authPluginMacro)
 
 			// ─── Recipe Routes ───

@@ -15,7 +15,7 @@ import type { CompanyService } from './company.service.ts'
 // ─── Route Factory ───
 
 export function createCompanyRoute(service: CompanyService) {
-	return new Elysia({ prefix: '/company' })
+	return new Elysia({ prefix: '/company', tags: ['company'] })
 		.use(authPluginMacro)
 		.get(
 			'/detail',

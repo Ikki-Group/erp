@@ -19,7 +19,7 @@ import type { PaymentMethodService } from './payment-method.service.ts'
 
 export function createPaymentMethodRoute(service: PaymentMethodService) {
 	return (
-		new Elysia({ prefix: '/payment-method' })
+		new Elysia({ prefix: '/payment-method', tags: ['payment-method'] })
 			.use(authPluginMacro)
 
 			// ─── Payment Method CRUD ───

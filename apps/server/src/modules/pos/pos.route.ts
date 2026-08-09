@@ -18,7 +18,7 @@ export function createPosRoute(modules: {
 	table: TableModule
 	order: OrderModule
 }) {
-	return new Elysia({ prefix: '/pos' })
+	return new Elysia({ prefix: '/pos', tags: ['pos'] })
 		.use(modules.voucher.route)
 		.use(modules.shift.route)
 		.use(modules.table.route)

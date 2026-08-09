@@ -32,7 +32,7 @@ export function createIamRoute(
 	composedService: ComposedService,
 ) {
 	return (
-		new Elysia({ prefix: '/iam' })
+		new Elysia({ prefix: '/iam', tags: ['iam'] })
 			.use(authPluginMacro)
 
 			// ─── Role Routes ───

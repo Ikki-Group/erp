@@ -16,7 +16,7 @@ import type { LocationService } from './location.service.ts'
 // ─── Route Factory ───
 
 export function createLocationRoute(service: LocationService) {
-	return new Elysia({ prefix: '/location' })
+	return new Elysia({ prefix: '/location', tags: ['location'] })
 		.use(authPluginMacro)
 		.get(
 			'/list',
