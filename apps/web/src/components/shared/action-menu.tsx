@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+
 import { MoreHorizontalIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -10,7 +11,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-interface ActionMenuItem {
+export interface ActionMenuItem {
 	label: string
 	icon?: ReactNode
 	onClick: () => void
@@ -18,39 +19,39 @@ interface ActionMenuItem {
 	disabled?: boolean
 }
 
-interface ActionMenuProps {
+export interface ActionMenuProps {
 	items: ActionMenuItem[]
+	/** Accessible label for the trigger button. */
 	label?: string
+	/** Alignment of the dropdown. */
+	align?: 'start' | 'end' | 'center'
+	className?: string
 }
 
-export function ActionMenu({ items, label = 'Actions' }: ActionMenuProps) {
-	// Group items: regular first, destructive last (separated)
+export function ActionMenu({
+	items,
+	label = 'Actions',
+	align = 'end',
+	className,
+}: ActionMenuProps) {
 	const regularItems = items.filter((i) => i.variant !== 'destructive')
 	const destructiveItems = items.filter((i) => i.variant === 'destructive')
 
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
-				render={
-					<Button variant="ghost" size="icon-sm" aria-label={label} />
-				}
+				render={<Button variant="ghost" size="icon-sm" aria-label={label} className={className} />}
 			>
 				<MoreHorizontalIcon className="size-4" />
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end">
+			<DropdownMenuContent align={align}>
 				{regularItems.map((item) => (
-					<DropdownMenuItem
-						key={item.label}
-						onClick={item.onClick}
-						disabled={item.disabled}
-					>
+					<DropdownMenuItem key={item.label} onClick={item.onClick} disabled={item.disabled}>
 						{item.icon && <span className="mr-2 [&_svg]:size-4">{item.icon}</span>}
 						{item.label}
 					</DropdownMenuItem>
 				))}
-				{destructiveItems.length > 0 && regularItems.length > 0 && (
-					<DropdownMenuSeparator />
-				)}
+				{destructiveItems.length > 0 && regularItems.length > 0 && <DropdownMenuSeparator />}
 				{destructiveItems.map((item) => (
 					<DropdownMenuItem
 						key={item.label}

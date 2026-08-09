@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react'
-
 import { cn } from '@/lib/utils'
 
 import { Label } from '@/components/ui/label'
@@ -11,12 +9,12 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 
-interface FormSelectOption {
+export interface FormSelectOption {
 	label: string
 	value: string
 }
 
-interface FormSelectProps {
+export interface FormSelectProps {
 	label: string
 	options: FormSelectOption[]
 	value?: string
@@ -26,7 +24,6 @@ interface FormSelectProps {
 	description?: string
 	disabled?: boolean
 	className?: string
-	children?: ReactNode
 }
 
 export function FormSelect({

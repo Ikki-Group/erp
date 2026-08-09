@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
@@ -21,8 +23,10 @@ const statusBadgeVariants = cva(
 	},
 )
 
-interface StatusBadgeProps extends VariantProps<typeof statusBadgeVariants> {
-	children: string
+export type StatusBadgeVariant = NonNullable<VariantProps<typeof statusBadgeVariants>['variant']>
+
+export interface StatusBadgeProps extends VariantProps<typeof statusBadgeVariants> {
+	children: ReactNode
 	dot?: boolean
 	className?: string
 }

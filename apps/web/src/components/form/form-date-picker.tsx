@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { CalendarIcon } from 'lucide-react'
+
 import { format } from 'date-fns'
+import { CalendarIcon } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
-import { cn } from '@/lib/utils'
-
-interface FormDatePickerProps {
+export interface FormDatePickerProps {
 	label: string
 	value?: Date
 	onChange?: (date: Date | undefined) => void
@@ -18,6 +19,8 @@ interface FormDatePickerProps {
 	description?: string
 	disabled?: boolean
 	className?: string
+	/** Date format string (date-fns). Defaults to 'dd MMM yyyy'. */
+	dateFormat?: string
 }
 
 export function FormDatePicker({
@@ -29,6 +32,7 @@ export function FormDatePicker({
 	description,
 	disabled,
 	className,
+	dateFormat = 'dd MMM yyyy',
 }: FormDatePickerProps) {
 	const [open, setOpen] = useState(false)
 	const fieldId = label.toLowerCase().replace(/\s+/g, '-')
@@ -53,7 +57,7 @@ export function FormDatePicker({
 					}
 				>
 					<CalendarIcon className="mr-2 size-3.5" />
-					{value ? format(value, 'dd MMM yyyy') : placeholder}
+					{value ? format(value, dateFormat) : placeholder}
 				</PopoverTrigger>
 				<PopoverContent className="w-auto p-0" align="start">
 					<Calendar
@@ -66,9 +70,7 @@ export function FormDatePicker({
 					/>
 				</PopoverContent>
 			</Popover>
-			{description && !error && (
-				<p className="text-xs text-muted-foreground">{description}</p>
-			)}
+			{description && !error && <p className="text-xs text-muted-foreground">{description}</p>}
 			{error && (
 				<p id={`${fieldId}-error`} className="text-xs text-destructive">
 					{error}

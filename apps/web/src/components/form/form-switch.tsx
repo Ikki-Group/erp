@@ -1,9 +1,9 @@
+import { cn } from '@/lib/utils'
+
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 
-import { cn } from '@/lib/utils'
-
-interface FormSwitchProps {
+export interface FormSwitchProps {
 	label: string
 	description?: string
 	checked?: boolean

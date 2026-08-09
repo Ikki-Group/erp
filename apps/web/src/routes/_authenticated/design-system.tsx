@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { createFileRoute } from '@tanstack/react-router'
 
 import {
@@ -37,16 +39,19 @@ import {
 	ConfirmDialog,
 	confirm,
 	confirmInput,
+	CurrencyDisplay,
 	DataCard,
 	DateRangeFilter,
 	DetailList,
 	EmptyState,
+	formDialog,
 	InlineAlert,
 	LoadingButton,
 	PageError,
 	PageHeader,
 	PageSection,
 	PageSkeleton,
+	PageTabs,
 	SearchToolbar,
 	StatCard,
 	StatusBadge,
@@ -691,6 +696,74 @@ function DesignSystemPage() {
 					</div>
 				</div>
 			</PageSection>
+
+			<Separator />
+
+			{/* ─── CURRENCY DISPLAY ─── */}
+			<PageSection
+				title="Currency Display"
+				description="Formatted IDR values with optional sign/color."
+			>
+				<div className="flex flex-wrap items-baseline gap-6">
+					<div className="space-y-1">
+						<p className="text-xs text-muted-foreground">Price</p>
+						<CurrencyDisplay value={85000} className="text-sm font-medium" />
+					</div>
+					<div className="space-y-1">
+						<p className="text-xs text-muted-foreground">Cost (decimal)</p>
+						<CurrencyDisplay value={82340.5} className="text-sm font-medium" />
+					</div>
+					<div className="space-y-1">
+						<p className="text-xs text-muted-foreground">Positive trend</p>
+						<CurrencyDisplay value={12500} showSign colored className="text-sm font-medium" />
+					</div>
+					<div className="space-y-1">
+						<p className="text-xs text-muted-foreground">Negative trend</p>
+						<CurrencyDisplay value={-8200} showSign colored className="text-sm font-medium" />
+					</div>
+					<div className="space-y-1">
+						<p className="text-xs text-muted-foreground">Invalid</p>
+						<CurrencyDisplay value={Number.NaN} className="text-sm" />
+					</div>
+				</div>
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── PAGE TABS ─── */}
+			<PageSection title="Page Tabs" description="Horizontal tab navigation for detail pages.">
+				<PageTabsDemo />
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── FORM DIALOG (react-call) ─── */}
+			<PageSection
+				title="Form Dialog (react-call)"
+				description="Imperative form modal with async submit."
+			>
+				<Button
+					size="sm"
+					onClick={async () => {
+						const saved = await formDialog({
+							title: 'Quick Add Material',
+							description: 'Add a new material to your inventory.',
+							content: (
+								<div className="space-y-3">
+									<FormInput label="Code" placeholder="MAT-XXX" />
+									<FormInput label="Name" placeholder="Material name" />
+								</div>
+							),
+							onSubmit: async () => {
+								await new Promise((r) => setTimeout(r, 1500))
+							},
+						})
+						if (saved) alert('Material saved!')
+					}}
+				>
+					Open Form Dialog
+				</Button>
+			</PageSection>
 		</div>
 	)
 }
@@ -731,5 +804,27 @@ function DataTableSection() {
 				}
 			/>
 		</PageSection>
+	)
+}
+
+function PageTabsDemo() {
+	const [activeTab, setActiveTab] = useState('info')
+
+	return (
+		<div className="space-y-4">
+			<PageTabs
+				tabs={[
+					{ id: 'info', label: 'Info' },
+					{ id: 'stock', label: 'Stock', count: 3 },
+					{ id: 'history', label: 'History', count: 24 },
+					{ id: 'pricing', label: 'Pricing' },
+				]}
+				activeTab={activeTab}
+				onTabChange={setActiveTab}
+			/>
+			<p className="text-sm text-muted-foreground">
+				Active tab: <span className="font-medium text-foreground">{activeTab}</span>
+			</p>
+		</div>
 	)
 }

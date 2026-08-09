@@ -1,4 +1,5 @@
-import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+
 import {
 	NumberField,
 	NumberFieldDecrement,
@@ -7,9 +8,9 @@ import {
 	NumberFieldInput,
 } from '@/components/reui/number-field'
 
-import { cn } from '@/lib/utils'
+import { Label } from '@/components/ui/label'
 
-interface FormNumberFieldProps {
+export interface FormNumberFieldProps {
 	label: string
 	value?: number
 	onChange?: (value: number | null) => void
@@ -56,9 +57,7 @@ export function FormNumberField({
 					<NumberFieldIncrement />
 				</NumberFieldGroup>
 			</NumberField>
-			{description && !error && (
-				<p className="text-xs text-muted-foreground">{description}</p>
-			)}
+			{description && !error && <p className="text-xs text-muted-foreground">{description}</p>}
 			{error && (
 				<p id={`${fieldId}-error`} className="text-xs text-destructive">
 					{error}

@@ -10,17 +10,18 @@ import {
 } from '@/components/ui/combobox'
 import { Label } from '@/components/ui/label'
 
-interface FormComboboxOption {
+export interface FormComboboxOption {
 	label: string
 	value: string
 }
 
-interface FormComboboxProps {
+export interface FormComboboxProps {
 	label: string
 	options: FormComboboxOption[]
 	value?: string
 	onValueChange?: (value: string | null) => void
 	placeholder?: string
+	emptyMessage?: string
 	error?: string
 	description?: string
 	disabled?: boolean
@@ -33,6 +34,7 @@ export function FormCombobox({
 	value,
 	onValueChange,
 	placeholder = 'Search...',
+	emptyMessage = 'No results found.',
 	error,
 	description,
 	disabled,
@@ -47,7 +49,7 @@ export function FormCombobox({
 				<ComboboxInput placeholder={placeholder} disabled={disabled} aria-invalid={!!error} />
 				<ComboboxContent>
 					<ComboboxList>
-						<ComboboxEmpty>No results found.</ComboboxEmpty>
+						<ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
 						{options.map((opt) => (
 							<ComboboxItem key={opt.value} value={opt.value}>
 								{opt.label}
