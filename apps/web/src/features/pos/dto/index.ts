@@ -154,26 +154,30 @@ const VoucherMutationShape = {
 	isActive: zp.bool.optional().default(true),
 }
 
-function addVoucherRefinements<T extends z.ZodTypeAny>(schema: T) {
-	return schema
-		.refine((d: { validFrom: Date; validUntil: Date }) => d.validFrom < d.validUntil, {
-			message: 'Must be after Valid From',
-			path: ['validUntil'],
-		})
-		.refine((d: { type: string; value: number }) => d.type !== 'percentage' || d.value <= 100, {
-			message: 'Percentage cannot exceed 100',
-			path: ['value'],
-		})
-}
-
 // ─── Voucher Create ───
 
-export const VoucherCreateDto = addVoucherRefinements(z.object(VoucherMutationShape))
+export const VoucherCreateDto = z
+	.object(VoucherMutationShape)
+	.refine((d) => d.validFrom < d.validUntil, {
+		message: 'Must be after Valid From',
+		path: ['validUntil'],
+	})
+	.refine((d) => d.type !== 'percentage' || d.value <= 100, {
+		message: 'Percentage cannot exceed 100',
+		path: ['value'],
+	})
 export type VoucherCreateDto = z.infer<typeof VoucherCreateDto>
 
 // ─── Voucher Update ───
 
-export const VoucherUpdateDto = addVoucherRefinements(
-	z.object({ id: zp.id, ...VoucherMutationShape }),
-)
+export const VoucherUpdateDto = z
+	.object({ id: zp.id, ...VoucherMutationShape })
+	.refine((d) => d.validFrom < d.validUntil, {
+		message: 'Must be after Valid From',
+		path: ['validUntil'],
+	})
+	.refine((d) => d.type !== 'percentage' || d.value <= 100, {
+		message: 'Percentage cannot exceed 100',
+		path: ['value'],
+	})
 export type VoucherUpdateDto = z.infer<typeof VoucherUpdateDto>

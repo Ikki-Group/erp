@@ -19,11 +19,18 @@ import { SearchToolbar } from '@/components/shared/search-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
 import { voucherResource } from '@/features/pos/api.ts'
 import { VoucherForm } from '@/features/pos/components/voucher-form.tsx'
-import type { VoucherFormRef } from '@/features/pos/components/voucher-form.tsx'
+import type { VoucherFormRef, VoucherFormValues } from '@/features/pos/components/voucher-form.tsx'
 import type { VoucherDto } from '@/features/pos/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/pos/vouchers')({
@@ -34,7 +41,8 @@ export const Route = createFileRoute('/_authenticated/pos/vouchers')({
 
 function getVoucherStatus(voucher: VoucherDto) {
 	if (!voucher.isActive) return { label: 'Inactive', variant: 'outline' as const }
-	if (isPast(new Date(voucher.validUntil))) return { label: 'Expired', variant: 'destructive' as const }
+	if (isPast(new Date(voucher.validUntil)))
+		return { label: 'Expired', variant: 'destructive' as const }
 	if (voucher.usageLimit && voucher.usageCount >= voucher.usageLimit)
 		return { label: 'Exhausted', variant: 'secondary' as const }
 	return { label: 'Active', variant: 'default' as const }
@@ -44,6 +52,27 @@ function formatUsage(voucher: VoucherDto) {
 	if (voucher.usageLimit === null) return `${voucher.usageCount} / Unlimited`
 	return `${voucher.usageCount} / ${voucher.usageLimit}`
 }
+
+function buildPayload(vals: VoucherFormValues) {
+	return {
+		code: vals.code,
+		name: vals.name,
+		type: vals.type as VoucherDto['type'],
+		value: vals.value!,
+		minPurchase: vals.minPurchase || null,
+		maxDiscount: vals.maxDiscount || null,
+		validFrom: vals.validFrom!,
+		validUntil: vals.validUntil!,
+		usageLimit: vals.usageLimit || null,
+		isActive: vals.isActive,
+	}
+}
+
+const STATUS_FILTER_OPTIONS = [
+	{ label: 'All', value: 'all' },
+	{ label: 'Active', value: 'true' },
+	{ label: 'Inactive', value: 'false' },
+] as const
 
 // ─── Table Columns ───
 
@@ -73,7 +102,9 @@ const baseColumns = [
 		size: 100,
 		cell: ({ row }) => {
 			const v = row.original
-			return v.type === 'percentage' ? `${v.value}%` : `Rp ${Number(v.value).toLocaleString('id-ID')}`
+			return v.type === 'percentage'
+				? `${v.value}%`
+				: `Rp ${Number(v.value).toLocaleString('id-ID')}`
 		},
 	}),
 	col.display({
@@ -84,7 +115,8 @@ const baseColumns = [
 			const v = row.original
 			return (
 				<span className="text-xs text-muted-foreground">
-					{format(new Date(v.validFrom), 'dd MMM yy')} — {format(new Date(v.validUntil), 'dd MMM yy')}
+					{format(new Date(v.validFrom), 'dd MMM yy')} —{' '}
+					{format(new Date(v.validUntil), 'dd MMM yy')}
 				</span>
 			)
 		},
@@ -113,6 +145,7 @@ function VouchersPage() {
 		page: 1,
 		limit: 10,
 		q: undefined as string | undefined,
+		isActive: undefined as boolean | undefined,
 	})
 
 	const listQuery = useQuery(voucherResource.list.queryOptions(listParams))
@@ -144,18 +177,7 @@ function VouchersPage() {
 				const errors = formRef.current?.validate()
 				if (errors) throw new Error('Please fix the validation errors.')
 				const vals = formRef.current!.getValues()
-				await createMut.mutateAsync({
-					code: vals.code,
-					name: vals.name,
-					type: vals.type as VoucherDto['type'],
-					value: vals.value!,
-					minPurchase: vals.minPurchase || null,
-					maxDiscount: vals.maxDiscount || null,
-					validFrom: vals.validFrom!,
-					validUntil: vals.validUntil!,
-					usageLimit: vals.usageLimit || null,
-					isActive: vals.isActive,
-				})
+				await createMut.mutateAsync(buildPayload(vals))
 			},
 		})
 
@@ -184,19 +206,7 @@ function VouchersPage() {
 					const errors = formRef.current?.validate()
 					if (errors) throw new Error('Please fix the validation errors.')
 					const vals = formRef.current!.getValues()
-					await updateMut.mutateAsync({
-						id: item.id,
-						code: vals.code,
-						name: vals.name,
-						type: vals.type as VoucherDto['type'],
-						value: vals.value!,
-						minPurchase: vals.minPurchase || null,
-						maxDiscount: vals.maxDiscount || null,
-						validFrom: vals.validFrom!,
-						validUntil: vals.validUntil!,
-						usageLimit: vals.usageLimit || null,
-						isActive: vals.isActive,
-					})
+					await updateMut.mutateAsync({ id: item.id, ...buildPayload(vals) })
 				},
 			})
 
@@ -260,11 +270,12 @@ function VouchersPage() {
 		totalCount,
 		pageSize: listParams.limit,
 		onStateChange: (params) => {
-			setListParams({
+			setListParams((prev) => ({
+				...prev,
 				page: params.page + 1,
 				limit: params.pageSize,
 				q: params.search || undefined,
-			})
+			}))
 		},
 	})
 
@@ -301,11 +312,34 @@ function VouchersPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="No vouchers match your search."
 					toolbar={
-						<SearchToolbar
-							value={globalFilter}
-							onChange={setGlobalFilter}
-							placeholder="Search vouchers..."
-						/>
+						<div className="flex items-center gap-2">
+							<SearchToolbar
+								value={globalFilter}
+								onChange={setGlobalFilter}
+								placeholder="Search vouchers..."
+							/>
+							<Select
+								value={listParams.isActive === undefined ? 'all' : String(listParams.isActive)}
+								onValueChange={(v) =>
+									setListParams((prev) => ({
+										...prev,
+										page: 1,
+										isActive: v === 'all' ? undefined : v === 'true',
+									}))
+								}
+							>
+								<SelectTrigger className="w-[120px]">
+									<SelectValue placeholder="Status" />
+								</SelectTrigger>
+								<SelectContent>
+									{STATUS_FILTER_OPTIONS.map((opt) => (
+										<SelectItem key={opt.value} value={opt.value}>
+											{opt.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 					}
 				/>
 			)}
