@@ -2,12 +2,14 @@ import { useCallback, useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
-import { BoxesIcon, HistoryIcon, PackageIcon } from 'lucide-react'
+import { ArrowLeftIcon, BoxesIcon, HistoryIcon, PackageIcon } from 'lucide-react'
 
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { PageTabs } from '@/components/shared/page-tabs'
 import type { PageTab } from '@/components/shared/page-tabs'
+
+import { Button } from '@/components/ui/button'
 
 import { MovementHistory } from '@/features/inventory/components/movement-history.tsx'
 import { StockTable } from '@/features/inventory/components/stock-table.tsx'
@@ -63,10 +65,7 @@ function StockPage() {
 
 	return (
 		<div className="space-y-6">
-			<PageHeader
-				title="Stok Inventori"
-				description={`Saldo stok di ${activeLocation.name}`}
-			/>
+			<PageHeader title="Stok Inventori" description={`Saldo stok di ${activeLocation.name}`} />
 
 			<PageTabs tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
@@ -76,9 +75,19 @@ function StockPage() {
 
 			{activeTab === 'movements' && selectedMaterial && (
 				<div className="space-y-3">
-					<p className="text-sm text-muted-foreground">
-						Riwayat pergerakan untuk Material #{selectedMaterial.materialId}
-					</p>
+					<div className="flex items-center gap-3">
+						<Button size="sm" variant="ghost" onClick={() => handleTabChange('balances')}>
+							<ArrowLeftIcon className="size-3.5" />
+							Kembali
+						</Button>
+						<p className="text-sm text-muted-foreground">
+							Riwayat pergerakan —{' '}
+							<span className="font-medium text-foreground">
+								{selectedMaterial.materialName}
+							</span> (
+							{selectedMaterial.materialCode})
+						</p>
+					</div>
 					<MovementHistory
 						materialId={selectedMaterial.materialId}
 						locationId={activeLocation.id}

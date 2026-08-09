@@ -14,14 +14,12 @@ import type { StockBalanceDto } from '@/features/inventory/dto/index.ts'
 
 // ─── Stock Status Logic ───
 
-const LOW_STOCK_THRESHOLD = 5
-
 type StockStatus = 'normal' | 'low' | 'out'
 
-function getStockStatus(qty: string): StockStatus {
+function getStockStatus(qty: string, minStock: string | null): StockStatus {
 	const n = Number(qty)
 	if (n <= 0) return 'out'
-	if (n <= LOW_STOCK_THRESHOLD) return 'low'
+	if (minStock !== null && n <= Number(minStock)) return 'low'
 	return 'normal'
 }
 
@@ -36,24 +34,50 @@ const STATUS_CONFIG: Record<StockStatus, { label: string; variant: StatusBadgeVa
 const col = createColumnHelper<DataGridFeatures, StockBalanceDto>()
 
 const baseColumns = [
-	col.accessor('materialId', {
-		header: 'Material ID',
-		size: 100,
+	col.accessor('materialCode', {
+		header: 'Kode',
+		size: 90,
+		cell: ({ getValue }) => <span className="font-mono text-xs">{getValue()}</span>,
+	}),
+	col.accessor('materialName', {
+		header: 'Material',
+		size: 200,
 	}),
 	col.accessor('quantity', {
-		header: 'Qty',
+		header: 'Stok',
 		size: 100,
-		cell: ({ getValue }) => {
-			const val = getValue()
-			return <span className="font-mono text-sm">{Number(val).toLocaleString('id-ID')}</span>
+		cell: ({ row }) => {
+			const qty = Number(row.original.quantity)
+			return (
+				<span className="font-mono text-sm">
+					{qty.toLocaleString('id-ID')} {row.original.uomCode}
+				</span>
+			)
+		},
+	}),
+	col.accessor('minStock', {
+		header: 'Min. Stok',
+		size: 90,
+		cell: ({ getValue, row }) => {
+			const min = getValue()
+			if (min === null) return <span className="text-muted-foreground">—</span>
+			return (
+				<span className="font-mono text-sm text-muted-foreground">
+					{Number(min).toLocaleString('id-ID')} {row.original.uomCode}
+				</span>
+			)
 		},
 	}),
 	col.accessor('costPrice', {
 		header: 'Harga Pokok',
-		size: 120,
+		size: 130,
 		cell: ({ getValue }) => {
-			const val = getValue()
-			return <span className="font-mono text-sm">{Number(val).toLocaleString('id-ID')}</span>
+			const val = Number(getValue())
+			return (
+				<span className="font-mono text-sm">
+					Rp {val.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+				</span>
+			)
 		},
 	}),
 	col.display({
@@ -61,7 +85,7 @@ const baseColumns = [
 		header: 'Status',
 		size: 120,
 		cell: ({ row }) => {
-			const status = getStockStatus(row.original.quantity)
+			const status = getStockStatus(row.original.quantity, row.original.minStock)
 			const config = STATUS_CONFIG[status]
 			return <StatusBadge variant={config.variant}>{config.label}</StatusBadge>
 		},
@@ -82,20 +106,16 @@ export function StockTable({ locationId, onRowClick }: StockTableProps) {
 	})
 
 	const listQuery = useQuery(
-		stockBalanceList.queryOptions({
-			locationId,
-			page: listParams.page,
-			limit: listParams.limit,
-		}),
+		stockBalanceList.queryOptions(
+			{ locationId, page: listParams.page, limit: listParams.limit },
+			{ enabled: locationId > 0 },
+		),
 	)
 
 	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
 
-	const columns = useMemo(
-		() => baseColumns as ColumnDef<DataGridFeatures, StockBalanceDto>[],
-		[],
-	)
+	const columns = useMemo(() => baseColumns as ColumnDef<DataGridFeatures, StockBalanceDto>[], [])
 
 	const handleStateChange = useCallback((params: { page: number; pageSize: number }) => {
 		setListParams({

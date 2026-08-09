@@ -37,9 +37,13 @@ export const MOVEMENT_TYPE_LABELS: Record<MovementTypeEnum, string> = {
 export const StockBalanceDto = z.object({
 	id: zp.id,
 	materialId: zp.id,
+	materialCode: zp.str,
+	materialName: zp.str,
 	locationId: zp.id,
 	quantity: zp.decimal,
 	costPrice: zp.decimal,
+	uomCode: zp.str,
+	minStock: zp.decimal.nullable(),
 })
 export type StockBalanceDto = z.infer<typeof StockBalanceDto>
 

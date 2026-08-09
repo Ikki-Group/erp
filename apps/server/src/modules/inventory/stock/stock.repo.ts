@@ -1,4 +1,6 @@
 import { stockBalances, stockMovements } from '@/db/schema/inventory.ts'
+import { materials } from '@/db/schema/material.ts'
+import { uoms } from '@/db/schema/uom.ts'
 
 import {
 	allOf,
@@ -31,9 +33,39 @@ function toBalanceDto(row: BalanceRow): StockBalanceDto {
 	return {
 		id: row.id,
 		materialId: row.materialId,
+		materialCode: '',
+		materialName: '',
 		locationId: row.locationId,
 		quantity: row.quantity,
 		costPrice: row.costPrice,
+		uomCode: '',
+		minStock: null,
+	}
+}
+
+interface EnrichedBalanceRow {
+	id: number
+	materialId: number
+	locationId: number
+	quantity: string
+	costPrice: string
+	materialCode: string
+	materialName: string
+	uomCode: string
+	minStock: string | null
+}
+
+function toEnrichedBalanceDto(row: EnrichedBalanceRow): StockBalanceDto {
+	return {
+		id: row.id,
+		materialId: row.materialId,
+		materialCode: row.materialCode,
+		materialName: row.materialName,
+		locationId: row.locationId,
+		quantity: row.quantity,
+		costPrice: row.costPrice,
+		uomCode: row.uomCode,
+		minStock: row.minStock,
 	}
 }
 
@@ -116,17 +148,23 @@ export class StockRepo implements IStockRepo {
 				locationId: stockBalances.locationId,
 				quantity: stockBalances.quantity,
 				costPrice: stockBalances.costPrice,
+				materialCode: materials.code,
+				materialName: materials.name,
+				uomCode: uoms.code,
+				minStock: materials.minStock,
 				rowCount: sql<number>`count(*) over()`.as('row_count'),
 			})
 			.from(stockBalances)
+			.innerJoin(materials, eq(stockBalances.materialId, materials.id))
+			.innerJoin(uoms, eq(materials.baseUomId, uoms.id))
 			.where(where)
-			.orderBy(sql`${stockBalances.materialId} asc`)
+			.orderBy(sql`${materials.name} asc`)
 			.limit(limit)
 			.offset(offset)
 
 		const total = rows[0]?.rowCount ?? 0
 		return {
-			data: rows.map((row) => toBalanceDto(row)),
+			data: rows.map((row) => toEnrichedBalanceDto(row)),
 			meta: buildPaginationMeta(filter.page, filter.limit, total),
 		}
 	}

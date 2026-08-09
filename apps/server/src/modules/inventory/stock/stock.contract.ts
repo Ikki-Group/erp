@@ -25,9 +25,13 @@ export type MovementDirectionEnum = z.infer<typeof MovementDirectionEnum>
 export const StockBalanceDto = z.object({
 	id: zp.id,
 	materialId: zp.id,
+	materialCode: zp.str,
+	materialName: zp.str,
 	locationId: zp.id,
 	quantity: zp.str,
 	costPrice: zp.str,
+	uomCode: zp.str,
+	minStock: zp.str.nullable(),
 })
 export type StockBalanceDto = z.infer<typeof StockBalanceDto>
 
