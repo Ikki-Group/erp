@@ -1,5 +1,7 @@
 import { createRouter as createTanStackRouter } from '@tanstack/react-router'
 
+import { queryClient } from '@/lib/tanstack-query.ts'
+
 import { routeTree } from './routeTree.gen'
 
 export function getRouter() {
@@ -8,6 +10,7 @@ export function getRouter() {
 		scrollRestoration: true,
 		defaultPreload: 'intent',
 		defaultPreloadStaleTime: 0,
+		context: { queryClient },
 	})
 
 	return router
