@@ -4,12 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
-import {
-	ArrowLeftIcon,
-	CheckCircleIcon,
-	ClipboardListIcon,
-	PlusIcon,
-} from 'lucide-react'
+import { ArrowLeftIcon, CheckCircleIcon, ClipboardListIcon, PlusIcon } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table/data-table'
 import { useServerTable } from '@/components/data-table/use-server-table'
@@ -26,6 +21,7 @@ import { toast } from '@/components/ui/toast'
 
 import { opnameResource } from '@/features/inventory/api.ts'
 import { OpnameCountForm } from '@/features/inventory/components/opname-count-form.tsx'
+import type { CountLine } from '@/features/inventory/components/opname-count-form.tsx'
 import { OPNAME_STATUS_LABELS } from '@/features/inventory/dto/index.ts'
 import type { OpnameDto, OpnameStatusEnum } from '@/features/inventory/dto/index.ts'
 
@@ -46,36 +42,36 @@ const STATUS_VARIANTS: Record<OpnameStatusEnum, StatusBadgeVariant> = {
 
 // ─── Table Columns ───
 
-const col = createColumnHelper<DataGridFeatures, OpnameDto>()
+const colHelper = createColumnHelper<DataGridFeatures, OpnameDto>()
 
 const baseColumns = [
-	col.accessor('opnameNo', {
+	colHelper.accessor('opnameNo', {
 		header: 'No. Opname',
 		size: 140,
 	}),
-	col.accessor('status', {
+	colHelper.accessor('status', {
 		header: 'Status',
 		size: 130,
 		cell: ({ getValue }) => {
 			const status = getValue()
 			return (
-				<StatusBadge variant={STATUS_VARIANTS[status]}>
-					{OPNAME_STATUS_LABELS[status]}
-				</StatusBadge>
+				<StatusBadge variant={STATUS_VARIANTS[status]}>{OPNAME_STATUS_LABELS[status]}</StatusBadge>
 			)
 		},
 	}),
-	col.accessor('createdAt', {
+	colHelper.accessor('createdAt', {
 		header: 'Tanggal',
 		size: 140,
 		cell: ({ getValue }) => new Date(getValue()).toLocaleDateString('id-ID'),
 	}),
-	col.accessor('completedAt', {
+	colHelper.accessor('completedAt', {
 		header: 'Selesai',
 		size: 140,
 		cell: ({ getValue }) => {
 			const val = getValue()
-			return val ? new Date(val).toLocaleDateString('id-ID') : (
+			return val ? (
+				new Date(val).toLocaleDateString('id-ID')
+			) : (
 				<span className="text-muted-foreground">—</span>
 			)
 		},
@@ -93,13 +89,12 @@ function OpnamePage() {
 	const [listParams, setListParams] = useState({
 		page: 1,
 		limit: 10,
-		locationId: locationId,
 	})
 
 	const listQuery = useQuery({
 		...opnameResource.list.queryOptions({
 			...listParams,
-			locationId: locationId,
+			locationId,
 		}),
 		enabled: !!locationId,
 	})
@@ -123,24 +118,33 @@ function OpnamePage() {
 
 	const handleCreate = useCallback(async () => {
 		if (!locationId) return
-		await createMut.mutateAsync({ locationId })
-		toast.add({ title: 'Opname berhasil dibuat.', type: 'success' })
+		try {
+			const result = await createMut.mutateAsync({ locationId })
+			toast.add({ title: 'Opname berhasil dibuat.', type: 'success' })
+			setSelectedOpnameId(result.data.id)
+		} catch {
+			toast.add({ title: 'Gagal membuat opname.', type: 'error' })
+		}
 	}, [createMut, locationId])
 
 	// ─── Submit Counts ───
 
 	const handleSubmitCounts = useCallback(
-		async (lines: { materialId: number; countedQty: string; reason: string }[]) => {
+		async (lines: CountLine[]) => {
 			if (!selectedOpnameId) return
-			await updateCountsMut.mutateAsync({
-				opnameId: selectedOpnameId,
-				lines: lines.map((l) => ({
-					materialId: l.materialId,
-					countedQty: l.countedQty,
-					reason: l.reason || undefined,
-				})),
-			})
-			toast.add({ title: 'Hitungan berhasil disimpan.', type: 'success' })
+			try {
+				await updateCountsMut.mutateAsync({
+					opnameId: selectedOpnameId,
+					lines: lines.map((l) => ({
+						materialId: l.materialId,
+						countedQty: l.countedQty,
+						reason: l.reason || undefined,
+					})),
+				})
+				toast.add({ title: 'Hitungan berhasil disimpan.', type: 'success' })
+			} catch {
+				toast.add({ title: 'Gagal menyimpan hitungan.', type: 'error' })
+			}
 		},
 		[updateCountsMut, selectedOpnameId],
 	)
@@ -164,13 +168,14 @@ function OpnamePage() {
 	// ─── Columns with row click ───
 
 	const actionsColumn = useMemo(() => {
-		return col.display({
+		return colHelper.display({
 			id: 'actions',
 			size: 80,
 			cell: ({ row }) => (
 				<Button
 					size="sm"
 					variant="ghost"
+					aria-label={`Detail ${row.original.opnameNo}`}
 					onClick={() => setSelectedOpnameId(row.original.id)}
 				>
 					Detail
@@ -239,11 +244,7 @@ function OpnamePage() {
 					}
 				/>
 
-				<Button
-					size="sm"
-					variant="ghost"
-					onClick={() => setSelectedOpnameId(null)}
-				>
+				<Button size="sm" variant="ghost" onClick={() => setSelectedOpnameId(null)}>
 					<ArrowLeftIcon className="size-3.5" />
 					Kembali ke daftar
 				</Button>

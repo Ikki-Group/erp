@@ -13,6 +13,8 @@ export const OpnameLineDto = z.object({
 	id: zp.id,
 	opnameId: zp.id,
 	materialId: zp.id,
+	materialCode: zp.str,
+	materialName: zp.str,
 	systemQty: zp.str,
 	actualQty: zp.str,
 	reason: zp.str.nullable(),

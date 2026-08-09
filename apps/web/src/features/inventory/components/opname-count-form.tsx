@@ -19,10 +19,10 @@ import type { OpnameLineDto } from '../dto/index.ts'
 
 // ─── Types ───
 
-interface CountLine {
+export interface CountLine {
 	materialId: number
 	countedQty: string
-	reason: string
+	reason?: string | null
 }
 
 interface OpnameCountFormProps {
@@ -60,7 +60,6 @@ export function OpnameCountForm({
 			.map((line) => ({
 				materialId: line.materialId,
 				countedQty: counts[line.materialId]!,
-				reason: null as unknown as string,
 			}))
 		onSubmitCounts(countLines)
 	}, [counts, lines, onSubmitCounts])
@@ -74,6 +73,7 @@ export function OpnameCountForm({
 					<TableHeader>
 						<TableRow>
 							<TableHead className="w-12">#</TableHead>
+							<TableHead className="w-24">Kode</TableHead>
 							<TableHead>Material</TableHead>
 							<TableHead className="w-28 text-right">Stok Sistem</TableHead>
 							<TableHead className="w-32 text-right">Stok Aktual</TableHead>
@@ -93,7 +93,10 @@ export function OpnameCountForm({
 							return (
 								<TableRow key={line.id}>
 									<TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-									<TableCell className="font-medium">#{line.materialId}</TableCell>
+									<TableCell className="font-mono text-xs text-muted-foreground">
+										{line.materialCode}
+									</TableCell>
+									<TableCell className="font-medium">{line.materialName}</TableCell>
 									<TableCell className="text-right tabular-nums">{line.systemQty}</TableCell>
 									<TableCell className="text-right">
 										{isEditable ? (
@@ -102,6 +105,7 @@ export function OpnameCountForm({
 												min="0"
 												step="any"
 												placeholder="0"
+												aria-label={`Jumlah aktual ${line.materialName}`}
 												value={counts[line.materialId] ?? ''}
 												onChange={(e) => handleCountChange(line.materialId, e.target.value)}
 												className="ml-auto w-24 text-right"

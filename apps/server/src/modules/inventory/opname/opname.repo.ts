@@ -1,4 +1,5 @@
 import { stockOpnameLines, stockOpnames } from '@/db/schema/inventory.ts'
+import { materials } from '@/db/schema/material.ts'
 
 import {
 	allOf,
@@ -45,11 +46,15 @@ function toOpnameDto(row: OpnameRow): OpnameDto {
 	}
 }
 
-function toOpnameLineDto(row: OpnameLineRow): OpnameLineDto {
+function toOpnameLineDto(
+	row: OpnameLineRow & { materialCode: string; materialName: string },
+): OpnameLineDto {
 	return {
 		id: row.id,
 		opnameId: row.opnameId,
 		materialId: row.materialId,
+		materialCode: row.materialCode,
+		materialName: row.materialName,
 		systemQty: row.systemQty,
 		actualQty: row.actualQty,
 		reason: row.reason,
@@ -181,8 +186,18 @@ export class OpnameRepo implements IOpnameRepo {
 
 	async findLinesByOpnameId(opnameId: number, db: DbContext = this.db): Promise<OpnameLineDto[]> {
 		const rows = await db
-			.select()
+			.select({
+				id: stockOpnameLines.id,
+				opnameId: stockOpnameLines.opnameId,
+				materialId: stockOpnameLines.materialId,
+				materialCode: materials.code,
+				materialName: materials.name,
+				systemQty: stockOpnameLines.systemQty,
+				actualQty: stockOpnameLines.actualQty,
+				reason: stockOpnameLines.reason,
+			})
 			.from(stockOpnameLines)
+			.innerJoin(materials, eq(stockOpnameLines.materialId, materials.id))
 			.where(eq(stockOpnameLines.opnameId, opnameId))
 		return rows.map(toOpnameLineDto)
 	}
