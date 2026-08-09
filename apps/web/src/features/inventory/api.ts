@@ -24,6 +24,11 @@ import {
 	OpnameDto,
 	OpnameFilterDto,
 	OpnameUpdateCountsDto,
+	ReceivingConfirmDto,
+	ReceivingCreateDto,
+	ReceivingDetailDto,
+	ReceivingDto,
+	ReceivingFilterDto,
 } from './dto/index.ts'
 
 // ─── Stock Query Keys ───
@@ -109,7 +114,7 @@ const transferReceive = defineMutation({
 	url: transferUrls.receive,
 	body: TransferReceiveDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [transferKeys.lists(), transferKeys.details()],
+	invalidates: [transferKeys.lists(), transferKeys.details(), stockKeys.lists()],
 })
 
 // ─── Export ───
@@ -193,4 +198,65 @@ export const opnameResource = {
 	create: opnameCreate,
 	updateCounts: opnameUpdateCounts,
 	approve: opnameApprove,
+}
+
+// ─── Receiving Keys ───
+
+const receivingUrls = endpoint.inventory.receiving
+
+const receivingKeys = {
+	lists: () => [receivingUrls.list] as const,
+	list: (query?: unknown) => [receivingUrls.list, query ?? null] as const,
+	details: () => [receivingUrls.detail] as const,
+	detail: (query?: unknown) => [receivingUrls.detail, query ?? null] as const,
+}
+
+// ─── Receiving List ───
+
+const receivingList = defineQuery({
+	method: 'get',
+	url: receivingUrls.list,
+	query: ReceivingFilterDto,
+	result: createPaginatedResponseSchema(ReceivingDto),
+	queryKey: (query) => receivingKeys.list(query),
+})
+
+// ─── Receiving Detail ───
+
+const receivingDetail = defineQuery({
+	method: 'get',
+	url: receivingUrls.detail,
+	query: zc.RecordId,
+	result: createSuccessResponseSchema(ReceivingDetailDto),
+	queryKey: (query) => receivingKeys.detail(query),
+})
+
+// ─── Receiving Create ───
+
+const receivingCreate = defineMutation({
+	method: 'post',
+	url: receivingUrls.create,
+	body: ReceivingCreateDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [receivingKeys.lists(), stockKeys.lists()],
+})
+
+// ─── Receiving Confirm ───
+
+const receivingConfirm = defineMutation({
+	method: 'post',
+	url: receivingUrls.confirm,
+	body: ReceivingConfirmDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [receivingKeys.lists(), receivingKeys.details(), stockKeys.lists()],
+})
+
+// ─── Export ───
+
+export const receivingResource = {
+	keys: receivingKeys,
+	list: receivingList,
+	detail: receivingDetail,
+	create: receivingCreate,
+	confirm: receivingConfirm,
 }

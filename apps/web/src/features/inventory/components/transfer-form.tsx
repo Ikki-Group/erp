@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { forwardRef, useImperativeHandle, useMemo, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 
@@ -76,6 +76,24 @@ export const TransferForm = forwardRef<TransferFormRef, TransferFormProps>(
 			value: String(u.id),
 		}))
 
+		const materialUomMap = useMemo(() => {
+			const map = new Map<string, string>()
+			for (const m of materials) {
+				map.set(String(m.id), String(m.baseUomId))
+			}
+			return map
+		}, [materials])
+
+		const getAvailableMaterials = (currentIndex: number) => {
+			const selectedIds = new Set(
+				values.lines
+					.filter((_, i) => i !== currentIndex)
+					.map((l) => l.materialId)
+					.filter(Boolean),
+			)
+			return materialOptions.filter((o) => !selectedIds.has(o.value))
+		}
+
 		const updateField = (field: keyof Omit<TransferFormValues, 'lines'>, value: string) => {
 			setValues((prev) => ({ ...prev, [field]: value }))
 			setErrors((prev) => {
@@ -89,6 +107,12 @@ export const TransferForm = forwardRef<TransferFormRef, TransferFormProps>(
 			setValues((prev) => {
 				const lines = [...prev.lines]
 				lines[index] = { ...lines[index]!, [field]: value }
+				if (field === 'materialId' && value) {
+					const defaultUom = materialUomMap.get(value)
+					if (defaultUom) {
+						lines[index] = { ...lines[index]!, uomId: defaultUom }
+					}
+				}
 				return { ...prev, lines }
 			})
 			setErrors((prev) => {
@@ -211,7 +235,7 @@ export const TransferForm = forwardRef<TransferFormRef, TransferFormProps>(
 							<div className="flex-1">
 								<FormCombobox
 									label={i === 0 ? 'Material' : ''}
-									options={materialOptions}
+									options={getAvailableMaterials(i)}
 									value={line.materialId}
 									onValueChange={(v) => updateLine(i, 'materialId', v ?? '')}
 									placeholder="Pilih material"

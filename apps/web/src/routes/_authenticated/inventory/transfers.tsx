@@ -42,59 +42,27 @@ const STATUS_VARIANTS: Record<TransferStatusEnum, StatusBadgeVariant> = {
 	cancelled: 'destructive',
 }
 
-// ─── Table Columns ───
+// ─── Table Column Helper ───
 
 const col = createColumnHelper<DataGridFeatures, TransferDto>()
-
-const baseColumns = [
-	col.accessor('transferNo', {
-		header: 'No. Transfer',
-		size: 140,
-	}),
-	col.accessor('status', {
-		header: 'Status',
-		size: 130,
-		cell: ({ getValue }) => {
-			const status = getValue()
-			return (
-				<StatusBadge variant={STATUS_VARIANTS[status]}>
-					{TRANSFER_STATUS_LABELS[status]}
-				</StatusBadge>
-			)
-		},
-	}),
-	col.accessor('fromLocationId', {
-		header: 'Dari',
-		size: 100,
-		cell: ({ getValue }) => `#${getValue()}`,
-	}),
-	col.accessor('toLocationId', {
-		header: 'Ke',
-		size: 100,
-		cell: ({ getValue }) => `#${getValue()}`,
-	}),
-	col.accessor('notes', {
-		header: 'Catatan',
-		size: 200,
-		cell: ({ getValue }) => getValue() ?? <span className="text-muted-foreground">—</span>,
-	}),
-	col.accessor('createdAt', {
-		header: 'Tanggal',
-		size: 140,
-		cell: ({ getValue }) => new Date(getValue()).toLocaleDateString('id-ID'),
-	}),
-]
 
 // ─── Page ───
 
 function TransfersPage() {
-	const { activeLocation } = useLocationContext()
+	const { activeLocation, locations } = useLocationContext()
 	const locationId = activeLocation?.id
+
+	const locationMap = useMemo(() => {
+		const map = new Map<number, string>()
+		for (const loc of locations) {
+			map.set(loc.id, loc.name)
+		}
+		return map
+	}, [locations])
 
 	const [listParams, setListParams] = useState({
 		page: 1,
 		limit: 10,
-		locationId: locationId,
 		status: undefined as TransferStatusEnum | undefined,
 	})
 
@@ -198,6 +166,48 @@ function TransfersPage() {
 
 	// ─── Columns with actions ───
 
+	const baseColumns = useMemo(
+		() => [
+			col.accessor('transferNo', {
+				header: 'No. Transfer',
+				size: 140,
+			}),
+			col.accessor('status', {
+				header: 'Status',
+				size: 130,
+				cell: ({ getValue }) => {
+					const status = getValue()
+					return (
+						<StatusBadge variant={STATUS_VARIANTS[status]}>
+							{TRANSFER_STATUS_LABELS[status]}
+						</StatusBadge>
+					)
+				},
+			}),
+			col.accessor('fromLocationId', {
+				header: 'Dari',
+				size: 140,
+				cell: ({ getValue }) => locationMap.get(getValue()) ?? `#${getValue()}`,
+			}),
+			col.accessor('toLocationId', {
+				header: 'Ke',
+				size: 140,
+				cell: ({ getValue }) => locationMap.get(getValue()) ?? `#${getValue()}`,
+			}),
+			col.accessor('notes', {
+				header: 'Catatan',
+				size: 200,
+				cell: ({ getValue }) => getValue() ?? <span className="text-muted-foreground">—</span>,
+			}),
+			col.accessor('createdAt', {
+				header: 'Tanggal',
+				size: 140,
+				cell: ({ getValue }) => new Date(getValue()).toLocaleDateString('id-ID'),
+			}),
+		],
+		[locationMap],
+	)
+
 	const actionsColumn = useMemo(() => {
 		return col.display({
 			id: 'actions',
@@ -230,7 +240,7 @@ function TransfersPage() {
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, TransferDto>[],
-		[actionsColumn],
+		[baseColumns, actionsColumn],
 	)
 
 	const { table, globalFilter, setGlobalFilter } = useServerTable({
@@ -252,10 +262,7 @@ function TransfersPage() {
 	if (!locationId) {
 		return (
 			<div className="space-y-6">
-				<PageHeader
-					title="Transfer Inventori"
-					description="Transfer bahan baku antar lokasi."
-				/>
+				<PageHeader title="Transfer Inventori" description="Transfer bahan baku antar lokasi." />
 				<EmptyState
 					title="Pilih lokasi"
 					description="Pilih lokasi aktif untuk melihat data transfer."
