@@ -43,7 +43,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		],
 	}),
 	notFoundComponent: () => <NotFound className="min-h-svh" />,
-	shellComponent: RootComponent,
+	component: RootComponent,
 })
 
 function RootComponent() {

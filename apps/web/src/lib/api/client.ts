@@ -29,7 +29,7 @@ function createClient(baseUrl: string): ApiClient {
 		const token = getToken?.()
 		if (token) headers.set('Authorization', `Bearer ${token}`)
 
-		return fetch(fullUrl, { ...init, headers })
+		return fetch(fullUrl, { ...init, headers, credentials: 'include' })
 	}
 
 	Object.defineProperty(client, 'baseUrl', { value: baseUrl, writable: false })
