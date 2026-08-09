@@ -74,7 +74,7 @@ export function SidebarNav() {
 		<Sidebar collapsible="icon">
 			<SidebarHeader>
 				<div className="flex h-8 items-center gap-2 px-2">
-					<div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+					<div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
 						<StoreIcon className="size-3.5" />
 					</div>
 					<span className="truncate text-sm font-semibold group-data-[collapsible=icon]:hidden">

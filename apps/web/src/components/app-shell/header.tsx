@@ -16,10 +16,10 @@ export function AppHeader() {
 	return (
 		<header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
 			<SidebarTrigger className="-ml-1" />
-			<Separator orientation="vertical" className="mx-2 !h-4" />
+			<Separator orientation="vertical" className="mx-2 h-6" />
 
 			{/* Location switcher placeholder */}
-			<Button variant="ghost" size="sm" className="gap-1.5 text-sm font-normal">
+			<Button variant="outline" size="sm" className="gap-1.5 text-sm font-normal">
 				<MapPinIcon className="size-4 text-muted-foreground" />
 				<span>All Locations</span>
 				<ChevronsUpDownIcon className="size-3.5 text-muted-foreground" />
