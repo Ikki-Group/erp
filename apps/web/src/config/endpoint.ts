@@ -69,6 +69,13 @@ const inventory = {
 		list: p('inventory/stock', 'list'),
 		movements: p('inventory/stock', 'movements'),
 	},
+	transfer: {
+		list: p('inventory/transfer', 'list'),
+		detail: p('inventory/transfer', 'detail'),
+		create: p('inventory/transfer', 'create'),
+		ship: p('inventory/transfer', 'ship'),
+		receive: p('inventory/transfer', 'receive'),
+	},
 }
 
 const supplier = {

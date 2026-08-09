@@ -17,11 +17,14 @@ import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/d
 import { Route as AuthenticatedInventoryStockRouteImport } from './routes/_authenticated/inventory/stock'
 import { Route as AuthenticatedMasterLocationsRouteImport } from './routes/_authenticated/master/locations'
 import { Route as AuthenticatedMasterMaterialsRouteImport } from './routes/_authenticated/master/materials'
+import { Route as AuthenticatedMasterMenuRouteImport } from './routes/_authenticated/master/menu'
 import { Route as AuthenticatedMasterPaymentMethodsRouteImport } from './routes/_authenticated/master/payment-methods'
+import { Route as AuthenticatedMasterSuppliersRouteImport } from './routes/_authenticated/master/suppliers'
 import { Route as AuthenticatedMasterUomRouteImport } from './routes/_authenticated/master/uom'
 import { Route as AuthenticatedPosShiftsRouteImport } from './routes/_authenticated/pos/shifts'
 import { Route as AuthenticatedPosTablesRouteImport } from './routes/_authenticated/pos/tables'
 import { Route as AuthenticatedPosVouchersRouteImport } from './routes/_authenticated/pos/vouchers'
+import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings/company'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings/roles'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings/users'
 
@@ -67,10 +70,21 @@ const AuthenticatedMasterMaterialsRoute =
     path: '/master/materials',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMasterMenuRoute = AuthenticatedMasterMenuRouteImport.update({
+  id: '/master/menu',
+  path: '/master/menu',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMasterPaymentMethodsRoute =
   AuthenticatedMasterPaymentMethodsRouteImport.update({
     id: '/master/payment-methods',
     path: '/master/payment-methods',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterSuppliersRoute =
+  AuthenticatedMasterSuppliersRouteImport.update({
+    id: '/master/suppliers',
+    path: '/master/suppliers',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedMasterUomRoute = AuthenticatedMasterUomRouteImport.update({
@@ -94,6 +108,12 @@ const AuthenticatedPosVouchersRoute =
     path: '/pos/vouchers',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSettingsCompanyRoute =
+  AuthenticatedSettingsCompanyRouteImport.update({
+    id: '/settings/company',
+    path: '/settings/company',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSettingsRolesRoute =
   AuthenticatedSettingsRolesRouteImport.update({
     id: '/settings/roles',
@@ -115,11 +135,14 @@ export interface FileRoutesByFullPath {
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
   '/master/materials': typeof AuthenticatedMasterMaterialsRoute
+  '/master/menu': typeof AuthenticatedMasterMenuRoute
   '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
+  '/master/suppliers': typeof AuthenticatedMasterSuppliersRoute
   '/master/uom': typeof AuthenticatedMasterUomRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
   '/pos/tables': typeof AuthenticatedPosTablesRoute
   '/pos/vouchers': typeof AuthenticatedPosVouchersRoute
+  '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
 }
@@ -131,11 +154,14 @@ export interface FileRoutesByTo {
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
   '/master/materials': typeof AuthenticatedMasterMaterialsRoute
+  '/master/menu': typeof AuthenticatedMasterMenuRoute
   '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
+  '/master/suppliers': typeof AuthenticatedMasterSuppliersRoute
   '/master/uom': typeof AuthenticatedMasterUomRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
   '/pos/tables': typeof AuthenticatedPosTablesRoute
   '/pos/vouchers': typeof AuthenticatedPosVouchersRoute
+  '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
 }
@@ -149,11 +175,14 @@ export interface FileRoutesById {
   '/_authenticated/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/_authenticated/master/locations': typeof AuthenticatedMasterLocationsRoute
   '/_authenticated/master/materials': typeof AuthenticatedMasterMaterialsRoute
+  '/_authenticated/master/menu': typeof AuthenticatedMasterMenuRoute
   '/_authenticated/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
+  '/_authenticated/master/suppliers': typeof AuthenticatedMasterSuppliersRoute
   '/_authenticated/master/uom': typeof AuthenticatedMasterUomRoute
   '/_authenticated/pos/shifts': typeof AuthenticatedPosShiftsRoute
   '/_authenticated/pos/tables': typeof AuthenticatedPosTablesRoute
   '/_authenticated/pos/vouchers': typeof AuthenticatedPosVouchersRoute
+  '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
 }
@@ -167,11 +196,14 @@ export interface FileRouteTypes {
     | '/inventory/stock'
     | '/master/locations'
     | '/master/materials'
+    | '/master/menu'
     | '/master/payment-methods'
+    | '/master/suppliers'
     | '/master/uom'
     | '/pos/shifts'
     | '/pos/tables'
     | '/pos/vouchers'
+    | '/settings/company'
     | '/settings/roles'
     | '/settings/users'
   fileRoutesByTo: FileRoutesByTo
@@ -183,11 +215,14 @@ export interface FileRouteTypes {
     | '/inventory/stock'
     | '/master/locations'
     | '/master/materials'
+    | '/master/menu'
     | '/master/payment-methods'
+    | '/master/suppliers'
     | '/master/uom'
     | '/pos/shifts'
     | '/pos/tables'
     | '/pos/vouchers'
+    | '/settings/company'
     | '/settings/roles'
     | '/settings/users'
   id:
@@ -200,11 +235,14 @@ export interface FileRouteTypes {
     | '/_authenticated/inventory/stock'
     | '/_authenticated/master/locations'
     | '/_authenticated/master/materials'
+    | '/_authenticated/master/menu'
     | '/_authenticated/master/payment-methods'
+    | '/_authenticated/master/suppliers'
     | '/_authenticated/master/uom'
     | '/_authenticated/pos/shifts'
     | '/_authenticated/pos/tables'
     | '/_authenticated/pos/vouchers'
+    | '/_authenticated/settings/company'
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/users'
   fileRoutesById: FileRoutesById
@@ -273,11 +311,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMasterMaterialsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/master/menu': {
+      id: '/_authenticated/master/menu'
+      path: '/master/menu'
+      fullPath: '/master/menu'
+      preLoaderRoute: typeof AuthenticatedMasterMenuRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/master/payment-methods': {
       id: '/_authenticated/master/payment-methods'
       path: '/master/payment-methods'
       fullPath: '/master/payment-methods'
       preLoaderRoute: typeof AuthenticatedMasterPaymentMethodsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/suppliers': {
+      id: '/_authenticated/master/suppliers'
+      path: '/master/suppliers'
+      fullPath: '/master/suppliers'
+      preLoaderRoute: typeof AuthenticatedMasterSuppliersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/master/uom': {
@@ -308,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPosVouchersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/settings/company': {
+      id: '/_authenticated/settings/company'
+      path: '/settings/company'
+      fullPath: '/settings/company'
+      preLoaderRoute: typeof AuthenticatedSettingsCompanyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings/roles': {
       id: '/_authenticated/settings/roles'
       path: '/settings/roles'
@@ -331,11 +390,14 @@ interface AuthenticatedRouteChildren {
   AuthenticatedInventoryStockRoute: typeof AuthenticatedInventoryStockRoute
   AuthenticatedMasterLocationsRoute: typeof AuthenticatedMasterLocationsRoute
   AuthenticatedMasterMaterialsRoute: typeof AuthenticatedMasterMaterialsRoute
+  AuthenticatedMasterMenuRoute: typeof AuthenticatedMasterMenuRoute
   AuthenticatedMasterPaymentMethodsRoute: typeof AuthenticatedMasterPaymentMethodsRoute
+  AuthenticatedMasterSuppliersRoute: typeof AuthenticatedMasterSuppliersRoute
   AuthenticatedMasterUomRoute: typeof AuthenticatedMasterUomRoute
   AuthenticatedPosShiftsRoute: typeof AuthenticatedPosShiftsRoute
   AuthenticatedPosTablesRoute: typeof AuthenticatedPosTablesRoute
   AuthenticatedPosVouchersRoute: typeof AuthenticatedPosVouchersRoute
+  AuthenticatedSettingsCompanyRoute: typeof AuthenticatedSettingsCompanyRoute
   AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
   AuthenticatedSettingsUsersRoute: typeof AuthenticatedSettingsUsersRoute
 }
@@ -346,12 +408,15 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedInventoryStockRoute: AuthenticatedInventoryStockRoute,
   AuthenticatedMasterLocationsRoute: AuthenticatedMasterLocationsRoute,
   AuthenticatedMasterMaterialsRoute: AuthenticatedMasterMaterialsRoute,
+  AuthenticatedMasterMenuRoute: AuthenticatedMasterMenuRoute,
   AuthenticatedMasterPaymentMethodsRoute:
     AuthenticatedMasterPaymentMethodsRoute,
+  AuthenticatedMasterSuppliersRoute: AuthenticatedMasterSuppliersRoute,
   AuthenticatedMasterUomRoute: AuthenticatedMasterUomRoute,
   AuthenticatedPosShiftsRoute: AuthenticatedPosShiftsRoute,
   AuthenticatedPosTablesRoute: AuthenticatedPosTablesRoute,
   AuthenticatedPosVouchersRoute: AuthenticatedPosVouchersRoute,
+  AuthenticatedSettingsCompanyRoute: AuthenticatedSettingsCompanyRoute,
   AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
   AuthenticatedSettingsUsersRoute: AuthenticatedSettingsUsersRoute,
 }
