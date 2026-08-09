@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 
+import { menuItemResource } from '@/features/menu/api.ts'
 import { recipeExtras, recipeResource } from '@/features/recipe/api.ts'
 import { RecipeForm } from '@/features/recipe/components/recipe-form.tsx'
 import type { RecipeFormRef, RecipeFormValues } from '@/features/recipe/components/recipe-form.tsx'
@@ -123,6 +124,11 @@ function RecipesPage() {
 		enabled: !!locationId,
 	})
 
+	const menuItemsQuery = useQuery({
+		...menuItemResource.list.queryOptions({ page: 1, limit: 200, locationId: locationId! }),
+		enabled: !!locationId,
+	})
+
 	// ─── Mutations ───
 
 	const createMut = useMutation(recipeResource.create.mutationOptions())
@@ -133,6 +139,14 @@ function RecipesPage() {
 
 	const recipes = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
+
+	const menuItemMap = useMemo(() => {
+		const map = new Map<number, string>()
+		for (const item of menuItemsQuery.data?.data ?? []) {
+			map.set(item.id, item.name)
+		}
+		return map
+	}, [menuItemsQuery.data])
 
 	// ─── Handlers ───
 
@@ -224,6 +238,19 @@ function RecipesPage() {
 
 	// ─── Table Columns with HPP + Actions ───
 
+	const menuItemColumn = useMemo(() => {
+		return col.display({
+			id: 'menuItem',
+			header: 'Menu Item',
+			size: 180,
+			cell: ({ row }) => (
+				<span className="text-sm">
+					{menuItemMap.get(row.original.menuItemId) ?? `#${row.original.menuItemId}`}
+				</span>
+			),
+		})
+	}, [menuItemMap])
+
 	const hppColumn = useMemo(() => {
 		return col.display({
 			id: 'hpp',
@@ -259,8 +286,12 @@ function RecipesPage() {
 	}, [handleEdit, handleDelete])
 
 	const columns = useMemo(
-		() => [...baseColumns, hppColumn, actionsColumn] as ColumnDef<DataGridFeatures, RecipeDto>[],
-		[hppColumn, actionsColumn],
+		() =>
+			[...baseColumns, menuItemColumn, hppColumn, actionsColumn] as ColumnDef<
+				DataGridFeatures,
+				RecipeDto
+			>[],
+		[menuItemColumn, hppColumn, actionsColumn],
 	)
 
 	const { table, globalFilter, setGlobalFilter } = useServerTable({

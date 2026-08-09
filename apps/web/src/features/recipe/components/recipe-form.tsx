@@ -20,6 +20,7 @@ import type { RecipeDetailDto } from '../dto/index.ts'
 // ─── Types ───
 
 interface RecipeLineValues {
+	key: string
 	materialId: string
 	quantity: string
 	uomId: string
@@ -43,7 +44,7 @@ interface RecipeFormProps {
 }
 
 function emptyLine(): RecipeLineValues {
-	return { materialId: '', quantity: '', uomId: '' }
+	return { key: crypto.randomUUID(), materialId: '', quantity: '', uomId: '' }
 }
 
 // ─── Component ───
@@ -54,7 +55,8 @@ export const RecipeForm = forwardRef<RecipeFormRef, RecipeFormProps>(
 			menuItemId: defaultValues?.menuItemId?.toString() ?? '',
 			name: defaultValues?.name ?? '',
 			yieldQty: defaultValues?.yieldQty ?? '1',
-			lines: defaultValues?.lines.map((l) => ({
+			lines: defaultValues?.lines?.map((l) => ({
+				key: crypto.randomUUID(),
 				materialId: l.materialId.toString(),
 				quantity: l.quantity,
 				uomId: l.uomId.toString(),
@@ -211,7 +213,7 @@ export const RecipeForm = forwardRef<RecipeFormRef, RecipeFormProps>(
 					{errors.lines && <p className="text-sm text-destructive">{errors.lines}</p>}
 
 					{values.lines.map((line, idx) => (
-						<div key={idx} className="flex items-end gap-2">
+						<div key={line.key} className="flex items-end gap-2">
 							<div className="flex-1">
 								<FormSelect
 									label={idx === 0 ? 'Material' : ''}
