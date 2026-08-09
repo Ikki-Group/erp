@@ -62,7 +62,11 @@ const baseColumns = [
 		size: 140,
 		cell: ({ getValue }) => {
 			const val = getValue()
-			return val ? Number(val).toLocaleString('id-ID') : <span className="text-muted-foreground">—</span>
+			return val ? (
+				Number(val).toLocaleString('id-ID')
+			) : (
+				<span className="text-muted-foreground">—</span>
+			)
 		},
 	}),
 	col.accessor('openedAt', {
@@ -75,7 +79,11 @@ const baseColumns = [
 		size: 160,
 		cell: ({ getValue }) => {
 			const val = getValue()
-			return val ? new Date(val).toLocaleString('id-ID') : <span className="text-muted-foreground">—</span>
+			return val ? (
+				new Date(val).toLocaleString('id-ID')
+			) : (
+				<span className="text-muted-foreground">—</span>
+			)
 		},
 	}),
 ]
@@ -91,14 +99,19 @@ function ShiftsPage() {
 		limit: 10,
 	})
 
-	const listQuery = useQuery(
-		shiftResource.list.queryOptions({
+	const listQuery = useQuery({
+		...shiftResource.list.queryOptions({
 			...listParams,
 			locationId: locationId!,
 		}),
-	)
+		enabled: !!locationId,
+	})
 
-	const activeShiftQuery = useQuery(shiftResource.active.queryOptions(undefined as never))
+	const activeShiftQuery = useQuery({
+		...shiftResource.active.queryOptions(undefined as never),
+		queryKey: shiftResource.keys.active(locationId),
+		enabled: !!locationId,
+	})
 
 	const openMut = useMutation(shiftResource.open.mutationOptions())
 	const closeMut = useMutation(shiftResource.close.mutationOptions())
@@ -173,10 +186,7 @@ function ShiftsPage() {
 
 	// ─── Columns ───
 
-	const columns = useMemo(
-		() => baseColumns as ColumnDef<DataGridFeatures, ShiftDto>[],
-		[],
-	)
+	const columns = useMemo(() => baseColumns as ColumnDef<DataGridFeatures, ShiftDto>[], [])
 
 	const { table } = useServerTable({
 		data,

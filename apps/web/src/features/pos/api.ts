@@ -42,7 +42,8 @@ const shiftKeys = {
 	list: (query?: unknown) => [shiftUrls.list, query ?? null] as const,
 	details: () => [shiftUrls.detail] as const,
 	detail: (query?: unknown) => [shiftUrls.detail, query ?? null] as const,
-	active: (query?: unknown) => [shiftUrls.active, query ?? null] as const,
+	actives: () => [shiftUrls.active] as const,
+	active: (locationId?: unknown) => [shiftUrls.active, locationId ?? null] as const,
 }
 
 const shiftList = defineQuery({
@@ -65,7 +66,7 @@ const shiftActive = defineQuery({
 	method: 'get',
 	url: shiftUrls.active,
 	result: createSuccessResponseSchema(ShiftDto.nullable()),
-	queryKey: () => shiftKeys.active(),
+	queryKey: () => shiftKeys.actives(),
 })
 
 const shiftOpen = defineMutation({
@@ -73,7 +74,7 @@ const shiftOpen = defineMutation({
 	url: shiftUrls.open,
 	body: ShiftOpenDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [shiftKeys.lists(), shiftKeys.active()],
+	invalidates: [shiftKeys.lists(), shiftKeys.actives()],
 })
 
 const shiftClose = defineMutation({
@@ -81,7 +82,7 @@ const shiftClose = defineMutation({
 	url: shiftUrls.close,
 	body: ShiftCloseDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [shiftKeys.lists(), shiftKeys.active()],
+	invalidates: [shiftKeys.lists(), shiftKeys.actives()],
 })
 
 const shiftCloseOther = defineMutation({
@@ -89,7 +90,7 @@ const shiftCloseOther = defineMutation({
 	url: shiftUrls.closeOther,
 	body: ShiftCloseDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [shiftKeys.lists(), shiftKeys.active()],
+	invalidates: [shiftKeys.lists(), shiftKeys.actives()],
 })
 
 export const shiftResource = {

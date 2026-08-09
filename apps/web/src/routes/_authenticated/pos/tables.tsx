@@ -50,7 +50,8 @@ const baseColumns = [
 		size: 120,
 		cell: ({ getValue }) => {
 			const status = getValue()
-			const variant = status === 'available' ? 'success' : status === 'occupied' ? 'warning' : 'default'
+			const variant =
+				status === 'available' ? 'success' : status === 'occupied' ? 'warning' : 'default'
 			return <StatusBadge variant={variant}>{status}</StatusBadge>
 		},
 	}),
@@ -77,12 +78,13 @@ function TablesPage() {
 		q: undefined as string | undefined,
 	})
 
-	const listQuery = useQuery(
-		tableResource.list.queryOptions({
+	const listQuery = useQuery({
+		...tableResource.list.queryOptions({
 			...listParams,
 			locationId: locationId!,
 		}),
-	)
+		enabled: !!locationId,
+	})
 
 	const createMut = useMutation(tableResource.create.mutationOptions())
 	const updateMut = useMutation(tableResource.update.mutationOptions())

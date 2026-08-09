@@ -60,8 +60,8 @@ export const ShiftDto = z.object({
 	locationId: zp.id,
 	userId: zp.id,
 	status: ShiftStatusEnum,
-	openedAt: zp.str,
-	closedAt: zp.str.nullable(),
+	openedAt: z.string().datetime(),
+	closedAt: z.string().datetime().nullable(),
 	openingCash: zp.str,
 	closingCash: zp.str.nullable(),
 	expectedCash: zp.str.nullable(),
@@ -139,9 +139,9 @@ export const VoucherFilterDto = z.object({
 })
 export type VoucherFilterDto = z.infer<typeof VoucherFilterDto>
 
-// ─── Voucher Create ───
+// ─── Voucher Mutation (shared shape) ───
 
-export const VoucherCreateDto = z.object({
+const VoucherMutationShape = {
 	code: zc.strTrim.max(50),
 	name: zc.strTrim.min(3).max(255),
 	type: VoucherTypeEnum,
@@ -152,22 +152,28 @@ export const VoucherCreateDto = z.object({
 	validUntil: z.coerce.date(),
 	usageLimit: z.coerce.number().int().positive().nullable().optional(),
 	isActive: zp.bool.optional().default(true),
-})
+}
+
+function addVoucherRefinements<T extends z.ZodTypeAny>(schema: T) {
+	return schema
+		.refine((d: { validFrom: Date; validUntil: Date }) => d.validFrom < d.validUntil, {
+			message: 'Must be after Valid From',
+			path: ['validUntil'],
+		})
+		.refine((d: { type: string; value: number }) => d.type !== 'percentage' || d.value <= 100, {
+			message: 'Percentage cannot exceed 100',
+			path: ['value'],
+		})
+}
+
+// ─── Voucher Create ───
+
+export const VoucherCreateDto = addVoucherRefinements(z.object(VoucherMutationShape))
 export type VoucherCreateDto = z.infer<typeof VoucherCreateDto>
 
 // ─── Voucher Update ───
 
-export const VoucherUpdateDto = z.object({
-	id: zp.id,
-	code: zc.strTrim.max(50),
-	name: zc.strTrim.min(3).max(255),
-	type: VoucherTypeEnum,
-	value: z.coerce.number().positive(),
-	minPurchase: z.coerce.number().nonnegative().nullable().optional(),
-	maxDiscount: z.coerce.number().positive().nullable().optional(),
-	validFrom: z.coerce.date(),
-	validUntil: z.coerce.date(),
-	usageLimit: z.coerce.number().int().positive().nullable().optional(),
-	isActive: zp.bool.optional().default(true),
-})
+export const VoucherUpdateDto = addVoucherRefinements(
+	z.object({ id: zp.id, ...VoucherMutationShape }),
+)
 export type VoucherUpdateDto = z.infer<typeof VoucherUpdateDto>

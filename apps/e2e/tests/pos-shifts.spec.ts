@@ -45,25 +45,32 @@ test.describe('POS Shifts - Open/Close', () => {
 		await expect(page.getByText(/opened successfully/i)).toBeVisible()
 	})
 
-	/** Active shift indicator shown after opening */
-	test('shows active shift indicator after opening', async ({ page, login }) => {
+	/** Active shift indicator shown + close flow */
+	test('shows active indicator and can close shift', async ({ page, login }) => {
 		await login()
 		await page.goto('/pos/shifts')
 
+		// Open a shift first to ensure one is active
+		const openButton = page.getByRole('button', { name: /open shift/i })
+		if (await openButton.isVisible().catch(() => false)) {
+			await openButton.click()
+			await page.getByLabel(/opening cash/i).clear()
+			await page.getByLabel(/opening cash/i).fill('100000')
+			await page.getByRole('button', { name: /open shift/i }).click()
+			await expect(page.getByText(/opened successfully/i)).toBeVisible()
+			await page.goto('/pos/shifts')
+		}
+
+		// Verify active indicator
 		await expect(page.getByText(/shift active/i)).toBeVisible()
-	})
 
-	/** Close shift dialog shows expected cash */
-	test('can close an active shift', async ({ page, login }) => {
-		await login()
-		await page.goto('/pos/shifts')
-
+		// Close the shift
 		await page.getByRole('button', { name: /close shift/i }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 		await expect(page.getByText('Close Shift')).toBeVisible()
 
-		await page.getByLabel(/closing cash/i).fill('500000')
+		await page.getByLabel(/closing cash/i).fill('100000')
 
 		await page.getByRole('button', { name: /close shift/i }).click()
 
