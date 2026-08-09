@@ -26,7 +26,6 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarRail,
 } from '@/components/ui/sidebar'
 
 const navGroups = [
@@ -71,15 +70,13 @@ const navGroups = [
 
 export function SidebarNav() {
 	return (
-		<Sidebar collapsible="icon">
+		<Sidebar>
 			<SidebarHeader>
 				<div className="flex h-8 items-center gap-2 px-2">
 					<div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
 						<StoreIcon className="size-3.5" />
 					</div>
-					<span className="truncate text-sm font-semibold group-data-[collapsible=icon]:hidden">
-						Ikki ERP
-					</span>
+					<span className="truncate text-sm font-semibold">Ikki ERP</span>
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
@@ -90,7 +87,7 @@ export function SidebarNav() {
 							<SidebarMenu>
 								{group.items.map((item) => (
 									<SidebarMenuItem key={item.title}>
-										<SidebarMenuButton tooltip={item.title}>
+										<SidebarMenuButton>
 											<item.icon />
 											<span>{item.title}</span>
 										</SidebarMenuButton>
@@ -102,7 +99,6 @@ export function SidebarNav() {
 				))}
 			</SidebarContent>
 			<SidebarFooter />
-			<SidebarRail />
 		</Sidebar>
 	)
 }
