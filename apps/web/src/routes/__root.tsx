@@ -3,6 +3,7 @@ import { Outlet, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { Confirm } from '@/components/shared/confirm'
+import { ConfirmInput } from '@/components/shared/confirm-input'
 
 import { TooltipProvider } from '@/components/ui/tooltip'
 
@@ -43,6 +44,7 @@ function RootComponent() {
 		<TooltipProvider>
 			<Outlet />
 			<Confirm />
+			<ConfirmInput />
 			<TanStackDevtools
 				config={{
 					position: 'bottom-right',

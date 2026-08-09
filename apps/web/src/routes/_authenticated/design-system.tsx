@@ -36,7 +36,9 @@ import {
 	ActionMenu,
 	ConfirmDialog,
 	confirm,
+	confirmInput,
 	DataCard,
+	DateRangeFilter,
 	DetailList,
 	EmptyState,
 	InlineAlert,
@@ -575,6 +577,48 @@ function DesignSystemPage() {
 						Approve (await confirm)
 					</Button>
 				</div>
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── CONFIRM INPUT (react-call) ─── */}
+			<PageSection
+				title="Confirm Input (react-call)"
+				description="Requires typing a confirmation word before the action can proceed."
+			>
+				<div className="flex gap-3">
+					<Button
+						variant="destructive"
+						size="sm"
+						onClick={async () => {
+							const accepted = await confirmInput({
+								title: 'Delete "Coffee Beans"?',
+								description:
+									'This action is permanent and cannot be undone. All stock records will be removed.',
+								confirmWord: 'Coffee Beans',
+								confirmLabel: 'Delete permanently',
+							})
+							if (accepted) alert('Deleted!')
+						}}
+					>
+						Delete with input confirmation
+					</Button>
+				</div>
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── DATE RANGE FILTER ─── */}
+			<PageSection
+				title="Date Range Filter"
+				description="Responsive date range picker with presets (7d, 30d, etc) and custom calendar."
+			>
+				<DateRangeFilter
+					onChange={(range) => {
+						if (range)
+							alert(`${range.from.toLocaleDateString()} – ${range.to.toLocaleDateString()}`)
+					}}
+				/>
 			</PageSection>
 
 			<Separator />
