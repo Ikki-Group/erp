@@ -76,6 +76,13 @@ const inventory = {
 		ship: p('inventory/transfer', 'ship'),
 		receive: p('inventory/transfer', 'receive'),
 	},
+	opname: {
+		list: p('inventory/opname', 'list'),
+		detail: p('inventory/opname', 'detail'),
+		create: p('inventory/opname', 'create'),
+		counts: p('inventory/opname', 'counts'),
+		approve: p('inventory/opname', 'approve'),
+	},
 }
 
 const supplier = {
@@ -100,6 +107,12 @@ const menu = {
 		remove: p('menu/category', 'remove'),
 	},
 	modifier: crud('menu/modifier'),
+}
+
+const recipe = {
+	...crud('recipe'),
+	byMenuItem: p('recipe', 'by-menu-item'),
+	hpp: p('recipe', 'hpp'),
 }
 
 const company = {
@@ -130,6 +143,7 @@ export const endpoint = {
 	supplier,
 	paymentMethod,
 	menu,
+	recipe,
 	inventory,
 	company,
 	pos,

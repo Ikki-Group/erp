@@ -14,7 +14,9 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
+import { Route as AuthenticatedInventoryOpnameRouteImport } from './routes/_authenticated/inventory/opname'
 import { Route as AuthenticatedInventoryStockRouteImport } from './routes/_authenticated/inventory/stock'
+import { Route as AuthenticatedInventoryTransfersRouteImport } from './routes/_authenticated/inventory/transfers'
 import { Route as AuthenticatedMasterLocationsRouteImport } from './routes/_authenticated/master/locations'
 import { Route as AuthenticatedMasterMaterialsRouteImport } from './routes/_authenticated/master/materials'
 import { Route as AuthenticatedMasterMenuRouteImport } from './routes/_authenticated/master/menu'
@@ -52,10 +54,22 @@ const AuthenticatedDemoRoute = AuthenticatedDemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedInventoryOpnameRoute =
+  AuthenticatedInventoryOpnameRouteImport.update({
+    id: '/inventory/opname',
+    path: '/inventory/opname',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedInventoryStockRoute =
   AuthenticatedInventoryStockRouteImport.update({
     id: '/inventory/stock',
     path: '/inventory/stock',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedInventoryTransfersRoute =
+  AuthenticatedInventoryTransfersRouteImport.update({
+    id: '/inventory/transfers',
+    path: '/inventory/transfers',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedMasterLocationsRoute =
@@ -132,7 +146,9 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
+  '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
+  '/inventory/transfers': typeof AuthenticatedInventoryTransfersRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
   '/master/materials': typeof AuthenticatedMasterMaterialsRoute
   '/master/menu': typeof AuthenticatedMasterMenuRoute
@@ -151,7 +167,9 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
   '/': typeof AuthenticatedIndexRoute
+  '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
+  '/inventory/transfers': typeof AuthenticatedInventoryTransfersRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
   '/master/materials': typeof AuthenticatedMasterMaterialsRoute
   '/master/menu': typeof AuthenticatedMasterMenuRoute
@@ -172,7 +190,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/demo': typeof AuthenticatedDemoRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/_authenticated/inventory/stock': typeof AuthenticatedInventoryStockRoute
+  '/_authenticated/inventory/transfers': typeof AuthenticatedInventoryTransfersRoute
   '/_authenticated/master/locations': typeof AuthenticatedMasterLocationsRoute
   '/_authenticated/master/materials': typeof AuthenticatedMasterMaterialsRoute
   '/_authenticated/master/menu': typeof AuthenticatedMasterMenuRoute
@@ -193,7 +213,9 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/login'
     | '/demo'
+    | '/inventory/opname'
     | '/inventory/stock'
+    | '/inventory/transfers'
     | '/master/locations'
     | '/master/materials'
     | '/master/menu'
@@ -212,7 +234,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/demo'
     | '/'
+    | '/inventory/opname'
     | '/inventory/stock'
+    | '/inventory/transfers'
     | '/master/locations'
     | '/master/materials'
     | '/master/menu'
@@ -232,7 +256,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/demo'
     | '/_authenticated/'
+    | '/_authenticated/inventory/opname'
     | '/_authenticated/inventory/stock'
+    | '/_authenticated/inventory/transfers'
     | '/_authenticated/master/locations'
     | '/_authenticated/master/materials'
     | '/_authenticated/master/menu'
@@ -290,11 +316,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDemoRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/inventory/opname': {
+      id: '/_authenticated/inventory/opname'
+      path: '/inventory/opname'
+      fullPath: '/inventory/opname'
+      preLoaderRoute: typeof AuthenticatedInventoryOpnameRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/inventory/stock': {
       id: '/_authenticated/inventory/stock'
       path: '/inventory/stock'
       fullPath: '/inventory/stock'
       preLoaderRoute: typeof AuthenticatedInventoryStockRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inventory/transfers': {
+      id: '/_authenticated/inventory/transfers'
+      path: '/inventory/transfers'
+      fullPath: '/inventory/transfers'
+      preLoaderRoute: typeof AuthenticatedInventoryTransfersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/master/locations': {
@@ -387,7 +427,9 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedDemoRoute: typeof AuthenticatedDemoRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedInventoryOpnameRoute: typeof AuthenticatedInventoryOpnameRoute
   AuthenticatedInventoryStockRoute: typeof AuthenticatedInventoryStockRoute
+  AuthenticatedInventoryTransfersRoute: typeof AuthenticatedInventoryTransfersRoute
   AuthenticatedMasterLocationsRoute: typeof AuthenticatedMasterLocationsRoute
   AuthenticatedMasterMaterialsRoute: typeof AuthenticatedMasterMaterialsRoute
   AuthenticatedMasterMenuRoute: typeof AuthenticatedMasterMenuRoute
@@ -405,7 +447,9 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDemoRoute: AuthenticatedDemoRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedInventoryOpnameRoute: AuthenticatedInventoryOpnameRoute,
   AuthenticatedInventoryStockRoute: AuthenticatedInventoryStockRoute,
+  AuthenticatedInventoryTransfersRoute: AuthenticatedInventoryTransfersRoute,
   AuthenticatedMasterLocationsRoute: AuthenticatedMasterLocationsRoute,
   AuthenticatedMasterMaterialsRoute: AuthenticatedMasterMaterialsRoute,
   AuthenticatedMasterMenuRoute: AuthenticatedMasterMenuRoute,

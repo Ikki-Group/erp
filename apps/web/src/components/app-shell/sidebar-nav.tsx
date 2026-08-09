@@ -46,7 +46,7 @@ const navGroups = [
 			{ title: 'UoM', icon: RulerIcon, href: '/master/uom' },
 			{ title: 'Materials', icon: BoxesIcon, href: '/master/materials' },
 			{ title: 'Suppliers', icon: TruckIcon, href: '/master/suppliers' },
-			{ title: 'Menu', icon: UtensilsCrossedIcon, href: '#' },
+			{ title: 'Menu', icon: UtensilsCrossedIcon, href: '/master/menu' },
 			{ title: 'Recipes', icon: ChefHatIcon, href: '#' },
 			{ title: 'Payment Methods', icon: WalletIcon, href: '/master/payment-methods' },
 		],
@@ -64,7 +64,7 @@ const navGroups = [
 		label: 'Inventory',
 		items: [
 			{ title: 'Stock', icon: PackageIcon, href: '/inventory/stock' },
-			{ title: 'Transfers', icon: ClipboardListIcon, href: '#' },
+			{ title: 'Transfers', icon: ClipboardListIcon, href: '/inventory/transfers' },
 		],
 	},
 	{

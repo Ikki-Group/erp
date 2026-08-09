@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zp, zq } from '@/lib/validation/index.ts'
+import { zc, zp, zq } from '@/lib/validation/index.ts'
 
 // ─── Enums ───
 
@@ -84,3 +84,179 @@ export const StockMovementFilterDto = z.object({
 	direction: MovementDirectionEnum.optional(),
 })
 export type StockMovementFilterDto = z.infer<typeof StockMovementFilterDto>
+
+// ─── Transfer Enums ───
+
+export const TransferStatusEnum = z.enum(['requested', 'in_transit', 'received', 'cancelled'])
+export type TransferStatusEnum = z.infer<typeof TransferStatusEnum>
+
+export const TRANSFER_STATUS_LABELS: Record<TransferStatusEnum, string> = {
+	requested: 'Diajukan',
+	in_transit: 'Dalam Perjalanan',
+	received: 'Diterima',
+	cancelled: 'Dibatalkan',
+}
+
+// ─── Response: Transfer ───
+
+export const TransferDto = z.object({
+	id: zp.id,
+	transferNo: zp.str,
+	fromLocationId: zp.id,
+	toLocationId: zp.id,
+	status: TransferStatusEnum,
+	notes: zp.str.nullable(),
+	requestedBy: zp.num.nullable(),
+	...zc.AuditBasic.shape,
+})
+export type TransferDto = z.infer<typeof TransferDto>
+
+// ─── Response: Transfer Line ───
+
+export const TransferLineDto = z.object({
+	id: zp.id,
+	transferId: zp.id,
+	materialId: zp.id,
+	requestedQty: zp.str,
+	shippedQty: zp.str.nullable(),
+	receivedQty: zp.str.nullable(),
+	uomId: zp.id,
+})
+export type TransferLineDto = z.infer<typeof TransferLineDto>
+
+// ─── Response: Transfer Detail ───
+
+export const TransferDetailDto = z.object({
+	...TransferDto.shape,
+	lines: z.array(TransferLineDto),
+})
+export type TransferDetailDto = z.infer<typeof TransferDetailDto>
+
+// ─── Input: Create Transfer ───
+
+const TransferLineInputDto = z.object({
+	materialId: z.number().int().positive(),
+	qty: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a positive number'),
+	uomId: z.number().int().positive(),
+})
+
+export const TransferCreateDto = z.object({
+	fromLocationId: z.number().int().positive(),
+	toLocationId: z.number().int().positive(),
+	notes: z.string().trim().nullable().optional(),
+	lines: z.array(TransferLineInputDto).min(1),
+})
+export type TransferCreateDto = z.infer<typeof TransferCreateDto>
+
+// ─── Input: Ship Transfer ───
+
+export const TransferShipDto = z.object({
+	transferId: z.number().int().positive(),
+})
+export type TransferShipDto = z.infer<typeof TransferShipDto>
+
+// ─── Input: Receive Transfer ───
+
+const TransferReceiveLineDto = z.object({
+	materialId: z.number().int().positive(),
+	receivedQty: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a positive number'),
+})
+
+export const TransferReceiveDto = z.object({
+	transferId: z.number().int().positive(),
+	lines: z.array(TransferReceiveLineDto).min(1),
+})
+export type TransferReceiveDto = z.infer<typeof TransferReceiveDto>
+
+// ─── Filter: Transfer List ───
+
+export const TransferFilterDto = z.object({
+	...zq.pagination.shape,
+	locationId: z.coerce.number().int().positive().optional(),
+	status: TransferStatusEnum.optional(),
+})
+export type TransferFilterDto = z.infer<typeof TransferFilterDto>
+
+// ─── Opname Enums ───
+
+export const OpnameStatusEnum = z.enum(['draft', 'in_progress', 'completed', 'cancelled'])
+export type OpnameStatusEnum = z.infer<typeof OpnameStatusEnum>
+
+export const OPNAME_STATUS_LABELS: Record<OpnameStatusEnum, string> = {
+	draft: 'Draft',
+	in_progress: 'Sedang Berjalan',
+	completed: 'Selesai',
+	cancelled: 'Dibatalkan',
+}
+
+// ─── Response: Opname Line ───
+
+export const OpnameLineDto = z.object({
+	id: zp.id,
+	opnameId: zp.id,
+	materialId: zp.id,
+	systemQty: zp.str,
+	actualQty: zp.str,
+	reason: zp.str.nullable(),
+})
+export type OpnameLineDto = z.infer<typeof OpnameLineDto>
+
+// ─── Response: Opname ───
+
+export const OpnameDto = z.object({
+	id: zp.id,
+	opnameNo: zp.str,
+	locationId: zp.id,
+	status: OpnameStatusEnum,
+	startedAt: zp.dateNullable,
+	completedAt: zp.dateNullable,
+	conductedBy: zp.num.nullable(),
+	...zc.AuditBasic.shape,
+})
+export type OpnameDto = z.infer<typeof OpnameDto>
+
+// ─── Response: Opname Detail ───
+
+export const OpnameDetailDto = z.object({
+	...OpnameDto.shape,
+	lines: z.array(OpnameLineDto),
+})
+export type OpnameDetailDto = z.infer<typeof OpnameDetailDto>
+
+// ─── Input: Create Opname ───
+
+export const OpnameCreateDto = z.object({
+	locationId: z.number().int().positive(),
+	notes: zc.strTrimNullable.optional(),
+})
+export type OpnameCreateDto = z.infer<typeof OpnameCreateDto>
+
+// ─── Input: Update Counts ───
+
+const OpnameCountLineDto = z.object({
+	materialId: z.number().int().positive(),
+	countedQty: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a non-negative number'),
+	reason: zc.strTrimNullable.optional(),
+})
+
+export const OpnameUpdateCountsDto = z.object({
+	opnameId: z.number().int().positive(),
+	lines: z.array(OpnameCountLineDto).min(1),
+})
+export type OpnameUpdateCountsDto = z.infer<typeof OpnameUpdateCountsDto>
+
+// ─── Input: Approve Opname ───
+
+export const OpnameApproveDto = z.object({
+	opnameId: z.number().int().positive(),
+})
+export type OpnameApproveDto = z.infer<typeof OpnameApproveDto>
+
+// ─── Filter: Opname List ───
+
+export const OpnameFilterDto = z.object({
+	...zq.pagination.shape,
+	locationId: z.coerce.number().int().positive().optional(),
+	status: OpnameStatusEnum.optional(),
+})
+export type OpnameFilterDto = z.infer<typeof OpnameFilterDto>
