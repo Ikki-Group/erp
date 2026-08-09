@@ -8,6 +8,17 @@ import {
 } from '@/lib/validation/index.ts'
 
 import {
+	OrderApplyVoucherDto,
+	OrderCompleteDto,
+	OrderCreateDto,
+	OrderDetailDto,
+	OrderDto,
+	OrderFilterDto,
+	OrderLineSyncDto,
+	OrderPaymentInputDto,
+	OrderRemoveVoucherDto,
+	OrderVoidDto,
+	OrderVoucherApplyResultDto,
 	ShiftCloseDto,
 	ShiftDetailDto,
 	ShiftDto,
@@ -112,3 +123,99 @@ export const voucherResource = defineResource({
 	create: VoucherCreateDto,
 	update: VoucherUpdateDto,
 })
+
+// ─── Order Resource ───
+
+const orderUrls = endpoint.pos.order
+
+const orderKeys = {
+	lists: () => [orderUrls.list] as const,
+	list: (query?: unknown) => [orderUrls.list, query ?? null] as const,
+	details: () => [orderUrls.detail] as const,
+	detail: (query?: unknown) => [orderUrls.detail, query ?? null] as const,
+}
+
+const orderList = defineQuery({
+	method: 'get',
+	url: orderUrls.list,
+	query: OrderFilterDto,
+	result: createPaginatedResponseSchema(OrderDto),
+	queryKey: (query) => orderKeys.list(query),
+})
+
+const orderDetail = defineQuery({
+	method: 'get',
+	url: orderUrls.detail,
+	query: zc.RecordId,
+	result: createSuccessResponseSchema(OrderDetailDto),
+	queryKey: (query) => orderKeys.detail(query),
+})
+
+const orderCreate = defineMutation({
+	method: 'post',
+	url: orderUrls.create,
+	body: OrderCreateDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [orderKeys.lists()],
+})
+
+const orderComplete = defineMutation({
+	method: 'post',
+	url: orderUrls.complete,
+	body: OrderCompleteDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [orderKeys.lists(), orderKeys.details()],
+})
+
+const orderVoid = defineMutation({
+	method: 'post',
+	url: orderUrls.void,
+	body: OrderVoidDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [orderKeys.lists(), orderKeys.details()],
+})
+
+const orderLinesSync = defineMutation({
+	method: 'post',
+	url: orderUrls.linesSync,
+	body: OrderLineSyncDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [orderKeys.details()],
+})
+
+const orderVoucherApply = defineMutation({
+	method: 'post',
+	url: orderUrls.voucherApply,
+	body: OrderApplyVoucherDto,
+	result: createSuccessResponseSchema(OrderVoucherApplyResultDto),
+	invalidates: [orderKeys.details()],
+})
+
+const orderVoucherRemove = defineMutation({
+	method: 'post',
+	url: orderUrls.voucherRemove,
+	body: OrderRemoveVoucherDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [orderKeys.details()],
+})
+
+const orderPayment = defineMutation({
+	method: 'post',
+	url: orderUrls.payment,
+	body: OrderPaymentInputDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [orderKeys.details()],
+})
+
+export const orderResource = {
+	keys: orderKeys,
+	list: orderList,
+	detail: orderDetail,
+	create: orderCreate,
+	complete: orderComplete,
+	void: orderVoid,
+	linesSync: orderLinesSync,
+	voucherApply: orderVoucherApply,
+	voucherRemove: orderVoucherRemove,
+	payment: orderPayment,
+}
