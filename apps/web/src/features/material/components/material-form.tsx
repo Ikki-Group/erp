@@ -4,12 +4,12 @@ import { useQuery } from '@tanstack/react-query'
 
 import { FormInput } from '@/components/form/form-input'
 import { FormSelect } from '@/components/form/form-select'
+import type { FormSelectOption } from '@/components/form/form-select'
+
 import { uomResource } from '@/features/uom/api.ts'
 
 import { categoryResource } from '../api.ts'
 import { MATERIAL_TYPE_OPTIONS, MaterialCreateDto } from '../dto/index.ts'
-
-import type { FormSelectOption } from '@/components/form/form-select'
 import type { MaterialDto, MaterialTypeEnum } from '../dto/index.ts'
 
 export interface MaterialFormValues {
@@ -78,16 +78,12 @@ export const MaterialForm = forwardRef<MaterialFormRef, MaterialFormProps>(
 					name: values.name,
 					type: values.type,
 					categoryId: values.categoryId ? Number(values.categoryId) : null,
-					baseUomId: values.baseUomId ? Number(values.baseUomId) : 0,
+					baseUomId: values.baseUomId ? Number(values.baseUomId) : undefined,
 					defaultPurchaseUomId: values.defaultPurchaseUomId
 						? Number(values.defaultPurchaseUomId)
 						: null,
-					defaultStockUomId: values.defaultStockUomId
-						? Number(values.defaultStockUomId)
-						: null,
-					defaultRecipeUomId: values.defaultRecipeUomId
-						? Number(values.defaultRecipeUomId)
-						: null,
+					defaultStockUomId: values.defaultStockUomId ? Number(values.defaultStockUomId) : null,
+					defaultRecipeUomId: values.defaultRecipeUomId ? Number(values.defaultRecipeUomId) : null,
 					minStock: values.minStock || null,
 				}
 				const result = MaterialCreateDto.safeParse(payload)

@@ -50,6 +50,7 @@ const material = {
 		assign: p('material', 'assignment', 'assign'),
 		unassign: p('material', 'assignment', 'unassign'),
 		byLocation: p('material', 'assignment', 'by-location'),
+		byMaterial: p('material', 'assignment', 'by-material'),
 	},
 }
 

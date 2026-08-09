@@ -29,19 +29,39 @@ import { toast } from '@/components/ui/toast'
 
 import { categoryResource, materialResource } from '@/features/material/api.ts'
 import { CategoryForm } from '@/features/material/components/category-form.tsx'
+import type { CategoryFormRef } from '@/features/material/components/category-form.tsx'
 import { LocationAssignment } from '@/features/material/components/location-assignment.tsx'
 import { MaterialForm } from '@/features/material/components/material-form.tsx'
+import type {
+	MaterialFormRef,
+	MaterialFormValues,
+} from '@/features/material/components/material-form.tsx'
 import { MATERIAL_TYPE_OPTIONS } from '@/features/material/dto/index.ts'
-
-import type { CategoryFormRef } from '@/features/material/components/category-form.tsx'
-import type { MaterialFormRef } from '@/features/material/components/material-form.tsx'
-import type { MaterialCategoryDto, MaterialDto, MaterialTypeEnum } from '@/features/material/dto/index.ts'
+import type {
+	MaterialCategoryDto,
+	MaterialDto,
+	MaterialTypeEnum,
+} from '@/features/material/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/master/materials')({
 	component: MaterialsPage,
 })
 
 // ─── Table Columns ───
+
+function formToPayload(v: MaterialFormValues) {
+	return {
+		code: v.code,
+		name: v.name,
+		type: v.type as MaterialTypeEnum,
+		categoryId: v.categoryId ? Number(v.categoryId) : null,
+		baseUomId: Number(v.baseUomId),
+		defaultPurchaseUomId: v.defaultPurchaseUomId ? Number(v.defaultPurchaseUomId) : null,
+		defaultStockUomId: v.defaultStockUomId ? Number(v.defaultStockUomId) : null,
+		defaultRecipeUomId: v.defaultRecipeUomId ? Number(v.defaultRecipeUomId) : null,
+		minStock: v.minStock || null,
+	}
+}
 
 const col = createColumnHelper<DataGridFeatures, MaterialDto>()
 
@@ -118,17 +138,7 @@ function MaterialsPage() {
 				const errors = formRef.current?.validate()
 				if (errors) throw new Error('Please fix the validation errors.')
 				const v = formRef.current!.getValues()
-				await createMut.mutateAsync({
-					code: v.code,
-					name: v.name,
-					type: v.type as MaterialTypeEnum,
-					categoryId: v.categoryId ? Number(v.categoryId) : null,
-					baseUomId: Number(v.baseUomId),
-					defaultPurchaseUomId: v.defaultPurchaseUomId ? Number(v.defaultPurchaseUomId) : null,
-					defaultStockUomId: v.defaultStockUomId ? Number(v.defaultStockUomId) : null,
-					defaultRecipeUomId: v.defaultRecipeUomId ? Number(v.defaultRecipeUomId) : null,
-					minStock: v.minStock || null,
-				})
+				await createMut.mutateAsync(formToPayload(v))
 			},
 		})
 
@@ -157,18 +167,7 @@ function MaterialsPage() {
 					const errors = formRef.current?.validate()
 					if (errors) throw new Error('Please fix the validation errors.')
 					const v = formRef.current!.getValues()
-					await updateMut.mutateAsync({
-						id: material.id,
-						code: v.code,
-						name: v.name,
-						type: v.type as MaterialTypeEnum,
-						categoryId: v.categoryId ? Number(v.categoryId) : null,
-						baseUomId: Number(v.baseUomId),
-						defaultPurchaseUomId: v.defaultPurchaseUomId ? Number(v.defaultPurchaseUomId) : null,
-						defaultStockUomId: v.defaultStockUomId ? Number(v.defaultStockUomId) : null,
-						defaultRecipeUomId: v.defaultRecipeUomId ? Number(v.defaultRecipeUomId) : null,
-						minStock: v.minStock || null,
-					})
+					await updateMut.mutateAsync({ id: material.id, ...formToPayload(v) })
 				},
 			})
 
@@ -332,7 +331,8 @@ function MaterialsPage() {
 		},
 	})
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !listParams.categoryId
+	const isEmpty =
+		!listQuery.isLoading && data.length === 0 && !globalFilter && !listParams.categoryId
 
 	return (
 		<div className="space-y-6">

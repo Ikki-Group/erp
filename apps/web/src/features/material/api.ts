@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
+
 import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
 import { createSuccessResponseSchema, zc } from '@/lib/validation/index.ts'
 
@@ -43,6 +44,7 @@ const assignmentUrls = endpoint.material.assignment
 
 const assignmentKeys = {
 	byLocation: (locationId?: number) => [assignmentUrls.byLocation, locationId ?? null] as const,
+	byMaterial: (materialId?: number) => [assignmentUrls.byMaterial, materialId ?? null] as const,
 }
 
 const assignmentByLocation = defineQuery({
@@ -53,6 +55,14 @@ const assignmentByLocation = defineQuery({
 	queryKey: (args) => [assignmentUrls.byLocation, args?.locationId ?? null],
 })
 
+const assignmentByMaterial = defineQuery({
+	method: 'get',
+	url: assignmentUrls.byMaterial,
+	query: z.object({ materialId: z.coerce.number().int().positive() }),
+	result: createSuccessResponseSchema(z.array(MaterialLocationDto)),
+	queryKey: (args) => [assignmentUrls.byMaterial, args?.materialId ?? null],
+})
+
 const assignmentAssign = defineMutation({
 	method: 'post',
 	url: assignmentUrls.assign,
@@ -60,6 +70,7 @@ const assignmentAssign = defineMutation({
 	result: createSuccessResponseSchema(zc.RecordId),
 	invalidates: [
 		assignmentKeys.byLocation(),
+		assignmentKeys.byMaterial(),
 		materialResource.keys.lists(),
 	],
 })
@@ -71,6 +82,7 @@ const assignmentUnassign = defineMutation({
 	result: createSuccessResponseSchema(zc.RecordId),
 	invalidates: [
 		assignmentKeys.byLocation(),
+		assignmentKeys.byMaterial(),
 		materialResource.keys.lists(),
 	],
 })
@@ -78,6 +90,7 @@ const assignmentUnassign = defineMutation({
 export const assignmentResource = {
 	keys: assignmentKeys,
 	byLocation: assignmentByLocation,
+	byMaterial: assignmentByMaterial,
 	assign: assignmentAssign,
 	unassign: assignmentUnassign,
 }

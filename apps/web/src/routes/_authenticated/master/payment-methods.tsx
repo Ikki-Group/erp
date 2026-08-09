@@ -18,12 +18,25 @@ import { SearchToolbar } from '@/components/shared/search-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
-import { paymentMethodResource } from '@/features/payment-method/api.ts'
+import { paymentMethodMutations, paymentMethodResource } from '@/features/payment-method/api.ts'
 import { PaymentMethodForm } from '@/features/payment-method/components/payment-method-form.tsx'
 import type { PaymentMethodFormRef } from '@/features/payment-method/components/payment-method-form.tsx'
-import type { PaymentMethodDto } from '@/features/payment-method/dto/index.ts'
+import { PAYMENT_METHOD_TYPE_OPTIONS } from '@/features/payment-method/dto/index.ts'
+import type {
+	PaymentMethodDto,
+	PaymentMethodTypeEnum,
+} from '@/features/payment-method/dto/index.ts'
+
+import { useHasPermission } from '@/providers/auth-provider.tsx'
 
 export const Route = createFileRoute('/_authenticated/master/payment-methods')({
 	component: PaymentMethodsPage,
@@ -45,7 +58,11 @@ const baseColumns = [
 	col.accessor('type', {
 		header: 'Type',
 		size: 120,
-		cell: ({ getValue }) => <Badge variant="secondary" className="capitalize">{getValue()}</Badge>,
+		cell: ({ getValue }) => (
+			<Badge variant="secondary" className="capitalize">
+				{getValue()}
+			</Badge>
+		),
 	}),
 	col.accessor('isActive', {
 		header: 'Status',
@@ -61,17 +78,20 @@ const baseColumns = [
 // ─── Page Component ───
 
 function PaymentMethodsPage() {
+	const canWrite = useHasPermission('payment-method:write')
+
 	const [listParams, setListParams] = useState({
 		page: 1,
 		limit: 10,
 		q: undefined as string | undefined,
+		type: undefined as PaymentMethodTypeEnum | undefined,
 	})
 
 	const listQuery = useQuery(paymentMethodResource.list.queryOptions(listParams))
 
-	const createMut = useMutation(paymentMethodResource.create.mutationOptions())
-	const updateMut = useMutation(paymentMethodResource.update.mutationOptions())
-	const removeMut = useMutation(paymentMethodResource.remove.mutationOptions())
+	const createMut = useMutation(paymentMethodMutations.create.mutationOptions())
+	const updateMut = useMutation(paymentMethodMutations.update.mutationOptions())
+	const removeMut = useMutation(paymentMethodMutations.remove.mutationOptions())
 
 	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
@@ -166,6 +186,7 @@ function PaymentMethodsPage() {
 	// ─── Columns with actions ───
 
 	const actionsColumn = useMemo(() => {
+		if (!canWrite) return null
 		return col.display({
 			id: 'actions',
 			size: 60,
@@ -187,10 +208,14 @@ function PaymentMethodsPage() {
 				/>
 			),
 		})
-	}, [handleEdit, handleDelete])
+	}, [canWrite, handleEdit, handleDelete])
 
 	const columns = useMemo(
-		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, PaymentMethodDto>[],
+		() =>
+			[...baseColumns, actionsColumn].filter(Boolean) as ColumnDef<
+				DataGridFeatures,
+				PaymentMethodDto
+			>[],
 		[actionsColumn],
 	)
 
@@ -200,15 +225,24 @@ function PaymentMethodsPage() {
 		totalCount,
 		pageSize: listParams.limit,
 		onStateChange: (params) => {
-			setListParams({
+			setListParams((prev) => ({
+				...prev,
 				page: params.page + 1,
 				limit: params.pageSize,
 				q: params.search || undefined,
-			})
+			}))
 		},
 	})
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
+	const handleTypeFilter = (value: string | null) => {
+		setListParams((prev) => ({
+			...prev,
+			page: 1,
+			type: !value || value === 'all' ? undefined : (value as PaymentMethodTypeEnum),
+		}))
+	}
+
+	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !listParams.type
 
 	return (
 		<div className="space-y-6">
@@ -216,10 +250,12 @@ function PaymentMethodsPage() {
 				title="Payment Methods"
 				description="Manage payment methods available for POS checkout."
 				actions={
-					<Button size="sm" onClick={handleCreate}>
-						<PlusIcon className="size-4" />
-						Add Payment Method
-					</Button>
+					canWrite ? (
+						<Button size="sm" onClick={handleCreate}>
+							<PlusIcon className="size-4" />
+							Add Payment Method
+						</Button>
+					) : undefined
 				}
 			/>
 
@@ -228,10 +264,12 @@ function PaymentMethodsPage() {
 					title="No payment methods yet"
 					description="Get started by creating your first payment method."
 					action={
-						<Button size="sm" onClick={handleCreate}>
-							<PlusIcon className="size-4" />
-							Add Payment Method
-						</Button>
+						canWrite ? (
+							<Button size="sm" onClick={handleCreate}>
+								<PlusIcon className="size-4" />
+								Add Payment Method
+							</Button>
+						) : undefined
 					}
 				/>
 			) : (
@@ -241,11 +279,26 @@ function PaymentMethodsPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="No payment methods match your search."
 					toolbar={
-						<SearchToolbar
-							value={globalFilter}
-							onChange={setGlobalFilter}
-							placeholder="Search payment methods..."
-						/>
+						<div className="flex items-center gap-2">
+							<SearchToolbar
+								value={globalFilter}
+								onChange={setGlobalFilter}
+								placeholder="Search payment methods..."
+							/>
+							<Select value={listParams.type ?? 'all'} onValueChange={handleTypeFilter}>
+								<SelectTrigger className="w-[130px]">
+									<SelectValue placeholder="All Types" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All Types</SelectItem>
+									{PAYMENT_METHOD_TYPE_OPTIONS.map((opt) => (
+										<SelectItem key={opt.value} value={opt.value}>
+											{opt.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 					}
 				/>
 			)}

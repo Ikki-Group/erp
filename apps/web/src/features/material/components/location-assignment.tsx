@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 
-import { useMutation, useQueries, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 import { CheckIcon, XIcon } from 'lucide-react'
 
@@ -11,7 +11,6 @@ import { toast } from '@/components/ui/toast'
 import { locationResource } from '@/features/location/api.ts'
 
 import { assignmentResource } from '../api.ts'
-import type { MaterialLocationDto } from '../dto/index.ts'
 
 interface LocationAssignmentProps {
 	materialId: number
@@ -19,34 +18,22 @@ interface LocationAssignmentProps {
 
 export function LocationAssignment({ materialId }: LocationAssignmentProps) {
 	const locationsQuery = useQuery(locationResource.list.queryOptions({ page: 1, limit: 100 }))
-	const locations = locationsQuery.data?.data ?? []
+	const assignmentsQuery = useQuery(assignmentResource.byMaterial.queryOptions({ materialId }))
 
-	const assignmentQueries = useQueries({
-		queries: locations.map((loc) =>
-			assignmentResource.byLocation.queryOptions({ locationId: loc.id }),
-		),
-	})
+	const locations = locationsQuery.data?.data ?? []
+	const assignments = assignmentsQuery.data?.data ?? []
 
 	const assignMut = useMutation(assignmentResource.assign.mutationOptions())
 	const unassignMut = useMutation(assignmentResource.unassign.mutationOptions())
 
-	const assignmentMap = useMemo(() => {
-		const map = new Map<number, MaterialLocationDto>()
-		for (const q of assignmentQueries) {
-			const assignments = q.data?.data ?? []
-			for (const a of assignments) {
-				if (a.materialId === materialId) {
-					map.set(a.locationId, a)
-				}
-			}
-		}
-		return map
-	}, [assignmentQueries, materialId])
+	const assignedLocationIds = useMemo(
+		() => new Set(assignments.map((a) => a.locationId)),
+		[assignments],
+	)
 
 	const handleToggle = useCallback(
 		async (locationId: number) => {
-			const existing = assignmentMap.get(locationId)
-			if (existing) {
+			if (assignedLocationIds.has(locationId)) {
 				await unassignMut.mutateAsync({ materialId, locationId })
 				toast.add({ title: 'Location unassigned.', type: 'success' })
 			} else {
@@ -54,10 +41,10 @@ export function LocationAssignment({ materialId }: LocationAssignmentProps) {
 				toast.add({ title: 'Location assigned.', type: 'success' })
 			}
 		},
-		[materialId, assignmentMap, assignMut, unassignMut],
+		[materialId, assignedLocationIds, assignMut, unassignMut],
 	)
 
-	if (locationsQuery.isLoading) {
+	if (locationsQuery.isLoading || assignmentsQuery.isLoading) {
 		return (
 			<div className="flex items-center justify-center py-6">
 				<Spinner className="size-5" />
@@ -74,7 +61,7 @@ export function LocationAssignment({ materialId }: LocationAssignmentProps) {
 			<p className="text-sm text-muted-foreground">Toggle which locations stock this material.</p>
 			<div className="divide-y rounded-md border">
 				{locations.map((loc) => {
-					const isAssigned = assignmentMap.has(loc.id)
+					const isAssigned = assignedLocationIds.has(loc.id)
 					const isPending = assignMut.isPending || unassignMut.isPending
 
 					return (

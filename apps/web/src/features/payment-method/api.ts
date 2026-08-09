@@ -1,8 +1,9 @@
 import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
-import { defineQuery, defineResource } from '@/lib/api/index.ts'
-import { createSuccessResponseSchema } from '@/lib/validation/index.ts'
+
+import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
+import { createSuccessResponseSchema, zc } from '@/lib/validation/index.ts'
 
 import {
 	PaymentMethodCreateDto,
@@ -10,6 +11,15 @@ import {
 	PaymentMethodFilterDto,
 	PaymentMethodUpdateDto,
 } from './dto/index.ts'
+
+// ─── By-Location Keys (defined first so mutations can reference them) ───
+
+const byLocationUrl = endpoint.paymentMethod.byLocation
+
+const byLocationKeys = {
+	all: () => [byLocationUrl] as const,
+	list: (locationId: number) => [byLocationUrl, { locationId }] as const,
+}
 
 // ─── Payment Method Resource (CRUD) ───
 
@@ -21,9 +31,39 @@ export const paymentMethodResource = defineResource({
 	update: PaymentMethodUpdateDto,
 })
 
-// ─── By-Location Query ───
+// ─── Mutations with byLocation invalidation ───
 
-const byLocationUrl = endpoint.paymentMethod.byLocation
+const createMutation = defineMutation({
+	method: 'post',
+	url: endpoint.paymentMethod.create,
+	body: PaymentMethodCreateDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
+})
+
+const updateMutation = defineMutation({
+	method: 'put',
+	url: endpoint.paymentMethod.update,
+	body: PaymentMethodUpdateDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
+})
+
+const removeMutation = defineMutation({
+	method: 'delete',
+	url: endpoint.paymentMethod.remove,
+	query: zc.RecordId,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
+})
+
+export const paymentMethodMutations = {
+	create: createMutation,
+	update: updateMutation,
+	remove: removeMutation,
+}
+
+// ─── By-Location Query ───
 
 const byLocationQuery = defineQuery({
 	method: 'get',
@@ -34,9 +74,6 @@ const byLocationQuery = defineQuery({
 })
 
 export const paymentMethodByLocation = {
-	keys: {
-		all: () => [byLocationUrl] as const,
-		list: (locationId: number) => [byLocationUrl, { locationId }] as const,
-	},
+	keys: byLocationKeys,
 	query: byLocationQuery,
 }

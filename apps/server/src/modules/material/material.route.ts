@@ -141,5 +141,16 @@ export function createMaterialRoute(
 					response: zRes.ok(z.array(MaterialLocationDto)),
 				},
 			)
+			.get(
+				'/assignment/by-material',
+				async ({ query }) => {
+					const result = await assignmentService.handleByMaterial(query.materialId)
+					return res.ok(result)
+				},
+				{
+					query: z.object({ materialId: z.coerce.number().int().positive() }),
+					response: zRes.ok(z.array(MaterialLocationDto)),
+				},
+			)
 	)
 }
