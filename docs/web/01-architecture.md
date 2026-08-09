@@ -2,24 +2,27 @@
 
 High-level architecture and technology decisions for the Ikki ERP web frontend.
 
+> **Status:** Blueprint. The scaffold is in place (Vite + TanStack Start + shadcn primitives). The layers described below are the target — implement top-down following the build order at the end of this doc.
+
 ## Tech Stack
 
-| Layer            | Choice                                      |
-| ---------------- | ------------------------------------------- |
-| Framework        | React 19                                    |
-| Bundler          | Vite 8                                      |
-| Routing          | TanStack Router (file-based, code-splitting)|
-| Data Fetching    | TanStack Query                              |
-| Forms            | TanStack Form + Zod adapter                 |
-| Tables           | TanStack Table + ReUI DataGrid              |
-| HTTP Client      | Native fetch wrapper                        |
-| Styling          | Tailwind CSS 4                              |
-| Components       | ReUI (primary) + shadcn/base-ui (fallback)  |
-| Icons            | Lucide React                                |
-| Validation       | Zod 4 (same version as server)             |
-| Linting          | oxlint                                      |
-| Formatting       | oxfmt                                       |
-| Testing          | Vitest + Testing Library                    |
+| Layer          | Choice                                       |
+| -------------- | -------------------------------------------- |
+| Framework      | React 19                                     |
+| Meta-framework | TanStack Start (Vite-based, SSR-optional)    |
+| Bundler        | Vite 8 (via TanStack Start)                  |
+| Routing        | TanStack Router (file-based, code-splitting) |
+| Data Fetching  | TanStack Query                               |
+| Forms          | TanStack Form + Zod adapter                  |
+| Tables         | TanStack Table + ReUI DataGrid               |
+| HTTP Client    | Native fetch wrapper                         |
+| Styling        | Tailwind CSS 4                               |
+| Components     | ReUI (primary) + shadcn/base-ui (fallback)   |
+| Icons          | Lucide React                                 |
+| Validation     | Zod 4 (same version as server)               |
+| Linting        | oxlint                                       |
+| Formatting     | oxfmt                                        |
+| Testing        | Vitest + Testing Library                     |
 
 ## Layer Diagram
 
@@ -106,6 +109,27 @@ Auth → App Shell → Master Data → Menu → Inventory → POS
 ```
 
 Matches server layer dependencies: operations depend on master data existing in the UI first.
+
+## Dependencies to Install
+
+The scaffold ships with React, TanStack Router/Start, Tailwind, and shadcn primitives. The following packages are required before implementing the layers above — install them as each layer is built:
+
+| Package                          | Needed for                       | Install when      |
+| -------------------------------- | -------------------------------- | ----------------- |
+| `@tanstack/react-query`          | Server state, cache, prefetching | Auth + API layer  |
+| `@tanstack/react-query-devtools` | Dev tooling                      | Same time         |
+| `zod` (v4)                       | Validation, DTOs, form schemas   | API layer         |
+| `@tanstack/react-form`           | Form management                  | Forms             |
+| `@tanstack/zod-form-adapter`     | Zod ↔ TanStack Form bridge       | Forms             |
+| `@tanstack/react-table`          | Data tables                      | Master Data pages |
+
+## Scaffold vs. Target: Known Divergences
+
+The current scaffold has a few differences from the target architecture above. Resolve these as you build:
+
+1. **`main.tsx` creates its own router inline** — it should import `getRouter()` from `router.tsx` instead. The documented pattern in `router.tsx` (with `queryClient` context injection) is the target.
+2. **`__root.tsx` uses `shellComponent`** (TanStack Start pattern) — this is correct for Start. The code examples in `05-routing.md` show `component` for simplicity but `shellComponent` is the Start-native equivalent.
+3. **No `QueryClient` in router context yet** — add it when installing `@tanstack/react-query`. Route loaders depend on it.
 
 ## What the Frontend Does NOT Own
 

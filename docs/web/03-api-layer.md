@@ -2,6 +2,8 @@
 
 HTTP client, endpoint registry, and the `defineQuery`/`defineMutation`/`defineResource` factory system. Ported from `web-archive/src/lib/apiv2/` with `ky` replaced by native fetch.
 
+> **Status:** Blueprint. The API layer has not been ported yet. Source reference lives in `apps/web-archive/src/lib/apiv2/`. Install `@tanstack/react-query` and `zod` before building this layer (see `01-architecture.md`).
+
 ## Overview
 
 ```
@@ -33,27 +35,25 @@ A thin wrapper around native `fetch` that handles base URL, credentials, and def
 ```ts
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
 
-export async function apiClient(
-  url: string,
-  init?: RequestInit,
-): Promise<Response> {
-  const fullUrl = `${API_URL}/${url}`
+export async function apiClient(url: string, init?: RequestInit): Promise<Response> {
+	const fullUrl = `${API_URL}/${url}`
 
-  const response = await fetch(fullUrl, {
-    ...init,
-    credentials: 'include',       // session cookie auto-sent
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Platform': 'web',
-      ...init?.headers,
-    },
-  })
+	const response = await fetch(fullUrl, {
+		...init,
+		credentials: 'include', // session cookie auto-sent
+		headers: {
+			'Content-Type': 'application/json',
+			'X-Platform': 'web',
+			...init?.headers,
+		},
+	})
 
-  return response
+	return response
 }
 ```
 
 Key behaviors:
+
 - `credentials: 'include'` — session cookie sent on every request.
 - `X-Platform: web` — identifies the client to the server.
 - No token management — auth is entirely cookie-based.
@@ -65,21 +65,21 @@ Low-level function that performs the request and normalizes errors.
 
 ```ts
 export interface RequestConfig {
-  method: HttpMethod
-  url: string
-  query?: Record<string, unknown>
-  body?: unknown
-  signal?: AbortSignal
+	method: HttpMethod
+	url: string
+	query?: Record<string, unknown>
+	body?: unknown
+	signal?: AbortSignal
 }
 
 export async function requestJson<T = unknown>(config: RequestConfig): Promise<T> {
-  // 1. Build URL with query params
-  // 2. Call apiClient with method, body, signal
-  // 3. Handle HTTP errors → throw ApiError
-  // 4. Handle network errors / timeouts
-  // 5. Preserve AbortError for React Query cancellation
-  // 6. Parse JSON response
-  return json as T
+	// 1. Build URL with query params
+	// 2. Call apiClient with method, body, signal
+	// 3. Handle HTTP errors → throw ApiError
+	// 4. Handle network errors / timeouts
+	// 5. Preserve AbortError for React Query cancellation
+	// 6. Parse JSON response
+	return json as T
 }
 ```
 
@@ -89,11 +89,11 @@ All errors become `ApiError` instances with structured data:
 
 ```ts
 class ApiError extends Error {
-  status?: number
-  code?: string
-  data?: unknown
+	status?: number
+	code?: string
+	data?: unknown
 
-  static fromPayload(payload: ApiErrorPayload, status: number): ApiError
+	static fromPayload(payload: ApiErrorPayload, status: number): ApiError
 }
 ```
 
@@ -105,27 +105,27 @@ A single flat object mapping all API endpoint URLs. This is the only place URLs 
 
 ```ts
 export const endpoint = {
-  auth: {
-    login: 'auth/login',
-    logout: 'auth/logout',
-    me: 'auth/me',
-    switchLocation: 'auth/switch-location',
-  },
-  location: {
-    list: 'locations',
-    detail: 'locations/detail',
-    create: 'locations',
-    update: 'locations',
-    remove: 'locations',
-  },
-  material: {
-    list: 'materials',
-    detail: 'materials/detail',
-    create: 'materials',
-    update: 'materials',
-    remove: 'materials',
-  },
-  // ... one entry per server endpoint
+	auth: {
+		login: 'auth/login',
+		logout: 'auth/logout',
+		me: 'auth/me',
+		switchLocation: 'auth/switch-location',
+	},
+	location: {
+		list: 'locations',
+		detail: 'locations/detail',
+		create: 'locations',
+		update: 'locations',
+		remove: 'locations',
+	},
+	material: {
+		list: 'materials',
+		detail: 'materials/detail',
+		create: 'materials',
+		update: 'materials',
+		remove: 'materials',
+	},
+	// ... one entry per server endpoint
 }
 ```
 
@@ -143,6 +143,7 @@ invalidates: [endpoint.material.list]
 ### `defineQuery`
 
 For read endpoints (GET or POST-as-search). Returns a `QueryEndpoint` with:
+
 - `.fetch(args, signal)` — raw fetch
 - `.queryKey(args)` — branded query key (type-safe `getQueryData`)
 - `.queryOptions(args, overrides?)` — spread into `useQuery`/`useSuspenseQuery`
@@ -154,10 +155,10 @@ import { endpoint } from '@/config/endpoint'
 import { LocationSelectDto, LocationFilterDto } from './dto'
 
 export const locationList = defineQuery({
-  method: 'get',
-  url: endpoint.location.list,
-  query: LocationFilterDto,
-  result: createPaginatedResponseSchema(LocationSelectDto),
+	method: 'get',
+	url: endpoint.location.list,
+	query: LocationFilterDto,
+	result: createPaginatedResponseSchema(LocationSelectDto),
 })
 
 // Usage in component:
@@ -170,6 +171,7 @@ await queryClient.ensureQueryData(locationList.queryOptions({ page: 1, limit: 20
 ### `defineMutation`
 
 For write endpoints. Returns a `MutationEndpoint` with:
+
 - `.fetch(args, signal)` — raw fetch (includes awaited invalidation)
 - `.mutationOptions(overrides?)` — spread into `useMutation`
 
@@ -180,11 +182,11 @@ import { endpoint } from '@/config/endpoint'
 import { CreateLocationDto } from './dto'
 
 export const locationCreate = defineMutation({
-  method: 'post',
-  url: endpoint.location.create,
-  body: CreateLocationDto,
-  result: createSuccessResponseSchema(zc.RecordId),
-  invalidates: [endpoint.location.list],
+	method: 'post',
+	url: endpoint.location.create,
+	body: CreateLocationDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: [endpoint.location.list],
 })
 
 // Usage:
@@ -198,12 +200,13 @@ Mutations declare `invalidates` — an array of query keys to invalidate on succ
 
 ```ts
 invalidates: [
-  endpoint.location.list,                         // static key
-  (args, result) => [endpoint.location.detail, { id: result.id }],  // dynamic
+	endpoint.location.list, // static key
+	(args, result) => [endpoint.location.detail, { id: result.id }], // dynamic
 ]
 ```
 
 Targets can be:
+
 - A string (auto-wrapped as `[string]`) — matches any query whose key starts with that URL
 - A `QueryKey` array — exact match
 - A function `(args, result) => string | QueryKey` — dynamic, resolved post-mutation
@@ -218,17 +221,17 @@ import { endpoint } from '@/config/endpoint'
 import { LocationSelectDto, CreateLocationDto, UpdateLocationDto } from './dto'
 
 export const locationResource = defineResource({
-  urls: {
-    list: endpoint.location.list,
-    detail: endpoint.location.detail,
-    create: endpoint.location.create,
-    update: endpoint.location.update,
-    remove: endpoint.location.remove,
-  },
-  entitySchema: LocationSelectDto,
-  filter: LocationFilterDto,
-  create: CreateLocationDto,
-  update: UpdateLocationDto,
+	urls: {
+		list: endpoint.location.list,
+		detail: endpoint.location.detail,
+		create: endpoint.location.create,
+		update: endpoint.location.update,
+		remove: endpoint.location.remove,
+	},
+	entitySchema: LocationSelectDto,
+	filter: LocationFilterDto,
+	create: CreateLocationDto,
+	update: UpdateLocationDto,
 })
 
 // Returns:
@@ -243,6 +246,7 @@ export const locationResource = defineResource({
 ## Validation
 
 All three boundaries are validated with Zod:
+
 1. **Query params** — before sending (catch bad input early)
 2. **Request body** — before sending
 3. **Response** — after receiving (catch server contract drift)
@@ -265,34 +269,34 @@ Reusable schema helpers matching server conventions:
 ```ts
 // Common field schemas
 export const zc = {
-  RecordId: z.object({ id: z.coerce.number().int().positive() }),
-  strTrim: z.string().trim().min(1),
-  // ...
+	RecordId: z.object({ id: z.coerce.number().int().positive() }),
+	strTrim: z.string().trim().min(1),
+	// ...
 }
 
 // Query param helpers
 export const zq = {
-  pagination: z.object({
-    page: z.coerce.number().int().min(1).default(1),
-    limit: z.coerce.number().int().min(1).max(100).default(20),
-  }),
+	pagination: z.object({
+		page: z.coerce.number().int().min(1).default(1),
+		limit: z.coerce.number().int().min(1).max(100).default(20),
+	}),
 }
 
 // Response envelope wrappers
 export function createSuccessResponseSchema<T extends ZodType>(dataSchema: T) {
-  return z.object({ success: z.literal(true), data: dataSchema })
+	return z.object({ success: z.literal(true), data: dataSchema })
 }
 
 export function createPaginatedResponseSchema<T extends ZodType>(itemSchema: T) {
-  return z.object({
-    success: z.literal(true),
-    data: z.object({
-      items: z.array(itemSchema),
-      total: z.number(),
-      page: z.number(),
-      limit: z.number(),
-    }),
-  })
+	return z.object({
+		success: z.literal(true),
+		data: z.object({
+			items: z.array(itemSchema),
+			total: z.number(),
+			page: z.number(),
+			limit: z.number(),
+		}),
+	})
 }
 ```
 
@@ -303,29 +307,29 @@ export function createPaginatedResponseSchema<T extends ZodType>(itemSchema: T) 
 import { z } from 'zod'
 
 export const LocationSelectDto = z.object({
-  id: z.number(),
-  code: z.string(),
-  name: z.string(),
-  type: z.enum(['store', 'warehouse']),
-  isActive: z.number(),
+	id: z.number(),
+	code: z.string(),
+	name: z.string(),
+	type: z.enum(['store', 'warehouse']),
+	isActive: z.number(),
 })
 export type LocationSelectDto = z.infer<typeof LocationSelectDto>
 
 export const LocationFilterDto = z.object({
-  page: z.coerce.number().optional(),
-  limit: z.coerce.number().optional(),
-  search: z.string().optional(),
-  type: z.enum(['store', 'warehouse']).optional(),
+	page: z.coerce.number().optional(),
+	limit: z.coerce.number().optional(),
+	search: z.string().optional(),
+	type: z.enum(['store', 'warehouse']).optional(),
 })
 
 export const CreateLocationDto = z.object({
-  code: z.string().trim().min(1),
-  name: z.string().trim().min(1),
-  type: z.enum(['store', 'warehouse']),
+	code: z.string().trim().min(1),
+	name: z.string().trim().min(1),
+	type: z.enum(['store', 'warehouse']),
 })
 
 export const UpdateLocationDto = CreateLocationDto.extend({
-  id: z.number(),
+	id: z.number(),
 })
 ```
 
@@ -333,19 +337,14 @@ export const UpdateLocationDto = CreateLocationDto.extend({
 // features/location/api.ts
 import { defineResource } from '@/lib/api'
 import { endpoint } from '@/config/endpoint'
-import {
-  LocationSelectDto,
-  LocationFilterDto,
-  CreateLocationDto,
-  UpdateLocationDto,
-} from './dto'
+import { LocationSelectDto, LocationFilterDto, CreateLocationDto, UpdateLocationDto } from './dto'
 
 export const locationApi = defineResource({
-  urls: endpoint.location,
-  entitySchema: LocationSelectDto,
-  filter: LocationFilterDto,
-  create: CreateLocationDto,
-  update: UpdateLocationDto,
+	urls: endpoint.location,
+	entitySchema: LocationSelectDto,
+	filter: LocationFilterDto,
+	create: CreateLocationDto,
+	update: UpdateLocationDto,
 })
 ```
 

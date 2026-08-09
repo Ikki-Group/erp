@@ -2,6 +2,8 @@
 
 Auth context, location context, and the role of TanStack Query as server state manager.
 
+> **Status:** Blueprint. No providers, contexts, or TanStack Query setup exist yet. Build after the API layer is in place.
+
 ## State Categories
 
 | Category     | Tool                  | Scope                                      |
@@ -19,32 +21,32 @@ There is no global store (no Zustand, no Redux). Server state lives in TanStack 
 
 ```ts
 interface AuthUser {
-  id: number
-  username: string
-  name: string
-  email: string
+	id: number
+	username: string
+	name: string
+	email: string
 }
 
 interface AuthLocation {
-  id: number
-  code: string
-  name: string
-  type: 'store' | 'warehouse'
+	id: number
+	code: string
+	name: string
+	type: 'store' | 'warehouse'
 }
 
 interface AuthState {
-  user: AuthUser | null
-  permissions: string[]
-  isOwner: boolean
-  locations: AuthLocation[]         // all locations user can access
-  isAuthenticated: boolean
-  isLoading: boolean                // true during initial /me check
+	user: AuthUser | null
+	permissions: string[]
+	isOwner: boolean
+	locations: AuthLocation[] // all locations user can access
+	isAuthenticated: boolean
+	isLoading: boolean // true during initial /me check
 }
 
 interface AuthActions {
-  login: (username: string, password: string) => Promise<void>
-  logout: () => Promise<void>
-  refreshAuth: () => Promise<void>  // re-fetch /me
+	login: (username: string, password: string) => Promise<void>
+	logout: () => Promise<void>
+	refreshAuth: () => Promise<void> // re-fetch /me
 }
 
 type AuthContextValue = AuthState & AuthActions
@@ -90,9 +92,11 @@ Usage in components:
 const { hasPermission, isOwner } = useAuth()
 
 // Hide button if no permission
-{(isOwner || hasPermission('material:create')) && (
-  <Button onClick={openCreateForm}>Add Material</Button>
-)}
+{
+	;(isOwner || hasPermission('material:create')) && (
+		<Button onClick={openCreateForm}>Add Material</Button>
+	)
+}
 ```
 
 ## Location Context
@@ -101,12 +105,12 @@ const { hasPermission, isOwner } = useAuth()
 
 ```ts
 interface LocationState {
-  activeLocation: AuthLocation | null   // null = "all locations" (consolidated)
-  isConsolidated: boolean               // derived: activeLocation === null
+	activeLocation: AuthLocation | null // null = "all locations" (consolidated)
+	isConsolidated: boolean // derived: activeLocation === null
 }
 
 interface LocationActions {
-  switchLocation: (locationId: number | null) => Promise<void>
+	switchLocation: (locationId: number | null) => Promise<void>
 }
 
 type LocationContextValue = LocationState & LocationActions
@@ -134,6 +138,7 @@ User clicks location in switcher
 ```
 
 For "All locations":
+
 ```
 User clicks "All (N)" in switcher
   → setActiveLocation(null) ← instant UI update
@@ -163,12 +168,13 @@ Only location-sensitive pages include the query param. Global pages (settings, U
 import { useLocationParam } from '@/hooks/use-location-param'
 
 function StockPage() {
-  const { locationId } = useLocationParam()  // reads from URL or context
-  // locationId is used for display, context drives the actual server scoping
+	const { locationId } = useLocationParam() // reads from URL or context
+	// locationId is used for display, context drives the actual server scoping
 }
 ```
 
 The `useLocationParam` hook:
+
 1. Reads `?loc=` from URL search params
 2. If present, syncs to location context (override)
 3. If absent, reads from context
@@ -177,6 +183,7 @@ The `useLocationParam` hook:
 ### Consolidated View Scoping
 
 When `activeLocation = null`:
+
 - Server returns data from **all locations the user has access to** (not all system locations)
 - User with 3 location assignments sees consolidated data for those 3 only
 - Owner (global assignment) sees all locations
@@ -191,22 +198,22 @@ When `activeLocation = null`:
 import { QueryClient } from '@tanstack/react-query'
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60,         // 1 minute
-      gcTime: 1000 * 60 * 5,        // 5 minutes
-      refetchOnWindowFocus: false,   // ERP — don't surprise users with refetches
-      retry: 1,
-    },
-  },
+	defaultOptions: {
+		queries: {
+			staleTime: 1000 * 60, // 1 minute
+			gcTime: 1000 * 60 * 5, // 5 minutes
+			refetchOnWindowFocus: false, // ERP — don't surprise users with refetches
+			retry: 1,
+		},
+	},
 })
 
 export function getRouter() {
-  return createRouter({
-    routeTree,
-    context: { queryClient },       // inject for route loaders
-    defaultPreload: 'intent',
-  })
+	return createRouter({
+		routeTree,
+		context: { queryClient }, // inject for route loaders
+		defaultPreload: 'intent',
+	})
 }
 ```
 
@@ -217,12 +224,12 @@ export function getRouter() {
 import type { QueryClient } from '@tanstack/react-query'
 
 interface RouterContext {
-  queryClient: QueryClient
+	queryClient: QueryClient
 }
 
 // __root.tsx
 export const Route = createRootRouteWithContext<RouterContext>()({
-  // ...
+	// ...
 })
 ```
 
@@ -232,12 +239,12 @@ Route loaders use `queryClient.ensureQueryData()` from the router context:
 
 ```tsx
 export const Route = createFileRoute('/_authenticated/master/locations')({
-  loader: ({ context }) => {
-    return context.queryClient.ensureQueryData(
-      locationApi.list.queryOptions({ page: 1, limit: 20 })
-    )
-  },
-  component: LocationsPage,
+	loader: ({ context }) => {
+		return context.queryClient.ensureQueryData(
+			locationApi.list.queryOptions({ page: 1, limit: 20 }),
+		)
+	},
+	component: LocationsPage,
 })
 ```
 
@@ -247,9 +254,9 @@ When the user switches location, ALL active queries refetch because the server n
 
 ```ts
 async function switchLocation(locationId: number | null) {
-  setActiveLocation(locationId)
-  await authApi.switchLocation.fetch({ locationId })
-  await queryClient.invalidateQueries()  // broad invalidation — everything refetches
+	setActiveLocation(locationId)
+	await authApi.switchLocation.fetch({ locationId })
+	await queryClient.invalidateQueries() // broad invalidation — everything refetches
 }
 ```
 
@@ -257,15 +264,15 @@ This is intentional. A location switch is infrequent (a few times per session) a
 
 ## What NOT to Put in State
 
-| Data                          | Where it lives           | Not in                |
-| ----------------------------- | ------------------------ | --------------------- |
-| List of materials             | TanStack Query cache     | React state           |
-| Current form values           | TanStack Form / local    | Context               |
-| Whether a modal is open       | Component `useState`     | Context               |
-| Active location               | LocationContext          | TanStack Query        |
-| User permissions              | AuthContext              | localStorage          |
-| Pagination page number        | URL search params        | Component state       |
-| Sort/filter state for tables  | URL search params        | Component state       |
+| Data                         | Where it lives        | Not in          |
+| ---------------------------- | --------------------- | --------------- |
+| List of materials            | TanStack Query cache  | React state     |
+| Current form values          | TanStack Form / local | Context         |
+| Whether a modal is open      | Component `useState`  | Context         |
+| Active location              | LocationContext       | TanStack Query  |
+| User permissions             | AuthContext           | localStorage    |
+| Pagination page number       | URL search params     | Component state |
+| Sort/filter state for tables | URL search params     | Component state |
 
 Rule of thumb: if the data comes from the server, it belongs in TanStack Query. If it's a user preference that persists, it goes in context + localStorage. If it's transient UI state, keep it local.
 

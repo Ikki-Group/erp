@@ -2,6 +2,8 @@
 
 Folder conventions, feature module layout, and route file organization for `apps/web`.
 
+> **Status:** Blueprint. Only `src/components/ui/`, `src/hooks/`, `src/lib/utils.ts`, and `src/routes/` (placeholder) exist today. The `features/`, `providers/`, `config/`, and full route tree described below are the target structure.
+
 ## Top-Level Layout
 
 ```
@@ -76,13 +78,13 @@ features/location/
 
 ### Naming
 
-| Item           | Convention                | Example                    |
-| -------------- | ------------------------- | -------------------------- |
-| Feature folder | kebab-case (module name)  | `features/payment-method/` |
-| DTO file       | `{entity}.dto.ts`         | `material.dto.ts`          |
-| Component file | kebab-case                | `material-form.tsx`        |
-| API file       | always `api.ts`           | `features/material/api.ts` |
-| Hook file      | `use-{name}.ts`           | `use-stock-alerts.ts`      |
+| Item           | Convention               | Example                    |
+| -------------- | ------------------------ | -------------------------- |
+| Feature folder | kebab-case (module name) | `features/payment-method/` |
+| DTO file       | `{entity}.dto.ts`        | `material.dto.ts`          |
+| Component file | kebab-case               | `material-form.tsx`        |
+| API file       | always `api.ts`          | `features/material/api.ts` |
+| Hook file      | `use-{name}.ts`          | `use-stock-alerts.ts`      |
 
 ## Route File Organization
 
@@ -127,11 +129,11 @@ routes/
 ```tsx
 // Simple — inline
 export const Route = createFileRoute('/_authenticated/master/locations')({
-  component: LocationsPage,
+	component: LocationsPage,
 })
 
 function LocationsPage() {
-  // small enough to live here
+	// small enough to live here
 }
 ```
 
@@ -140,7 +142,7 @@ function LocationsPage() {
 import { PosOrderPage } from '@/features/pos/components/pos-order-page'
 
 export const Route = createFileRoute('/_authenticated/pos/orders')({
-  component: PosOrderPage,
+	component: PosOrderPage,
 })
 ```
 
@@ -148,18 +150,18 @@ export const Route = createFileRoute('/_authenticated/pos/orders')({
 
 Routes are organized by whether they are global or location-sensitive:
 
-| Route Group               | Location-Sensitive? | Notes                            |
-| ------------------------- | ------------------- | -------------------------------- |
-| `settings/*`              | No                  | Company, IAM are global          |
-| `master/locations`        | No                  | Managing locations themselves     |
-| `master/uom`              | No                  | Global conversion system         |
-| `master/materials`        | Partial             | List global, assignment per-loc  |
-| `master/suppliers`        | No                  | Suppliers serve all locations    |
-| `master/menu`             | **Yes**             | Menus are per-location           |
-| `master/recipes`          | **Yes**             | Tied to location menus           |
-| `master/payment-methods`  | **Yes**             | Per-location config              |
-| `pos/*`                   | **Yes**             | All POS ops are per-location     |
-| `inventory/*`             | **Yes**             | Stock is per-location            |
+| Route Group              | Location-Sensitive? | Notes                           |
+| ------------------------ | ------------------- | ------------------------------- |
+| `settings/*`             | No                  | Company, IAM are global         |
+| `master/locations`       | No                  | Managing locations themselves   |
+| `master/uom`             | No                  | Global conversion system        |
+| `master/materials`       | Partial             | List global, assignment per-loc |
+| `master/suppliers`       | No                  | Suppliers serve all locations   |
+| `master/menu`            | **Yes**             | Menus are per-location          |
+| `master/recipes`         | **Yes**             | Tied to location menus          |
+| `master/payment-methods` | **Yes**             | Per-location config             |
+| `pos/*`                  | **Yes**             | All POS ops are per-location    |
+| `inventory/*`            | **Yes**             | Stock is per-location           |
 
 Location-sensitive pages read from the location context and include `?loc=` in the URL for shareability.
 

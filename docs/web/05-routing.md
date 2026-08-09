@@ -2,7 +2,11 @@
 
 TanStack Router setup, layout routes, authentication guards, and location query param conventions.
 
+> **Status:** Blueprint. The current scaffold has `__root.tsx` (Start-style `shellComponent`) and a placeholder `index.tsx`. The `_authenticated` layout, route loaders, and location params described below are the target to build.
+
 ## Router Configuration
+
+The scaffold currently uses TanStack Start, which means `__root.tsx` uses `shellComponent` (not `component`) and `head()` for meta tags. The examples below show the target pattern once `QueryClient` is injected into router context:
 
 ```tsx
 // router.tsx
@@ -10,26 +14,29 @@ import { createRouter } from '@tanstack/react-router'
 import { QueryClient } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
 
-const queryClient = new QueryClient({ /* see 04-state-management.md */ })
+const queryClient = new QueryClient({
+	/* see 04-state-management.md */
+})
 
 export function getRouter() {
-  return createRouter({
-    routeTree,
-    context: { queryClient },
-    scrollRestoration: true,
-    defaultPreload: 'intent',
-    defaultPreloadStaleTime: 0,
-  })
+	return createRouter({
+		routeTree,
+		context: { queryClient },
+		scrollRestoration: true,
+		defaultPreload: 'intent',
+		defaultPreloadStaleTime: 0,
+	})
 }
 
 declare module '@tanstack/react-router' {
-  interface Register {
-    router: ReturnType<typeof getRouter>
-  }
+	interface Register {
+		router: ReturnType<typeof getRouter>
+	}
 }
 ```
 
 Key settings:
+
 - `context: { queryClient }` — available in every route's `beforeLoad`/`loader`.
 - `defaultPreload: 'intent'` — prefetch on hover/focus for instant navigations.
 - `scrollRestoration: true` — browser-native scroll position memory.
@@ -81,27 +88,27 @@ import { LocationProvider } from '@/providers/location-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 interface RouterContext {
-  queryClient: QueryClient
+	queryClient: QueryClient
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  component: RootComponent,
+	component: RootComponent,
 })
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext()
+	const { queryClient } = Route.useRouteContext()
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <LocationProvider>
-          <TooltipProvider>
-            <Outlet />
-          </TooltipProvider>
-        </LocationProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  )
+	return (
+		<QueryClientProvider client={queryClient}>
+			<AuthProvider>
+				<LocationProvider>
+					<TooltipProvider>
+						<Outlet />
+					</TooltipProvider>
+				</LocationProvider>
+			</AuthProvider>
+		</QueryClientProvider>
+	)
 }
 ```
 
@@ -116,24 +123,24 @@ import { AppShell } from '@/components/app-shell'
 import { authApi } from '@/features/auth/api'
 
 export const Route = createFileRoute('/_authenticated')({
-  beforeLoad: async ({ context }) => {
-    // Attempt to load current user from cache or fetch
-    try {
-      await context.queryClient.ensureQueryData(authApi.me.queryOptions(undefined))
-    } catch {
-      // Not authenticated — redirect to login
-      throw redirect({ to: '/login' })
-    }
-  },
-  component: AuthenticatedLayout,
+	beforeLoad: async ({ context }) => {
+		// Attempt to load current user from cache or fetch
+		try {
+			await context.queryClient.ensureQueryData(authApi.me.queryOptions(undefined))
+		} catch {
+			// Not authenticated — redirect to login
+			throw redirect({ to: '/login' })
+		}
+	},
+	component: AuthenticatedLayout,
 })
 
 function AuthenticatedLayout() {
-  return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
-  )
+	return (
+		<AppShell>
+			<Outlet />
+		</AppShell>
+	)
 }
 ```
 
@@ -150,7 +157,7 @@ function AuthenticatedLayout() {
 // In login page, after successful login:
 const navigate = useNavigate()
 await login(username, password)
-navigate({ to: '/' })  // → hits _authenticated.beforeLoad → /me succeeds → dashboard renders
+navigate({ to: '/' }) // → hits _authenticated.beforeLoad → /me succeeds → dashboard renders
 ```
 
 ## App Shell Layout
@@ -182,13 +189,11 @@ Routes can prefetch data so the page renders instantly:
 
 ```tsx
 export const Route = createFileRoute('/_authenticated/master/materials')({
-  validateSearch: (search) => MaterialFilterDto.parse(search),
-  loader: ({ context, search }) => {
-    return context.queryClient.ensureQueryData(
-      materialApi.list.queryOptions(search)
-    )
-  },
-  component: MaterialsPage,
+	validateSearch: (search) => MaterialFilterDto.parse(search),
+	loader: ({ context, search }) => {
+		return context.queryClient.ensureQueryData(materialApi.list.queryOptions(search))
+	},
+	component: MaterialsPage,
 })
 ```
 
@@ -211,13 +216,12 @@ Location-sensitive pages include the active location ID in URL search params for
 import { z } from 'zod'
 
 const LocationSensitiveSearch = z.object({
-  loc: z.coerce.number().optional(),  // location ID from URL
+	loc: z.coerce.number().optional(), // location ID from URL
 })
 
 export const Route = createFileRoute('/_authenticated/inventory/stock')({
-  validateSearch: (search) =>
-    StockFilterDto.merge(LocationSensitiveSearch).parse(search),
-  component: StockPage,
+	validateSearch: (search) => StockFilterDto.merge(LocationSensitiveSearch).parse(search),
+	component: StockPage,
 })
 ```
 
@@ -225,12 +229,12 @@ export const Route = createFileRoute('/_authenticated/inventory/stock')({
 
 ```tsx
 function StockPage() {
-  const { loc } = Route.useSearch()
-  const { activeLocation } = useLocation()
+	const { loc } = Route.useSearch()
+	const { activeLocation } = useLocation()
 
-  // URL param takes priority over context
-  const effectiveLocationId = loc ?? activeLocation?.id ?? null
-  // ...
+	// URL param takes priority over context
+	const effectiveLocationId = loc ?? activeLocation?.id ?? null
+	// ...
 }
 ```
 
@@ -242,13 +246,13 @@ When the user switches location on a location-sensitive page:
 const navigate = useNavigate()
 
 function onLocationSwitch(newLocationId: number | null) {
-  // Update URL search param
-  navigate({
-    search: (prev) => ({
-      ...prev,
-      loc: newLocationId ?? undefined,  // remove param if null (consolidated)
-    }),
-  })
+	// Update URL search param
+	navigate({
+		search: (prev) => ({
+			...prev,
+			loc: newLocationId ?? undefined, // remove param if null (consolidated)
+		}),
+	})
 }
 ```
 
@@ -256,19 +260,19 @@ function onLocationSwitch(newLocationId: number | null) {
 
 Global pages have no location concept in their URL:
 
-| Route                      | Location param? |
-| -------------------------- | --------------- |
-| `/settings/*`              | No              |
-| `/master/locations`        | No              |
-| `/master/uom`              | No              |
-| `/master/suppliers`        | No              |
-| `/master/materials`        | No (global list)|
-| `/master/menu`             | Yes             |
-| `/master/recipes`          | Yes             |
-| `/master/payment-methods`  | Yes             |
-| `/pos/*`                   | Yes             |
-| `/inventory/*`             | Yes             |
-| `/` (dashboard)            | Yes (optional)  |
+| Route                     | Location param?  |
+| ------------------------- | ---------------- |
+| `/settings/*`             | No               |
+| `/master/locations`       | No               |
+| `/master/uom`             | No               |
+| `/master/suppliers`       | No               |
+| `/master/materials`       | No (global list) |
+| `/master/menu`            | Yes              |
+| `/master/recipes`         | Yes              |
+| `/master/payment-methods` | Yes              |
+| `/pos/*`                  | Yes              |
+| `/inventory/*`            | Yes              |
+| `/` (dashboard)           | Yes (optional)   |
 
 ## Pending and Error Components
 
@@ -276,10 +280,12 @@ TanStack Router supports route-level loading/error UI:
 
 ```tsx
 export const Route = createFileRoute('/_authenticated/master/materials')({
-  loader: ({ context, search }) => { /* ... */ },
-  pendingComponent: () => <PageSkeleton />,
-  errorComponent: ({ error }) => <PageError error={error} />,
-  component: MaterialsPage,
+	loader: ({ context, search }) => {
+		/* ... */
+	},
+	pendingComponent: () => <PageSkeleton />,
+	errorComponent: ({ error }) => <PageError error={error} />,
+	component: MaterialsPage,
 })
 ```
 
