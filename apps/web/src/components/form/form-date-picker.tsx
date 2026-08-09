@@ -21,6 +21,12 @@ export interface FormDatePickerProps {
 	className?: string
 	/** Date format string (date-fns). Defaults to 'dd MMM yyyy'. */
 	dateFormat?: string
+	/** Show month/year dropdown selectors for easy navigation. Defaults to true. */
+	showDropdowns?: boolean
+	/** Start year for dropdown range. Defaults to current year - 10. */
+	fromYear?: number
+	/** End year for dropdown range. Defaults to current year + 5. */
+	toYear?: number
 }
 
 export function FormDatePicker({
@@ -33,9 +39,16 @@ export function FormDatePicker({
 	disabled,
 	className,
 	dateFormat = 'dd MMM yyyy',
+	showDropdowns = true,
+	fromYear,
+	toYear,
 }: FormDatePickerProps) {
 	const [open, setOpen] = useState(false)
 	const fieldId = label.toLowerCase().replace(/\s+/g, '-')
+
+	const currentYear = new Date().getFullYear()
+	const startYear = fromYear ?? currentYear - 10
+	const endYear = toYear ?? currentYear + 5
 
 	return (
 		<div className={cn('space-y-1.5', className)}>
@@ -67,6 +80,9 @@ export function FormDatePicker({
 							onChange?.(date)
 							setOpen(false)
 						}}
+						captionLayout={showDropdowns ? 'dropdown' : 'label'}
+						startMonth={new Date(startYear, 0)}
+						endMonth={new Date(endYear, 11)}
 					/>
 				</PopoverContent>
 			</Popover>

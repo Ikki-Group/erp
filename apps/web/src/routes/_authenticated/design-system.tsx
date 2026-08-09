@@ -16,6 +16,7 @@ import {
 
 import { AreaChart } from '@/components/charts/area-chart'
 import { BarChart } from '@/components/charts/bar-chart'
+import { ChartSwitch } from '@/components/charts/chart-switch'
 import { LineChart } from '@/components/charts/line-chart'
 import {
 	DataTable,
@@ -53,6 +54,7 @@ import {
 	PageSkeleton,
 	PageTabs,
 	SearchToolbar,
+	SegmentedBar,
 	StatCard,
 	StatusBadge,
 } from '@/components/shared'
@@ -438,6 +440,41 @@ function DesignSystemPage() {
 
 			<Separator />
 
+			{/* ─── SEGMENTED BAR ─── */}
+			<PageSection title="Segmented Bar" description="Proportional breakdown visualization.">
+				<div className="max-w-md space-y-6">
+					<div className="space-y-1.5">
+						<p className="text-xs font-medium uppercase text-muted-foreground">Helpful Rate</p>
+						<SegmentedBar
+							items={[
+								{ label: 'Helpful', value: 188, className: 'bg-success' },
+								{ label: 'Not helpful', value: 22, className: 'bg-destructive' },
+								{ label: 'Not reviewed', value: 144, className: 'bg-muted' },
+							]}
+						/>
+					</div>
+					<div className="space-y-1.5">
+						<p className="text-xs font-medium uppercase text-muted-foreground">Order Status</p>
+						<SegmentedBar
+							items={[
+								{ label: 'Completed', value: 84, className: 'bg-success' },
+								{ label: 'Open', value: 12, className: 'bg-info' },
+								{ label: 'Voided', value: 4, className: 'bg-destructive' },
+							]}
+						/>
+					</div>
+				</div>
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── CHART SWITCH ─── */}
+			<PageSection title="Chart Switch" description="Toggle between chart types within a card.">
+				<ChartSwitchDemo />
+			</PageSection>
+
+			<Separator />
+
 			{/* ─── ACTION MENU ─── */}
 			<PageSection title="Action Menu" description="Row-level actions dropdown.">
 				<div className="flex items-center gap-4">
@@ -576,6 +613,7 @@ function DesignSystemPage() {
 								description: 'Once approved, stock will be deducted from the source location.',
 								confirmLabel: 'Approve',
 								onConfirm: async () => {
+									// oxlint-disable-next-line no-promise-executor-return
 									await new Promise((r) => setTimeout(r, 2000))
 								},
 							})
@@ -594,6 +632,7 @@ function DesignSystemPage() {
 								confirmLabel: 'Delete',
 								variant: 'destructive',
 								onConfirm: async () => {
+									// oxlint-disable-next-line no-promise-executor-return
 									await new Promise((r) => setTimeout(r, 1000))
 									throw new Error('Network error: could not reach server')
 								},
@@ -640,6 +679,7 @@ function DesignSystemPage() {
 								confirmWord: 'Coffee Beans',
 								confirmLabel: 'Delete permanently',
 								onConfirm: async () => {
+									// oxlint-disable-next-line no-promise-executor-return
 									await new Promise((r) => setTimeout(r, 2000))
 								},
 							})
@@ -744,6 +784,7 @@ function DesignSystemPage() {
 			>
 				<Button
 					size="sm"
+					// oxlint-disable-next-line react/no-unstable-nested-components
 					onClick={async () => {
 						const saved = await formDialog({
 							title: 'Quick Add Material',
@@ -755,6 +796,7 @@ function DesignSystemPage() {
 								</div>
 							),
 							onSubmit: async () => {
+								// oxlint-disable-next-line no-promise-executor-return
 								await new Promise((r) => setTimeout(r, 1500))
 							},
 						})
@@ -826,5 +868,44 @@ function PageTabsDemo() {
 				Active tab: <span className="font-medium text-foreground">{activeTab}</span>
 			</p>
 		</div>
+	)
+}
+
+function ChartSwitchDemo() {
+	const [chartType, setChartType] = useState<'bar' | 'line'>('bar')
+
+	return (
+		<DataCard
+			title="Total Views"
+			description="Switch between chart types."
+			actions={
+				<ChartSwitch
+					options={[
+						{ value: 'bar', label: 'Bar' },
+						{ value: 'line', label: 'Line' },
+					]}
+					value={chartType}
+					onChange={setChartType}
+				/>
+			}
+		>
+			{chartType === 'bar' ? (
+				<BarChart
+					data={categoryData}
+					config={categoryChartConfig}
+					xAxisKey="category"
+					dataKeys={['sales']}
+					className="h-48"
+				/>
+			) : (
+				<LineChart
+					data={revenueData}
+					config={revenueChartConfig}
+					xAxisKey="month"
+					dataKeys={['orders']}
+					className="h-48"
+				/>
+			)}
+		</DataCard>
 	)
 }
