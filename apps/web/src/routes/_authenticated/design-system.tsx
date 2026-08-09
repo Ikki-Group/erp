@@ -1,14 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router'
+
 import {
 	BoxesIcon,
 	EditIcon,
 	EyeIcon,
+	FilterIcon,
 	PackageIcon,
+	PlusIcon,
 	ShoppingCartIcon,
 	TrashIcon,
 	TruckIcon,
 } from 'lucide-react'
 
+import { AreaChart } from '@/components/charts/area-chart'
+import { BarChart } from '@/components/charts/bar-chart'
+import { LineChart } from '@/components/charts/line-chart'
+import { DataTable, DataTableToolbar, useClientTable } from '@/components/data-table'
 import {
 	FormCombobox,
 	FormDatePicker,
@@ -34,12 +41,186 @@ import {
 	StatCard,
 	StatusBadge,
 } from '@/components/shared'
+
 import { Button } from '@/components/ui/button'
+import type { ChartConfig } from '@/components/ui/chart'
 import { Separator } from '@/components/ui/separator'
 
 export const Route = createFileRoute('/_authenticated/design-system')({
 	component: DesignSystemPage,
 })
+
+// -- Mock data for DataTable --
+interface MockMaterial {
+	id: number
+	code: string
+	name: string
+	category: string
+	price: number
+	stock: number
+	status: string
+}
+
+const mockMaterials: MockMaterial[] = [
+	{
+		id: 1,
+		code: 'MAT-001',
+		name: 'Coffee Beans (Arabica)',
+		category: 'Raw Material',
+		price: 85000,
+		stock: 24,
+		status: 'active',
+	},
+	{
+		id: 2,
+		code: 'MAT-002',
+		name: 'Whole Milk 1L',
+		category: 'Dairy',
+		price: 18000,
+		stock: 48,
+		status: 'active',
+	},
+	{
+		id: 3,
+		code: 'MAT-003',
+		name: 'Sugar 1kg',
+		category: 'Raw Material',
+		price: 14000,
+		stock: 32,
+		status: 'active',
+	},
+	{
+		id: 4,
+		code: 'MAT-004',
+		name: 'Paper Cup 12oz',
+		category: 'Packaging',
+		price: 1200,
+		stock: 500,
+		status: 'active',
+	},
+	{
+		id: 5,
+		code: 'MAT-005',
+		name: 'Chocolate Syrup',
+		category: 'Condiment',
+		price: 45000,
+		stock: 8,
+		status: 'low',
+	},
+	{
+		id: 6,
+		code: 'MAT-006',
+		name: 'Vanilla Extract',
+		category: 'Condiment',
+		price: 62000,
+		stock: 3,
+		status: 'low',
+	},
+	{
+		id: 7,
+		code: 'MAT-007',
+		name: 'Oat Milk 1L',
+		category: 'Dairy',
+		price: 35000,
+		stock: 15,
+		status: 'active',
+	},
+	{
+		id: 8,
+		code: 'MAT-008',
+		name: 'Matcha Powder',
+		category: 'Raw Material',
+		price: 120000,
+		stock: 5,
+		status: 'low',
+	},
+	{
+		id: 9,
+		code: 'MAT-009',
+		name: 'Plastic Straw',
+		category: 'Packaging',
+		price: 200,
+		stock: 1000,
+		status: 'active',
+	},
+	{
+		id: 10,
+		code: 'MAT-010',
+		name: 'Whipped Cream',
+		category: 'Dairy',
+		price: 28000,
+		stock: 12,
+		status: 'active',
+	},
+	{
+		id: 11,
+		code: 'MAT-011',
+		name: 'Caramel Sauce',
+		category: 'Condiment',
+		price: 38000,
+		stock: 9,
+		status: 'active',
+	},
+	{
+		id: 12,
+		code: 'MAT-012',
+		name: 'Paper Bag M',
+		category: 'Packaging',
+		price: 800,
+		stock: 200,
+		status: 'active',
+	},
+]
+
+const mockColumns = [
+	{ accessorKey: 'code' as const, header: 'Code' },
+	{ accessorKey: 'name' as const, header: 'Name' },
+	{ accessorKey: 'category' as const, header: 'Category' },
+	{ accessorKey: 'price' as const, header: 'Price (IDR)' },
+	{ accessorKey: 'stock' as const, header: 'Stock' },
+]
+
+// -- Mock data for Charts --
+const revenueData = [
+	{ month: 'Jan', revenue: 28500000, orders: 820 },
+	{ month: 'Feb', revenue: 31200000, orders: 910 },
+	{ month: 'Mar', revenue: 29800000, orders: 875 },
+	{ month: 'Apr', revenue: 35400000, orders: 1020 },
+	{ month: 'May', revenue: 38900000, orders: 1150 },
+	{ month: 'Jun', revenue: 42800000, orders: 1284 },
+]
+
+const categoryData = [
+	{ category: 'Coffee', sales: 4200 },
+	{ category: 'Tea', sales: 2100 },
+	{ category: 'Pastry', sales: 1800 },
+	{ category: 'Snack', sales: 900 },
+	{ category: 'Juice', sales: 1500 },
+]
+
+const stockData = [
+	{ month: 'Jan', rawMaterial: 150, packaging: 400, dairy: 80 },
+	{ month: 'Feb', rawMaterial: 140, packaging: 380, dairy: 75 },
+	{ month: 'Mar', rawMaterial: 160, packaging: 420, dairy: 90 },
+	{ month: 'Apr', rawMaterial: 135, packaging: 350, dairy: 70 },
+	{ month: 'May', rawMaterial: 155, packaging: 410, dairy: 85 },
+	{ month: 'Jun', rawMaterial: 145, packaging: 390, dairy: 78 },
+]
+
+const revenueChartConfig: ChartConfig = {
+	revenue: { label: 'Revenue', color: 'var(--primary)' },
+	orders: { label: 'Orders', color: 'var(--chart-2)' },
+}
+
+const categoryChartConfig: ChartConfig = {
+	sales: { label: 'Sales', color: 'var(--primary)' },
+}
+
+const stockChartConfig: ChartConfig = {
+	rawMaterial: { label: 'Raw Material', color: 'var(--primary)' },
+	packaging: { label: 'Packaging', color: 'var(--chart-2)' },
+	dairy: { label: 'Dairy', color: 'var(--chart-3)' },
+}
 
 function DesignSystemPage() {
 	return (
@@ -65,11 +246,7 @@ function DesignSystemPage() {
 						trend={{ value: '+8.2%', positive: true }}
 						description="This month"
 					/>
-					<StatCard
-						title="Materials"
-						value="156"
-						icon={<BoxesIcon className="size-4" />}
-					/>
+					<StatCard title="Materials" value="156" icon={<BoxesIcon className="size-4" />} />
 					<StatCard
 						title="Low Stock"
 						value="7"
@@ -120,7 +297,11 @@ function DesignSystemPage() {
 				<DataCard
 					title="Material Info"
 					description="Basic information about the material."
-					actions={<Button variant="outline" size="sm">Edit</Button>}
+					actions={
+						<Button variant="outline" size="sm">
+							Edit
+						</Button>
+					}
 				>
 					<DetailList
 						items={[
@@ -190,6 +371,54 @@ function DesignSystemPage() {
 						</>
 					}
 				/>
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── DATA TABLE WITH TOOLBAR ─── */}
+			<DataTableSection />
+
+			<Separator />
+
+			{/* ─── CHARTS ─── */}
+			<PageSection title="Charts" description="Data visualization components.">
+				<div className="grid gap-6 lg:grid-cols-2">
+					<DataCard title="Revenue Trend" description="Monthly revenue over time.">
+						<AreaChart
+							data={revenueData}
+							config={revenueChartConfig}
+							xAxisKey="month"
+							dataKeys={['revenue']}
+						/>
+					</DataCard>
+					<DataCard title="Orders" description="Monthly order count.">
+						<LineChart
+							data={revenueData}
+							config={revenueChartConfig}
+							xAxisKey="month"
+							dataKeys={['orders']}
+							showDots={true}
+						/>
+					</DataCard>
+					<DataCard title="Sales by Category" description="Top selling categories.">
+						<BarChart
+							data={categoryData}
+							config={categoryChartConfig}
+							xAxisKey="category"
+							dataKeys={['sales']}
+						/>
+					</DataCard>
+					<DataCard title="Stock Levels" description="Stock by material type (stacked).">
+						<AreaChart
+							data={stockData}
+							config={stockChartConfig}
+							xAxisKey="month"
+							dataKeys={['rawMaterial', 'packaging', 'dairy']}
+							stacked={true}
+							showLegend={true}
+						/>
+					</DataCard>
+				</div>
 			</PageSection>
 
 			<Separator />
@@ -299,5 +528,44 @@ function DesignSystemPage() {
 				<PageSkeleton />
 			</PageSection>
 		</div>
+	)
+}
+
+function DataTableSection() {
+	const { table, globalFilter, setGlobalFilter, recordCount } = useClientTable({
+		data: mockMaterials,
+		columns: mockColumns,
+		pageSize: 5,
+	})
+
+	return (
+		<PageSection
+			title="Data Table"
+			description="Table with global search, client-side pagination, and toolbar."
+		>
+			<DataTable
+				table={table}
+				recordCount={recordCount}
+				toolbar={
+					<DataTableToolbar
+						search={globalFilter}
+						onSearchChange={setGlobalFilter}
+						searchPlaceholder="Search materials..."
+						filters={
+							<Button variant="outline" size="sm">
+								<FilterIcon className="mr-1.5 size-3.5" />
+								Filter
+							</Button>
+						}
+						actions={
+							<Button size="sm">
+								<PlusIcon className="mr-1.5 size-3.5" />
+								Add Material
+							</Button>
+						}
+					/>
+				}
+			/>
+		</PageSection>
 	)
 }

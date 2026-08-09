@@ -1,5 +1,8 @@
-import type { TableFeatures } from '@tanstack/react-table'
-import type { Table } from '@tanstack/react-table'
+import type { ReactNode } from 'react'
+
+import type { Table, TableFeatures } from '@tanstack/react-table'
+
+import { cn } from '@/lib/utils'
 
 import {
 	DataGrid,
@@ -9,8 +12,6 @@ import {
 import { DataGridPagination } from '@/components/reui/data-grid/data-grid-pagination'
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
 
-import { cn } from '@/lib/utils'
-
 interface DataTableProps<TFeatures extends TableFeatures, TData extends object> {
 	table: Table<TFeatures, TData>
 	recordCount?: number
@@ -18,6 +19,7 @@ interface DataTableProps<TFeatures extends TableFeatures, TData extends object> 
 	emptyMessage?: string
 	onRowClick?: (row: TData) => void
 	showPagination?: boolean
+	toolbar?: ReactNode
 	className?: string
 }
 
@@ -28,6 +30,7 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 	emptyMessage = 'No records found.',
 	onRowClick,
 	showPagination = true,
+	toolbar,
 	className,
 }: DataTableProps<TFeatures, TData>) {
 	const layoutProps: DataGridLayoutProps<TData> = {
@@ -45,10 +48,8 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 
 	return (
 		<div className={cn('space-y-4', className)}>
-			<DataGrid
-				{...layoutProps}
-				table={table as unknown as DataGridTableInstance<TData>}
-			>
+			{toolbar}
+			<DataGrid {...layoutProps} table={table as unknown as DataGridTableInstance<TData>}>
 				<DataGridTable />
 				{showPagination && <DataGridPagination />}
 			</DataGrid>
