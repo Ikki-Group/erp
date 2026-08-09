@@ -71,6 +71,36 @@ const inventory = {
 	},
 }
 
+const supplier = {
+	...crud('supplier'),
+	material: {
+		list: p('supplier', 'material', 'list'),
+		create: p('supplier', 'material', 'create'),
+		update: p('supplier', 'material', 'update'),
+		remove: p('supplier', 'material', 'remove'),
+	},
+}
+
+const menu = {
+	item: {
+		...crud('menu/item'),
+		modifiersSync: p('menu/item', 'modifiers', 'sync'),
+	},
+	category: {
+		list: p('menu/category', 'list'),
+		create: p('menu/category', 'create'),
+		update: p('menu/category', 'update'),
+		remove: p('menu/category', 'remove'),
+	},
+	modifier: crud('menu/modifier'),
+}
+
+const company = {
+	detail: 'company/detail',
+	create: 'company/create',
+	update: 'company/update',
+}
+
 const pos = {
 	voucher: crud('pos/voucher'),
 	table: crud('pos/table'),
@@ -90,8 +120,11 @@ export const endpoint = {
 	iam,
 	uom,
 	material,
+	supplier,
 	paymentMethod,
+	menu,
 	inventory,
+	company,
 	pos,
 } as const
 
