@@ -13,6 +13,7 @@ import {
 	ShieldCheckIcon,
 	ShoppingCartIcon,
 	StoreIcon,
+	TagIcon,
 	TruckIcon,
 	UsersIcon,
 	UtensilsCrossedIcon,
@@ -42,7 +43,7 @@ const navGroups = [
 		items: [
 			{ title: 'Locations', icon: MapPinIcon, href: '/master/locations' },
 			{ title: 'UoM', icon: RulerIcon, href: '/master/uom' },
-			{ title: 'Materials', icon: BoxesIcon, href: '#' },
+			{ title: 'Materials', icon: BoxesIcon, href: '/master/materials' },
 			{ title: 'Suppliers', icon: TruckIcon, href: '#' },
 			{ title: 'Menu', icon: UtensilsCrossedIcon, href: '#' },
 			{ title: 'Recipes', icon: ChefHatIcon, href: '#' },
@@ -53,13 +54,14 @@ const navGroups = [
 		label: 'POS',
 		items: [
 			{ title: 'Orders', icon: ShoppingCartIcon, href: '#' },
+			{ title: 'Vouchers', icon: TagIcon, href: '/pos/vouchers' },
 			{ title: 'Tables', icon: LayersIcon, href: '#' },
 		],
 	},
 	{
 		label: 'Inventory',
 		items: [
-			{ title: 'Stock', icon: PackageIcon, href: '#' },
+			{ title: 'Stock', icon: PackageIcon, href: '/inventory/stock' },
 			{ title: 'Transfers', icon: ClipboardListIcon, href: '#' },
 		],
 	},

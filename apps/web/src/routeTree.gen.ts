@@ -14,7 +14,12 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
+import { Route as AuthenticatedInventoryStockRouteImport } from './routes/_authenticated/inventory/stock'
 import { Route as AuthenticatedMasterLocationsRouteImport } from './routes/_authenticated/master/locations'
+import { Route as AuthenticatedMasterMaterialsRouteImport } from './routes/_authenticated/master/materials'
+import { Route as AuthenticatedMasterPaymentMethodsRouteImport } from './routes/_authenticated/master/payment-methods'
+import { Route as AuthenticatedMasterUomRouteImport } from './routes/_authenticated/master/uom'
+import { Route as AuthenticatedPosVouchersRouteImport } from './routes/_authenticated/pos/vouchers'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings/roles'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings/users'
 
@@ -42,10 +47,39 @@ const AuthenticatedDemoRoute = AuthenticatedDemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedInventoryStockRoute =
+  AuthenticatedInventoryStockRouteImport.update({
+    id: '/inventory/stock',
+    path: '/inventory/stock',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedMasterLocationsRoute =
   AuthenticatedMasterLocationsRouteImport.update({
     id: '/master/locations',
     path: '/master/locations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterMaterialsRoute =
+  AuthenticatedMasterMaterialsRouteImport.update({
+    id: '/master/materials',
+    path: '/master/materials',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterPaymentMethodsRoute =
+  AuthenticatedMasterPaymentMethodsRouteImport.update({
+    id: '/master/payment-methods',
+    path: '/master/payment-methods',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterUomRoute = AuthenticatedMasterUomRouteImport.update({
+  id: '/master/uom',
+  path: '/master/uom',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPosVouchersRoute =
+  AuthenticatedPosVouchersRouteImport.update({
+    id: '/pos/vouchers',
+    path: '/pos/vouchers',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedSettingsRolesRoute =
@@ -66,7 +100,12 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
+  '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
+  '/master/materials': typeof AuthenticatedMasterMaterialsRoute
+  '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
+  '/master/uom': typeof AuthenticatedMasterUomRoute
+  '/pos/vouchers': typeof AuthenticatedPosVouchersRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
 }
@@ -75,7 +114,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
   '/': typeof AuthenticatedIndexRoute
+  '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
+  '/master/materials': typeof AuthenticatedMasterMaterialsRoute
+  '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
+  '/master/uom': typeof AuthenticatedMasterUomRoute
+  '/pos/vouchers': typeof AuthenticatedPosVouchersRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
 }
@@ -86,7 +130,12 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/demo': typeof AuthenticatedDemoRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/_authenticated/master/locations': typeof AuthenticatedMasterLocationsRoute
+  '/_authenticated/master/materials': typeof AuthenticatedMasterMaterialsRoute
+  '/_authenticated/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
+  '/_authenticated/master/uom': typeof AuthenticatedMasterUomRoute
+  '/_authenticated/pos/vouchers': typeof AuthenticatedPosVouchersRoute
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
 }
@@ -97,7 +146,12 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/login'
     | '/demo'
+    | '/inventory/stock'
     | '/master/locations'
+    | '/master/materials'
+    | '/master/payment-methods'
+    | '/master/uom'
+    | '/pos/vouchers'
     | '/settings/roles'
     | '/settings/users'
   fileRoutesByTo: FileRoutesByTo
@@ -106,7 +160,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/demo'
     | '/'
+    | '/inventory/stock'
     | '/master/locations'
+    | '/master/materials'
+    | '/master/payment-methods'
+    | '/master/uom'
+    | '/pos/vouchers'
     | '/settings/roles'
     | '/settings/users'
   id:
@@ -116,7 +175,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/demo'
     | '/_authenticated/'
+    | '/_authenticated/inventory/stock'
     | '/_authenticated/master/locations'
+    | '/_authenticated/master/materials'
+    | '/_authenticated/master/payment-methods'
+    | '/_authenticated/master/uom'
+    | '/_authenticated/pos/vouchers'
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/users'
   fileRoutesById: FileRoutesById
@@ -164,11 +228,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDemoRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/inventory/stock': {
+      id: '/_authenticated/inventory/stock'
+      path: '/inventory/stock'
+      fullPath: '/inventory/stock'
+      preLoaderRoute: typeof AuthenticatedInventoryStockRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/master/locations': {
       id: '/_authenticated/master/locations'
       path: '/master/locations'
       fullPath: '/master/locations'
       preLoaderRoute: typeof AuthenticatedMasterLocationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/materials': {
+      id: '/_authenticated/master/materials'
+      path: '/master/materials'
+      fullPath: '/master/materials'
+      preLoaderRoute: typeof AuthenticatedMasterMaterialsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/payment-methods': {
+      id: '/_authenticated/master/payment-methods'
+      path: '/master/payment-methods'
+      fullPath: '/master/payment-methods'
+      preLoaderRoute: typeof AuthenticatedMasterPaymentMethodsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/uom': {
+      id: '/_authenticated/master/uom'
+      path: '/master/uom'
+      fullPath: '/master/uom'
+      preLoaderRoute: typeof AuthenticatedMasterUomRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/pos/vouchers': {
+      id: '/_authenticated/pos/vouchers'
+      path: '/pos/vouchers'
+      fullPath: '/pos/vouchers'
+      preLoaderRoute: typeof AuthenticatedPosVouchersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings/roles': {
@@ -191,7 +290,12 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedDemoRoute: typeof AuthenticatedDemoRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedInventoryStockRoute: typeof AuthenticatedInventoryStockRoute
   AuthenticatedMasterLocationsRoute: typeof AuthenticatedMasterLocationsRoute
+  AuthenticatedMasterMaterialsRoute: typeof AuthenticatedMasterMaterialsRoute
+  AuthenticatedMasterPaymentMethodsRoute: typeof AuthenticatedMasterPaymentMethodsRoute
+  AuthenticatedMasterUomRoute: typeof AuthenticatedMasterUomRoute
+  AuthenticatedPosVouchersRoute: typeof AuthenticatedPosVouchersRoute
   AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
   AuthenticatedSettingsUsersRoute: typeof AuthenticatedSettingsUsersRoute
 }
@@ -199,7 +303,13 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDemoRoute: AuthenticatedDemoRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedInventoryStockRoute: AuthenticatedInventoryStockRoute,
   AuthenticatedMasterLocationsRoute: AuthenticatedMasterLocationsRoute,
+  AuthenticatedMasterMaterialsRoute: AuthenticatedMasterMaterialsRoute,
+  AuthenticatedMasterPaymentMethodsRoute:
+    AuthenticatedMasterPaymentMethodsRoute,
+  AuthenticatedMasterUomRoute: AuthenticatedMasterUomRoute,
+  AuthenticatedPosVouchersRoute: AuthenticatedPosVouchersRoute,
   AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
   AuthenticatedSettingsUsersRoute: AuthenticatedSettingsUsersRoute,
 }

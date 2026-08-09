@@ -72,6 +72,15 @@ const inventory = {
 
 const pos = {
 	voucher: crud('pos/voucher'),
+	table: crud('pos/table'),
+	shift: {
+		open: p('pos/shift', 'open'),
+		close: p('pos/shift', 'close'),
+		closeOther: p('pos/shift', 'close-other'),
+		active: p('pos/shift', 'active'),
+		list: p('pos/shift', 'list'),
+		detail: p('pos/shift', 'detail'),
+	},
 }
 
 export const endpoint = {
