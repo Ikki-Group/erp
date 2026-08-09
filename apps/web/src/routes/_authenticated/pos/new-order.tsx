@@ -35,6 +35,8 @@ export const Route = createFileRoute('/_authenticated/pos/new-order')({
 	component: NewOrderPage,
 })
 
+const TAX_RATE = 0.11
+
 function NewOrderPage() {
 	const { activeLocation } = useLocationContext()
 	const locationId = activeLocation?.id ?? 0
@@ -76,7 +78,6 @@ function NewOrderPage() {
 		() => lines.reduce((sum, line) => sum + (line.unitPrice + line.modifierTotal) * line.qty, 0),
 		[lines],
 	)
-	const TAX_RATE = 0.11
 	const taxAmount = Math.round((subtotal - discountAmount) * TAX_RATE)
 	const total = subtotal - discountAmount + taxAmount
 
@@ -127,6 +128,26 @@ function NewOrderPage() {
 		setLines((prev) => prev.filter((l) => getModifierKey(l) !== key))
 	}, [])
 
+	// ─── Order lifecycle ───
+	const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
+
+	const createOrderIfNeeded = useCallback(async (): Promise<number | null> => {
+		if (currentOrderId) return currentOrderId
+		if (!locationId || !activeShift) return null
+		try {
+			const result = await createMut.mutateAsync({
+				locationId,
+				type: 'dine_in',
+			})
+			const orderId = result.data.id
+			setCurrentOrderId(orderId)
+			return orderId
+		} catch {
+			toast.add({ title: 'Gagal membuat order', type: 'error' })
+			return null
+		}
+	}, [currentOrderId, locationId, activeShift, createMut])
+
 	// ─── Voucher ───
 	const handleApplyVoucher = useCallback(async () => {
 		if (!voucherInput.trim()) return
@@ -149,7 +170,7 @@ function NewOrderPage() {
 		}
 		setShowVoucherDialog(false)
 		setVoucherInput('')
-	}, [voucherInput, voucherApplyMut])
+	}, [voucherInput, voucherApplyMut, createOrderIfNeeded])
 
 	const handleRemoveVoucher = useCallback(async () => {
 		if (!currentOrderId) return
@@ -161,27 +182,7 @@ function NewOrderPage() {
 		} catch {
 			toast.add({ title: 'Gagal menghapus voucher', type: 'error' })
 		}
-	}, [voucherRemoveMut])
-
-	// ─── Order lifecycle ───
-	const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
-
-	const createOrderIfNeeded = useCallback(async (): Promise<number | null> => {
-		if (currentOrderId) return currentOrderId
-		if (!locationId || !activeShift) return null
-		try {
-			const result = await createMut.mutateAsync({
-				locationId,
-				type: 'dine_in',
-			})
-			const orderId = result.data.id
-			setCurrentOrderId(orderId)
-			return orderId
-		} catch {
-			toast.add({ title: 'Gagal membuat order', type: 'error' })
-			return null
-		}
-	}, [currentOrderId, locationId, activeShift, createMut])
+	}, [currentOrderId, voucherRemoveMut])
 
 	// ─── Payment flow ───
 	const handlePaymentConfirm = useCallback(
@@ -232,7 +233,7 @@ function NewOrderPage() {
 				toast.add({ title: 'Gagal memproses pembayaran', type: 'error' })
 			}
 		},
-		[createOrderIfNeeded, linesSyncMut, paymentMut, completeMut, lines],
+		[createOrderIfNeeded, linesSyncMut, paymentMut, completeMut, lines, queryClient],
 	)
 
 	const isBusy =

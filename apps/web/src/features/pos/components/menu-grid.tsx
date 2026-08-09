@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
+
 import { SearchIcon } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -47,15 +48,6 @@ export function MenuGrid({ onSelectItem }: MenuGridProps) {
 	const categories = categoriesQuery.data?.data ?? []
 	const items = itemsQuery.data?.data ?? []
 
-	const filteredItems = useMemo(() => {
-		if (!search) return items
-		const term = search.toLowerCase()
-		return items.filter(
-			(item) =>
-				item.name.toLowerCase().includes(term) || item.sku.toLowerCase().includes(term),
-		)
-	}, [items, search])
-
 	return (
 		<div className="flex h-full flex-col gap-3">
 			<div className="relative">
@@ -95,22 +87,20 @@ export function MenuGrid({ onSelectItem }: MenuGridProps) {
 							<Skeleton key={i} className="h-24 rounded-lg" />
 						))}
 					</div>
-				) : filteredItems.length === 0 ? (
+				) : items.length === 0 ? (
 					<div className="flex h-32 items-center justify-center text-muted-foreground">
 						Tidak ada menu ditemukan
 					</div>
 				) : (
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-						{filteredItems.map((item) => (
+						{items.map((item) => (
 							<button
 								key={item.id}
 								type="button"
 								onClick={() => onSelectItem(item)}
 								className="flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors hover:bg-accent"
 							>
-								<span className="line-clamp-2 text-xs font-medium">
-									{item.name}
-								</span>
+								<span className="line-clamp-2 text-xs font-medium">{item.name}</span>
 								<span className="text-xs text-muted-foreground">
 									Rp {Number(item.basePrice).toLocaleString('id-ID')}
 								</span>

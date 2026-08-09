@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 
@@ -16,7 +16,11 @@ import { RadioGroup } from '@/components/ui/radio-group'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { menuItemExtras } from '@/features/menu/api.ts'
-import type { MenuItemDto, ModifierGroupWithOptionsDto, ModifierOptionDto } from '@/features/menu/dto/index.ts'
+import type {
+	MenuItemDto,
+	ModifierGroupWithOptionsDto,
+	ModifierOptionDto,
+} from '@/features/menu/dto/index.ts'
 
 export interface ModifierSelection {
 	optionIds: number[]
@@ -41,6 +45,18 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 
 	const modifierGroups: ModifierGroupWithOptionsDto[] = detailQuery.data?.data?.modifierGroups ?? []
 
+	// Auto-confirm when item has no modifiers
+	useEffect(() => {
+		if (!detailQuery.isLoading && detailQuery.data && menuItem && open) {
+			const groups = detailQuery.data.data?.modifierGroups ?? []
+			if (groups.length === 0) {
+				onConfirm(menuItem, { optionIds: [], optionNames: [], priceTotal: 0 })
+				setSelections({})
+				onOpenChange(false)
+			}
+		}
+	}, [detailQuery.isLoading, detailQuery.data, menuItem, open, onConfirm, onOpenChange])
+
 	const handleToggleOption = useCallback(
 		(group: ModifierGroupWithOptionsDto, option: ModifierOptionDto) => {
 			setSelections((prev) => {
@@ -49,9 +65,7 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 					return { ...prev, [group.id]: [option.id] }
 				}
 				const exists = current.includes(option.id)
-				const next = exists
-					? current.filter((id) => id !== option.id)
-					: [...current, option.id]
+				const next = exists ? current.filter((id) => id !== option.id) : [...current, option.id]
 				if (group.maxSelect && next.length > group.maxSelect) return prev
 				return { ...prev, [group.id]: next }
 			})
@@ -65,10 +79,7 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 		const allOptions = modifierGroups.flatMap((g) => g.options)
 		const selectedIds = Object.values(selections).flat()
 		const selectedOptions = allOptions.filter((o) => selectedIds.includes(o.id))
-		const priceTotal = selectedOptions.reduce(
-			(sum, o) => sum + Number(o.priceAdjustment),
-			0,
-		)
+		const priceTotal = selectedOptions.reduce((sum, o) => sum + Number(o.priceAdjustment), 0)
 
 		onConfirm(menuItem, {
 			optionIds: selectedIds,
@@ -105,21 +116,15 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 						<Skeleton className="h-8 w-full" />
 					</div>
 				) : modifierGroups.length === 0 ? (
-					<p className="text-xs text-muted-foreground">
-						Tidak ada modifier untuk item ini.
-					</p>
+					<p className="text-xs text-muted-foreground">Tidak ada modifier untuk item ini.</p>
 				) : (
 					<div className="max-h-[60vh] space-y-4 overflow-y-auto">
 						{modifierGroups.map((group) => (
 							<div key={group.id} className="space-y-2">
 								<div className="flex items-center gap-2">
-									<Label className="text-xs font-semibold">
-										{group.name}
-									</Label>
+									<Label className="text-xs font-semibold">{group.name}</Label>
 									{group.isRequired === 1 && (
-										<span className="text-[10px] text-destructive">
-											Wajib
-										</span>
+										<span className="text-[10px] text-destructive">Wajib</span>
 									)}
 									{group.selectionType === 'multiple' && group.maxSelect && (
 										<span className="text-[10px] text-muted-foreground">
@@ -132,9 +137,7 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 									<RadioGroup
 										value={String(selections[group.id]?.[0] ?? '')}
 										onValueChange={(val) => {
-											const opt = group.options.find(
-												(o) => o.id === Number(val),
-											)
+											const opt = group.options.find((o) => o.id === Number(val))
 											if (opt) handleToggleOption(group, opt)
 										}}
 										className="space-y-1"
@@ -151,23 +154,15 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 															type="radio"
 															name={`group-${group.id}`}
 															value={String(option.id)}
-															checked={
-																selections[group.id]?.[0] ===
-																option.id
-															}
-															onChange={() =>
-																handleToggleOption(group, option)
-															}
+															checked={selections[group.id]?.[0] === option.id}
+															onChange={() => handleToggleOption(group, option)}
 															className="accent-primary"
 														/>
 														<span>{option.name}</span>
 													</div>
 													{Number(option.priceAdjustment) !== 0 && (
 														<span className="text-muted-foreground">
-															+Rp{' '}
-															{Number(
-																option.priceAdjustment,
-															).toLocaleString('id-ID')}
+															+Rp {Number(option.priceAdjustment).toLocaleString('id-ID')}
 														</span>
 													)}
 												</label>
@@ -178,9 +173,7 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 										{group.options
 											.filter((o) => o.isActive === 1)
 											.map((option) => {
-												const checked =
-													selections[group.id]?.includes(option.id) ??
-													false
+												const checked = selections[group.id]?.includes(option.id) ?? false
 												return (
 													<label
 														key={option.id}
@@ -189,21 +182,13 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 														<div className="flex items-center gap-2">
 															<Checkbox
 																checked={checked}
-																onCheckedChange={() =>
-																	handleToggleOption(
-																		group,
-																		option,
-																	)
-																}
+																onCheckedChange={() => handleToggleOption(group, option)}
 															/>
 															<span>{option.name}</span>
 														</div>
 														{Number(option.priceAdjustment) !== 0 && (
 															<span className="text-muted-foreground">
-																+Rp{' '}
-																{Number(
-																	option.priceAdjustment,
-																).toLocaleString('id-ID')}
+																+Rp {Number(option.priceAdjustment).toLocaleString('id-ID')}
 															</span>
 														)}
 													</label>
@@ -220,11 +205,7 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 					<Button variant="outline" size="sm" onClick={handleClose}>
 						Batal
 					</Button>
-					<Button
-						size="sm"
-						onClick={handleConfirm}
-						disabled={!isValid || detailQuery.isLoading}
-					>
+					<Button size="sm" onClick={handleConfirm} disabled={!isValid || detailQuery.isLoading}>
 						Tambahkan
 					</Button>
 				</DialogFooter>
