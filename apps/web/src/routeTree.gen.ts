@@ -21,6 +21,7 @@ import { Route as AuthenticatedMasterLocationsRouteImport } from './routes/_auth
 import { Route as AuthenticatedMasterMaterialsRouteImport } from './routes/_authenticated/master/materials'
 import { Route as AuthenticatedMasterMenuRouteImport } from './routes/_authenticated/master/menu'
 import { Route as AuthenticatedMasterPaymentMethodsRouteImport } from './routes/_authenticated/master/payment-methods'
+import { Route as AuthenticatedMasterRecipesRouteImport } from './routes/_authenticated/master/recipes'
 import { Route as AuthenticatedMasterSuppliersRouteImport } from './routes/_authenticated/master/suppliers'
 import { Route as AuthenticatedMasterUomRouteImport } from './routes/_authenticated/master/uom'
 import { Route as AuthenticatedPosShiftsRouteImport } from './routes/_authenticated/pos/shifts'
@@ -95,6 +96,12 @@ const AuthenticatedMasterPaymentMethodsRoute =
     path: '/master/payment-methods',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMasterRecipesRoute =
+  AuthenticatedMasterRecipesRouteImport.update({
+    id: '/master/recipes',
+    path: '/master/recipes',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedMasterSuppliersRoute =
   AuthenticatedMasterSuppliersRouteImport.update({
     id: '/master/suppliers',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/master/materials': typeof AuthenticatedMasterMaterialsRoute
   '/master/menu': typeof AuthenticatedMasterMenuRoute
   '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
+  '/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/master/suppliers': typeof AuthenticatedMasterSuppliersRoute
   '/master/uom': typeof AuthenticatedMasterUomRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/master/materials': typeof AuthenticatedMasterMaterialsRoute
   '/master/menu': typeof AuthenticatedMasterMenuRoute
   '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
+  '/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/master/suppliers': typeof AuthenticatedMasterSuppliersRoute
   '/master/uom': typeof AuthenticatedMasterUomRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
@@ -197,6 +206,7 @@ export interface FileRoutesById {
   '/_authenticated/master/materials': typeof AuthenticatedMasterMaterialsRoute
   '/_authenticated/master/menu': typeof AuthenticatedMasterMenuRoute
   '/_authenticated/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
+  '/_authenticated/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/_authenticated/master/suppliers': typeof AuthenticatedMasterSuppliersRoute
   '/_authenticated/master/uom': typeof AuthenticatedMasterUomRoute
   '/_authenticated/pos/shifts': typeof AuthenticatedPosShiftsRoute
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/master/materials'
     | '/master/menu'
     | '/master/payment-methods'
+    | '/master/recipes'
     | '/master/suppliers'
     | '/master/uom'
     | '/pos/shifts'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/master/materials'
     | '/master/menu'
     | '/master/payment-methods'
+    | '/master/recipes'
     | '/master/suppliers'
     | '/master/uom'
     | '/pos/shifts'
@@ -263,6 +275,7 @@ export interface FileRouteTypes {
     | '/_authenticated/master/materials'
     | '/_authenticated/master/menu'
     | '/_authenticated/master/payment-methods'
+    | '/_authenticated/master/recipes'
     | '/_authenticated/master/suppliers'
     | '/_authenticated/master/uom'
     | '/_authenticated/pos/shifts'
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMasterPaymentMethodsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/master/recipes': {
+      id: '/_authenticated/master/recipes'
+      path: '/master/recipes'
+      fullPath: '/master/recipes'
+      preLoaderRoute: typeof AuthenticatedMasterRecipesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/master/suppliers': {
       id: '/_authenticated/master/suppliers'
       path: '/master/suppliers'
@@ -434,6 +454,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMasterMaterialsRoute: typeof AuthenticatedMasterMaterialsRoute
   AuthenticatedMasterMenuRoute: typeof AuthenticatedMasterMenuRoute
   AuthenticatedMasterPaymentMethodsRoute: typeof AuthenticatedMasterPaymentMethodsRoute
+  AuthenticatedMasterRecipesRoute: typeof AuthenticatedMasterRecipesRoute
   AuthenticatedMasterSuppliersRoute: typeof AuthenticatedMasterSuppliersRoute
   AuthenticatedMasterUomRoute: typeof AuthenticatedMasterUomRoute
   AuthenticatedPosShiftsRoute: typeof AuthenticatedPosShiftsRoute
@@ -455,6 +476,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMasterMenuRoute: AuthenticatedMasterMenuRoute,
   AuthenticatedMasterPaymentMethodsRoute:
     AuthenticatedMasterPaymentMethodsRoute,
+  AuthenticatedMasterRecipesRoute: AuthenticatedMasterRecipesRoute,
   AuthenticatedMasterSuppliersRoute: AuthenticatedMasterSuppliersRoute,
   AuthenticatedMasterUomRoute: AuthenticatedMasterUomRoute,
   AuthenticatedPosShiftsRoute: AuthenticatedPosShiftsRoute,

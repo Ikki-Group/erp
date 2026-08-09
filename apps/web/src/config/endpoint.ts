@@ -83,6 +83,13 @@ const inventory = {
 		counts: p('inventory/opname', 'counts'),
 		approve: p('inventory/opname', 'approve'),
 	},
+	receiving: {
+		list: p('inventory/receiving', 'list'),
+		detail: p('inventory/receiving', 'detail'),
+		create: p('inventory/receiving', 'create'),
+		update: p('inventory/receiving', 'update'),
+		confirm: p('inventory/receiving', 'confirm'),
+	},
 }
 
 const supplier = {
@@ -131,6 +138,17 @@ const pos = {
 		active: p('pos/shift', 'active'),
 		list: p('pos/shift', 'list'),
 		detail: p('pos/shift', 'detail'),
+	},
+	order: {
+		list: p('pos/order', 'list'),
+		detail: p('pos/order', 'detail'),
+		create: p('pos/order', 'create'),
+		complete: p('pos/order', 'complete'),
+		void: p('pos/order', 'void'),
+		linesSync: p('pos/order', 'lines', 'sync'),
+		voucherApply: p('pos/order', 'voucher', 'apply'),
+		voucherRemove: p('pos/order', 'voucher', 'remove'),
+		payment: p('pos/order', 'payment'),
 	},
 }
 
