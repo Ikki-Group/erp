@@ -1,13 +1,22 @@
 {
 	"mcpServers": {
+		"reui": {
+			"type": "http",
+			"url": "https://mcp.reui.io"
+		},
 		"codegraph": {
-			"args": ["serve", "--mcp"],
+			"args": [
+				"serve",
+				"--mcp"
+			],
 			"command": "codegraph",
 			"disabledTools": [],
 			"type": "stdio"
 		},
 		"gortex": {
-			"args": ["mcp"],
+			"args": [
+				"mcp"
+			],
 			"autoApprove": [
 				"analyze",
 				"capabilities",
@@ -28,13 +37,18 @@
 			}
 		},
 		"memory": {
-			"args": ["-y", "@modelcontextprotocol/server-memory"],
+			"args": [
+				"-y",
+				"@modelcontextprotocol/server-memory"
+			],
 			"autoApprove": [],
 			"command": "npx",
 			"disabled": false
 		},
 		"playwright": {
-			"args": ["@playwright/mcp@latest"],
+			"args": [
+				"@playwright/mcp@latest"
+			],
 			"command": "npx",
 			"disabledTools": [
 				"browser_close",
