@@ -10,12 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
-import { Route as AuthenticatedDesignSystemRouteImport } from './routes/_authenticated/design-system'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -28,45 +39,45 @@ const AuthenticatedDemoRoute = AuthenticatedDemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedDesignSystemRoute =
-  AuthenticatedDesignSystemRouteImport.update({
-    id: '/design-system',
-    path: '/design-system',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/design-system': typeof DesignSystemRoute
+  '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
-  '/design-system': typeof AuthenticatedDesignSystemRoute
 }
 export interface FileRoutesByTo {
+  '/design-system': typeof DesignSystemRoute
+  '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
-  '/design-system': typeof AuthenticatedDesignSystemRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/design-system': typeof DesignSystemRoute
+  '/login': typeof LoginRoute
   '/_authenticated/demo': typeof AuthenticatedDemoRoute
-  '/_authenticated/design-system': typeof AuthenticatedDesignSystemRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/design-system'
+  fullPaths: '/' | '/design-system' | '/login' | '/demo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/demo' | '/design-system' | '/'
+  to: '/design-system' | '/login' | '/demo' | '/'
   id:
     | '__root__'
     | '/_authenticated'
+    | '/design-system'
+    | '/login'
     | '/_authenticated/demo'
-    | '/_authenticated/design-system'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  DesignSystemRoute: typeof DesignSystemRoute
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -76,6 +87,20 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -92,25 +117,16 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDemoRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/design-system': {
-      id: '/_authenticated/design-system'
-      path: '/design-system'
-      fullPath: '/design-system'
-      preLoaderRoute: typeof AuthenticatedDesignSystemRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDemoRoute: typeof AuthenticatedDemoRoute
-  AuthenticatedDesignSystemRoute: typeof AuthenticatedDesignSystemRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDemoRoute: AuthenticatedDemoRoute,
-  AuthenticatedDesignSystemRoute: AuthenticatedDesignSystemRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
@@ -120,6 +136,8 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  DesignSystemRoute: DesignSystemRoute,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

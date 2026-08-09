@@ -12,7 +12,12 @@ function crud(base: string) {
 	}
 }
 
-const auth = { login: 'auth/login', me: 'auth/me' }
+const auth = {
+	login: 'auth/login',
+	me: 'auth/me',
+	logout: 'auth/logout',
+	switchLocation: 'auth/switch-location',
+}
 
 export const endpoint = {
 	auth,

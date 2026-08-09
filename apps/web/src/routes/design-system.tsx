@@ -63,7 +63,7 @@ import { Button } from '@/components/ui/button'
 import type { ChartConfig } from '@/components/ui/chart'
 import { Separator } from '@/components/ui/separator'
 
-export const Route = createFileRoute('/_authenticated/design-system')({
+export const Route = createFileRoute('/design-system')({
 	component: DesignSystemPage,
 })
 
