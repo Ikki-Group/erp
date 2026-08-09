@@ -155,6 +155,19 @@ PricingForm.displayName = 'PricingForm'
 
 // ─── Pricing Table Component ───
 
+const currencyFmt = new Intl.NumberFormat('id-ID', {
+	style: 'currency',
+	currency: 'IDR',
+	minimumFractionDigits: 0,
+	maximumFractionDigits: 0,
+})
+
+function formatCurrency(value: string): string {
+	const num = Number.parseFloat(value)
+	if (Number.isNaN(num)) return value
+	return currencyFmt.format(num)
+}
+
 interface PricingTableProps {
 	supplierId: number
 }
@@ -162,9 +175,7 @@ interface PricingTableProps {
 export function PricingTable({ supplierId }: PricingTableProps) {
 	const [page, setPage] = useState(1)
 
-	const listQuery = useQuery(
-		pricingResource.list.queryOptions({ supplierId, page, limit: 20 }),
-	)
+	const listQuery = useQuery(pricingResource.list.queryOptions({ supplierId, page, limit: 20 }))
 	const materialsQuery = useQuery(materialResource.list.queryOptions({ page: 1, limit: 200 }))
 	const uomQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 100 }))
 
@@ -310,7 +321,7 @@ export function PricingTable({ supplierId }: PricingTableProps) {
 						<div className="grid gap-0.5">
 							<span className="text-sm font-medium">{getMaterialName(item.materialId)}</span>
 							<span className="text-xs text-muted-foreground">
-								{item.unitPrice} / {getUomName(item.uomId)}
+								{formatCurrency(item.unitPrice)} / {getUomName(item.uomId)}
 								{item.minOrderQty && ` · Min: ${item.minOrderQty}`}
 							</span>
 						</div>

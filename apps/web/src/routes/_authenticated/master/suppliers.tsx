@@ -6,6 +6,8 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, PackageIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
+import { isApiError } from '@/lib/api/index.ts'
+
 import { DataTable } from '@/components/data-table/data-table'
 import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
@@ -18,12 +20,22 @@ import { SearchToolbar } from '@/components/shared/search-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
+import { supplierResource } from '@/features/supplier/api.ts'
 import { PricingTable } from '@/features/supplier/components/pricing-table.tsx'
 import { SupplierForm } from '@/features/supplier/components/supplier-form.tsx'
-import type { SupplierFormRef, SupplierFormValues } from '@/features/supplier/components/supplier-form.tsx'
-import { supplierResource } from '@/features/supplier/api.ts'
+import type {
+	SupplierFormRef,
+	SupplierFormValues,
+} from '@/features/supplier/components/supplier-form.tsx'
 import type { SupplierDto } from '@/features/supplier/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/master/suppliers')({
@@ -41,6 +53,7 @@ function formToPayload(v: SupplierFormValues) {
 		email: v.email || null,
 		address: v.address || null,
 		paymentTerms: v.paymentTerms ? Number(v.paymentTerms) : null,
+		isActive: v.isActive,
 	}
 }
 
@@ -85,6 +98,7 @@ function SuppliersPage() {
 		page: 1,
 		limit: 10,
 		q: undefined as string | undefined,
+		isActive: undefined as number | undefined,
 	})
 
 	const listQuery = useQuery(supplierResource.list.queryOptions(listParams))
@@ -113,7 +127,14 @@ function SuppliersPage() {
 				const errors = formRef.current?.validate()
 				if (errors) throw new Error('Please fix the validation errors.')
 				const v = formRef.current!.getValues()
-				await createMut.mutateAsync(formToPayload(v))
+				try {
+					await createMut.mutateAsync(formToPayload(v))
+				} catch (err) {
+					if (isApiError(err) && err.status === 409) {
+						throw new Error('Supplier code already exists. Please use a different code.')
+					}
+					throw err
+				}
 			},
 		})
 
@@ -142,7 +163,14 @@ function SuppliersPage() {
 					const errors = formRef.current?.validate()
 					if (errors) throw new Error('Please fix the validation errors.')
 					const v = formRef.current!.getValues()
-					await updateMut.mutateAsync({ id: supplier.id, ...formToPayload(v) })
+					try {
+						await updateMut.mutateAsync({ id: supplier.id, ...formToPayload(v) })
+					} catch (err) {
+						if (isApiError(err) && err.status === 409) {
+							throw new Error('Supplier code already exists. Please use a different code.')
+						}
+						throw err
+					}
 				},
 			})
 
@@ -230,7 +258,8 @@ function SuppliersPage() {
 		},
 	})
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
+	const isEmpty =
+		!listQuery.isLoading && data.length === 0 && !globalFilter && listParams.isActive === undefined
 
 	return (
 		<div className="space-y-6">
@@ -267,6 +296,27 @@ function SuppliersPage() {
 							value={globalFilter}
 							onChange={setGlobalFilter}
 							placeholder="Search suppliers..."
+							actions={
+								<Select
+									value={listParams.isActive?.toString() ?? 'all'}
+									onValueChange={(v) =>
+										setListParams((prev) => ({
+											...prev,
+											page: 1,
+											isActive: v === 'all' ? undefined : Number(v),
+										}))
+									}
+								>
+									<SelectTrigger className="w-[130px]">
+										<SelectValue placeholder="All status" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All status</SelectItem>
+										<SelectItem value="1">Active</SelectItem>
+										<SelectItem value="0">Inactive</SelectItem>
+									</SelectContent>
+								</Select>
+							}
 						/>
 					}
 				/>

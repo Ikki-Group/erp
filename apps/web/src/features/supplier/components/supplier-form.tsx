@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useState } from 'react'
 
 import { FormInput } from '@/components/form/form-input'
+import { FormSwitch } from '@/components/form/form-switch'
 
 import { SupplierCreateDto } from '../dto/index.ts'
 import type { SupplierDto } from '../dto/index.ts'
@@ -13,6 +14,7 @@ export interface SupplierFormValues {
 	email: string
 	address: string
 	paymentTerms: string
+	isActive: boolean
 }
 
 export interface SupplierFormRef {
@@ -34,6 +36,7 @@ export const SupplierForm = forwardRef<SupplierFormRef, SupplierFormProps>(
 			email: defaultValues?.email ?? '',
 			address: defaultValues?.address ?? '',
 			paymentTerms: defaultValues?.paymentTerms?.toString() ?? '',
+			isActive: defaultValues?.isActive ?? true,
 		})
 		const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -57,6 +60,7 @@ export const SupplierForm = forwardRef<SupplierFormRef, SupplierFormProps>(
 					email: values.email || null,
 					address: values.address || null,
 					paymentTerms: values.paymentTerms ? Number(values.paymentTerms) : null,
+					isActive: values.isActive,
 				}
 				const result = SupplierCreateDto.safeParse(payload)
 				if (result.success) {
@@ -130,6 +134,12 @@ export const SupplierForm = forwardRef<SupplierFormRef, SupplierFormProps>(
 					onChange={(e) => update('paymentTerms', e.target.value)}
 					error={errors.paymentTerms}
 					placeholder="e.g. 30"
+				/>
+				<FormSwitch
+					label="Active"
+					description="Inactive suppliers won't appear in purchasing selections."
+					checked={values.isActive}
+					onCheckedChange={(checked) => setValues((prev) => ({ ...prev, isActive: checked }))}
 				/>
 			</div>
 		)
