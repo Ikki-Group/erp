@@ -6,6 +6,7 @@ import { Confirm } from '@/components/shared/confirm'
 import { ConfirmInput } from '@/components/shared/confirm-input'
 import { FormDialog } from '@/components/shared/form-dialog'
 
+import { Toaster } from '@/components/ui/toast'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 import appCss from '../styles.css?url'
@@ -42,22 +43,24 @@ export const Route = createRootRoute({
 
 function RootComponent() {
 	return (
-		<TooltipProvider>
-			<Outlet />
-			<Confirm />
-			<ConfirmInput />
-			<FormDialog />
-			<TanStackDevtools
-				config={{
-					position: 'bottom-right',
-				}}
-				plugins={[
-					{
-						name: 'TanStack Router',
-						render: <TanStackRouterDevtoolsPanel />,
-					},
-				]}
-			/>
-		</TooltipProvider>
+		<Toaster>
+			<TooltipProvider>
+				<Outlet />
+				<Confirm />
+				<ConfirmInput />
+				<FormDialog />
+				<TanStackDevtools
+					config={{
+						position: 'bottom-right',
+					}}
+					plugins={[
+						{
+							name: 'TanStack Router',
+							render: <TanStackRouterDevtoolsPanel />,
+						},
+					]}
+				/>
+			</TooltipProvider>
+		</Toaster>
 	)
 }
