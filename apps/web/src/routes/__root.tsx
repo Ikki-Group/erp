@@ -1,5 +1,8 @@
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { Outlet, createRootRoute } from '@tanstack/react-router'
+import type { QueryClient } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { Confirm } from '@/components/shared/confirm'
@@ -11,7 +14,11 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 
 import appCss from '../styles.css?url'
 
-export const Route = createRootRoute({
+interface RouterContext {
+	queryClient: QueryClient
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
 	head: () => ({
 		meta: [
 			{
@@ -42,25 +49,30 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
+	const { queryClient } = Route.useRouteContext()
+
 	return (
-		<Toaster>
-			<TooltipProvider>
-				<Outlet />
-				<Confirm />
-				<ConfirmInput />
-				<FormDialog />
-				<TanStackDevtools
-					config={{
-						position: 'bottom-right',
-					}}
-					plugins={[
-						{
-							name: 'TanStack Router',
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-					]}
-				/>
-			</TooltipProvider>
-		</Toaster>
+		<QueryClientProvider client={queryClient}>
+			<Toaster>
+				<TooltipProvider>
+					<Outlet />
+					<Confirm />
+					<ConfirmInput />
+					<FormDialog />
+					<TanStackDevtools
+						config={{
+							position: 'bottom-right',
+						}}
+						plugins={[
+							{
+								name: 'TanStack Router',
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+						]}
+					/>
+					<ReactQueryDevtools buttonPosition="bottom-left" />
+				</TooltipProvider>
+			</Toaster>
+		</QueryClientProvider>
 	)
 }

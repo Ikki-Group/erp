@@ -1,5 +1,7 @@
 import { ChevronsUpDownIcon, LogOutIcon, MapPinIcon, UserIcon } from 'lucide-react'
 
+import { ThemeToggle } from '@/components/shared/theme-toggle'
+
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,6 +28,8 @@ export function AppHeader() {
 			</Button>
 
 			<div className="flex-1" />
+
+			<ThemeToggle />
 
 			{/* User menu */}
 			<DropdownMenu>
