@@ -13,6 +13,8 @@ import { Toaster } from '@/components/ui/toast'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 import appCss from '../styles.css?url'
+import { AuthProvider } from '@/providers/auth-provider.tsx'
+import { ThemeProvider } from '@/providers/theme-provider'
 
 interface RouterContext {
 	queryClient: QueryClient
@@ -53,26 +55,30 @@ function RootComponent() {
 
 	return (
 		<QueryClientProvider client={queryClient}>
-			<Toaster>
-				<TooltipProvider>
-					<Outlet />
-					<Confirm />
-					<ConfirmInput />
-					<FormDialog />
-					<TanStackDevtools
-						config={{
-							position: 'bottom-right',
-						}}
-						plugins={[
-							{
-								name: 'TanStack Router',
-								render: <TanStackRouterDevtoolsPanel />,
-							},
-						]}
-					/>
-					<ReactQueryDevtools buttonPosition="bottom-left" />
-				</TooltipProvider>
-			</Toaster>
+			<ThemeProvider>
+				<Toaster>
+					<TooltipProvider>
+						<AuthProvider>
+							<Outlet />
+						</AuthProvider>
+						<Confirm />
+						<ConfirmInput />
+						<FormDialog />
+						<TanStackDevtools
+							config={{
+								position: 'bottom-right',
+							}}
+							plugins={[
+								{
+									name: 'TanStack Router',
+									render: <TanStackRouterDevtoolsPanel />,
+								},
+							]}
+						/>
+						<ReactQueryDevtools buttonPosition="bottom-left" />
+					</TooltipProvider>
+				</Toaster>
+			</ThemeProvider>
 		</QueryClientProvider>
 	)
 }
