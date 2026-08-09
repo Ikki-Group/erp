@@ -4,6 +4,7 @@ import {
 	BoxesIcon,
 	ChefHatIcon,
 	ClipboardListIcon,
+	ClockIcon,
 	GaugeIcon,
 	LayersIcon,
 	MapPinIcon,
@@ -55,7 +56,8 @@ const navGroups = [
 		items: [
 			{ title: 'Orders', icon: ShoppingCartIcon, href: '#' },
 			{ title: 'Vouchers', icon: TagIcon, href: '/pos/vouchers' },
-			{ title: 'Tables', icon: LayersIcon, href: '#' },
+			{ title: 'Tables', icon: LayersIcon, href: '/pos/tables' },
+			{ title: 'Shifts', icon: ClockIcon, href: '/pos/shifts' },
 		],
 	},
 	{

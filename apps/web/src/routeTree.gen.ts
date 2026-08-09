@@ -19,6 +19,8 @@ import { Route as AuthenticatedMasterLocationsRouteImport } from './routes/_auth
 import { Route as AuthenticatedMasterMaterialsRouteImport } from './routes/_authenticated/master/materials'
 import { Route as AuthenticatedMasterPaymentMethodsRouteImport } from './routes/_authenticated/master/payment-methods'
 import { Route as AuthenticatedMasterUomRouteImport } from './routes/_authenticated/master/uom'
+import { Route as AuthenticatedPosShiftsRouteImport } from './routes/_authenticated/pos/shifts'
+import { Route as AuthenticatedPosTablesRouteImport } from './routes/_authenticated/pos/tables'
 import { Route as AuthenticatedPosVouchersRouteImport } from './routes/_authenticated/pos/vouchers'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings/roles'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings/users'
@@ -76,6 +78,16 @@ const AuthenticatedMasterUomRoute = AuthenticatedMasterUomRouteImport.update({
   path: '/master/uom',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPosShiftsRoute = AuthenticatedPosShiftsRouteImport.update({
+  id: '/pos/shifts',
+  path: '/pos/shifts',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPosTablesRoute = AuthenticatedPosTablesRouteImport.update({
+  id: '/pos/tables',
+  path: '/pos/tables',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedPosVouchersRoute =
   AuthenticatedPosVouchersRouteImport.update({
     id: '/pos/vouchers',
@@ -105,6 +117,8 @@ export interface FileRoutesByFullPath {
   '/master/materials': typeof AuthenticatedMasterMaterialsRoute
   '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
   '/master/uom': typeof AuthenticatedMasterUomRoute
+  '/pos/shifts': typeof AuthenticatedPosShiftsRoute
+  '/pos/tables': typeof AuthenticatedPosTablesRoute
   '/pos/vouchers': typeof AuthenticatedPosVouchersRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
@@ -119,6 +133,8 @@ export interface FileRoutesByTo {
   '/master/materials': typeof AuthenticatedMasterMaterialsRoute
   '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
   '/master/uom': typeof AuthenticatedMasterUomRoute
+  '/pos/shifts': typeof AuthenticatedPosShiftsRoute
+  '/pos/tables': typeof AuthenticatedPosTablesRoute
   '/pos/vouchers': typeof AuthenticatedPosVouchersRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
@@ -135,6 +151,8 @@ export interface FileRoutesById {
   '/_authenticated/master/materials': typeof AuthenticatedMasterMaterialsRoute
   '/_authenticated/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsRoute
   '/_authenticated/master/uom': typeof AuthenticatedMasterUomRoute
+  '/_authenticated/pos/shifts': typeof AuthenticatedPosShiftsRoute
+  '/_authenticated/pos/tables': typeof AuthenticatedPosTablesRoute
   '/_authenticated/pos/vouchers': typeof AuthenticatedPosVouchersRoute
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
@@ -151,6 +169,8 @@ export interface FileRouteTypes {
     | '/master/materials'
     | '/master/payment-methods'
     | '/master/uom'
+    | '/pos/shifts'
+    | '/pos/tables'
     | '/pos/vouchers'
     | '/settings/roles'
     | '/settings/users'
@@ -165,6 +185,8 @@ export interface FileRouteTypes {
     | '/master/materials'
     | '/master/payment-methods'
     | '/master/uom'
+    | '/pos/shifts'
+    | '/pos/tables'
     | '/pos/vouchers'
     | '/settings/roles'
     | '/settings/users'
@@ -180,6 +202,8 @@ export interface FileRouteTypes {
     | '/_authenticated/master/materials'
     | '/_authenticated/master/payment-methods'
     | '/_authenticated/master/uom'
+    | '/_authenticated/pos/shifts'
+    | '/_authenticated/pos/tables'
     | '/_authenticated/pos/vouchers'
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/users'
@@ -263,6 +287,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMasterUomRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/pos/shifts': {
+      id: '/_authenticated/pos/shifts'
+      path: '/pos/shifts'
+      fullPath: '/pos/shifts'
+      preLoaderRoute: typeof AuthenticatedPosShiftsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/pos/tables': {
+      id: '/_authenticated/pos/tables'
+      path: '/pos/tables'
+      fullPath: '/pos/tables'
+      preLoaderRoute: typeof AuthenticatedPosTablesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/pos/vouchers': {
       id: '/_authenticated/pos/vouchers'
       path: '/pos/vouchers'
@@ -295,6 +333,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMasterMaterialsRoute: typeof AuthenticatedMasterMaterialsRoute
   AuthenticatedMasterPaymentMethodsRoute: typeof AuthenticatedMasterPaymentMethodsRoute
   AuthenticatedMasterUomRoute: typeof AuthenticatedMasterUomRoute
+  AuthenticatedPosShiftsRoute: typeof AuthenticatedPosShiftsRoute
+  AuthenticatedPosTablesRoute: typeof AuthenticatedPosTablesRoute
   AuthenticatedPosVouchersRoute: typeof AuthenticatedPosVouchersRoute
   AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
   AuthenticatedSettingsUsersRoute: typeof AuthenticatedSettingsUsersRoute
@@ -309,6 +349,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMasterPaymentMethodsRoute:
     AuthenticatedMasterPaymentMethodsRoute,
   AuthenticatedMasterUomRoute: AuthenticatedMasterUomRoute,
+  AuthenticatedPosShiftsRoute: AuthenticatedPosShiftsRoute,
+  AuthenticatedPosTablesRoute: AuthenticatedPosTablesRoute,
   AuthenticatedPosVouchersRoute: AuthenticatedPosVouchersRoute,
   AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
   AuthenticatedSettingsUsersRoute: AuthenticatedSettingsUsersRoute,
