@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
 import { Route as AuthenticatedInventoryOpnameRouteImport } from './routes/_authenticated/inventory/opname'
+import { Route as AuthenticatedInventoryReceivingRouteImport } from './routes/_authenticated/inventory/receiving'
 import { Route as AuthenticatedInventoryStockRouteImport } from './routes/_authenticated/inventory/stock'
 import { Route as AuthenticatedInventoryTransfersRouteImport } from './routes/_authenticated/inventory/transfers'
 import { Route as AuthenticatedMasterLocationsRouteImport } from './routes/_authenticated/master/locations'
@@ -24,6 +25,8 @@ import { Route as AuthenticatedMasterPaymentMethodsRouteImport } from './routes/
 import { Route as AuthenticatedMasterRecipesRouteImport } from './routes/_authenticated/master/recipes'
 import { Route as AuthenticatedMasterSuppliersRouteImport } from './routes/_authenticated/master/suppliers'
 import { Route as AuthenticatedMasterUomRouteImport } from './routes/_authenticated/master/uom'
+import { Route as AuthenticatedPosNewOrderRouteImport } from './routes/_authenticated/pos/new-order'
+import { Route as AuthenticatedPosOrdersRouteImport } from './routes/_authenticated/pos/orders'
 import { Route as AuthenticatedPosShiftsRouteImport } from './routes/_authenticated/pos/shifts'
 import { Route as AuthenticatedPosTablesRouteImport } from './routes/_authenticated/pos/tables'
 import { Route as AuthenticatedPosVouchersRouteImport } from './routes/_authenticated/pos/vouchers'
@@ -59,6 +62,12 @@ const AuthenticatedInventoryOpnameRoute =
   AuthenticatedInventoryOpnameRouteImport.update({
     id: '/inventory/opname',
     path: '/inventory/opname',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedInventoryReceivingRoute =
+  AuthenticatedInventoryReceivingRouteImport.update({
+    id: '/inventory/receiving',
+    path: '/inventory/receiving',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedInventoryStockRoute =
@@ -113,6 +122,17 @@ const AuthenticatedMasterUomRoute = AuthenticatedMasterUomRouteImport.update({
   path: '/master/uom',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPosNewOrderRoute =
+  AuthenticatedPosNewOrderRouteImport.update({
+    id: '/pos/new-order',
+    path: '/pos/new-order',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPosOrdersRoute = AuthenticatedPosOrdersRouteImport.update({
+  id: '/pos/orders',
+  path: '/pos/orders',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedPosShiftsRoute = AuthenticatedPosShiftsRouteImport.update({
   id: '/pos/shifts',
   path: '/pos/shifts',
@@ -154,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
   '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
+  '/inventory/receiving': typeof AuthenticatedInventoryReceivingRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/inventory/transfers': typeof AuthenticatedInventoryTransfersRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
@@ -163,6 +184,8 @@ export interface FileRoutesByFullPath {
   '/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/master/suppliers': typeof AuthenticatedMasterSuppliersRoute
   '/master/uom': typeof AuthenticatedMasterUomRoute
+  '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
+  '/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
   '/pos/tables': typeof AuthenticatedPosTablesRoute
   '/pos/vouchers': typeof AuthenticatedPosVouchersRoute
@@ -176,6 +199,7 @@ export interface FileRoutesByTo {
   '/demo': typeof AuthenticatedDemoRoute
   '/': typeof AuthenticatedIndexRoute
   '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
+  '/inventory/receiving': typeof AuthenticatedInventoryReceivingRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/inventory/transfers': typeof AuthenticatedInventoryTransfersRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
@@ -185,6 +209,8 @@ export interface FileRoutesByTo {
   '/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/master/suppliers': typeof AuthenticatedMasterSuppliersRoute
   '/master/uom': typeof AuthenticatedMasterUomRoute
+  '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
+  '/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
   '/pos/tables': typeof AuthenticatedPosTablesRoute
   '/pos/vouchers': typeof AuthenticatedPosVouchersRoute
@@ -200,6 +226,7 @@ export interface FileRoutesById {
   '/_authenticated/demo': typeof AuthenticatedDemoRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
+  '/_authenticated/inventory/receiving': typeof AuthenticatedInventoryReceivingRoute
   '/_authenticated/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/_authenticated/inventory/transfers': typeof AuthenticatedInventoryTransfersRoute
   '/_authenticated/master/locations': typeof AuthenticatedMasterLocationsRoute
@@ -209,6 +236,8 @@ export interface FileRoutesById {
   '/_authenticated/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/_authenticated/master/suppliers': typeof AuthenticatedMasterSuppliersRoute
   '/_authenticated/master/uom': typeof AuthenticatedMasterUomRoute
+  '/_authenticated/pos/new-order': typeof AuthenticatedPosNewOrderRoute
+  '/_authenticated/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/_authenticated/pos/shifts': typeof AuthenticatedPosShiftsRoute
   '/_authenticated/pos/tables': typeof AuthenticatedPosTablesRoute
   '/_authenticated/pos/vouchers': typeof AuthenticatedPosVouchersRoute
@@ -224,6 +253,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/demo'
     | '/inventory/opname'
+    | '/inventory/receiving'
     | '/inventory/stock'
     | '/inventory/transfers'
     | '/master/locations'
@@ -233,6 +263,8 @@ export interface FileRouteTypes {
     | '/master/recipes'
     | '/master/suppliers'
     | '/master/uom'
+    | '/pos/new-order'
+    | '/pos/orders'
     | '/pos/shifts'
     | '/pos/tables'
     | '/pos/vouchers'
@@ -246,6 +278,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/'
     | '/inventory/opname'
+    | '/inventory/receiving'
     | '/inventory/stock'
     | '/inventory/transfers'
     | '/master/locations'
@@ -255,6 +288,8 @@ export interface FileRouteTypes {
     | '/master/recipes'
     | '/master/suppliers'
     | '/master/uom'
+    | '/pos/new-order'
+    | '/pos/orders'
     | '/pos/shifts'
     | '/pos/tables'
     | '/pos/vouchers'
@@ -269,6 +304,7 @@ export interface FileRouteTypes {
     | '/_authenticated/demo'
     | '/_authenticated/'
     | '/_authenticated/inventory/opname'
+    | '/_authenticated/inventory/receiving'
     | '/_authenticated/inventory/stock'
     | '/_authenticated/inventory/transfers'
     | '/_authenticated/master/locations'
@@ -278,6 +314,8 @@ export interface FileRouteTypes {
     | '/_authenticated/master/recipes'
     | '/_authenticated/master/suppliers'
     | '/_authenticated/master/uom'
+    | '/_authenticated/pos/new-order'
+    | '/_authenticated/pos/orders'
     | '/_authenticated/pos/shifts'
     | '/_authenticated/pos/tables'
     | '/_authenticated/pos/vouchers'
@@ -334,6 +372,13 @@ declare module '@tanstack/react-router' {
       path: '/inventory/opname'
       fullPath: '/inventory/opname'
       preLoaderRoute: typeof AuthenticatedInventoryOpnameRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inventory/receiving': {
+      id: '/_authenticated/inventory/receiving'
+      path: '/inventory/receiving'
+      fullPath: '/inventory/receiving'
+      preLoaderRoute: typeof AuthenticatedInventoryReceivingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/inventory/stock': {
@@ -399,6 +444,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMasterUomRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/pos/new-order': {
+      id: '/_authenticated/pos/new-order'
+      path: '/pos/new-order'
+      fullPath: '/pos/new-order'
+      preLoaderRoute: typeof AuthenticatedPosNewOrderRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/pos/orders': {
+      id: '/_authenticated/pos/orders'
+      path: '/pos/orders'
+      fullPath: '/pos/orders'
+      preLoaderRoute: typeof AuthenticatedPosOrdersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/pos/shifts': {
       id: '/_authenticated/pos/shifts'
       path: '/pos/shifts'
@@ -448,6 +507,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDemoRoute: typeof AuthenticatedDemoRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedInventoryOpnameRoute: typeof AuthenticatedInventoryOpnameRoute
+  AuthenticatedInventoryReceivingRoute: typeof AuthenticatedInventoryReceivingRoute
   AuthenticatedInventoryStockRoute: typeof AuthenticatedInventoryStockRoute
   AuthenticatedInventoryTransfersRoute: typeof AuthenticatedInventoryTransfersRoute
   AuthenticatedMasterLocationsRoute: typeof AuthenticatedMasterLocationsRoute
@@ -457,6 +517,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMasterRecipesRoute: typeof AuthenticatedMasterRecipesRoute
   AuthenticatedMasterSuppliersRoute: typeof AuthenticatedMasterSuppliersRoute
   AuthenticatedMasterUomRoute: typeof AuthenticatedMasterUomRoute
+  AuthenticatedPosNewOrderRoute: typeof AuthenticatedPosNewOrderRoute
+  AuthenticatedPosOrdersRoute: typeof AuthenticatedPosOrdersRoute
   AuthenticatedPosShiftsRoute: typeof AuthenticatedPosShiftsRoute
   AuthenticatedPosTablesRoute: typeof AuthenticatedPosTablesRoute
   AuthenticatedPosVouchersRoute: typeof AuthenticatedPosVouchersRoute
@@ -469,6 +531,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDemoRoute: AuthenticatedDemoRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedInventoryOpnameRoute: AuthenticatedInventoryOpnameRoute,
+  AuthenticatedInventoryReceivingRoute: AuthenticatedInventoryReceivingRoute,
   AuthenticatedInventoryStockRoute: AuthenticatedInventoryStockRoute,
   AuthenticatedInventoryTransfersRoute: AuthenticatedInventoryTransfersRoute,
   AuthenticatedMasterLocationsRoute: AuthenticatedMasterLocationsRoute,
@@ -479,6 +542,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMasterRecipesRoute: AuthenticatedMasterRecipesRoute,
   AuthenticatedMasterSuppliersRoute: AuthenticatedMasterSuppliersRoute,
   AuthenticatedMasterUomRoute: AuthenticatedMasterUomRoute,
+  AuthenticatedPosNewOrderRoute: AuthenticatedPosNewOrderRoute,
+  AuthenticatedPosOrdersRoute: AuthenticatedPosOrdersRoute,
   AuthenticatedPosShiftsRoute: AuthenticatedPosShiftsRoute,
   AuthenticatedPosTablesRoute: AuthenticatedPosTablesRoute,
   AuthenticatedPosVouchersRoute: AuthenticatedPosVouchersRoute,

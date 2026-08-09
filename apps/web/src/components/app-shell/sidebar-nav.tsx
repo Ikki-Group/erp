@@ -9,6 +9,7 @@ import {
 	LayersIcon,
 	MapPinIcon,
 	PackageIcon,
+	PlusCircleIcon,
 	RulerIcon,
 	SettingsIcon,
 	ShieldCheckIcon,
@@ -54,7 +55,8 @@ const navGroups = [
 	{
 		label: 'POS',
 		items: [
-			{ title: 'Orders', icon: ShoppingCartIcon, href: '#' },
+			{ title: 'New Order', icon: PlusCircleIcon, href: '/pos/new-order' },
+			{ title: 'Orders', icon: ShoppingCartIcon, href: '/pos/orders' },
 			{ title: 'Vouchers', icon: TagIcon, href: '/pos/vouchers' },
 			{ title: 'Tables', icon: LayersIcon, href: '/pos/tables' },
 			{ title: 'Shifts', icon: ClockIcon, href: '/pos/shifts' },
@@ -64,6 +66,7 @@ const navGroups = [
 		label: 'Inventory',
 		items: [
 			{ title: 'Stock', icon: PackageIcon, href: '/inventory/stock' },
+			{ title: 'Penerimaan', icon: TruckIcon, href: '/inventory/receiving' },
 			{ title: 'Transfers', icon: ClipboardListIcon, href: '/inventory/transfers' },
 		],
 	},
