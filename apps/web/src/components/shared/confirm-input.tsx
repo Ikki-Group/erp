@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { createCallable } from 'react-call'
+
 import { AlertTriangleIcon } from 'lucide-react'
+import { createCallable } from 'react-call'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -13,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Spinner } from '@/components/ui/spinner'
 
 interface ConfirmInputProps {
 	title: string
@@ -22,6 +24,11 @@ interface ConfirmInputProps {
 	cancelLabel?: string
 	inputLabel?: string
 	inputPlaceholder?: string
+	/**
+	 * Optional async action. When provided, the dialog stays open with a loading
+	 * spinner until the promise resolves. If it throws, the dialog remains open.
+	 */
+	onConfirm?: () => Promise<void>
 }
 
 type ConfirmInputResponse = boolean
@@ -38,15 +45,35 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 		cancelLabel = 'Cancel',
 		inputLabel,
 		inputPlaceholder,
+		onConfirm,
 	}) => {
 		const [value, setValue] = useState('')
+		const [loading, setLoading] = useState(false)
+		const [error, setError] = useState<string | null>(null)
 		const isMatch = value === confirmWord
+
+		const handleConfirm = async () => {
+			if (!onConfirm) {
+				call.end(true)
+				return
+			}
+
+			setLoading(true)
+			setError(null)
+			try {
+				await onConfirm()
+				call.end(true)
+			} catch (e) {
+				setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
+				setLoading(false)
+			}
+		}
 
 		return (
 			<Dialog
 				open={!call.ended}
 				onOpenChange={(open) => {
-					if (!open) call.end(false)
+					if (!open && !loading) call.end(false)
 				}}
 			>
 				<DialogContent>
@@ -73,18 +100,25 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 							placeholder={inputPlaceholder ?? confirmWord}
 							autoComplete="off"
 							autoFocus
+							disabled={loading}
 						/>
 					</div>
+					{error && (
+						<p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+							{error}
+						</p>
+					)}
 					<DialogFooter>
-						<Button variant="outline" onClick={() => call.end(false)}>
+						<Button variant="outline" onClick={() => call.end(false)} disabled={loading}>
 							{cancelLabel}
 						</Button>
 						<Button
 							variant="destructive"
 							className="bg-destructive text-white hover:bg-destructive/90"
-							disabled={!isMatch}
-							onClick={() => call.end(true)}
+							disabled={!isMatch || loading}
+							onClick={handleConfirm}
 						>
+							{loading && <Spinner className="mr-1.5 size-3.5" />}
 							{confirmLabel}
 						</Button>
 					</DialogFooter>
@@ -96,18 +130,20 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 )
 
 /**
- * Imperative confirm dialog that requires typing a confirmation word.
- * Returns `true` only when the user types the exact word and clicks confirm.
+ * Imperative confirm dialog requiring typed confirmation word.
+ * Supports async actions with loading state.
  *
  * @example
  * ```tsx
  * const accepted = await confirmInput({
  *   title: 'Delete "Coffee Beans"?',
- *   description: 'This action is permanent and cannot be undone.',
+ *   description: 'This is permanent.',
  *   confirmWord: 'Coffee Beans',
  *   confirmLabel: 'Delete permanently',
+ *   onConfirm: async () => {
+ *     await api.deleteMaterial(id)
+ *   },
  * })
- * if (accepted) { // proceed }
  * ```
  */
 export const confirmInput = ConfirmInput.call

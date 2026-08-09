@@ -545,7 +545,7 @@ function DesignSystemPage() {
 				title="Confirm (react-call)"
 				description="Imperative awaitable confirm dialog. No state management needed."
 			>
-				<div className="flex gap-3">
+				<div className="flex flex-wrap gap-3">
 					<Button
 						variant="destructive"
 						size="sm"
@@ -560,7 +560,7 @@ function DesignSystemPage() {
 							if (accepted) alert('Deleted!')
 						}}
 					>
-						Delete (await confirm)
+						Simple confirm
 					</Button>
 					<Button
 						variant="outline"
@@ -570,11 +570,33 @@ function DesignSystemPage() {
 								title: 'Approve transfer?',
 								description: 'Once approved, stock will be deducted from the source location.',
 								confirmLabel: 'Approve',
+								onConfirm: async () => {
+									await new Promise((r) => setTimeout(r, 2000))
+								},
 							})
 							if (accepted) alert('Approved!')
 						}}
 					>
-						Approve (await confirm)
+						Async confirm (2s delay)
+					</Button>
+					<Button
+						variant="destructive"
+						size="sm"
+						onClick={async () => {
+							const accepted = await confirm({
+								title: 'Delete with error?',
+								description: 'This will simulate a failed async action.',
+								confirmLabel: 'Delete',
+								variant: 'destructive',
+								onConfirm: async () => {
+									await new Promise((r) => setTimeout(r, 1000))
+									throw new Error('Network error: could not reach server')
+								},
+							})
+							if (accepted) alert('Deleted!')
+						}}
+					>
+						Async confirm (fails)
 					</Button>
 				</div>
 			</PageSection>
@@ -586,7 +608,7 @@ function DesignSystemPage() {
 				title="Confirm Input (react-call)"
 				description="Requires typing a confirmation word before the action can proceed."
 			>
-				<div className="flex gap-3">
+				<div className="flex flex-wrap gap-3">
 					<Button
 						variant="destructive"
 						size="sm"
@@ -601,7 +623,25 @@ function DesignSystemPage() {
 							if (accepted) alert('Deleted!')
 						}}
 					>
-						Delete with input confirmation
+						Simple input confirm
+					</Button>
+					<Button
+						variant="destructive"
+						size="sm"
+						onClick={async () => {
+							const accepted = await confirmInput({
+								title: 'Delete "Coffee Beans"?',
+								description: 'This will simulate an async deletion with loading state.',
+								confirmWord: 'Coffee Beans',
+								confirmLabel: 'Delete permanently',
+								onConfirm: async () => {
+									await new Promise((r) => setTimeout(r, 2000))
+								},
+							})
+							if (accepted) alert('Deleted!')
+						}}
+					>
+						Async input confirm (2s)
 					</Button>
 				</div>
 			</PageSection>
