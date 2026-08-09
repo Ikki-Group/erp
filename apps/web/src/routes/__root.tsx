@@ -8,6 +8,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { Confirm } from '@/components/shared/confirm'
 import { ConfirmInput } from '@/components/shared/confirm-input'
 import { FormDialog } from '@/components/shared/form-dialog'
+import { NotFound } from '@/components/shared/not-found'
 
 import { Toaster } from '@/components/ui/toast'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -41,12 +42,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			},
 		],
 	}),
-	notFoundComponent: () => (
-		<main className="container mx-auto p-4 pt-16">
-			<h1>404</h1>
-			<p>The requested page could not be found.</p>
-		</main>
-	),
+	notFoundComponent: () => <NotFound className="min-h-svh" />,
 	shellComponent: RootComponent,
 })
 

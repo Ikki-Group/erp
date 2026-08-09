@@ -3,6 +3,7 @@ import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { queryClient } from '@/lib/tanstack-query.ts'
 
 import { AppShell } from '@/components/app-shell'
+import { NotFound } from '@/components/shared/not-found'
 
 import { authMeQuery } from '@/features/auth/api.ts'
 
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/_authenticated')({
 			throw redirect({ to: '/login' })
 		}
 	},
+	notFoundComponent: () => <NotFound />,
 	component: AuthenticatedLayout,
 })
 
