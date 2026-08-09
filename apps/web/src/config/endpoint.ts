@@ -19,8 +19,25 @@ const auth = {
 	switchLocation: 'auth/switch-location',
 }
 
+const location = crud('location')
+
+const iam = {
+	role: crud('iam/role'),
+	user: {
+		...crud('iam/user'),
+		deactivate: p('iam/user', 'deactivate'),
+	},
+	assignment: {
+		list: p('iam/assignment', 'list'),
+		assign: p('iam/assignment', 'assign'),
+		remove: p('iam/assignment', 'remove'),
+	},
+}
+
 export const endpoint = {
 	auth,
+	location,
+	iam,
 } as const
 
 export { crud, p }

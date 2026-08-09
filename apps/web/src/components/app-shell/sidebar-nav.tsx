@@ -1,3 +1,5 @@
+import { Link, useLocation } from '@tanstack/react-router'
+
 import {
 	BoxesIcon,
 	ChefHatIcon,
@@ -36,7 +38,7 @@ const navGroups = [
 	{
 		label: 'Master',
 		items: [
-			{ title: 'Locations', icon: MapPinIcon, href: '#' },
+			{ title: 'Locations', icon: MapPinIcon, href: '/master/locations' },
 			{ title: 'Materials', icon: BoxesIcon, href: '#' },
 			{ title: 'Suppliers', icon: TruckIcon, href: '#' },
 			{ title: 'Menu', icon: UtensilsCrossedIcon, href: '#' },
@@ -69,6 +71,8 @@ const navGroups = [
 ]
 
 export function SidebarNav() {
+	const location = useLocation()
+
 	return (
 		<Sidebar>
 			<SidebarHeader>
@@ -85,14 +89,26 @@ export function SidebarNav() {
 						<SidebarGroupLabel>{group.label}</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<SidebarMenu>
-								{group.items.map((item) => (
-									<SidebarMenuItem key={item.title}>
-										<SidebarMenuButton>
-											<item.icon />
-											<span>{item.title}</span>
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								))}
+								{group.items.map((item) => {
+									const isActive = item.href !== '#' && location.pathname === item.href
+									const isDisabled = item.href === '#'
+
+									return (
+										<SidebarMenuItem key={item.title}>
+											{isDisabled ? (
+												<SidebarMenuButton disabled>
+													<item.icon />
+													<span>{item.title}</span>
+												</SidebarMenuButton>
+											) : (
+												<SidebarMenuButton isActive={isActive} render={<Link to={item.href} />}>
+													<item.icon />
+													<span>{item.title}</span>
+												</SidebarMenuButton>
+											)}
+										</SidebarMenuItem>
+									)
+								})}
 							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>

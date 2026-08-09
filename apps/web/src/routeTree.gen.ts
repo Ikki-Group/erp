@@ -14,6 +14,7 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
+import { Route as AuthenticatedMasterLocationsRouteImport } from './routes/_authenticated/master/locations'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -39,18 +40,26 @@ const AuthenticatedDemoRoute = AuthenticatedDemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMasterLocationsRoute =
+  AuthenticatedMasterLocationsRouteImport.update({
+    id: '/master/locations',
+    path: '/master/locations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/design-system': typeof DesignSystemRoute
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
+  '/master/locations': typeof AuthenticatedMasterLocationsRoute
 }
 export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
   '/': typeof AuthenticatedIndexRoute
+  '/master/locations': typeof AuthenticatedMasterLocationsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +68,13 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/demo': typeof AuthenticatedDemoRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/master/locations': typeof AuthenticatedMasterLocationsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design-system' | '/login' | '/demo'
+  fullPaths: '/' | '/design-system' | '/login' | '/demo' | '/master/locations'
   fileRoutesByTo: FileRoutesByTo
-  to: '/design-system' | '/login' | '/demo' | '/'
+  to: '/design-system' | '/login' | '/demo' | '/' | '/master/locations'
   id:
     | '__root__'
     | '/_authenticated'
@@ -72,6 +82,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/demo'
     | '/_authenticated/'
+    | '/_authenticated/master/locations'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,17 +128,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDemoRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/master/locations': {
+      id: '/_authenticated/master/locations'
+      path: '/master/locations'
+      fullPath: '/master/locations'
+      preLoaderRoute: typeof AuthenticatedMasterLocationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDemoRoute: typeof AuthenticatedDemoRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedMasterLocationsRoute: typeof AuthenticatedMasterLocationsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDemoRoute: AuthenticatedDemoRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedMasterLocationsRoute: AuthenticatedMasterLocationsRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
