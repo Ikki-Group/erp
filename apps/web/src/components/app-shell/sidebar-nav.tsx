@@ -46,7 +46,7 @@ const navGroups = [
 			{ title: 'Suppliers', icon: TruckIcon, href: '#' },
 			{ title: 'Menu', icon: UtensilsCrossedIcon, href: '#' },
 			{ title: 'Recipes', icon: ChefHatIcon, href: '#' },
-			{ title: 'Payment Methods', icon: WalletIcon, href: '#' },
+			{ title: 'Payment Methods', icon: WalletIcon, href: '/master/payment-methods' },
 		],
 	},
 	{

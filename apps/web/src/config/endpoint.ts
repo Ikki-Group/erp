@@ -43,11 +43,46 @@ const uom = {
 	},
 }
 
+const material = {
+	...crud('material'),
+	category: crud('material/category'),
+	assignment: {
+		assign: p('material', 'assignment', 'assign'),
+		unassign: p('material', 'assignment', 'unassign'),
+		byLocation: p('material', 'assignment', 'by-location'),
+	},
+}
+
+const paymentMethod = {
+	...crud('payment-method'),
+	byLocation: p('payment-method', 'by-location'),
+	location: {
+		assign: p('payment-method', 'location', 'assign'),
+		unassign: p('payment-method', 'location', 'unassign'),
+	},
+}
+
+const inventory = {
+	stock: {
+		balance: p('inventory/stock', 'balance'),
+		list: p('inventory/stock', 'list'),
+		movements: p('inventory/stock', 'movements'),
+	},
+}
+
+const pos = {
+	voucher: crud('pos/voucher'),
+}
+
 export const endpoint = {
 	auth,
 	location,
 	iam,
 	uom,
+	material,
+	paymentMethod,
+	inventory,
+	pos,
 } as const
 
 export { crud, p }
