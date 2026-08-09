@@ -15,6 +15,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
 import { Route as AuthenticatedMasterLocationsRouteImport } from './routes/_authenticated/master/locations'
+import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings/roles'
+import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings/users'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -46,6 +48,18 @@ const AuthenticatedMasterLocationsRoute =
     path: '/master/locations',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSettingsRolesRoute =
+  AuthenticatedSettingsRolesRouteImport.update({
+    id: '/settings/roles',
+    path: '/settings/roles',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsUsersRoute =
+  AuthenticatedSettingsUsersRouteImport.update({
+    id: '/settings/users',
+    path: '/settings/users',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -53,6 +67,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
+  '/settings/roles': typeof AuthenticatedSettingsRolesRoute
+  '/settings/users': typeof AuthenticatedSettingsUsersRoute
 }
 export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
@@ -60,6 +76,8 @@ export interface FileRoutesByTo {
   '/demo': typeof AuthenticatedDemoRoute
   '/': typeof AuthenticatedIndexRoute
   '/master/locations': typeof AuthenticatedMasterLocationsRoute
+  '/settings/roles': typeof AuthenticatedSettingsRolesRoute
+  '/settings/users': typeof AuthenticatedSettingsUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,12 +87,28 @@ export interface FileRoutesById {
   '/_authenticated/demo': typeof AuthenticatedDemoRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/master/locations': typeof AuthenticatedMasterLocationsRoute
+  '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
+  '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design-system' | '/login' | '/demo' | '/master/locations'
+  fullPaths:
+    | '/'
+    | '/design-system'
+    | '/login'
+    | '/demo'
+    | '/master/locations'
+    | '/settings/roles'
+    | '/settings/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/design-system' | '/login' | '/demo' | '/' | '/master/locations'
+  to:
+    | '/design-system'
+    | '/login'
+    | '/demo'
+    | '/'
+    | '/master/locations'
+    | '/settings/roles'
+    | '/settings/users'
   id:
     | '__root__'
     | '/_authenticated'
@@ -83,6 +117,8 @@ export interface FileRouteTypes {
     | '/_authenticated/demo'
     | '/_authenticated/'
     | '/_authenticated/master/locations'
+    | '/_authenticated/settings/roles'
+    | '/_authenticated/settings/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -135,6 +171,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMasterLocationsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/settings/roles': {
+      id: '/_authenticated/settings/roles'
+      path: '/settings/roles'
+      fullPath: '/settings/roles'
+      preLoaderRoute: typeof AuthenticatedSettingsRolesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/users': {
+      id: '/_authenticated/settings/users'
+      path: '/settings/users'
+      fullPath: '/settings/users'
+      preLoaderRoute: typeof AuthenticatedSettingsUsersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -142,12 +192,16 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDemoRoute: typeof AuthenticatedDemoRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedMasterLocationsRoute: typeof AuthenticatedMasterLocationsRoute
+  AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
+  AuthenticatedSettingsUsersRoute: typeof AuthenticatedSettingsUsersRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDemoRoute: AuthenticatedDemoRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedMasterLocationsRoute: AuthenticatedMasterLocationsRoute,
+  AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
+  AuthenticatedSettingsUsersRoute: AuthenticatedSettingsUsersRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

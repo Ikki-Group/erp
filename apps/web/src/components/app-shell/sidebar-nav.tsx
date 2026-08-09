@@ -9,6 +9,7 @@ import {
 	MapPinIcon,
 	PackageIcon,
 	SettingsIcon,
+	ShieldCheckIcon,
 	ShoppingCartIcon,
 	StoreIcon,
 	TruckIcon,
@@ -64,7 +65,8 @@ const navGroups = [
 		label: 'Settings',
 		items: [
 			{ title: 'Company', icon: StoreIcon, href: '#' },
-			{ title: 'Users', icon: UsersIcon, href: '#' },
+			{ title: 'Users', icon: UsersIcon, href: '/settings/users' },
+			{ title: 'Roles', icon: ShieldCheckIcon, href: '/settings/roles' },
 			{ title: 'General', icon: SettingsIcon, href: '#' },
 		],
 	},
