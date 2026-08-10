@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zc, zp } from '@/shared/schema/index.ts'
+import { zc, zp } from '@/shared/schema'
 
 // ─── Request DTOs ───
 

@@ -7,7 +7,8 @@ const logger = getLogger(['server', 'error'])
 
 export function errorPlugin() {
 	return new Elysia({ name: 'error-plugin' })
-		.onError(({ code, error, set }) => {
+		.onError((ctx) => {
+			const { code, error, set, path } = ctx
 			// Elysia validation error (body/query/params schema failed)
 			if (code === 'VALIDATION') {
 				set.status = 422
@@ -20,7 +21,7 @@ export function errorPlugin() {
 							}))
 						: []
 
-				logger.warn('Validation failed', { issues, error })
+				logger.warn('Validation failed', { path, issues, value: error.value })
 
 				return {
 					success: false,
@@ -40,6 +41,7 @@ export function errorPlugin() {
 					error: {
 						code: 'ROUTE_NOT_FOUND',
 						message: 'The requested endpoint does not exist',
+						context: { path },
 					},
 				}
 			}
@@ -52,17 +54,20 @@ export function errorPlugin() {
 						code: error.code,
 						message: error.message,
 						context: error.context,
+						path,
 					})
 				} else {
 					logger.warn('Client error', {
 						code: error.code,
 						message: error.message,
 						context: error.context,
+						path,
 					})
 				}
 				return {
 					success: false,
 					error: {
+						path,
 						code: error.code,
 						message: error.message,
 						...(error.context && { context: error.context }),
@@ -74,10 +79,11 @@ export function errorPlugin() {
 			set.status = 500
 			const message = error instanceof Error ? error.message : 'Unknown error'
 			const stack = error instanceof Error ? error.stack : undefined
-			logger.error('Unhandled error', { message, stack })
+			logger.error('Unhandled error', { path, message, stack })
 			return {
 				success: false,
 				error: {
+					path,
 					code: 'INTERNAL_SERVER_ERROR',
 					message: 'An unexpected error occurred',
 				},
