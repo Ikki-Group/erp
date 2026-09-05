@@ -17,7 +17,7 @@ The single source of truth for implementation status. **The implementer updates 
 
 | ID | Item | Ticket | Status | Verify | Deps | Commit | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| P0.1 | Neon WebSocket client + `DbContext`/`Tx` | [T-001](./tickets/T-001-db-client.md) | todo | ⬜ | — | | |
+| P0.1 | Neon WebSocket client + `DbContext`/`Tx` | [T-001](./tickets/T-001-db-client.md) | done | ✅ | — | `0bc0143e` | Real Neon WebSocket client, transaction rollback self-check, and baseline gates fixed. |
 | P0.2 | `UnitOfWork` port + adapter | [T-002](./tickets/T-002-uow.md) | todo | ⬜ | P0.1 | | |
 | P0.3 | `CachePort` + memory adapter | [T-003](./tickets/T-003-cache-port.md) | todo | ⬜ | — | | |
 | P0.4 | `EventBusPort` + memory adapter | [T-004](./tickets/T-004-event-bus.md) | todo | ⬜ | — | | |
@@ -76,10 +76,10 @@ The single source of truth for implementation status. **The implementer updates 
 
 ## Rollup
 
-- Phase 0: 0 / 9 done
+- Phase 0: 1 / 9 done
 - Phase 1: 0 / 3 done
 - Phase 2: 0 / 8 done
 - Phase 3: 0 / 9 done
-- **Total: 0 / 29 done**
+- **Total: 1 / 29 done**
 
 > Update the rollup counts when you mark a row `done`.
