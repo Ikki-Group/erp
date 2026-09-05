@@ -135,11 +135,11 @@ describe('auth', () => {
 			expect(res.status).toBe(422)
 
 			const body: Json = await json(res)
-			// Elysia validation error structure
-			expect(body.type).toBe('validation')
-			expect(body.on).toBe('body')
-			expect(body.errors).toBeInstanceOf(Array)
-			expect(body.errors.length).toBeGreaterThan(0)
+			expect(body.success).toBe(false)
+			expect(body.error.code).toBe('VALIDATION_ERROR')
+			expect(body.error.message).toBe('Request validation failed')
+			expect(body.error.context.issues).toBeInstanceOf(Array)
+			expect(body.error.context.issues.length).toBeGreaterThan(0)
 		})
 
 		test('success response has envelope with data', async () => {

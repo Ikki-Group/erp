@@ -1,7 +1,32 @@
 {
 	"$schema": "https://unpkg.com/knip@6/schema.json",
-	"entry": ["src/server.ts", "src/infra/otel/otel.ts", "src/tests/**/*.test.ts"],
+	"entry": [
+		"src/server.ts",
+		"src/infra/otel/otel.ts",
+		"src/tests/**/*.test.ts",
+		"src/infra/index.ts",
+		"src/infra/logger/request-context.ts",
+		"src/infra/database/index.ts",
+		"src/infra/numbering/index.ts",
+		"src/shared/schema/index.ts",
+		"src/shared/auth/index.ts",
+		"src/server/plugins/auth.plugin.ts",
+		"src/tests/helpers/request.ts",
+		"src/modules/**/index.ts",
+		"src/modules/**/*.contract.ts",
+		"src/shared/types/pagination.ts",
+		"src/shared/types/utils.ts"
+	],
 	"project": ["src/**/*.ts"],
-	"ignoreDependencies": ["@total-typescript/ts-reset", "bcrypt", "lint-staged"],
+	"ignoreDependencies": [
+		"@total-typescript/ts-reset",
+		"bcrypt",
+		"lint-staged",
+		"ws",
+		"@types/ws"
+	],
 	"ignoreBinaries": ["flyctl"],
+	"ignoreIssues": {
+		"src/server/plugins/auth.plugin.ts": ["duplicates"]
+	}
 }

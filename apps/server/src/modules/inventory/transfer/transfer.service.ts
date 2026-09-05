@@ -1,7 +1,6 @@
 import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
-import { withTransaction } from '@/infra/database/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { record } from '@/infra/otel/otel.ts'
 import { stampCreate } from '@/shared/audit/stamp.ts'
@@ -84,7 +83,7 @@ export class TransferService {
 		})
 
 		// 5. Insert transfer + lines
-		const result = await withTransaction(this.repo.db, async (tx) => {
+		const result = await this.repo.db.transaction(async (tx) => {
 			const created = await this.repo.insert(
 				{
 					transferNo,

@@ -1,19 +1,12 @@
-import { neon } from '@neondatabase/serverless'
 import { sql, eq, and, or, ilike, inArray, asc, desc } from 'drizzle-orm'
-import { drizzle } from 'drizzle-orm/neon-http'
 
-import { env } from '@/shared/config/env.ts'
 import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination.ts'
 
 import type { SQL } from 'drizzle-orm'
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
-// ─── DB Client ───
-
-const queryClient = neon(env.DATABASE_URL)
-export const db = drizzle({ client: queryClient })
-
-export type DbContext = typeof db
+export { db } from './client.ts'
+export type { DbContext, Tx } from './client.ts'
 
 // ─── Query Helpers ───
 
@@ -84,17 +77,6 @@ export function searchFilter(column: PgColumn, term: string | undefined): SQL | 
 export function searchAcross(term: string | undefined, columns: PgColumn[]): SQL | undefined {
 	if (!term || term.trim() === '') return undefined
 	return anyOf(...columns.map((col) => searchFilter(col, term)))
-}
-
-// ─── Transaction ───
-
-export async function withTransaction<T>(
-	database: DbContext,
-	fn: (tx: DbContext) => Promise<T>,
-): Promise<T> {
-	// neon-http does not support interactive transactions — use neon-serverless WebSocket for that
-	// For now, execute sequentially (single-statement atomicity)
-	return fn(database)
 }
 
 // ─── Conflict Check ───

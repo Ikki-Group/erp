@@ -1,7 +1,6 @@
 import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
-import { withTransaction } from '@/infra/database/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { stampCreate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
@@ -82,7 +81,7 @@ export class OpnameService {
 		}
 
 		// 5. Insert opname + lines in transaction
-		const result = await withTransaction(this.repo.db, async (tx) => {
+		const result = await this.repo.db.transaction(async (tx) => {
 			const created = await this.repo.insert(
 				{
 					opnameNo,

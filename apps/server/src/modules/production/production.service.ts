@@ -1,7 +1,6 @@
 import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
-import { withTransaction } from '@/infra/database/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { record } from '@/infra/otel/otel.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
@@ -87,7 +86,7 @@ export class ProductionService {
 		}
 
 		// 4. Insert recipe + lines in transaction
-		const result = await withTransaction(this.repo.db, async (tx) => {
+		const result = await this.repo.db.transaction(async (tx) => {
 			const created = await this.repo.insertRecipe(
 				{
 					materialId: data.outputMaterialId,
@@ -163,7 +162,7 @@ export class ProductionService {
 		}
 
 		// 4. Update recipe + lines in transaction
-		const result = await withTransaction(this.repo.db, async (tx) => {
+		const result = await this.repo.db.transaction(async (tx) => {
 			const updated = await this.repo.updateRecipe(
 				data.recipeId,
 				{
@@ -327,7 +326,7 @@ export class ProductionService {
 			const multiplier = safeDivide(toDecimal(order.plannedQty), toDecimal(recipe.yieldQty))
 
 			// 4. Process within transaction
-			const result = await withTransaction(this.repo.db, async (tx) => {
+			const result = await this.repo.db.transaction(async (tx) => {
 				let totalInputCost = toDecimal(0)
 
 				// 4a. For each input line: convert to base UoM, get cost, record movement out

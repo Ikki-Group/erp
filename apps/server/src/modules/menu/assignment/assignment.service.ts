@@ -1,7 +1,6 @@
 import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
-import { withTransaction } from '@/infra/database/index.ts'
 import { BadRequestError } from '@/shared/errors/http-error.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 
@@ -51,7 +50,7 @@ export class AssignmentService {
 		}
 
 		// 3. Replace assignments in transaction
-		await withTransaction(this.repo.db, async (tx) => {
+		await this.repo.db.transaction(async (tx) => {
 			await this.repo.replaceForItem(menuItemId, groups, tx)
 		})
 

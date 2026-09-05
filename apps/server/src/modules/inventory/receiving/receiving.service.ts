@@ -1,7 +1,6 @@
 import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
-import { withTransaction } from '@/infra/database/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { record } from '@/infra/otel/otel.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
@@ -85,7 +84,7 @@ export class ReceivingService {
 		})
 
 		// 5. Insert receiving + lines in transaction
-		const result = await withTransaction(this.repo.db, async (tx) => {
+		const result = await this.repo.db.transaction(async (tx) => {
 			const created = await this.repo.insert(
 				{
 					receivingNo,
@@ -169,7 +168,7 @@ export class ReceivingService {
 		}
 
 		// 4. Update receiving + lines in transaction
-		const result = await withTransaction(this.repo.db, async (tx) => {
+		const result = await this.repo.db.transaction(async (tx) => {
 			const updated = await this.repo.update(
 				data.receivingId,
 				{

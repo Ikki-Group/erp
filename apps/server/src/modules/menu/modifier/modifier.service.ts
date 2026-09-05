@@ -4,7 +4,7 @@ import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
-import { defineConflictFields, withTransaction } from '@/infra/database/index.ts'
+import { defineConflictFields } from '@/infra/database/index.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
@@ -112,7 +112,7 @@ export class ModifierService {
 		})
 
 		// 2. Create group + options in transaction
-		const result = await withTransaction(this.repo.db, async (tx) => {
+		const result = await this.repo.db.transaction(async (tx) => {
 			const created = await this.repo.insert({ ...groupData, ...stampCreate(actorId) }, tx)
 			if (!created) throw ModifierError.createFailed()
 
@@ -159,7 +159,7 @@ export class ModifierService {
 		})
 
 		// 3. Update group + replace options in transaction
-		const result = await withTransaction(this.repo.db, async (tx) => {
+		const result = await this.repo.db.transaction(async (tx) => {
 			const updated = await this.repo.update(id, { ...updateData, ...stampUpdate(actorId) }, tx)
 			if (!updated) throw ModifierError.updateFailed(id)
 
