@@ -1,27 +1,37 @@
-import type { CacheClient } from '@/infra/cache/index.ts'
+import { cache } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 
-import type { LocationService } from '@/modules/location/location.service.ts'
+import type { LocationApi } from '@/modules/location/index.ts'
 
 import { PaymentMethodRepo } from './payment-method.repo.ts'
 import { createPaymentMethodRoute } from './payment-method.route.ts'
 import { PaymentMethodService } from './payment-method.service.ts'
 
-// ─── Dependencies ───
-
-export interface PaymentMethodModuleDeps {
-	locationService: LocationService
+function createPaymentMethodModule(db: DbContext, locationService: LocationApi['service']) {
+	const service = new PaymentMethodService(new PaymentMethodRepo(db), cache, locationService)
+	return { route: createPaymentMethodRoute(service), service }
 }
 
-// ─── Module Factory ───
+function isLocationApi(api: Record<string, unknown> | undefined): api is LocationApi {
+	return Boolean(api?.service && typeof api.service === 'object')
+}
+export interface PaymentMethodApi extends Record<string, unknown> {
+	service: PaymentMethodService
+	byLocation: PaymentMethodService['handleByLocation']
+}
 
-export function createPaymentMethodModule(
-	db: DbContext,
-	cacheClient: CacheClient,
-	deps: PaymentMethodModuleDeps,
-) {
-	const repo = new PaymentMethodRepo(db)
-	const service = new PaymentMethodService(repo, cacheClient, deps.locationService)
-	const route = createPaymentMethodRoute(service)
-	return { route, service }
+export const paymentMethodModule: ModuleDescriptor = {
+	name: 'payment-method',
+	layer: 1,
+	dependsOn: ['location'],
+	create(ctx, deps) {
+		if (!isLocationApi(deps.location?.api)) throw new Error('Location API dependency is missing')
+		const built = createPaymentMethodModule(ctx.db, deps.location.api.service)
+		const api: PaymentMethodApi = {
+			service: built.service,
+			byLocation: built.service.handleByLocation.bind(built.service),
+		}
+		return { route: built.route, api }
+	},
 }

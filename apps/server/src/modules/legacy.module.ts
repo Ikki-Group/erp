@@ -11,16 +11,21 @@ import { createInventoryModule } from '@/modules/inventory/index.ts'
 import type { LocationApi } from '@/modules/location/index.ts'
 import type { MaterialApi } from '@/modules/material/index.ts'
 import { createMenuModule } from '@/modules/menu/index.ts'
-import { createPaymentMethodModule } from '@/modules/payment-method/index.ts'
+import type { PaymentMethodApi } from '@/modules/payment-method/index.ts'
 import { createPosModule } from '@/modules/pos/index.ts'
 import { createProductionModule } from '@/modules/production/index.ts'
 import { createRecipeModule } from '@/modules/recipe/index.ts'
 import type { SupplierApi } from '@/modules/supplier/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
 
+function isPaymentMethodApi(api: Record<string, unknown> | undefined): api is PaymentMethodApi {
+	return Boolean(api && api.service && typeof api.service === 'object')
+}
+
 function isSupplierApi(api: Record<string, unknown> | undefined): api is SupplierApi {
 	return Boolean(api && api.service && typeof api.service === 'object')
 }
+
 function isMaterialApi(api: Record<string, unknown> | undefined): api is MaterialApi {
 	return Boolean(api && api.service && api.assignmentService)
 }
@@ -52,7 +57,7 @@ function isUomApi(api: Record<string, unknown> | undefined): api is UomApi {
 export const legacyModule: ModuleDescriptor = {
 	name: 'legacy',
 	layer: 3,
-	dependsOn: ['company', 'location', 'uom', 'iam', 'material', 'supplier'],
+	dependsOn: ['company', 'location', 'uom', 'iam', 'material', 'supplier', 'payment-method'],
 	create(ctx, deps) {
 		const locationApi = deps.location?.api
 		const locationRoute = deps.location?.route
@@ -68,9 +73,10 @@ export const legacyModule: ModuleDescriptor = {
 		const supplierApi = deps.supplier?.api
 		if (!isSupplierApi(supplierApi)) throw new Error('Supplier API dependency is missing')
 		const supplier = supplierApi
-		const paymentMethod = createPaymentMethodModule(ctx.db, cache, {
-			locationService: location.service,
-		})
+		const paymentMethodApi = deps['payment-method']?.api
+		if (!isPaymentMethodApi(paymentMethodApi))
+			throw new Error('Payment method API dependency is missing')
+		const paymentMethod = paymentMethodApi
 		const menu = createMenuModule(ctx.db, cache, {
 			locationService: location.service,
 		})
@@ -118,7 +124,6 @@ export const legacyModule: ModuleDescriptor = {
 		const route = new Elysia({ name: 'legacy-module-routes' })
 			.use(auth.route)
 			.use(location.route)
-			.use(paymentMethod.route)
 			.use(pos.route)
 			.use(inventory.route)
 			.use(menu.route)
