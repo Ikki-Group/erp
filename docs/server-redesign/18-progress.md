@@ -43,7 +43,7 @@ The single source of truth for implementation status. **The implementer updates 
 
 | M.uom | `uom` | [T-202](./tickets/T-202-uom.md) | done | ✅ | Phase 0 | `b33782e0` | Native layer-1 descriptor with RBAC-protected UoM/conversion CRUD, transaction-aware conversion reads, pure domain resolver coverage, and legacy dependency bridge removed. |
 
-| M.iam | `iam` | [T-203](./tickets/T-203-iam.md) | todo | ⬜ | location | | |
+| M.iam | `iam` | [T-203](./tickets/T-203-iam.md) | in-progress | ⬜ | location | | Migrating IAM role/user/assignment reads and writes to a native descriptor. |
 | M.material | `material` | [T-204](./tickets/T-204-material.md) | todo | ⬜ | uom, location | | |
 | M.supplier | `supplier` | [T-205](./tickets/T-205-supplier.md) | todo | ⬜ | material, uom | | |
 | M.payment-method | `payment-method` | [T-206](./tickets/T-206-payment-method.md) | todo | ⬜ | location | | |
