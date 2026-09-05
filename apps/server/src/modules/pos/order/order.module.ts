@@ -1,7 +1,7 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 
-import type { CompanyService } from '@/modules/company/company.service.ts'
+import type { CompanyApi } from '@/modules/company/index.ts'
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 import type { MaterialService } from '@/modules/material/material.service.ts'
@@ -25,7 +25,7 @@ export interface OrderModuleDeps {
 	tableService: TableService
 	voucherService: VoucherService
 	paymentMethodService: PaymentMethodService
-	companyService: CompanyService
+	companyApi: CompanyApi
 	itemService: ItemService
 	composedService: ComposedService
 	locationService: LocationService

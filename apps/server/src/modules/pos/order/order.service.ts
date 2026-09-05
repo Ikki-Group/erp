@@ -9,7 +9,7 @@ import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
-import type { CompanyService } from '@/modules/company/company.service.ts'
+import type { CompanyApi } from '@/modules/company/index.ts'
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 import type { MaterialService } from '@/modules/material/material.service.ts'
@@ -46,7 +46,7 @@ export interface OrderServiceDeps {
 	tableService: TableService
 	voucherService: VoucherService
 	paymentMethodService: PaymentMethodService
-	companyService: CompanyService
+	companyApi: CompanyApi
 	itemService: ItemService
 	composedService: ComposedService
 	locationService: LocationService
@@ -532,8 +532,6 @@ export class OrderService {
 	// ─── Private ───
 
 	async #getTaxRate(): Promise<number> {
-		const settings = await this.deps.companyService.handleGetSettings()
-		// taxRate is stored as percentage (e.g. 11.00 = 11%), convert to decimal
-		return Number(settings.taxRate ?? 0) / 100
+		return this.deps.companyApi.taxRate.getPercent()
 	}
 }

@@ -9,6 +9,7 @@ import { db, uow } from './infra/database/index.ts'
 import { createMemoryEventBus } from './infra/events/event-bus.memory.ts'
 import { otelPlugin } from './infra/otel/otel.ts'
 import { auditModule } from './modules/audit/index.ts'
+import { companyModule } from './modules/company/index.ts'
 import { legacyModule } from './modules/legacy.module.ts'
 import { errorPlugin } from './server/plugins/error.plugin.ts'
 import { isDev } from './shared/config/env.ts'
@@ -26,7 +27,7 @@ const ctx: ModuleContext = {
 	auditPort,
 }
 
-const ALL_MODULE_DESCRIPTORS: ModuleDescriptor[] = [auditModule, legacyModule]
+const ALL_MODULE_DESCRIPTORS: ModuleDescriptor[] = [auditModule, companyModule, legacyModule]
 const modules = composeModules(ALL_MODULE_DESCRIPTORS, ctx)
 
 // ─── App ───

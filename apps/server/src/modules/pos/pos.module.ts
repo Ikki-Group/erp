@@ -1,7 +1,7 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 
-import type { CompanyService } from '@/modules/company/company.service.ts'
+import type { CompanyApi } from '@/modules/company/index.ts'
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 import type { MaterialService } from '@/modules/material/material.service.ts'
@@ -22,7 +22,7 @@ import { createVoucherModule } from './voucher/voucher.module.ts'
 export interface PosModuleDeps {
 	locationService: LocationService
 	paymentMethodService: PaymentMethodService
-	companyService: CompanyService
+	companyApi: CompanyApi
 	itemService: ItemService
 	composedService: ComposedService
 	recipeService: RecipeService
@@ -46,7 +46,7 @@ export function createPosModule(db: DbContext, cacheClient: CacheClient, deps: P
 		tableService: table.service,
 		voucherService: voucher.service,
 		paymentMethodService: deps.paymentMethodService,
-		companyService: deps.companyService,
+		companyApi: deps.companyApi,
 		itemService: deps.itemService,
 		composedService: deps.composedService,
 		locationService: deps.locationService,
