@@ -4,11 +4,13 @@ import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
+import type { DbContext } from '@/infra/database/index.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
+import { resolveConversion } from './domain/uom.resolver.ts'
 import type {
 	ConvertRequestDto,
 	ConvertResponseDto,
@@ -21,7 +23,6 @@ import type {
 } from './uom.contract.ts'
 import { SYSTEM_UOM_CODES, UomError, uniqueFields } from './uom.internal.ts'
 import type { IUomRepo } from './uom.repo.ts'
-import { resolveConversion } from './uom.resolver.ts'
 
 // ─── Service ───
 
@@ -171,7 +172,8 @@ export class UomService {
 
 	// ─── Conversion Cached Reads ───
 
-	async getAllConversions(): Promise<UomConversionDto[]> {
+	async getAllConversions(db?: DbContext): Promise<UomConversionDto[]> {
+		if (db) return this.repo.findAllConversions(db)
 		return this.conversionCache.getOrSet({
 			key: this.conversionCache.keys.list,
 			factory: () => this.repo.findAllConversions(),

@@ -5,8 +5,8 @@ import { type Decimal, roundQty, safeDivide, toDecimal } from '@/shared/utils/mo
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { MaterialService } from '@/modules/material/material.service.ts'
 import type { RecipeService } from '@/modules/recipe/recipe.service.ts'
+import { resolveConversion } from '@/modules/uom/domain/uom.resolver.ts'
 import type { UomConversionDto } from '@/modules/uom/uom.contract.ts'
-import { resolveConversion } from '@/modules/uom/uom.resolver.ts'
 import type { UomService } from '@/modules/uom/uom.service.ts'
 
 import type { OrderLineDto } from './order.contract.ts'

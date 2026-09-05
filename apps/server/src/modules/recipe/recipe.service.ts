@@ -12,7 +12,7 @@ import { roundCost, safeDivide, toDecimal } from '@/shared/utils/money.ts'
 
 import type { MaterialService } from '@/modules/material/material.service.ts'
 import type { ItemService } from '@/modules/menu/item/item.service.ts'
-import { resolveConversion } from '@/modules/uom/uom.resolver.ts'
+import { resolveConversion } from '@/modules/uom/domain/uom.resolver.ts'
 import type { UomService } from '@/modules/uom/uom.service.ts'
 
 import type {

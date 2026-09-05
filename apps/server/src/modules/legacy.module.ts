@@ -16,7 +16,7 @@ import { createPosModule } from '@/modules/pos/index.ts'
 import { createProductionModule } from '@/modules/production/index.ts'
 import { createRecipeModule } from '@/modules/recipe/index.ts'
 import { createSupplierModule } from '@/modules/supplier/index.ts'
-import { createUomModule } from '@/modules/uom/index.ts'
+import type { UomApi } from '@/modules/uom/index.ts'
 
 function isCompanyApi(api: Record<string, unknown> | undefined): api is CompanyApi {
 	if (!api || typeof api.taxRate !== 'object' || api.taxRate === null) return false
@@ -25,8 +25,14 @@ function isCompanyApi(api: Record<string, unknown> | undefined): api is CompanyA
 
 function isLocationApi(api: Record<string, unknown> | undefined): api is LocationApi {
 	const service = api?.service
-	if (typeof service !== 'object' || service === null) return false
+	if (!api || typeof service !== 'object' || service === null) return false
 	return 'getById' in service && 'handleGetById' in service && 'handleCreate' in service
+}
+
+function isUomApi(api: Record<string, unknown> | undefined): api is UomApi {
+	const service = api?.service
+	if (!api || typeof service !== 'object' || service === null) return false
+	return 'getAllConversions' in api && 'handleGetById' in service && 'handleCreate' in service
 }
 
 /**
@@ -37,14 +43,16 @@ function isLocationApi(api: Record<string, unknown> | undefined): api is Locatio
 export const legacyModule: ModuleDescriptor = {
 	name: 'legacy',
 	layer: 3,
-	dependsOn: ['company', 'location'],
+	dependsOn: ['company', 'location', 'uom'],
 	create(ctx, deps) {
 		const locationApi = deps.location?.api
 		const locationRoute = deps.location?.route
 		if (!isLocationApi(locationApi) || !locationRoute)
 			throw new Error('Location API dependency is missing')
 		const location = { service: locationApi.service, route: locationRoute }
-		const uom = createUomModule(ctx.db, cache)
+		const uomApi = deps.uom?.api
+		if (!isUomApi(uomApi)) throw new Error('UoM API dependency is missing')
+		const uom = { service: uomApi.service }
 		const material = createMaterialModule(ctx.db, cache, {
 			uomService: uom.service,
 			locationService: location.service,
@@ -102,7 +110,6 @@ export const legacyModule: ModuleDescriptor = {
 			.use(auth.route)
 			.use(location.route)
 			.use(iam.route)
-			.use(uom.route)
 			.use(material.route)
 			.use(supplier.route)
 			.use(paymentMethod.route)

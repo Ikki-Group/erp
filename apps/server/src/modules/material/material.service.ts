@@ -9,7 +9,7 @@ import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
-import { resolveConversion } from '@/modules/uom/uom.resolver.ts'
+import { resolveConversion } from '@/modules/uom/domain/uom.resolver.ts'
 import type { UomService } from '@/modules/uom/uom.service.ts'
 
 import type { CategoryService } from './category/category.service.ts'

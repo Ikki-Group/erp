@@ -443,7 +443,7 @@ export class ProductionService {
 		if (fromUomId === toUomId) return
 
 		const conversions = await this.deps.uomService.getAllConversions()
-		const { resolveConversion } = await import('@/modules/uom/uom.resolver.ts')
+		const { resolveConversion } = await import('@/modules/uom/domain/uom.resolver.ts')
 		const resolved = resolveConversion(fromUomId, toUomId, '1', conversions)
 		if (!resolved) {
 			throw ProductionError.uomNotConvertible(materialId, fromUomId, toUomId)
@@ -458,7 +458,7 @@ export class ProductionService {
 		if (fromUomId === toUomId) return { result: quantity }
 
 		const conversions = await this.deps.uomService.getAllConversions()
-		const { resolveConversion } = await import('@/modules/uom/uom.resolver.ts')
+		const { resolveConversion } = await import('@/modules/uom/domain/uom.resolver.ts')
 		const resolved = resolveConversion(fromUomId, toUomId, quantity, conversions)
 		if (!resolved) {
 			throw ProductionError.uomNotConvertible(0, fromUomId, toUomId)

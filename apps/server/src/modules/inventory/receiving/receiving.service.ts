@@ -304,7 +304,7 @@ export class ReceivingService {
 		if (fromUomId === toUomId) return // Same UoM, no conversion needed
 
 		const conversions = await this.deps.uomService.getAllConversions()
-		const { resolveConversion } = await import('@/modules/uom/uom.resolver.ts')
+		const { resolveConversion } = await import('@/modules/uom/domain/uom.resolver.ts')
 		const resolved = resolveConversion(fromUomId, toUomId, '1', conversions)
 		if (!resolved) {
 			throw ReceivingError.uomNotConvertible(materialId, fromUomId, toUomId)
@@ -319,7 +319,7 @@ export class ReceivingService {
 		if (fromUomId === toUomId) return { result: quantity } // Identity
 
 		const conversions = await this.deps.uomService.getAllConversions()
-		const { resolveConversion } = await import('@/modules/uom/uom.resolver.ts')
+		const { resolveConversion } = await import('@/modules/uom/domain/uom.resolver.ts')
 		const resolved = resolveConversion(fromUomId, toUomId, quantity, conversions)
 		if (!resolved) {
 			throw ReceivingError.uomNotConvertible(0, fromUomId, toUomId)
