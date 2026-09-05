@@ -41,7 +41,7 @@ The single source of truth for implementation status. **The implementer updates 
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | M.location | `location` | [T-201](./tickets/T-201-location.md) | done | ✅ | Phase 0 | `abc49ddf` | Golden-path native descriptor with RBAC CRUD routes, transaction-scoped conflict checks and audits, cache invalidation after commit, active-row reads, and full round-trip coverage. |
 
-| M.uom | `uom` | [T-202](./tickets/T-202-uom.md) | in-progress | ⬜ | Phase 0 | | Migrating UoM/conversion routes to a native descriptor and exposing pure conversion APIs. |
+| M.uom | `uom` | [T-202](./tickets/T-202-uom.md) | done | ✅ | Phase 0 | `b33782e0` | Native layer-1 descriptor with RBAC-protected UoM/conversion CRUD, transaction-aware conversion reads, pure domain resolver coverage, and legacy dependency bridge removed. |
 
 | M.iam | `iam` | [T-203](./tickets/T-203-iam.md) | todo | ⬜ | location | | |
 | M.material | `material` | [T-204](./tickets/T-204-material.md) | todo | ⬜ | uom, location | | |
@@ -80,8 +80,8 @@ The single source of truth for implementation status. **The implementer updates 
 
 - Phase 0: 9 / 9 done
 - Phase 1: 2 / 3 done
-- Phase 2: 1 / 8 done
+- Phase 2: 2 / 8 done
 - Phase 3: 0 / 9 done
-- **Total: 12 / 29 done**
+- **Total: 13 / 29 done**
 
 > Update the rollup counts when you mark a row `done`.
