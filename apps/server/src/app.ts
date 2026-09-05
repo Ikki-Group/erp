@@ -3,83 +3,30 @@ import { openapi } from '@elysiajs/openapi'
 import { Elysia } from 'elysia'
 import z from 'zod'
 
-import { cache } from './infra/cache/index.ts'
-import { db } from './infra/database/index.ts'
+import { auditPort } from './infra/audit/audit.drizzle.ts'
+import { cache as cachePort } from './infra/cache/cache.memory.ts'
+import { db, uow } from './infra/database/index.ts'
+import { createMemoryEventBus } from './infra/events/event-bus.memory.ts'
 import { otelPlugin } from './infra/otel/otel.ts'
-import { sessionStore } from './infra/session/index.ts'
-import { createAuditModule } from './modules/audit/index.ts'
-import { createAuthModule } from './modules/auth/index.ts'
-import { createCompanyModule } from './modules/company/index.ts'
-import { createIamModule } from './modules/iam/index.ts'
-import { createInventoryModule } from './modules/inventory/index.ts'
-import { createLocationModule } from './modules/location/index.ts'
-import { createMaterialModule } from './modules/material/index.ts'
-import { createMenuModule } from './modules/menu/index.ts'
-import { createPaymentMethodModule } from './modules/payment-method/index.ts'
-import { createPosModule } from './modules/pos/index.ts'
-import { createProductionModule } from './modules/production/index.ts'
-import { createRecipeModule } from './modules/recipe/index.ts'
-import { createSupplierModule } from './modules/supplier/index.ts'
-import { createUomModule } from './modules/uom/index.ts'
+import { legacyModule } from './modules/legacy.module.ts'
 import { errorPlugin } from './server/plugins/error.plugin.ts'
 import { isDev } from './shared/config/env.ts'
+import { composeModules } from './shared/module/compose.ts'
+import type { ModuleContext, ModuleDescriptor } from './shared/module/registry.ts'
+import type { AnyElysia } from 'elysia'
 
-// ─── Modules ───
+// ─── Module Registry ───
 
-const location = createLocationModule(db, cache)
-const company = createCompanyModule(db, cache)
-const uom = createUomModule(db, cache)
-const material = createMaterialModule(db, cache, {
-	uomService: uom.service,
-	locationService: location.service,
-})
-const supplier = createSupplierModule(db, cache, {
-	materialService: material.service,
-	uomService: uom.service,
-})
-const paymentMethod = createPaymentMethodModule(db, cache, {
-	locationService: location.service,
-})
-const menu = createMenuModule(db, cache, {
-	locationService: location.service,
-})
-const inventory = createInventoryModule(db, cache, {
-	assignmentService: material.assignmentService,
-	locationService: location.service,
-	materialService: material.service,
-	supplierService: supplier.service,
-	uomService: uom.service,
-})
-const recipe = createRecipeModule(db, cache, {
-	materialService: material.service,
-	uomService: uom.service,
-	itemService: menu.itemService,
-})
-const pos = createPosModule(db, cache, {
-	locationService: location.service,
-	paymentMethodService: paymentMethod.service,
-	companyService: company.service,
-	itemService: menu.itemService,
-	composedService: menu.composedService,
-	recipeService: recipe.service,
-	stockService: inventory.stockService,
-	uomService: uom.service,
-	materialService: material.service,
-})
-const production = createProductionModule(db, cache, {
-	stockService: inventory.stockService,
-	locationService: location.service,
-	materialService: material.service,
-	uomService: uom.service,
-})
-const iam = createIamModule(db, cache, { locationService: location.service })
-const audit = createAuditModule(db)
-const auth = createAuthModule({
-	userRepo: iam.userRepo,
-	assignmentService: iam.assignmentService,
-	locationService: location.service,
-	sessionStore,
-})
+const ctx: ModuleContext = {
+	db,
+	uow,
+	cache: cachePort,
+	events: createMemoryEventBus(),
+	auditPort,
+}
+
+const ALL_MODULE_DESCRIPTORS: ModuleDescriptor[] = [legacyModule]
+const modules = composeModules(ALL_MODULE_DESCRIPTORS, ctx)
 
 // ─── App ───
 
@@ -92,7 +39,7 @@ const base = new Elysia({ normalize: true, encodeSchema: true })
 
 if (otelPlugin) base.use(otelPlugin)
 
-export const app = base
+let composedApp: AnyElysia = base
 	.use(errorPlugin)
 	.use(
 		openapi({
@@ -129,17 +76,9 @@ export const app = base
 	.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }), {
 		detail: { hide: true },
 	})
-	.use(auth.route)
-	.use(audit.route)
-	.use(company.route)
-	.use(location.route)
-	.use(iam.route)
-	.use(uom.route)
-	.use(material.route)
-	.use(supplier.route)
-	.use(paymentMethod.route)
-	.use(pos.route)
-	.use(inventory.route)
-	.use(menu.route)
-	.use(recipe.route)
-	.use(production.route)
+
+for (const module of modules.values()) {
+	if (module.route) composedApp = composedApp.use(module.route)
+}
+
+export const app = composedApp
