@@ -39,7 +39,7 @@ The single source of truth for implementation status. **The implementer updates 
 
 | ID | Module | Ticket | Status | Verify | Deps | Commit | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| M.location | `location` | [T-201](./tickets/T-201-location.md) | in-progress | ⬜ | Phase 0 | | Building the golden-path native descriptor with atomic audited CRUD and conflict checks. |
+| M.location | `location` | [T-201](./tickets/T-201-location.md) | done | ✅ | Phase 0 | `abc49ddf` | Golden-path native descriptor with RBAC CRUD routes, transaction-scoped conflict checks and audits, cache invalidation after commit, active-row reads, and full round-trip coverage. |
 
 | M.uom | `uom` | [T-202](./tickets/T-202-uom.md) | todo | ⬜ | Phase 0 | | |
 | M.iam | `iam` | [T-203](./tickets/T-203-iam.md) | todo | ⬜ | location | | |
@@ -79,8 +79,8 @@ The single source of truth for implementation status. **The implementer updates 
 
 - Phase 0: 9 / 9 done
 - Phase 1: 2 / 3 done
-- Phase 2: 0 / 8 done
+- Phase 2: 1 / 8 done
 - Phase 3: 0 / 9 done
-- **Total: 11 / 29 done**
+- **Total: 12 / 29 done**
 
 > Update the rollup counts when you mark a row `done`.
