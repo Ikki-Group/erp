@@ -22,7 +22,7 @@ The single source of truth for implementation status. **The implementer updates 
 | P0.3 | `CachePort` + memory adapter | [T-003](./tickets/T-003-cache-port.md) | done | ✅ | — | `b8d775f6` | CachePort, BentoCache memory adapter, invalidation semantics, and undefined-value self-check implemented. |
 | P0.4 | `EventBusPort` + memory adapter | [T-004](./tickets/T-004-event-bus.md) | done | ✅ | — | `6b18cad5` | EventBusPort, isolated in-process handlers, failure logging, and multi-handler self-check implemented. |
 | P0.5 | `AuditPort` + adapter | [T-005](./tickets/T-005-audit-port.md) | done | ✅ | P0.1 | `e76dbe3a` | Atomic AuditPort/Drizzle adapter with rollback and actorName checks. Legacy fire-and-forget callers remain as a compatibility bridge until module migrations replace them. |
-| P0.6 | `Money` + `Qty` + `weightedAvgCost` | [T-006](./tickets/T-006-value-objects.md) | todo | ⬜ | — | | |
+| P0.6 | `Money` + `Qty` + `weightedAvgCost` | [T-006](./tickets/T-006-value-objects.md) | done | ✅ | — | `02cc7c89` | Exact-precision Money/Qty value objects, safe-zero division, weighted-average-cost helper, and unit self-checks. |
 | P0.7 | RBAC macro + `actorOf` + `userName` | [T-007](./tickets/T-007-rbac.md) | todo | ⬜ | — | | |
 | P0.8 | `ModuleDescriptor` + composer | [T-008](./tickets/T-008-module-registry.md) | todo | ⬜ | — | | |
 | P0.9 | Schema: integer→boolean + migrate | [T-009](./tickets/T-009-boolean-schema.md) | todo | ⬜ | — | | |
@@ -76,10 +76,10 @@ The single source of truth for implementation status. **The implementer updates 
 
 ## Rollup
 
-- Phase 0: 5 / 9 done
+- Phase 0: 6 / 9 done
 - Phase 1: 0 / 3 done
 - Phase 2: 0 / 8 done
 - Phase 3: 0 / 9 done
-- **Total: 5 / 29 done**
+- **Total: 6 / 29 done**
 
 > Update the rollup counts when you mark a row `done`.
