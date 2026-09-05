@@ -63,7 +63,7 @@ export class UserService {
 			email: data.email,
 			name: data.name,
 			passwordHash,
-			isActive: data.isActive ? 1 : 0,
+			isActive: data.isActive,
 			...stampCreate(actorId),
 		})
 		if (!result) throw UserError.createFailed()
@@ -107,7 +107,7 @@ export class UserService {
 			username: updateData.username,
 			email: updateData.email,
 			name: updateData.name,
-			isActive: updateData.isActive ? 1 : 0,
+			isActive: updateData.isActive,
 			...stampUpdate(actorId),
 		}
 
@@ -144,7 +144,7 @@ export class UserService {
 
 		// 2. Deactivate
 		const result = await this.repo.update(id, {
-			isActive: 0,
+			isActive: false,
 			...stampUpdate(actorId),
 		})
 		if (!result) throw UserError.deactivateFailed(id)

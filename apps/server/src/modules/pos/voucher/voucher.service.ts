@@ -90,7 +90,7 @@ export class VoucherService {
 			validFrom: data.validFrom,
 			validUntil: data.validUntil,
 			usageLimit: data.usageLimit ?? null,
-			isActive: data.isActive ? 1 : 0,
+			isActive: data.isActive,
 			...stampCreate(actorId),
 		})
 		if (!result) throw VoucherError.createFailed()
@@ -146,7 +146,7 @@ export class VoucherService {
 			validFrom: updateData.validFrom,
 			validUntil: updateData.validUntil,
 			usageLimit: updateData.usageLimit ?? null,
-			isActive: updateData.isActive ? 1 : 0,
+			isActive: updateData.isActive,
 			...stampUpdate(actorId),
 		})
 		if (!result) throw VoucherError.updateFailed(id)

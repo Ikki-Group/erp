@@ -38,7 +38,7 @@ function toDto(row: PaymentMethodRow): PaymentMethodDto {
 		code: row.code,
 		name: row.name,
 		type: row.type,
-		isActive: row.isActive === 1,
+		isActive: row.isActive,
 		createdAt: row.createdAt,
 		updatedAt: row.updatedAt,
 		createdBy: row.createdBy,
@@ -52,7 +52,7 @@ function toLocationDto(row: PaymentMethodLocationRow): PaymentMethodLocationDto 
 		id: row.id,
 		paymentMethodId: row.paymentMethodId,
 		locationId: row.locationId,
-		isEnabled: row.isEnabled === 1,
+		isEnabled: row.isEnabled,
 	}
 }
 
@@ -176,7 +176,7 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(paymentMethods)
-			.set({ ...data, isActive: 0 })
+			.set({ ...data, isActive: false })
 			.where(eq(paymentMethods.id, id))
 			.returning({ id: paymentMethods.id })
 		return result
@@ -205,8 +205,8 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 			.where(
 				and(
 					eq(paymentMethodLocations.locationId, locationId),
-					eq(paymentMethodLocations.isEnabled, 1),
-					eq(paymentMethods.isActive, 1),
+					eq(paymentMethodLocations.isEnabled, true),
+					eq(paymentMethods.isActive, true),
 				),
 			)
 			.orderBy(sql`${paymentMethods.name} asc`)

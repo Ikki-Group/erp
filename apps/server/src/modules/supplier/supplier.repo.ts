@@ -46,7 +46,7 @@ function toDto(row: SupplierRow): SupplierDto {
 		email: row.email,
 		address: row.address,
 		paymentTerms: row.paymentTerms,
-		isActive: row.isActive === 1,
+		isActive: row.isActive,
 		createdAt: row.createdAt,
 		updatedAt: row.updatedAt,
 		createdBy: row.createdBy,
@@ -192,7 +192,7 @@ export class SupplierRepo implements ISupplierRepo {
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(suppliers)
-			.set({ ...data, isActive: 0 })
+			.set({ ...data, isActive: false })
 			.where(eq(suppliers.id, id))
 			.returning({ id: suppliers.id })
 		return result

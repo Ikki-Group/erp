@@ -15,7 +15,7 @@ export const ProductionRecipeDto = z.object({
 	name: zp.str,
 	yieldQty: zp.str,
 	yieldUomId: zp.id,
-	isActive: zp.num,
+	isActive: zp.bool,
 	...zc.AuditBasic.shape,
 })
 export type ProductionRecipeDto = z.infer<typeof ProductionRecipeDto>

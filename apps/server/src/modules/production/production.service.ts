@@ -93,7 +93,7 @@ export class ProductionService {
 					name: data.name,
 					yieldQty: data.yieldQty,
 					yieldUomId: data.yieldUomId,
-					isActive: 1,
+					isActive: true,
 					...stampCreate(actorId),
 				},
 				tx,

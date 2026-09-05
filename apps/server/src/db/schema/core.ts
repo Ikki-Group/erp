@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, varchar, integer, numeric, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, pgEnum, varchar, numeric, uniqueIndex, boolean } from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
 
@@ -17,7 +17,7 @@ export const locations = pgTable(
 		type: locationTypeEnum('type').notNull(),
 		address: varchar('address', { length: 500 }),
 		phone: varchar('phone', { length: 50 }),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 		...auditBasicColumns,
 	},
 	(t) => [uniqueIndex('locations_code_uniq').on(t.code)],

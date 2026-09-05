@@ -75,7 +75,7 @@ export class SupplierService {
 		// 2. Insert
 		const result = await this.repo.insert({
 			...data,
-			isActive: data.isActive ? 1 : 0,
+			isActive: data.isActive,
 			...stampCreate(actorId),
 		})
 		if (!result) throw SupplierError.createFailed()
@@ -117,7 +117,7 @@ export class SupplierService {
 		// 3. Update
 		const result = await this.repo.update(id, {
 			...updateData,
-			isActive: updateData.isActive ? 1 : 0,
+			isActive: updateData.isActive,
 			...stampUpdate(actorId),
 		})
 		if (!result) throw SupplierError.updateFailed(id)

@@ -96,7 +96,7 @@ export class PaymentMethodService {
 		// 2. Insert
 		const result = await this.repo.insert({
 			...data,
-			isActive: data.isActive ? 1 : 0,
+			isActive: data.isActive,
 			...stampCreate(actorId),
 		})
 		if (!result) throw PaymentMethodError.createFailed()
@@ -138,7 +138,7 @@ export class PaymentMethodService {
 		// 3. Update
 		const result = await this.repo.update(id, {
 			...updateData,
-			isActive: updateData.isActive ? 1 : 0,
+			isActive: updateData.isActive,
 			...stampUpdate(actorId),
 		})
 		if (!result) throw PaymentMethodError.updateFailed(id)
@@ -199,7 +199,7 @@ export class PaymentMethodService {
 		const result = await this.repo.upsertLocationAssignment({
 			paymentMethodId: data.paymentMethodId,
 			locationId: data.locationId,
-			isEnabled: data.isEnabled ? 1 : 0,
+			isEnabled: data.isEnabled,
 		})
 		if (!result) throw LocationAssignmentError.assignFailed()
 

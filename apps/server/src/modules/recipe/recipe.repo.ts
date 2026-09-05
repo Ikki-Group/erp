@@ -25,7 +25,7 @@ interface RecipeRow {
 	menuItemId: number
 	name: string
 	yieldQty: string
-	isActive: number
+	isActive: boolean
 	createdAt: Date
 	updatedAt: Date
 	createdBy: number | null
@@ -46,7 +46,7 @@ function toRecipeDto(row: RecipeRow): RecipeDto {
 		menuItemId: row.menuItemId,
 		name: row.name,
 		yieldQty: row.yieldQty,
-		isActive: row.isActive === 1,
+		isActive: row.isActive,
 		createdAt: row.createdAt,
 		updatedAt: row.updatedAt,
 		createdBy: row.createdBy,
@@ -100,7 +100,7 @@ export class RecipeRepo implements IRecipeRepo {
 		const row = await db
 			.select()
 			.from(recipes)
-			.where(and(eq(recipes.menuItemId, menuItemId), eq(recipes.isActive, 1)))
+			.where(and(eq(recipes.menuItemId, menuItemId), eq(recipes.isActive, true)))
 			.limit(1)
 			.then(takeFirst)
 		return row ? toRecipeDto(row) : undefined
@@ -172,7 +172,7 @@ export class RecipeRepo implements IRecipeRepo {
 	}
 
 	async deactivateByMenuItemId(menuItemId: number, db: DbContext = this.db): Promise<void> {
-		await db.update(recipes).set({ isActive: 0 }).where(eq(recipes.menuItemId, menuItemId))
+		await db.update(recipes).set({ isActive: false }).where(eq(recipes.menuItemId, menuItemId))
 	}
 
 	async replaceLines(

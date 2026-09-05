@@ -64,7 +64,7 @@ export class RoleService {
 		// 2. Insert
 		const result = await this.repo.insert({
 			...data,
-			isSystem: 0,
+			isSystem: false,
 			...stampCreate(actorId),
 		})
 		if (!result) throw RoleError.createFailed()

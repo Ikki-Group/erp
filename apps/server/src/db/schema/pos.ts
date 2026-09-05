@@ -9,6 +9,7 @@ import {
 	timestamp,
 	index,
 	uniqueIndex,
+	boolean,
 } from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
@@ -36,7 +37,7 @@ export const paymentMethods = pgTable(
 		code: varchar('code', { length: 50 }).notNull(),
 		name: varchar('name', { length: 255 }).notNull(),
 		type: paymentMethodTypeEnum('type').notNull(),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 		...auditBasicColumns,
 	},
 	(t) => [uniqueIndex('payment_methods_code_uniq').on(t.code)],
@@ -54,7 +55,7 @@ export const paymentMethodLocations = pgTable(
 		locationId: integer('location_id')
 			.notNull()
 			.references(() => locations.id, { onDelete: 'cascade' }),
-		isEnabled: integer('is_enabled').notNull().default(1),
+		isEnabled: boolean('is_enabled').notNull().default(true),
 	},
 	(t) => [
 		uniqueIndex('payment_method_locations_method_location_uniq').on(
@@ -78,7 +79,7 @@ export const tables = pgTable(
 		number: varchar('number', { length: 50 }).notNull(),
 		capacity: integer('capacity').notNull().default(4),
 		status: tableStatusEnum('status').notNull().default('available'),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 	},
 	(t) => [
 		uniqueIndex('tables_location_number_uniq').on(t.locationId, t.number),
@@ -223,7 +224,7 @@ export const vouchers = pgTable(
 		validUntil: timestamp('valid_until', { withTimezone: true }).notNull(),
 		usageLimit: integer('usage_limit'),
 		usageCount: integer('usage_count').notNull().default(0),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 		...auditBasicColumns,
 	},
 	(t) => [

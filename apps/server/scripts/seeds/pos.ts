@@ -28,11 +28,16 @@ const PAYMENT_METHODS = [
 
 export async function seedPaymentMethods(sql: Sql): Promise<PaymentMethodIds> {
 	console.log('  → Seeding payment methods...')
-	const rows = await sql`
-		INSERT INTO payment_methods (code, name, type, is_active)
-		VALUES ${sql(PAYMENT_METHODS.map((p) => [p.code, p.name, p.type, 1]))}
-		RETURNING id, code
-	`
+	const rows = await Promise.all(
+		PAYMENT_METHODS.map(async (p) => {
+			const [row] = await sql`
+				INSERT INTO payment_methods (code, name, type, is_active)
+				VALUES (${p.code}, ${p.name}, ${p.type}, true)
+				RETURNING id, code
+			`
+			return row!
+		}),
+	)
 
 	return {
 		cash: rows.find((r) => r.code === 'CASH')!.id as number,
@@ -51,16 +56,16 @@ export async function seedPaymentMethodLocations(
 	console.log('  → Seeding payment method ↔ location links...')
 
 	// All payment methods enabled at the store
-	const links = [
-		[paymentMethodIds.cash, locationIds.store, 1],
-		[paymentMethodIds.qris, locationIds.store, 1],
-		[paymentMethodIds.debit, locationIds.store, 1],
-	]
-
-	await sql`
-		INSERT INTO payment_method_locations (payment_method_id, location_id, is_enabled)
-		VALUES ${sql(links)}
-	`
+	for (const paymentMethodId of [
+		paymentMethodIds.cash,
+		paymentMethodIds.qris,
+		paymentMethodIds.debit,
+	]) {
+		await sql`
+			INSERT INTO payment_method_locations (payment_method_id, location_id, is_enabled)
+			VALUES (${paymentMethodId}, ${locationIds.store}, true)
+		`
+	}
 }
 
 // ─── Tables ───
@@ -75,11 +80,16 @@ export async function seedTables(sql: Sql, locationIds: LocationIds): Promise<Ta
 		{ number: 'A4', capacity: 6 },
 	]
 
-	const rows = await sql`
-		INSERT INTO tables (location_id, number, capacity, status, is_active)
-		VALUES ${sql(tables.map((t) => [locationIds.store, t.number, t.capacity, 'available', 1]))}
-		RETURNING id, number
-	`
+	const rows = await Promise.all(
+		tables.map(async (t) => {
+			const [row] = await sql`
+				INSERT INTO tables (location_id, number, capacity, status, is_active)
+				VALUES (${locationIds.store}, ${t.number}, ${t.capacity}, 'available', true)
+				RETURNING id, number
+			`
+			return row!
+		}),
+	)
 
 	return {
 		a1: rows.find((r) => r.number === 'A1')!.id as number,

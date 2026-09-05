@@ -32,7 +32,7 @@ function toDto(row: LocationRow): LocationDto {
 		type: row.type,
 		address: row.address,
 		phone: row.phone,
-		isActive: row.isActive === 1,
+		isActive: row.isActive,
 		createdAt: row.createdAt,
 		updatedAt: row.updatedAt,
 		createdBy: row.createdBy,
@@ -139,7 +139,7 @@ export class LocationRepo implements ILocationRepo {
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(locations)
-			.set({ ...data, isActive: 0 })
+			.set({ ...data, isActive: false })
 			.where(eq(locations.id, id))
 			.returning({ id: locations.id })
 		return result

@@ -1,4 +1,12 @@
-import { pgTable, varchar, numeric, integer, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import {
+	pgTable,
+	varchar,
+	numeric,
+	integer,
+	index,
+	uniqueIndex,
+	boolean,
+} from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
 import { materials } from './material.ts'
@@ -17,7 +25,7 @@ export const suppliers = pgTable(
 		email: varchar('email', { length: 255 }),
 		address: varchar('address', { length: 500 }),
 		paymentTerms: integer('payment_terms'),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 		...auditBasicColumns,
 	},
 	(t) => [uniqueIndex('suppliers_code_uniq').on(t.code)],

@@ -146,16 +146,27 @@ export async function seedModifierGroups(
 	console.log('  → Seeding modifier groups...')
 
 	const groups = [
-		{ name: 'Size', selectionType: 'single', isRequired: 1, minSelect: 1, maxSelect: 1 },
-		{ name: 'Ice Level', selectionType: 'single', isRequired: 0, minSelect: 0, maxSelect: 1 },
-		{ name: 'Sugar Level', selectionType: 'single', isRequired: 0, minSelect: 0, maxSelect: 1 },
+		{ name: 'Size', selectionType: 'single', isRequired: true, minSelect: 1, maxSelect: 1 },
+		{ name: 'Ice Level', selectionType: 'single', isRequired: false, minSelect: 0, maxSelect: 1 },
+		{
+			name: 'Sugar Level',
+			selectionType: 'single',
+			isRequired: false,
+			minSelect: 0,
+			maxSelect: 1,
+		},
 	]
 
-	const rows = await sql`
-		INSERT INTO modifier_groups (location_id, name, selection_type, is_required, min_select, max_select)
-		VALUES ${sql(groups.map((g) => [locationIds.store, g.name, g.selectionType, g.isRequired, g.minSelect, g.maxSelect]))}
-		RETURNING id, name
-	`
+	const rows = await Promise.all(
+		groups.map(async (g) => {
+			const [row] = await sql`
+				INSERT INTO modifier_groups (location_id, name, selection_type, is_required, min_select, max_select)
+				VALUES (${locationIds.store}, ${g.name}, ${g.selectionType}, ${g.isRequired}, ${g.minSelect}, ${g.maxSelect})
+				RETURNING id, name
+			`
+			return row!
+		}),
+	)
 
 	return {
 		size: rows.find((r) => r.name === 'Size')!.id as number,
@@ -178,14 +189,14 @@ export async function seedModifierOptions(
 			groupId: groupIds.size,
 			name: 'Regular',
 			priceAdjustment: '0.00',
-			isDefault: 1,
+			isDefault: true,
 			sortOrder: 1,
 		},
 		{
 			groupId: groupIds.size,
 			name: 'Large',
 			priceAdjustment: '5000.00',
-			isDefault: 0,
+			isDefault: false,
 			sortOrder: 2,
 		},
 		// Ice Level
@@ -193,21 +204,21 @@ export async function seedModifierOptions(
 			groupId: groupIds.iceLevel,
 			name: 'Normal Ice',
 			priceAdjustment: '0.00',
-			isDefault: 1,
+			isDefault: true,
 			sortOrder: 1,
 		},
 		{
 			groupId: groupIds.iceLevel,
 			name: 'Less Ice',
 			priceAdjustment: '0.00',
-			isDefault: 0,
+			isDefault: false,
 			sortOrder: 2,
 		},
 		{
 			groupId: groupIds.iceLevel,
 			name: 'No Ice',
 			priceAdjustment: '0.00',
-			isDefault: 0,
+			isDefault: false,
 			sortOrder: 3,
 		},
 		// Sugar Level
@@ -215,30 +226,35 @@ export async function seedModifierOptions(
 			groupId: groupIds.sugarLevel,
 			name: 'Normal Sugar',
 			priceAdjustment: '0.00',
-			isDefault: 1,
+			isDefault: true,
 			sortOrder: 1,
 		},
 		{
 			groupId: groupIds.sugarLevel,
 			name: 'Less Sugar',
 			priceAdjustment: '0.00',
-			isDefault: 0,
+			isDefault: false,
 			sortOrder: 2,
 		},
 		{
 			groupId: groupIds.sugarLevel,
 			name: 'No Sugar',
 			priceAdjustment: '0.00',
-			isDefault: 0,
+			isDefault: false,
 			sortOrder: 3,
 		},
 	]
 
-	const rows = await sql`
-		INSERT INTO modifier_options (group_id, name, price_adjustment, is_default, sort_order)
-		VALUES ${sql(options.map((o) => [o.groupId, o.name, o.priceAdjustment, o.isDefault, o.sortOrder]))}
-		RETURNING id, name
-	`
+	const rows = await Promise.all(
+		options.map(async (o) => {
+			const [row] = await sql`
+				INSERT INTO modifier_options (group_id, name, price_adjustment, is_default, sort_order)
+				VALUES (${o.groupId}, ${o.name}, ${o.priceAdjustment}, ${o.isDefault}, ${o.sortOrder})
+				RETURNING id, name
+			`
+			return row!
+		}),
+	)
 
 	return {
 		sizeRegular: rows.find((r) => r.name === 'Regular')!.id as number,
@@ -298,11 +314,16 @@ export async function seedRecipes(sql: Sql, menuItemIds: MenuItemIds): Promise<R
 		{ menuItemId: menuItemIds.greenTeaLatte, name: 'Green Tea Latte Recipe', yieldQty: '1.000000' },
 	]
 
-	const rows = await sql`
-		INSERT INTO recipes (menu_item_id, name, yield_qty, is_active)
-		VALUES ${sql(recipes.map((r) => [r.menuItemId, r.name, r.yieldQty, 1]))}
-		RETURNING id, menu_item_id
-	`
+	const rows = await Promise.all(
+		recipes.map(async (r) => {
+			const [row] = await sql`
+				INSERT INTO recipes (menu_item_id, name, yield_qty, is_active)
+				VALUES (${r.menuItemId}, ${r.name}, ${r.yieldQty}, true)
+				RETURNING id, menu_item_id
+			`
+			return row!
+		}),
+	)
 
 	return {
 		icedLatte: rows.find((r) => r.menu_item_id === menuItemIds.icedLatte)!.id as number,

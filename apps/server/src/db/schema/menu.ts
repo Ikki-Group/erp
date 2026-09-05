@@ -1,4 +1,13 @@
-import { pgTable, pgEnum, varchar, numeric, integer, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import {
+	pgTable,
+	pgEnum,
+	varchar,
+	numeric,
+	integer,
+	index,
+	uniqueIndex,
+	boolean,
+} from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
 import { locations } from './core.ts'
@@ -65,7 +74,7 @@ export const modifierGroups = pgTable(
 			.references(() => locations.id, { onDelete: 'cascade' }),
 		name: varchar('name', { length: 255 }).notNull(),
 		selectionType: selectionTypeEnum('selection_type').notNull().default('single'),
-		isRequired: integer('is_required').notNull().default(0),
+		isRequired: boolean('is_required').notNull().default(false),
 		minSelect: integer('min_select').notNull().default(0),
 		maxSelect: integer('max_select'),
 		...auditBasicColumns,
@@ -86,9 +95,9 @@ export const modifierOptions = pgTable(
 		priceAdjustment: numeric('price_adjustment', { precision: 18, scale: 2 })
 			.notNull()
 			.default('0'),
-		isDefault: integer('is_default').notNull().default(0),
+		isDefault: boolean('is_default').notNull().default(false),
 		sortOrder: integer('sort_order').notNull().default(0),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 	},
 	(t) => [index('modifier_options_group_id_idx').on(t.groupId)],
 )

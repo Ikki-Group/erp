@@ -87,7 +87,7 @@ export class MaterialService {
 		// 5. Insert
 		const result = await this.repo.insert({
 			...data,
-			isActive: data.isActive ? 1 : 0,
+			isActive: data.isActive,
 			...stampCreate(actorId),
 		})
 		if (!result) throw MaterialError.createFailed()
@@ -144,7 +144,7 @@ export class MaterialService {
 		// 6. Update
 		const result = await this.repo.update(id, {
 			...updateData,
-			isActive: updateData.isActive ? 1 : 0,
+			isActive: updateData.isActive,
 			...stampUpdate(actorId),
 		})
 		if (!result) throw MaterialError.updateFailed(id)

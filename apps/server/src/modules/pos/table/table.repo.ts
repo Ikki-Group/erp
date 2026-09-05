@@ -31,7 +31,7 @@ function toDto(row: TableRow): TableDto {
 		number: row.number,
 		capacity: row.capacity,
 		status: row.status,
-		isActive: row.isActive === 1,
+		isActive: row.isActive,
 	}
 }
 
@@ -67,7 +67,7 @@ export class TableRepo implements ITableRepo {
 		const rows = await db
 			.select()
 			.from(tables)
-			.where(and(eq(tables.locationId, locationId), eq(tables.isActive, 1)))
+			.where(and(eq(tables.locationId, locationId), eq(tables.isActive, true)))
 			.orderBy(sql`${tables.number} asc`)
 		return rows.map(toDto)
 	}
@@ -137,7 +137,7 @@ export class TableRepo implements ITableRepo {
 	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(tables)
-			.set({ isActive: 0 })
+			.set({ isActive: false })
 			.where(eq(tables.id, id))
 			.returning({ id: tables.id })
 		return result
@@ -161,7 +161,7 @@ export class TableRepo implements ITableRepo {
 	#buildWhere(filter: TableFilterDto) {
 		return allOf(
 			eq(tables.locationId, filter.locationId),
-			eq(tables.isActive, 1),
+			eq(tables.isActive, true),
 			eqIf(tables.status, filter.status),
 			searchAcross(filter.q, [tables.number]),
 		)

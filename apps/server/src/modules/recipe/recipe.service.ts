@@ -104,7 +104,7 @@ export class RecipeService {
 			menuItemId: data.menuItemId,
 			name: data.name,
 			yieldQty: data.yieldQty,
-			isActive: 1,
+			isActive: true,
 			...stampCreate(actorId),
 		})
 		if (!result) throw RecipeError.createFailed()

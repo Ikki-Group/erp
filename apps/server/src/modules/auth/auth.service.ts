@@ -47,7 +47,7 @@ export class AuthService {
 			if (!user) throw AuthError.invalidCredentials()
 
 			// 2. Check if user is active
-			if (user.isActive !== 1) throw AuthError.userDeactivated()
+			if (!user.isActive) throw AuthError.userDeactivated()
 
 			// 3. Verify password
 			const valid = await verifyPassword(data.password, user.passwordHash)

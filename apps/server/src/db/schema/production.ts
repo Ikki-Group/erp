@@ -9,6 +9,7 @@ import {
 	check,
 	index,
 	uniqueIndex,
+	boolean,
 } from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
@@ -39,13 +40,13 @@ export const productionRecipes = pgTable(
 		yieldUomId: integer('yield_uom_id')
 			.notNull()
 			.references(() => uoms.id, { onDelete: 'restrict' }),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('production_recipes_material_active_uniq')
 			.on(t.materialId)
-			.where(sql`${t.isActive} = 1`),
+			.where(sql`${t.isActive} = true`),
 		index('production_recipes_material_id_idx').on(t.materialId),
 		index('production_recipes_yield_uom_id_idx').on(t.yieldUomId),
 	],

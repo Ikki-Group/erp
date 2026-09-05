@@ -28,7 +28,7 @@ function toDto(row: RoleRow): RoleDto {
 		id: row.id,
 		code: row.code,
 		name: row.name,
-		isSystem: row.isSystem === 1,
+		isSystem: row.isSystem,
 		permissions: Array.isArray(row.permissions)
 			? row.permissions.filter((p): p is string => typeof p === 'string')
 			: [],

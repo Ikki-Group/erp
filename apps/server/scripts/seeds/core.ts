@@ -32,8 +32,8 @@ export async function seedLocations(sql: Sql): Promise<LocationIds> {
 	const rows = await sql`
 		INSERT INTO locations (code, name, type, address, phone, is_active)
 		VALUES
-			('STORE-01', 'Kedai Kopi Nusantara', 'store', 'Jl. Merdeka No. 17, Jakarta Selatan', '021-5551234', 1),
-			('WH-01', 'Warehouse Pusat', 'warehouse', 'Jl. Industri No. 5, Cibitung', '021-5559876', 1)
+			('STORE-01', 'Kedai Kopi Nusantara', 'store', 'Jl. Merdeka No. 17, Jakarta Selatan', '021-5551234', true),
+			('WH-01', 'Warehouse Pusat', 'warehouse', 'Jl. Industri No. 5, Cibitung', '021-5559876', true)
 		RETURNING id, code
 	`
 

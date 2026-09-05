@@ -6,6 +6,7 @@ import {
 	timestamp,
 	index,
 	uniqueIndex,
+	boolean,
 } from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
@@ -19,7 +20,7 @@ export const roles = pgTable(
 		...pk,
 		code: varchar('code', { length: 50 }).notNull(),
 		name: varchar('name', { length: 255 }).notNull(),
-		isSystem: integer('is_system').notNull().default(0),
+		isSystem: boolean('is_system').notNull().default(false),
 		permissions: jsonb('permissions').notNull().default([]),
 		...auditBasicColumns,
 	},
@@ -36,7 +37,7 @@ export const users = pgTable(
 		email: varchar('email', { length: 255 }).notNull(),
 		passwordHash: varchar('password_hash', { length: 500 }).notNull(),
 		name: varchar('name', { length: 255 }).notNull(),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 		...auditBasicColumns,
 	},
 	(t) => [

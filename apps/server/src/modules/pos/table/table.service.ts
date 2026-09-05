@@ -80,7 +80,7 @@ export class TableService {
 			locationId: data.locationId,
 			number: data.number,
 			capacity: data.capacity,
-			isActive: data.isActive ? 1 : 0,
+			isActive: data.isActive,
 		})
 		if (!result) throw TableError.createFailed()
 
@@ -133,7 +133,7 @@ export class TableService {
 			locationId: updateData.locationId,
 			number: updateData.number,
 			capacity: updateData.capacity,
-			isActive: updateData.isActive ? 1 : 0,
+			isActive: updateData.isActive,
 		})
 		if (!result) throw TableError.updateFailed(id)
 

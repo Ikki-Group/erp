@@ -1,4 +1,4 @@
-import { serial, timestamp, integer } from 'drizzle-orm/pg-core'
+import { serial, timestamp, integer, boolean } from 'drizzle-orm/pg-core'
 
 // ─── Primary Key ───
 
@@ -22,5 +22,5 @@ export const auditFullColumns = {
 // ─── Soft Delete ───
 
 export const softDeleteColumns = {
-	isActive: integer('is_active').notNull().default(1),
+	isActive: boolean('is_active').notNull().default(true),
 }

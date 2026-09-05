@@ -25,7 +25,7 @@ const ROLES = [
 	{
 		code: 'owner',
 		name: 'Owner',
-		isSystem: 1,
+		isSystem: true,
 		permissions: JSON.stringify([
 			'company:read',
 			'company:write',
@@ -59,7 +59,7 @@ const ROLES = [
 	{
 		code: 'manager',
 		name: 'Manager',
-		isSystem: 1,
+		isSystem: true,
 		permissions: JSON.stringify([
 			'location:read',
 			'iam:read',
@@ -86,7 +86,7 @@ const ROLES = [
 	{
 		code: 'cashier',
 		name: 'Cashier',
-		isSystem: 1,
+		isSystem: true,
 		permissions: JSON.stringify([
 			'menu:read',
 			'pos:read',
@@ -98,7 +98,7 @@ const ROLES = [
 	{
 		code: 'warehouse_staff',
 		name: 'Warehouse Staff',
-		isSystem: 1,
+		isSystem: true,
 		permissions: JSON.stringify([
 			'material:read',
 			'supplier:read',
@@ -112,11 +112,16 @@ const ROLES = [
 
 export async function seedRoles(sql: Sql): Promise<RoleIds> {
 	console.log('  → Seeding roles...')
-	const rows = await sql`
-		INSERT INTO roles (code, name, is_system, permissions)
-		VALUES ${sql(ROLES.map((r) => [r.code, r.name, r.isSystem, r.permissions]))}
-		RETURNING id, code
-	`
+	const rows = await Promise.all(
+		ROLES.map(async (r) => {
+			const [row] = await sql`
+				INSERT INTO roles (code, name, is_system, permissions)
+				VALUES (${r.code}, ${r.name}, true, ${r.permissions})
+				RETURNING id, code
+			`
+			return row!
+		}),
+	)
 
 	return {
 		owner: rows.find((r) => r.code === 'owner')!.id as number,
@@ -145,11 +150,16 @@ export async function seedUsers(sql: Sql): Promise<UserIds> {
 		{ username: 'warehouse', email: 'warehouse@kedaikopi.id', name: 'Dian Kusuma' },
 	]
 
-	const rows = await sql`
-		INSERT INTO users (username, email, password_hash, name, is_active)
-		VALUES ${sql(USERS.map((u) => [u.username, u.email, hash, u.name, 1]))}
-		RETURNING id, username
-	`
+	const rows = await Promise.all(
+		USERS.map(async (u) => {
+			const [row] = await sql`
+				INSERT INTO users (username, email, password_hash, name, is_active)
+				VALUES (${u.username}, ${u.email}, ${hash}, ${u.name}, true)
+				RETURNING id, username
+			`
+			return row!
+		}),
+	)
 
 	return {
 		owner: rows.find((r) => r.username === 'owner')!.id as number,

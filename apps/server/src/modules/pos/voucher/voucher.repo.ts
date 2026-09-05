@@ -36,7 +36,7 @@ function toDto(row: VoucherRow): VoucherDto {
 		validUntil: row.validUntil,
 		usageLimit: row.usageLimit,
 		usageCount: row.usageCount,
-		isActive: row.isActive === 1,
+		isActive: row.isActive,
 		createdAt: row.createdAt,
 		updatedAt: row.updatedAt,
 		createdBy: row.createdBy,
@@ -142,7 +142,7 @@ export class VoucherRepo implements IVoucherRepo {
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(vouchers)
-			.set({ ...data, isActive: 0 })
+			.set({ ...data, isActive: false })
 			.where(eq(vouchers.id, id))
 			.returning({ id: vouchers.id })
 		return result
@@ -163,7 +163,7 @@ export class VoucherRepo implements IVoucherRepo {
 		return allOf(
 			searchAcross(filter.q, [vouchers.code, vouchers.name]),
 			eqIf(vouchers.type, filter.type),
-			filter.isActive === undefined ? undefined : eq(vouchers.isActive, filter.isActive ? 1 : 0),
+			filter.isActive === undefined ? undefined : eq(vouchers.isActive, filter.isActive),
 		)
 	}
 }

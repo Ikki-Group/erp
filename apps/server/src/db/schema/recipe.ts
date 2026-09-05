@@ -1,5 +1,14 @@
 import { sql } from 'drizzle-orm'
-import { pgTable, varchar, numeric, integer, check, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import {
+	pgTable,
+	varchar,
+	numeric,
+	integer,
+	check,
+	index,
+	uniqueIndex,
+	boolean,
+} from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
 import { materials } from './material.ts'
@@ -17,13 +26,13 @@ export const recipes = pgTable(
 			.references(() => menuItems.id, { onDelete: 'cascade' }),
 		name: varchar('name', { length: 255 }).notNull(),
 		yieldQty: numeric('yield_qty', { precision: 18, scale: 6 }).notNull(),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('recipes_menu_item_active_uniq')
 			.on(t.menuItemId)
-			.where(sql`${t.isActive} = 1`),
+			.where(sql`${t.isActive} = true`),
 		index('recipes_menu_item_id_idx').on(t.menuItemId),
 	],
 )

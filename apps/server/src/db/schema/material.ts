@@ -1,4 +1,13 @@
-import { pgTable, pgEnum, varchar, numeric, integer, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import {
+	pgTable,
+	pgEnum,
+	varchar,
+	numeric,
+	integer,
+	index,
+	uniqueIndex,
+	boolean,
+} from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
 import { locations } from './core.ts'
@@ -41,7 +50,7 @@ export const materials = pgTable(
 			onDelete: 'set null',
 		}),
 		minStock: numeric('min_stock', { precision: 18, scale: 6 }),
-		isActive: integer('is_active').notNull().default(1),
+		isActive: boolean('is_active').notNull().default(true),
 		...auditBasicColumns,
 	},
 	(t) => [

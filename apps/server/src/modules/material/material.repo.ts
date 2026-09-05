@@ -33,7 +33,7 @@ interface MaterialRowLike {
 	defaultStockUomId: number | null
 	defaultRecipeUomId: number | null
 	minStock: string | null
-	isActive: number
+	isActive: boolean
 	createdAt: Date
 	updatedAt: Date
 	createdBy: number | null
@@ -52,7 +52,7 @@ function toDto(row: MaterialRowLike): MaterialDto {
 		defaultStockUomId: row.defaultStockUomId,
 		defaultRecipeUomId: row.defaultRecipeUomId,
 		minStock: row.minStock,
-		isActive: row.isActive === 1,
+		isActive: row.isActive,
 		createdAt: row.createdAt,
 		updatedAt: row.updatedAt,
 		createdBy: row.createdBy,
@@ -203,7 +203,7 @@ export class MaterialRepo implements IMaterialRepo {
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(materials)
-			.set({ ...data, isActive: 0 })
+			.set({ ...data, isActive: false })
 			.where(eq(materials.id, id))
 			.returning({ id: materials.id })
 		return result
