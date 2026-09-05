@@ -25,7 +25,7 @@ The single source of truth for implementation status. **The implementer updates 
 | P0.6 | `Money` + `Qty` + `weightedAvgCost` | [T-006](./tickets/T-006-value-objects.md) | done | ✅ | — | `02cc7c89` | Exact-precision Money/Qty value objects, safe-zero division, weighted-average-cost helper, and unit self-checks. |
 | P0.7 | RBAC macro + `actorOf` + `userName` | [T-007](./tickets/T-007-rbac.md) | done | ✅ | — | `5aca527c` | Cached AuthContext now resolves userName; actorOf and self-contained RBAC macro enforce owner bypass and 403 denial. |
 | P0.8 | `ModuleDescriptor` + composer | [T-008](./tickets/T-008-module-registry.md) | done | ✅ | — | `6581dd9f` | Topological composer with memoization/cycle/upward guards; app mounts registry routes. Existing modules are temporarily grouped in one descriptor until their migration tickets replace it. |
-| P0.9 | Schema: integer→boolean + migrate | [T-009](./tickets/T-009-boolean-schema.md) | todo | ⬜ | — | | |
+| P0.9 | Schema: integer→boolean + migrate | [T-009](./tickets/T-009-boolean-schema.md) | done | ✅ | — | `a7785a1c` | Native PostgreSQL booleans across schema and current module boundaries; corrected integer-to-boolean migration casts/default ordering; fresh test reset, reseed, verify, and full suite all pass. |
 
 ## Phase 1 — Layer 0 (Core)
 
@@ -76,10 +76,10 @@ The single source of truth for implementation status. **The implementer updates 
 
 ## Rollup
 
-- Phase 0: 8 / 9 done
+- Phase 0: 9 / 9 done
 - Phase 1: 0 / 3 done
 - Phase 2: 0 / 8 done
 - Phase 3: 0 / 9 done
-- **Total: 8 / 29 done**
+- **Total: 9 / 29 done**
 
 > Update the rollup counts when you mark a row `done`.
