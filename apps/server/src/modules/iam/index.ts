@@ -1,4 +1,5 @@
-export { createIamModule } from './iam.module.ts'
+export { iamModule } from './iam.module.ts'
+export type { IamApi } from './iam.module.ts'
 export { RoleDto } from './role/role.contract.ts'
 export type { RoleCreateDto, RoleUpdateDto, RoleFilterDto } from './role/role.contract.ts'
 export { UserDto } from './user/user.contract.ts'

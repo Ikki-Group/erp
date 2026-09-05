@@ -10,6 +10,7 @@ import { createMemoryEventBus } from './infra/events/event-bus.memory.ts'
 import { otelPlugin } from './infra/otel/otel.ts'
 import { auditModule } from './modules/audit/index.ts'
 import { companyModule } from './modules/company/index.ts'
+import { iamModule } from './modules/iam/index.ts'
 import { legacyModule } from './modules/legacy.module.ts'
 import { locationModule } from './modules/location/index.ts'
 import { uomModule } from './modules/uom/index.ts'
@@ -34,6 +35,7 @@ const ALL_MODULE_DESCRIPTORS: ModuleDescriptor[] = [
 	companyModule,
 	locationModule,
 	uomModule,
+	iamModule,
 	legacyModule,
 ]
 const modules = composeModules(ALL_MODULE_DESCRIPTORS, ctx)

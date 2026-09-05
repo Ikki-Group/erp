@@ -6,7 +6,7 @@ import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 
 import { createAuthModule } from '@/modules/auth/index.ts'
 import type { CompanyApi } from '@/modules/company/index.ts'
-import { createIamModule } from '@/modules/iam/index.ts'
+import type { IamApi } from '@/modules/iam/index.ts'
 import { createInventoryModule } from '@/modules/inventory/index.ts'
 import type { LocationApi } from '@/modules/location/index.ts'
 import { createMaterialModule } from '@/modules/material/index.ts'
@@ -18,6 +18,9 @@ import { createRecipeModule } from '@/modules/recipe/index.ts'
 import { createSupplierModule } from '@/modules/supplier/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
 
+function isIamApi(api: Record<string, unknown> | undefined): api is IamApi {
+	return Boolean(api && api.userRepo && api.assignmentService)
+}
 function isCompanyApi(api: Record<string, unknown> | undefined): api is CompanyApi {
 	if (!api || typeof api.taxRate !== 'object' || api.taxRate === null) return false
 	return 'getPercent' in api.taxRate && typeof api.taxRate.getPercent === 'function'
@@ -43,7 +46,7 @@ function isUomApi(api: Record<string, unknown> | undefined): api is UomApi {
 export const legacyModule: ModuleDescriptor = {
 	name: 'legacy',
 	layer: 3,
-	dependsOn: ['company', 'location', 'uom'],
+	dependsOn: ['company', 'location', 'uom', 'iam'],
 	create(ctx, deps) {
 		const locationApi = deps.location?.api
 		const locationRoute = deps.location?.route
@@ -98,7 +101,9 @@ export const legacyModule: ModuleDescriptor = {
 			materialService: material.service,
 			uomService: uom.service,
 		})
-		const iam = createIamModule(ctx.db, cache, { locationService: location.service })
+		const iamApi = deps.iam?.api
+		if (!isIamApi(iamApi)) throw new Error('IAM API dependency is missing')
+		const iam = iamApi
 		const auth = createAuthModule({
 			userRepo: iam.userRepo,
 			assignmentService: iam.assignmentService,
@@ -109,7 +114,6 @@ export const legacyModule: ModuleDescriptor = {
 		const route = new Elysia({ name: 'legacy-module-routes' })
 			.use(auth.route)
 			.use(location.route)
-			.use(iam.route)
 			.use(material.route)
 			.use(supplier.route)
 			.use(paymentMethod.route)
