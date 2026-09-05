@@ -41,7 +41,8 @@ The single source of truth for implementation status. **The implementer updates 
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | M.location | `location` | [T-201](./tickets/T-201-location.md) | done | ✅ | Phase 0 | `abc49ddf` | Golden-path native descriptor with RBAC CRUD routes, transaction-scoped conflict checks and audits, cache invalidation after commit, active-row reads, and full round-trip coverage. |
 
-| M.uom | `uom` | [T-202](./tickets/T-202-uom.md) | todo | ⬜ | Phase 0 | | |
+| M.uom | `uom` | [T-202](./tickets/T-202-uom.md) | in-progress | ⬜ | Phase 0 | | Migrating UoM/conversion routes to a native descriptor and exposing pure conversion APIs. |
+
 | M.iam | `iam` | [T-203](./tickets/T-203-iam.md) | todo | ⬜ | location | | |
 | M.material | `material` | [T-204](./tickets/T-204-material.md) | todo | ⬜ | uom, location | | |
 | M.supplier | `supplier` | [T-205](./tickets/T-205-supplier.md) | todo | ⬜ | material, uom | | |
