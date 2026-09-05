@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { rbac } from '@/server/plugins/rbac.plugin.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -43,7 +43,7 @@ export function createMenuRoute(
 ) {
 	return (
 		new Elysia({ prefix: '/menu', tags: ['menu'] })
-			.use(authPluginMacro)
+			.use(rbac.as('scoped'))
 
 			// ─── Category Routes ───
 

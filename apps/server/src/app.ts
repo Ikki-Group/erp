@@ -14,6 +14,7 @@ import { iamModule } from './modules/iam/index.ts'
 import { legacyModule } from './modules/legacy.module.ts'
 import { locationModule } from './modules/location/index.ts'
 import { materialModule } from './modules/material/index.ts'
+import { menuModule } from './modules/menu/index.ts'
 import { paymentMethodModule } from './modules/payment-method/index.ts'
 import { supplierModule } from './modules/supplier/index.ts'
 import { uomModule } from './modules/uom/index.ts'
@@ -42,6 +43,7 @@ const ALL_MODULE_DESCRIPTORS: ModuleDescriptor[] = [
 	materialModule,
 	supplierModule,
 	paymentMethodModule,
+	menuModule,
 	legacyModule,
 ]
 const modules = composeModules(ALL_MODULE_DESCRIPTORS, ctx)

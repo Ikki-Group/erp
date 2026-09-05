@@ -10,13 +10,17 @@ import type { IamApi } from '@/modules/iam/index.ts'
 import { createInventoryModule } from '@/modules/inventory/index.ts'
 import type { LocationApi } from '@/modules/location/index.ts'
 import type { MaterialApi } from '@/modules/material/index.ts'
-import { createMenuModule } from '@/modules/menu/index.ts'
+import type { MenuApi } from '@/modules/menu/index.ts'
 import type { PaymentMethodApi } from '@/modules/payment-method/index.ts'
 import { createPosModule } from '@/modules/pos/index.ts'
 import { createProductionModule } from '@/modules/production/index.ts'
 import { createRecipeModule } from '@/modules/recipe/index.ts'
 import type { SupplierApi } from '@/modules/supplier/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
+
+function isMenuApi(api: Record<string, unknown> | undefined): api is MenuApi {
+	return Boolean(api && api.itemService && api.composedService)
+}
 
 function isPaymentMethodApi(api: Record<string, unknown> | undefined): api is PaymentMethodApi {
 	return Boolean(api && api.service && typeof api.service === 'object')
@@ -57,7 +61,16 @@ function isUomApi(api: Record<string, unknown> | undefined): api is UomApi {
 export const legacyModule: ModuleDescriptor = {
 	name: 'legacy',
 	layer: 3,
-	dependsOn: ['company', 'location', 'uom', 'iam', 'material', 'supplier', 'payment-method'],
+	dependsOn: [
+		'company',
+		'location',
+		'uom',
+		'iam',
+		'material',
+		'supplier',
+		'payment-method',
+		'menu',
+	],
 	create(ctx, deps) {
 		const locationApi = deps.location?.api
 		const locationRoute = deps.location?.route
@@ -77,9 +90,9 @@ export const legacyModule: ModuleDescriptor = {
 		if (!isPaymentMethodApi(paymentMethodApi))
 			throw new Error('Payment method API dependency is missing')
 		const paymentMethod = paymentMethodApi
-		const menu = createMenuModule(ctx.db, cache, {
-			locationService: location.service,
-		})
+		const menuApi = deps.menu?.api
+		if (!isMenuApi(menuApi)) throw new Error('Menu API dependency is missing')
+		const menu = menuApi
 		const inventory = createInventoryModule(ctx.db, cache, {
 			assignmentService: material.assignmentService,
 			locationService: location.service,
@@ -126,7 +139,6 @@ export const legacyModule: ModuleDescriptor = {
 			.use(location.route)
 			.use(pos.route)
 			.use(inventory.route)
-			.use(menu.route)
 			.use(recipe.route)
 			.use(production.route)
 
