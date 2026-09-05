@@ -48,7 +48,7 @@ The single source of truth for implementation status. **The implementer updates 
 | M.supplier | `supplier` | [T-205](./tickets/T-205-supplier.md) | done | ✅ | material, uom | `1958400a` | Native layer-1 descriptor with material/UoM dependencies and RBAC-protected supplier and supplier-material pricing routes. |
 | M.payment-method | `payment-method` | [T-206](./tickets/T-206-payment-method.md) | done | ✅ | location | `a2ef01e2`, `c39cdea7` | Native layer-1 descriptor exposing byLocation, native route registration, and RBAC-protected method/location configuration CRUD. |
 | M.menu | `menu` | [T-207](./tickets/T-207-menu.md) | done | ✅ | location | `42ef0f13` | Native layer-1 descriptor exposing enriched itemDetail and existing menu/category/modifier/assignment service APIs; routes registered natively with scoped RBAC. |
-| M.recipe | `recipe` | [T-208](./tickets/T-208-recipe.md) | todo | ⬜ | material, uom, menu | | |
+| M.recipe | `recipe` | [T-208](./tickets/T-208-recipe.md) | in-progress | ⬜ | material, uom, menu | | Migrating recipe and recipe-line composition to a native descriptor. |
 
 ## Phase 3 — Layer 2 (Operations)
 
