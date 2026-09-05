@@ -31,7 +31,7 @@ The single source of truth for implementation status. **The implementer updates 
 
 | ID | Module | Ticket | Status | Verify | Deps | Commit | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| M.audit | `audit` | [T-101](./tickets/T-101-audit.md) | todo | ⬜ | Phase 0 | | |
+| M.audit | `audit` | [T-101](./tickets/T-101-audit.md) | in-progress | ⬜ | Phase 0 | | Native descriptor and guarded read endpoints are being migrated out of the legacy module. |
 | M.company | `company` | [T-102](./tickets/T-102-company.md) | todo | ⬜ | Phase 0 | | |
 | M.auth | `auth` | [T-103](./tickets/T-103-auth.md) | todo | ⬜ | P0, iam | | build after iam if it needs user lookups |
 
