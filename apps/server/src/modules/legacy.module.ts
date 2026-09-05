@@ -9,7 +9,7 @@ import type { CompanyApi } from '@/modules/company/index.ts'
 import type { IamApi } from '@/modules/iam/index.ts'
 import { createInventoryModule } from '@/modules/inventory/index.ts'
 import type { LocationApi } from '@/modules/location/index.ts'
-import { createMaterialModule } from '@/modules/material/index.ts'
+import type { MaterialApi } from '@/modules/material/index.ts'
 import { createMenuModule } from '@/modules/menu/index.ts'
 import { createPaymentMethodModule } from '@/modules/payment-method/index.ts'
 import { createPosModule } from '@/modules/pos/index.ts'
@@ -18,6 +18,9 @@ import { createRecipeModule } from '@/modules/recipe/index.ts'
 import { createSupplierModule } from '@/modules/supplier/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
 
+function isMaterialApi(api: Record<string, unknown> | undefined): api is MaterialApi {
+	return Boolean(api && api.service && api.assignmentService)
+}
 function isIamApi(api: Record<string, unknown> | undefined): api is IamApi {
 	return Boolean(api && api.userRepo && api.assignmentService)
 }
@@ -46,7 +49,7 @@ function isUomApi(api: Record<string, unknown> | undefined): api is UomApi {
 export const legacyModule: ModuleDescriptor = {
 	name: 'legacy',
 	layer: 3,
-	dependsOn: ['company', 'location', 'uom', 'iam'],
+	dependsOn: ['company', 'location', 'uom', 'iam', 'material'],
 	create(ctx, deps) {
 		const locationApi = deps.location?.api
 		const locationRoute = deps.location?.route
@@ -56,10 +59,9 @@ export const legacyModule: ModuleDescriptor = {
 		const uomApi = deps.uom?.api
 		if (!isUomApi(uomApi)) throw new Error('UoM API dependency is missing')
 		const uom = { service: uomApi.service }
-		const material = createMaterialModule(ctx.db, cache, {
-			uomService: uom.service,
-			locationService: location.service,
-		})
+		const materialApi = deps.material?.api
+		if (!isMaterialApi(materialApi)) throw new Error('Material API dependency is missing')
+		const material = materialApi
 		const supplier = createSupplierModule(ctx.db, cache, {
 			materialService: material.service,
 			uomService: uom.service,
@@ -114,7 +116,6 @@ export const legacyModule: ModuleDescriptor = {
 		const route = new Elysia({ name: 'legacy-module-routes' })
 			.use(auth.route)
 			.use(location.route)
-			.use(material.route)
 			.use(supplier.route)
 			.use(paymentMethod.route)
 			.use(pos.route)

@@ -13,6 +13,7 @@ import { companyModule } from './modules/company/index.ts'
 import { iamModule } from './modules/iam/index.ts'
 import { legacyModule } from './modules/legacy.module.ts'
 import { locationModule } from './modules/location/index.ts'
+import { materialModule } from './modules/material/index.ts'
 import { uomModule } from './modules/uom/index.ts'
 import { errorPlugin } from './server/plugins/error.plugin.ts'
 import { isDev } from './shared/config/env.ts'
@@ -36,6 +37,7 @@ const ALL_MODULE_DESCRIPTORS: ModuleDescriptor[] = [
 	locationModule,
 	uomModule,
 	iamModule,
+	materialModule,
 	legacyModule,
 ]
 const modules = composeModules(ALL_MODULE_DESCRIPTORS, ctx)

@@ -1,4 +1,5 @@
-export { createMaterialModule } from './material.module.ts'
+export { materialModule } from './material.module.ts'
+export type { MaterialApi } from './material.module.ts'
 export { MaterialDto, MaterialTypeEnum } from './material.contract.ts'
 export type {
 	MaterialCreateDto,

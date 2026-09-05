@@ -55,7 +55,7 @@ export class StockService {
 			const dbCtx = db ?? this.repo.db
 
 			// 1. Validate material is assigned to location
-			const assigned = await this.assignmentService.isAssigned(materialId, locationId)
+			const assigned = await this.assignmentService.isAssigned(materialId, locationId, dbCtx)
 			if (!assigned) {
 				throw StockError.materialNotAssigned(materialId, locationId)
 			}

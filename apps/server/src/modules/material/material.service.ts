@@ -4,6 +4,7 @@ import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
+import type { DbContext } from '@/infra/database/index.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
@@ -38,15 +39,16 @@ export class MaterialService {
 
 	// ─── Cached Reads ───
 
-	async getById(id: number): Promise<MaterialDto | undefined> {
+	async getById(id: number, db?: DbContext): Promise<MaterialDto | undefined> {
+		if (db) return this.repo.findById(id, db)
 		return this.cache.getOrSetWithSkip({
 			key: this.cache.keys.byId(id),
 			factory: () => this.repo.findById(id),
 		})
 	}
 
-	async getByIds(ids: number[]): Promise<MaterialDto[]> {
-		return this.repo.findByIds(ids)
+	async getByIds(ids: number[], db?: DbContext): Promise<MaterialDto[]> {
+		return this.repo.findByIds(ids, db)
 	}
 
 	// ─── Handlers ───

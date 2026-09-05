@@ -1,6 +1,7 @@
 import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
+import type { DbContext } from '@/infra/database/index.ts'
 import { stampCreate } from '@/shared/audit/stamp.ts'
 import { ConflictError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
@@ -45,8 +46,8 @@ export class AssignmentService {
 	// ─── Reads ───
 
 	/** Check if a material is assigned to a location. Used by inventory/stock. */
-	async isAssigned(materialId: number, locationId: number): Promise<boolean> {
-		const row = await this.repo.findOne(materialId, locationId)
+	async isAssigned(materialId: number, locationId: number, db?: DbContext): Promise<boolean> {
+		const row = await this.repo.findOne(materialId, locationId, db)
 		return row !== undefined
 	}
 
