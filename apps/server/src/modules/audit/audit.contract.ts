@@ -4,7 +4,7 @@ import { zp, zq } from '@/shared/schema/index.ts'
 
 // ─── Enums ───
 
-const AuditActionEnum = z.enum(['create', 'update', 'delete'])
+const AuditActionEnum = z.string().trim().min(1)
 
 // ─── DTOs ───
 

@@ -21,12 +21,6 @@ import type { AuditLogDetailDto, AuditLogDto, AuditLogFilterDto } from './audit.
 
 type AuditLogRow = typeof auditLogs.$inferSelect
 
-const actionMap: Record<string, AuditLogDto['action']> = {
-	create: 'create',
-	update: 'update',
-	delete: 'delete',
-}
-
 /** Maps a raw DB row to the list DTO shape. */
 function toDto(row: AuditLogRow): AuditLogDto {
 	return {
@@ -38,7 +32,7 @@ function toDto(row: AuditLogRow): AuditLogDto {
 		module: row.module,
 		entity: row.entity,
 		entityId: row.entityId,
-		action: actionMap[row.action] ?? 'create',
+		action: row.action,
 		summary: row.summary,
 	}
 }
@@ -115,7 +109,7 @@ export class AuditRepo implements IAuditRepo {
 				module: row.module,
 				entity: row.entity,
 				entityId: row.entityId,
-				action: actionMap[row.action] ?? 'create',
+				action: row.action,
 				summary: row.summary,
 			})),
 			meta: buildPaginationMeta(filter.page, filter.limit, total),

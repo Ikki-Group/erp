@@ -53,7 +53,7 @@ const ROLES = [
 			'production:read',
 			'production:write',
 			'report:read',
-			'audit:read',
+			'audit.read',
 		]),
 	},
 	{

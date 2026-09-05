@@ -4,7 +4,6 @@ import { cache } from '@/infra/cache/index.ts'
 import { sessionStore } from '@/infra/session/index.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 
-import { createAuditModule } from '@/modules/audit/index.ts'
 import { createAuthModule } from '@/modules/auth/index.ts'
 import { createCompanyModule } from '@/modules/company/index.ts'
 import { createIamModule } from '@/modules/iam/index.ts'
@@ -76,7 +75,6 @@ export const legacyModule: ModuleDescriptor = {
 			uomService: uom.service,
 		})
 		const iam = createIamModule(ctx.db, cache, { locationService: location.service })
-		const audit = createAuditModule(ctx.db)
 		const auth = createAuthModule({
 			userRepo: iam.userRepo,
 			assignmentService: iam.assignmentService,
@@ -86,7 +84,6 @@ export const legacyModule: ModuleDescriptor = {
 
 		const route = new Elysia({ name: 'legacy-module-routes' })
 			.use(auth.route)
-			.use(audit.route)
 			.use(company.route)
 			.use(location.route)
 			.use(iam.route)

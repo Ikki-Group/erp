@@ -1,1 +1,1 @@
-export { createAuditModule } from './audit.module.ts'
+export { auditModule } from './audit.module.ts'

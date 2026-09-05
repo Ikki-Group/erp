@@ -8,7 +8,7 @@ import type { IAuditRepo } from './audit.repo.ts'
 
 // ─── Constants ───
 
-const PERMISSION_READ = 'core:audit:read'
+const PERMISSION_READ = 'audit.read'
 
 // ─── Service ───
 
