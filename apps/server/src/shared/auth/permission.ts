@@ -4,6 +4,7 @@ import { ForbiddenError } from '@/shared/errors/http-error.ts'
 
 export interface AuthContext {
 	userId: number
+	userName: string
 	locationId: number | null
 	permissions: string[]
 	isOwner: boolean

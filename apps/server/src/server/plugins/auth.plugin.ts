@@ -1,7 +1,7 @@
 import { eq, inArray } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 
-import { roles, userAssignments } from '@/db/schema/iam.ts'
+import { roles, userAssignments, users } from '@/db/schema/iam.ts'
 
 import { cache } from '@/infra/cache/index.ts'
 import { db } from '@/infra/database/index.ts'
@@ -25,7 +25,15 @@ function authCacheKey(sessionId: string): string {
 async function loadPermissions(
 	userId: number,
 	locationId: number | null,
-): Promise<{ permissions: string[]; isOwner: boolean }> {
+): Promise<{ userName: string; permissions: string[]; isOwner: boolean }> {
+	const user = await db
+		.select({ name: users.name })
+		.from(users)
+		.where(eq(users.id, userId))
+		.limit(1)
+		.then((rows) => rows[0])
+	if (!user) throw new UnauthorizedError('User not found')
+
 	// Find all assignments for this user
 	const assignments = await db
 		.select({
@@ -41,7 +49,7 @@ async function loadPermissions(
 	)
 
 	if (relevantAssignments.length === 0) {
-		return { permissions: [], isOwner: false }
+		return { userName: user.name, permissions: [], isOwner: false }
 	}
 
 	// Load roles for these assignments
@@ -64,7 +72,7 @@ async function loadPermissions(
 		return []
 	})
 
-	return { permissions: [...new Set(permissions)], isOwner }
+	return { userName: user.name, permissions: [...new Set(permissions)], isOwner }
 }
 
 // ─── Resolve Auth (with cache) ───
@@ -82,10 +90,14 @@ async function resolveAuth(sessionId: string): Promise<AuthContext> {
 				throw new UnauthorizedError('Session expired or invalid')
 			}
 
-			const { permissions, isOwner } = await loadPermissions(session.userId, session.locationId)
+			const { userName, permissions, isOwner } = await loadPermissions(
+				session.userId,
+				session.locationId,
+			)
 
 			return {
 				userId: session.userId,
+				userName,
 				locationId: session.locationId,
 				permissions,
 				isOwner,

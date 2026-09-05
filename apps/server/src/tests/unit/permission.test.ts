@@ -8,6 +8,7 @@ import { describe, expect, test } from 'bun:test'
 
 const owner: AuthContext = {
 	userId: 1,
+	userName: 'Owner User',
 	locationId: 1,
 	permissions: [],
 	isOwner: true,
@@ -15,6 +16,7 @@ const owner: AuthContext = {
 
 const cashier: AuthContext = {
 	userId: 2,
+	userName: 'Cashier User',
 	locationId: 1,
 	permissions: ['pos.order.create', 'pos.order.complete', 'pos.shift.open'],
 	isOwner: false,
@@ -22,6 +24,7 @@ const cashier: AuthContext = {
 
 const noPerms: AuthContext = {
 	userId: 3,
+	userName: 'No Permissions User',
 	locationId: 1,
 	permissions: [],
 	isOwner: false,
