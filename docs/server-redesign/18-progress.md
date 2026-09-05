@@ -43,7 +43,7 @@ The single source of truth for implementation status. **The implementer updates 
 
 | M.uom | `uom` | [T-202](./tickets/T-202-uom.md) | done | ✅ | Phase 0 | `b33782e0` | Native layer-1 descriptor with RBAC-protected UoM/conversion CRUD, transaction-aware conversion reads, pure domain resolver coverage, and legacy dependency bridge removed. |
 
-| M.iam | `iam` | [T-203](./tickets/T-203-iam.md) | in-progress | ⬜ | location | | Migrating IAM role/user/assignment reads and writes to a native descriptor. |
+| M.iam | `iam` | [T-203](./tickets/T-203-iam.md) | done | ✅ | location | `78f0a67e` | Native layer-1 descriptor with location dependency, RBAC-protected role/user/assignment routes, composed IAM API retained for auth consumers, and native iam.* seed permissions. |
 | M.material | `material` | [T-204](./tickets/T-204-material.md) | todo | ⬜ | uom, location | | |
 | M.supplier | `supplier` | [T-205](./tickets/T-205-supplier.md) | todo | ⬜ | material, uom | | |
 | M.payment-method | `payment-method` | [T-206](./tickets/T-206-payment-method.md) | todo | ⬜ | location | | |
@@ -80,8 +80,8 @@ The single source of truth for implementation status. **The implementer updates 
 
 - Phase 0: 9 / 9 done
 - Phase 1: 2 / 3 done
-- Phase 2: 2 / 8 done
+- Phase 2: 3 / 8 done
 - Phase 3: 0 / 9 done
-- **Total: 13 / 29 done**
+- **Total: 14 / 29 done**
 
 > Update the rollup counts when you mark a row `done`.
