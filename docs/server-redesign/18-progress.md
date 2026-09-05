@@ -46,7 +46,7 @@ The single source of truth for implementation status. **The implementer updates 
 | M.iam | `iam` | [T-203](./tickets/T-203-iam.md) | done | ✅ | location | `78f0a67e` | Native layer-1 descriptor with location dependency, RBAC-protected role/user/assignment routes, composed IAM API retained for auth consumers, and native iam.* seed permissions. |
 | M.material | `material` | [T-204](./tickets/T-204-material.md) | done | ✅ | uom, location | `75a7e578` | Native layer-1 descriptor with UoM/location dependencies, RBAC-protected material/category/assignment routes, MaterialApi reads, and transaction-aware assignment checks for stock. |
 | M.supplier | `supplier` | [T-205](./tickets/T-205-supplier.md) | done | ✅ | material, uom | `1958400a` | Native layer-1 descriptor with material/UoM dependencies and RBAC-protected supplier and supplier-material pricing routes. |
-| M.payment-method | `payment-method` | [T-206](./tickets/T-206-payment-method.md) | in-progress | ⬜ | location | | Migrating payment methods and location assignments to a native descriptor. |
+| M.payment-method | `payment-method` | [T-206](./tickets/T-206-payment-method.md) | done | ✅ | location | `a2ef01e2`, `c39cdea7` | Native layer-1 descriptor exposing byLocation, native route registration, and RBAC-protected method/location configuration CRUD. |
 | M.menu | `menu` | [T-207](./tickets/T-207-menu.md) | todo | ⬜ | location | | |
 | M.recipe | `recipe` | [T-208](./tickets/T-208-recipe.md) | todo | ⬜ | material, uom, menu | | |
 
@@ -80,8 +80,8 @@ The single source of truth for implementation status. **The implementer updates 
 
 - Phase 0: 9 / 9 done
 - Phase 1: 2 / 3 done
-- Phase 2: 5 / 8 done
+- Phase 2: 6 / 8 done
 - Phase 3: 0 / 9 done
-- **Total: 16 / 29 done**
+- **Total: 17 / 29 done**
 
 > Update the rollup counts when you mark a row `done`.
