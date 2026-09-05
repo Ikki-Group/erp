@@ -32,7 +32,7 @@ The single source of truth for implementation status. **The implementer updates 
 | ID | Module | Ticket | Status | Verify | Deps | Commit | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | M.audit | `audit` | [T-101](./tickets/T-101-audit.md) | done | ✅ | Phase 0 | `64c8c393` | Native descriptor with RBAC-guarded audit read endpoints; removed audit from legacy composition; preserved domain action verbs; added owner/cashier integration coverage. |
-| M.company | `company` | [T-102](./tickets/T-102-company.md) | todo | ⬜ | Phase 0 | | |
+| M.company | `company` | [T-102](./tickets/T-102-company.md) | in-progress | ⬜ | Phase 0 | | Migrating singleton settings to a native descriptor with atomic audited updates and the taxRate API. |
 | M.auth | `auth` | [T-103](./tickets/T-103-auth.md) | todo | ⬜ | P0, iam | | build after iam if it needs user lookups |
 
 ## Phase 2 — Layer 1 (Master Data)
