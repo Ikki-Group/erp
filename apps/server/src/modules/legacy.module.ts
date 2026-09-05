@@ -14,12 +14,16 @@ import type { MenuApi } from '@/modules/menu/index.ts'
 import type { PaymentMethodApi } from '@/modules/payment-method/index.ts'
 import { createPosModule } from '@/modules/pos/index.ts'
 import { createProductionModule } from '@/modules/production/index.ts'
-import { createRecipeModule } from '@/modules/recipe/index.ts'
+import type { RecipeApi } from '@/modules/recipe/index.ts'
 import type { SupplierApi } from '@/modules/supplier/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
 
+function isRecipeApi(api: Record<string, unknown> | undefined): api is RecipeApi {
+	return Boolean(api && api.service && api.activeByMenuItem && api.linesByRecipe)
+}
+
 function isMenuApi(api: Record<string, unknown> | undefined): api is MenuApi {
-	return Boolean(api && api.itemService && api.composedService)
+	return api !== undefined
 }
 
 function isPaymentMethodApi(api: Record<string, unknown> | undefined): api is PaymentMethodApi {
@@ -70,6 +74,7 @@ export const legacyModule: ModuleDescriptor = {
 		'supplier',
 		'payment-method',
 		'menu',
+		'recipe',
 	],
 	create(ctx, deps) {
 		const locationApi = deps.location?.api
@@ -100,11 +105,9 @@ export const legacyModule: ModuleDescriptor = {
 			supplierService: supplier.service,
 			uomService: uom.service,
 		})
-		const recipe = createRecipeModule(ctx.db, cache, {
-			materialService: material.service,
-			uomService: uom.service,
-			itemService: menu.itemService,
-		})
+		const recipeApi = deps.recipe?.api
+		if (!isRecipeApi(recipeApi)) throw new Error('Recipe API dependency is missing')
+		const recipe = recipeApi
 		const companyApi = deps.company?.api
 		if (!isCompanyApi(companyApi)) throw new Error('Company API dependency is missing')
 		const pos = createPosModule(ctx.db, cache, {
@@ -139,7 +142,6 @@ export const legacyModule: ModuleDescriptor = {
 			.use(location.route)
 			.use(pos.route)
 			.use(inventory.route)
-			.use(recipe.route)
 			.use(production.route)
 
 		return { route }

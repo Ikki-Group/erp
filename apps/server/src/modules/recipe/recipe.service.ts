@@ -4,6 +4,7 @@ import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { eq, and } from '@/infra/database/index.ts'
+import type { DbContext } from '@/infra/database/index.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
@@ -51,15 +52,16 @@ export class RecipeService {
 		})
 	}
 
-	async getActiveByMenuItemId(menuItemId: number): Promise<RecipeDto | undefined> {
+	async getActiveByMenuItemId(menuItemId: number, db?: DbContext): Promise<RecipeDto | undefined> {
+		if (db) return this.repo.findActiveByMenuItemId(menuItemId, db)
 		return this.cache.getOrSetWithSkip({
 			key: `recipe:byMenuItemId:${menuItemId}`,
 			factory: () => this.repo.findActiveByMenuItemId(menuItemId),
 		})
 	}
 
-	async getLinesByRecipeId(recipeId: number): Promise<RecipeLineDto[]> {
-		return this.repo.findLinesByRecipeId(recipeId)
+	async getLinesByRecipeId(recipeId: number, db?: DbContext): Promise<RecipeLineDto[]> {
+		return this.repo.findLinesByRecipeId(recipeId, db)
 	}
 
 	// ─── Handlers ───

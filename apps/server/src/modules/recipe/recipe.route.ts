@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { rbac } from '@/server/plugins/rbac.plugin.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -21,7 +21,7 @@ import type { RecipeService } from './recipe.service.ts'
 export function createRecipeRoute(recipeService: RecipeService) {
 	return (
 		new Elysia({ prefix: '/recipe', tags: ['recipe'] })
-			.use(authPluginMacro)
+			.use(rbac.as('scoped'))
 
 			// ─── Reads ───
 
