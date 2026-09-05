@@ -15,9 +15,12 @@ import { createPaymentMethodModule } from '@/modules/payment-method/index.ts'
 import { createPosModule } from '@/modules/pos/index.ts'
 import { createProductionModule } from '@/modules/production/index.ts'
 import { createRecipeModule } from '@/modules/recipe/index.ts'
-import { createSupplierModule } from '@/modules/supplier/index.ts'
+import type { SupplierApi } from '@/modules/supplier/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
 
+function isSupplierApi(api: Record<string, unknown> | undefined): api is SupplierApi {
+	return Boolean(api && api.service && typeof api.service === 'object')
+}
 function isMaterialApi(api: Record<string, unknown> | undefined): api is MaterialApi {
 	return Boolean(api && api.service && api.assignmentService)
 }
@@ -49,7 +52,7 @@ function isUomApi(api: Record<string, unknown> | undefined): api is UomApi {
 export const legacyModule: ModuleDescriptor = {
 	name: 'legacy',
 	layer: 3,
-	dependsOn: ['company', 'location', 'uom', 'iam', 'material'],
+	dependsOn: ['company', 'location', 'uom', 'iam', 'material', 'supplier'],
 	create(ctx, deps) {
 		const locationApi = deps.location?.api
 		const locationRoute = deps.location?.route
@@ -62,10 +65,9 @@ export const legacyModule: ModuleDescriptor = {
 		const materialApi = deps.material?.api
 		if (!isMaterialApi(materialApi)) throw new Error('Material API dependency is missing')
 		const material = materialApi
-		const supplier = createSupplierModule(ctx.db, cache, {
-			materialService: material.service,
-			uomService: uom.service,
-		})
+		const supplierApi = deps.supplier?.api
+		if (!isSupplierApi(supplierApi)) throw new Error('Supplier API dependency is missing')
+		const supplier = supplierApi
 		const paymentMethod = createPaymentMethodModule(ctx.db, cache, {
 			locationService: location.service,
 		})
@@ -116,7 +118,6 @@ export const legacyModule: ModuleDescriptor = {
 		const route = new Elysia({ name: 'legacy-module-routes' })
 			.use(auth.route)
 			.use(location.route)
-			.use(supplier.route)
 			.use(paymentMethod.route)
 			.use(pos.route)
 			.use(inventory.route)
