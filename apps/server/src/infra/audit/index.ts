@@ -1,5 +1,8 @@
 import { auditLogs } from '@/db/schema/audit.ts'
 
+export { auditPort } from './audit.drizzle.ts'
+export type { AuditEntry } from '@/shared/audit/audit.port.ts'
+
 import { db } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import { getLogger } from '@/infra/logger/index.ts'
