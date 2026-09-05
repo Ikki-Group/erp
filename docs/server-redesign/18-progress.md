@@ -20,7 +20,7 @@ The single source of truth for implementation status. **The implementer updates 
 | P0.1 | Neon WebSocket client + `DbContext`/`Tx` | [T-001](./tickets/T-001-db-client.md) | done | ✅ | — | `0bc0143e` | Real Neon WebSocket client, transaction rollback self-check, and baseline gates fixed. |
 | P0.2 | `UnitOfWork` port + adapter | [T-002](./tickets/T-002-uow.md) | done | ✅ | P0.1 | `d2c659aa` | UnitOfWork port, Drizzle transaction adapter, and rollback self-check implemented. |
 | P0.3 | `CachePort` + memory adapter | [T-003](./tickets/T-003-cache-port.md) | done | ✅ | — | `b8d775f6` | CachePort, BentoCache memory adapter, invalidation semantics, and undefined-value self-check implemented. |
-| P0.4 | `EventBusPort` + memory adapter | [T-004](./tickets/T-004-event-bus.md) | todo | ⬜ | — | | |
+| P0.4 | `EventBusPort` + memory adapter | [T-004](./tickets/T-004-event-bus.md) | done | ✅ | — | `6b18cad5` | EventBusPort, isolated in-process handlers, failure logging, and multi-handler self-check implemented. |
 | P0.5 | `AuditPort` + adapter | [T-005](./tickets/T-005-audit-port.md) | todo | ⬜ | P0.1 | | |
 | P0.6 | `Money` + `Qty` + `weightedAvgCost` | [T-006](./tickets/T-006-value-objects.md) | todo | ⬜ | — | | |
 | P0.7 | RBAC macro + `actorOf` + `userName` | [T-007](./tickets/T-007-rbac.md) | todo | ⬜ | — | | |
@@ -76,10 +76,10 @@ The single source of truth for implementation status. **The implementer updates 
 
 ## Rollup
 
-- Phase 0: 3 / 9 done
+- Phase 0: 4 / 9 done
 - Phase 1: 0 / 3 done
 - Phase 2: 0 / 8 done
 - Phase 3: 0 / 9 done
-- **Total: 3 / 29 done**
+- **Total: 4 / 29 done**
 
 > Update the rollup counts when you mark a row `done`.
