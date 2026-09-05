@@ -39,7 +39,8 @@ The single source of truth for implementation status. **The implementer updates 
 
 | ID | Module | Ticket | Status | Verify | Deps | Commit | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| M.location | `location` | [T-201](./tickets/T-201-location.md) | todo | ⬜ | Phase 0 | | golden-path reference — build first, get reviewed |
+| M.location | `location` | [T-201](./tickets/T-201-location.md) | in-progress | ⬜ | Phase 0 | | Building the golden-path native descriptor with atomic audited CRUD and conflict checks. |
+
 | M.uom | `uom` | [T-202](./tickets/T-202-uom.md) | todo | ⬜ | Phase 0 | | |
 | M.iam | `iam` | [T-203](./tickets/T-203-iam.md) | todo | ⬜ | location | | |
 | M.material | `material` | [T-204](./tickets/T-204-material.md) | todo | ⬜ | uom, location | | |
