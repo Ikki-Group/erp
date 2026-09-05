@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 
-import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -13,49 +14,36 @@ import {
 } from './location.contract.ts'
 import type { LocationService } from './location.service.ts'
 
-// ─── Route Factory ───
-
 export function createLocationRoute(service: LocationService) {
 	return new Elysia({ prefix: '/location', tags: ['location'] })
-		.use(authPluginMacro)
-		.get(
-			'/list',
-			async ({ query }) => {
-				const result = await service.handleList(query)
-				return res.paginated(result)
-			},
-			{ query: LocationFilterDto, response: zRes.paginated(LocationDto) },
-		)
-		.get(
-			'/detail',
-			async ({ query }) => {
-				const result = await service.handleGetById(query.id)
-				return res.ok(result)
-			},
-			{ query: zq.recordId, response: zRes.ok(LocationDto) },
-		)
+		.use(rbac.as('scoped'))
+		.get('/list', async ({ query }) => res.paginated(await service.handleList(query)), {
+			query: LocationFilterDto,
+			response: zRes.paginated(LocationDto),
+			permission: 'location.read',
+		})
+		.get('/detail', async ({ query }) => res.ok(await service.handleGetById(query.id)), {
+			query: zq.recordId,
+			response: zRes.ok(LocationDto),
+			permission: 'location.read',
+		})
 		.post(
 			'/create',
-			async ({ body, auth }) => {
-				const result = await service.handleCreate(body, auth.userId)
-				return res.created(result)
+			async ({ body, auth }) => res.created(await service.handleCreate(body, actorOf(auth))),
+			{
+				body: LocationCreateDto,
+				response: zRes.created(EntityRefDto),
+				permission: 'location.create',
 			},
-			{ body: LocationCreateDto, response: zRes.created(EntityRefDto) },
 		)
 		.put(
 			'/update',
-			async ({ body, auth }) => {
-				const result = await service.handleUpdate(body, auth.userId)
-				return res.ok(result)
-			},
-			{ body: LocationUpdateDto, response: zRes.ok(EntityRefDto) },
+			async ({ body, auth }) => res.ok(await service.handleUpdate(body, actorOf(auth))),
+			{ body: LocationUpdateDto, response: zRes.ok(EntityRefDto), permission: 'location.update' },
 		)
 		.delete(
 			'/remove',
-			async ({ query, auth }) => {
-				const result = await service.handleDelete(query.id, auth.userId)
-				return res.ok(result)
-			},
-			{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
+			async ({ query, auth }) => res.ok(await service.handleDelete(query.id, actorOf(auth))),
+			{ query: zq.recordId, response: zRes.ok(EntityRefDto), permission: 'location.delete' },
 		)
 }

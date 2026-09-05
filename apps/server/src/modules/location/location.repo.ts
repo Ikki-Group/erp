@@ -1,3 +1,5 @@
+import { and, ne } from 'drizzle-orm'
+
 import { locations } from '@/db/schema/core.ts'
 
 import {
@@ -11,11 +13,12 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { DbContext, Tx } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type { LocationDto, LocationFilterDto } from './location.contract.ts'
+import { LocationError } from './location.internal.ts'
 
 // ─── Types ───
 
@@ -44,13 +47,21 @@ function toDto(row: LocationRow): LocationDto {
 
 export interface ILocationRepo {
 	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<LocationDto | undefined>
-	findByIds(ids: number[], db?: DbContext): Promise<LocationDto[]>
-	findMany(db?: DbContext): Promise<LocationDto[]>
-	findPage(filter: LocationFilterDto, db?: DbContext): Promise<WithPaginationResult<LocationDto>>
-	insert(data: LocationInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: LocationUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, data: LocationUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	findById(id: number, db?: DbContext | Tx): Promise<LocationDto | undefined>
+	findByIds(ids: number[], db?: DbContext | Tx): Promise<LocationDto[]>
+	findMany(db?: DbContext | Tx): Promise<LocationDto[]>
+	findPage(
+		filter: LocationFilterDto,
+		db?: DbContext | Tx,
+	): Promise<WithPaginationResult<LocationDto>>
+	insert(data: LocationInsert, db?: DbContext | Tx): Promise<EntityRef | undefined>
+	update(id: number, data: LocationUpdate, db?: DbContext | Tx): Promise<EntityRef | undefined>
+	remove(id: number, data: LocationUpdate, db?: DbContext | Tx): Promise<EntityRef | undefined>
+	assertNoConflict(
+		data: { code: string; name: string },
+		excludeId: number | undefined,
+		db: DbContext | Tx,
+	): Promise<void>
 }
 
 // ─── Implementation ───
@@ -58,30 +69,30 @@ export interface ILocationRepo {
 export class LocationRepo implements ILocationRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<LocationDto | undefined> {
+	async findById(id: number, db: DbContext | Tx = this.db): Promise<LocationDto | undefined> {
 		const row = await db
 			.select()
 			.from(locations)
-			.where(eq(locations.id, id))
+			.where(and(eq(locations.id, id), eq(locations.isActive, true)))
 			.limit(1)
 			.then(takeFirst)
 		return row ? toDto(row) : undefined
 	}
 
-	async findByIds(ids: number[], db: DbContext = this.db): Promise<LocationDto[]> {
+	async findByIds(ids: number[], db: DbContext | Tx = this.db): Promise<LocationDto[]> {
 		if (ids.length === 0) return []
 		const rows = await db.select().from(locations).where(inArray(locations.id, ids))
 		return rows.map(toDto)
 	}
 
-	async findMany(db: DbContext = this.db): Promise<LocationDto[]> {
-		const rows = await db.select().from(locations)
+	async findMany(db: DbContext | Tx = this.db): Promise<LocationDto[]> {
+		const rows = await db.select().from(locations).where(eq(locations.isActive, true))
 		return rows.map(toDto)
 	}
 
 	async findPage(
 		filter: LocationFilterDto,
-		db: DbContext = this.db,
+		db: DbContext | Tx = this.db,
 	): Promise<WithPaginationResult<LocationDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -114,7 +125,7 @@ export class LocationRepo implements ILocationRepo {
 		}
 	}
 
-	async insert(data: LocationInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: LocationInsert, db: DbContext | Tx = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(locations).values(data).returning({ id: locations.id })
 		return result
 	}
@@ -122,7 +133,7 @@ export class LocationRepo implements ILocationRepo {
 	async update(
 		id: number,
 		data: LocationUpdate,
-		db: DbContext = this.db,
+		db: DbContext | Tx = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(locations)
@@ -135,7 +146,7 @@ export class LocationRepo implements ILocationRepo {
 	async remove(
 		id: number,
 		data: LocationUpdate,
-		db: DbContext = this.db,
+		db: DbContext | Tx = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(locations)
@@ -145,10 +156,34 @@ export class LocationRepo implements ILocationRepo {
 		return result
 	}
 
+	async assertNoConflict(
+		data: { code: string; name: string },
+		excludeId: number | undefined,
+		db: DbContext | Tx,
+	): Promise<void> {
+		const notSelf = excludeId ? ne(locations.id, excludeId) : undefined
+		const byCode = await db
+			.select({ id: locations.id })
+			.from(locations)
+			.where(and(eq(locations.code, data.code), notSelf))
+			.limit(1)
+			.then(takeFirst)
+		if (byCode) throw LocationError.codeExists()
+
+		const byName = await db
+			.select({ id: locations.id })
+			.from(locations)
+			.where(and(eq(locations.name, data.name), notSelf))
+			.limit(1)
+			.then(takeFirst)
+		if (byName) throw LocationError.nameExists()
+	}
+
 	// ─── Private ───
 
 	#buildWhere(filter: LocationFilterDto) {
 		return allOf(
+			eq(locations.isActive, true),
 			searchAcross(filter.q, [locations.code, locations.name]),
 			eqIf(locations.type, filter.type),
 		)

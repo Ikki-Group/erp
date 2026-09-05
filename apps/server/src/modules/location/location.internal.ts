@@ -1,15 +1,14 @@
-import { locations } from '@/db/schema/core.ts'
-
-import { defineConflictFields } from '@/infra/database/index.ts'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
-
-import type { LocationCreateDto } from './location.contract.ts'
+import { ConflictError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
 // ─── Error Factories ───
 
 export const LocationError = {
 	notFound: (id: number) =>
 		new NotFoundError('Location not found', { code: 'LOCATION_NOT_FOUND', context: { id } }),
+	nameExists: () =>
+		new ConflictError('Location name already exists', { code: 'LOCATION_NAME_EXISTS' }),
+	codeExists: () =>
+		new ConflictError('Location code already exists', { code: 'LOCATION_CODE_EXISTS' }),
 	createFailed: () =>
 		new InternalServerError('Location creation failed', { code: 'LOCATION_CREATE_FAILED' }),
 	updateFailed: (id: number) =>
@@ -23,20 +22,3 @@ export const LocationError = {
 			context: { id },
 		}),
 }
-
-// ─── Unique Constraint Fields ───
-
-export const uniqueFields = defineConflictFields<LocationCreateDto>()([
-	{
-		field: 'code',
-		column: locations.code,
-		message: 'Location code already exists',
-		code: 'LOCATION_CODE_EXISTS',
-	},
-	{
-		field: 'name',
-		column: locations.name,
-		message: 'Location name already exists',
-		code: 'LOCATION_NAME_EXISTS',
-	},
-])

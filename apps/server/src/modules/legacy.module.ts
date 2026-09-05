@@ -8,7 +8,7 @@ import { createAuthModule } from '@/modules/auth/index.ts'
 import type { CompanyApi } from '@/modules/company/index.ts'
 import { createIamModule } from '@/modules/iam/index.ts'
 import { createInventoryModule } from '@/modules/inventory/index.ts'
-import { createLocationModule } from '@/modules/location/index.ts'
+import type { LocationApi } from '@/modules/location/index.ts'
 import { createMaterialModule } from '@/modules/material/index.ts'
 import { createMenuModule } from '@/modules/menu/index.ts'
 import { createPaymentMethodModule } from '@/modules/payment-method/index.ts'
@@ -23,6 +23,12 @@ function isCompanyApi(api: Record<string, unknown> | undefined): api is CompanyA
 	return 'getPercent' in api.taxRate && typeof api.taxRate.getPercent === 'function'
 }
 
+function isLocationApi(api: Record<string, unknown> | undefined): api is LocationApi {
+	const service = api?.service
+	if (typeof service !== 'object' || service === null) return false
+	return 'getById' in service && 'handleGetById' in service && 'handleCreate' in service
+}
+
 /**
  * Registry adapter for modules that have not yet been migrated to descriptors.
  * Each module ticket replaces its portion with a native descriptor and removes
@@ -30,10 +36,14 @@ function isCompanyApi(api: Record<string, unknown> | undefined): api is CompanyA
  */
 export const legacyModule: ModuleDescriptor = {
 	name: 'legacy',
-	layer: 0,
-	dependsOn: ['company'],
+	layer: 3,
+	dependsOn: ['company', 'location'],
 	create(ctx, deps) {
-		const location = createLocationModule(ctx.db, cache)
+		const locationApi = deps.location?.api
+		const locationRoute = deps.location?.route
+		if (!isLocationApi(locationApi) || !locationRoute)
+			throw new Error('Location API dependency is missing')
+		const location = { service: locationApi.service, route: locationRoute }
 		const uom = createUomModule(ctx.db, cache)
 		const material = createMaterialModule(ctx.db, cache, {
 			uomService: uom.service,
