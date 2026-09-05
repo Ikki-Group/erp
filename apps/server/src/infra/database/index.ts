@@ -6,6 +6,7 @@ import type { SQL } from 'drizzle-orm'
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
 export { db } from './client.ts'
+export { uow } from './uow.drizzle.ts'
 export type { DbContext, Tx } from './client.ts'
 
 // ─── Query Helpers ───
