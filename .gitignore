@@ -32,20 +32,17 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .tanstack/tmp
 .wrangler/tmp
 
-# IntelliJ based IDEs
-.idea
-
 # Finder (MacOS) folder config
 .DS_Store
 .ignore
 
-.windsurf
 
 # Moka dump
 .collection
 docs/draft
 
 # ai agents
+.windsurf
 .claude
 .notes
 .codegraph

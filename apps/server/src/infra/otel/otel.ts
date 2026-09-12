@@ -1,9 +1,10 @@
 /**
- * OpenTelemetry preload — must run BEFORE any instrumented imports.
- * Loaded via bunfig.toml `preload = ["./src/instrumentation.ts"]`.
+ * OpenTelemetry integration.
  *
  * Exports the Elysia plugin (applied in app.ts) and the `record()` utility
- * for manual span creation in service orchestrations.
+ * for manual span creation in service orchestrations. Instrumentation is wired
+ * through the Elysia plugin at app construction, so this is a normal module —
+ * it is imported by app.ts, not preloaded.
  */
 import { opentelemetry } from '@elysiajs/opentelemetry'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
@@ -17,7 +18,9 @@ import { env, isTest } from '@/shared/config/env.ts'
 export { record } from '@elysiajs/opentelemetry'
 
 const { AXIOM_URL: axiomUrl, AXIOM_TOKEN: axiomToken, AXIOM_DATASET: axiomDataset } = env
-const hasAxiomConfig = axiomUrl && axiomToken && axiomDataset
+
+/** True when Axiom export is fully configured (traces are exported, not dropped). */
+export const otelExportsToAxiom = Boolean(axiomUrl && axiomToken && axiomDataset)
 
 /**
  * Elysia plugin — undefined in test env (no-op).
@@ -28,30 +31,17 @@ export const otelPlugin = isTest
 	: opentelemetry({
 			serviceName: SERVICE_NAME,
 			instrumentations: [new PgInstrumentation()],
-			spanProcessors: hasAxiomConfig
+			spanProcessors: otelExportsToAxiom
 				? [
 						new BatchSpanProcessor(
 							new OTLPTraceExporter({
-								url: axiomUrl,
+								url: axiomUrl!,
 								headers: {
 									Authorization: `Bearer ${axiomToken}`,
-									'X-Axiom-Dataset': axiomDataset,
+									'X-Axiom-Dataset': axiomDataset!,
 								},
 							}),
 						),
 					]
 				: [],
 		})
-
-// Note: logger may not be configured yet (otel.ts is preloaded), so use
-// getLogger lazily. The message is emitted at import-time but LogTape
-// buffers until configure() is called.
-import { getLogger } from '@/infra/logger/index.ts'
-
-const logger = getLogger(['otel'])
-
-if (!isTest && hasAxiomConfig) {
-	logger.info('OpenTelemetry initialized, exporting to Axiom')
-} else if (!isTest) {
-	logger.info('OpenTelemetry initialized (no Axiom config, spans dropped)')
-}
