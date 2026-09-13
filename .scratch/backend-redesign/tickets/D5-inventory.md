@@ -1,7 +1,18 @@
 # D5 · Inventory domain (stock balance/movement, transfer, opname, receiving, min-stock)
 
-`wayfinder:grilling` · HITL · status: open · claimed-by: —
-blocked-by: D3
+`wayfinder:grilling` · HITL · status: **done** · claimed-by: agent (grilling session)
+blocked-by: D3 ✅
+
+## Resolution (2026-09-13)
+
+**Decision:** `recordMovement` is the sole writer of stock balances; void reversal permissive & cost-neutral (FLAG #1); movement use-cases emit `StockMovementRecorded` for a future Finance subscriber (FLAG #5); transfer is ship + receive in two UoWs; opname snapshot-based; min-stock via event. Full decision in [`docs/adr/0011-inventory-domain.md`](../../../docs/adr/0011-inventory-domain.md).
+
+Settled Q1–Q4:
+- Q1: `recordMovement(input, tx)` sole balance writer — checks assignment (except permissive sale), computes weighted-avg, upserts balance, inserts immutable movement. This is the cross-module `Api(tx)`.
+- Q2 [FLAG #1 closed]: void reversal = `return_in`, permissive (never fails), cost-neutral.
+- Q3 [FLAG #5 closed]: emit `StockMovementRecorded` post-commit; no subscriber now (safe no-op); Finance subscribes later.
+- Q4: transfer = ship (out, check source, capture cost) + receive (in, source_cost, permissive), two UoWs; in-transit goods in no balance.
+- Opname snapshot-based (adjustments via recordMovement, cost-neutral); min-stock = cross-location sum via event.
 
 ## Question
 

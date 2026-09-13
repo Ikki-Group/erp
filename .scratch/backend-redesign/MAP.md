@@ -37,6 +37,7 @@ The map is done when every in-scope decision area has an ADR that survived grill
 - [D1 · Core](./tickets/D1-core.md): Location one entity with server-enforced `type` capability; deactivation blocked on non-zero stock; race-free atomic-upsert numbering (Asia/Jakarta) inside the UoW; Company singleton with single company-wide tax rate via `Api`. → `docs/adr/0008-core-domain.md`.
 - [D2 · Master Data](./tickets/D2-master-data.md): material→location assignment hard-constraint for receiving/transfer but permissive for POS sale deduction; UoM resolver = pure `Qty` calculator (keep BFS); global material catalog, base UoM + optional default hints, cost per-location; supplier reference data. → `docs/adr/0009-master-data-domain.md`.
 - [D3 · Costing](./tickets/D3-costing.md): weighted avg resets to incoming cost when on-hand ≤ 0 (closes FLAG #2); cost_price only changes on inbound + holds last known cost; HPP uses last known cost; ordered atomic transfer cost flow. → `docs/adr/0010-costing-domain.md`.
+- [D5 · Inventory](./tickets/D5-inventory.md): `recordMovement` sole balance writer; void reversal permissive+cost-neutral (FLAG #1); `StockMovementRecorded` event hook for future Finance (FLAG #5); transfer = ship+receive (two UoWs); opname snapshot-based; min-stock via event. → `docs/adr/0011-inventory-domain.md`.
 
 ## Not yet specified
 

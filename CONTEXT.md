@@ -78,3 +78,7 @@ Sharpened as each core-operations module is grilled. The AI-generated `docs/prod
 | **Cost price** | The per-location weighted-average unit cost of a material, held on its stock balance (base UoM). Changes only on receiving/transfer-received; holds the last known value even when quantity is negative. |
 | **Weighted average** | The cost method: on inbound with positive on-hand, blend old and incoming cost by quantity; when on-hand ≤ 0, reset cost to the incoming unit cost. |
 | **HPP** | Harga Pokok Penjualan (COGS) for a sold item — the location's cost price applied across the recipe's material usage; uses last known cost when stock is negative. |
+| **Stock balance** | The current quantity + cost price of a material at a location. Written only through `recordMovement`. |
+| **Stock movement** | An immutable ledger row for every stock change (sale, receipt, transfer, adjustment, opname, return). The single source of a stock change's trace. |
+| **Transfer** | The two-step movement of stock between locations: ship (out of source, checked) then receive (into destination, permissive); goods in between are in transit, in no balance. |
+| **Opname** | A snapshot-based physical count: records system quantities at start, lets sales continue, and creates adjustment movements for variances on completion. |
