@@ -86,3 +86,8 @@ Sharpened as each core-operations module is grilled. The AI-generated `docs/prod
 | **Modifier** | A per-location customization (group + options) that changes an item's price. In Phase 1 it affects price only, not the recipe/stock. |
 | **Recipe / BOM** | The one active bill of materials for a menu item: the global materials and quantities that produce it. Drives base-recipe deduction and HPP. |
 | **Price snapshot** | The copy of prices (base + modifier adjustments + names) stored on an order line at transaction time, so later menu price changes never alter past orders. |
+| **Order** | A customer's purchase at a store: lines + payments, moving open → completed → voided. Completing it atomically deducts stock and increments vouchers. Belongs to a cashier shift. |
+| **Split bill** | Paying one order with multiple payment records (different methods/amounts). Item-level split is backlogged. |
+| **Void** | Cancelling an order (full) or a line (partial). If the order was completed, it reverses stock (permissive, cost-neutral) and voucher usage. |
+| **Cashier shift** | A cashier's work session at a location (one open at a time). Every order belongs to a shift; closing reconciles expected vs actual cash. |
+| **Table** | Dine-in seating at a store with a status; holds at most one open order. Orders can move between tables (merge is backlogged). |
