@@ -26,6 +26,7 @@ The map is done when every in-scope decision area has an ADR that survived grill
 
 - [F1 · Canonical module standard](./tickets/F1-module-standard.md): flat-hybrid ratified (supersedes archived five-folder ADR-0001) + mandatory pure-domain separation into `*.rules.ts`/`*.calculator.ts`; naming `IXxxRepo`/`XxxRepo`/`XxxService.handle*`; infra from `ctx`, cross-module via static `Api` only. → `docs/adr/0001-module-standard.md`, `CONTEXT.md`.
 - [F2 · Transaction & atomic-effect model](./tickets/F2-transaction-atomicity.md): hybrid rule — atomic effects sync in one UoW threading `tx`; non-critical effects as best-effort in-process events post-commit. One write = one UoW; cross-module atomic effects via `Api(tx)`, no nesting; no error-swallowing in UoW; mandatory in-UoW ordering. → `docs/adr/0002-transaction-atomic-effects.md`.
+- [F3 · Money & quantity precision](./tickets/F3-money-precision.md): `Money`/`Qty` sole representation (raw-Decimal retired); precision table amount 0dp / cost 4dp / qty 6dp, full precision through calc + round once at boundary; UoM conversion applied in pure calculator; serialize as numeric string at HTTP. → `docs/adr/0003-money-precision.md`.
 
 ## Not yet specified
 

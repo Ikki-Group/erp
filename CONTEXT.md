@@ -18,6 +18,17 @@ Decisions (the reasoning behind a choice) live in `docs/adr/`, not here.
 | **Api** | A module's only outward surface — the statically-typed set of operations neighbouring modules may call. Modules never reach past it into each other's internals. |
 | **Module descriptor** | The declarative registration of a module (name, layer, dependencies, wiring), composed into the app by the module registry. |
 
+## Value & precision terms
+
+| Term | Definition |
+| --- | --- |
+| **Money** | The value object for a currency amount, backed by exact decimal arithmetic. The only representation of currency in the domain — a JS `number` for money is forbidden. |
+| **Qty** | The value object for a quantity or conversion factor, at high precision. The only representation of quantities/factors in the domain. |
+| **Amount** | A `Money` in its currency role (subtotal, total, price, payment) — persisted at 0 decimal places (IDR has no subunit). |
+| **Unit cost** | A `Money` in its per-unit-cost role (weighted-average `cost_price`) — persisted at 4 decimal places. |
+| **Quantity** | A `Qty` value — persisted at 6 decimal places. |
+| **Boundary** | The edge where `Money`/`Qty` are constructed (from DB numeric strings or validated input) and serialized back (to numeric strings). Rounding happens only here, never mid-calculation. |
+
 ## Domain terms
 
 _(Domain vocabulary — Order, Stock Balance, Movement, Recipe, HPP, Shift, Transfer, Opname, etc. — is sharpened and recorded here as each core-operations module is grilled. The AI-generated `docs/product/11-glossary.md` is raw input to press, not yet canonical.)_
