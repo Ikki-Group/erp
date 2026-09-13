@@ -28,7 +28,7 @@ We need one mechanical rule for transaction boundaries and cross-module effects 
 | Transfer: capture source cost + add destination stock | transfer received | **Atomic** |
 | Opname: create adjustment movements | opname complete | **Atomic** |
 | Write audit record | every mutation | **Atomic** (awaited in tx; fidelity per ADR for F6) |
-| Post financial journal | complete / void / receiving | **Atomic in principle** — Finance is out of scope for this map; record the rule, do not implement yet |
+| Post financial journal | complete / void / receiving | **Atomic in principle** — Finance is out of scope for this map. To avoid re-opening finished modules later, journal-triggering use-cases emit a domain event now that Finance will subscribe to; the atomic posting itself is built with Finance. |
 | Update table status | order complete / void | **Non-critical** — domain event (a wrong table status is manually correctable) |
 | Notification / min-stock alert | various | **Non-critical** — domain event |
 | Invalidate cache | every write | **Post-commit** (not a domain effect; always after commit) |

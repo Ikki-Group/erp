@@ -1,7 +1,7 @@
 # D1 · Core domain (Location, Company, Numbering)
 
 `wayfinder:grilling` · HITL · status: open · claimed-by: —
-blocked-by: F1 ✅ F2 ✅ F3 ✅ F5 ✅ F6 ✅ F4 ✅ (foundation complete)
+blocked-by: D0 (auth/iam — location scoping originates in the session)
 
 ## Question
 

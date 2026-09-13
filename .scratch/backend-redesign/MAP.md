@@ -35,10 +35,18 @@ The map is done when every in-scope decision area has an ADR that survived grill
 
 ## Not yet specified
 
-The domain fog has graduated into tickets D1–D7 (see INDEX.md) now that the foundation is complete. Remaining fog:
+The domain fog has graduated into tickets D0–D7 (see INDEX.md) now that the foundation is complete. Remaining fog:
 
-- **Consolidation into a handoff spec** — once D1–D7 close, the ADRs + CONTEXT.md are collapsed into a spec for `/to-tickets`. This is the destination; it becomes specifiable when the domain tickets are done.
-- **Design gaps flagged inside domain tickets** (to press when reached): split-bill by-items vs payment-level (D6); negative-stock effect on weighted-avg cost/HPP (D3); assignment-as-hard-constraint vs non-blocking principle (D2).
+- **Consolidation into a handoff spec** — once D0–D7 close, the ADRs + CONTEXT.md are collapsed into a spec for `/to-tickets`. This is the destination; it becomes specifiable when the domain tickets are done.
+- **Design gaps flagged inside domain tickets** (to press when reached): split-bill by-items vs payment-level (D6); weightedAvgCost unsafe for negative qty (D3 FLAG #2); void reversal must be permissive (D5/D6 FLAG #1); journal event hook to avoid re-opening modules (D5/D6 FLAG #5); assignment-as-hard-constraint vs non-blocking principle (D2).
+
+## Foundation-ADR review (2026-09-13)
+
+Reviewed ADR-0001…0006 as a set. Outcome: foundation approved with fixes applied —
+- Added **D0 · Auth & IAM** ticket: RBAC (ADR-0004) and audit actor (ADR-0005) depend on session/active-location/user-role, which had no domain ticket. D0 now blocks D1.
+- Flagged into domain tickets: void-reversal permissive (D5/D6), weightedAvgCost negative-qty gap (D3), journal event hook (D5/D6).
+- Cross-noted in ADRs: ADR-0006 adds void-reversal row; ADR-0002 journal row now specifies an event hook.
+- ADR-0003 `toAmount()`/`toCost()` are target API (not yet in `money.ts`) — implementation-phase work, not an ADR defect.
 
 ## Out of scope
 

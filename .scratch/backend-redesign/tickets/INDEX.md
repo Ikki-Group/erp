@@ -19,7 +19,8 @@ ADRs produced: `docs/adr/0001`–`0006`. Structural + value + access + audit + c
 
 | Ticket | Type | blocked-by | Status | Takeable? |
 | --- | --- | --- | --- | --- |
-| [D1 · Core (Location, Company, Numbering)](./D1-core.md) | grilling | foundation ✅ | open | ✅ **frontier** |
+| [D0 · Auth & IAM (session, active-location, user/role)](./D0-auth-iam.md) | grilling | foundation ✅ | open | ✅ **frontier** |
+| [D1 · Core (Location, Company, Numbering)](./D1-core.md) | grilling | D0 | open | ⛔ blocked |
 | [D2 · Master Data (Material, UoM, Supplier)](./D2-master-data.md) | grilling | D1 | open | ⛔ blocked |
 | [D3 · Costing (weighted avg, transfer cost, HPP)](./D3-costing.md) | grilling | D2 | open | ⛔ blocked |
 | [D4 · Menu & Recipe](./D4-menu-recipe.md) | grilling | D2 | open | ⛔ blocked |
@@ -30,13 +31,13 @@ ADRs produced: `docs/adr/0001`–`0006`. Structural + value + access + audit + c
 ### Domain dependency shape
 
 ```
-D1 (core) ─▶ D2 (master data) ─┬─▶ D3 (costing) ─▶ D5 (inventory) ─┬─▶ D6 (POS)
-                               └─▶ D4 (menu/recipe) ───────────────┘
-                                       D5 ─▶ D7 (production)
+D0 (auth/iam) ─▶ D1 (core) ─▶ D2 (master data) ─┬─▶ D3 (costing) ─▶ D5 (inventory) ─┬─▶ D6 (POS)
+                                                └─▶ D4 (menu/recipe) ────────────────┘
+                                                        D5 ─▶ D7 (production)
 ```
 
 ## Current frontier (takeable now)
 
-- **D1 · Core (Location, Company, Numbering)** — start of the domain layer.
+- **D0 · Auth & IAM** — start of the domain layer (added after foundation-ADR review; RBAC/audit depend on it).
 
-After D1–D7 close, the ADRs + CONTEXT.md consolidate into a handoff spec for `/to-tickets` (the map's destination).
+After D0–D7 close, the ADRs + CONTEXT.md consolidate into a handoff spec for `/to-tickets` (the map's destination).

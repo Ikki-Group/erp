@@ -31,6 +31,7 @@ The PRDs make several concurrency claims (opname blocks all movements at a locat
 | Operation | Insufficient stock behaviour |
 | --- | --- |
 | Sale (recipe deduction) | Allowed to go negative; never blocks |
+| Void reversal (add stock back) | Never blocks — adding stock cannot fail on quantity |
 | Transfer-out (ship) | Rejected — must have enough |
 | Manual adjustment | Unrestricted (correction) |
 
