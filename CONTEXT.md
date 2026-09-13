@@ -91,3 +91,5 @@ Sharpened as each core-operations module is grilled. The AI-generated `docs/prod
 | **Void** | Cancelling an order (full) or a line (partial). If the order was completed, it reverses stock (permissive, cost-neutral) and voucher usage. |
 | **Cashier shift** | A cashier's work session at a location (one open at a time). Every order belongs to a shift; closing reconciles expected vs actual cash. |
 | **Table** | Dine-in seating at a store with a status; holds at most one open order. Orders can move between tables (merge is backlogged). |
+| **Semi-finished material** | A material produced internally (not purchased) from other materials, tracked like any material. Restocked via a production order. |
+| **Production order** | A record of producing a batch of a semi-finished material: consumes inputs (permissively) and produces output, deriving the output's cost from the inputs — all atomic. |

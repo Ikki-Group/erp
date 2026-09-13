@@ -15,7 +15,7 @@ Inventory owns stock balances (one per material per location) and an immutable m
 
 - Every stock change — sale, receiving, transfer in/out, adjustment, opname, void reversal — goes through one `recordMovement(input, tx)`. It: checks assignment (except permissive POS sale, ADR-0009), computes weighted-average cost (ADR-0010), upserts the balance, and inserts an immutable movement row.
 - Nothing else touches `stock_balances`. This concentrates the permissive/cost/assignment rules in one place (locality, ADR-0001) and is the cross-module `Api(tx)` effect other modules call (POS deduction, receiving, etc.).
-- Movement types: `purchase_receipt`, `transfer_in`, `transfer_out`, `adjustment_in`, `adjustment_out`, `sales`, `return_in`. Each carries `type`, `direction`, quantity, `cost_price` at the time, and `referenceType`/`referenceId`.
+- Movement types: `purchase_receipt`, `transfer_in`, `transfer_out`, `adjustment_in`, `adjustment_out`, `sales`, `return_in`, `production_in`, `production_out` (the last two added by ADR-0014). Each carries `type`, `direction`, quantity, `cost_price` at the time, and `referenceType`/`referenceId`.
 
 ### 2. Void reversal is permissive (closes FLAG #1)
 

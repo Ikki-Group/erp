@@ -39,6 +39,9 @@ The map is done when every in-scope decision area has an ADR that survived grill
 - [D3 · Costing](./tickets/D3-costing.md): weighted avg resets to incoming cost when on-hand ≤ 0 (closes FLAG #2); cost_price only changes on inbound + holds last known cost; HPP uses last known cost; ordered atomic transfer cost flow. → `docs/adr/0010-costing-domain.md`.
 - [D4 · Menu & Recipe](./tickets/D4-menu-recipe.md): modifiers affect price not stock (Phase-1 boundary); per-location menu; one active recipe per item; price snapshot at order-line time via menu `Api`. → `docs/adr/0012-menu-recipe-domain.md`.
 - [D6 · POS](./tickets/D6-pos.md): completeOrder atomic in one UoW deducting stock via `Api(tx)` (closes live P0); split payment-level (item-level backlogged, closes gap); void reverses stock permissively; shift one-open + order requires shift; table move (merge backlogged); discounts via clamped Money calculator. → `docs/adr/0013-pos-domain.md`.
+- [D7 · Production](./tickets/D7-production.md): completeProduction atomic via `recordMovement`; consume inputs permissively (sale rule); permissive sales override PRD "rejected"; adds `production_in`/`production_out` movement types. → `docs/adr/0014-production-domain.md`.
+
+**■ ALL DOMAIN TICKETS DONE (D0–D7). Foundation (F1–F6) + Domain (D0–D7) complete. 14 ADRs produced. Next: consolidate into a handoff spec for `/to-tickets` (the destination).**
 - [D5 · Inventory](./tickets/D5-inventory.md): `recordMovement` sole balance writer; void reversal permissive+cost-neutral (FLAG #1); `StockMovementRecorded` event hook for future Finance (FLAG #5); transfer = ship+receive (two UoWs); opname snapshot-based; min-stock via event. → `docs/adr/0011-inventory-domain.md`.
 
 ## Not yet specified
