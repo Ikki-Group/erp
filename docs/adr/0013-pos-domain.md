@@ -23,6 +23,8 @@ Inside one UoW, following the mandatory ordering (ADR-0002 §6):
 
 After commit: publish events (table→available, `StockMovementRecorded` journal hook), invalidate cache. Deduction is never fire-and-forget again.
 
+> **Why payment blocks but stock does not:** step 2 (fully-paid) is a hard invariant while step 4 (stock) is permissive — deliberately, not inconsistently. Payment is financial truth: completing an unpaid order would misstate revenue. Stock is a record that can be corrected (a negative balance is a restock signal, ADR-0006). So the money side blocks; the stock side never does.
+
 ### 2. When an order may complete
 
 - `assertFullyPaid`: `sum(payments) ≥ total` (pure rule over Money, ADR-0003). Total = 0 may complete directly. Overpayment (cash change) is recorded; the order still completes once ≥ total.
@@ -34,8 +36,9 @@ After commit: publish events (table→available, `StockMovementRecorded` journal
 
 ### 4. Void (full and partial)
 
-- **Full void** (in UoW): if the order is `completed`, reverse stock via `return_in` (permissive, cost-neutral, ADR-0011) and reverse voucher usage; set `voided`; audit; post-commit events (journal-reversal hook, table→available). If the order is still `open`, void touches no stock (nothing was deducted).
-- **Partial void** (line): set the line `voided`, recalculate order totals (pure calculator), and reverse that line's stock only if the order was already completed.
+- **Full void** is **one UoW** covering the whole order: if the order is `completed`, reverse the stock of **all** its lines via `return_in` (permissive, cost-neutral, ADR-0011) and reverse voucher usage; set `voided`; audit — all in a single transaction. If the order is still `open`, void touches no stock (nothing was deducted). Post-commit events: journal-reversal hook, table→available.
+- **Partial void** is **one UoW** covering a single line: set the line `voided`, recalculate order totals (pure calculator), and reverse that one line's stock only if the order was already completed.
+- Both are single atomic operations; neither loops per-line across multiple transactions.
 - **Refund:** a voided paid order records the void + reason in audit and emits the journal hook; **no financial refund mechanism is built in Phase 1** (Finance out of scope). Actual cash refund is handled outside the system for now.
 
 ### 5. Cashier shift

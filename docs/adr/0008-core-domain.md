@@ -28,7 +28,7 @@ Core is the base of the domain: **Location** (the operational unit everything sc
 - Sequence is produced by an **atomic upsert** on `document_sequences` (unique `(prefix, locationId, date)`):
   `INSERT ... ON CONFLICT (prefix, locationId, date) DO UPDATE SET seq = seq + 1 RETURNING seq`.
   One statement — no race, no retry loop, and one DB round-trip instead of SELECT MAX + INSERT (honours the reduce-DB constraint).
-- Generation runs **inside the creating operation's UoW** (ADR-0002), so a rolled-back document does not leak a consumed number gap beyond what daily reset tolerates.
+- Generation runs **inside the creating operation's UoW** (ADR-0002). Because the `seq + 1` upsert shares that transaction, a rollback also rolls back the increment — so a failed document leaves **no sequence gap** at all.
 - Payroll's monthly `{PREFIX}-{LOC}-{YYYYMM}-{SEQ}` variant is noted but out of scope (HR deferred).
 
 ### 4. Company: singleton, single company-wide tax rate

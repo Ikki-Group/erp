@@ -26,6 +26,7 @@ Cost is tracked per location on `stock_balances.cost_price` (base UoM), recalcul
 
 - HPP for an order line = the location's `stock_balances.cost_price` for each recipe material × the recipe usage (converted to base UoM via the pure UoM resolver, ADR-0009), summed, divided by recipe yield, times order-line quantity — all at full `Money`/`Qty` precision, rounded once at the boundary (ADR-0003).
 - When stock is negative, HPP still uses the last known `cost_price` (ADR-0006) — there is always a sensible number.
+- **Material with no cost history:** a material just assigned to a location has `cost_price = 0` until its first receiving/transfer-in/production. If it is sold before then, its HPP contribution is **0** — an accepted state, not an error. The first inbound event sets a real cost (per §1), and subsequent HPP reflects it. This is surfaced (a zero-cost sale is an anomaly to notice), not blocked.
 
 ### 4. Transfer cost flow (atomic, ordered, one UoW)
 
