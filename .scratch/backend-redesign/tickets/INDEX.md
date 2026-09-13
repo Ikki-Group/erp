@@ -20,8 +20,8 @@ ADRs produced: `docs/adr/0001`–`0006`. Structural + value + access + audit + c
 | Ticket | Type | blocked-by | Status | Takeable? |
 | --- | --- | --- | --- | --- |
 | [D0 · Auth & IAM (session, access map, scoping)](./D0-auth-iam.md) | grilling | foundation ✅ | ✅ done | — |
-| [D1 · Core (Location, Company, Numbering)](./D1-core.md) | grilling | D0 ✅ | open | ✅ **frontier** |
-| [D2 · Master Data (Material, UoM, Supplier)](./D2-master-data.md) | grilling | D1 | open | ⛔ blocked |
+| [D1 · Core (Location, Company, Numbering)](./D1-core.md) | grilling | D0 ✅ | ✅ done | — |
+| [D2 · Master Data (Material, UoM, Supplier)](./D2-master-data.md) | grilling | D1 ✅ | open | ✅ **frontier** |
 | [D3 · Costing (weighted avg, transfer cost, HPP)](./D3-costing.md) | grilling | D2 | open | ⛔ blocked |
 | [D4 · Menu & Recipe](./D4-menu-recipe.md) | grilling | D2 | open | ⛔ blocked |
 | [D5 · Inventory (stock, transfer, opname, receiving)](./D5-inventory.md) | grilling | D3 | open | ⛔ blocked |
@@ -38,6 +38,6 @@ D0 (auth/iam) ─▶ D1 (core) ─▶ D2 (master data) ─┬─▶ D3 (costing)
 
 ## Current frontier (takeable now)
 
-- **D1 · Core (Location, Company, Numbering)** — D0 done; next in the domain chain.
+- **D2 · Master Data (Material, UoM, Supplier)** — D1 done; next in the domain chain.
 
 After D0–D7 close, the ADRs + CONTEXT.md consolidate into a handoff spec for `/to-tickets` (the map's destination).

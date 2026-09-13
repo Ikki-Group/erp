@@ -34,6 +34,7 @@ The map is done when every in-scope decision area has an ADR that survived grill
 **■ Foundation complete (F1–F6). Domain layer graduated into tickets D0–D7 below.**
 
 - [D0 · Auth & IAM](./tickets/D0-auth-iam.md): session behind memory-backed port; location switching client-side (location from request header, validated per request — revises ADR-0004 §4); per-user access map (global + per-location perms) materialized, cached, returned by `GET /me`; zero-DB per-request auth path (Postgres only on cache miss, one joined query); invalidation per-user + by-tag `role:{roleId}`. → `docs/adr/0007-auth-iam.md`.
+- [D1 · Core](./tickets/D1-core.md): Location one entity with server-enforced `type` capability; deactivation blocked on non-zero stock; race-free atomic-upsert numbering (Asia/Jakarta) inside the UoW; Company singleton with single company-wide tax rate via `Api`. → `docs/adr/0008-core-domain.md`.
 
 ## Not yet specified
 
