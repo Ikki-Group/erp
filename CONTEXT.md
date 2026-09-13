@@ -82,3 +82,7 @@ Sharpened as each core-operations module is grilled. The AI-generated `docs/prod
 | **Stock movement** | An immutable ledger row for every stock change (sale, receipt, transfer, adjustment, opname, return). The single source of a stock change's trace. |
 | **Transfer** | The two-step movement of stock between locations: ship (out of source, checked) then receive (into destination, permissive); goods in between are in transit, in no balance. |
 | **Opname** | A snapshot-based physical count: records system quantities at start, lets sales continue, and creates adjustment movements for variances on completion. |
+| **Menu item** | A sellable product at a store, per-location, with a base price. Modifiers adjust its price; its active recipe drives stock deduction and HPP. |
+| **Modifier** | A per-location customization (group + options) that changes an item's price. In Phase 1 it affects price only, not the recipe/stock. |
+| **Recipe / BOM** | The one active bill of materials for a menu item: the global materials and quantities that produce it. Drives base-recipe deduction and HPP. |
+| **Price snapshot** | The copy of prices (base + modifier adjustments + names) stored on an order line at transaction time, so later menu price changes never alter past orders. |

@@ -23,9 +23,9 @@ ADRs produced: `docs/adr/0001`–`0006`. Structural + value + access + audit + c
 | [D1 · Core (Location, Company, Numbering)](./D1-core.md) | grilling | D0 ✅ | ✅ done | — |
 | [D2 · Master Data (Material, UoM, Supplier)](./D2-master-data.md) | grilling | D1 ✅ | ✅ done | — |
 | [D3 · Costing (weighted avg, transfer cost, HPP)](./D3-costing.md) | grilling | D2 ✅ | ✅ done | — |
-| [D4 · Menu & Recipe](./D4-menu-recipe.md) | grilling | D2 ✅ | open | ✅ **frontier** |
+| [D4 · Menu & Recipe](./D4-menu-recipe.md) | grilling | D2 ✅ | ✅ done | — |
 | [D5 · Inventory (stock, transfer, opname, receiving)](./D5-inventory.md) | grilling | D3 ✅ | ✅ done | — |
-| [D6 · POS (order, split, void, shift, table)](./D6-pos.md) | grilling | D4, D5 | open | ⛔ blocked |
+| [D6 · POS (order, split, void, shift, table)](./D6-pos.md) | grilling | D4 ✅, D5 ✅ | open | ✅ **frontier** |
 | [D7 · Production (semi-finished)](./D7-production.md) | grilling | D5 ✅ | open | ✅ **frontier** |
 
 ### Domain dependency shape
@@ -38,8 +38,7 @@ D0 (auth/iam) ─▶ D1 (core) ─▶ D2 (master data) ─┬─▶ D3 (costing)
 
 ## Current frontier (takeable now)
 
-- **D4 · Menu & Recipe** — takeable (recommend next; unblocks D6 together with D5 ✅).
-- **D7 · Production** — now unblocked by D5 (takeable).
-- **D6 · POS** — still blocked (needs D4).
+- **D6 · POS** — now unblocked (D4 ✅ + D5 ✅); the highest-complexity module, recommend next.
+- **D7 · Production** — takeable in parallel.
 
-After D0–D7 close, the ADRs + CONTEXT.md consolidate into a handoff spec for `/to-tickets` (the map's destination).
+Only D6 and D7 remain. After they close, the ADRs + CONTEXT.md consolidate into a handoff spec for `/to-tickets` (the map's destination).
