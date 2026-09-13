@@ -1,7 +1,16 @@
 # D3 · Costing domain (per-location weighted average, transfer cost flow, HPP)
 
-`wayfinder:grilling` · HITL · status: open · claimed-by: —
-blocked-by: D2
+`wayfinder:grilling` · HITL · status: **done** · claimed-by: agent (grilling session)
+blocked-by: D2 ✅
+
+## Resolution (2026-09-13)
+
+**Decision:** Weighted average resets to incoming cost when on-hand ≤ 0 (closes FLAG #2); cost_price changes only on inbound events and holds last known cost; HPP uses last known cost; transfer cost flow is an ordered atomic sequence. Full decision in [`docs/adr/0010-costing-domain.md`](../../../docs/adr/0010-costing-domain.md).
+
+Settled Q1–Q3:
+- Q1 [FLAG #2 closed]: oldQty > 0 → full weighted avg; oldQty ≤ 0 → newCost = incoming unit cost (reset). Avoids negative/nonsensical cost.
+- Q2: HPP uses last known cost_price; cost_price never changed by sale/void/adjustment/opname — only inbound.
+- Q3: transfer cost flow ordered in one UoW — read source cost → transfer_out carries it + reduce source (still checks stock) → destination weighted-avg with source_cost (permissive add).
 
 ## Question
 

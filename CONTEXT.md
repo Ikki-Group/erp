@@ -75,3 +75,6 @@ Sharpened as each core-operations module is grilled. The AI-generated `docs/prod
 | **Base UoM** | The unit a material's stock balance is stored in — the source of truth for quantity. |
 | **UoM chain** | The graph of unit conversions (with factors) that resolves multi-hop conversions (karton→L→ml) purely, within one measurement category. |
 | **Supplier** | A vendor supplying materials; reference data including payment terms and reference per-material prices (actual purchase price may differ). |
+| **Cost price** | The per-location weighted-average unit cost of a material, held on its stock balance (base UoM). Changes only on receiving/transfer-received; holds the last known value even when quantity is negative. |
+| **Weighted average** | The cost method: on inbound with positive on-hand, blend old and incoming cost by quantity; when on-hand ≤ 0, reset cost to the incoming unit cost. |
+| **HPP** | Harga Pokok Penjualan (COGS) for a sold item — the location's cost price applied across the recipe's material usage; uses last known cost when stock is negative. |
