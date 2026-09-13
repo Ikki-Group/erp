@@ -69,7 +69,7 @@ apps/server/
 └── drizzle/               # Generated migrations
 ```
 
-**Read more:** [docs/server/MODULE_STANDARD.md](../../docs/server/MODULE_STANDARD.md) — the module source of truth. All architecture docs live centrally at the repo-root [`docs/`](../../docs/README.md).
+**Conventions & commands:** [`AGENTS.md`](../../AGENTS.md) at the repo root is the single source of truth. The backend architecture/module standard is currently being re-established via the aihero.dev planning workflow — see [`docs/`](../../docs/README.md).
 
 ---
 
@@ -106,23 +106,9 @@ bun run check-deps        # Check circular dependencies
 
 ## 📖 Documentation
 
-All docs are centralized at the repo root [`docs/`](../../docs/README.md).
+Conventions, commands, and architecture rules live in [`AGENTS.md`](../../AGENTS.md) at the repo root. Broader docs are centralized at [`docs/`](../../docs/README.md).
 
-### For Developers
-
-1. **[MODULE_STANDARD.md](../../docs/server/MODULE_STANDARD.md)** - **Source of truth** for module structure
-2. **[SERVER_ARCHITECTURE.md](../../docs/server/SERVER_ARCHITECTURE.md)** - Project structure, design philosophy, layer architecture
-3. **[CODE_PATTERNS.md](../../docs/server/CODE_PATTERNS.md)** - Common patterns, best practices, examples
-4. **[MODULE_CHECKLIST.md](../../docs/server/MODULE_CHECKLIST.md)** - Step-by-step module creation guide
-
-### For AI Agents
-
-The documentation is **AI-first**. When using Claude Code or similar tools:
-
-- Start with `MODULE_STANDARD.md` (the source of truth)
-- Reference `CODE_PATTERNS.md` for implementation patterns
-- Use `MODULE_CHECKLIST.md` for step-by-step guidance
-- Copy from the reference modules (`location/`, `iam/`) for new modules
+> The backend module standard is being re-established from scratch via the aihero.dev planning workflow. The retired standard is archived at [`docs/_archive/server-redesign/`](../../docs/_archive/README.md) for historical reference only — do not follow it.
 
 **Project instructions:** See [/CLAUDE.md](../../CLAUDE.md) at repo root.
 
@@ -261,11 +247,11 @@ bun run db:generate
 
 ## 🤝 Contributing
 
-1. Read [MODULE_STANDARD.md](../../docs/server/MODULE_STANDARD.md) — the source of truth
-2. Follow patterns in [CODE_PATTERNS.md](../../docs/server/CODE_PATTERNS.md)
-3. Use checklist in [MODULE_CHECKLIST.md](../../docs/server/MODULE_CHECKLIST.md)
-4. Copy from the reference modules (`location/`, `iam/`)
-5. Run `bun run verify` before committing
+1. Read [`AGENTS.md`](../../AGENTS.md) — conventions and commands
+2. Copy from the reference modules (`location/`, `iam/`)
+3. Run `bun run verify` before committing (from `apps/server`)
+
+> Note: the module standard is being re-defined. Until the new standard lands, treat `location/` as the closest working reference and confirm the shape before starting new module work.
 
 ---
 

@@ -1,0 +1,23 @@
+# Context
+
+Domain and structural glossary for the Ikki ERP backend redesign. This file is a **glossary only** — no implementation details, no specs. When a term is sharpened during design, it is recorded here.
+
+Decisions (the reasoning behind a choice) live in `docs/adr/`, not here.
+
+## Structural terms
+
+| Term | Definition |
+| --- | --- |
+| **Module** | A vertical slice of the backend under `apps/server/src/modules/<module>/`, owning one area of the domain. Presents a small outward surface (its `Api`) and hides its internals. |
+| **Simple module** | A module for one entity with plain CRUD. Lives as a single flat file set in the module root. Reference: `location`. |
+| **Complex module** | A module with sub-entities, a cross-module atomic effect, or a heavy read query. Split into one sub-folder per sub-entity. Reference: `menu`, `iam`. |
+| **Service** | The orchestration object of a module (`XxxService`), exposing `handle*` methods as its public entry points. Coordinates repo, rules, audit, and cache; holds no pure business math itself. |
+| **Repo** | The data-access object of a module (`IXxxRepo` interface + `XxxRepo` class). The only place that touches the database. Every method accepts an optional transaction handle. |
+| **Rules** | Pure invariants and state-transition guards (`assert*`), free of any I/O — unit-testable without a database. |
+| **Calculator** | Pure money/quantity math over value objects, free of `Number(string)`. Required whenever a module does monetary or quantity computation. |
+| **Api** | A module's only outward surface — the statically-typed set of operations neighbouring modules may call. Modules never reach past it into each other's internals. |
+| **Module descriptor** | The declarative registration of a module (name, layer, dependencies, wiring), composed into the app by the module registry. |
+
+## Domain terms
+
+_(Domain vocabulary — Order, Stock Balance, Movement, Recipe, HPP, Shift, Transfer, Opname, etc. — is sharpened and recorded here as each core-operations module is grilled. The AI-generated `docs/product/11-glossary.md` is raw input to press, not yet canonical.)_

@@ -25,7 +25,6 @@ Architecture, patterns, and conventions for `apps/web` — the Ikki ERP frontend
 | Auth or location context           | `04-state-management.md`            |
 | Adding routes or pages             | `05-routing.md`                     |
 | Building UI (forms, tables, etc.)  | `06-ui-patterns.md`                 |
-| Server module patterns             | `docs/server/02-module-standard.md` |
 | Product requirements               | `docs/product/01-vision.md`         |
 
 ## Principles

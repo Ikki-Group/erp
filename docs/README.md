@@ -9,8 +9,10 @@ Central documentation for Ikki ERP — an integrated operational system for Ikki
 | Directory                           | Purpose                                               |
 | ----------------------------------- | ----------------------------------------------------- |
 | [`product/`](./product/readme.md)   | Business requirements, workflows, glossary, timeline  |
-| [`server/`](./server/readme.md)     | Backend architecture, module patterns, code standards |
 | [`database/`](./database/readme.md) | Schema reference, ERDs, naming conventions            |
+| [`_archive/`](./_archive/README.md) | Retired docs kept for historical reference only       |
+
+> **Backend docs:** the previous `server/` tree was retired (it had drifted from the code). The backend architecture and module standard are being re-established from scratch via the aihero.dev planning workflow; this table will gain a `server/` row again once that flow produces it.
 
 ## Key Decisions
 
