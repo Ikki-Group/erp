@@ -35,6 +35,7 @@ The map is done when every in-scope decision area has an ADR that survived grill
 
 - [D0 · Auth & IAM](./tickets/D0-auth-iam.md): session behind memory-backed port; location switching client-side (location from request header, validated per request — revises ADR-0004 §4); per-user access map (global + per-location perms) materialized, cached, returned by `GET /me`; zero-DB per-request auth path (Postgres only on cache miss, one joined query); invalidation per-user + by-tag `role:{roleId}`. → `docs/adr/0007-auth-iam.md`.
 - [D1 · Core](./tickets/D1-core.md): Location one entity with server-enforced `type` capability; deactivation blocked on non-zero stock; race-free atomic-upsert numbering (Asia/Jakarta) inside the UoW; Company singleton with single company-wide tax rate via `Api`. → `docs/adr/0008-core-domain.md`.
+- [D2 · Master Data](./tickets/D2-master-data.md): material→location assignment hard-constraint for receiving/transfer but permissive for POS sale deduction; UoM resolver = pure `Qty` calculator (keep BFS); global material catalog, base UoM + optional default hints, cost per-location; supplier reference data. → `docs/adr/0009-master-data-domain.md`.
 
 ## Not yet specified
 
