@@ -64,5 +64,6 @@
 	// ─── Language overrides ───────────────────────────────────────────────
 	"[jsonc]": {
 		"editor.defaultFormatter": "vscode.json-language-features"
-	}
+	},
+	"terminal.integrated.shellIntegration.enabled": true
 }
