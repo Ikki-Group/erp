@@ -49,6 +49,14 @@ Decisions (the reasoning behind a choice) live in `docs/adr/`, not here.
 | **Audit log** | The append-only record of every user mutation, with old/new values, written inside the operation's transaction (atomic — never lost). |
 | **Audit action** | The verb on an audit entry: CRUD (`create`/`update`/`delete`) or a domain verb (`complete`, `void`, `ship`, …), drawn from the same vocabulary as permissions. |
 
+## Concurrency & stock terms
+
+| Term | Definition |
+| --- | --- |
+| **Permissive stock** | The principle that a sale never blocks on insufficient stock; a balance may go negative. Negative stock is a restock signal, not an error. (Transfer-out still requires sufficient stock.) |
+| **Snapshot opname** | A stock count that records system quantities at its start and lets sales continue while it runs; variance is computed against the snapshot on completion. Non-blocking. |
+| **One-active invariant** | A rule that at most one record of a kind is active at once (one open shift per cashier, one active opname per location, one open order per table), enforced by a partial unique index — it blocks impossible state, not normal operation. |
+
 ## Domain terms
 
 _(Domain vocabulary — Order, Stock Balance, Movement, Recipe, HPP, Shift, Transfer, Opname, etc. — is sharpened and recorded here as each core-operations module is grilled. The AI-generated `docs/product/11-glossary.md` is raw input to press, not yet canonical.)_

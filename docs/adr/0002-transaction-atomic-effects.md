@@ -41,6 +41,8 @@ We need one mechanical rule for transaction boundaries and cross-module effects 
 
 ### 4. Failure behaviour: never swallow inside the UoW
 
+> **Revised by ADR-0006:** sale/recipe stock deduction is exempt from the throw-on-insufficiency rule below — under the permissive-stock model it never fails on low stock and may go negative. The rule still applies to transfer-out and to genuine errors (material not found, DB failure).
+
 - A failing atomic effect **must throw a specific domain error** carrying context (e.g. `insufficientStock(materialId, needed, available)`), which surfaces as HTTP **409 Conflict**.
 - Inside `uow.run`, a `try/catch` that swallows an error is **forbidden** — let it throw so the transaction rolls back and the user learns exactly why. This is the direct inversion of the legacy fire-and-forget bug.
 

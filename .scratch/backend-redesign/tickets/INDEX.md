@@ -2,36 +2,41 @@
 
 Local tracker has no native blocking, so the frontier is rendered here by convention. A ticket is **takeable** when every ticket in its `blocked-by` is closed. Claim a ticket by setting `claimed-by` in its body before any work. Resolve one ticket per session (except research).
 
-## Foundation tickets
+## Foundation tickets — ALL DONE ✅
 
-| Ticket | Type | blocked-by | Status | Takeable? |
-| --- | --- | --- | --- | --- |
-| [F1 · Canonical module standard](./F1-module-standard.md) | grilling | — | ✅ done | — |
-| [F2 · Transaction & atomic-effect model](./F2-transaction-atomicity.md) | grilling | F1 ✅ | ✅ done | — |
-| [F3 · Money & quantity precision](./F3-money-precision.md) | grilling | F1 ✅ | ✅ done | — |
-| [F4 · Concurrency & locking](./F4-concurrency.md) | grilling | F2 ✅ | open | ✅ **frontier** |
-| [F5 · RBAC & permissions](./F5-rbac-permissions.md) | grilling | F1 ✅ | ✅ done | — |
-| [F6 · Audit trail](./F6-audit.md) | grilling | F2 ✅ | ✅ done | — |
+| Ticket | Type | blocked-by | Status |
+| --- | --- | --- | --- |
+| [F1 · Canonical module standard](./F1-module-standard.md) | grilling | — | ✅ done |
+| [F2 · Transaction & atomic-effect model](./F2-transaction-atomicity.md) | grilling | F1 | ✅ done |
+| [F3 · Money & quantity precision](./F3-money-precision.md) | grilling | F1 | ✅ done |
+| [F4 · Concurrency & permissive stock](./F4-concurrency.md) | grilling | F2 | ✅ done |
+| [F5 · RBAC & permissions](./F5-rbac-permissions.md) | grilling | F1 | ✅ done |
+| [F6 · Audit trail](./F6-audit.md) | grilling | F2 | ✅ done |
 
-## Dependency shape
-
-```
-F1 (module standard) ──┬─▶ F2 (transactions) ──┬─▶ F4 (concurrency)
-                       │                        └─▶ F6 (audit)
-                       ├─▶ F3 (money)
-                       └─▶ F5 (rbac)
-```
-
-F1 is the root: it unblocks everything, and its outcome (module shape for GPT-Luna) also shapes how every later ADR is written.
+ADRs produced: `docs/adr/0001`–`0006`. Structural + value + access + audit + concurrency glossary in `CONTEXT.md`.
 
 ## Domain tickets
 
-Still in the fog — see MAP.md "Not yet specified". They graduate into tickets as the foundation tickets they depend on close. Order of graduation (planned): Core → Master Data → Costing → Menu/Recipe → Inventory → POS → Production.
+| Ticket | Type | blocked-by | Status | Takeable? |
+| --- | --- | --- | --- | --- |
+| [D1 · Core (Location, Company, Numbering)](./D1-core.md) | grilling | foundation ✅ | open | ✅ **frontier** |
+| [D2 · Master Data (Material, UoM, Supplier)](./D2-master-data.md) | grilling | D1 | open | ⛔ blocked |
+| [D3 · Costing (weighted avg, transfer cost, HPP)](./D3-costing.md) | grilling | D2 | open | ⛔ blocked |
+| [D4 · Menu & Recipe](./D4-menu-recipe.md) | grilling | D2 | open | ⛔ blocked |
+| [D5 · Inventory (stock, transfer, opname, receiving)](./D5-inventory.md) | grilling | D3 | open | ⛔ blocked |
+| [D6 · POS (order, split, void, shift, table)](./D6-pos.md) | grilling | D4, D5 | open | ⛔ blocked |
+| [D7 · Production (semi-finished)](./D7-production.md) | grilling | D5 | open | ⛔ blocked |
+
+### Domain dependency shape
+
+```
+D1 (core) ─▶ D2 (master data) ─┬─▶ D3 (costing) ─▶ D5 (inventory) ─┬─▶ D6 (POS)
+                               └─▶ D4 (menu/recipe) ───────────────┘
+                                       D5 ─▶ D7 (production)
+```
 
 ## Current frontier (takeable now)
 
-One foundation ticket remains (F1 ✅ F2 ✅ F3 ✅ F5 ✅ F6 ✅):
+- **D1 · Core (Location, Company, Numbering)** — start of the domain layer.
 
-- **F4 · Concurrency & locking** — last foundation ticket.
-
-After F4 closes, the foundation is complete and domain tickets graduate: Core → Master Data → Costing → Menu/Recipe → Inventory → POS → Production.
+After D1–D7 close, the ADRs + CONTEXT.md consolidate into a handoff spec for `/to-tickets` (the map's destination).
