@@ -44,12 +44,9 @@ The map is done when every in-scope decision area has an ADR that survived grill
 **■ ALL DOMAIN TICKETS DONE (D0–D7). Foundation (F1–F6) + Domain (D0–D7) complete. 14 ADRs produced. Next: consolidate into a handoff spec for `/to-tickets` (the destination).**
 - [D5 · Inventory](./tickets/D5-inventory.md): `recordMovement` sole balance writer; void reversal permissive+cost-neutral (FLAG #1); `StockMovementRecorded` event hook for future Finance (FLAG #5); transfer = ship+receive (two UoWs); opname snapshot-based; min-stock via event. → `docs/adr/0011-inventory-domain.md`.
 
-## Not yet specified
+## Destination reached
 
-The domain fog has graduated into tickets D0–D7 (see INDEX.md) now that the foundation is complete. Remaining fog:
-
-- **Consolidation into a handoff spec** — once D0–D7 close, the ADRs + CONTEXT.md are collapsed into a spec for `/to-tickets`. This is the destination; it becomes specifiable when the domain tickets are done.
-- **Design gaps flagged inside domain tickets** (to press when reached): split-bill by-items vs payment-level (D6); weightedAvgCost unsafe for negative qty (D3 FLAG #2); void reversal must be permissive (D5/D6 FLAG #1); journal event hook to avoid re-opening modules (D5/D6 FLAG #5); assignment-as-hard-constraint vs non-blocking principle (D2).
+All 14 tickets resolved (F1–F6, D0–D7). The linked decisions have been collapsed into a handoff spec: [`SPEC.md`](./SPEC.md), synthesized from ADR-0001…0014 + `CONTEXT.md`. Next phase (off the wayfinder map): `/to-tickets` → `/implement` per ticket. No fog remains.
 
 ## Foundation-ADR review (2026-09-13)
 
