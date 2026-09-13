@@ -1,7 +1,19 @@
 # F2 · Transaction & atomic-effect model
 
-`wayfinder:grilling` · HITL · status: open · claimed-by: —
-blocked-by: F1
+`wayfinder:grilling` · HITL · status: **done** · claimed-by: agent (grilling session)
+blocked-by: F1 ✅
+
+## Resolution (2026-09-13)
+
+**Decision:** Ratify the hybrid effect model — atomic effects run synchronously inside one UoW threading `tx`; non-critical effects publish as best-effort in-process domain events after commit. Full decision in [`docs/adr/0002-transaction-atomic-effects.md`](../../../docs/adr/0002-transaction-atomic-effects.md).
+
+Settled Q1–Q6:
+- Q1: hybrid rule ratified (consolidates archived ADR-0002/0003).
+- Q2: Ikki effect classification table — atomic: stock deduct, voucher, void-reversal, transfer cost+stock, opname adjustment, audit, (journal in principle, Finance out-of-scope); non-critical events: table status, notification, min-stock; cache post-commit.
+- Q3: one write = one UoW at top-most service; cross-module atomic effects via `Api` methods that must accept `tx`; no nested transactions.
+- Q4: failing atomic effect must throw a specific domain error (→409); no error-swallowing inside UoW.
+- Q5: best-effort in-process event bus, idempotent handlers; outbox deferred until an un-loseable non-critical effect appears.
+- Q6: mandatory in-UoW ordering (load→rules→compute→persist→atomic effects→audit), then post-commit (publish events→invalidate cache).
 
 ## Question
 

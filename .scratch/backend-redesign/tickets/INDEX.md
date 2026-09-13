@@ -7,11 +7,11 @@ Local tracker has no native blocking, so the frontier is rendered here by conven
 | Ticket | Type | blocked-by | Status | Takeable? |
 | --- | --- | --- | --- | --- |
 | [F1 · Canonical module standard](./F1-module-standard.md) | grilling | — | ✅ done | — |
-| [F2 · Transaction & atomic-effect model](./F2-transaction-atomicity.md) | grilling | F1 ✅ | open | ✅ **frontier** |
+| [F2 · Transaction & atomic-effect model](./F2-transaction-atomicity.md) | grilling | F1 ✅ | ✅ done | — |
 | [F3 · Money & quantity precision](./F3-money-precision.md) | grilling | F1 ✅ | open | ✅ **frontier** |
-| [F4 · Concurrency & locking](./F4-concurrency.md) | grilling | F2 | open | ⛔ blocked |
+| [F4 · Concurrency & locking](./F4-concurrency.md) | grilling | F2 ✅ | open | ✅ **frontier** |
 | [F5 · RBAC & permissions](./F5-rbac-permissions.md) | grilling | F1 ✅ | open | ✅ **frontier** |
-| [F6 · Audit trail](./F6-audit.md) | grilling | F2 | open | ⛔ blocked |
+| [F6 · Audit trail](./F6-audit.md) | grilling | F2 ✅ | open | ✅ **frontier** |
 
 ## Dependency shape
 
@@ -30,8 +30,11 @@ Still in the fog — see MAP.md "Not yet specified". They graduate into tickets 
 
 ## Current frontier (takeable now)
 
-- **F2 · Transaction & atomic-effect model** — recommended next (unblocks F4, F6, and the whole POS/inventory P0 fix).
-- **F3 · Money & quantity precision** — takeable in parallel.
-- **F5 · RBAC & permissions** — takeable in parallel.
+All four remaining foundation tickets are now unblocked (F1 ✅ + F2 ✅):
 
-Recommended order: F2 next (it unblocks the most and fixes the live P0), then F3, then F5.
+- **F3 · Money & quantity precision** — recommended next (costing/HPP domain tickets depend on it).
+- **F5 · RBAC & permissions** — takeable.
+- **F4 · Concurrency & locking** — takeable.
+- **F6 · Audit trail** — takeable.
+
+Recommended order: F3 next (unblocks the costing/HPP domain grilling), then F5, F6, F4. After the foundation closes, domain tickets graduate: Core → Master Data → Costing → Menu/Recipe → Inventory → POS → Production.
