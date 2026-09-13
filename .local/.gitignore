@@ -1,0 +1,5 @@
+# Ignore everything in this folder...
+*
+# ...except the folder scaffold itself, so the directory exists on clone.
+!.gitignore
+!README.md

@@ -40,6 +40,10 @@ Web (`apps/web`):
 - `bun run db:studio`, `bun run db:seed`
 - **Destructive scripts are guarded**: reset/seed only run if `NODE_ENV=test` + `DATABASE_URL` contains `test-user`, OR `NODE_ENV=development` + URL contains `dev-user` (`scripts/db-scripts-helper.ts`). Point env at the right DB or they silently no-op.
 
+## Secrets (age-encrypted)
+
+Env files and sensitive configs are stored in the repo **encrypted** with [age](https://github.com/FiloSottile/age) — ciphertext (`*.age`) committed, plaintext gitignored. Managed via `scripts/secrets.sh {encrypt|decrypt|status}`. See `secrets/README.md` for setup and workflow. Machine-local scratch (incl. the private key `.local/age.key`) lives in `.local/`, which is fully gitignored — see `.local/README.md`.
+
 ## Codegen (server contracts are source of truth)
 
 Web endpoint config and DTOs are generated from server routes/contracts — do not hand-edit generated output.
