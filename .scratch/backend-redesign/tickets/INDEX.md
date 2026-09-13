@@ -10,7 +10,7 @@ Local tracker has no native blocking, so the frontier is rendered here by conven
 | [F2 · Transaction & atomic-effect model](./F2-transaction-atomicity.md) | grilling | F1 ✅ | ✅ done | — |
 | [F3 · Money & quantity precision](./F3-money-precision.md) | grilling | F1 ✅ | ✅ done | — |
 | [F4 · Concurrency & locking](./F4-concurrency.md) | grilling | F2 ✅ | open | ✅ **frontier** |
-| [F5 · RBAC & permissions](./F5-rbac-permissions.md) | grilling | F1 ✅ | open | ✅ **frontier** |
+| [F5 · RBAC & permissions](./F5-rbac-permissions.md) | grilling | F1 ✅ | ✅ done | — |
 | [F6 · Audit trail](./F6-audit.md) | grilling | F2 ✅ | open | ✅ **frontier** |
 
 ## Dependency shape
@@ -30,10 +30,9 @@ Still in the fog — see MAP.md "Not yet specified". They graduate into tickets 
 
 ## Current frontier (takeable now)
 
-Three foundation tickets remain (F1 ✅ F2 ✅ F3 ✅):
+Two foundation tickets remain (F1 ✅ F2 ✅ F3 ✅ F5 ✅):
 
-- **F5 · RBAC & permissions** — recommended next.
-- **F6 · Audit trail** — takeable.
+- **F6 · Audit trail** — recommended next.
 - **F4 · Concurrency & locking** — takeable.
 
-Recommended order: F5, then F6, then F4. After the foundation closes, domain tickets graduate: Core → Master Data → Costing → Menu/Recipe → Inventory → POS → Production.
+Recommended order: F6, then F4. After the foundation closes, domain tickets graduate: Core → Master Data → Costing → Menu/Recipe → Inventory → POS → Production.

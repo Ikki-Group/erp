@@ -29,6 +29,17 @@ Decisions (the reasoning behind a choice) live in `docs/adr/`, not here.
 | **Quantity** | A `Qty` value — persisted at 6 decimal places. |
 | **Boundary** | The edge where `Money`/`Qty` are constructed (from DB numeric strings or validated input) and serialized back (to numeric strings). Rounding happens only here, never mid-calculation. |
 
+## Access-control terms
+
+| Term | Definition |
+| --- | --- |
+| **Permission** | A `<slice>.<action>` string (e.g. `location.read`, `order.void`) required by a route. `<slice>` is the smallest entity; `<action>` is CRUD or a first-class domain verb. |
+| **Slice** | The smallest entity a permission scopes to — the module itself for a simple module, a sub-entity for a complex one (`order`, `shift`, `stock`). |
+| **Role** | A named bundle of permissions. System roles (Owner, Manager, Cashier, Warehouse Staff, Accountant) ship by default; custom roles combine any catalog permissions. |
+| **Assignment** | A user↔role↔location grant. Location-scoped or global; determines which permissions apply in the active location. |
+| **Owner** | The role that bypasses all permission checks. At least one user must hold it; it cannot be restricted. |
+| **Active location** | The location context of a request; permissions are collected from assignments matching it (or global). |
+
 ## Domain terms
 
 _(Domain vocabulary — Order, Stock Balance, Movement, Recipe, HPP, Shift, Transfer, Opname, etc. — is sharpened and recorded here as each core-operations module is grilled. The AI-generated `docs/product/11-glossary.md` is raw input to press, not yet canonical.)_

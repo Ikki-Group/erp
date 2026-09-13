@@ -1,7 +1,17 @@
 # F5 · RBAC & permission model
 
-`wayfinder:grilling` · HITL · status: open · claimed-by: —
-blocked-by: F1
+`wayfinder:grilling` · HITL · status: **done** · claimed-by: agent (grilling session)
+blocked-by: F1 ✅
+
+## Resolution (2026-09-13)
+
+**Decision:** Permission format `<slice>.<action>` (dot, two-part, slice = smallest entity); domain verbs first-class; enforced by the existing `rbac` macro on every route; owner bypass + location-scoped role assignments. Full decision in [`docs/adr/0004-rbac-permissions.md`](../../../docs/adr/0004-rbac-permissions.md).
+
+Settled Q1–Q4:
+- Q1/Q4: format `<slice>.<action>` — slice = smallest entity (`location.read`, `order.void`, `shift.close`). Reconciles code (dot) vs PRD (colon 3-part).
+- Q2: domain verbs kept first-class (order.void, shift.close-other, transfer.ship, opname.complete, stock.adjust, discount.apply).
+- Q3: owner bypass; permissions from assignments matching active location or global; no record-level restrictions; system roles immutable. Active-location resolution deferred to auth/iam module grilling.
+- Catalog + 5 default roles adopted from PRD, rewritten to `<slice>.<action>`, limited to in-scope modules (Finance/HR/CRM deferred).
 
 ## Question
 
