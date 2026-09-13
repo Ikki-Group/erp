@@ -40,6 +40,15 @@ Decisions (the reasoning behind a choice) live in `docs/adr/`, not here.
 | **Owner** | The role that bypasses all permission checks. At least one user must hold it; it cannot be restricted. |
 | **Active location** | The location context of a request; permissions are collected from assignments matching it (or global). |
 
+## Audit terms
+
+| Term | Definition |
+| --- | --- |
+| **Actor** | The authenticated user performing an operation, carrying `id` and `name`. Every mutation records the actor; a blank actor name is never allowed. |
+| **Audit stamp** | The `created_by`/`updated_by`/`created_at`/`updated_at` columns on a mutable table — the quick "who last touched this". |
+| **Audit log** | The append-only record of every user mutation, with old/new values, written inside the operation's transaction (atomic — never lost). |
+| **Audit action** | The verb on an audit entry: CRUD (`create`/`update`/`delete`) or a domain verb (`complete`, `void`, `ship`, …), drawn from the same vocabulary as permissions. |
+
 ## Domain terms
 
 _(Domain vocabulary — Order, Stock Balance, Movement, Recipe, HPP, Shift, Transfer, Opname, etc. — is sharpened and recorded here as each core-operations module is grilled. The AI-generated `docs/product/11-glossary.md` is raw input to press, not yet canonical.)_

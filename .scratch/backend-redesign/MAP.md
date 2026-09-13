@@ -28,6 +28,7 @@ The map is done when every in-scope decision area has an ADR that survived grill
 - [F2 · Transaction & atomic-effect model](./tickets/F2-transaction-atomicity.md): hybrid rule — atomic effects sync in one UoW threading `tx`; non-critical effects as best-effort in-process events post-commit. One write = one UoW; cross-module atomic effects via `Api(tx)`, no nesting; no error-swallowing in UoW; mandatory in-UoW ordering. → `docs/adr/0002-transaction-atomic-effects.md`.
 - [F3 · Money & quantity precision](./tickets/F3-money-precision.md): `Money`/`Qty` sole representation (raw-Decimal retired); precision table amount 0dp / cost 4dp / qty 6dp, full precision through calc + round once at boundary; UoM conversion applied in pure calculator; serialize as numeric string at HTTP. → `docs/adr/0003-money-precision.md`.
 - [F5 · RBAC & permissions](./tickets/F5-rbac-permissions.md): permission format `<slice>.<action>` (dot, slice = smallest entity); domain verbs first-class; enforced by `rbac` macro on every route (closes P1); owner bypass + location-scoped assignments; PRD catalog + 5 roles adopted, rewritten, in-scope only. → `docs/adr/0004-rbac-permissions.md`.
+- [F6 · Audit trail](./tickets/F6-audit.md): audit is atomic (in UoW, awaited, throws) — overrides PRD's async claim; action verbs align with RBAC vocabulary; `actorName` mandatory (closes P1); one user action = one entry; derived effects traced by their movement, not a second row. → `docs/adr/0005-audit-trail.md`.
 
 ## Not yet specified
 
