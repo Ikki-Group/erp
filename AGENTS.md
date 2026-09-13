@@ -1,15 +1,15 @@
 # AGENTS.md
 
-Ikki ERP — Bun monorepo. Apps: `apps/server` (Elysia + Drizzle API), `apps/web` (React 19 + Vite + TanStack), `apps/e2e` (Playwright). No `packages/*` exist yet despite the workspace glob.
+Ikki ERP — Bun monorepo. Apps: `apps/server` (Elysia + Drizzle API), `apps/web` (React 19 + Vite + TanStack), `apps/e2e` (Playwright). (`apps/web-archive` is a retired frontend — ignore it.) No `packages/*` exist yet despite the workspace glob.
 
-`CLAUDE.md` has deep module/architecture patterns (vertical slices, Zod spread-shape, repo returns `null`, cache invalidation, audit stamps). Read it before building server features. Note: several commands it lists (`bun run verify`, `bun run build`, `db:*`, `bun test` at root) do NOT exist at the repo root — they are per-app. Trust this file for commands.
+This file is the single source of truth for conventions and commands. `CLAUDE.md` only routes here. Read the **Server architecture** section below before building server features. Note: several commands (`bun run verify`, `bun run build`, `db:*`) do NOT exist at the repo root — they are per-app.
 
 ## Toolchain quirks
 
 - Linter is **oxlint**, formatter is **oxfmt** — NOT eslint/prettier. Config: `.oxlintrc.json`, `.oxfmtrc.json`.
 - Server lint is type-aware (`oxlint --type-aware`); web/root is not.
 - TypeScript uses `allowImportingTsExtensions` + `verbatimModuleSyntax`. Use `import type` for type-only imports.
-- Server path aliases: `@/*` → `apps/server/src/*` (see `apps/server/tsconfig.json`).
+- Server path aliases (see `apps/server/tsconfig.json`): `@/*` → `apps/server/src/*`, plus `@/db`, `@/infra/*`, `@/shared/*`, `@/modules/*`.
 
 ## Commands
 
@@ -25,7 +25,7 @@ Server (`apps/server`):
 
 - `bun run verify` — lint + typecheck + knip + check-deps (the real gate; run before finishing server work)
 - `bun run typecheck` (`tsc --noEmit`)
-- `bun run test` — `NODE_ENV=test bun test --bail`. Tests live in `src/tests/`.
+- `bun run test` — `NODE_ENV=test bun test --bail --timeout 30000`. Tests live in `src/tests/`.
 - `bun test src/tests/services/iam.test.ts` — run a single file
 - `bun run check-deps` — circular dependency check via dpdm
 
@@ -44,13 +44,23 @@ Web (`apps/web`):
 
 Env files and sensitive configs are stored in the repo **encrypted** with [age](https://github.com/FiloSottile/age) — ciphertext (`*.age`) committed, plaintext gitignored. Managed via `scripts/secrets.sh {encrypt|decrypt|status}`. See `secrets/README.md` for setup and workflow. Machine-local scratch (incl. the private key `.local/age.key`) lives in `.local/`, which is fully gitignored — see `.local/README.md`.
 
-## Codegen (server contracts are source of truth)
+## Generated files
 
-Web endpoint config and DTOs are generated from server routes/contracts — do not hand-edit generated output.
-
-- `bun run generate:endpoints` → `apps/web/src/config/endpoint.ts`
-- `bun run generate:web` → also copies contracts to `apps/web/src/features/<module>/dto/`
 - `apps/web/src/routeTree.gen.ts` is TanStack Router generated — never edit by hand.
+
+There is currently **no server→web contract codegen**. `apps/web/src/config/endpoint.ts` is hand-written. DTOs are defined per-slice in the web app.
+
+## Server architecture
+
+Vertical slices under `apps/server/src/modules/<module>/`. A module groups related slices, each slice is a folder of layered files:
+
+- `*.contract.ts` — Zod DTOs (request/response). Compose with spread-shape: `...UserMutationDto.shape`, `...zc.AuditBasic.shape`. Shared primitives come from `@/shared/schema` (`zp`, `zq`, `zc`).
+- `*.repo.ts` — Drizzle data access behind an `IXxxRepo` interface. Finders return the DTO or `undefined` (never `null`); `insert`/`update` return an `EntityRef` (`{ id }`) or `undefined`. Every method takes an optional `db?: DbContext` for transactions.
+- `*.service.ts` — business logic. Public entry points are `handle*` methods. They check conflicts (`checkConflict`), stamp audit fields (`stampCreate`/`stampUpdate` from `@/shared/audit`), persist, then **invalidate cache** (`CacheService.invalidateStandard(...)`) and **record an audit log** (`auditLog.record({ module, entity, action, ... })`).
+- `*.internal.ts` — module-private helpers, error factories, unique-field lists.
+- Module wiring: `*.module.ts`, `*.route.ts` (Elysia), `index.ts` (barrel).
+
+Shared building blocks live in `apps/server/src/shared/` (`auth`, `cache`, `errors`, `events`, `http`, `schema`, `uow`, `audit`, ...) and infrastructure in `apps/server/src/infra/` (`database`, `cache`, `audit`). Reads are cached via `CacheService`; mutations invalidate. Audit stamps (`createdBy`/`updatedBy`/`createdAt`/`updatedAt`) are applied through the stamp helpers, not by hand.
 
 ## Deploy / CI
 
@@ -58,15 +68,16 @@ Web endpoint config and DTOs are generated from server routes/contracts — do n
 - Active dev branch is `dev`; `main` triggers deploys.
 - Commit style: conventional prefixes, frequently with emoji (e.g. `✨ feat:`, `🔧 fix:`, `♻️ refactor:`).
 
-<!-- CODEGRAPH_START -->
+## Agent skills
 
-## CodeGraph
+### Issue tracker
 
-In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the repo root), reach for it BEFORE grep/find or reading files when you need to understand or locate code:
+Issues are tracked in GitHub Issues (`Ikki-Group/erp`) via the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
-- **MCP tool** (when available): `codegraph_explore` answers most code questions in one call — the relevant symbols' verbatim source plus the call paths between them, including dynamic-dispatch hops grep can't follow. Name a file or symbol in the query to read its current line-numbered source. If it's listed but deferred, load it by name via tool search.
-- **Shell** (always works): `codegraph explore "<symbol names or question>"` prints the same output.
+### Triage labels
 
-If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
+Default triage vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
 
-<!-- CODEGRAPH_END -->
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
