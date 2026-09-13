@@ -51,7 +51,7 @@ On each request: resolve user from session → resolve active location → colle
 - **No record-level restrictions** — holding a permission grants it across the entire active-location context.
 - Custom roles: any combination of catalog permissions, assigned per-location or global.
 
-> How the *active location* is resolved from the session belongs to the auth/iam module grilling, not this ADR. This ADR fixes the permission vocabulary, enforcement, and authorization rule.
+> How the *active location* is resolved belongs to the auth/iam grilling. **Resolved by ADR-0007:** the active location comes from the **request** (a `locationId` header), validated per request — not from a server-stored session field. This ADR fixes the permission vocabulary, enforcement, and authorization rule.
 
 ### 5. Catalog scope
 

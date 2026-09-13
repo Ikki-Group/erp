@@ -31,7 +31,9 @@ The map is done when every in-scope decision area has an ADR that survived grill
 - [F6 · Audit trail](./tickets/F6-audit.md): audit is atomic (in UoW, awaited, throws) — overrides PRD's async claim; action verbs align with RBAC vocabulary; `actorName` mandatory (closes P1); one user action = one entry; derived effects traced by their movement, not a second row. → `docs/adr/0005-audit-trail.md`.
 - [F4 · Concurrency & permissive stock](./tickets/F4-concurrency.md): permissive/non-blocking for a small UMKM — negative stock allowed for sales (drop non-negative CHECK), transfer-out still checks, opname snapshot-based, one-active invariants via partial unique index. Revises ADR-0002 §4. → `docs/adr/0006-concurrency-permissive-stock.md`.
 
-**■ Foundation complete (F1–F6). Domain layer graduated into tickets D1–D7 below.**
+**■ Foundation complete (F1–F6). Domain layer graduated into tickets D0–D7 below.**
+
+- [D0 · Auth & IAM](./tickets/D0-auth-iam.md): session behind memory-backed port; location switching client-side (location from request header, validated per request — revises ADR-0004 §4); per-user access map (global + per-location perms) materialized, cached, returned by `GET /me`; zero-DB per-request auth path (Postgres only on cache miss, one joined query); invalidation per-user + by-tag `role:{roleId}`. → `docs/adr/0007-auth-iam.md`.
 
 ## Not yet specified
 

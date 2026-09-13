@@ -38,7 +38,9 @@ Decisions (the reasoning behind a choice) live in `docs/adr/`, not here.
 | **Role** | A named bundle of permissions. System roles (Owner, Manager, Cashier, Warehouse Staff, Accountant) ship by default; custom roles combine any catalog permissions. |
 | **Assignment** | A user↔role↔location grant. Location-scoped or global; determines which permissions apply in the active location. |
 | **Owner** | The role that bypasses all permission checks. At least one user must hold it; it cannot be restricted. |
-| **Active location** | The location context of a request; permissions are collected from assignments matching it (or global). |
+| **Active location** | The location context of a request, carried as a `locationId` on each request (not stored server-side); validated per request against the user's access map. |
+| **Access map** | The materialized authorization state for a user: `isOwner`, global permissions, and per-location permission sets. Returned whole by `GET /me`; cached per user; the sole source the per-request auth path reads. |
+| **Session store** | The port holding server-side sessions, memory-backed now (BentoCache), swappable to Redis. |
 
 ## Audit terms
 
