@@ -14,9 +14,9 @@ import { DetailList } from '@/components/shared/detail-list'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
 import { StatusBadge } from '@/components/shared/status-badge'
 import type { StatusBadgeVariant } from '@/components/shared/status-badge'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
@@ -87,6 +87,7 @@ function ReceivingPage() {
 	const [listParams, setListParams] = useState({
 		page: 1,
 		limit: 10,
+		status: undefined as ReceivingStatusEnum | undefined,
 	})
 
 	const listQuery = useQuery({
@@ -393,7 +394,7 @@ function ReceivingPage() {
 
 	// ─── List View ───
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
+	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !listParams.status
 
 	return (
 		<div className="space-y-6">
@@ -426,10 +427,28 @@ function ReceivingPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="Tidak ada penerimaan ditemukan."
 					toolbar={
-						<SearchToolbar
-							value={globalFilter}
-							onChange={setGlobalFilter}
-							placeholder="Cari penerimaan..."
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Cari penerimaan..."
+							filters={[
+								{
+									key: 'status',
+									label: 'Status',
+									value: listParams.status,
+									onChange: (v) =>
+										setListParams((prev) => ({
+											...prev,
+											page: 1,
+											status: v as ReceivingStatusEnum | undefined,
+										})),
+									options: Object.entries(RECEIVING_STATUS_LABELS).map(([value, label]) => ({
+										label,
+										value,
+									})),
+									allLabel: 'All status',
+								},
+							]}
 						/>
 					}
 				/>

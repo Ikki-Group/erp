@@ -83,7 +83,7 @@
 	--chart-3: oklch(0.442 0.017 285.786);
 	--chart-4: oklch(0.37 0.013 285.805);
 	--chart-5: oklch(0.274 0.006 286.033);
-	--radius: 0.45rem;
+	--radius: 0.6rem;
 	--sidebar: oklch(0.985 0 0);
 	--sidebar-foreground: oklch(0.141 0.005 285.823);
 	--sidebar-primary: oklch(0.46 0.12 195);
@@ -93,8 +93,11 @@
 	--sidebar-border: oklch(0.92 0.004 286.32);
 	--sidebar-ring: oklch(0.705 0.015 286.067);
 	--destructive-foreground: var(--color-red-800);
-	--success: var(--color-emerald-500);
-	--success-foreground: var(--color-emerald-900);
+	/* Teal-leaning green (hue ~170) instead of stock emerald (~152) — reads as
+	   the same color family as --primary (hue ~195) instead of an unrelated
+	   generic "success green". */
+	--success: oklch(0.6 0.135 170);
+	--success-foreground: oklch(0.32 0.08 170);
 	--info: var(--color-violet-500);
 	--info-foreground: var(--color-violet-900);
 	--warning: var(--color-yellow-500);
@@ -138,8 +141,8 @@
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.552 0.016 285.938);
 	--destructive-foreground: var(--color-red-600);
-	--success: var(--color-emerald-500);
-	--success-foreground: var(--color-emerald-600);
+	--success: oklch(0.68 0.145 170);
+	--success-foreground: oklch(0.85 0.1 170);
 	--info: var(--color-violet-500);
 	--info-foreground: var(--color-violet-600);
 	--warning: var(--color-yellow-500);

@@ -12,6 +12,7 @@ import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -103,7 +104,12 @@ function OrdersPage() {
 	const { activeLocation } = useLocationContext()
 	const locationId = activeLocation?.id
 
-	const [listParams, setListParams] = useState({ page: 1, limit: 20 })
+	const [listParams, setListParams] = useState({
+		page: 1,
+		limit: 20,
+		q: undefined as string | undefined,
+		status: undefined as OrderDto['status'] | undefined,
+	})
 	const [selectedOrder, setSelectedOrder] = useState<OrderDetailDto | null>(null)
 	const [showReceipt, setShowReceipt] = useState(false)
 	const [showVoidDialog, setShowVoidDialog] = useState(false)
@@ -116,7 +122,6 @@ function OrdersPage() {
 		...orderResource.list.queryOptions({
 			...listParams,
 			locationId: locationId!,
-			q: '',
 		}),
 		enabled: !!locationId,
 	})
@@ -174,13 +179,18 @@ function OrdersPage() {
 		[actionsColumn],
 	)
 
-	const { table } = useServerTable({
+	const { table, globalFilter, setGlobalFilter } = useServerTable({
 		data,
 		columns,
 		totalCount,
 		pageSize: listParams.limit,
 		onStateChange: (params) => {
-			setListParams({ page: params.page + 1, limit: params.pageSize })
+			setListParams((prev) => ({
+				...prev,
+				page: params.page + 1,
+				limit: params.pageSize,
+				q: params.search || undefined,
+			}))
 		},
 	})
 
@@ -200,7 +210,7 @@ function OrdersPage() {
 		<div className="space-y-6">
 			<PageHeader title="Riwayat Order" description="Daftar order POS untuk lokasi ini." />
 
-			{data.length === 0 && !listQuery.isLoading ? (
+			{data.length === 0 && !listQuery.isLoading && !globalFilter && !listParams.status ? (
 				<EmptyState title="Belum ada order" description="Order yang dibuat akan muncul di sini." />
 			) : (
 				<DataTable
@@ -208,6 +218,32 @@ function OrdersPage() {
 					recordCount={totalCount}
 					isLoading={listQuery.isLoading}
 					emptyMessage="Tidak ada order ditemukan."
+					toolbar={
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Cari no. order..."
+							filters={[
+								{
+									key: 'status',
+									label: 'Status',
+									value: listParams.status,
+									onChange: (v) =>
+										setListParams((prev) => ({
+											...prev,
+											page: 1,
+											status: v as OrderDto['status'] | undefined,
+										})),
+									options: [
+										{ label: 'Open', value: 'open' },
+										{ label: 'Selesai', value: 'completed' },
+										{ label: 'Void', value: 'voided' },
+									],
+									allLabel: 'All status',
+								},
+							]}
+						/>
+					}
 				/>
 			)}
 

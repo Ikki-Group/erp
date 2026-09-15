@@ -14,7 +14,7 @@ import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -356,10 +356,10 @@ function RecipesPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="Tidak ada resep yang cocok."
 					toolbar={
-						<SearchToolbar
-							value={globalFilter}
-							onChange={setGlobalFilter}
-							placeholder="Cari resep..."
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Cari resep..."
 						/>
 					}
 				/>

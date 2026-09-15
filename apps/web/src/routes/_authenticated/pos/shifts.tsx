@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -23,7 +24,7 @@ import { ShiftCloseForm } from '@/features/pos/components/shift-close-form.tsx'
 import type { ShiftCloseFormRef } from '@/features/pos/components/shift-close-form.tsx'
 import { ShiftOpenForm } from '@/features/pos/components/shift-open-form.tsx'
 import type { ShiftOpenFormRef } from '@/features/pos/components/shift-open-form.tsx'
-import type { ShiftDto } from '@/features/pos/dto/index.ts'
+import type { ShiftDto, ShiftStatusEnum } from '@/features/pos/dto/index.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
@@ -97,6 +98,7 @@ function ShiftsPage() {
 	const [listParams, setListParams] = useState({
 		page: 1,
 		limit: 10,
+		status: undefined as ShiftStatusEnum | undefined,
 	})
 
 	const listQuery = useQuery({
@@ -194,10 +196,11 @@ function ShiftsPage() {
 		totalCount,
 		pageSize: listParams.limit,
 		onStateChange: (params) => {
-			setListParams({
+			setListParams((prev) => ({
+				...prev,
 				page: params.page + 1,
 				limit: params.pageSize,
-			})
+			}))
 		},
 	})
 
@@ -241,7 +244,7 @@ function ShiftsPage() {
 				}
 			/>
 
-			{data.length === 0 && !listQuery.isLoading ? (
+			{data.length === 0 && !listQuery.isLoading && !listParams.status ? (
 				<EmptyState
 					title="No shifts yet"
 					description="Open your first shift to start tracking cash."
@@ -260,6 +263,28 @@ function ShiftsPage() {
 					recordCount={totalCount}
 					isLoading={listQuery.isLoading}
 					emptyMessage="No shifts found."
+					toolbar={
+						<TableToolbar
+							filters={[
+								{
+									key: 'status',
+									label: 'Status',
+									value: listParams.status,
+									onChange: (v) =>
+										setListParams((prev) => ({
+											...prev,
+											page: 1,
+											status: v as ShiftStatusEnum | undefined,
+										})),
+									options: [
+										{ label: 'Open', value: 'open' },
+										{ label: 'Closed', value: 'closed' },
+									],
+									allLabel: 'All status',
+								},
+							]}
+						/>
+					}
 				/>
 			)}
 		</div>

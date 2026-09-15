@@ -20,7 +20,7 @@ export function DataCard({
 	noPadding,
 }: DataCardProps) {
 	return (
-		<div className={cn('rounded-lg border bg-card text-card-foreground', className)}>
+		<div className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}>
 			<div className="flex items-start justify-between gap-4 border-b px-4 py-3">
 				<div className="space-y-0.5">
 					<h3 className="text-sm font-semibold">{title}</h3>

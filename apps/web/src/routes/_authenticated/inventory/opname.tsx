@@ -12,9 +12,9 @@ import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
 import { StatusBadge } from '@/components/shared/status-badge'
 import type { StatusBadgeVariant } from '@/components/shared/status-badge'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
@@ -89,6 +89,7 @@ function OpnamePage() {
 	const [listParams, setListParams] = useState({
 		page: 1,
 		limit: 10,
+		status: undefined as OpnameStatusEnum | undefined,
 	})
 
 	const listQuery = useQuery({
@@ -272,7 +273,7 @@ function OpnamePage() {
 
 	// ─── List View ───
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
+	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !listParams.status
 
 	return (
 		<div className="space-y-6">
@@ -305,10 +306,28 @@ function OpnamePage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="Tidak ada opname ditemukan."
 					toolbar={
-						<SearchToolbar
-							value={globalFilter}
-							onChange={setGlobalFilter}
-							placeholder="Cari opname..."
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Cari opname..."
+							filters={[
+								{
+									key: 'status',
+									label: 'Status',
+									value: listParams.status,
+									onChange: (v) =>
+										setListParams((prev) => ({
+											...prev,
+											page: 1,
+											status: v as OpnameStatusEnum | undefined,
+										})),
+									options: Object.entries(OPNAME_STATUS_LABELS).map(([value, label]) => ({
+										label,
+										value,
+									})),
+									allLabel: 'All status',
+								},
+							]}
 						/>
 					}
 				/>

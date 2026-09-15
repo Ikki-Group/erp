@@ -14,17 +14,10 @@ import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
 import { conversionResource, uomListAll, uomResource } from '@/features/uom/api.ts'
@@ -326,35 +319,26 @@ function UomPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="No units match your search."
 					toolbar={
-						<div className="flex items-center gap-2">
-							<SearchToolbar
-								value={globalFilter}
-								onChange={setGlobalFilter}
-								placeholder="Search units..."
-							/>
-							<Select
-								value={listParams.category ?? 'all'}
-								onValueChange={(v) =>
-									setListParams((prev) => ({
-										...prev,
-										page: 1,
-										category: v === 'all' ? undefined : (v as UomCategoryEnum),
-									}))
-								}
-							>
-								<SelectTrigger className="h-9 w-[140px]">
-									<SelectValue placeholder="Category" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All categories</SelectItem>
-									{UOM_CATEGORY_OPTIONS.map((opt) => (
-										<SelectItem key={opt.value} value={opt.value}>
-											{opt.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Search units..."
+							filters={[
+								{
+									key: 'category',
+									label: 'Category',
+									value: listParams.category,
+									onChange: (v) =>
+										setListParams((prev) => ({
+											...prev,
+											page: 1,
+											category: v as UomCategoryEnum | undefined,
+										})),
+									options: UOM_CATEGORY_OPTIONS,
+									allLabel: 'All categories',
+								},
+							]}
+						/>
 					}
 				/>
 			)}

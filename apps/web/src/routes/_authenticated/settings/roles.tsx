@@ -14,7 +14,7 @@ import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
@@ -216,10 +216,10 @@ function RolesPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="No roles match your search."
 					toolbar={
-						<SearchToolbar
-							value={globalFilter}
-							onChange={setGlobalFilter}
-							placeholder="Search roles..."
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Search roles..."
 						/>
 					}
 				/>

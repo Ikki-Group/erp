@@ -6,7 +6,6 @@ import {
 	BoxesIcon,
 	EditIcon,
 	EyeIcon,
-	FilterIcon,
 	PackageIcon,
 	PlusIcon,
 	ShoppingCartIcon,
@@ -18,14 +17,7 @@ import { AreaChart } from '@/components/charts/area-chart'
 import { BarChart } from '@/components/charts/bar-chart'
 import { ChartSwitch } from '@/components/charts/chart-switch'
 import { LineChart } from '@/components/charts/line-chart'
-import {
-	DataTable,
-	DataTableEmpty,
-	DataTableError,
-	DataTableLoading,
-	DataTableToolbar,
-	useClientTable,
-} from '@/components/data-table'
+import { DataTable, useClientTable } from '@/components/data-table'
 import {
 	FormCombobox,
 	FormDatePicker,
@@ -35,6 +27,17 @@ import {
 	FormSwitch,
 	FormTextarea,
 } from '@/components/form'
+import { createFilter, Filters } from '@/components/reui/filters'
+import type { Filter } from '@/components/reui/filters'
+import {
+	Frame,
+	FrameDescription,
+	FrameFooter,
+	FrameHeader,
+	FramePanel,
+	FrameTitle,
+} from '@/components/reui/frame'
+import { IconTile } from '@/components/reui/icon-tile'
 import {
 	ActionMenu,
 	ConfirmDialog,
@@ -53,10 +56,10 @@ import {
 	PageSection,
 	PageSkeleton,
 	PageTabs,
-	SearchToolbar,
 	SegmentedBar,
 	StatCard,
 	StatusBadge,
+	TableToolbar,
 	ThemeToggle,
 } from '@/components/shared'
 
@@ -277,6 +280,98 @@ function DesignSystemPage() {
 
 			<Separator />
 
+			{/* ─── ICON TILES ─── */}
+			<PageSection
+				title="Icon Tiles"
+				description="Bordered icon chips used inside StatCard, EmptyState, and PageError instead of a plain icon. Recolor with a text-* class — soft/solid derive their fill from currentColor."
+			>
+				<div className="space-y-4">
+					<div className="flex flex-wrap items-end gap-4">
+						<IconTile variant="outline">
+							<BoxesIcon />
+						</IconTile>
+						<IconTile variant="elevated">
+							<BoxesIcon />
+						</IconTile>
+						<IconTile variant="soft">
+							<BoxesIcon />
+						</IconTile>
+						<IconTile variant="solid">
+							<BoxesIcon />
+						</IconTile>
+						<IconTile variant="frame">
+							<BoxesIcon />
+						</IconTile>
+					</div>
+					<div className="flex flex-wrap items-end gap-4">
+						<IconTile variant="soft" className="text-success">
+							<PackageIcon />
+						</IconTile>
+						<IconTile variant="soft" className="text-warning">
+							<TruckIcon />
+						</IconTile>
+						<IconTile variant="soft" className="text-destructive">
+							<TrashIcon />
+						</IconTile>
+						<IconTile variant="soft" size="sm">
+							<ShoppingCartIcon />
+						</IconTile>
+						<IconTile variant="soft" size="lg">
+							<ShoppingCartIcon />
+						</IconTile>
+						<IconTile variant="soft" radius="full">
+							<ShoppingCartIcon />
+						</IconTile>
+					</div>
+				</div>
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── FRAME ─── */}
+			<PageSection
+				title="Frame"
+				description="Concentric-radius container for grouped panels — an alternative to stacking plain Cards when sections belong to one surface (e.g. a settings page's grouped fields)."
+			>
+				<div className="grid gap-6 lg:grid-cols-2">
+					<Frame>
+						<FramePanel>
+							<FrameHeader>
+								<FrameTitle>Company Info</FrameTitle>
+								<FrameDescription>Basic identification details.</FrameDescription>
+							</FrameHeader>
+						</FramePanel>
+						<FramePanel>
+							<FrameHeader>
+								<FrameTitle>Tax &amp; Currency</FrameTitle>
+								<FrameDescription>Tax rate and currency settings.</FrameDescription>
+							</FrameHeader>
+						</FramePanel>
+					</Frame>
+
+					<Frame stacked>
+						<FramePanel>
+							<FrameHeader>
+								<FrameTitle>Stacked variant</FrameTitle>
+								<FrameDescription>
+									Panels sit flush, no gap between them — reads as one continuous card.
+								</FrameDescription>
+							</FrameHeader>
+						</FramePanel>
+						<FramePanel>
+							<FrameFooter>
+								<Button size="sm" variant="outline">
+									Cancel
+								</Button>
+								<Button size="sm">Save</Button>
+							</FrameFooter>
+						</FramePanel>
+					</Frame>
+				</div>
+			</PageSection>
+
+			<Separator />
+
 			{/* ─── STATUS BADGES ─── */}
 			<PageSection title="Status Badges" description="Variants for workflow states.">
 				<div className="flex flex-wrap gap-3">
@@ -377,19 +472,22 @@ function DesignSystemPage() {
 
 			<Separator />
 
-			{/* ─── SEARCH TOOLBAR ─── */}
-			<PageSection title="Search Toolbar" description="Search + action buttons pattern.">
-				<SearchToolbar
-					placeholder="Search materials..."
-					actions={
-						<>
-							<Button variant="outline" size="sm">
-								Filter
-							</Button>
-							<Button size="sm">Add Material</Button>
-						</>
-					}
-				/>
+			{/* ─── TABLE TOOLBAR ─── */}
+			<PageSection
+				title="Table Toolbar"
+				description="Search + filter dropdown(s) + active-filter chips with clear-all. The single toolbar pattern for every list page — see Data Table below for it wired to a real table."
+			>
+				<TableToolbarDemo />
+			</PageSection>
+
+			<Separator />
+
+			{/* ─── ADVANCED FILTERS (chip builder) ─── */}
+			<PageSection
+				title="Advanced Filters"
+				description="Linear/Notion-style filter chip builder for pages with several independent, non-mutually-exclusive dimensions (e.g. status + date + cashier). Prefer the simpler Table Toolbar filter dropdown above for a single dimension; reach for this only when a page genuinely needs to combine multiple filters at once — see Orders in POS."
+			>
+				<AdvancedFiltersDemo />
 			</PageSection>
 
 			<Separator />
@@ -710,37 +808,6 @@ function DesignSystemPage() {
 
 			<Separator />
 
-			{/* ─── DATA TABLE STATES ─── */}
-			<PageSection
-				title="Data Table States"
-				description="Loading, error, and empty states for tables."
-			>
-				<div className="space-y-8">
-					<div>
-						<p className="mb-2 text-xs font-medium text-muted-foreground">Loading State</p>
-						<DataTableLoading rows={3} columns={4} />
-					</div>
-					<div>
-						<p className="mb-2 text-xs font-medium text-muted-foreground">Error State</p>
-						<DataTableError
-							title="Failed to load materials"
-							message="Connection timed out. Please check your network."
-							onRetry={() => {}}
-						/>
-					</div>
-					<div>
-						<p className="mb-2 text-xs font-medium text-muted-foreground">Empty State</p>
-						<DataTableEmpty
-							title="No materials found"
-							description="Try adjusting your search or add a new material."
-							action={<Button size="sm">Add Material</Button>}
-						/>
-					</div>
-				</div>
-			</PageSection>
-
-			<Separator />
-
 			{/* ─── CURRENCY DISPLAY ─── */}
 			<PageSection
 				title="Currency Display"
@@ -818,26 +885,35 @@ function DataTableSection() {
 		columns: mockColumns,
 		pageSize: 5,
 	})
+	const [category, setCategory] = useState<string | undefined>(undefined)
 
 	return (
 		<PageSection
 			title="Data Table"
-			description="Table with global search, client-side pagination, and toolbar."
+			description="Table with global search, client-side pagination, and the standard toolbar (search + filter + chips)."
 		>
 			<DataTable
 				table={table}
 				recordCount={recordCount}
 				toolbar={
-					<DataTableToolbar
-						search={globalFilter}
+					<TableToolbar
+						searchValue={globalFilter}
 						onSearchChange={setGlobalFilter}
 						searchPlaceholder="Search materials..."
-						filters={
-							<Button variant="outline" size="sm">
-								<FilterIcon className="mr-1.5 size-3.5" />
-								Filter
-							</Button>
-						}
+						filters={[
+							{
+								key: 'category',
+								label: 'Category',
+								value: category,
+								onChange: (v) => setCategory(Array.isArray(v) ? v[0] : v),
+								options: [
+									{ label: 'Raw Material', value: 'Raw Material' },
+									{ label: 'Dairy', value: 'Dairy' },
+									{ label: 'Packaging', value: 'Packaging' },
+									{ label: 'Condiment', value: 'Condiment' },
+								],
+							},
+						]}
 						actions={
 							<Button size="sm">
 								<PlusIcon className="mr-1.5 size-3.5" />
@@ -848,6 +924,87 @@ function DataTableSection() {
 				}
 			/>
 		</PageSection>
+	)
+}
+
+function TableToolbarDemo() {
+	const [search, setSearch] = useState('')
+	const [category, setCategory] = useState<string[] | undefined>(undefined)
+	const [status, setStatus] = useState<string | undefined>('active')
+
+	return (
+		<TableToolbar
+			searchValue={search}
+			onSearchChange={setSearch}
+			searchPlaceholder="Search materials..."
+			filters={[
+				{
+					key: 'category',
+					label: 'Category',
+					value: category,
+					onChange: (v) => setCategory(Array.isArray(v) ? v : undefined),
+					multiple: true,
+					options: [
+						{ label: 'Raw Material', value: 'raw' },
+						{ label: 'Dairy', value: 'dairy' },
+						{ label: 'Packaging', value: 'packaging' },
+					],
+				},
+				{
+					key: 'status',
+					label: 'Status',
+					value: status,
+					onChange: (v) => setStatus(Array.isArray(v) ? v[0] : v),
+					options: [
+						{ label: 'Active', value: 'active' },
+						{ label: 'Inactive', value: 'inactive' },
+					],
+				},
+			]}
+			actions={<Button size="sm">Add Material</Button>}
+		/>
+	)
+}
+
+function AdvancedFiltersDemo() {
+	const [filters, setFilters] = useState<Filter[]>([createFilter('status', 'is', ['completed'])])
+
+	return (
+		<Filters
+			filters={filters}
+			onChange={setFilters}
+			fields={[
+				{
+					key: 'status',
+					label: 'Status',
+					type: 'select',
+					options: [
+						{ label: 'Open', value: 'open' },
+						{ label: 'Completed', value: 'completed' },
+						{ label: 'Voided', value: 'voided' },
+					],
+				},
+				{
+					key: 'cashier',
+					label: 'Cashier',
+					type: 'select',
+					options: [
+						{ label: 'Andi', value: '1' },
+						{ label: 'Budi', value: '2' },
+						{ label: 'Citra', value: '3' },
+					],
+				},
+				{
+					key: 'type',
+					label: 'Type',
+					type: 'select',
+					options: [
+						{ label: 'Dine In', value: 'dine_in' },
+						{ label: 'Takeaway', value: 'takeaway' },
+					],
+				},
+			]}
+		/>
 	)
 }
 

@@ -194,7 +194,7 @@ await confirm({
 
 ## Data Tables (TanStack Table + ReUI)
 
-Unchanged by the form migration. `useServerTable`/`useClientTable` (`src/components/data-table/`) manage pagination/sorting/search state and render through `<DataTable table={table} toolbar={...} />`. Pagination/sort/filter state is local `useState` in the page (not URL search params, despite what an older draft of this doc said) — see `materials/index.tsx`'s `listParams`.
+`useServerTable`/`useClientTable` (`src/components/data-table/`) manage pagination/sorting/search state and render through `<DataTable table={table} toolbar={...} />`. Pagination/sort/filter state is local `useState` in the page (not URL search params, despite what an older draft of this doc said) — see `materials/index.tsx`'s `listParams`.
 
 ```tsx
 const { table, globalFilter, setGlobalFilter } = useServerTable({
@@ -211,6 +211,47 @@ const { table, globalFilter, setGlobalFilter } = useServerTable({
 		})),
 })
 ```
+
+### Toolbar: `TableToolbar` (default) vs. `Filters` (advanced)
+
+**`TableToolbar`** (`src/components/shared/table-toolbar.tsx`) is the single toolbar pattern for every list page — every `DataTable`'s `toolbar` prop renders one of these, whether the page needs search only, search + one filter, or search + several filters. It replaced the old `SearchToolbar` + ad-hoc `<Select>`-per-page pattern (each page previously wrote its own filter dropdown with an inconsistent "All X" label) and the unused `DataTableToolbar`/`DataTableLoading`/`DataTableError`/`DataTableEmpty` dead code — all deleted, no legacy path was kept.
+
+```tsx
+<DataTable
+	table={table}
+	recordCount={totalCount}
+	isLoading={listQuery.isLoading}
+	toolbar={
+		<TableToolbar
+			searchValue={globalFilter}
+			onSearchChange={setGlobalFilter}
+			searchPlaceholder="Search materials..."
+			filters={[
+				{
+					key: 'categoryId',
+					label: 'Category',
+					value: listParams.categoryId?.toString(),
+					onChange: (v) =>
+						setListParams((prev) => ({
+							...prev,
+							page: 1,
+							categoryId: v === undefined ? undefined : Number(v),
+						})),
+					options: categories.map((cat) => ({ label: cat.name, value: cat.id.toString() })),
+				},
+			]}
+		/>
+	}
+/>
+```
+
+- `filters` is a `TableFilterDef[]`: each entry renders a `TableFilterSelect` (a `Select` with a standardized "All {label}" option) plus, once its `value` is set, a removable chip in a row below the toolbar. A "Clear filters" button appears whenever at least one filter is active and clears them all.
+- A filter's `value`/`onChange` always deal in `string | undefined` — `undefined` means "All". Cast to the real enum/number type at the `onChange` boundary (see `categoryId: v === undefined ? undefined : Number(v)` above), don't change the filter def's type.
+- Omit `searchValue`/`onSearchChange` entirely for filter-only toolbars (e.g. Shifts, Orders status filter) — the search box only renders when `onSearchChange` is passed.
+- Reset to page 1 inside every filter's `onChange`, same as search.
+- `TableFilterSelect` (`src/components/shared/table-filter-select.tsx`) is exported separately if a page ever needs a standalone filter dropdown outside a `TableToolbar` (rare — prefer the `filters` prop).
+
+**`Filters`** (`src/components/reui/filters.tsx`) is a Linear/Notion-style filter chip builder: an "Add filter" trigger that lets the user attach any number of independent, non-mutually-exclusive dimensions (each with its own operator — is/is not/contains/between/etc.) at once. Reach for it only when a page genuinely needs to combine several filters simultaneously in a way a handful of fixed dropdowns can't express well — POS Orders (status + date + cashier + type) is the intended candidate. Every other list page uses `TableToolbar`. See the "Advanced Filters" section in `/design-system` for a wired demo (`createFilter`, `Filters`, `onChange`).
 
 ## Status Display
 
@@ -247,6 +288,8 @@ Unchanged by the form migration:
 | Confirmations         | `confirm()` / `confirmInput()`                                    |
 | Status display        | `StatusBadge` (never plain `Badge`)                               |
 | Tables                | `useServerTable`/`useClientTable` + `DataTable`                   |
+| Table toolbar         | `TableToolbar` (search + filters + chips) — default for all lists |
+| Advanced multi-filter | `Filters` (reui chip builder) — only for multi-dimension pages    |
 | Page loading          | `PageSkeleton`                                                    |
 | Page errors           | `PageError`                                                       |
 | Empty states          | `EmptyState`                                                      |

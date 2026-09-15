@@ -1,8 +1,10 @@
 import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-
 import { cn } from '@/lib/utils'
+
+import { IconTile } from '@/components/reui/icon-tile'
+
+import { Button } from '@/components/ui/button'
 
 interface PageErrorProps {
 	title?: string
@@ -19,9 +21,9 @@ export function PageError({
 }: PageErrorProps) {
 	return (
 		<div className={cn('flex flex-col items-center justify-center py-12 text-center', className)}>
-			<div className="mb-3 flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-				<AlertCircleIcon className="size-5" />
-			</div>
+			<IconTile variant="soft" size="lg" className="mb-3 text-destructive">
+				<AlertCircleIcon />
+			</IconTile>
 			<p className="text-sm font-medium">{title}</p>
 			<p className="mt-1 max-w-sm text-xs text-muted-foreground">{message}</p>
 			{onRetry && (

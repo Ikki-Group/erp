@@ -14,17 +14,10 @@ import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
 import {
@@ -539,34 +532,28 @@ function MenuPage() {
 							isLoading={itemListQuery.isLoading}
 							emptyMessage="Tidak ada menu item yang cocok."
 							toolbar={
-								<SearchToolbar
-									value={globalFilter}
-									onChange={setGlobalFilter}
-									placeholder="Cari menu item..."
-									actions={
-										<Select
-											value={listParams.categoryId?.toString() ?? 'all'}
-											onValueChange={(v) =>
+								<TableToolbar
+									searchValue={globalFilter}
+									onSearchChange={setGlobalFilter}
+									searchPlaceholder="Cari menu item..."
+									filters={[
+										{
+											key: 'categoryId',
+											label: 'Kategori',
+											value: listParams.categoryId?.toString(),
+											onChange: (v) =>
 												setListParams((prev) => ({
 													...prev,
 													page: 1,
-													categoryId: v === 'all' ? undefined : Number(v),
-												}))
-											}
-										>
-											<SelectTrigger className="w-[160px]">
-												<SelectValue placeholder="Semua kategori" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="all">Semua kategori</SelectItem>
-												{categories.map((cat) => (
-													<SelectItem key={cat.id} value={cat.id.toString()}>
-														{cat.name}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									}
+													categoryId: v === undefined ? undefined : Number(v),
+												})),
+											options: categories.map((cat) => ({
+												label: cat.name,
+												value: cat.id.toString(),
+											})),
+											allLabel: 'Semua kategori',
+										},
+									]}
 								/>
 							}
 						/>

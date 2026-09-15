@@ -15,17 +15,10 @@ import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
 import { voucherResource } from '@/features/pos/api.ts'
@@ -69,7 +62,6 @@ function buildPayload(vals: VoucherFormValues) {
 }
 
 const STATUS_FILTER_OPTIONS = [
-	{ label: 'All', value: 'all' },
 	{ label: 'Active', value: 'true' },
 	{ label: 'Inactive', value: 'false' },
 ] as const
@@ -312,34 +304,27 @@ function VouchersPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="No vouchers match your search."
 					toolbar={
-						<div className="flex items-center gap-2">
-							<SearchToolbar
-								value={globalFilter}
-								onChange={setGlobalFilter}
-								placeholder="Search vouchers..."
-							/>
-							<Select
-								value={listParams.isActive === undefined ? 'all' : String(listParams.isActive)}
-								onValueChange={(v) =>
-									setListParams((prev) => ({
-										...prev,
-										page: 1,
-										isActive: v === 'all' ? undefined : v === 'true',
-									}))
-								}
-							>
-								<SelectTrigger className="w-[120px]">
-									<SelectValue placeholder="Status" />
-								</SelectTrigger>
-								<SelectContent>
-									{STATUS_FILTER_OPTIONS.map((opt) => (
-										<SelectItem key={opt.value} value={opt.value}>
-											{opt.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Search vouchers..."
+							filters={[
+								{
+									key: 'isActive',
+									label: 'Status',
+									value:
+										listParams.isActive === undefined ? undefined : String(listParams.isActive),
+									onChange: (v) =>
+										setListParams((prev) => ({
+											...prev,
+											page: 1,
+											isActive: v === undefined ? undefined : v === 'true',
+										})),
+									options: STATUS_FILTER_OPTIONS,
+									allLabel: 'All',
+								},
+							]}
+						/>
 					}
 				/>
 			)}

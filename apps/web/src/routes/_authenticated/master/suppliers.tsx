@@ -16,17 +16,10 @@ import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
 import { supplierResource } from '@/features/supplier/api.ts'
@@ -292,31 +285,28 @@ function SuppliersPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="No suppliers match your filters."
 					toolbar={
-						<SearchToolbar
-							value={globalFilter}
-							onChange={setGlobalFilter}
-							placeholder="Search suppliers..."
-							actions={
-								<Select
-									value={listParams.isActive?.toString() ?? 'all'}
-									onValueChange={(v) =>
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Search suppliers..."
+							filters={[
+								{
+									key: 'isActive',
+									label: 'Status',
+									value: listParams.isActive?.toString(),
+									onChange: (v) =>
 										setListParams((prev) => ({
 											...prev,
 											page: 1,
-											isActive: v === 'all' ? undefined : Number(v),
-										}))
-									}
-								>
-									<SelectTrigger className="w-[130px]">
-										<SelectValue placeholder="All status" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All status</SelectItem>
-										<SelectItem value="1">Active</SelectItem>
-										<SelectItem value="0">Inactive</SelectItem>
-									</SelectContent>
-								</Select>
-							}
+											isActive: v === undefined ? undefined : Number(v),
+										})),
+									options: [
+										{ label: 'Active', value: '1' },
+										{ label: 'Inactive', value: '0' },
+									],
+									allLabel: 'All status',
+								},
+							]}
 						/>
 					}
 				/>

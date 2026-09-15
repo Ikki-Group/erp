@@ -6,6 +6,8 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, MapPinIcon, PlusIcon, TagIcon, TrashIcon } from 'lucide-react'
 
+import { FormDialogFooter } from '@/lib/form/index.ts'
+
 import { DataTable } from '@/components/data-table/data-table'
 import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
@@ -14,24 +16,18 @@ import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
-import { FormDialogFooter } from '@/lib/form/index.ts'
-
 import { categoryResource, materialResource } from '@/features/material/api.ts'
-import { CategoryFormFields, useCategoryForm } from '@/features/material/components/category-form.tsx'
+import {
+	CategoryFormFields,
+	useCategoryForm,
+} from '@/features/material/components/category-form.tsx'
 import { LocationAssignment } from '@/features/material/components/location-assignment.tsx'
 import { MATERIAL_TYPE_OPTIONS } from '@/features/material/dto/index.ts'
 import type { MaterialCategoryDto, MaterialDto } from '@/features/material/dto/index.ts'
@@ -228,7 +224,11 @@ function MaterialsPage() {
 						{
 							label: 'Edit',
 							icon: <EditIcon className="size-4" />,
-							onClick: () => navigate({ to: '/master/materials/$materialId', params: { materialId: String(row.original.id) } }),
+							onClick: () =>
+								navigate({
+									to: '/master/materials/$materialId',
+									params: { materialId: String(row.original.id) },
+								}),
 						},
 						{
 							label: 'Locations',
@@ -307,37 +307,34 @@ function MaterialsPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="No materials match your filters."
 					onRowClick={(row) =>
-						navigate({ to: '/master/materials/$materialId', params: { materialId: String(row.id) } })
+						navigate({
+							to: '/master/materials/$materialId',
+							params: { materialId: String(row.id) },
+						})
 					}
 					toolbar={
-						<SearchToolbar
-							value={globalFilter}
-							onChange={setGlobalFilter}
-							placeholder="Search materials..."
-							actions={
-								<Select
-									value={listParams.categoryId?.toString() ?? 'all'}
-									onValueChange={(v) =>
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Search materials..."
+							filters={[
+								{
+									key: 'categoryId',
+									label: 'Category',
+									value: listParams.categoryId?.toString(),
+									onChange: (v) =>
 										setListParams((prev) => ({
 											...prev,
 											page: 1,
-											categoryId: v === 'all' ? undefined : Number(v),
-										}))
-									}
-								>
-									<SelectTrigger className="w-[160px]">
-										<SelectValue placeholder="All categories" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All categories</SelectItem>
-										{categories.map((cat) => (
-											<SelectItem key={cat.id} value={cat.id.toString()}>
-												{cat.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							}
+											categoryId: v === undefined ? undefined : Number(v),
+										})),
+									options: categories.map((cat) => ({
+										label: cat.name,
+										value: cat.id.toString(),
+									})),
+									allLabel: 'All categories',
+								},
+							]}
 						/>
 					}
 				/>

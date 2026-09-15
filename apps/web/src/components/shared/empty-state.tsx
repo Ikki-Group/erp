@@ -4,6 +4,8 @@ import { InboxIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+import { IconTile } from '@/components/reui/icon-tile'
+
 interface EmptyStateProps {
 	title: string
 	description?: string
@@ -15,9 +17,9 @@ interface EmptyStateProps {
 export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
 	return (
 		<div className={cn('flex flex-col items-center justify-center py-12 text-center', className)}>
-			<div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-				{icon ?? <InboxIcon className="size-5" />}
-			</div>
+			<IconTile variant="soft" size="lg" className="mb-3">
+				{icon ?? <InboxIcon />}
+			</IconTile>
 			<p className="text-sm font-medium">{title}</p>
 			{description && <p className="mt-1 max-w-sm text-xs text-muted-foreground">{description}</p>}
 			{action && <div className="mt-4">{action}</div>}

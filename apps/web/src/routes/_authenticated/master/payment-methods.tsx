@@ -14,17 +14,10 @@ import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { SearchToolbar } from '@/components/shared/search-toolbar'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
 import { paymentMethodMutations, paymentMethodResource } from '@/features/payment-method/api.ts'
@@ -234,14 +227,6 @@ function PaymentMethodsPage() {
 		},
 	})
 
-	const handleTypeFilter = (value: string | null) => {
-		setListParams((prev) => ({
-			...prev,
-			page: 1,
-			type: !value || value === 'all' ? undefined : (value as PaymentMethodTypeEnum),
-		}))
-	}
-
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !listParams.type
 
 	return (
@@ -279,26 +264,26 @@ function PaymentMethodsPage() {
 					isLoading={listQuery.isLoading}
 					emptyMessage="No payment methods match your search."
 					toolbar={
-						<div className="flex items-center gap-2">
-							<SearchToolbar
-								value={globalFilter}
-								onChange={setGlobalFilter}
-								placeholder="Search payment methods..."
-							/>
-							<Select value={listParams.type ?? 'all'} onValueChange={handleTypeFilter}>
-								<SelectTrigger className="w-[130px]">
-									<SelectValue placeholder="All Types" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All Types</SelectItem>
-									{PAYMENT_METHOD_TYPE_OPTIONS.map((opt) => (
-										<SelectItem key={opt.value} value={opt.value}>
-											{opt.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
+						<TableToolbar
+							searchValue={globalFilter}
+							onSearchChange={setGlobalFilter}
+							searchPlaceholder="Search payment methods..."
+							filters={[
+								{
+									key: 'type',
+									label: 'Type',
+									value: listParams.type,
+									onChange: (v) =>
+										setListParams((prev) => ({
+											...prev,
+											page: 1,
+											type: v as PaymentMethodTypeEnum | undefined,
+										})),
+									options: PAYMENT_METHOD_TYPE_OPTIONS,
+									allLabel: 'All Types',
+								},
+							]}
+						/>
 					}
 				/>
 			)}
