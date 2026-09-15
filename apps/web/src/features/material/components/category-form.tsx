@@ -1,72 +1,35 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
-
-import { FormInput } from '@/components/form/form-input'
+import { useEntityForm } from '@/lib/form/index.ts'
 
 import { MaterialCategoryCreateDto } from '../dto/index.ts'
-
 import type { MaterialCategoryDto } from '../dto/index.ts'
 
 export interface CategoryFormValues {
 	name: string
 }
 
-export interface CategoryFormRef {
-	getValues: () => CategoryFormValues
-	validate: () => Record<string, string> | null
-}
-
-interface CategoryFormProps {
+export interface UseCategoryFormOptions {
 	defaultValues?: MaterialCategoryDto
+	onSubmit: (values: CategoryFormValues) => Promise<void>
 }
 
-export const CategoryForm = forwardRef<CategoryFormRef, CategoryFormProps>(
-	({ defaultValues }, ref) => {
-		const [values, setValues] = useState<CategoryFormValues>({
-			name: defaultValues?.name ?? '',
-		})
-		const [errors, setErrors] = useState<Record<string, string>>({})
+export function useCategoryForm({ defaultValues, onSubmit }: UseCategoryFormOptions) {
+	return useEntityForm({
+		defaultValues: { name: defaultValues?.name ?? '' },
+		schema: MaterialCategoryCreateDto,
+		onSubmit,
+	})
+}
 
-		const update = (field: keyof CategoryFormValues, value: string) => {
-			setValues((prev) => ({ ...prev, [field]: value }))
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[field]
-				return next
-			})
-		}
+export type CategoryForm = ReturnType<typeof useCategoryForm>
 
-		useImperativeHandle(ref, () => ({
-			getValues: () => values,
-			validate: () => {
-				const result = MaterialCategoryCreateDto.safeParse(values)
-				if (result.success) {
-					setErrors({})
-					return null
-				}
-				const fieldErrors: Record<string, string> = {}
-				for (const issue of result.error.issues) {
-					const path = issue.path[0]
-					if (path && !fieldErrors[String(path)]) {
-						fieldErrors[String(path)] = issue.message
-					}
-				}
-				setErrors(fieldErrors)
-				return fieldErrors
-			},
-		}))
-
-		return (
-			<div className="grid gap-4">
-				<FormInput
-					label="Name"
-					value={values.name}
-					onChange={(e) => update('name', e.target.value)}
-					error={errors.name}
-					placeholder="e.g. Bahan Kering"
-				/>
-			</div>
-		)
-	},
-)
-
-CategoryForm.displayName = 'CategoryForm'
+/** Quick-add/edit form for a material category — small enough to stay a dialog. */
+export function CategoryFormFields({ form }: { form: CategoryForm }) {
+	return (
+		<div className="grid gap-4">
+			<form.AppField name="name">
+				{(field) => <field.TextField label="Name" placeholder="e.g. Bahan Kering" />}
+			</form.AppField>
+			<form.FormError />
+		</div>
+	)
+}

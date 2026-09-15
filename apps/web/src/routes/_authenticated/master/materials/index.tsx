@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, MapPinIcon, PlusIcon, TagIcon, TrashIcon } from 'lucide-react'
@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
 import { SearchToolbar } from '@/components/shared/search-toolbar'
+import { StatusBadge } from '@/components/shared/status-badge'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,41 +28,19 @@ import {
 } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
-import { categoryResource, materialResource } from '@/features/material/api.ts'
-import { CategoryForm } from '@/features/material/components/category-form.tsx'
-import type { CategoryFormRef } from '@/features/material/components/category-form.tsx'
-import { LocationAssignment } from '@/features/material/components/location-assignment.tsx'
-import { MaterialForm } from '@/features/material/components/material-form.tsx'
-import type {
-	MaterialFormRef,
-	MaterialFormValues,
-} from '@/features/material/components/material-form.tsx'
-import { MATERIAL_TYPE_OPTIONS } from '@/features/material/dto/index.ts'
-import type {
-	MaterialCategoryDto,
-	MaterialDto,
-	MaterialTypeEnum,
-} from '@/features/material/dto/index.ts'
+import { FormDialogFooter } from '@/lib/form/index.ts'
 
-export const Route = createFileRoute('/_authenticated/master/materials')({
+import { categoryResource, materialResource } from '@/features/material/api.ts'
+import { CategoryFormFields, useCategoryForm } from '@/features/material/components/category-form.tsx'
+import { LocationAssignment } from '@/features/material/components/location-assignment.tsx'
+import { MATERIAL_TYPE_OPTIONS } from '@/features/material/dto/index.ts'
+import type { MaterialCategoryDto, MaterialDto } from '@/features/material/dto/index.ts'
+
+export const Route = createFileRoute('/_authenticated/master/materials/')({
 	component: MaterialsPage,
 })
 
 // ─── Table Columns ───
-
-function formToPayload(v: MaterialFormValues) {
-	return {
-		code: v.code,
-		name: v.name,
-		type: v.type as MaterialTypeEnum,
-		categoryId: v.categoryId ? Number(v.categoryId) : null,
-		baseUomId: Number(v.baseUomId),
-		defaultPurchaseUomId: v.defaultPurchaseUomId ? Number(v.defaultPurchaseUomId) : null,
-		defaultStockUomId: v.defaultStockUomId ? Number(v.defaultStockUomId) : null,
-		defaultRecipeUomId: v.defaultRecipeUomId ? Number(v.defaultRecipeUomId) : null,
-		minStock: v.minStock || null,
-	}
-}
 
 const col = createColumnHelper<DataGridFeatures, MaterialDto>()
 
@@ -87,16 +66,62 @@ const baseColumns = [
 		header: 'Status',
 		size: 80,
 		cell: ({ getValue }) => (
-			<Badge variant={getValue() ? 'default' : 'outline'}>
+			<StatusBadge variant={getValue() ? 'success' : 'outline'}>
 				{getValue() ? 'Active' : 'Inactive'}
-			</Badge>
+			</StatusBadge>
 		),
 	}),
 ]
 
+// ─── Category Quick-Add Dialog ───
+// Categories stay a dialog: one field, no reason to leave the list page.
+// Materials themselves are full-page forms — see `materials.new.tsx` and
+// `materials.$materialId.tsx`.
+
+function CategoryDialogBody({
+	close,
+	defaultValues,
+}: {
+	close: (result?: boolean) => void
+	defaultValues?: MaterialCategoryDto
+}) {
+	const createMut = useMutation(categoryResource.create.mutationOptions())
+	const updateMut = useMutation(categoryResource.update.mutationOptions())
+
+	const form = useCategoryForm({
+		defaultValues,
+		onSubmit: async (values) => {
+			if (defaultValues) {
+				await updateMut.mutateAsync({ id: defaultValues.id, name: values.name })
+			} else {
+				await createMut.mutateAsync({ name: values.name })
+			}
+			close(true)
+		},
+	})
+
+	return (
+		<form
+			onSubmit={(e) => {
+				e.preventDefault()
+				e.stopPropagation()
+				void form.handleSubmit()
+			}}
+		>
+			<CategoryFormFields form={form} />
+			<FormDialogFooter
+				onCancel={() => close(false)}
+				submitLabel={defaultValues ? 'Save Changes' : 'Create'}
+			/>
+		</form>
+	)
+}
+
 // ─── Page Component ───
 
 function MaterialsPage() {
+	const navigate = useNavigate()
+
 	const [listParams, setListParams] = useState({
 		page: 1,
 		limit: 10,
@@ -107,11 +132,7 @@ function MaterialsPage() {
 	const listQuery = useQuery(materialResource.list.queryOptions(listParams))
 	const categoriesQuery = useQuery(categoryResource.list.queryOptions({ page: 1, limit: 100 }))
 
-	const createMut = useMutation(materialResource.create.mutationOptions())
-	const updateMut = useMutation(materialResource.update.mutationOptions())
 	const removeMut = useMutation(materialResource.remove.mutationOptions())
-	const catCreateMut = useMutation(categoryResource.create.mutationOptions())
-	const catUpdateMut = useMutation(categoryResource.update.mutationOptions())
 	const catRemoveMut = useMutation(categoryResource.remove.mutationOptions())
 
 	const data = listQuery.data?.data ?? []
@@ -119,64 +140,8 @@ function MaterialsPage() {
 	const categories = categoriesQuery.data?.data ?? []
 
 	// ─── Material Handlers ───
-
-	const handleCreate = useCallback(async () => {
-		const formRef = { current: null } as React.MutableRefObject<MaterialFormRef | null>
-
-		const saved = await formDialog({
-			title: 'Add Material',
-			description: 'Create a new material.',
-			submitLabel: 'Create',
-			content: (
-				<MaterialForm
-					ref={(el) => {
-						formRef.current = el
-					}}
-				/>
-			),
-			onSubmit: async () => {
-				const errors = formRef.current?.validate()
-				if (errors) throw new Error('Please fix the validation errors.')
-				const v = formRef.current!.getValues()
-				await createMut.mutateAsync(formToPayload(v))
-			},
-		})
-
-		if (saved) {
-			toast.add({ title: 'Material created successfully.', type: 'success' })
-		}
-	}, [createMut])
-
-	const handleEdit = useCallback(
-		async (material: MaterialDto) => {
-			const formRef = { current: null } as React.MutableRefObject<MaterialFormRef | null>
-
-			const saved = await formDialog({
-				title: 'Edit Material',
-				description: `Update details for ${material.name}.`,
-				submitLabel: 'Save Changes',
-				content: (
-					<MaterialForm
-						ref={(el) => {
-							formRef.current = el
-						}}
-						defaultValues={material}
-					/>
-				),
-				onSubmit: async () => {
-					const errors = formRef.current?.validate()
-					if (errors) throw new Error('Please fix the validation errors.')
-					const v = formRef.current!.getValues()
-					await updateMut.mutateAsync({ id: material.id, ...formToPayload(v) })
-				},
-			})
-
-			if (saved) {
-				toast.add({ title: 'Material updated successfully.', type: 'success' })
-			}
-		},
-		[updateMut],
-	)
+	// Create/edit navigate to the full-page form routes — no dialog, no ref
+	// plumbing. See materials.new.tsx / materials.$materialId.tsx.
 
 	const handleDelete = useCallback(
 		async (material: MaterialDto) => {
@@ -198,71 +163,41 @@ function MaterialsPage() {
 		await formDialog({
 			title: 'Location Assignment',
 			description: `Manage locations for ${material.name}.`,
-			submitLabel: 'Done',
-			content: <LocationAssignment materialId={material.id} />,
-			onSubmit: async () => {},
+			// oxlint-disable-next-line react/no-unstable-nested-components
+			content: ({ close }) => (
+				<div className="space-y-4">
+					<LocationAssignment materialId={material.id} />
+					<div className="flex justify-end">
+						<Button size="sm" onClick={() => close(true)}>
+							Done
+						</Button>
+					</div>
+				</div>
+			),
 		})
 	}, [])
 
 	// ─── Category Handlers ───
 
 	const handleCreateCategory = useCallback(async () => {
-		const formRef = { current: null } as React.MutableRefObject<CategoryFormRef | null>
-
 		const saved = await formDialog({
 			title: 'Add Category',
 			description: 'Create a new material category.',
-			submitLabel: 'Create',
-			content: (
-				<CategoryForm
-					ref={(el) => {
-						formRef.current = el
-					}}
-				/>
-			),
-			onSubmit: async () => {
-				const errors = formRef.current?.validate()
-				if (errors) throw new Error('Please fix the validation errors.')
-				const v = formRef.current!.getValues()
-				await catCreateMut.mutateAsync({ name: v.name })
-			},
+			// oxlint-disable-next-line react/no-unstable-nested-components
+			content: ({ close }) => <CategoryDialogBody close={close} />,
 		})
+		if (saved) toast.add({ title: 'Category created successfully.', type: 'success' })
+	}, [])
 
-		if (saved) {
-			toast.add({ title: 'Category created successfully.', type: 'success' })
-		}
-	}, [catCreateMut])
-
-	const handleEditCategory = useCallback(
-		async (category: MaterialCategoryDto) => {
-			const formRef = { current: null } as React.MutableRefObject<CategoryFormRef | null>
-
-			const saved = await formDialog({
-				title: 'Edit Category',
-				description: `Update "${category.name}".`,
-				submitLabel: 'Save Changes',
-				content: (
-					<CategoryForm
-						ref={(el) => {
-							formRef.current = el
-						}}
-						defaultValues={category}
-					/>
-				),
-				onSubmit: async () => {
-					const errors = formRef.current?.validate()
-					if (errors) throw new Error('Please fix the validation errors.')
-					const v = formRef.current!.getValues()
-					await catUpdateMut.mutateAsync({ id: category.id, name: v.name })
-				},
-			})
-
-			if (saved) {
-				toast.add({ title: 'Category updated successfully.', type: 'success' })
-			}
-		},
-		[catUpdateMut],
-	)
+	const handleEditCategory = useCallback(async (category: MaterialCategoryDto) => {
+		const saved = await formDialog({
+			title: 'Edit Category',
+			description: `Update "${category.name}".`,
+			// oxlint-disable-next-line react/no-unstable-nested-components
+			content: ({ close }) => <CategoryDialogBody close={close} defaultValues={category} />,
+		})
+		if (saved) toast.add({ title: 'Category updated successfully.', type: 'success' })
+	}, [])
 
 	const handleDeleteCategory = useCallback(
 		async (category: MaterialCategoryDto) => {
@@ -286,13 +221,14 @@ function MaterialsPage() {
 		return col.display({
 			id: 'actions',
 			size: 60,
+			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) => (
 				<ActionMenu
 					items={[
 						{
 							label: 'Edit',
 							icon: <EditIcon className="size-4" />,
-							onClick: () => handleEdit(row.original),
+							onClick: () => navigate({ to: '/master/materials/$materialId', params: { materialId: String(row.original.id) } }),
 						},
 						{
 							label: 'Locations',
@@ -309,7 +245,7 @@ function MaterialsPage() {
 				/>
 			),
 		})
-	}, [handleEdit, handleDelete, handleLocations])
+	}, [handleDelete, handleLocations, navigate])
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, MaterialDto>[],
@@ -345,7 +281,7 @@ function MaterialsPage() {
 							<TagIcon className="size-4" />
 							Add Category
 						</Button>
-						<Button size="sm" onClick={handleCreate}>
+						<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
 							<PlusIcon className="size-4" />
 							Add Material
 						</Button>
@@ -358,7 +294,7 @@ function MaterialsPage() {
 					title="No materials yet"
 					description="Get started by creating your first material."
 					action={
-						<Button size="sm" onClick={handleCreate}>
+						<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
 							<PlusIcon className="size-4" />
 							Add Material
 						</Button>
@@ -370,6 +306,9 @@ function MaterialsPage() {
 					recordCount={totalCount}
 					isLoading={listQuery.isLoading}
 					emptyMessage="No materials match your filters."
+					onRowClick={(row) =>
+						navigate({ to: '/master/materials/$materialId', params: { materialId: String(row.id) } })
+					}
 					toolbar={
 						<SearchToolbar
 							value={globalFilter}

@@ -1,4 +1,5 @@
-import { API_URL } from '@/config/constant.ts'
+import { API_URL, IS_MOCK_API } from '@/config/constant.ts'
+import { createMockClient } from '@/lib/mock/client.ts'
 
 /**
  * Minimal HTTP client interface — wraps native `fetch` with a base URL and
@@ -36,4 +37,11 @@ function createClient(baseUrl: string): ApiClient {
 	return client as ApiClient
 }
 
-export const httpClient: ApiClient = createClient(API_URL)
+/**
+ * Default client used by every `defineQuery`/`defineMutation`/`defineResource`
+ * call. In mock mode (`VITE_API_MODE=mock`) this is the in-memory
+ * `createMockClient()` from `@/lib/mock` instead of a real network fetch —
+ * see `IS_MOCK_API` in `@/config/constant.ts`. Feature/route code never
+ * branches on the mode; it only ever calls `httpClient`.
+ */
+export const httpClient: ApiClient = IS_MOCK_API ? createMockClient() : createClient(API_URL)

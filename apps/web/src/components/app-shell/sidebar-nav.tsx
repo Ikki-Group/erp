@@ -3,6 +3,7 @@ import { Link, useLocation } from '@tanstack/react-router'
 import {
 	BoxesIcon,
 	ChefHatIcon,
+	ClipboardCheckIcon,
 	ClipboardListIcon,
 	ClockIcon,
 	GaugeIcon,
@@ -11,7 +12,6 @@ import {
 	PackageIcon,
 	PlusCircleIcon,
 	RulerIcon,
-	SettingsIcon,
 	ShieldCheckIcon,
 	ShoppingCartIcon,
 	StoreIcon,
@@ -68,15 +68,15 @@ const navGroups = [
 			{ title: 'Stock', icon: PackageIcon, href: '/inventory/stock' },
 			{ title: 'Penerimaan', icon: TruckIcon, href: '/inventory/receiving' },
 			{ title: 'Transfers', icon: ClipboardListIcon, href: '/inventory/transfers' },
+			{ title: 'Opname', icon: ClipboardCheckIcon, href: '/inventory/opname' },
 		],
 	},
 	{
 		label: 'Settings',
 		items: [
-			{ title: 'Company', icon: StoreIcon, href: '#' },
+			{ title: 'Company', icon: StoreIcon, href: '/settings/company' },
 			{ title: 'Users', icon: UsersIcon, href: '/settings/users' },
 			{ title: 'Roles', icon: ShieldCheckIcon, href: '/settings/roles' },
-			{ title: 'General', icon: SettingsIcon, href: '#' },
 		],
 	},
 ]
@@ -101,22 +101,19 @@ export function SidebarNav() {
 						<SidebarGroupContent>
 							<SidebarMenu>
 								{group.items.map((item) => {
-									const isActive = item.href !== '#' && location.pathname === item.href
-									const isDisabled = item.href === '#'
+									// Dashboard ('/') only matches exactly; every other item also
+									// matches its own nested/detail routes (e.g. '/master/materials/1').
+									const isActive =
+										item.href === '/'
+											? location.pathname === '/'
+											: location.pathname.startsWith(item.href)
 
 									return (
 										<SidebarMenuItem key={item.title}>
-											{isDisabled ? (
-												<SidebarMenuButton disabled>
-													<item.icon />
-													<span>{item.title}</span>
-												</SidebarMenuButton>
-											) : (
-												<SidebarMenuButton isActive={isActive} render={<Link to={item.href} />}>
-													<item.icon />
-													<span>{item.title}</span>
-												</SidebarMenuButton>
-											)}
+											<SidebarMenuButton isActive={isActive} render={<Link to={item.href} />}>
+												<item.icon />
+												<span>{item.title}</span>
+											</SidebarMenuButton>
 										</SidebarMenuItem>
 									)
 								})}

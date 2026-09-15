@@ -1,8 +1,8 @@
 # UI Patterns
 
-Component sources, forms, data tables, and error/loading state conventions.
+Component sources, the form engine, dialogs, tables, and error/loading state conventions — the patterns every page should follow.
 
-> **Status:** Blueprint. Shadcn primitives are installed. ReUI registry is configured. TanStack Form, TanStack Table, and Zod are not yet installed — see `01-architecture.md` for the dependency list.
+> **Status:** Current implementation. This replaces an earlier blueprint that documented `@tanstack/react-form` + `@tanstack/zod-form-adapter` usage that was never actually built — the codebase had instead accumulated ~17 hand-rolled `forwardRef`/`useImperativeHandle`/`useState` form components. That pattern is being migrated away from (breaking changes allowed, per the redesign decision). `Materials` + `Category` (`src/routes/_authenticated/master/materials/`, `src/features/material/components/`) is the reference implementation — copy its shape for new/converted forms rather than the older per-page forms still pending migration (Locations, UoM, Suppliers, Menu, Recipes, Payment Methods, POS forms, Settings Users/Roles).
 
 ## Component Sources
 
@@ -12,398 +12,246 @@ Component sources, forms, data tables, and error/loading state conventions.
 | 2        | shadcn/base-ui | Primitives: Button, Dialog, Input, Select, etc.     |
 | 3        | Custom         | App-specific composites not covered by either       |
 
-### ReUI
+Shared UI lives in `src/components/ui/` (primitives), `src/components/shared/` (composites — `PageHeader`, `StatusBadge`, `EmptyState`, `FormPage`, `FormDialog`, ...), `src/components/form/` (legacy standalone field wrappers — being superseded by `src/lib/form/fields/`, see below), and `src/components/data-table/`.
 
-Installed via the shadcn CLI with the `@reui` registry:
+## The Form Engine (`src/lib/form/`)
 
-```bash
-bunx shadcn add @reui/data-grid
+Every entity create/update form is built the same way, on top of `@tanstack/react-form` (already a dependency; `@tanstack/zod-form-adapter` was removed — Zod schemas pass to TanStack Form's validators directly as Standard Schema validators, no adapter needed).
+
+### Layer map
+
+```
+src/lib/form/
+├── contexts.ts            fieldContext/formContext (createFormHookContexts, once)
+├── app-form.ts             useAppForm (createFormHook) — pre-bound field/form components
+├── use-entity-form.ts      useEntityForm — the hook every entity form's own hook wraps
+├── use-unsaved-changes-guard.ts   useUnsavedChangesGuard(form)
+├── form-root.tsx           <FormRoot form> — <form onSubmit> wiring for dialog bodies
+├── form-dialog-footer.tsx  <FormDialogFooter onCancel> — Cancel/Save footer for dialogs
+├── form-error.tsx          <FormError /> — form-level error banner (registered as form.FormError)
+├── field-error.tsx         formatFieldError — flattens+dedupes field.state.meta.errors
+├── transform.ts            toId / idToString — number|null <-> string at the field boundary
+└── fields/                 TextField, TextareaField, SelectField, IdSelectField,
+                             ComboboxField, NumberField, SwitchField, DatePickerField
 ```
 
-Registry config in `components.json`:
+Import everything from the barrel: `import { useEntityForm, useUnsavedChangesGuard, FormDialogFooter } from '@/lib/form/index.ts'`.
 
-```json
-{
-	"registries": {
-		"@reui": "https://reui.io/r/{style}/{name}.json"
-	}
-}
+### `useEntityForm` — the base hook
+
+```ts
+const form = useEntityForm({
+	defaultValues, // form-shape values, not the wire DTO — see below
+	schema, // a Zod schema validating the FORM shape
+	onSubmit: async (values) => {
+		await mutation.mutateAsync(toWirePayload(values))
+	},
+})
 ```
 
-ReUI components go in `src/components/ui/` (same location as shadcn primitives). Use the component's documented API — do not restyle or override internals.
+- Runs `schema` on both `onChange` (live feedback) and `onSubmit` (catches untouched fields). `field-error.tsx` dedupes the resulting duplicate issues, so don't try to "fix" this by dropping one of the two triggers.
+- Wraps `onSubmit`: a thrown error or rejected mutation promise is caught, converted to a message (`ApiError.friendlyMessage` when available), and set as a form-level error via `form.setErrorMap({ onSubmit: { form: message, fields: {} } })` — render it with `<form.FormError />`.
 
-### shadcn/base-ui
+**Never pass a wire-contract DTO (`XxxCreateDto`/`XxxUpdateDto` from `features/*/dto/`) as `schema` directly.** The form's in-progress shape and the wire payload differ in ways that matter for UX:
 
-Already installed (~60 primitives): button, dialog, table, sidebar, combobox, calendar, chart, toast, tooltip, etc. These are the base layer. Customize via Tailwind classes and `cn()` utility.
+- An empty optional text field is `''`, not `null` — the DTO's `string | null` rejects `''` outright.
+- An unselected relation is `number | null` — the DTO's plain `number` produces a Zod message like `"expected number, received null"`, accurate but not user-facing.
 
-### Custom Components
+Instead, define a form-specific schema next to the form (see `material-form.tsx`'s `MaterialFormSchema`) with friendly messages, and build the real DTO payload separately in each route's `onSubmit`. This is the single most important rule in this doc — skipping it is precisely the bug class the Materials migration caught (duplicate/raw Zod messages, a "required" field with no actual required validation).
 
-When neither ReUI nor shadcn covers a need:
+### Per-entity form module shape
 
-- App shell components → `src/components/app-shell/`
-- Shared form fields → `src/components/form/`
-- Feature-specific → `src/features/{module}/components/`
+One file per entity, e.g. `features/material/components/material-form.tsx`:
 
-## Forms (TanStack Form + Zod)
+1. `XxxFormValues` interface — the form's own value shape.
+2. `XxxFormSchema` (Zod) — validates that shape, with friendly `error` messages.
+3. `EMPTY_XXX_FORM_VALUES` — the create-mode default.
+4. `useXxxForm({ defaultValues, onSubmit })` — thin wrapper over `useEntityForm`.
+5. `XxxFormFields({ form })` — the field layout, shared by every entry point (full page, dialog). Ends with `<form.FormError />`.
 
-### Setup
+Routes/dialogs own the mutation and the form-shape → wire-payload mapping; the form module owns validation and layout only.
+
+### Field components
+
+Each is pre-bound to the field context via `createFormHook` (`app-form.ts`) and rendered through `form.AppField`:
 
 ```tsx
-import { useForm } from '@tanstack/react-form'
-import { zodValidator } from '@tanstack/zod-form-adapter'
-import { CreateLocationDto } from '@/features/location/dto'
+<form.AppField name="name">
+	{(field) => <field.TextField label="Name" placeholder="e.g. Tepung Terigu" />}
+</form.AppField>
+```
 
-function LocationForm({ onSubmit }: { onSubmit: (data: CreateLocationDto) => void }) {
-	const form = useForm({
-		defaultValues: { code: '', name: '', type: 'store' as const },
-		validatorAdapter: zodValidator(),
-		onSubmit: async ({ value }) => {
-			onSubmit(value)
+No `value`/`onChange`/`error` props anywhere — the field component reads/writes `field.state` itself. Available: `TextField`, `TextareaField`, `SelectField` (string-valued, for enums), `IdSelectField` (the `number | null` foreign-key select — the most common field in this app: `categoryId`, `baseUomId`, every `*LocationId`), `ComboboxField`, `NumberField`, `SwitchField`, `DatePickerField`. Add new ones under `src/lib/form/fields/` and register in `app-form.ts`'s `createFormHook` call.
+
+`IdSelectField`/`toId`/`idToString` (`transform.ts`) are the one place that stringifies a numeric id for Base UI's `<Select>` and parses it back — never do that conversion ad hoc in a form module.
+
+## Full-Page Forms (default) vs. Dialogs (exception)
+
+**Default to a full-page form for every entity create/edit.** Reach for a dialog only for genuinely lightweight cases: a single-field quick-add (category), a toggle-list picker (location assignment) — anything that isn't worth leaving the list page for.
+
+### Full-page form (`FormPage`)
+
+```tsx
+// routes/_authenticated/master/materials/new.tsx
+function NewMaterialPage() {
+	const navigate = useNavigate()
+	const createMut = useMutation(materialResource.create.mutationOptions())
+
+	const form = useMaterialForm({
+		onSubmit: async (values) => {
+			await createMut.mutateAsync({
+				/* map form values -> wire DTO */
+			})
+			toast.add({ title: 'Material created successfully.', type: 'success' })
+			navigate({ to: '/master/materials' })
 		},
 	})
 
+	useUnsavedChangesGuard(form)
+
+	return (
+		<form.AppForm>
+			<FormPage
+				title="Add Material"
+				form={form}
+				onCancel={() => navigate({ to: '/master/materials' })}
+			>
+				<MaterialFormFields form={form} />
+			</FormPage>
+		</form.AppForm>
+	)
+}
+```
+
+- Route file per verb: `materials/index.tsx` (list), `materials/new.tsx` (create), `materials/$materialId.tsx` (edit — reads `Route.useParams()`, fetches the detail query, and only mounts the form once data resolves — see the `EditMaterialForm` split-component pattern in `$materialId.tsx` so `useMaterialForm`'s `defaultValues` aren't captured as stale/empty on an early render).
+- `FormPage` reads `isSubmitting`/`canSubmit` off the passed `form` itself — never pass those as separate props.
+- `useUnsavedChangesGuard(form)` blocks in-app navigation and tab close while the form is dirty. Call it once, right after the `useXxxForm(...)` call, in every full-page form.
+- List page action menus and row clicks `navigate()` to `new`/`$id` routes — no ref plumbing, no dialog.
+
+### Dialog (`FormDialog` render-prop form)
+
+```tsx
+const saved = await formDialog({
+	title: 'Add Category',
+	content: ({ close }) => <CategoryDialogBody close={close} />,
+})
+if (saved) toast.add({ title: 'Category created successfully.', type: 'success' })
+```
+
+Where the body owns its own form + footer:
+
+```tsx
+function CategoryDialogBody({
+	close,
+	defaultValues,
+}: {
+	close: (r?: boolean) => void
+	defaultValues?: MaterialCategoryDto
+}) {
+	const createMut = useMutation(categoryResource.create.mutationOptions())
+	const form = useCategoryForm({
+		defaultValues,
+		onSubmit: async (values) => {
+			await createMut.mutateAsync(values)
+			close(true)
+		},
+	})
 	return (
 		<form
 			onSubmit={(e) => {
 				e.preventDefault()
-				form.handleSubmit()
+				e.stopPropagation()
+				void form.handleSubmit()
 			}}
 		>
-			<form.Field name="code" validators={{ onChange: CreateLocationDto.shape.code }}>
-				{(field) => (
-					<FormInput
-						label="Code"
-						value={field.state.value}
-						onChange={(e) => field.handleChange(e.target.value)}
-						error={field.state.meta.errors[0]}
-					/>
-				)}
-			</form.Field>
-			{/* ... more fields */}
-			<Button type="submit" disabled={form.state.isSubmitting}>
-				Save
-			</Button>
+			<CategoryFormFields form={form} />
+			<FormDialogFooter onCancel={() => close(false)} submitLabel="Create" />
 		</form>
 	)
 }
 ```
 
-### Conventions
+`formDialog`'s `content` is a render prop `({ close }) => ReactNode`, not static content with a separate `onSubmit` — the content decides when it's done (mutation succeeded, "Done" clicked), because not every dialog is a save form. `FormDialogFooter` reads submitting/canSubmit off the form context automatically.
 
-1. **Zod schemas as validators.** Reuse the same DTO schemas from `features/{module}/dto/` for field-level validation.
-2. **`zodValidator()` adapter.** Connects Zod to TanStack Form's validation system.
-3. **Shared form field components.** Wrap common patterns in `src/components/form/`:
-   - `FormInput` — label + input + error message
-   - `FormSelect` — label + select + error message
-   - `FormCombobox` — searchable select (shadcn combobox)
-   - `FormTextarea` — label + textarea + error message
-4. **Mutation integration.** Form `onSubmit` calls the mutation. Loading state from `useMutation`:
+`FormDialog` also still accepts the old shape (`content: ReactNode` + a top-level `onSubmit: () => Promise<void>`) — marked `@deprecated` in its type (`FormDialogLegacyProps`) — purely so the ~17 pages not yet migrated keep compiling. **Never write new dialogs against the legacy shape.**
+
+### Confirmation dialogs
+
+Destructive/consequential one-off actions use the imperative `confirm`/`confirmInput` helpers (`src/components/shared/confirm.tsx` / `confirm-input.tsx`) — unrelated to the form engine, unchanged by this migration:
 
 ```tsx
-function CreateLocationPage() {
-	const mutation = useMutation(locationApi.create.mutationOptions())
-
-	return (
-		<LocationForm
-			onSubmit={(data) => mutation.mutate(data)}
-			isSubmitting={mutation.isPending}
-			error={mutation.error}
-		/>
-	)
-}
-```
-
-### Edit Forms (Prefilled)
-
-```tsx
-function EditLocationPage({ locationId }: { locationId: number }) {
-	const { data } = useSuspenseQuery(locationApi.detail.queryOptions({ id: locationId }))
-
-	return (
-		<LocationForm
-			defaultValues={data.data}
-			onSubmit={(values) => mutation.mutate({ ...values, id: locationId })}
-		/>
-	)
-}
+await confirm({
+	title: 'Delete material?',
+	description: `This will permanently delete "${material.name}". This action cannot be undone.`,
+	confirmLabel: 'Delete',
+	variant: 'destructive',
+	onConfirm: async () => {
+		await removeMut.mutateAsync({ id: material.id })
+		toast.add({ title: 'Material deleted successfully.', type: 'success' })
+	},
+})
 ```
 
 ## Data Tables (TanStack Table + ReUI)
 
-### Pattern
-
-ERP lists use a reusable `DataTable` built on TanStack Table with ReUI's DataGrid for rendering.
+Unchanged by the form migration. `useServerTable`/`useClientTable` (`src/components/data-table/`) manage pagination/sorting/search state and render through `<DataTable table={table} toolbar={...} />`. Pagination/sort/filter state is local `useState` in the page (not URL search params, despite what an older draft of this doc said) — see `materials/index.tsx`'s `listParams`.
 
 ```tsx
-import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
-
-function MaterialsPage() {
-	const { page, limit, search } = Route.useSearch()
-	const { data } = useSuspenseQuery(materialApi.list.queryOptions({ page, limit, search }))
-
-	const table = useReactTable({
-		data: data.data.items,
-		columns: materialColumns,
-		getCoreRowModel: getCoreRowModel(),
-		manualPagination: true,
-		pageCount: Math.ceil(data.data.total / limit),
-	})
-
-	return (
-		<div>
-			<TableToolbar search={search} onSearchChange={handleSearch} />
-			<DataTable table={table} />
-			<TablePagination
-				page={page}
-				pageCount={table.getPageCount()}
-				onPageChange={handlePageChange}
-			/>
-		</div>
-	)
-}
-```
-
-### Column Definitions
-
-```tsx
-import { createColumnHelper } from '@tanstack/react-table'
-import type { MaterialSelectDto } from './dto'
-
-const columnHelper = createColumnHelper<MaterialSelectDto>()
-
-export const materialColumns = [
-	columnHelper.accessor('code', { header: 'Code' }),
-	columnHelper.accessor('name', { header: 'Name' }),
-	columnHelper.accessor('category', { header: 'Category' }),
-	columnHelper.display({
-		id: 'actions',
-		cell: ({ row }) => <RowActions material={row.original} />,
-	}),
-]
-```
-
-### Server-Side Pagination and Filtering
-
-Pagination and filter state lives in URL search params (not component state). This makes pages bookmarkable and shareable.
-
-```tsx
-const navigate = useNavigate()
-
-function handlePageChange(newPage: number) {
-	navigate({ search: (prev) => ({ ...prev, page: newPage }) })
-}
-
-function handleSearch(value: string) {
-	navigate({ search: (prev) => ({ ...prev, search: value, page: 1 }) })
-}
-```
-
-### Consolidated View Table
-
-When `activeLocation = null` (all locations), tables include a "Location" column:
-
-```tsx
-// Conditionally add location column
-const columns = useMemo(() => {
-	const base = [...materialColumns]
-	if (isConsolidated) {
-		base.splice(1, 0, columnHelper.accessor('locationName', { header: 'Location' }))
-	}
-	return base
-}, [isConsolidated])
-```
-
-## Error States
-
-### Route-Level Errors
-
-Handled by `errorComponent` on the route definition. Shown when the route loader throws:
-
-```tsx
-function PageError({ error }: { error: Error }) {
-	if (error instanceof ApiError && error.status === 403) {
-		return <ForbiddenPage />
-	}
-	return (
-		<div className="flex flex-col items-center justify-center p-8">
-			<h2 className="text-lg font-semibold">Something went wrong</h2>
-			<p className="text-muted-foreground">{error.message}</p>
-			<Button onClick={() => window.location.reload()}>Retry</Button>
-		</div>
-	)
-}
-```
-
-### Component-Level Errors (Mutations)
-
-Displayed inline near the action that failed:
-
-```tsx
-function CreateForm() {
-	const mutation = useMutation(locationApi.create.mutationOptions())
-
-	return (
-		<form>
-			{/* fields */}
-			{mutation.error && (
-				<Alert variant="destructive">
-					{mutation.error instanceof ApiError
-						? mutation.error.message
-						: 'An unexpected error occurred'}
-				</Alert>
-			)}
-			<Button disabled={mutation.isPending}>Save</Button>
-		</form>
-	)
-}
-```
-
-### Toast Notifications
-
-Success feedback uses toast (shadcn toast already installed):
-
-```tsx
-import { toast } from '@/components/ui/toast'
-
-const mutation = useMutation({
-	...locationApi.create.mutationOptions(),
-	onSuccess: () => {
-		toast.success('Location created')
-		navigate({ to: '/master/locations' })
-	},
-	onError: (error) => {
-		toast.error(error.message)
-	},
+const { table, globalFilter, setGlobalFilter } = useServerTable({
+	data,
+	columns,
+	totalCount,
+	pageSize: listParams.limit,
+	onStateChange: (params) =>
+		setListParams((prev) => ({
+			...prev,
+			page: params.page + 1,
+			limit: params.pageSize,
+			q: params.search || undefined,
+		})),
 })
 ```
 
-## Loading States
+## Status Display
 
-### Route-Level (Page Skeleton)
+**`StatusBadge`** (`src/components/shared/status-badge.tsx`) is the only component for status/workflow-state display (active/inactive, draft/confirmed, in-transit, etc.) — it renders a colored dot + label per semantic variant (`success`/`warning`/`destructive`/`info`/`default`/`outline`).
 
-```tsx
-export const Route = createFileRoute('/_authenticated/master/materials')({
-	pendingComponent: MaterialsPageSkeleton,
-	// ...
-})
-
-function MaterialsPageSkeleton() {
-	return (
-		<div className="space-y-4 p-6">
-			<Skeleton className="h-8 w-48" />
-			<Skeleton className="h-10 w-full" />
-			<Skeleton className="h-64 w-full" />
-		</div>
-	)
-}
-```
-
-### Component-Level (Inline)
-
-For secondary queries or lazy-loaded sections:
+**`Badge`** (`src/components/ui/badge.tsx`) is for non-status labels only — a type/category tag, a count, anything that isn't a workflow state.
 
 ```tsx
-function StockAlerts() {
-	const { data, isLoading } = useQuery(stockAlertApi.count.queryOptions({ locationId }))
-
-	if (isLoading) return <Skeleton className="h-6 w-16" />
-	return <Badge variant="destructive">{data.data.count} alerts</Badge>
-}
+// Status column
+<StatusBadge variant={isActive ? 'success' : 'outline'}>{isActive ? 'Active' : 'Inactive'}</StatusBadge>
+// Non-status label
+<Badge variant="secondary">{typeLabel}</Badge>
 ```
 
-### Mutation Pending State
+## Loading, Error, and Empty States
 
-Buttons show loading state during mutations:
+Unchanged by the form migration:
 
-```tsx
-<Button disabled={mutation.isPending}>
-	{mutation.isPending ? <Spinner className="mr-2" /> : null}
-	Save
-</Button>
-```
-
-## Empty States
-
-When a list query returns zero items:
-
-```tsx
-function EmptyState({ title, description, action }: EmptyStateProps) {
-	return (
-		<div className="flex flex-col items-center justify-center py-12">
-			<p className="text-lg font-medium">{title}</p>
-			<p className="text-muted-foreground">{description}</p>
-			{action}
-		</div>
-	)
-}
-
-// Usage
-{
-	data.data.items.length === 0 ? (
-		<EmptyState
-			title="No materials yet"
-			description="Add your first material to get started."
-			action={<Button onClick={openCreate}>Add Material</Button>}
-		/>
-	) : (
-		<DataTable table={table} />
-	)
-}
-```
-
-## Confirmation Dialogs
-
-For destructive actions (delete, void, etc.):
-
-```tsx
-import { AlertDialog } from '@/components/ui/alert-dialog'
-
-function DeleteAction({ materialId }: { materialId: number }) {
-	const mutation = useMutation(materialApi.remove.mutationOptions())
-
-	return (
-		<AlertDialog>
-			<AlertDialogTrigger asChild>
-				<Button variant="destructive" size="sm">
-					Delete
-				</Button>
-			</AlertDialogTrigger>
-			<AlertDialogContent>
-				<AlertDialogHeader>
-					<AlertDialogTitle>Delete material?</AlertDialogTitle>
-					<AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-				</AlertDialogHeader>
-				<AlertDialogFooter>
-					<AlertDialogCancel>Cancel</AlertDialogCancel>
-					<AlertDialogAction
-						onClick={() => mutation.mutate({ id: materialId })}
-						disabled={mutation.isPending}
-					>
-						Delete
-					</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
-	)
-}
-```
+- **Route/query loading:** `PageSkeleton` (`src/components/shared/page-skeleton.tsx`) while a detail/list query is loading.
+- **Route/query errors:** `PageError` (`src/components/shared/page-error.tsx`) with an optional `onRetry`.
+- **Empty lists:** `EmptyState` (`src/components/shared/empty-state.tsx`) with a title/description/action.
+- **Success feedback:** `toast.add({ title, type })` (`src/components/ui/toast`) after a mutation succeeds — never a form-level success message inline.
+- **Mutation errors:** surfaced through `<form.FormError />` (form-level) or the field's own inline error (field-level) — not toast. Toast is for success only in this codebase's convention.
 
 ## Summary of Patterns
 
-| Pattern          | Tool / Approach                         |
-| ---------------- | --------------------------------------- |
-| Complex widgets  | ReUI components                         |
-| Primitives       | shadcn/base-ui                          |
-| Forms            | TanStack Form + Zod adapter             |
-| Tables           | TanStack Table + ReUI DataGrid          |
-| Page loading     | Route `pendingComponent` (skeleton)     |
-| Page errors      | Route `errorComponent`                  |
-| Mutation loading | Button disabled + spinner               |
-| Mutation errors  | Inline Alert or toast                   |
-| Success feedback | Toast notification                      |
-| Empty states     | Shared `EmptyState` component           |
-| Destructive acts | AlertDialog confirmation                |
-| Pagination/sort  | URL search params (not component state) |
+| Pattern               | Tool / Approach                                                   |
+| --------------------- | ----------------------------------------------------------------- |
+| Entity form           | `useEntityForm` (via a per-entity `useXxxForm` wrapper)           |
+| Form validation       | A form-shape Zod schema (never the wire DTO directly)             |
+| Create/edit surface   | Full-page (`FormPage`) — default; `FormDialog` — lightweight only |
+| Unsaved-changes guard | `useUnsavedChangesGuard(form)` in every full-page form            |
+| Dialog forms          | `formDialog({ content: ({ close }) => ... })` render-prop         |
+| Confirmations         | `confirm()` / `confirmInput()`                                    |
+| Status display        | `StatusBadge` (never plain `Badge`)                               |
+| Tables                | `useServerTable`/`useClientTable` + `DataTable`                   |
+| Page loading          | `PageSkeleton`                                                    |
+| Page errors           | `PageError`                                                       |
+| Empty states          | `EmptyState`                                                      |
+| Success feedback      | `toast.add(...)`                                                  |
+| Mutation errors       | `<form.FormError />` or the field's inline error                  |
 
 ---
 
