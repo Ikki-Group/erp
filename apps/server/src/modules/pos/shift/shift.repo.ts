@@ -46,7 +46,7 @@ export interface IShiftRepo {
 	findActive(userId: number, locationId: number, db?: DbContext): Promise<ShiftDto | undefined>
 	findPage(filter: ShiftFilterDto, db?: DbContext): Promise<WithPaginationResult<ShiftDto>>
 	findDetail(id: number, db?: DbContext): Promise<ShiftDetailDto | undefined>
-	sumCashPayments(shiftId: number, db?: DbContext): Promise<number>
+	sumCashPayments(shiftId: number, db?: DbContext): Promise<string>
 	insert(data: ShiftInsert, db?: DbContext): Promise<EntityRef | undefined>
 	update(id: number, data: ShiftUpdate, db?: DbContext): Promise<EntityRef | undefined>
 }
@@ -140,7 +140,7 @@ export class ShiftRepo implements IShiftRepo {
 		}
 	}
 
-	async sumCashPayments(shiftId: number, db: DbContext = this.db): Promise<number> {
+	async sumCashPayments(shiftId: number, db: DbContext = this.db): Promise<string> {
 		const [result] = await db
 			.select({
 				total: sql<string>`coalesce(sum(${payments.amount}), '0')`,
@@ -150,7 +150,7 @@ export class ShiftRepo implements IShiftRepo {
 			.innerJoin(paymentMethods, eq(payments.paymentMethodId, paymentMethods.id))
 			.where(and(eq(orders.shiftId, shiftId), eq(paymentMethods.type, 'cash')))
 
-		return Number(result?.total ?? '0')
+		return result?.total ?? '0'
 	}
 
 	async insert(data: ShiftInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {

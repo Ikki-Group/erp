@@ -1,6 +1,8 @@
-import { cache } from '@/infra/cache/index.ts'
+import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { MaterialApi } from '@/modules/material/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
@@ -11,13 +13,20 @@ import { SupplierService } from './supplier.service.ts'
 
 function createSupplierModule(
 	db: DbContext,
-	deps: { materialService: MaterialApi['service']; uomService: UomApi['service'] },
+	cacheClient: CacheClient,
+	deps: {
+		materialService: MaterialApi['service']
+		uomService: UomApi['service']
+		uow: UnitOfWork
+		audit: AuditPort
+	},
 ) {
 	const service = new SupplierService(
 		new SupplierRepo(db),
-		cache,
+		cacheClient,
 		deps.materialService,
 		deps.uomService,
+		{ uow: deps.uow, audit: deps.audit },
 	)
 	return { route: createSupplierRoute(service), service }
 }
@@ -47,9 +56,11 @@ export const supplierModule: ModuleDescriptor = {
 	create(ctx, deps) {
 		if (!isMaterialApi(deps.material?.api) || !isUomApi(deps.uom?.api))
 			throw new Error('Supplier dependencies are missing')
-		const built = createSupplierModule(ctx.db, {
+		const built = createSupplierModule(ctx.db, ctx.cacheClient, {
 			materialService: deps.material.api.service,
 			uomService: deps.uom.api.service,
+			uow: ctx.uow,
+			audit: ctx.auditPort,
 		})
 		return {
 			route: built.route,

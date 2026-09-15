@@ -2,6 +2,7 @@ import { Elysia } from 'elysia'
 import { z } from 'zod'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -33,7 +34,7 @@ export function createUomRoute(service: UomService) {
 		})
 		.post(
 			'/create',
-			async ({ body, auth }) => res.created(await service.handleCreate(body, auth.userId)),
+			async ({ body, auth }) => res.created(await service.handleCreate(body, actorOf(auth))),
 			{
 				body: UomCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -42,7 +43,7 @@ export function createUomRoute(service: UomService) {
 		)
 		.put(
 			'/update',
-			async ({ body, auth }) => res.ok(await service.handleUpdate(body, auth.userId)),
+			async ({ body, auth }) => res.ok(await service.handleUpdate(body, actorOf(auth))),
 			{
 				body: UomUpdateDto,
 				response: zRes.ok(EntityRefDto),
@@ -51,7 +52,7 @@ export function createUomRoute(service: UomService) {
 		)
 		.delete(
 			'/remove',
-			async ({ query, auth }) => res.ok(await service.handleDelete(query.id, auth.userId)),
+			async ({ query, auth }) => res.ok(await service.handleDelete(query.id, actorOf(auth))),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
@@ -65,7 +66,7 @@ export function createUomRoute(service: UomService) {
 		.post(
 			'/conversion/create',
 			async ({ body, auth }) =>
-				res.created(await service.handleConversionCreate(body, auth.userId)),
+				res.created(await service.handleConversionCreate(body, actorOf(auth))),
 			{
 				body: UomConversionCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -75,7 +76,7 @@ export function createUomRoute(service: UomService) {
 		.delete(
 			'/conversion/remove',
 			async ({ query, auth }) =>
-				res.ok(await service.handleConversionRemove(query.id, auth.userId)),
+				res.ok(await service.handleConversionRemove(query.id, actorOf(auth))),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),

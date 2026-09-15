@@ -1,140 +1,140 @@
-import { eq, inArray } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 
 import { roles, userAssignments, users } from '@/db/schema/iam.ts'
 
-import { cache } from '@/infra/cache/index.ts'
 import { db } from '@/infra/database/index.ts'
 import { sessionStore } from '@/infra/session/index.ts'
+import { getAuthAccessMap, invalidateAuthCache } from '@/shared/auth/access-cache.ts'
+import { effectivePermissions } from '@/shared/auth/permission.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
 import {
 	SESSION_COOKIE_NAME,
 	OWNER_ROLE_CODE,
 	AUTH_CACHE_TTL_SECONDS,
 } from '@/shared/config/index.ts'
-import { UnauthorizedError } from '@/shared/errors/http-error.ts'
+import { ForbiddenError, UnauthorizedError } from '@/shared/errors/http-error.ts'
 
-// ─── Cache Keys ───
+const LOCATION_ID_HEADER = 'x-location-id'
 
-function authCacheKey(sessionId: string): string {
-	return `auth:session:${sessionId}`
+interface AccessMap {
+	userName: string
+	isActive: boolean
+	globalPermissions: string[]
+	access: Record<string, string[]>
+	isOwner: boolean
+	roleIds: number[]
 }
 
-// ─── Permission Loader (uncached) ───
+function permissionsFromRole(value: unknown): string[] {
+	if (!Array.isArray(value)) return []
+	return value.filter((permission): permission is string => typeof permission === 'string')
+}
 
-async function loadPermissions(
-	userId: number,
-	locationId: number | null,
-): Promise<{ userName: string; permissions: string[]; isOwner: boolean }> {
-	const user = await db
-		.select({ name: users.name })
-		.from(users)
-		.where(eq(users.id, userId))
-		.limit(1)
-		.then((rows) => rows[0])
-	if (!user) throw new UnauthorizedError('User not found')
-
-	// Find all assignments for this user
-	const assignments = await db
+/** Materialize the complete access map in one joined query on cache miss. */
+async function loadAccessMap(userId: number): Promise<AccessMap> {
+	const rows = await db
 		.select({
-			roleId: userAssignments.roleId,
-			locationId: userAssignments.locationId,
+			userName: users.name,
+			isActive: users.isActive,
+			assignmentLocationId: userAssignments.locationId,
+			roleId: roles.id,
+			roleCode: roles.code,
+			rolePermissions: roles.permissions,
 		})
-		.from(userAssignments)
-		.where(eq(userAssignments.userId, userId))
+		.from(users)
+		.leftJoin(userAssignments, eq(userAssignments.userId, users.id))
+		.leftJoin(roles, eq(roles.id, userAssignments.roleId))
+		.where(eq(users.id, userId))
 
-	// Filter to relevant assignments (matching location or global)
-	const relevantAssignments = assignments.filter(
-		(a) => a.locationId === null || a.locationId === locationId,
-	)
+	const first = rows[0]
+	if (!first) throw new UnauthorizedError('User not found')
+	if (!first.isActive) throw new UnauthorizedError('User is deactivated')
 
-	if (relevantAssignments.length === 0) {
-		return { userName: user.name, permissions: [], isOwner: false }
+	const globalPermissions = new Set<string>()
+	const roleIds = new Set<number>()
+	const access = new Map<string, Set<string>>()
+	let isOwner = false
+
+	for (const row of rows) {
+		if (row.roleId !== null) roleIds.add(row.roleId)
+		if (row.roleCode === OWNER_ROLE_CODE) isOwner = true
+		const permissions = permissionsFromRole(row.rolePermissions)
+		if (row.assignmentLocationId === null) {
+			for (const permission of permissions) globalPermissions.add(permission)
+			continue
+		}
+		const locationPermissions = access.get(String(row.assignmentLocationId)) ?? new Set<string>()
+		for (const permission of permissions) locationPermissions.add(permission)
+		access.set(String(row.assignmentLocationId), locationPermissions)
 	}
 
-	// Load roles for these assignments
-	const roleIds = [...new Set(relevantAssignments.map((a) => a.roleId))]
-	const userRoles = await db
-		.select({
-			code: roles.code,
-			permissions: roles.permissions,
+	return {
+		userName: first.userName,
+		isActive: first.isActive,
+		globalPermissions: [...globalPermissions],
+		access: Object.fromEntries(
+			[...access].map(([locationId, permissions]) => [locationId, [...permissions]]),
+		),
+		isOwner,
+		roleIds: [...roleIds],
+	}
+}
+
+async function resolveAuth(
+	sessionId: string,
+	requestedLocationId: number | null,
+): Promise<AuthContext> {
+	const session = await sessionStore.get(sessionId)
+	if (!session) throw new UnauthorizedError('Session expired or invalid')
+
+	const accessMap = await getAuthAccessMap(
+		session.userId,
+		() => loadAccessMap(session.userId),
+		AUTH_CACHE_TTL_SECONDS,
+	)
+
+	if (
+		requestedLocationId !== null &&
+		!accessMap.isOwner &&
+		accessMap.globalPermissions.length === 0 &&
+		!accessMap.access[String(requestedLocationId)]
+	) {
+		throw new ForbiddenError('Location access denied', {
+			code: 'LOCATION_ACCESS_DENIED',
+			context: { locationId: requestedLocationId },
 		})
-		.from(roles)
-		.where(inArray(roles.id, roleIds))
+	}
 
-	// Check if user is owner
-	const isOwner = userRoles.some((r) => r.code === OWNER_ROLE_CODE)
-
-	// Collect all permissions from all roles
-	const permissions = userRoles.flatMap((r) => {
-		const perms = r.permissions
-		if (Array.isArray(perms)) return perms.filter((p): p is string => typeof p === 'string')
-		return []
-	})
-
-	return { userName: user.name, permissions: [...new Set(permissions)], isOwner }
+	const auth: AuthContext = {
+		userId: session.userId,
+		userName: accessMap.userName,
+		locationId: requestedLocationId,
+		permissions: [],
+		isOwner: accessMap.isOwner,
+		globalPermissions: accessMap.globalPermissions,
+		access: accessMap.access,
+	}
+	return { ...auth, permissions: effectivePermissions(auth) }
 }
-
-// ─── Resolve Auth (with cache) ───
-
-/**
- * Resolves the full AuthContext for a session ID.
- * Cached for AUTH_CACHE_TTL_SECONDS to avoid DB calls on every request.
- */
-async function resolveAuth(sessionId: string): Promise<AuthContext> {
-	return cache.getOrSet({
-		key: authCacheKey(sessionId),
-		factory: async () => {
-			const session = await sessionStore.get(sessionId)
-			if (!session) {
-				throw new UnauthorizedError('Session expired or invalid')
-			}
-
-			const { userName, permissions, isOwner } = await loadPermissions(
-				session.userId,
-				session.locationId,
-			)
-
-			return {
-				userId: session.userId,
-				userName,
-				locationId: session.locationId,
-				permissions,
-				isOwner,
-			}
-		},
-		ttl: AUTH_CACHE_TTL_SECONDS,
-	})
-}
-
-/**
- * Invalidate cached auth for a session (call on logout, role change, location switch).
- */
-export async function invalidateAuthCache(sessionId: string): Promise<void> {
-	await cache.delete({ key: authCacheKey(sessionId) })
-}
-
-// ─── Auth Plugin with Derive ───
 
 export const authPlugin = new Elysia({ name: 'auth-plugin' }).derive(
 	{ as: 'scoped' },
-	async ({ cookie }): Promise<{ auth: AuthContext }> => {
+	async ({ cookie, headers }): Promise<{ auth: AuthContext }> => {
 		const sessionCookie = cookie[SESSION_COOKIE_NAME]
 		const sessionId = sessionCookie ? String(sessionCookie.value) : undefined
-		if (!sessionId) {
-			throw new UnauthorizedError('Session cookie missing')
+		if (!sessionId) throw new UnauthorizedError('Session cookie missing')
+
+		const rawLocationId = headers[LOCATION_ID_HEADER]
+		const requestedLocationId = rawLocationId === undefined ? null : Number(rawLocationId)
+		if (rawLocationId !== undefined && !Number.isInteger(requestedLocationId)) {
+			throw new ForbiddenError('Invalid location header', {
+				code: 'INVALID_LOCATION_HEADER',
+			})
 		}
 
-		const auth = await resolveAuth(sessionId)
-		return { auth }
+		return { auth: await resolveAuth(sessionId, requestedLocationId) }
 	},
 )
 
-/**
- * Alias for route files:
- * ```ts
- * import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
- * new Elysia().use(authPluginMacro).get('/items', ({ auth }) => { ... })
- * ```
- */
-export const authPluginMacro = authPlugin
+export { invalidateAuthCache }

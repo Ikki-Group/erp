@@ -6,7 +6,7 @@ import { CompanyService } from './company.service.ts'
 
 export interface CompanyApi extends Record<string, unknown> {
 	taxRate: {
-		getPercent(): Promise<number>
+		getPercent(): Promise<string>
 	}
 }
 

@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -32,21 +33,21 @@ export function createSupplierRoute(svc: SupplierService) {
 		})
 		.post(
 			'/create',
-			async ({ body, auth }) => res.created(await svc.handleCreate(body, auth.userId)),
+			async ({ body, auth }) => res.created(await svc.handleCreate(body, actorOf(auth))),
 			{
 				body: SupplierCreateDto,
 				response: zRes.created(EntityRefDto),
 				permission: 'supplier.create',
 			},
 		)
-		.put('/update', async ({ body, auth }) => res.ok(await svc.handleUpdate(body, auth.userId)), {
+		.put('/update', async ({ body, auth }) => res.ok(await svc.handleUpdate(body, actorOf(auth))), {
 			body: SupplierUpdateDto,
 			response: zRes.ok(EntityRefDto),
 			permission: 'supplier.update',
 		})
 		.delete(
 			'/remove',
-			async ({ query, auth }) => res.ok(await svc.handleDelete(query.id, auth.userId)),
+			async ({ query, auth }) => res.ok(await svc.handleDelete(query.id, actorOf(auth))),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
@@ -60,7 +61,7 @@ export function createSupplierRoute(svc: SupplierService) {
 		})
 		.post(
 			'/material/create',
-			async ({ body, auth }) => res.created(await svc.handlePricingCreate(body, auth.userId)),
+			async ({ body, auth }) => res.created(await svc.handlePricingCreate(body, actorOf(auth))),
 			{
 				body: SupplierMaterialCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -69,7 +70,7 @@ export function createSupplierRoute(svc: SupplierService) {
 		)
 		.put(
 			'/material/update',
-			async ({ body, auth }) => res.ok(await svc.handlePricingUpdate(body, auth.userId)),
+			async ({ body, auth }) => res.ok(await svc.handlePricingUpdate(body, actorOf(auth))),
 			{
 				body: SupplierMaterialUpdateDto,
 				response: zRes.ok(EntityRefDto),
@@ -78,7 +79,7 @@ export function createSupplierRoute(svc: SupplierService) {
 		)
 		.delete(
 			'/material/remove',
-			async ({ query, auth }) => res.ok(await svc.handlePricingDelete(query.id, auth.userId)),
+			async ({ query, auth }) => res.ok(await svc.handlePricingDelete(query.id, actorOf(auth))),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),

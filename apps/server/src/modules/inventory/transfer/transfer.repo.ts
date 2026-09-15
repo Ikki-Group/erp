@@ -51,6 +51,7 @@ function toTransferLineDto(row: TransferLineRow): TransferLineDto {
 		materialId: row.materialId,
 		requestedQty: row.requestedQty,
 		shippedQty: row.shippedQty,
+		shippedCostPrice: row.shippedCostPrice,
 		receivedQty: row.receivedQty,
 		uomId: row.uomId,
 	}
@@ -72,7 +73,7 @@ export interface ITransferRepo {
 	): Promise<EntityRef | undefined>
 	insertLines(lines: TransferLineInsert[], db?: DbContext): Promise<void>
 	findLinesByTransferId(transferId: number, db?: DbContext): Promise<TransferLineDto[]>
-	updateLineShippedQty(transferId: number, db?: DbContext): Promise<void>
+	updateLineShipped(lineId: number, shippedCostPrice: string, db?: DbContext): Promise<void>
 	updateLineReceivedQty(lineId: number, receivedQty: string, db?: DbContext): Promise<void>
 }
 
@@ -175,12 +176,15 @@ export class TransferRepo implements ITransferRepo {
 		return rows.map(toTransferLineDto)
 	}
 
-	async updateLineShippedQty(transferId: number, db: DbContext = this.db): Promise<void> {
-		// Set shippedQty = requestedQty for all lines on ship
+	async updateLineShipped(
+		lineId: number,
+		shippedCostPrice: string,
+		db: DbContext = this.db,
+	): Promise<void> {
 		await db
 			.update(transferLines)
-			.set({ shippedQty: sql`${transferLines.requestedQty}` })
-			.where(eq(transferLines.transferId, transferId))
+			.set({ shippedQty: sql`${transferLines.requestedQty}`, shippedCostPrice })
+			.where(eq(transferLines.id, lineId))
 	}
 
 	async updateLineReceivedQty(

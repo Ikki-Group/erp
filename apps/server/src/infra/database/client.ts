@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless'
 import ws from 'ws'
 
 import * as schema from '@/db/schema/index.ts'
+
 import { env } from '@/shared/config/env.ts'
 
 neonConfig.webSocketConstructor = ws

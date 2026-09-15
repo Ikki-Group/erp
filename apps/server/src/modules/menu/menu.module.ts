@@ -1,8 +1,8 @@
-import { cache } from '@/infra/cache/index.ts'
+import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
-
-import type { LocationApi } from '@/modules/location/index.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import { AssignmentRepo } from './assignment/assignment.repo.ts'
 import { AssignmentService } from './assignment/assignment.service.ts'
@@ -16,17 +16,24 @@ import { createMenuRoute } from './menu.route.ts'
 import { ModifierRepo } from './modifier/modifier.repo.ts'
 import { ModifierService } from './modifier/modifier.service.ts'
 
-function createMenuModule(db: DbContext) {
-	const categoryService = new CategoryService(new CategoryRepo(db), cache)
-	const modifierService = new ModifierService(new ModifierRepo(db), cache)
-	const itemService = new ItemService(new ItemRepo(db), cache, categoryService)
+function createMenuModule(
+	db: DbContext,
+	cacheClient: CacheClient,
+	uow: UnitOfWork,
+	audit: AuditPort,
+) {
+	const categoryService = new CategoryService(new CategoryRepo(db), cacheClient, uow, audit)
+	const modifierService = new ModifierService(new ModifierRepo(db), cacheClient, uow, audit)
+	const itemService = new ItemService(new ItemRepo(db), cacheClient, categoryService, uow, audit)
 	const assignmentService = new AssignmentService(
 		new AssignmentRepo(db),
-		cache,
+		cacheClient,
 		itemService,
 		modifierService,
+		uow,
+		audit,
 	)
-	const composedService = new ComposedService(new ComposedRepo(db), cache)
+	const composedService = new ComposedService(new ComposedRepo(db), cacheClient)
 	return {
 		route: createMenuRoute(
 			categoryService,
@@ -35,41 +42,27 @@ function createMenuModule(db: DbContext) {
 			assignmentService,
 			composedService,
 		),
-		categoryService,
+		itemGetById: itemService.handleGetById.bind(itemService),
+		itemDetail: composedService.handleDetail.bind(composedService),
 		itemService,
-		modifierService,
-		assignmentService,
 		composedService,
 	}
 }
 
 export interface MenuApi extends Record<string, unknown> {
-	categoryService: CategoryService
-	itemService: ItemService
-	modifierService: ModifierService
-	assignmentService: AssignmentService
-	composedService: ComposedService
+	itemGetById: ItemService['handleGetById']
 	itemDetail: ComposedService['handleDetail']
-}
-
-function isLocationApi(api: Record<string, unknown> | undefined): api is LocationApi {
-	return Boolean(api?.service && typeof api.service === 'object')
 }
 
 export const menuModule: ModuleDescriptor = {
 	name: 'menu',
 	layer: 1,
-	dependsOn: ['location'],
-	create(ctx, deps) {
-		if (!isLocationApi(deps.location?.api)) throw new Error('Location API dependency is missing')
-		const built = createMenuModule(ctx.db)
+	dependsOn: [],
+	create(ctx) {
+		const built = createMenuModule(ctx.db, ctx.cacheClient, ctx.uow, ctx.auditPort)
 		const api: MenuApi = {
-			categoryService: built.categoryService,
-			itemService: built.itemService,
-			modifierService: built.modifierService,
-			assignmentService: built.assignmentService,
-			composedService: built.composedService,
-			itemDetail: built.composedService.handleDetail.bind(built.composedService),
+			itemGetById: built.itemGetById,
+			itemDetail: built.itemDetail,
 		}
 		return { route: built.route, api }
 	},

@@ -18,7 +18,7 @@ const cashier: AuthContext = {
 	userId: 2,
 	userName: 'Cashier User',
 	locationId: 1,
-	permissions: ['pos.order.create', 'pos.order.complete', 'pos.shift.open'],
+	permissions: ['order.create', 'order.update', 'shift.open'],
 	isOwner: false,
 }
 
@@ -34,14 +34,14 @@ const noPerms: AuthContext = {
 
 describe('hasPermission', () => {
 	test('owner always has any permission', () => {
-		expect(hasPermission(owner, 'pos.order.create')).toBe(true)
+		expect(hasPermission(owner, 'order.create')).toBe(true)
 		expect(hasPermission(owner, 'admin.delete.everything')).toBe(true)
 		expect(hasPermission(owner, 'nonexistent.permission')).toBe(true)
 	})
 
 	test('returns true when user has the permission', () => {
-		expect(hasPermission(cashier, 'pos.order.create')).toBe(true)
-		expect(hasPermission(cashier, 'pos.shift.open')).toBe(true)
+		expect(hasPermission(cashier, 'order.create')).toBe(true)
+		expect(hasPermission(cashier, 'shift.open')).toBe(true)
 	})
 
 	test('returns false when user lacks the permission', () => {
@@ -62,7 +62,7 @@ describe('requirePermission', () => {
 	})
 
 	test('does not throw when user has permission', () => {
-		expect(() => requirePermission(cashier, 'pos.order.create')).not.toThrow()
+		expect(() => requirePermission(cashier, 'order.create')).not.toThrow()
 	})
 
 	test('throws ForbiddenError when user lacks permission', () => {
@@ -92,7 +92,7 @@ describe('requireAnyPermission', () => {
 
 	test('does not throw when user has at least one permission', () => {
 		expect(() =>
-			requireAnyPermission(cashier, ['inventory.stock.view', 'pos.order.create']),
+			requireAnyPermission(cashier, ['inventory.stock.view', 'order.create']),
 		).not.toThrow()
 	})
 

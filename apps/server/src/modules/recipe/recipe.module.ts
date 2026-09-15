@@ -1,6 +1,8 @@
-import { cache } from '@/infra/cache/index.ts'
+import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { MaterialApi } from '@/modules/material/index.ts'
 import type { MenuApi } from '@/modules/menu/index.ts'
@@ -12,18 +14,23 @@ import { RecipeService } from './recipe.service.ts'
 
 function createRecipeModule(
 	db: DbContext,
+	cacheClient: CacheClient,
 	deps: {
 		materialService: MaterialApi['service']
 		uomService: UomApi['service']
-		itemService: MenuApi['itemService']
+		itemGetById: MenuApi['itemGetById']
+		uow: UnitOfWork
+		audit: AuditPort
 	},
 ) {
 	const service = new RecipeService(
 		new RecipeRepo(db),
-		cache,
+		cacheClient,
 		deps.materialService,
 		deps.uomService,
-		deps.itemService,
+		deps.itemGetById,
+		deps.uow,
+		deps.audit,
 	)
 	return { route: createRecipeRoute(service), service }
 }
@@ -35,13 +42,24 @@ export interface RecipeApi extends Record<string, unknown> {
 }
 
 function isMaterialApi(api: Record<string, unknown> | undefined): api is MaterialApi {
-	return Boolean(api?.service && typeof api.service === 'object')
+	const service = api?.service
+	if (!api || typeof service !== 'object' || service === null) return false
+	return (
+		'getById' in service &&
+		typeof service.getById === 'function' &&
+		'handleGetById' in service &&
+		typeof service.handleGetById === 'function'
+	)
 }
-function isMenuApi(api: Record<string, unknown> | undefined): api is MenuApi {
-	return Boolean(api?.itemService && api.composedService)
-}
+
 function isUomApi(api: Record<string, unknown> | undefined): api is UomApi {
-	return Boolean(api?.service && typeof api.service === 'object')
+	const service = api?.service
+	if (!api || typeof service !== 'object' || service === null) return false
+	return 'getAllConversions' in service && typeof service.getAllConversions === 'function'
+}
+
+function isMenuApi(api: Record<string, unknown> | undefined): api is MenuApi {
+	return typeof api?.itemGetById === 'function'
 }
 
 export const recipeModule: ModuleDescriptor = {
@@ -55,10 +73,12 @@ export const recipeModule: ModuleDescriptor = {
 			!isMenuApi(deps.menu?.api)
 		)
 			throw new Error('Recipe dependencies are missing')
-		const built = createRecipeModule(ctx.db, {
+		const built = createRecipeModule(ctx.db, ctx.cacheClient, {
 			materialService: deps.material.api.service,
 			uomService: deps.uom.api.service,
-			itemService: deps.menu.api.itemService,
+			itemGetById: deps.menu.api.itemGetById,
+			uow: ctx.uow,
+			audit: ctx.auditPort,
 		})
 		return {
 			route: built.route,

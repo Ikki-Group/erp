@@ -1,6 +1,8 @@
 import { Elysia } from 'elysia'
 
-import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { authPlugin } from '@/server/plugins/auth.plugin.ts'
+import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto } from '@/shared/schema/index.ts'
@@ -25,7 +27,8 @@ import type { ProductionService } from './production.service.ts'
 export function createProductionRoute(service: ProductionService) {
 	return (
 		new Elysia({ prefix: '/production', tags: ['production'] })
-			.use(authPluginMacro)
+			.use(authPlugin)
+			.use(rbac)
 
 			// ─── Recipe Routes ───
 
@@ -35,7 +38,11 @@ export function createProductionRoute(service: ProductionService) {
 					const result = await service.handleRecipeList(query)
 					return res.paginated(result)
 				},
-				{ query: ProductionRecipeFilterDto, response: zRes.paginated(ProductionRecipeDto) },
+				{
+					query: ProductionRecipeFilterDto,
+					response: zRes.paginated(ProductionRecipeDto),
+					permission: 'production.read',
+				},
 			)
 			.get(
 				'/recipe/detail',
@@ -43,31 +50,50 @@ export function createProductionRoute(service: ProductionService) {
 					const result = await service.handleRecipeDetail(query.id)
 					return res.ok(result)
 				},
-				{ query: ProductionDetailQueryDto, response: zRes.ok(ProductionRecipeDetailDto) },
+				{
+					query: ProductionDetailQueryDto,
+					response: zRes.ok(ProductionRecipeDetailDto),
+					permission: 'production.read',
+				},
 			)
 			.post(
 				'/recipe/create',
 				async ({ body, auth }) => {
-					const result = await service.handleRecipeCreate(body, auth.userId)
+					const result = await service.handleRecipeCreate(body, actorOf(auth))
 					return res.created(result)
 				},
-				{ body: ProductionRecipeCreateDto, auth: true, response: zRes.created(EntityRefDto) },
+				{
+					body: ProductionRecipeCreateDto,
+					auth: true,
+					permission: 'production.create',
+					response: zRes.created(EntityRefDto),
+				},
 			)
 			.put(
 				'/recipe/update',
 				async ({ body, auth }) => {
-					const result = await service.handleRecipeUpdate(body, auth.userId)
+					const result = await service.handleRecipeUpdate(body, actorOf(auth))
 					return res.ok(result)
 				},
-				{ body: ProductionRecipeUpdateDto, auth: true, response: zRes.ok(EntityRefDto) },
+				{
+					body: ProductionRecipeUpdateDto,
+					auth: true,
+					permission: 'production.update',
+					response: zRes.ok(EntityRefDto),
+				},
 			)
 			.delete(
 				'/recipe/remove',
 				async ({ query, auth }) => {
-					await service.handleRecipeRemove(query.id, auth.userId)
+					await service.handleRecipeRemove(query.id, actorOf(auth))
 					return res.ok({ id: query.id })
 				},
-				{ query: ProductionDetailQueryDto, auth: true, response: zRes.ok(EntityRefDto) },
+				{
+					query: ProductionDetailQueryDto,
+					auth: true,
+					permission: 'production.delete',
+					response: zRes.ok(EntityRefDto),
+				},
 			)
 
 			// ─── Order Routes ───
@@ -78,7 +104,11 @@ export function createProductionRoute(service: ProductionService) {
 					const result = await service.handleOrderList(query)
 					return res.paginated(result)
 				},
-				{ query: ProductionOrderFilterDto, response: zRes.paginated(ProductionOrderDto) },
+				{
+					query: ProductionOrderFilterDto,
+					response: zRes.paginated(ProductionOrderDto),
+					permission: 'production.read',
+				},
 			)
 			.get(
 				'/order/detail',
@@ -86,23 +116,37 @@ export function createProductionRoute(service: ProductionService) {
 					const result = await service.handleOrderDetail(query.id)
 					return res.ok(result)
 				},
-				{ query: ProductionDetailQueryDto, response: zRes.ok(ProductionOrderDetailDto) },
+				{
+					query: ProductionDetailQueryDto,
+					response: zRes.ok(ProductionOrderDetailDto),
+					permission: 'production.read',
+				},
 			)
 			.post(
 				'/order/create',
 				async ({ body, auth }) => {
-					const result = await service.handleOrderCreate(body, auth.userId)
+					const result = await service.handleOrderCreate(body, actorOf(auth))
 					return res.created(result)
 				},
-				{ body: ProductionOrderCreateDto, auth: true, response: zRes.created(EntityRefDto) },
+				{
+					body: ProductionOrderCreateDto,
+					auth: true,
+					permission: 'production.create',
+					response: zRes.created(EntityRefDto),
+				},
 			)
 			.post(
 				'/order/confirm',
 				async ({ body, auth }) => {
-					const result = await service.handleOrderConfirm(body, auth.userId)
+					const result = await service.handleOrderConfirm(body, actorOf(auth))
 					return res.ok(result)
 				},
-				{ body: ProductionOrderConfirmDto, auth: true, response: zRes.ok(EntityRefDto) },
+				{
+					body: ProductionOrderConfirmDto,
+					auth: true,
+					permission: 'production.confirm',
+					response: zRes.ok(EntityRefDto),
+				},
 			)
 	)
 }

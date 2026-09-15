@@ -1,6 +1,7 @@
 import { record } from '@/infra/otel/otel.ts'
-import type { sessionStore as SessionStore } from '@/infra/session/index.ts'
-import { invalidateAuthCache } from '@/server/plugins/auth.plugin.ts'
+import { invalidateAuthCache } from '@/shared/auth/access-cache.ts'
+import type { AuthContext } from '@/shared/auth/permission.ts'
+import type { SessionStore } from '@/shared/auth/session.port.ts'
 import { SESSION_TTL_DAYS } from '@/shared/config/index.ts'
 import { verifyPassword } from '@/shared/utils/index.ts'
 
@@ -8,12 +9,7 @@ import type { AssignmentService } from '@/modules/iam/assignment/assignment.serv
 import type { IUserRepo } from '@/modules/iam/user/user.repo.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 
-import type {
-	LoginDto,
-	LoginResponseDto,
-	MeResponseDto,
-	SwitchLocationResponseDto,
-} from './auth.contract.ts'
+import type { LoginDto, LoginResponseDto, MeResponseDto } from './auth.contract.ts'
 import { AuthError } from './auth.internal.ts'
 
 // ─── Dependencies ───
@@ -22,7 +18,7 @@ export interface AuthServiceDeps {
 	userRepo: IUserRepo
 	assignmentService: AssignmentService
 	locationService: LocationService
-	sessionStore: typeof SessionStore
+	sessionStore: SessionStore
 }
 
 // ─── Internal Result ───
@@ -59,12 +55,9 @@ export class AuthService {
 				...new Set(assignments.map((a) => a.locationId).filter((id): id is number => id !== null)),
 			]
 
-			const locations = await Promise.all(
-				locationIds.map((id) => this.deps.locationService.getById(id)),
-			)
-			const validLocations = locations.filter(
-				(loc): loc is NonNullable<typeof loc> => loc !== undefined,
-			)
+			const validLocations = assignments.some((assignment) => assignment.locationId === null)
+				? await this.deps.locationService.getAll()
+				: await this.deps.locationService.getByIds(locationIds)
 
 			// 5. Create session
 			const sessionId = crypto.randomUUID()
@@ -74,7 +67,6 @@ export class AuthService {
 			await this.deps.sessionStore.create({
 				id: sessionId,
 				userId: user.id,
-				locationId: null,
 				expiresAt,
 			})
 
@@ -103,55 +95,23 @@ export class AuthService {
 	// ─── Logout ───
 
 	async handleLogout(sessionId: string): Promise<void> {
+		const session = await this.deps.sessionStore.get(sessionId)
 		await this.deps.sessionStore.delete(sessionId)
-		await invalidateAuthCache(sessionId)
-	}
-
-	// ─── Switch Location ───
-
-	async handleSwitchLocation(
-		sessionId: string,
-		locationId: number,
-		userId: number,
-	): Promise<SwitchLocationResponseDto> {
-		// 1. Verify user has access to this location (or is owner)
-		const assignments = await this.deps.assignmentService.findByUserId(userId)
-		const isOwner = assignments.some((a) => a.locationId === null) // global assignment = potential owner
-
-		if (!isOwner) {
-			const hasAccess = assignments.some((a) => a.locationId === locationId)
-			if (!hasAccess) throw AuthError.locationNotAuthorized(locationId)
-		}
-
-		// 2. Verify location exists
-		const location = await this.deps.locationService.getById(locationId)
-		if (!location) throw AuthError.locationNotAuthorized(locationId)
-
-		// 3. Update session
-		await this.deps.sessionStore.updateLocation(sessionId, locationId)
-		await invalidateAuthCache(sessionId)
-
-		return {
-			activeLocation: {
-				id: location.id,
-				code: location.code,
-				name: location.name,
-				type: location.type,
-			},
-		}
+		if (session) await invalidateAuthCache(session.userId)
 	}
 
 	// ─── Me ───
 
-	async handleMe(auth: {
-		userId: number
-		locationId: number | null
-		permissions: string[]
-		isOwner: boolean
-	}): Promise<MeResponseDto> {
+	async handleMe(auth: AuthContext): Promise<MeResponseDto> {
 		// Resolve user info
 		const userRow = await this.deps.userRepo.findByIdRaw(auth.userId)
 		if (!userRow) throw AuthError.sessionExpired()
+
+		const locations = auth.isOwner
+			? await this.deps.locationService.getAll()
+			: await this.deps.locationService.getByIds(
+					Object.keys(auth.access ?? {}).map((locationId) => Number(locationId)),
+				)
 
 		// Resolve active location
 		let activeLocation: MeResponseDto['activeLocation'] = null
@@ -174,8 +134,16 @@ export class AuthService {
 				name: userRow.name,
 				email: userRow.email,
 			},
+			locations: locations.map((loc) => ({
+				id: loc.id,
+				code: loc.code,
+				name: loc.name,
+				type: loc.type,
+			})),
 			activeLocation,
 			permissions: auth.permissions,
+			globalPermissions: auth.globalPermissions ?? auth.permissions,
+			access: auth.access ?? {},
 			isOwner: auth.isOwner,
 		}
 	}

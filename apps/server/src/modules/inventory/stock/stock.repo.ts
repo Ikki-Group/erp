@@ -129,6 +129,7 @@ export class StockRepo implements IStockRepo {
 			.where(
 				and(eq(stockBalances.materialId, materialId), eq(stockBalances.locationId, locationId)),
 			)
+			.for('update')
 			.limit(1)
 			.then(takeFirst)
 		return row ? toBalanceDto(row) : undefined

@@ -10,13 +10,21 @@ const bento = new BentoCache({
 	},
 })
 
+const tagKeys = new Map<string, Set<string>>()
+
 const key = (namespace: string, value: string) => `${namespace}:${value}`
 
 export const cache: CachePort = {
-	async getOrSet(namespace, value, factory, ttlSeconds) {
+	async getOrSet(namespace, value, factory, ttlSeconds, tags) {
+		const fullKey = key(namespace, value)
+		for (const tag of tags ?? []) {
+			const keys = tagKeys.get(tag) ?? new Set<string>()
+			keys.add(fullKey)
+			tagKeys.set(tag, keys)
+		}
 		return ttlSeconds
-			? bento.getOrSet({ key: key(namespace, value), factory, ttl: `${ttlSeconds}s` })
-			: bento.getOrSet({ key: key(namespace, value), factory })
+			? bento.getOrSet({ key: fullKey, factory, ttl: `${ttlSeconds}s` })
+			: bento.getOrSet({ key: fullKey, factory })
 	},
 	async getOrSetOptional(namespace, value, factory) {
 		const existing = await bento.get<Awaited<ReturnType<typeof factory>>>({
@@ -33,7 +41,23 @@ export const cache: CachePort = {
 		await bento.delete({ key: key(namespace, 'count') })
 		if (id !== undefined) await bento.delete({ key: key(namespace, `byId:${id}`) })
 	},
+	async tagKeys(keys, tags) {
+		for (const tag of tags) {
+			const existing = tagKeys.get(tag) ?? new Set<string>()
+			for (const cacheKey of keys) existing.add(cacheKey)
+			tagKeys.set(tag, existing)
+		}
+		return Promise.resolve()
+	},
 	async invalidateKeys(keys) {
 		await Promise.all(keys.map((fullyQualifiedKey) => bento.delete({ key: fullyQualifiedKey })))
+	},
+	async invalidateTag(tag) {
+		const keys = tagKeys.get(tag)
+		if (!keys) return
+		tagKeys.delete(tag)
+		await Promise.all(
+			[...keys].map((fullyQualifiedKey) => bento.delete({ key: fullyQualifiedKey })),
+		)
 	},
 }

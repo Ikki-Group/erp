@@ -12,6 +12,8 @@ export type Json = any
 type RequestOptions = {
 	body?: unknown
 	cookie?: string
+	locationId?: number
+	headers?: Record<string, string>
 	query?: Record<string, string>
 }
 
@@ -26,7 +28,8 @@ function buildUrl(path: string, query?: Record<string, string>): string {
 }
 
 function buildHeaders(opts: RequestOptions): Record<string, string> {
-	const headers: Record<string, string> = {}
+	const headers: Record<string, string> = { ...opts.headers }
+	if (opts.locationId !== undefined) headers['x-location-id'] = String(opts.locationId)
 	if (opts.cookie) headers['cookie'] = opts.cookie
 	return headers
 }

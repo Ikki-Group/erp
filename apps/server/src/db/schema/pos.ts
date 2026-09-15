@@ -108,6 +108,9 @@ export const cashierShifts = pgTable(
 		notes: varchar('notes', { length: 1000 }),
 	},
 	(t) => [
+		uniqueIndex('cashier_shifts_user_location_open_uniq')
+			.on(t.userId, t.locationId)
+			.where(sql`${t.status} = 'open'`),
 		index('cashier_shifts_location_id_idx').on(t.locationId),
 		index('cashier_shifts_user_id_idx').on(t.userId),
 	],
@@ -151,6 +154,9 @@ export const orders = pgTable(
 			.where(sql`${t.externalRef} IS NOT NULL`),
 		index('orders_location_status_ordered_idx').on(t.locationId, t.status, t.orderedAt),
 		index('orders_table_id_idx').on(t.tableId),
+		uniqueIndex('orders_table_open_uniq')
+			.on(t.tableId)
+			.where(sql`${t.tableId} IS NOT NULL AND ${t.status} = 'open'`),
 		index('orders_shift_id_idx').on(t.shiftId),
 		index('orders_voucher_id_idx').on(t.voucherId),
 	],

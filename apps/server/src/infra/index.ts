@@ -12,5 +12,5 @@ export type { SessionData, CreateSessionInput } from './session/index.ts'
 export { generateNumber, generateMonthlyNumber } from './numbering/index.ts'
 export type { GenerateNumberInput } from './numbering/index.ts'
 
-export { auditLog, auditPort } from './audit/index.ts'
-export type { AuditEntry, AuditLogEntry } from './audit/index.ts'
+export { auditPort } from './audit/index.ts'
+export type { AuditEntry } from './audit/index.ts'

@@ -3,7 +3,6 @@ import type { AuthContext } from '@/shared/auth/index.ts'
 import type { CachePort } from '@/shared/cache/cache.port.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
-import { toDecimal } from '@/shared/utils/money.ts'
 
 import type { CompanySettingsDto, CompanySettingsUpdateDto } from './company.contract.ts'
 import { CompanyError } from './company.internal.ts'
@@ -63,8 +62,8 @@ export class CompanyService {
 		return result
 	}
 
-	async getTaxRatePercent(): Promise<number> {
+	async getTaxRatePercent(): Promise<string> {
 		const settings = await this.handleGetSettings()
-		return toDecimal(settings.taxRate).toNumber()
+		return settings.taxRate
 	}
 }

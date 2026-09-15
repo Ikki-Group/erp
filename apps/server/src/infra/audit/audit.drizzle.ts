@@ -4,11 +4,12 @@ import type { AuditPort } from '@/shared/audit/audit.port.ts'
 
 export const auditPort: AuditPort = {
 	async record(entry, tx) {
-		if (!entry.actorName) throw new Error('audit actorName is required')
+		const actorName = entry.actorName.trim()
+		if (!actorName) throw new Error('audit actorName is required')
 
 		await tx.insert(auditLogs).values({
 			userId: entry.actorId,
-			userName: entry.actorName,
+			userName: actorName,
 			locationId: entry.locationId ?? null,
 			module: entry.module,
 			entity: entry.entity,

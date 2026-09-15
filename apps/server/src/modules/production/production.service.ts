@@ -1,15 +1,21 @@
-import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { record } from '@/infra/otel/otel.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import { Money } from '@/shared/domain/money.ts'
+import { Qty } from '@/shared/domain/qty.ts'
+import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
+import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
-import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
-import { roundCost, roundQty, safeDivide, toDecimal } from '@/shared/utils/money.ts'
 
-import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
+import type { InventoryApi } from '@/modules/inventory/index.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 import type { MaterialService } from '@/modules/material/material.service.ts'
 import type { UomService } from '@/modules/uom/uom.service.ts'
@@ -32,7 +38,10 @@ import type { IProductionRepo } from './production.repo.ts'
 // ─── Dependencies ───
 
 export interface ProductionServiceDeps {
-	stockService: StockService
+	uow: UnitOfWork
+	audit: AuditPort
+	events: EventBusPort
+	inventoryApi: InventoryApi['stock']
 	locationService: LocationService
 	materialService: MaterialService
 	uomService: UomService
@@ -65,7 +74,7 @@ export class ProductionService {
 		)
 	}
 
-	async handleRecipeCreate(data: ProductionRecipeCreateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleRecipeCreate(data: ProductionRecipeCreateDto, actor: Actor): Promise<EntityRef> {
 		// 1. Validate output material is semi_finished
 		const outputMaterial = await this.deps.materialService.handleGetById(data.outputMaterialId)
 		if (outputMaterial.type !== 'semi_finished') {
@@ -86,7 +95,7 @@ export class ProductionService {
 		}
 
 		// 4. Insert recipe + lines in transaction
-		const result = await this.repo.db.transaction(async (tx) => {
+		const result = await this.deps.uow.run(async (tx) => {
 			const created = await this.repo.insertRecipe(
 				{
 					materialId: data.outputMaterialId,
@@ -94,7 +103,7 @@ export class ProductionService {
 					yieldQty: data.yieldQty,
 					yieldUomId: data.yieldUomId,
 					isActive: true,
-					...stampCreate(actorId),
+					...stampCreate(actor.id),
 				},
 				tx,
 			)
@@ -111,33 +120,33 @@ export class ProductionService {
 				tx,
 			)
 
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'production',
+					entity: 'recipe',
+					entityId: created.id,
+					action: 'create',
+					summary: `Created production recipe "${data.name}" for material #${data.outputMaterialId}`,
+					newValues: {
+						name: data.name,
+						outputMaterialId: data.outputMaterialId,
+						yieldQty: data.yieldQty,
+						lineCount: data.lines.length,
+					},
+				}),
+				tx,
+			)
+
 			return created
 		})
 
-		// 5. Invalidate cache
+		// 5. Invalidate cache after commit
 		await this.cache.invalidateStandard()
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'production',
-			entity: 'recipe',
-			entityId: result.id,
-			action: 'create',
-			summary: `Created production recipe "${data.name}" for material #${data.outputMaterialId}`,
-			newValues: {
-				name: data.name,
-				outputMaterialId: data.outputMaterialId,
-				yieldQty: data.yieldQty,
-				lineCount: data.lines.length,
-			},
-		})
 
 		return result
 	}
 
-	async handleRecipeUpdate(data: ProductionRecipeUpdateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleRecipeUpdate(data: ProductionRecipeUpdateDto, actor: Actor): Promise<EntityRef> {
 		// 1. Validate recipe exists
 		const recipe = assertFound(await this.repo.findRecipeById(data.recipeId), () =>
 			ProductionError.recipeNotFound(data.recipeId),
@@ -162,14 +171,14 @@ export class ProductionService {
 		}
 
 		// 4. Update recipe + lines in transaction
-		const result = await this.repo.db.transaction(async (tx) => {
+		const result = await this.deps.uow.run(async (tx) => {
 			const updated = await this.repo.updateRecipe(
 				data.recipeId,
 				{
 					...(data.name ? { name: data.name } : {}),
 					...(data.yieldQty ? { yieldQty: data.yieldQty } : {}),
 					...(data.yieldUomId ? { yieldUomId: data.yieldUomId } : {}),
-					...stampUpdate(actorId),
+					...stampUpdate(actor.id),
 				},
 				tx,
 			)
@@ -188,47 +197,53 @@ export class ProductionService {
 				)
 			}
 
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'production',
+					entity: 'recipe',
+					entityId: data.recipeId,
+					action: 'update',
+					summary: `Updated production recipe #${data.recipeId}`,
+					newValues: { name: data.name, yieldQty: data.yieldQty, lineCount: data.lines?.length },
+				}),
+				tx,
+			)
+
 			return updated
 		})
 
-		// 5. Invalidate cache
+		// 5. Invalidate cache after commit
 		await this.cache.invalidateStandard()
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'production',
-			entity: 'recipe',
-			entityId: data.recipeId,
-			action: 'update',
-			summary: `Updated production recipe #${data.recipeId}`,
-			newValues: { name: data.name, yieldQty: data.yieldQty, lineCount: data.lines?.length },
-		})
 
 		return result
 	}
 
-	async handleRecipeRemove(id: number, actorId: ActorId): Promise<void> {
-		// 1. Validate exists
-		assertFound(await this.repo.findRecipeById(id), () => ProductionError.recipeNotFound(id))
+	async handleRecipeRemove(id: number, actor: Actor): Promise<void> {
+		await this.deps.uow.run(async (tx) => {
+			// 1. Validate exists
+			const recipe = assertFound(await this.repo.findRecipeById(id, tx), () =>
+				ProductionError.recipeNotFound(id),
+			)
 
-		// 2. Remove (cascade deletes lines)
-		await this.repo.removeRecipe(id)
+			// 2. Remove (cascade deletes lines)
+			const removed = await this.repo.removeRecipe(id, tx)
+			if (!removed) throw ProductionError.recipeNotFound(id)
 
-		// 3. Invalidate cache
-		await this.cache.invalidateStandard()
-
-		// 4. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'production',
-			entity: 'recipe',
-			entityId: id,
-			action: 'delete',
-			summary: `Removed production recipe #${id}`,
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'production',
+					entity: 'recipe',
+					entityId: id,
+					action: 'delete',
+					summary: `Removed production recipe #${id}`,
+					oldValues: { name: recipe.name, materialId: recipe.materialId },
+				}),
+				tx,
+			)
 		})
+
+		// 3. Invalidate cache after commit
+		await this.cache.invalidateStandard()
 	}
 
 	// ─── Order Handlers ───
@@ -245,7 +260,7 @@ export class ProductionService {
 		)
 	}
 
-	async handleOrderCreate(data: ProductionOrderCreateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleOrderCreate(data: ProductionOrderCreateDto, actor: Actor): Promise<EntityRef> {
 		// 1. Validate recipe exists
 		const recipe = assertFound(await this.repo.findRecipeDetailById(data.recipeId), () =>
 			ProductionError.recipeNotFound(data.recipeId),
@@ -255,55 +270,61 @@ export class ProductionService {
 		const location = await this.deps.locationService.handleGetById(data.locationId)
 
 		// 3. Calculate planned output quantity
-		const plannedQty = roundQty(toDecimal(recipe.yieldQty).mul(toDecimal(data.multiplier)))
+		const plannedQty = Qty.of(recipe.yieldQty).mul(data.multiplier).toNumeric()
 
-		// 4. Generate production number
-		const productionNo = await generateNumber({
-			prefix: 'PRD',
-			locationCode: location.code,
-			locationId: data.locationId,
+		// 4. Generate number and insert the order atomically
+		const result = await this.deps.uow.run(async (tx) => {
+			const productionNo = await generateNumber({
+				prefix: 'PRD',
+				locationCode: location.code,
+				locationId: data.locationId,
+				database: tx,
+			})
+			const result = await this.repo.insertOrder(
+				{
+					productionNo,
+					locationId: data.locationId,
+					materialId: recipe.materialId,
+					recipeId: data.recipeId,
+					status: 'draft',
+					plannedQty,
+					actualQty: null,
+					notes: data.notes ?? null,
+					producedBy: actor.id,
+					...stampCreate(actor.id),
+				},
+				tx,
+			)
+			if (!result) throw ProductionError.createFailed()
+
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'production',
+					entity: 'order',
+					entityId: result.id,
+					action: 'create',
+					summary: `Created production order ${productionNo} for recipe #${data.recipeId} at location #${data.locationId}`,
+					newValues: {
+						productionNo,
+						recipeId: data.recipeId,
+						locationId: data.locationId,
+						multiplier: data.multiplier,
+						plannedQty,
+					},
+				}),
+				tx,
+			)
+
+			return { result, productionNo }
 		})
 
-		// 5. Insert order
-		const result = await this.repo.insertOrder({
-			productionNo,
-			locationId: data.locationId,
-			materialId: recipe.materialId,
-			recipeId: data.recipeId,
-			status: 'draft',
-			plannedQty,
-			actualQty: null,
-			notes: data.notes ?? null,
-			producedBy: actorId,
-			...stampCreate(actorId),
-		})
-		if (!result) throw ProductionError.createFailed()
-
-		// 6. Invalidate cache
+		// 6. Invalidate cache after commit
 		await this.cache.invalidateStandard()
 
-		// 7. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'production',
-			entity: 'order',
-			entityId: result.id,
-			action: 'create',
-			summary: `Created production order ${productionNo} for recipe #${data.recipeId} at location #${data.locationId}`,
-			newValues: {
-				productionNo,
-				recipeId: data.recipeId,
-				locationId: data.locationId,
-				multiplier: data.multiplier,
-				plannedQty,
-			},
-		})
-
-		return result
+		return result.result
 	}
 
-	async handleOrderConfirm(data: ProductionOrderConfirmDto, actorId: ActorId): Promise<EntityRef> {
+	async handleOrderConfirm(data: ProductionOrderConfirmDto, actor: Actor): Promise<EntityRef> {
 		return record('production.confirm', async () => {
 			// 1. Get order and validate status
 			const order = assertFound(await this.repo.findOrderById(data.orderId), () =>
@@ -323,16 +344,17 @@ export class ProductionService {
 			)
 
 			// 3. Calculate multiplier from order
-			const multiplier = safeDivide(toDecimal(order.plannedQty), toDecimal(recipe.yieldQty))
+			const multiplier = Qty.of(order.plannedQty).div(Qty.of(recipe.yieldQty))
 
 			// 4. Process within transaction
-			const result = await this.repo.db.transaction(async (tx) => {
-				let totalInputCost = toDecimal(0)
+			const { updated, events } = await this.deps.uow.run(async (tx) => {
+				const events: StockMovementRecorded[] = []
+				let totalInputCost = Money.zero()
 
 				// 4a. For each input line: convert to base UoM, get cost, record movement out
 				for (const line of recipe.lines) {
 					const material = await this.deps.materialService.handleGetById(line.materialId)
-					const requiredQty = roundQty(toDecimal(line.quantity).mul(multiplier))
+					const requiredQty = Qty.of(line.quantity).mul(multiplier)
 
 					// Convert to base UoM
 					const baseConversion = await this.#resolveConversion(
@@ -343,28 +365,30 @@ export class ProductionService {
 					const baseQty = baseConversion.result
 
 					// Get current cost price BEFORE deduction (cost unchanged on outbound)
-					const balance = await this.deps.stockService.handleGetBalance({
-						materialId: line.materialId,
-						locationId: order.locationId,
-					})
-					const costPrice = toDecimal(balance.costPrice)
-					totalInputCost = totalInputCost.add(toDecimal(baseQty).mul(costPrice))
+					const balance = await this.deps.inventoryApi.getBalance(
+						line.materialId,
+						order.locationId,
+						tx,
+					)
+					const costPrice = Money.of(balance?.costPrice ?? '0')
+					totalInputCost = totalInputCost.add(costPrice.mul(baseQty))
 
 					// Record outbound movement (stockService handles insufficient stock check)
-					await this.deps.stockService.recordMovement(
+					const movement = await this.deps.inventoryApi.recordMovement(
 						{
 							materialId: line.materialId,
 							locationId: order.locationId,
 							type: 'production_out',
 							direction: 'out',
-							qty: baseQty,
+							qty: baseQty.toNumeric(),
 							referenceType: 'production_order',
 							referenceId: order.id,
 							notes: `Production: ${order.productionNo}`,
-							actorId,
+							actorId: actor.id,
 						},
 						tx,
 					)
+					events.push(movement.event)
 				}
 
 				// 4b. Calculate output unit cost (absorbed costing)
@@ -374,62 +398,67 @@ export class ProductionService {
 				const yieldConversion = await this.#resolveConversion(
 					recipe.yieldUomId,
 					outputMaterial.baseUomId,
-					order.plannedQty,
+					Qty.of(order.plannedQty),
 				)
 				const baseOutputQty = yieldConversion.result
-				const outputUnitCost = toDecimal(baseOutputQty).isZero()
+				const outputUnitCost = baseOutputQty.isZero()
 					? '0'
-					: roundCost(safeDivide(totalInputCost, toDecimal(baseOutputQty)))
+					: totalInputCost.div(baseOutputQty).toCost()
 
 				// 4c. Record inbound movement for output
-				await this.deps.stockService.recordMovement(
+				const movement = await this.deps.inventoryApi.recordMovement(
 					{
 						materialId: recipe.materialId,
 						locationId: order.locationId,
 						type: 'production_in',
 						direction: 'in',
-						qty: baseOutputQty,
+						qty: baseOutputQty.toNumeric(),
 						unitCost: outputUnitCost,
 						referenceType: 'production_order',
 						referenceId: order.id,
 						notes: `Production: ${order.productionNo}`,
-						actorId,
+						actorId: actor.id,
 					},
 					tx,
 				)
+				events.push(movement.event)
 
 				// 4d. Update order status
 				const updated = await this.repo.updateOrder(
 					order.id,
 					{
 						status: 'completed',
-						actualQty: baseOutputQty,
+						actualQty: baseOutputQty.toNumeric(),
 						completedAt: new Date(),
-						...stampUpdate(actorId),
+						...stampUpdate(actor.id),
 					},
 					tx,
 				)
 				if (!updated) throw ProductionError.orderNotFound(order.id)
 
-				return updated
+				await this.deps.audit.record(
+					{
+						actorId: actor.id,
+						actorName: actor.name,
+						locationId: order.locationId,
+						module: 'production',
+						entity: 'order',
+						entityId: order.id,
+						action: 'confirm',
+						summary: `Confirmed production order ${order.productionNo} (${recipe.lines.length} inputs)`,
+						newValues: { status: 'completed', lineCount: recipe.lines.length },
+					},
+					tx,
+				)
+
+				return { updated, events }
 			})
 
-			// 5. Invalidate cache
+			for (const event of events) this.deps.events.publish(event)
+			await this.deps.inventoryApi.invalidateCache()
 			await this.cache.invalidateStandard()
 
-			// 6. Audit log
-			auditLog.record({
-				userId: actorId,
-				userName: '',
-				module: 'production',
-				entity: 'order',
-				entityId: order.id,
-				action: 'update',
-				summary: `Confirmed production order ${order.productionNo} (${recipe.lines.length} inputs)`,
-				newValues: { status: 'completed', lineCount: recipe.lines.length },
-			})
-
-			return result
+			return updated
 		})
 	}
 
@@ -444,7 +473,7 @@ export class ProductionService {
 
 		const conversions = await this.deps.uomService.getAllConversions()
 		const { resolveConversion } = await import('@/modules/uom/domain/uom.resolver.ts')
-		const resolved = resolveConversion(fromUomId, toUomId, '1', conversions)
+		const resolved = resolveConversion(fromUomId, toUomId, Qty.of('1'), conversions)
 		if (!resolved) {
 			throw ProductionError.uomNotConvertible(materialId, fromUomId, toUomId)
 		}
@@ -453,8 +482,8 @@ export class ProductionService {
 	async #resolveConversion(
 		fromUomId: number,
 		toUomId: number,
-		quantity: string,
-	): Promise<{ result: string }> {
+		quantity: Qty,
+	): Promise<{ result: Qty }> {
 		if (fromUomId === toUomId) return { result: quantity }
 
 		const conversions = await this.deps.uomService.getAllConversions()
@@ -463,6 +492,6 @@ export class ProductionService {
 		if (!resolved) {
 			throw ProductionError.uomNotConvertible(0, fromUomId, toUomId)
 		}
-		return resolved
+		return { result: resolved.result }
 	}
 }

@@ -1,8 +1,10 @@
+import type { DbContext } from '@/infra/database/index.ts'
 import { getLogger } from '@/infra/logger/index.ts'
 import { record } from '@/infra/otel/otel.ts'
-import { type Decimal, roundQty, safeDivide, toDecimal } from '@/shared/utils/money.ts'
+import { Qty } from '@/shared/domain/qty.ts'
+import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
 
-import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
+import type { InventoryApi } from '@/modules/inventory/index.ts'
 import type { MaterialService } from '@/modules/material/material.service.ts'
 import type { RecipeService } from '@/modules/recipe/recipe.service.ts'
 import { resolveConversion } from '@/modules/uom/domain/uom.resolver.ts'
@@ -17,7 +19,7 @@ const logger = getLogger(['pos', 'deduction'])
 
 export interface DeductionDeps {
 	recipeService: RecipeService
-	stockService: StockService
+	inventoryApi: InventoryApi['stock']
 	uomService: UomService
 	materialService: MaterialService
 }
@@ -27,11 +29,8 @@ export interface DeductionDeps {
 /**
  * Deducts inventory stock for each order line based on active recipes.
  *
- * For each line: resolves recipe → for each recipe line calculates deduction qty
- * (recipeLine.qty × orderLine.qty / recipe.yieldQty) → converts to material base UoM
- * → records stock movement (type=sale, direction=out).
- *
- * Errors are caught per-line and logged as warnings — never blocks order completion.
+ * Missing recipes and missing materials are non-blocking domain conditions.
+ * Database and conversion failures propagate so the caller's UoW can roll back.
  */
 export async function deductStockForOrder(
 	orderId: number,
@@ -39,30 +38,24 @@ export async function deductStockForOrder(
 	orderLines: OrderLineDto[],
 	actorId: number,
 	deps: DeductionDeps,
-): Promise<void> {
+	db?: DbContext,
+): Promise<StockMovementRecorded[]> {
 	return record('order.deductStock', async () => {
-		const { recipeService, stockService, uomService, materialService } = deps
-
-		// Pre-fetch all UoM conversions (single query, reused across lines)
+		const { recipeService, inventoryApi, uomService, materialService } = deps
 		const conversions = await uomService.getAllConversions()
+		const events: StockMovementRecorded[] = []
 
 		for (const line of orderLines) {
-			try {
-				await deductForOrderLine(orderId, locationId, line, actorId, {
-					recipeService,
-					stockService,
-					materialService,
-					conversions,
-				})
-			} catch (err) {
-				const errorMessage = err instanceof Error ? err.message : String(err)
-				logger.warn('Deduction failed for menu item in order', {
-					menuItemId: line.menuItemId,
-					orderId,
-					error: errorMessage,
-				})
-			}
+			await deductForOrderLine(orderId, locationId, line, actorId, {
+				recipeService,
+				inventoryApi,
+				materialService,
+				conversions,
+				db,
+				events,
+			})
 		}
+		return events
 	})
 }
 
@@ -70,9 +63,11 @@ export async function deductStockForOrder(
 
 interface LineDeductionCtx {
 	recipeService: RecipeService
-	stockService: StockService
+	inventoryApi: InventoryApi['stock']
 	materialService: MaterialService
 	conversions: UomConversionDto[]
+	db: DbContext | undefined
+	events: StockMovementRecorded[]
 }
 
 async function deductForOrderLine(
@@ -82,10 +77,9 @@ async function deductForOrderLine(
 	actorId: number,
 	ctx: LineDeductionCtx,
 ): Promise<void> {
-	const { recipeService, stockService, materialService, conversions } = ctx
+	const { recipeService, inventoryApi, materialService, conversions, db } = ctx
 
-	// 1. Get active recipe for menu item
-	const recipe = await recipeService.getActiveByMenuItemId(line.menuItemId)
+	const recipe = await recipeService.getActiveByMenuItemId(line.menuItemId, db)
 	if (!recipe) {
 		logger.warn('No active recipe for menu item, skipping deduction', {
 			menuItemId: line.menuItemId,
@@ -94,16 +88,17 @@ async function deductForOrderLine(
 		return
 	}
 
-	// 2. Get recipe lines and calculate deduction for each
-	const recipeLines = await recipeService.getLinesByRecipeId(recipe.id)
-	const orderQty = toDecimal(line.quantity)
-	const yieldQty = toDecimal(recipe.yieldQty)
+	const recipeLines = await recipeService.getLinesByRecipeId(recipe.id, db)
+	const orderQty = Qty.of(line.quantity)
+	const yieldQty = Qty.of(recipe.yieldQty)
 
 	for (const recipeLine of recipeLines) {
 		await deductRecipeLine(orderId, locationId, recipeLine, orderQty, yieldQty, actorId, {
-			stockService,
+			inventoryApi,
 			materialService,
 			conversions,
+			db,
+			events: ctx.events,
 		})
 	}
 }
@@ -111,9 +106,11 @@ async function deductForOrderLine(
 // ─── Per-Recipe-Line Deduction ───
 
 interface RecipeLineCtx {
-	stockService: StockService
+	inventoryApi: InventoryApi['stock']
 	materialService: MaterialService
 	conversions: UomConversionDto[]
+	db: DbContext | undefined
+	events: StockMovementRecorded[]
 }
 
 interface RecipeLineInput {
@@ -126,74 +123,64 @@ async function deductRecipeLine(
 	orderId: number,
 	locationId: number,
 	recipeLine: RecipeLineInput,
-	orderQty: Decimal,
-	yieldQty: Decimal,
+	orderQty: Qty,
+	yieldQty: Qty,
 	actorId: number,
 	ctx: RecipeLineCtx,
 ): Promise<void> {
-	const { stockService, materialService, conversions } = ctx
+	const { inventoryApi, materialService, conversions, db } = ctx
+	const recipeQty = Qty.of(recipeLine.quantity)
+	const deductQty = recipeQty.mul(orderQty).div(yieldQty)
 
-	try {
-		// 1. Calculate deduction: recipeLine.qty × orderLine.qty / yieldQty
-		const recipeQty = toDecimal(recipeLine.quantity)
-		const deductQty = safeDivide(recipeQty.mul(orderQty), yieldQty)
+	const material = await materialService.getById(recipeLine.materialId)
+	if (!material) {
+		logger.warn('Material not found, skipping deduction', {
+			materialId: recipeLine.materialId,
+			orderId,
+		})
+		return
+	}
 
-		// 2. Resolve UoM conversion to material base UoM
-		const material = await materialService.getById(recipeLine.materialId)
-		if (!material) {
-			logger.warn('Material not found, skipping deduction', {
-				materialId: recipeLine.materialId,
-				orderId,
-			})
-			return
-		}
+	const baseDeductQty = convertToBaseUom(
+		deductQty,
+		recipeLine.uomId,
+		material.baseUomId,
+		conversions,
+		{
+			materialId: recipeLine.materialId,
+			orderId,
+		},
+	)
 
-		const baseDeductQty = convertToBaseUom(
-			deductQty,
-			recipeLine.uomId,
-			material.baseUomId,
-			conversions,
-			{
-				materialId: recipeLine.materialId,
-				orderId,
-			},
-		)
-
-		// 3. Record stock movement
-		await stockService.recordMovement({
+	const movement = await inventoryApi.recordMovement(
+		{
 			materialId: recipeLine.materialId,
 			locationId,
-			type: 'sale',
+			type: 'sales',
 			direction: 'out',
-			qty: roundQty(baseDeductQty),
+			qty: baseDeductQty.toNumeric(),
 			referenceType: 'order',
 			referenceId: orderId,
 			actorId,
-		})
-	} catch (err) {
-		// Insufficient stock or material not assigned — log and continue
-		const errorMessage = err instanceof Error ? err.message : String(err)
-		logger.warn('Failed to deduct material for order', {
-			materialId: recipeLine.materialId,
-			orderId,
-			error: errorMessage,
-		})
-	}
+		},
+		db,
+	)
+	ctx.events.push(movement.event)
 }
 
 // ─── Helpers ───
 
 function convertToBaseUom(
-	qty: Decimal,
+	qty: Qty,
 	fromUomId: number,
 	toUomId: number,
 	conversions: UomConversionDto[],
 	context: { materialId: number; orderId: number },
-): Decimal {
+): Qty {
 	if (fromUomId === toUomId) return qty
 
-	const conversion = resolveConversion(fromUomId, toUomId, qty.toString(), conversions)
-	if (conversion) return toDecimal(conversion.result)
+	const conversion = resolveConversion(fromUomId, toUomId, qty, conversions)
+	if (conversion) return conversion.result
 
 	logger.warn('No UoM conversion path, using raw qty', {
 		fromUomId,

@@ -1,4 +1,4 @@
-import type { sessionStore } from '@/infra/session/index.ts'
+import type { SessionStore } from '@/shared/auth/session.port.ts'
 
 import type { AssignmentService } from '@/modules/iam/assignment/assignment.service.ts'
 import type { IUserRepo } from '@/modules/iam/user/user.repo.ts'
@@ -13,7 +13,7 @@ export interface AuthModuleDeps {
 	userRepo: IUserRepo
 	assignmentService: AssignmentService
 	locationService: LocationService
-	sessionStore: typeof sessionStore
+	sessionStore: SessionStore
 }
 
 // ─── Module Factory ───

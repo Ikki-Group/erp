@@ -1,20 +1,23 @@
-import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
-import { getLogger } from '@/infra/logger/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { record } from '@/infra/otel/otel.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import { Money } from '@/shared/domain/money.ts'
+import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
-import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
 import type { CompanyApi } from '@/modules/company/index.ts'
-import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
+import type { InventoryApi } from '@/modules/inventory/index.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 import type { MaterialService } from '@/modules/material/material.service.ts'
-import type { ComposedService } from '@/modules/menu/composed/composed.service.ts'
-import type { ItemService } from '@/modules/menu/item/item.service.ts'
+import type { MenuApi } from '@/modules/menu/index.ts'
 import type { PaymentMethodService } from '@/modules/payment-method/payment-method.service.ts'
 import type { RecipeService } from '@/modules/recipe/recipe.service.ts'
 import type { UomService } from '@/modules/uom/uom.service.ts'
@@ -42,23 +45,23 @@ import type { IOrderRepo } from './order.repo.ts'
 // ─── Dependencies ───
 
 export interface OrderServiceDeps {
+	uow: UnitOfWork
+	audit: AuditPort
+	events: EventBusPort
 	shiftService: ShiftService
 	tableService: TableService
 	voucherService: VoucherService
 	paymentMethodService: PaymentMethodService
 	companyApi: CompanyApi
-	itemService: ItemService
-	composedService: ComposedService
+	menuItemDetail: MenuApi['itemDetail']
 	locationService: LocationService
 	recipeService: RecipeService
-	stockService: StockService
+	inventoryApi: InventoryApi['stock']
 	uomService: UomService
 	materialService: MaterialService
 }
 
 // ─── Service ───
-
-const logger = getLogger(['pos', 'order'])
 
 export class OrderService {
 	private readonly cache: CacheService
@@ -97,67 +100,69 @@ export class OrderService {
 
 	// ─── Create ───
 
-	async handleCreate(data: OrderCreateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: OrderCreateDto, actor: Actor): Promise<EntityRef> {
 		const { locationId, tableId, type, notes } = data
 
 		// 1. Validate active shift at location
-		const shift = await this.deps.shiftService.handleGetActive(actorId, locationId)
-		if (!shift) throw OrderError.noActiveShift(actorId, locationId)
+		const shift = await this.deps.shiftService.handleGetActive(actor.id, locationId)
+		if (!shift) throw OrderError.noActiveShift(actor.id, locationId)
 
 		// 2. Get location code for order number
 		const location = await this.deps.locationService.handleGetById(locationId)
 
-		// 3. Generate order number
-		const orderNo = await generateNumber({
-			prefix: 'ORD',
-			locationCode: location.code,
-			locationId,
-		})
+		// 3. Generate number, insert order, and audit atomically
+		const transactionResult = await this.deps.uow.run(async (tx) => {
+			const orderNo = await generateNumber({
+				prefix: 'ORD',
+				locationCode: location.code,
+				locationId,
+				database: tx,
+			})
+			const result = await this.repo.insert(
+				{
+					orderNo,
+					locationId,
+					tableId: tableId ?? null,
+					shiftId: shift.id,
+					type,
+					status: 'open',
+					subtotal: '0',
+					discountAmount: '0',
+					taxAmount: '0',
+					total: '0',
+					notes: notes ?? null,
+					...stampCreate(actor.id),
+				},
+				tx,
+			)
+			if (!result) throw OrderError.createFailed()
 
-		// 4. Insert order
-		const result = await this.repo.insert({
-			orderNo,
-			locationId,
-			tableId: tableId ?? null,
-			shiftId: shift.id,
-			type,
-			status: 'open',
-			subtotal: '0',
-			discountAmount: '0',
-			taxAmount: '0',
-			total: '0',
-			notes: notes ?? null,
-			...stampCreate(actorId),
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'pos-order',
+					entity: 'order',
+					entityId: result.id,
+					action: 'create',
+					summary: `Created order ${orderNo} (${type}) at location #${locationId}`,
+					newValues: { orderNo, type, tableId, shiftId: shift.id },
+				}),
+				tx,
+			)
+			return { result, orderNo }
 		})
-		if (!result) throw OrderError.createFailed()
+		const { result } = transactionResult
 
-		// 5. Update table status if dine-in
+		// 4. Update table status and invalidate cache after commit
 		if (tableId) {
 			await this.deps.tableService.updateStatus(tableId, 'occupied')
 		}
-
-		// 6. Invalidate cache
 		await this.cache.invalidateStandard()
-
-		// 7. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			locationId,
-			module: 'pos-order',
-			entity: 'order',
-			entityId: result.id,
-			action: 'create',
-			summary: `Created order ${orderNo} (${type}) at location #${locationId}`,
-			newValues: { orderNo, type, tableId, shiftId: shift.id },
-		})
-
 		return result
 	}
 
 	// ─── Sync Lines ───
 
-	async handleSyncLines(data: OrderLineSyncDto, actorId: ActorId): Promise<OrderDetailDto> {
+	async handleSyncLines(data: OrderLineSyncDto, actor: Actor): Promise<OrderDetailDto> {
 		return record('order.syncLines', async () => {
 			const { orderId, lines } = data
 
@@ -166,12 +171,12 @@ export class OrderService {
 			if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
 			// 2. Resolve menu items and calculate prices
-			const lineInserts = []
-			const lineTotals: number[] = []
+			const lineInserts: Parameters<IOrderRepo['insertLines']>[0] = []
+			const lineTotals: string[] = []
 
 			for (const line of lines) {
 				// Fetch item detail (with modifier groups + options)
-				const itemDetail = await this.deps.composedService.handleDetail(line.menuItemId)
+				const itemDetail = await this.deps.menuItemDetail(line.menuItemId)
 
 				// Validate item belongs to same location
 				if (itemDetail.locationId !== order.locationId) {
@@ -179,7 +184,7 @@ export class OrderService {
 				}
 
 				// Resolve modifier option prices
-				const modifierPrices: number[] = []
+				const modifierPrices: string[] = []
 				const modifierSnapshot: Array<{ optionId: number; name: string; price: string }> = []
 
 				if (line.modifierOptionIds && line.modifierOptionIds.length > 0) {
@@ -194,7 +199,7 @@ export class OrderService {
 					for (const optionId of line.modifierOptionIds) {
 						const option = optionMap.get(optionId)
 						if (option) {
-							modifierPrices.push(Number(option.priceAdjustment))
+							modifierPrices.push(option.priceAdjustment)
 							modifierSnapshot.push({
 								optionId,
 								name: option.name,
@@ -206,9 +211,9 @@ export class OrderService {
 
 				// Calculate line prices
 				const priceResult = calculateLineTotal({
-					basePrice: Number(itemDetail.basePrice),
+					basePrice: itemDetail.basePrice,
 					modifierPrices,
-					qty: line.qty,
+					qty: String(line.qty),
 				})
 
 				lineTotals.push(priceResult.lineTotal)
@@ -218,46 +223,59 @@ export class OrderService {
 					menuItemId: line.menuItemId,
 					menuItemName: itemDetail.name,
 					quantity: String(line.qty),
-					unitPrice: String(priceResult.unitPrice),
+					unitPrice: priceResult.unitPrice,
 					modifiers: modifierSnapshot.length > 0 ? modifierSnapshot : null,
-					modifierTotal: String(priceResult.modifierTotal),
+					modifierTotal: priceResult.modifierTotal,
 					discountAmount: '0',
-					lineTotal: String(priceResult.lineTotal),
+					lineTotal: priceResult.lineTotal,
 					status: 'active' as const,
 					notes: line.notes ?? null,
 				})
 			}
 
-			// 3. Replace lines (delete old + insert new)
-			await this.repo.deleteLinesByOrderId(orderId)
-			await this.repo.insertLines(lineInserts)
-
-			// 4. Recalculate order totals
+			// 3. Replace lines, recalculate totals, and audit atomically
 			const taxRate = await this.#getTaxRate()
-			const discountAmount = Number(order.discountAmount)
+			const discountAmount = order.discountAmount
 			const totals = calculateOrderTotals({ lineTotals, discountAmount, taxRate })
 
-			// 5. Update order totals
-			const updateResult = await this.repo.update(orderId, {
-				subtotal: String(totals.subtotal),
-				discountAmount: String(totals.discountAmount),
-				taxAmount: String(totals.taxAmount),
-				total: String(totals.total),
-				...stampUpdate(actorId),
+			await this.deps.uow.run(async (tx) => {
+				await this.repo.deleteLinesByOrderId(orderId, tx)
+				await this.repo.insertLines(lineInserts, tx)
+
+				const updateResult = await this.repo.update(
+					orderId,
+					{
+						subtotal: totals.subtotal,
+						discountAmount: totals.discountAmount,
+						taxAmount: totals.taxAmount,
+						total: totals.total,
+						...stampUpdate(actor.id),
+					},
+					tx,
+				)
+				if (!updateResult) throw OrderError.updateFailed(orderId)
+
+				await this.deps.audit.record(
+					auditEntryOf(actor, {
+						module: 'pos-order',
+						entity: 'order',
+						entityId: orderId,
+						action: 'update',
+						summary: `Synchronized lines for order #${orderId}`,
+						newValues: { lineCount: lines.length, subtotal: totals.subtotal, total: totals.total },
+					}),
+					tx,
+				)
 			})
-			if (!updateResult) throw OrderError.updateFailed(orderId)
 
-			// 6. Invalidate cache
 			await this.cache.invalidateStandard(orderId)
-
-			// 7. Return updated detail
 			return this.handleDetail(orderId)
 		})
 	}
 
 	// ─── Apply Voucher ───
 
-	async handleApplyVoucher(data: OrderApplyVoucherDto, actorId: ActorId) {
+	async handleApplyVoucher(data: OrderApplyVoucherDto, actor: Actor) {
 		const { orderId, voucherCode } = data
 
 		// 1. Validate order exists and is open
@@ -268,12 +286,8 @@ export class OrderService {
 		if (order.voucherId) throw OrderError.voucherAlreadyApplied(orderId)
 
 		// 3. Validate voucher
-		const subtotal = Number(order.subtotal)
-		const validation = await this.deps.voucherService.handleValidate(voucherCode, subtotal)
-
-		if (!validation.valid) {
-			return { applied: false, reason: validation.reason }
-		}
+		const validation = await this.deps.voucherService.handleValidate(voucherCode, order.subtotal)
+		if (!validation.valid) return { applied: false, reason: validation.reason }
 
 		// 4. Get voucher ID
 		const voucher = await this.deps.voucherService.getByCode(voucherCode)
@@ -282,46 +296,51 @@ export class OrderService {
 		// 5. Recalculate totals with discount
 		const taxRate = await this.#getTaxRate()
 		const lines = await this.repo.findLinesByOrderId(orderId)
-		const lineTotals = lines.map((l) => Number(l.lineTotal))
+		const lineTotals = lines.map((l) => l.lineTotal)
 		const totals = calculateOrderTotals({
 			lineTotals,
 			discountAmount: validation.discountAmount,
 			taxRate,
 		})
 
-		// 6. Update order
-		const updateResult = await this.repo.update(orderId, {
-			voucherId: voucher.id,
-			voucherCode: voucher.code,
-			discountAmount: String(totals.discountAmount),
-			taxAmount: String(totals.taxAmount),
-			total: String(totals.total),
-			...stampUpdate(actorId),
-		})
-		if (!updateResult) throw OrderError.updateFailed(orderId)
+		// 6. Update order and audit atomically
+		await this.deps.uow.run(async (tx) => {
+			const written = await this.repo.update(
+				orderId,
+				{
+					voucherId: voucher.id,
+					voucherCode: voucher.code,
+					discountAmount: totals.discountAmount,
+					taxAmount: totals.taxAmount,
+					total: totals.total,
+					...stampUpdate(actor.id),
+				},
+				tx,
+			)
+			if (!written) throw OrderError.updateFailed(orderId)
 
-		// 7. Invalidate cache
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'pos-order',
+					entity: 'order',
+					entityId: orderId,
+					action: 'update',
+					summary: `Applied voucher "${voucherCode}" to order #${orderId} (discount: ${validation.discountAmount})`,
+					newValues: { voucherCode, discountAmount: validation.discountAmount },
+				}),
+				tx,
+			)
+			return written
+		})
+
+		// 7. Invalidate cache after commit
 		await this.cache.invalidateStandard(orderId)
-
-		// 8. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			locationId: order.locationId,
-			module: 'pos-order',
-			entity: 'order',
-			entityId: orderId,
-			action: 'update',
-			summary: `Applied voucher "${voucherCode}" to order #${orderId} (discount: ${validation.discountAmount})`,
-			newValues: { voucherCode, discountAmount: validation.discountAmount },
-		})
-
 		return { applied: true, discountAmount: validation.discountAmount }
 	}
 
 	// ─── Remove Voucher ───
 
-	async handleRemoveVoucher(data: OrderRemoveVoucherDto, actorId: ActorId): Promise<EntityRef> {
+	async handleRemoveVoucher(data: OrderRemoveVoucherDto, actor: Actor): Promise<EntityRef> {
 		const { orderId } = data
 
 		// 1. Validate order exists and is open
@@ -334,42 +353,47 @@ export class OrderService {
 		// 3. Recalculate totals without discount
 		const taxRate = await this.#getTaxRate()
 		const lines = await this.repo.findLinesByOrderId(orderId)
-		const lineTotals = lines.map((l) => Number(l.lineTotal))
-		const totals = calculateOrderTotals({ lineTotals, discountAmount: 0, taxRate })
+		const lineTotals = lines.map((l) => l.lineTotal)
+		const totals = calculateOrderTotals({ lineTotals, discountAmount: '0', taxRate })
 
-		// 4. Update order
-		const result = await this.repo.update(orderId, {
-			voucherId: null,
-			voucherCode: null,
-			discountAmount: String(totals.discountAmount),
-			taxAmount: String(totals.taxAmount),
-			total: String(totals.total),
-			...stampUpdate(actorId),
+		// 4. Update order and audit atomically
+		const result = await this.deps.uow.run(async (tx) => {
+			const written = await this.repo.update(
+				orderId,
+				{
+					voucherId: null,
+					voucherCode: null,
+					discountAmount: totals.discountAmount,
+					taxAmount: totals.taxAmount,
+					total: totals.total,
+					...stampUpdate(actor.id),
+				},
+				tx,
+			)
+			if (!written) throw OrderError.updateFailed(orderId)
+
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'pos-order',
+					entity: 'order',
+					entityId: orderId,
+					action: 'update',
+					summary: `Removed voucher "${order.voucherCode}" from order #${orderId}`,
+					oldValues: { voucherCode: order.voucherCode },
+				}),
+				tx,
+			)
+			return written
 		})
-		if (!result) throw OrderError.updateFailed(orderId)
 
-		// 5. Invalidate cache
+		// 5. Invalidate cache after commit
 		await this.cache.invalidateStandard(orderId)
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			locationId: order.locationId,
-			module: 'pos-order',
-			entity: 'order',
-			entityId: orderId,
-			action: 'update',
-			summary: `Removed voucher "${order.voucherCode}" from order #${orderId}`,
-			oldValues: { voucherCode: order.voucherCode },
-		})
-
 		return result
 	}
 
 	// ─── Record Payment ───
 
-	async handleRecordPayment(data: OrderPaymentDto, actorId: ActorId): Promise<EntityRef> {
+	async handleRecordPayment(data: OrderPaymentDto, actor: Actor): Promise<EntityRef> {
 		const { orderId, paymentMethodId, amount, reference } = data
 
 		// 1. Validate order exists and is open
@@ -382,156 +406,169 @@ export class OrderService {
 		if (!method) throw OrderError.paymentMethodNotAvailable(paymentMethodId, order.locationId)
 
 		// 3. Validate amount doesn't exceed remaining
-		const totalPaid = await this.repo.sumPaymentsByOrderId(orderId)
-		const remaining = Number(order.total) - totalPaid
-		if (amount > remaining) {
-			throw OrderError.paymentExceedsTotal(orderId, amount - remaining)
+		const totalPaid = Money.of(await this.repo.sumPaymentsByOrderId(orderId))
+		const remaining = Money.of(order.total).sub(totalPaid)
+		const paymentAmount = Money.of(String(amount))
+		if (paymentAmount.gt(remaining)) {
+			throw OrderError.paymentExceedsTotal(orderId, paymentAmount.sub(remaining).toString())
 		}
 
-		// 4. Insert payment
-		const result = await this.repo.insertPayment({
-			orderId,
-			paymentMethodId,
-			amount: String(amount),
-			reference: reference ?? null,
-		})
-		if (!result) throw OrderError.paymentFailed(orderId)
+		// 4. Insert payment and audit atomically
+		const result = await this.deps.uow.run(async (tx) => {
+			const written = await this.repo.insertPayment(
+				{
+					orderId,
+					paymentMethodId,
+					amount: String(amount),
+					reference: reference ?? null,
+				},
+				tx,
+			)
+			if (!written) throw OrderError.paymentFailed(orderId)
 
-		// 5. Invalidate cache
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'pos-order',
+					entity: 'payment',
+					entityId: written.id,
+					action: 'create',
+					summary: `Recorded payment of ${amount} for order #${orderId} via method #${paymentMethodId}`,
+					newValues: { orderId, paymentMethodId, amount, reference },
+				}),
+				tx,
+			)
+			return written
+		})
+
+		// 5. Invalidate cache after commit
 		await this.cache.invalidateStandard(orderId)
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			locationId: order.locationId,
-			module: 'pos-order',
-			entity: 'payment',
-			entityId: result.id,
-			action: 'create',
-			summary: `Recorded payment of ${amount} for order #${orderId} via method #${paymentMethodId}`,
-			newValues: { orderId, paymentMethodId, amount, reference },
-		})
-
 		return result
 	}
 
 	// ─── Complete ───
 
-	async handleComplete(data: OrderCompleteDto, actorId: ActorId): Promise<EntityRef> {
+	async handleComplete(data: OrderCompleteDto, actor: Actor): Promise<EntityRef> {
 		return record('order.complete', async () => {
 			const { orderId } = data
-
-			// 1. Validate order exists and is open
-			const order = await this.handleGetById(orderId)
+			const order = assertFound(await this.repo.findById(orderId), () =>
+				OrderError.notFound(orderId),
+			)
 			if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
-			// 2. Validate fully paid (or total is 0)
-			const orderTotal = Number(order.total)
-			if (orderTotal > 0) {
-				const totalPaid = await this.repo.sumPaymentsByOrderId(orderId)
-				const remaining = orderTotal - totalPaid
-				if (remaining > 0) throw OrderError.notFullyPaid(orderId, remaining)
-			}
+			const orderTotal = Money.of(order.total)
+			const totalPaid = Money.of(await this.repo.sumPaymentsByOrderId(orderId))
+			const remaining = orderTotal.sub(totalPaid)
+			if (remaining.gt(Money.zero())) throw OrderError.notFullyPaid(orderId, remaining.toString())
 
-			// 3. Update order status
-			const result = await this.repo.update(orderId, {
-				status: 'completed',
-				completedAt: new Date(),
-				...stampUpdate(actorId),
-			})
-			if (!result) throw OrderError.updateFailed(orderId)
+			const { updated, movementEvents } = await this.deps.uow.run(async (tx) => {
+				const current = assertFound(await this.repo.findById(orderId, tx), () =>
+					OrderError.notFound(orderId),
+				)
+				if (current.status !== 'open') throw OrderError.notOpen(orderId)
+				const lines = await this.repo.findLinesByOrderId(orderId, tx)
 
-			// 4. Increment voucher usage if applied
-			if (order.voucherId) {
-				await this.deps.voucherService.incrementUsage(order.voucherId)
-			}
-
-			// 5. Update table status to available
-			if (order.tableId) {
-				await this.deps.tableService.updateStatus(order.tableId, 'available')
-			}
-
-			// 6. Invalidate cache
-			await this.cache.invalidateStandard(orderId)
-
-			// 7. Audit log
-			auditLog.record({
-				userId: actorId,
-				userName: '',
-				locationId: order.locationId,
-				module: 'pos-order',
-				entity: 'order',
-				entityId: orderId,
-				action: 'update',
-				summary: `Completed order #${orderId} (${order.orderNo})`,
-				oldValues: { status: 'open' },
-				newValues: { status: 'completed' },
-			})
-
-			// 8. Deduct inventory stock via recipe (fire-and-forget)
-			const orderLines = await this.repo.findLinesByOrderId(orderId)
-			deductStockForOrder(orderId, order.locationId, orderLines, actorId, {
-				recipeService: this.deps.recipeService,
-				stockService: this.deps.stockService,
-				uomService: this.deps.uomService,
-				materialService: this.deps.materialService,
-			}).catch((err) => {
-				logger.warn('Unexpected error during stock deduction for order', {
+				const updated = await this.repo.update(
 					orderId,
-					error: err instanceof Error ? err.message : String(err),
-				})
+					{
+						status: 'completed',
+						completedAt: new Date(),
+						...stampUpdate(actor.id),
+					},
+					tx,
+				)
+				if (!updated) throw OrderError.updateFailed(orderId)
+
+				if (current.voucherId) await this.deps.voucherService.incrementUsage(current.voucherId, tx)
+
+				const movementEvents = await deductStockForOrder(
+					orderId,
+					current.locationId,
+					lines,
+					actor.id,
+					{
+						recipeService: this.deps.recipeService,
+						inventoryApi: this.deps.inventoryApi,
+						uomService: this.deps.uomService,
+						materialService: this.deps.materialService,
+					},
+					tx,
+				)
+
+				await this.deps.audit.record(
+					{
+						actorId: actor.id,
+						actorName: actor.name,
+						locationId: current.locationId,
+						module: 'pos-order',
+						entity: 'order',
+						entityId: orderId,
+						action: 'complete',
+						summary: `Completed order #${orderId} (${current.orderNo})`,
+						oldValues: { status: 'open' },
+						newValues: { status: 'completed' },
+					},
+					tx,
+				)
+
+				return { updated, movementEvents }
 			})
 
-			return result
+			for (const event of movementEvents) this.deps.events.publish(event)
+			await this.deps.inventoryApi.invalidateCache()
+			if (order.tableId) await this.deps.tableService.updateStatus(order.tableId, 'available')
+			await this.cache.invalidateStandard(orderId)
+			return updated
 		})
 	}
 
 	// ─── Void ───
 
-	async handleVoid(data: OrderVoidDto, actorId: ActorId): Promise<EntityRef> {
+	async handleVoid(data: OrderVoidDto, actor: Actor): Promise<EntityRef> {
 		const { orderId, reason } = data
 
 		// 1. Validate order exists and is open
 		const order = await this.handleGetById(orderId)
 		if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
-		// 2. Update order status
-		const result = await this.repo.update(orderId, {
-			status: 'voided',
-			notes: reason,
-			...stampUpdate(actorId),
-		})
-		if (!result) throw OrderError.updateFailed(orderId)
+		// 2. Update order status and audit atomically
+		const result = await this.deps.uow.run(async (tx) => {
+			const written = await this.repo.update(
+				orderId,
+				{
+					status: 'voided',
+					notes: reason,
+					...stampUpdate(actor.id),
+				},
+				tx,
+			)
+			if (!written) throw OrderError.updateFailed(orderId)
 
-		// 3. Update table status to available
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'pos-order',
+					entity: 'order',
+					entityId: orderId,
+					action: 'update',
+					summary: `Voided order #${orderId} (${order.orderNo}): ${reason}`,
+					oldValues: { status: 'open' },
+					newValues: { status: 'voided', reason },
+				}),
+				tx,
+			)
+			return written
+		})
+
+		// 3. Update table status and invalidate cache after commit
 		if (order.tableId) {
 			await this.deps.tableService.updateStatus(order.tableId, 'available')
 		}
-
-		// 4. Invalidate cache
 		await this.cache.invalidateStandard(orderId)
-
-		// 5. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			locationId: order.locationId,
-			module: 'pos-order',
-			entity: 'order',
-			entityId: orderId,
-			action: 'update',
-			summary: `Voided order #${orderId} (${order.orderNo}): ${reason}`,
-			oldValues: { status: 'open' },
-			newValues: { status: 'voided', reason },
-		})
-
 		return result
 	}
 
 	// ─── Private ───
 
-	async #getTaxRate(): Promise<number> {
+	async #getTaxRate(): Promise<string> {
 		return this.deps.companyApi.taxRate.getPercent()
 	}
 }

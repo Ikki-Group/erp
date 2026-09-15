@@ -24,8 +24,14 @@ export class Money {
 	}
 
 	mul(factor: Qty | number | string): Money {
-		const f = factor instanceof Qty ? factor.toDecimal() : new Decimal(factor)
+		const f = factor instanceof Qty ? new Decimal(factor.toString()) : new Decimal(factor)
 		return new Money(this.d.times(f))
+	}
+
+	div(divisor: Qty | number | string): Money {
+		const d = divisor instanceof Qty ? new Decimal(divisor.toString()) : new Decimal(divisor)
+		if (d.isZero()) return Money.zero()
+		return new Money(this.d.div(d))
 	}
 
 	percent(p: number | string): Money {
@@ -36,6 +42,10 @@ export class Money {
 		return this.d.isZero()
 	}
 
+	lt(o: Money): boolean {
+		return this.d.lessThan(o.d)
+	}
+
 	gt(o: Money): boolean {
 		return this.d.greaterThan(o.d)
 	}
@@ -44,15 +54,15 @@ export class Money {
 		return this.d.greaterThanOrEqualTo(o.d)
 	}
 
-	toNumeric(): string {
-		return this.d.toDecimalPlaces(2).toFixed(2)
+	toAmount(): string {
+		return this.d.toDecimalPlaces(0).toFixed(0)
 	}
 
-	toNumber(): number {
-		return this.d.toDecimalPlaces(0).toNumber()
+	toCost(): string {
+		return this.d.toDecimalPlaces(4).toFixed(4)
 	}
 
-	toDecimal(): Decimal {
-		return this.d
+	toString(): string {
+		return this.d.toString()
 	}
 }

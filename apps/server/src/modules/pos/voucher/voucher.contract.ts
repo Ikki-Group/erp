@@ -72,7 +72,7 @@ export type VoucherValidateDto = z.infer<typeof VoucherValidateDto>
 
 export const VoucherValidateResponseDto = z.object({
 	valid: zp.bool,
-	discountAmount: zp.num,
+	discountAmount: zp.str,
 	reason: zp.str.optional(),
 })
 export type VoucherValidateResponseDto = z.infer<typeof VoucherValidateResponseDto>

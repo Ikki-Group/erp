@@ -5,15 +5,15 @@ import { zp, zq } from '@/shared/schema/index.ts'
 // ─── Enums ───
 
 export const MovementTypeEnum = z.enum([
-	'receiving',
+	'purchase_receipt',
 	'transfer_in',
 	'transfer_out',
 	'production_in',
 	'production_out',
-	'sale',
+	'sales',
 	'adjustment_in',
 	'adjustment_out',
-	'opname',
+	'return_in',
 ])
 export type MovementTypeEnum = z.infer<typeof MovementTypeEnum>
 

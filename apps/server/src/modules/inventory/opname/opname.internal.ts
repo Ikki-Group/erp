@@ -17,9 +17,9 @@ export const OpnameError = {
 			code: 'OPNAME_NOT_DRAFT',
 			context: { id },
 		}),
-	alreadyApproved: (id: number) =>
-		new BadRequestError('Opname has already been approved', {
-			code: 'OPNAME_ALREADY_APPROVED',
+	alreadyCompleted: (id: number) =>
+		new BadRequestError('Opname has already been completed', {
+			code: 'OPNAME_ALREADY_COMPLETED',
 			context: { id },
 		}),
 	noMaterialsAtLocation: (locationId: number) =>

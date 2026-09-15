@@ -15,6 +15,20 @@
       "when": 1788627155581,
       "tag": "0001_optimal_mesmero",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789339281604,
+      "tag": "0002_giant_miracleman",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789436223062,
+      "tag": "0003_past_wallow",
+      "breakpoints": true
     }
   ]
 }

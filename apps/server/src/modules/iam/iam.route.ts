@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -43,7 +44,7 @@ export function createIamRoute(
 		})
 		.post(
 			'/role/create',
-			async ({ body, auth }) => res.created(await roleService.handleCreate(body, auth.userId)),
+			async ({ body, auth }) => res.created(await roleService.handleCreate(body, actorOf(auth))),
 			{
 				body: RoleCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -52,7 +53,7 @@ export function createIamRoute(
 		)
 		.put(
 			'/role/update',
-			async ({ body, auth }) => res.ok(await roleService.handleUpdate(body, auth.userId)),
+			async ({ body, auth }) => res.ok(await roleService.handleUpdate(body, actorOf(auth))),
 			{
 				body: RoleUpdateDto,
 				response: zRes.ok(EntityRefDto),
@@ -61,7 +62,7 @@ export function createIamRoute(
 		)
 		.delete(
 			'/role/remove',
-			async ({ query, auth }) => res.ok(await roleService.handleDelete(query.id, auth.userId)),
+			async ({ query, auth }) => res.ok(await roleService.handleDelete(query.id, actorOf(auth))),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
@@ -88,7 +89,7 @@ export function createIamRoute(
 		)
 		.post(
 			'/user/create',
-			async ({ body, auth }) => res.created(await userService.handleCreate(body, auth.userId)),
+			async ({ body, auth }) => res.created(await userService.handleCreate(body, actorOf(auth))),
 			{
 				body: UserCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -97,7 +98,7 @@ export function createIamRoute(
 		)
 		.put(
 			'/user/update',
-			async ({ body, auth }) => res.ok(await userService.handleUpdate(body, auth.userId)),
+			async ({ body, auth }) => res.ok(await userService.handleUpdate(body, actorOf(auth))),
 			{
 				body: UserUpdateDto,
 				response: zRes.ok(EntityRefDto),
@@ -106,7 +107,8 @@ export function createIamRoute(
 		)
 		.delete(
 			'/user/deactivate',
-			async ({ query, auth }) => res.ok(await userService.handleDeactivate(query.id, auth.userId)),
+			async ({ query, auth }) =>
+				res.ok(await userService.handleDeactivate(query.id, actorOf(auth))),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
@@ -125,7 +127,7 @@ export function createIamRoute(
 		.post(
 			'/assignment/assign',
 			async ({ body, auth }) =>
-				res.created(await assignmentService.handleAssign(body, auth.userId)),
+				res.created(await assignmentService.handleAssign(body, actorOf(auth))),
 			{
 				body: AssignmentCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -134,7 +136,7 @@ export function createIamRoute(
 		)
 		.delete(
 			'/assignment/remove',
-			async ({ body, auth }) => res.ok(await assignmentService.handleRemove(body, auth.userId)),
+			async ({ body, auth }) => res.ok(await assignmentService.handleRemove(body, actorOf(auth))),
 			{
 				body: AssignmentRemoveDto,
 				response: zRes.ok(EntityRefDto),

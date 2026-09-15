@@ -1,10 +1,15 @@
-import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
 import { requirePermission } from '@/shared/auth/permission.ts'
+import { Money } from '@/shared/domain/money.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
-import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
 import type { LocationService } from '@/modules/location/location.service.ts'
@@ -28,6 +33,8 @@ export class ShiftService {
 		private readonly repo: IShiftRepo,
 		cacheClient: CacheClient,
 		private readonly locationService: LocationService,
+		private readonly uow: UnitOfWork,
+		private readonly audit: AuditPort,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'pos-shift')
 	}
@@ -43,7 +50,7 @@ export class ShiftService {
 
 	// ─── Handlers ───
 
-	async handleOpen(data: ShiftOpenDto, actorId: ActorId): Promise<EntityRef> {
+	async handleOpen(data: ShiftOpenDto, actor: Actor): Promise<EntityRef> {
 		// 1. Validate location is store type
 		const location = await this.locationService.handleGetById(data.locationId)
 		if (location.type !== 'store') {
@@ -51,40 +58,45 @@ export class ShiftService {
 		}
 
 		// 2. Check no existing open shift for this user at this location
-		const existing = await this.repo.findActive(actorId, data.locationId)
+		const existing = await this.repo.findActive(actor.id, data.locationId)
 		if (existing) {
-			throw ShiftError.alreadyOpen(actorId, data.locationId)
+			throw ShiftError.alreadyOpen(actor.id, data.locationId)
 		}
 
-		// 3. Insert shift
-		const result = await this.repo.insert({
-			locationId: data.locationId,
-			userId: actorId,
-			status: 'open',
-			openingCash: String(data.openingCash),
-		})
-		if (!result) throw ShiftError.openFailed()
+		// 3. Insert shift and audit atomically
+		const result = await this.uow.run(async (tx) => {
+			const written = await this.repo.insert(
+				{
+					locationId: data.locationId,
+					userId: actor.id,
+					status: 'open',
+					openingCash: String(data.openingCash),
+				},
+				tx,
+			)
+			if (!written) throw ShiftError.openFailed()
 
-		// 4. Invalidate cache
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'pos-shift',
+					entity: 'cashier_shift',
+					entityId: written.id,
+					action: 'create',
+					summary: `Opened shift at location ${data.locationId} with opening cash ${data.openingCash}`,
+					newValues: { locationId: data.locationId, openingCash: data.openingCash },
+				}),
+				tx,
+			)
+			return written
+		})
+
+		// 4. Invalidate cache after commit
 		await this.cache.invalidateStandard()
-
-		// 5. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			locationId: data.locationId,
-			module: 'pos-shift',
-			entity: 'cashier_shift',
-			entityId: result.id,
-			action: 'create',
-			summary: `Opened shift at location ${data.locationId} with opening cash ${data.openingCash}`,
-			newValues: { locationId: data.locationId, openingCash: data.openingCash },
-		})
-
 		return result
 	}
 
 	async handleClose(data: ShiftCloseDto, auth: AuthContext): Promise<EntityRef> {
+		const actor = actorOf(auth)
 		// 1. Find shift, assert found and open
 		const shift = assertFound(await this.repo.findById(data.shiftId), () =>
 			ShiftError.notFound(data.shiftId),
@@ -95,45 +107,54 @@ export class ShiftService {
 
 		// 2. Check ownership — own shift or requires close-other permission
 		if (shift.userId !== auth.userId) {
-			requirePermission(auth, 'pos:shift:close-other')
+			requirePermission(auth, 'shift.close-other')
 		}
 
-		// 3. Calculate expected cash
-		const cashPayments = await this.repo.sumCashPayments(data.shiftId)
-		const expectedCash = Number(shift.openingCash) + cashPayments
+		// 3. Update shift and audit atomically
+		const result = await this.uow.run(async (tx) => {
+			const current = assertFound(await this.repo.findById(data.shiftId, tx), () =>
+				ShiftError.notFound(data.shiftId),
+			)
+			if (current.status !== 'open') throw ShiftError.notOpen(data.shiftId)
 
-		// 4. Update shift
-		const result = await this.repo.update(data.shiftId, {
-			status: 'closed',
-			closedAt: new Date(),
-			closingCash: String(data.closingCash),
-			expectedCash: String(expectedCash),
-			notes: data.notes ?? null,
+			const cashPayments = await this.repo.sumCashPayments(data.shiftId, tx)
+			const expectedCash = Money.of(current.openingCash).add(Money.of(cashPayments))
+			const closingCash = Money.of(String(data.closingCash))
+			const written = await this.repo.update(
+				data.shiftId,
+				{
+					status: 'closed',
+					closedAt: new Date(),
+					closingCash: closingCash.toAmount(),
+					expectedCash: expectedCash.toAmount(),
+					notes: data.notes ?? null,
+				},
+				tx,
+			)
+			if (!written) throw ShiftError.closeFailed(data.shiftId)
+
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'pos-shift',
+					entity: 'cashier_shift',
+					entityId: data.shiftId,
+					action: 'update',
+					summary: `Closed shift #${data.shiftId} — closing: ${closingCash.toAmount()}, expected: ${expectedCash.toAmount()}`,
+					oldValues: { status: 'open' },
+					newValues: {
+						status: 'closed',
+						closingCash: closingCash.toAmount(),
+						expectedCash: expectedCash.toAmount(),
+						variance: closingCash.sub(expectedCash).toAmount(),
+					},
+				}),
+				tx,
+			)
+			return written
 		})
-		if (!result) throw ShiftError.closeFailed(data.shiftId)
 
-		// 5. Invalidate cache
+		// 4. Invalidate cache after commit
 		await this.cache.invalidateStandard(data.shiftId)
-
-		// 6. Audit log
-		auditLog.record({
-			userId: auth.userId,
-			userName: '',
-			locationId: shift.locationId,
-			module: 'pos-shift',
-			entity: 'cashier_shift',
-			entityId: data.shiftId,
-			action: 'update',
-			summary: `Closed shift #${data.shiftId} — closing: ${data.closingCash}, expected: ${expectedCash}`,
-			oldValues: { status: 'open' },
-			newValues: {
-				status: 'closed',
-				closingCash: data.closingCash,
-				expectedCash,
-				variance: data.closingCash - expectedCash,
-			},
-		})
-
 		return result
 	}
 

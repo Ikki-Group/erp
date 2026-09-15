@@ -19,6 +19,7 @@ export const locationModule: ModuleDescriptor = {
 		const api: LocationApi = {
 			service,
 			getById: service.getById.bind(service),
+			getByIds: service.getByIds.bind(service),
 			getAll: service.getAll.bind(service),
 			handleGetById: service.handleGetById.bind(service),
 			handleList: service.handleList.bind(service),

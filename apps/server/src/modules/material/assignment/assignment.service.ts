@@ -1,10 +1,13 @@
-import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate } from '@/shared/audit/stamp.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
 import { ConflictError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
-import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { LocationService } from '@/modules/location/location.service.ts'
 
@@ -31,6 +34,11 @@ const AssignmentError = {
 
 // ─── Service ───
 
+export interface AssignmentServiceDeps {
+	uow: UnitOfWork
+	audit: AuditPort
+}
+
 export class AssignmentService {
 	private readonly cache: CacheService
 
@@ -39,6 +47,7 @@ export class AssignmentService {
 		cacheClient: CacheClient,
 		private readonly materialService: MaterialService,
 		private readonly locationService: LocationService,
+		private readonly deps: AssignmentServiceDeps,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'material-assignment')
 	}
@@ -61,70 +70,77 @@ export class AssignmentService {
 
 	// ─── Handlers ───
 
-	async handleAssign(data: MaterialAssignDto, actorId: ActorId): Promise<EntityRef> {
+	async handleAssign(data: MaterialAssignDto, actor: Actor): Promise<EntityRef> {
 		// 1. Validate material exists
 		await this.materialService.handleGetById(data.materialId)
 
 		// 2. Validate location exists
 		await this.locationService.handleGetById(data.locationId)
 
-		// 3. Check not already assigned
-		const existing = await this.repo.findOne(data.materialId, data.locationId)
-		if (existing) {
-			throw AssignmentError.alreadyAssigned(data.materialId, data.locationId)
-		}
+		const result = await this.deps.uow.run(async (tx) => {
+			// 3. Check not already assigned
+			const existing = await this.repo.findOne(data.materialId, data.locationId, tx)
+			if (existing) {
+				throw AssignmentError.alreadyAssigned(data.materialId, data.locationId)
+			}
 
-		// 4. Insert
-		const result = await this.repo.insert({
-			materialId: data.materialId,
-			locationId: data.locationId,
-			...stampCreate(actorId),
+			// 4. Insert
+			const written = await this.repo.insert(
+				{
+					materialId: data.materialId,
+					locationId: data.locationId,
+					...stampCreate(actor.id),
+				},
+				tx,
+			)
+			if (!written) throw AssignmentError.assignFailed()
+
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'material',
+					entity: 'material_location',
+					entityId: written.id,
+					action: 'create',
+					summary: `Assigned material #${data.materialId} to location #${data.locationId}`,
+					newValues: { materialId: data.materialId, locationId: data.locationId },
+				}),
+				tx,
+			)
+			return written
 		})
-		if (!result) throw AssignmentError.assignFailed()
 
-		// 5. Invalidate cache
+		// 5. Invalidate cache after commit
 		await this.cache.invalidateStandard()
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'material',
-			entity: 'material_location',
-			entityId: result.id,
-			action: 'create',
-			summary: `Assigned material #${data.materialId} to location #${data.locationId}`,
-			newValues: { materialId: data.materialId, locationId: data.locationId },
-		})
-
 		return result
 	}
 
-	async handleUnassign(data: MaterialAssignDto, actorId: ActorId): Promise<EntityRef> {
-		// 1. Validate assignment exists
-		const existing = await this.repo.findOne(data.materialId, data.locationId)
-		if (!existing) {
-			throw AssignmentError.notAssigned(data.materialId, data.locationId)
-		}
+	async handleUnassign(data: MaterialAssignDto, actor: Actor): Promise<EntityRef> {
+		const result = await this.deps.uow.run(async (tx) => {
+			// 1. Validate assignment exists
+			const existing = await this.repo.findOne(data.materialId, data.locationId, tx)
+			if (!existing) {
+				throw AssignmentError.notAssigned(data.materialId, data.locationId)
+			}
 
-		// 2. Remove
-		const result = await this.repo.remove(data.materialId, data.locationId)
-		if (!result) throw AssignmentError.notAssigned(data.materialId, data.locationId)
+			// 2. Remove
+			const written = await this.repo.remove(data.materialId, data.locationId, tx)
+			if (!written) throw AssignmentError.notAssigned(data.materialId, data.locationId)
 
-		// 3. Invalidate cache
-		await this.cache.invalidateStandard()
-
-		// 4. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'material',
-			entity: 'material_location',
-			entityId: existing.id,
-			action: 'delete',
-			summary: `Unassigned material #${data.materialId} from location #${data.locationId}`,
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'material',
+					entity: 'material_location',
+					entityId: existing.id,
+					action: 'delete',
+					summary: `Unassigned material #${data.materialId} from location #${data.locationId}`,
+				}),
+				tx,
+			)
+			return written
 		})
 
+		// 3. Invalidate cache after commit
+		await this.cache.invalidateStandard()
 		return result
 	}
 }

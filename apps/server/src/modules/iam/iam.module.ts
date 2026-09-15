@@ -1,7 +1,8 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
-import { cache } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { LocationApi } from '@/modules/location/index.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
@@ -25,6 +26,8 @@ function isLocationApi(api: Record<string, unknown> | undefined): api is Locatio
 
 interface IamModuleDeps {
 	locationService: LocationService
+	uow: UnitOfWork
+	audit: AuditPort
 }
 
 // ─── Module Factory ───
@@ -37,10 +40,18 @@ function createIamModule(db: DbContext, cacheClient: CacheClient, deps: IamModul
 	const composedRepo = new ComposedRepo(db)
 
 	// Services
-	const roleService = new RoleService(roleRepo, cacheClient)
-	const userService = new UserService(userRepo, cacheClient)
+	const roleService = new RoleService(roleRepo, cacheClient, {
+		uow: deps.uow,
+		audit: deps.audit,
+	})
+	const userService = new UserService(userRepo, cacheClient, {
+		uow: deps.uow,
+		audit: deps.audit,
+	})
 	const assignmentService = new AssignmentService(assignmentRepo, {
 		locationService: deps.locationService,
+		uow: deps.uow,
+		audit: deps.audit,
 	})
 	const composedService = new ComposedService(composedRepo)
 
@@ -65,8 +76,10 @@ export const iamModule: ModuleDescriptor = {
 	dependsOn: ['location'],
 	create(ctx, deps) {
 		if (!isLocationApi(deps.location?.api)) throw new Error('Location API dependency is missing')
-		const built = createIamModule(ctx.db, cache, {
+		const built = createIamModule(ctx.db, ctx.cacheClient, {
 			locationService: deps.location.api.service,
+			uow: ctx.uow,
+			audit: ctx.auditPort,
 		})
 		return { route: built.route, api: built }
 	},

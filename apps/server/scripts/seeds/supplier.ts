@@ -34,16 +34,25 @@ const SUPPLIERS = [
 
 export async function seedSuppliers(sql: Sql): Promise<SupplierIds> {
 	console.log('  → Seeding suppliers...')
-	const rows = await Promise.all(
-		SUPPLIERS.map(async (s) => {
-			const [row] = await sql`
-				INSERT INTO suppliers (code, name, contact_person, phone, email, address, payment_terms, is_active)
-				VALUES (${s.code}, ${s.name}, ${s.contactPerson}, ${s.phone}, ${s.email}, ${s.address}, ${s.paymentTerms}, true)
-				RETURNING id, code
-			`
-			return row!
-		}),
-	)
+	const rows = await sql`
+		INSERT INTO suppliers (code, name, contact_person, phone, email, address, payment_terms, is_active)
+		VALUES ${sql(
+			SUPPLIERS.map(
+				(s) =>
+					[
+						s.code,
+						s.name,
+						s.contactPerson,
+						s.phone,
+						s.email,
+						s.address,
+						s.paymentTerms,
+						true,
+					] as const,
+			),
+		)}
+		RETURNING id, code
+	`
 
 	return {
 		ptKopiNusantara: rows.find((r) => r.code === 'SUP-001')!.id as number,

@@ -6,6 +6,13 @@ import { describe, expect, test, beforeAll } from 'bun:test'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test assertions on untyped JSON
 type Json = any
 
+type StockMovement = {
+	referenceId: number | null
+	type: string
+	direction: string
+	quantity: string
+}
+
 /**
  * Stock integration tests via the receiving flow.
  *
@@ -20,10 +27,6 @@ describe('inventory/stock', () => {
 
 	beforeAll(async () => {
 		cookie = await loginAs(SEED_USERS.owner.username)
-		await POST('/auth/switch-location', {
-			cookie,
-			body: { locationId: SEED_LOCATION_ID },
-		})
 	})
 
 	// ─── Receiving → Stock Movement ───
@@ -83,10 +86,8 @@ describe('inventory/stock', () => {
 		})
 		expect(movRes.status).toBe(200)
 		const movBody: Json = await movRes.json()
-		const ourMovement = movBody.data.find(
-			(m: { referenceId: number | null }) => m.referenceId === receivingId,
-		)
-		expect(ourMovement).toBeDefined()
+		const ourMovement = (movBody.data as StockMovement[]).find((m) => m.referenceId === receivingId)
+		if (!ourMovement) throw new Error('Expected receiving stock movement')
 		expect(ourMovement.direction).toBe('in')
 		expect(Number(ourMovement.quantity)).toBe(7)
 	})
@@ -159,25 +160,46 @@ describe('inventory/stock', () => {
 	// ─── Stock Movement Records ───
 
 	test('stock movements are recorded', async () => {
+		const createRes = await POST('/inventory/receiving/create', {
+			cookie,
+			body: {
+				locationId: SEED_LOCATION_ID,
+				supplierId: SEED_SUPPLIER_ID,
+				lines: [
+					{
+						materialId: SEED_MATERIAL_ID,
+						qty: '3.000000',
+						unitCost: '6000.0000',
+						uomId: SEED_UOM_ID,
+					},
+				],
+			},
+		})
+		const createBody: Json = await createRes.json()
+		const receivingId = createBody.data.id
+		const confirmRes = await POST('/inventory/receiving/confirm', {
+			cookie,
+			body: { receivingId },
+		})
+		expect(confirmRes.status).toBe(200)
+
 		const res = await GET('/inventory/stock/movements', {
 			cookie,
 			query: {
 				materialId: String(SEED_MATERIAL_ID),
 				locationId: String(SEED_LOCATION_ID),
+				type: 'purchase_receipt',
 				page: '1',
 				limit: '50',
 			},
 		})
 		expect(res.status).toBe(200)
 		const body: Json = await res.json()
-		expect(body.data.length).toBeGreaterThanOrEqual(1)
-
-		// All receiving movements should be inbound
-		const receivingMovements = body.data.filter((m: { type: string }) => m.type === 'receiving')
-		for (const m of receivingMovements) {
-			expect(m.direction).toBe('in')
-			expect(Number(m.quantity)).toBeGreaterThan(0)
-		}
+		const movement = (body.data as StockMovement[]).find((m) => m.referenceId === receivingId)
+		if (!movement) throw new Error('Expected receiving stock movement')
+		expect(movement.type).toBe('purchase_receipt')
+		expect(movement.direction).toBe('in')
+		expect(Number(movement.quantity)).toBe(3)
 	})
 
 	// ─── Read Endpoints ───

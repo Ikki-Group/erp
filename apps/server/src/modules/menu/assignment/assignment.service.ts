@@ -1,8 +1,11 @@
-import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
 import { BadRequestError } from '@/shared/errors/http-error.ts'
-import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { ItemService } from '../item/item.service.ts'
 import type { ModifierService } from '../modifier/modifier.service.ts'
@@ -29,13 +32,15 @@ export class AssignmentService {
 		cacheClient: CacheClient,
 		private readonly itemService: ItemService,
 		private readonly modifierService: ModifierService,
+		private readonly uow: UnitOfWork,
+		private readonly audit: AuditPort,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'menu-item-modifier')
 	}
 
 	// ─── Handlers ───
 
-	async handleSync(data: MenuItemModifierSyncDto, actorId: ActorId): Promise<EntityRef> {
+	async handleSync(data: MenuItemModifierSyncDto, actor: Actor): Promise<EntityRef> {
 		const { menuItemId, groups } = data
 
 		// 1. Validate menu item exists
@@ -49,26 +54,24 @@ export class AssignmentService {
 			}
 		}
 
-		// 3. Replace assignments in transaction
-		await this.repo.db.transaction(async (tx) => {
+		// 3. Replace assignments and audit in one transaction
+		await this.uow.run(async (tx) => {
 			await this.repo.replaceForItem(menuItemId, groups, tx)
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'menu',
+					entity: 'menu_item_modifier',
+					entityId: menuItemId,
+					action: 'update',
+					summary: `Synced ${groups.length} modifier group(s) to menu item "${item.name}"`,
+					newValues: { menuItemId, groupIds: groups.map((g) => g.groupId) },
+				}),
+				tx,
+			)
 		})
 
-		// 4. Invalidate cache (item detail)
+		// 4. Invalidate cache after commit
 		await this.cache.invalidateStandard(menuItemId)
-
-		// 5. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'menu',
-			entity: 'menu_item_modifier',
-			entityId: menuItemId,
-			action: 'update',
-			summary: `Synced ${groups.length} modifier group(s) to menu item "${item.name}"`,
-			newValues: { menuItemId, groupIds: groups.map((g) => g.groupId) },
-		})
-
 		return { id: menuItemId }
 	}
 }

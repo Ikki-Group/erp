@@ -1,7 +1,7 @@
 import { loginAs } from '../helpers/auth.ts'
 import { POST, GET, json } from '../helpers/request.ts'
 import type { Json } from '../helpers/request.ts'
-import { SEED_USERS, SEED_LOCATION_ID } from '../helpers/seed.ts'
+import { SEED_USERS } from '../helpers/seed.ts'
 import { describe, expect, test, beforeAll } from 'bun:test'
 
 /**
@@ -74,25 +74,6 @@ describe('auth', () => {
 			expect(body.data.user.username).toBe('owner')
 			expect(body.data.permissions).toBeInstanceOf(Array)
 			expect(body.data.isOwner).toBe(true)
-		})
-
-		test('switch location', async () => {
-			const res = await POST('/auth/switch-location', {
-				cookie,
-				body: { locationId: SEED_LOCATION_ID },
-			})
-			expect(res.status).toBe(200)
-
-			const body: Json = await json(res)
-			expect(body.data.activeLocation.id).toBe(SEED_LOCATION_ID)
-		})
-
-		test('switch to non-existent location returns error', async () => {
-			const res = await POST('/auth/switch-location', {
-				cookie,
-				body: { locationId: 99999 },
-			})
-			expect(res.status).toBeGreaterThanOrEqual(400)
 		})
 
 		test('logout clears session', async () => {

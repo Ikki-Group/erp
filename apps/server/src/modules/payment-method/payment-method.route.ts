@@ -2,6 +2,7 @@ import { Elysia } from 'elysia'
 import { z } from 'zod'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -39,7 +40,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.post(
 			'/create',
-			async ({ body, auth }) => res.created(await service.handleCreate(body, auth.userId)),
+			async ({ body, auth }) => res.created(await service.handleCreate(body, actorOf(auth))),
 			{
 				body: PaymentMethodCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -48,7 +49,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.put(
 			'/update',
-			async ({ body, auth }) => res.ok(await service.handleUpdate(body, auth.userId)),
+			async ({ body, auth }) => res.ok(await service.handleUpdate(body, actorOf(auth))),
 			{
 				body: PaymentMethodUpdateDto,
 				response: zRes.ok(EntityRefDto),
@@ -57,7 +58,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.delete(
 			'/remove',
-			async ({ query, auth }) => res.ok(await service.handleDelete(query.id, auth.userId)),
+			async ({ query, auth }) => res.ok(await service.handleDelete(query.id, actorOf(auth))),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
@@ -66,7 +67,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.post(
 			'/location/assign',
-			async ({ body, auth }) => res.ok(await service.handleAssign(body, auth.userId)),
+			async ({ body, auth }) => res.ok(await service.handleAssign(body, actorOf(auth))),
 			{
 				body: PaymentMethodLocationAssignDto,
 				response: zRes.ok(EntityRefDto),
@@ -75,7 +76,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.delete(
 			'/location/unassign',
-			async ({ body, auth }) => res.ok(await service.handleUnassign(body, auth.userId)),
+			async ({ body, auth }) => res.ok(await service.handleUnassign(body, actorOf(auth))),
 			{
 				body: PaymentMethodLocationAssignDto,
 				response: zRes.ok(EntityRefDto),

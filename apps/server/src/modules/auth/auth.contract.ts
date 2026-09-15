@@ -10,11 +10,6 @@ export const LoginDto = z.object({
 })
 export type LoginDto = z.infer<typeof LoginDto>
 
-export const SwitchLocationDto = z.object({
-	locationId: zp.id,
-})
-export type SwitchLocationDto = z.infer<typeof SwitchLocationDto>
-
 // ─── Response DTOs ───
 
 const LoginUserDto = z.object({
@@ -42,13 +37,11 @@ export type LoginResponseDto = z.infer<typeof LoginResponseDto>
 
 export const MeResponseDto = z.object({
 	user: LoginUserDto,
+	locations: z.array(LoginLocationDto),
 	activeLocation: LoginLocationDto.nullable(),
 	permissions: z.array(z.string()),
+	globalPermissions: z.array(z.string()),
+	access: z.record(z.string(), z.array(z.string())),
 	isOwner: zp.bool,
 })
 export type MeResponseDto = z.infer<typeof MeResponseDto>
-
-export const SwitchLocationResponseDto = z.object({
-	activeLocation: LoginLocationDto,
-})
-export type SwitchLocationResponseDto = z.infer<typeof SwitchLocationResponseDto>

@@ -1,0 +1,4 @@
+ALTER TABLE "stock_balances" DROP CONSTRAINT "stock_balances_qty_nonneg_chk";--> statement-breakpoint
+CREATE UNIQUE INDEX "cashier_shifts_user_location_open_uniq" ON "cashier_shifts" USING btree ("user_id","location_id") WHERE "cashier_shifts"."status" = 'open';--> statement-breakpoint
+CREATE UNIQUE INDEX "orders_table_open_uniq" ON "orders" USING btree ("table_id") WHERE "orders"."table_id" IS NOT NULL AND "orders"."status" = 'open';--> statement-breakpoint
+CREATE UNIQUE INDEX "stock_opnames_location_active_uniq" ON "stock_opnames" USING btree ("location_id") WHERE "stock_opnames"."status" = 'in_progress';

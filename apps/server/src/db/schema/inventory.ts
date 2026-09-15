@@ -52,7 +52,6 @@ export const stockBalances = pgTable(
 	},
 	(t) => [
 		uniqueIndex('stock_balances_material_location_uniq').on(t.materialId, t.locationId),
-		check('stock_balances_qty_nonneg_chk', sql`${t.quantity} >= 0`),
 		index('stock_balances_material_id_idx').on(t.materialId),
 		index('stock_balances_location_id_idx').on(t.locationId),
 	],
@@ -133,6 +132,7 @@ export const transferLines = pgTable(
 			.references(() => materials.id, { onDelete: 'restrict' }),
 		requestedQty: numeric('requested_qty', { precision: 18, scale: 6 }).notNull(),
 		shippedQty: numeric('shipped_qty', { precision: 18, scale: 6 }),
+		shippedCostPrice: numeric('shipped_cost_price', { precision: 18, scale: 6 }),
 		receivedQty: numeric('received_qty', { precision: 18, scale: 6 }),
 		uomId: integer('uom_id')
 			.notNull()
@@ -163,6 +163,9 @@ export const stockOpnames = pgTable(
 	},
 	(t) => [
 		uniqueIndex('stock_opnames_opname_no_uniq').on(t.opnameNo),
+		uniqueIndex('stock_opnames_location_active_uniq')
+			.on(t.locationId)
+			.where(sql`${t.status} = 'draft'`),
 		index('stock_opnames_location_id_idx').on(t.locationId),
 		index('stock_opnames_conducted_by_idx').on(t.conductedBy),
 	],

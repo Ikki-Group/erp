@@ -1,7 +1,5 @@
 import { Elysia } from 'elysia'
 
-import { cache } from '@/infra/cache/index.ts'
-import { sessionStore } from '@/infra/session/index.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 
 import { createAuthModule } from '@/modules/auth/index.ts'
@@ -18,43 +16,16 @@ import type { RecipeApi } from '@/modules/recipe/index.ts'
 import type { SupplierApi } from '@/modules/supplier/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
 
-function isRecipeApi(api: Record<string, unknown> | undefined): api is RecipeApi {
-	return Boolean(api && api.service && api.activeByMenuItem && api.linesByRecipe)
-}
-
-function isMenuApi(api: Record<string, unknown> | undefined): api is MenuApi {
-	return api !== undefined
-}
-
-function isPaymentMethodApi(api: Record<string, unknown> | undefined): api is PaymentMethodApi {
-	return Boolean(api && api.service && typeof api.service === 'object')
-}
-
-function isSupplierApi(api: Record<string, unknown> | undefined): api is SupplierApi {
-	return Boolean(api && api.service && typeof api.service === 'object')
-}
-
-function isMaterialApi(api: Record<string, unknown> | undefined): api is MaterialApi {
-	return Boolean(api && api.service && api.assignmentService)
-}
-function isIamApi(api: Record<string, unknown> | undefined): api is IamApi {
-	return Boolean(api && api.userRepo && api.assignmentService)
-}
-function isCompanyApi(api: Record<string, unknown> | undefined): api is CompanyApi {
-	if (!api || typeof api.taxRate !== 'object' || api.taxRate === null) return false
-	return 'getPercent' in api.taxRate && typeof api.taxRate.getPercent === 'function'
-}
-
-function isLocationApi(api: Record<string, unknown> | undefined): api is LocationApi {
-	const service = api?.service
-	if (!api || typeof service !== 'object' || service === null) return false
-	return 'getById' in service && 'handleGetById' in service && 'handleCreate' in service
-}
-
-function isUomApi(api: Record<string, unknown> | undefined): api is UomApi {
-	const service = api?.service
-	if (!api || typeof service !== 'object' || service === null) return false
-	return 'getAllConversions' in api && 'handleGetById' in service && 'handleCreate' in service
+function requireApi<T>(
+	deps: Record<string, { api?: Record<string, unknown> } | undefined>,
+	name: string,
+): T {
+	const api = deps[name]?.api
+	if (!api) throw new Error(`${name} API dependency is missing`)
+	// ModuleDescriptor APIs are dynamically keyed by module name; each caller supplies the
+	// concrete API type after the runtime presence check at this registry boundary.
+	// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+	return api as T
 }
 
 /**
@@ -77,64 +48,56 @@ export const legacyModule: ModuleDescriptor = {
 		'recipe',
 	],
 	create(ctx, deps) {
-		const locationApi = deps.location?.api
+		const locationApi = requireApi<LocationApi>(deps, 'location')
 		const locationRoute = deps.location?.route
-		if (!isLocationApi(locationApi) || !locationRoute)
-			throw new Error('Location API dependency is missing')
+		if (!locationRoute) throw new Error('Location route dependency is missing')
 		const location = { service: locationApi.service, route: locationRoute }
-		const uomApi = deps.uom?.api
-		if (!isUomApi(uomApi)) throw new Error('UoM API dependency is missing')
+		const uomApi = requireApi<UomApi>(deps, 'uom')
 		const uom = { service: uomApi.service }
-		const materialApi = deps.material?.api
-		if (!isMaterialApi(materialApi)) throw new Error('Material API dependency is missing')
-		const material = materialApi
-		const supplierApi = deps.supplier?.api
-		if (!isSupplierApi(supplierApi)) throw new Error('Supplier API dependency is missing')
-		const supplier = supplierApi
-		const paymentMethodApi = deps['payment-method']?.api
-		if (!isPaymentMethodApi(paymentMethodApi))
-			throw new Error('Payment method API dependency is missing')
-		const paymentMethod = paymentMethodApi
-		const menuApi = deps.menu?.api
-		if (!isMenuApi(menuApi)) throw new Error('Menu API dependency is missing')
-		const menu = menuApi
-		const inventory = createInventoryModule(ctx.db, cache, {
+		const material = requireApi<MaterialApi>(deps, 'material')
+		const supplier = requireApi<SupplierApi>(deps, 'supplier')
+		const paymentMethod = requireApi<PaymentMethodApi>(deps, 'payment-method')
+		const menu = requireApi<MenuApi>(deps, 'menu')
+		const inventory = createInventoryModule(ctx.db, ctx.cacheClient, {
+			uow: ctx.uow,
+			audit: ctx.auditPort,
+			events: ctx.events,
 			assignmentService: material.assignmentService,
 			locationService: location.service,
 			materialService: material.service,
 			supplierService: supplier.service,
 			uomService: uom.service,
 		})
-		const recipeApi = deps.recipe?.api
-		if (!isRecipeApi(recipeApi)) throw new Error('Recipe API dependency is missing')
-		const recipe = recipeApi
-		const companyApi = deps.company?.api
-		if (!isCompanyApi(companyApi)) throw new Error('Company API dependency is missing')
-		const pos = createPosModule(ctx.db, cache, {
+		const recipe = requireApi<RecipeApi>(deps, 'recipe')
+		const companyApi = requireApi<CompanyApi>(deps, 'company')
+		const pos = createPosModule(ctx.db, ctx.cacheClient, {
+			uow: ctx.uow,
+			audit: ctx.auditPort,
+			events: ctx.events,
 			locationService: location.service,
 			paymentMethodService: paymentMethod.service,
 			companyApi,
-			itemService: menu.itemService,
-			composedService: menu.composedService,
+			menuApi: menu,
 			recipeService: recipe.service,
-			stockService: inventory.stockService,
+			inventoryApi: inventory.api.stock,
 			uomService: uom.service,
 			materialService: material.service,
 		})
-		const production = createProductionModule(ctx.db, cache, {
-			stockService: inventory.stockService,
+		const production = createProductionModule(ctx.db, ctx.cacheClient, {
+			uow: ctx.uow,
+			audit: ctx.auditPort,
+			events: ctx.events,
+			inventoryApi: inventory.api.stock,
 			locationService: location.service,
 			materialService: material.service,
 			uomService: uom.service,
 		})
-		const iamApi = deps.iam?.api
-		if (!isIamApi(iamApi)) throw new Error('IAM API dependency is missing')
-		const iam = iamApi
+		const iam = requireApi<IamApi>(deps, 'iam')
 		const auth = createAuthModule({
 			userRepo: iam.userRepo,
 			assignmentService: iam.assignmentService,
 			locationService: location.service,
-			sessionStore,
+			sessionStore: ctx.sessionStore,
 		})
 
 		const route = new Elysia({ name: 'legacy-module-routes' })

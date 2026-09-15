@@ -1,23 +1,23 @@
-import { Decimal, toDecimal } from '@/shared/utils/money.ts'
+import { Qty } from '@/shared/domain/qty.ts'
 
 import type { ConversionStepDto, UomConversionDto } from '../uom.contract.ts'
 import { MAX_CONVERSION_HOPS } from '../uom.internal.ts'
 
 interface ConversionEdge {
 	toUomId: number
-	factor: string
+	factor: Qty
 	direction: 'forward' | 'inverse'
 }
 
 export interface ConversionResult {
-	result: string
+	result: Qty
 	path: ConversionStepDto[]
 }
 
 export function resolveConversion(
 	fromUomId: number,
 	toUomId: number,
-	quantity: string,
+	quantity: Qty,
 	conversions: UomConversionDto[],
 ): ConversionResult | null {
 	if (fromUomId === toUomId) return { result: quantity, path: [] }
@@ -26,20 +26,19 @@ export function resolveConversion(
 	const path = bfs(graph, fromUomId, toUomId)
 	if (!path) return null
 
-	let accumulated = toDecimal(quantity)
+	let accumulated = quantity
 	const steps: ConversionStepDto[] = []
 	for (const edge of path) {
-		const factor = toDecimal(edge.factor)
-		if (edge.direction === 'forward') accumulated = accumulated.mul(factor)
-		else accumulated = accumulated.div(factor)
+		accumulated =
+			edge.direction === 'forward' ? accumulated.mul(edge.factor) : accumulated.div(edge.factor)
 		steps.push({
 			fromUomId: edge.direction === 'forward' ? edge.fromUomId : edge.toUomId,
 			toUomId: edge.direction === 'forward' ? edge.toUomId : edge.fromUomId,
-			factor: edge.factor,
+			factor: edge.factor.toNumeric(),
 		})
 	}
 
-	return { result: formatDecimal(accumulated), path: steps }
+	return { result: accumulated, path: steps }
 }
 
 interface PathEdge extends ConversionEdge {
@@ -49,16 +48,17 @@ interface PathEdge extends ConversionEdge {
 function buildGraph(conversions: UomConversionDto[]): Map<number, ConversionEdge[]> {
 	const graph = new Map<number, ConversionEdge[]>()
 	for (const conv of conversions) {
+		const factor = Qty.of(conv.factor)
 		if (!graph.has(conv.fromUomId)) graph.set(conv.fromUomId, [])
 		graph.get(conv.fromUomId)!.push({
 			toUomId: conv.toUomId,
-			factor: conv.factor,
+			factor,
 			direction: 'forward',
 		})
 		if (!graph.has(conv.toUomId)) graph.set(conv.toUomId, [])
 		graph.get(conv.toUomId)!.push({
 			toUomId: conv.fromUomId,
-			factor: conv.factor,
+			factor,
 			direction: 'inverse',
 		})
 	}
@@ -82,8 +82,4 @@ function bfs(graph: Map<number, ConversionEdge[]>, start: number, end: number): 
 		}
 	}
 	return null
-}
-
-function formatDecimal(value: Decimal): string {
-	return value.toDecimalPlaces(6).toNumber().toString()
 }

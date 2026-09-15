@@ -160,6 +160,6 @@ export type OrderFilterDto = z.infer<typeof OrderFilterDto>
 export const OrderVoucherApplyResultDto = z.object({
 	applied: zp.bool,
 	reason: zp.str.optional(),
-	discountAmount: zp.num.optional(),
+	discountAmount: zp.str.optional(),
 })
 export type OrderVoucherApplyResultDto = z.infer<typeof OrderVoucherApplyResultDto>

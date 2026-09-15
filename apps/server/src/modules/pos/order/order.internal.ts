@@ -18,12 +18,12 @@ export const OrderError = {
 			code: 'NO_ACTIVE_SHIFT',
 			context: { userId, locationId },
 		}),
-	notFullyPaid: (orderId: number, remaining: number) =>
+	notFullyPaid: (orderId: number, remaining: string) =>
 		new BadRequestError('Order is not fully paid', {
 			code: 'ORDER_NOT_FULLY_PAID',
 			context: { orderId, remaining },
 		}),
-	paymentExceedsTotal: (orderId: number, excess: number) =>
+	paymentExceedsTotal: (orderId: number, excess: string) =>
 		new BadRequestError('Payment amount exceeds remaining balance', {
 			code: 'PAYMENT_EXCEEDS_TOTAL',
 			context: { orderId, excess },

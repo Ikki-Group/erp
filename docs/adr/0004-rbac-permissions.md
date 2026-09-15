@@ -24,22 +24,23 @@ Standard CRUD: `read`, `create`, `update`, `delete`, plus `manage` (shorthand fo
 
 **Domain verbs are first-class permissions** (not folded into CRUD), because they are real authorization decisions:
 
-| Slice | Domain-verb permissions |
-| --- | --- |
-| order | `order.void`, `order.void-line` |
-| payment | `payment.create` |
-| shift | `shift.open`, `shift.close`, `shift.close-other` |
-| discount | `discount.apply` |
-| voucher | `voucher.manage` |
-| table | `table.manage` |
-| transfer | `transfer.ship`, `transfer.receive`, `transfer.cancel` |
-| opname | `opname.complete` |
-| stock | `stock.adjust` |
-| receiving | `receiving.create` |
+| Slice     | Domain-verb permissions                                |
+| --------- | ------------------------------------------------------ |
+| order     | `order.void`, `order.void-line`                        |
+| payment   | `payment.create`                                       |
+| shift     | `shift.open`, `shift.close`, `shift.close-other`       |
+| discount  | `discount.apply`                                       |
+| voucher   | `voucher.manage`                                       |
+| table     | `table.manage`                                         |
+| transfer  | `transfer.ship`, `transfer.receive`, `transfer.cancel` |
+| opname    | `opname.complete`                                      |
+| stock     | `stock.adjust`                                         |
+| receiving | `receiving.create`                                     |
 
 ### 3. Enforcement
 
-- Every route declares a `permission` via the `rbac` macro. No `permission` = a bug (closes the live P1). The three public routes (login/health/etc.) are the only exceptions.
+- Every route declares a `permission` via the `rbac` macro. No `permission` = a bug (closes the live P1). Public `login` and `health` routes are the only unauthenticated exceptions.
+- Authentication utility routes (`auth.me` and `auth.logout`) still declare permissions, but those permissions are session-level and do not depend on an active business location. They are granted to every authenticated session by the permission helper.
 - Failure → `ForbiddenError` (403). Enforcement is mandatory, not advisory.
 
 ### 4. Authorization logic
@@ -51,7 +52,7 @@ On each request: resolve user from session → resolve active location → colle
 - **No record-level restrictions** — holding a permission grants it across the entire active-location context.
 - Custom roles: any combination of catalog permissions, assigned per-location or global.
 
-> How the *active location* is resolved belongs to the auth/iam grilling. **Resolved by ADR-0007:** the active location comes from the **request** (a `locationId` header), validated per request — not from a server-stored session field. This ADR fixes the permission vocabulary, enforcement, and authorization rule.
+> How the _active location_ is resolved belongs to the auth/iam grilling. **Resolved by ADR-0007:** the active location comes from the **request** (a `locationId` header), validated per request — not from a server-stored session field. This ADR fixes the permission vocabulary, enforcement, and authorization rule.
 
 ### 5. Catalog scope
 

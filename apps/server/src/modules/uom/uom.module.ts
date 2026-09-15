@@ -1,4 +1,3 @@
-import { cache } from '@/infra/cache/index.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 
 import { resolveConversion } from './domain/uom.resolver.ts'
@@ -26,7 +25,10 @@ export const uomModule: ModuleDescriptor = {
 	layer: 1,
 	dependsOn: [],
 	create(ctx) {
-		const service = new UomService(new UomRepo(ctx.db), cache)
+		const service = new UomService(new UomRepo(ctx.db), ctx.cacheClient, {
+			uow: ctx.uow,
+			audit: ctx.auditPort,
+		})
 		const api: UomApi = {
 			service,
 			getById: service.getById.bind(service),

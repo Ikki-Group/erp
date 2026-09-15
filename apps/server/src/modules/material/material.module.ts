@@ -1,7 +1,8 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
-import { cache } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { LocationApi } from '@/modules/location/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
@@ -17,21 +18,28 @@ import { MaterialService } from './material.service.ts'
 interface MaterialModuleDeps {
 	uomService: UomApi['service']
 	locationService: LocationApi['service']
+	uow: UnitOfWork
+	audit: AuditPort
 }
 
 function createMaterialModule(db: DbContext, cacheClient: CacheClient, deps: MaterialModuleDeps) {
-	const categoryService = new CategoryService(new CategoryRepo(db), cacheClient)
+	const categoryService = new CategoryService(new CategoryRepo(db), cacheClient, {
+		uow: deps.uow,
+		audit: deps.audit,
+	})
 	const materialService = new MaterialService(
 		new MaterialRepo(db),
 		cacheClient,
 		deps.uomService,
 		categoryService,
+		{ uow: deps.uow, audit: deps.audit },
 	)
 	const assignmentService = new AssignmentService(
 		new AssignmentRepo(db),
 		cacheClient,
 		materialService,
 		deps.locationService,
+		{ uow: deps.uow, audit: deps.audit },
 	)
 	const route = createMaterialRoute(materialService, categoryService, assignmentService)
 	return { route, service: materialService, categoryService, assignmentService }
@@ -69,9 +77,11 @@ export const materialModule: ModuleDescriptor = {
 		if (!isUomApi(deps.uom?.api) || !isLocationApi(deps.location?.api)) {
 			throw new Error('Material dependencies are missing')
 		}
-		const built = createMaterialModule(ctx.db, cache, {
+		const built = createMaterialModule(ctx.db, ctx.cacheClient, {
 			uomService: deps.uom.api.service,
 			locationService: deps.location.api.service,
+			uow: ctx.uow,
+			audit: ctx.auditPort,
 		})
 		const api: MaterialApi = {
 			service: built.service,

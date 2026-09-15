@@ -1,5 +1,7 @@
+import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/client.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import type { SessionStore } from '@/shared/auth/session.port.ts'
 import type { CachePort } from '@/shared/cache/cache.port.ts'
 import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -10,6 +12,8 @@ export interface ModuleContext {
 	db: DbContext
 	uow: UnitOfWork
 	cache: CachePort
+	cacheClient: CacheClient
+	sessionStore: SessionStore
 	events: EventBusPort
 	auditPort: AuditPort
 }

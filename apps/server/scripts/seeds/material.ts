@@ -157,16 +157,15 @@ export async function seedMaterials(
 		},
 	]
 
-	const rows = await Promise.all(
-		MATERIALS.map(async (m) => {
-			const [row] = await sql`
-				INSERT INTO materials (code, name, type, category_id, base_uom_id, min_stock, is_active)
-				VALUES (${m.code}, ${m.name}, ${m.type}, ${m.categoryId}, ${m.baseUomId}, ${m.minStock}, true)
-				RETURNING id, code
-			`
-			return row!
-		}),
-	)
+	const rows = await sql`
+		INSERT INTO materials (code, name, type, category_id, base_uom_id, min_stock, is_active)
+		VALUES ${sql(
+			MATERIALS.map(
+				(m) => [m.code, m.name, m.type, m.categoryId, m.baseUomId, m.minStock, true] as const,
+			),
+		)}
+		RETURNING id, code
+	`
 
 	return {
 		coffeeBeans: rows.find((r) => r.code === 'MAT-001')!.id as number,

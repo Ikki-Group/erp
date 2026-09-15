@@ -1,18 +1,22 @@
 import { stockBalances } from '@/db/schema/inventory.ts'
 
-import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { eq, and } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import { Money } from '@/shared/domain/money.ts'
+import { Qty } from '@/shared/domain/qty.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
-import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
-import { roundCost, safeDivide, toDecimal } from '@/shared/utils/money.ts'
 
 import type { MaterialService } from '@/modules/material/material.service.ts'
-import type { ItemService } from '@/modules/menu/item/item.service.ts'
+import type { MenuItemDto } from '@/modules/menu/item/item.contract.ts'
 import { resolveConversion } from '@/modules/uom/domain/uom.resolver.ts'
 import type { UomService } from '@/modules/uom/uom.service.ts'
 
@@ -38,7 +42,9 @@ export class RecipeService {
 		cacheClient: CacheClient,
 		private readonly materialService: MaterialService,
 		private readonly uomService: UomService,
-		private readonly itemService: ItemService,
+		private readonly itemGetById: (id: number) => Promise<MenuItemDto>,
+		private readonly uow: UnitOfWork,
+		private readonly audit: AuditPort,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'recipe')
 	}
@@ -89,63 +95,66 @@ export class RecipeService {
 		return this.repo.findPage(filter)
 	}
 
-	async handleCreate(data: RecipeCreateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: RecipeCreateDto, actor: Actor): Promise<EntityRef> {
 		// 1. Validate menu item exists
-		await this.itemService.handleGetById(data.menuItemId).catch(() => {
+		await this.itemGetById(data.menuItemId).catch(() => {
 			throw RecipeError.menuItemNotFound(data.menuItemId)
 		})
 
 		// 2. Validate lines
 		await this.validateLines(data.lines)
 
-		// 3. Deactivate existing active recipe for this menu item
-		await this.repo.deactivateByMenuItemId(data.menuItemId)
+		// 3. Write recipe, lines, and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			await this.repo.deactivateByMenuItemId(data.menuItemId, tx)
 
-		// 4. Insert recipe
-		const result = await this.repo.insert({
-			menuItemId: data.menuItemId,
-			name: data.name,
-			yieldQty: data.yieldQty,
-			isActive: true,
-			...stampCreate(actorId),
+			const written = await this.repo.insert(
+				{
+					menuItemId: data.menuItemId,
+					name: data.name,
+					yieldQty: data.yieldQty,
+					isActive: true,
+					...stampCreate(actor.id),
+				},
+				tx,
+			)
+			if (!written) throw RecipeError.createFailed()
+
+			await this.repo.replaceLines(
+				written.id,
+				data.lines.map((line) => ({
+					materialId: line.materialId,
+					quantity: line.quantity,
+					uomId: line.uomId,
+				})),
+				tx,
+			)
+
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'recipe',
+					entity: 'recipe',
+					entityId: written.id,
+					action: 'create',
+					summary: `Created recipe "${data.name}" for menu item #${data.menuItemId}`,
+					newValues: {
+						name: data.name,
+						menuItemId: data.menuItemId,
+						yieldQty: data.yieldQty,
+						linesCount: data.lines.length,
+					},
+				}),
+				tx,
+			)
+			return written
 		})
-		if (!result) throw RecipeError.createFailed()
 
-		// 5. Insert lines
-		await this.repo.replaceLines(
-			result.id,
-			data.lines.map((line) => ({
-				materialId: line.materialId,
-				quantity: line.quantity,
-				uomId: line.uomId,
-			})),
-		)
-
-		// 6. Invalidate cache
 		await this.cache.invalidateStandard()
 		await this.invalidateMenuItemCache(data.menuItemId)
-
-		// 7. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'recipe',
-			entity: 'recipe',
-			entityId: result.id,
-			action: 'create',
-			summary: `Created recipe "${data.name}" for menu item #${data.menuItemId}`,
-			newValues: {
-				name: data.name,
-				menuItemId: data.menuItemId,
-				yieldQty: data.yieldQty,
-				linesCount: data.lines.length,
-			},
-		})
-
 		return result
 	}
 
-	async handleUpdate(data: RecipeUpdateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleUpdate(data: RecipeUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
 
 		// 1. Verify recipe exists
@@ -154,70 +163,76 @@ export class RecipeService {
 		// 2. Validate lines
 		await this.validateLines(updateData.lines)
 
-		// 3. Update recipe header
-		const result = await this.repo.update(id, {
-			name: updateData.name,
-			yieldQty: updateData.yieldQty,
-			...stampUpdate(actorId),
+		// 3. Update recipe, lines, and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			const written = await this.repo.update(
+				id,
+				{
+					name: updateData.name,
+					yieldQty: updateData.yieldQty,
+					...stampUpdate(actor.id),
+				},
+				tx,
+			)
+			if (!written) throw RecipeError.updateFailed(id)
+
+			await this.repo.replaceLines(
+				id,
+				updateData.lines.map((line) => ({
+					materialId: line.materialId,
+					quantity: line.quantity,
+					uomId: line.uomId,
+				})),
+				tx,
+			)
+
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'recipe',
+					entity: 'recipe',
+					entityId: id,
+					action: 'update',
+					summary: `Updated recipe "${updateData.name}"`,
+					newValues: {
+						name: updateData.name,
+						yieldQty: updateData.yieldQty,
+						linesCount: updateData.lines.length,
+					},
+				}),
+				tx,
+			)
+			return written
 		})
-		if (!result) throw RecipeError.updateFailed(id)
 
-		// 4. Replace lines
-		await this.repo.replaceLines(
-			id,
-			updateData.lines.map((line) => ({
-				materialId: line.materialId,
-				quantity: line.quantity,
-				uomId: line.uomId,
-			})),
-		)
-
-		// 5. Invalidate cache
 		await this.cache.invalidateStandard(id)
 		await this.invalidateMenuItemCache(existing.menuItemId)
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'recipe',
-			entity: 'recipe',
-			entityId: id,
-			action: 'update',
-			summary: `Updated recipe "${updateData.name}"`,
-			newValues: {
-				name: updateData.name,
-				yieldQty: updateData.yieldQty,
-				linesCount: updateData.lines.length,
-			},
-		})
-
 		return result
 	}
 
-	async handleDelete(id: number, actorId: ActorId): Promise<EntityRef> {
-		// 1. Verify exists
+	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
+		// 1. Verify recipe exists
 		const existing = await this.handleGetById(id)
 
-		// 2. Delete (cascades lines via FK)
-		const result = await this.repo.remove(id)
-		if (!result) throw RecipeError.deleteFailed(id)
+		// 2. Delete and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			const written = await this.repo.remove(id, tx)
+			if (!written) throw RecipeError.deleteFailed(id)
 
-		// 3. Invalidate cache
-		await this.cache.invalidateStandard(id)
-		await this.invalidateMenuItemCache(existing.menuItemId)
-
-		// 4. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'recipe',
-			entity: 'recipe',
-			entityId: id,
-			action: 'delete',
-			summary: `Deleted recipe "${existing.name}"`,
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'recipe',
+					entity: 'recipe',
+					entityId: id,
+					action: 'delete',
+					summary: `Deleted recipe "${existing.name}"`,
+				}),
+				tx,
+			)
+			return written
 		})
 
+		await this.cache.invalidateStandard(id)
+		await this.invalidateMenuItemCache(existing.menuItemId)
 		return result
 	}
 
@@ -234,7 +249,7 @@ export class RecipeService {
 
 		// 4. Calculate cost per line
 		const breakdown: HppResponseDto['breakdown'] = []
-		let totalCost = toDecimal(0)
+		let totalCost = Money.zero()
 
 		for (const line of lines) {
 			// Get material for base UoM and name
@@ -259,23 +274,19 @@ export class RecipeService {
 			const costPrice = await this.getCostPrice(line.materialId, locationId)
 
 			// Convert quantity to material base UoM
-			let convertedQty = toDecimal(line.quantity)
+			let convertedQty = Qty.of(line.quantity)
 			if (line.uomId !== material.baseUomId) {
 				const conversion = resolveConversion(
 					line.uomId,
 					material.baseUomId,
-					line.quantity,
+					Qty.of(line.quantity),
 					conversions,
 				)
-				if (conversion) {
-					convertedQty = toDecimal(conversion.result)
-				}
+				if (conversion) convertedQty = conversion.result
 				// If no conversion path, use raw quantity (best effort)
 			}
 
-			// Calculate line cost
-			const unitCostDec = toDecimal(costPrice)
-			const lineCost = convertedQty.mul(unitCostDec)
+			const lineCost = Money.of(costPrice).mul(convertedQty)
 			totalCost = totalCost.add(lineCost)
 
 			breakdown.push({
@@ -284,13 +295,13 @@ export class RecipeService {
 				quantity: line.quantity,
 				uomCode,
 				unitCost: costPrice,
-				lineCost: roundCost(lineCost),
+				lineCost: lineCost.toCost(),
 			})
 		}
 
 		// 5. Divide by yield qty
-		const yieldQty = toDecimal(recipe.yieldQty)
-		const hpp = yieldQty.isZero() ? '0' : roundCost(safeDivide(totalCost, yieldQty))
+		const yieldQty = Qty.of(recipe.yieldQty)
+		const hpp = yieldQty.isZero() ? '0.0000' : totalCost.div(yieldQty).toCost()
 
 		return {
 			menuItemId,
@@ -317,7 +328,12 @@ export class RecipeService {
 
 			// Validate UoM is convertible to material base UoM
 			if (line.uomId !== material.baseUomId) {
-				const conversion = resolveConversion(line.uomId, material.baseUomId, '1', conversions)
+				const conversion = resolveConversion(
+					line.uomId,
+					material.baseUomId,
+					Qty.of('1'),
+					conversions,
+				)
 				if (!conversion) {
 					throw RecipeError.uomNotConvertible(line.uomId, material.baseUomId)
 				}

@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -53,31 +54,43 @@ export function createMenuRoute(
 					const result = await categoryService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: MenuCategoryFilterDto, response: zRes.paginated(MenuCategoryDto) },
+				{
+					query: MenuCategoryFilterDto,
+					response: zRes.paginated(MenuCategoryDto),
+					permission: 'category.read',
+				},
 			)
 			.post(
 				'/category/create',
 				async ({ body, auth }) => {
-					const result = await categoryService.handleCreate(body, auth.userId)
+					const result = await categoryService.handleCreate(body, actorOf(auth))
 					return res.created(result)
 				},
-				{ body: MenuCategoryCreateDto, response: zRes.created(EntityRefDto) },
+				{
+					body: MenuCategoryCreateDto,
+					response: zRes.created(EntityRefDto),
+					permission: 'category.create',
+				},
 			)
 			.put(
 				'/category/update',
 				async ({ body, auth }) => {
-					const result = await categoryService.handleUpdate(body, auth.userId)
+					const result = await categoryService.handleUpdate(body, actorOf(auth))
 					return res.ok(result)
 				},
-				{ body: MenuCategoryUpdateDto, response: zRes.ok(EntityRefDto) },
+				{
+					body: MenuCategoryUpdateDto,
+					response: zRes.ok(EntityRefDto),
+					permission: 'category.update',
+				},
 			)
 			.delete(
 				'/category/remove',
 				async ({ query, auth }) => {
-					const result = await categoryService.handleDelete(query.id, auth.userId)
+					const result = await categoryService.handleDelete(query.id, actorOf(auth))
 					return res.ok(result)
 				},
-				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto), permission: 'category.delete' },
 			)
 
 			// ─── Menu Item Routes ───
@@ -88,7 +101,11 @@ export function createMenuRoute(
 					const result = await itemService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: MenuItemFilterDto, response: zRes.paginated(MenuItemDto) },
+				{
+					query: MenuItemFilterDto,
+					response: zRes.paginated(MenuItemDto),
+					permission: 'item.read',
+				},
 			)
 			.get(
 				'/item/detail',
@@ -96,31 +113,35 @@ export function createMenuRoute(
 					const result = await composedService.handleDetail(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId, response: zRes.ok(MenuItemDetailDto) },
+				{ query: zq.recordId, response: zRes.ok(MenuItemDetailDto), permission: 'item.read' },
 			)
 			.post(
 				'/item/create',
 				async ({ body, auth }) => {
-					const result = await itemService.handleCreate(body, auth.userId)
+					const result = await itemService.handleCreate(body, actorOf(auth))
 					return res.created(result)
 				},
-				{ body: MenuItemCreateDto, response: zRes.created(EntityRefDto) },
+				{
+					body: MenuItemCreateDto,
+					response: zRes.created(EntityRefDto),
+					permission: 'item.create',
+				},
 			)
 			.put(
 				'/item/update',
 				async ({ body, auth }) => {
-					const result = await itemService.handleUpdate(body, auth.userId)
+					const result = await itemService.handleUpdate(body, actorOf(auth))
 					return res.ok(result)
 				},
-				{ body: MenuItemUpdateDto, response: zRes.ok(EntityRefDto) },
+				{ body: MenuItemUpdateDto, response: zRes.ok(EntityRefDto), permission: 'item.update' },
 			)
 			.delete(
 				'/item/remove',
 				async ({ query, auth }) => {
-					const result = await itemService.handleDelete(query.id, auth.userId)
+					const result = await itemService.handleDelete(query.id, actorOf(auth))
 					return res.ok(result)
 				},
-				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto), permission: 'item.delete' },
 			)
 
 			// ─── Item Modifier Assignment ───
@@ -128,10 +149,14 @@ export function createMenuRoute(
 			.post(
 				'/item/modifiers/sync',
 				async ({ body, auth }) => {
-					const result = await assignmentService.handleSync(body, auth.userId)
+					const result = await assignmentService.handleSync(body, actorOf(auth))
 					return res.ok(result)
 				},
-				{ body: MenuItemModifierSyncDto, response: zRes.ok(EntityRefDto) },
+				{
+					body: MenuItemModifierSyncDto,
+					response: zRes.ok(EntityRefDto),
+					permission: 'item.update',
+				},
 			)
 
 			// ─── Modifier Group Routes ───
@@ -142,7 +167,11 @@ export function createMenuRoute(
 					const result = await modifierService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: ModifierGroupFilterDto, response: zRes.paginated(ModifierGroupDto) },
+				{
+					query: ModifierGroupFilterDto,
+					response: zRes.paginated(ModifierGroupDto),
+					permission: 'modifier.read',
+				},
 			)
 			.get(
 				'/modifier/detail',
@@ -150,31 +179,43 @@ export function createMenuRoute(
 					const result = await modifierService.handleDetail(query.id)
 					return res.ok(result)
 				},
-				{ query: zq.recordId, response: zRes.ok(ModifierGroupWithOptionsDto) },
+				{
+					query: zq.recordId,
+					response: zRes.ok(ModifierGroupWithOptionsDto),
+					permission: 'modifier.read',
+				},
 			)
 			.post(
 				'/modifier/create',
 				async ({ body, auth }) => {
-					const result = await modifierService.handleCreate(body, auth.userId)
+					const result = await modifierService.handleCreate(body, actorOf(auth))
 					return res.created(result)
 				},
-				{ body: ModifierGroupCreateDto, response: zRes.created(EntityRefDto) },
+				{
+					body: ModifierGroupCreateDto,
+					response: zRes.created(EntityRefDto),
+					permission: 'modifier.create',
+				},
 			)
 			.put(
 				'/modifier/update',
 				async ({ body, auth }) => {
-					const result = await modifierService.handleUpdate(body, auth.userId)
+					const result = await modifierService.handleUpdate(body, actorOf(auth))
 					return res.ok(result)
 				},
-				{ body: ModifierGroupUpdateDto, response: zRes.ok(EntityRefDto) },
+				{
+					body: ModifierGroupUpdateDto,
+					response: zRes.ok(EntityRefDto),
+					permission: 'modifier.update',
+				},
 			)
 			.delete(
 				'/modifier/remove',
 				async ({ query, auth }) => {
-					const result = await modifierService.handleDelete(query.id, auth.userId)
+					const result = await modifierService.handleDelete(query.id, actorOf(auth))
 					return res.ok(result)
 				},
-				{ query: zq.recordId, response: zRes.ok(EntityRefDto) },
+				{ query: zq.recordId, response: zRes.ok(EntityRefDto), permission: 'modifier.delete' },
 			)
 	)
 }

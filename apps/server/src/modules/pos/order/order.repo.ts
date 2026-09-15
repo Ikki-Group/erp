@@ -109,7 +109,7 @@ export interface IOrderRepo {
 	// Payments
 	findPaymentsByOrderId(orderId: number, db?: DbContext): Promise<OrderPaymentRecordDto[]>
 	insertPayment(data: PaymentInsert, db?: DbContext): Promise<EntityRef | undefined>
-	sumPaymentsByOrderId(orderId: number, db?: DbContext): Promise<number>
+	sumPaymentsByOrderId(orderId: number, db?: DbContext): Promise<string>
 }
 
 // ─── Implementation ───
@@ -242,7 +242,7 @@ export class OrderRepo implements IOrderRepo {
 		return result
 	}
 
-	async sumPaymentsByOrderId(orderId: number, db: DbContext = this.db): Promise<number> {
+	async sumPaymentsByOrderId(orderId: number, db: DbContext = this.db): Promise<string> {
 		const [result] = await db
 			.select({
 				total: sql<string>`coalesce(sum(${payments.amount}), '0')`,
@@ -250,7 +250,7 @@ export class OrderRepo implements IOrderRepo {
 			.from(payments)
 			.where(eq(payments.orderId, orderId))
 
-		return Number(result?.total ?? '0')
+		return result?.total ?? '0'
 	}
 
 	// ─── Private ───

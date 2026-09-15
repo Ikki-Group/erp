@@ -1,7 +1,10 @@
-import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
+import type { DbContext } from '@/infra/database/index.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
 import {
 	BadRequestError,
 	ConflictError,
@@ -9,7 +12,8 @@ import {
 	NotFoundError,
 } from '@/shared/errors/http-error.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
-import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
 import type { CategoryService } from '../category/category.service.ts'
@@ -63,6 +67,8 @@ export class ItemService {
 		private readonly repo: IItemRepo,
 		cacheClient: CacheClient,
 		private readonly categoryService: CategoryService,
+		private readonly uow: UnitOfWork,
+		private readonly audit: AuditPort,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'menu-item')
 	}
@@ -86,104 +92,110 @@ export class ItemService {
 		return this.repo.findPage(filter)
 	}
 
-	async handleCreate(data: MenuItemCreateDto, actorId: ActorId): Promise<EntityRef> {
-		// 1. Check SKU uniqueness within location
-		await this.#checkSkuConflict(data.sku, data.locationId)
-
-		// 2. Validate categoryId belongs to same location
+	async handleCreate(data: MenuItemCreateDto, actor: Actor): Promise<EntityRef> {
+		// 1. Validate categoryId belongs to same location
 		if (data.categoryId) {
 			await this.#validateCategoryLocation(data.categoryId, data.locationId)
 		}
 
-		// 3. Insert
-		const result = await this.repo.insert({ ...data, ...stampCreate(actorId) })
-		if (!result) throw ItemError.createFailed()
+		// 2. Create and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			await this.#checkSkuConflict(data.sku, data.locationId, undefined, tx)
 
-		// 4. Invalidate cache
-		await this.cache.invalidateStandard()
+			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
+			if (!written) throw ItemError.createFailed()
 
-		// 5. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'menu',
-			entity: 'menu_item',
-			entityId: result.id,
-			action: 'create',
-			summary: `Created menu item "${data.name}" (SKU: ${data.sku})`,
-			newValues: { sku: data.sku, name: data.name, locationId: data.locationId },
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'menu',
+					entity: 'menu_item',
+					entityId: written.id,
+					action: 'create',
+					summary: `Created menu item "${data.name}" (SKU: ${data.sku})`,
+					newValues: { sku: data.sku, name: data.name, locationId: data.locationId },
+				}),
+				tx,
+			)
+			return written
 		})
 
+		await this.cache.invalidateStandard()
 		return result
 	}
 
-	async handleUpdate(data: MenuItemUpdateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleUpdate(data: MenuItemUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
 
 		// 1. Verify exists
 		const existing = await this.handleGetById(id)
 
-		// 2. Check SKU uniqueness within location (if SKU changed)
-		if (updateData.sku && updateData.sku !== existing.sku) {
-			await this.#checkSkuConflict(updateData.sku, existing.locationId, id)
-		}
-
-		// 3. Validate categoryId belongs to same location
+		// 2. Validate categoryId belongs to same location
 		if (updateData.categoryId) {
 			await this.#validateCategoryLocation(updateData.categoryId, existing.locationId)
 		}
 
-		// 4. Update
-		const result = await this.repo.update(id, { ...updateData, ...stampUpdate(actorId) })
-		if (!result) throw ItemError.updateFailed(id)
+		// 3. Update and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			if (updateData.sku && updateData.sku !== existing.sku) {
+				await this.#checkSkuConflict(updateData.sku, existing.locationId, id, tx)
+			}
 
-		// 5. Invalidate cache
-		await this.cache.invalidateStandard(id)
+			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
+			if (!written) throw ItemError.updateFailed(id)
 
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'menu',
-			entity: 'menu_item',
-			entityId: id,
-			action: 'update',
-			summary: `Updated menu item "${updateData.name ?? existing.name}"`,
-			newValues: updateData,
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'menu',
+					entity: 'menu_item',
+					entityId: id,
+					action: 'update',
+					summary: `Updated menu item "${updateData.name ?? existing.name}"`,
+					newValues: updateData,
+				}),
+				tx,
+			)
+			return written
 		})
 
+		await this.cache.invalidateStandard(id)
 		return result
 	}
 
-	async handleDelete(id: number, actorId: ActorId): Promise<EntityRef> {
+	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
 		// 1. Verify exists
 		const existing = await this.handleGetById(id)
 
-		// 2. Delete
-		const result = await this.repo.remove(id)
-		if (!result) throw ItemError.deleteFailed(id)
+		// 2. Delete and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			const written = await this.repo.remove(id, tx)
+			if (!written) throw ItemError.deleteFailed(id)
 
-		// 3. Invalidate cache
-		await this.cache.invalidateStandard(id)
-
-		// 4. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'menu',
-			entity: 'menu_item',
-			entityId: id,
-			action: 'delete',
-			summary: `Deleted menu item "${existing.name}" (SKU: ${existing.sku})`,
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'menu',
+					entity: 'menu_item',
+					entityId: id,
+					action: 'delete',
+					summary: `Deleted menu item "${existing.name}" (SKU: ${existing.sku})`,
+				}),
+				tx,
+			)
+			return written
 		})
 
+		await this.cache.invalidateStandard(id)
 		return result
 	}
 
 	// ─── Private ───
 
-	async #checkSkuConflict(sku: string, locationId: number, excludeId?: number): Promise<void> {
-		const existing = await this.repo.findBySkuAndLocation(sku, locationId)
+	async #checkSkuConflict(
+		sku: string,
+		locationId: number,
+		excludeId?: number,
+		db?: DbContext,
+	): Promise<void> {
+		const existing = await this.repo.findBySkuAndLocation(sku, locationId, db)
 		if (existing && existing.id !== excludeId) {
 			throw ItemError.skuExists(sku)
 		}

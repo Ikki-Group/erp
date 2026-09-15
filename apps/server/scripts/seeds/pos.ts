@@ -28,16 +28,11 @@ const PAYMENT_METHODS = [
 
 export async function seedPaymentMethods(sql: Sql): Promise<PaymentMethodIds> {
 	console.log('  → Seeding payment methods...')
-	const rows = await Promise.all(
-		PAYMENT_METHODS.map(async (p) => {
-			const [row] = await sql`
-				INSERT INTO payment_methods (code, name, type, is_active)
-				VALUES (${p.code}, ${p.name}, ${p.type}, true)
-				RETURNING id, code
-			`
-			return row!
-		}),
-	)
+	const rows = await sql`
+		INSERT INTO payment_methods (code, name, type, is_active)
+		VALUES ${sql(PAYMENT_METHODS.map((p) => [p.code, p.name, p.type, true] as const))}
+		RETURNING id, code
+	`
 
 	return {
 		cash: rows.find((r) => r.code === 'CASH')!.id as number,

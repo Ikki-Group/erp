@@ -29,6 +29,7 @@ export const TransferLineDto = z.object({
 	materialId: zp.id,
 	requestedQty: zp.str,
 	shippedQty: zp.str.nullable(),
+	shippedCostPrice: zp.str.nullable(),
 	receivedQty: zp.str.nullable(),
 	uomId: zp.id,
 })

@@ -1,6 +1,8 @@
 import { locations } from '@/db/schema/core.ts'
+
 import { db, eq } from '@/infra/database/index.ts'
 import type { Tx } from '@/infra/database/index.ts'
+
 import { describe, expect, test } from 'bun:test'
 
 describe('database client transactions', () => {

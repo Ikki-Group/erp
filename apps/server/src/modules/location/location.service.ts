@@ -24,6 +24,7 @@ export interface LocationServiceDeps {
 export type LocationApi = {
 	service: LocationService
 	getById: LocationService['getById']
+	getByIds: LocationService['getByIds']
 	getAll: LocationService['getAll']
 	handleGetById: LocationService['handleGetById']
 	handleList: LocationService['handleList']
@@ -39,6 +40,11 @@ export class LocationService {
 		return this.deps.cache.getOrSetOptional('location', `byId:${id}`, () =>
 			this.deps.repo.findById(id),
 		)
+	}
+
+	async getByIds(ids: number[]): Promise<LocationDto[]> {
+		if (ids.length === 0) return []
+		return this.deps.repo.findByIds(ids)
 	}
 
 	async getAll(): Promise<LocationDto[]> {

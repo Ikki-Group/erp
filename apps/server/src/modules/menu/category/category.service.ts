@@ -1,14 +1,17 @@
 import { menuCategories } from '@/db/schema/menu.ts'
 
-import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
 import { defineConflictFields } from '@/infra/database/index.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
-import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
 import type {
@@ -66,6 +69,8 @@ export class CategoryService {
 	constructor(
 		private readonly repo: ICategoryRepo,
 		cacheClient: CacheClient,
+		private readonly uow: UnitOfWork,
+		private readonly audit: AuditPort,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'menu-category')
 	}
@@ -96,44 +101,44 @@ export class CategoryService {
 		return this.repo.findPage(filter)
 	}
 
-	async handleCreate(data: MenuCategoryCreateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: MenuCategoryCreateDto, actor: Actor): Promise<EntityRef> {
 		// 1. Validate parentId belongs to same location
 		if (data.parentId) {
 			await this.#validateParentLocation(data.parentId, data.locationId)
 		}
 
-		// 2. Check conflicts (name unique within location)
-		await checkConflict({
-			db: this.repo.db,
-			table: menuCategories,
-			pkColumn: menuCategories.id,
-			fields: uniqueFields,
-			input: data,
+		// 2. Create and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			await checkConflict({
+				db: tx,
+				table: menuCategories,
+				pkColumn: menuCategories.id,
+				fields: uniqueFields,
+				input: data,
+			})
+
+			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
+			if (!written) throw CategoryError.createFailed()
+
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'menu',
+					entity: 'menu_category',
+					entityId: written.id,
+					action: 'create',
+					summary: `Created menu category "${data.name}"`,
+					newValues: { name: data.name, locationId: data.locationId },
+				}),
+				tx,
+			)
+			return written
 		})
 
-		// 3. Insert
-		const result = await this.repo.insert({ ...data, ...stampCreate(actorId) })
-		if (!result) throw CategoryError.createFailed()
-
-		// 4. Invalidate cache
 		await this.cache.invalidateStandard()
-
-		// 5. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'menu',
-			entity: 'menu_category',
-			entityId: result.id,
-			action: 'create',
-			summary: `Created menu category "${data.name}"`,
-			newValues: { name: data.name, locationId: data.locationId },
-		})
-
 		return result
 	}
 
-	async handleUpdate(data: MenuCategoryUpdateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleUpdate(data: MenuCategoryUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
 
 		// 1. Verify exists
@@ -144,60 +149,61 @@ export class CategoryService {
 			await this.#validateParentLocation(updateData.parentId, existing.locationId)
 		}
 
-		// 3. Check conflicts (exclude self)
-		await checkConflict({
-			db: this.repo.db,
-			table: menuCategories,
-			pkColumn: menuCategories.id,
-			fields: uniqueFields,
-			input: updateData,
-			excludeId: id,
+		// 3. Update and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			await checkConflict({
+				db: tx,
+				table: menuCategories,
+				pkColumn: menuCategories.id,
+				fields: uniqueFields,
+				input: updateData,
+				excludeId: id,
+			})
+
+			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
+			if (!written) throw CategoryError.updateFailed(id)
+
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'menu',
+					entity: 'menu_category',
+					entityId: id,
+					action: 'update',
+					summary: `Updated menu category "${updateData.name ?? existing.name}"`,
+					newValues: updateData,
+				}),
+				tx,
+			)
+			return written
 		})
 
-		// 4. Update
-		const result = await this.repo.update(id, { ...updateData, ...stampUpdate(actorId) })
-		if (!result) throw CategoryError.updateFailed(id)
-
-		// 5. Invalidate cache
 		await this.cache.invalidateStandard(id)
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'menu',
-			entity: 'menu_category',
-			entityId: id,
-			action: 'update',
-			summary: `Updated menu category "${updateData.name ?? existing.name}"`,
-			newValues: updateData,
-		})
-
 		return result
 	}
 
-	async handleDelete(id: number, actorId: ActorId): Promise<EntityRef> {
+	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
 		// 1. Verify exists
 		const existing = await this.handleGetById(id)
 
-		// 2. Delete
-		const result = await this.repo.remove(id)
-		if (!result) throw CategoryError.deleteFailed(id)
+		// 2. Delete and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			const written = await this.repo.remove(id, tx)
+			if (!written) throw CategoryError.deleteFailed(id)
 
-		// 3. Invalidate cache
-		await this.cache.invalidateStandard(id)
-
-		// 4. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'menu',
-			entity: 'menu_category',
-			entityId: id,
-			action: 'delete',
-			summary: `Deleted menu category "${existing.name}"`,
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'menu',
+					entity: 'menu_category',
+					entityId: id,
+					action: 'delete',
+					summary: `Deleted menu category "${existing.name}"`,
+				}),
+				tx,
+			)
+			return written
 		})
 
+		await this.cache.invalidateStandard(id)
 		return result
 	}
 

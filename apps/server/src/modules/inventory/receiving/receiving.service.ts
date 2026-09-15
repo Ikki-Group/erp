@@ -1,13 +1,19 @@
-import { auditLog } from '@/infra/audit/index.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { record } from '@/infra/otel/otel.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import { Money } from '@/shared/domain/money.ts'
+import { Qty } from '@/shared/domain/qty.ts'
+import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
+import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
-import type { ActorId, EntityRef } from '@/shared/types/utils.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
-import { roundCost, safeDivide, toDecimal } from '@/shared/utils/money.ts'
 
 import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
@@ -30,6 +36,9 @@ import type { IReceivingRepo } from './receiving.repo.ts'
 // ─── Dependencies ───
 
 export interface ReceivingServiceDeps {
+	uow: UnitOfWork
+	audit: AuditPort
+	events: EventBusPort
 	stockService: StockService
 	assignmentService: AssignmentService
 	locationService: LocationService
@@ -53,7 +62,7 @@ export class ReceivingService {
 
 	// ─── Handlers ───
 
-	async handleCreate(data: ReceivingCreateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: ReceivingCreateDto, actor: Actor): Promise<EntityRef> {
 		// 1. Validate supplier exists
 		await this.deps.supplierService.handleGetById(data.supplierId)
 
@@ -76,15 +85,14 @@ export class ReceivingService {
 			await this.#validateUomConversion(line.uomId, material.baseUomId, line.materialId)
 		}
 
-		// 4. Generate receiving number
-		const receivingNo = await generateNumber({
-			prefix: 'RCV',
-			locationCode: location.code,
-			locationId: data.locationId,
-		})
-
 		// 5. Insert receiving + lines in transaction
-		const result = await this.repo.db.transaction(async (tx) => {
+		const result = await this.deps.uow.run(async (tx) => {
+			const receivingNo = await generateNumber({
+				prefix: 'RCV',
+				locationCode: location.code,
+				locationId: data.locationId,
+				database: tx,
+			})
 			const created = await this.repo.insert(
 				{
 					receivingNo,
@@ -92,8 +100,8 @@ export class ReceivingService {
 					supplierId: data.supplierId,
 					status: 'draft',
 					notes: data.notes ?? null,
-					receivedBy: actorId,
-					...stampCreate(actorId),
+					receivedBy: actor.id,
+					...stampCreate(actor.id),
 				},
 				tx,
 			)
@@ -110,33 +118,33 @@ export class ReceivingService {
 				tx,
 			)
 
-			return created
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'inventory',
+					entity: 'receiving',
+					entityId: created.id,
+					action: 'create',
+					summary: `Created receiving ${receivingNo} from supplier #${data.supplierId} at location #${data.locationId}`,
+					newValues: {
+						receivingNo,
+						locationId: data.locationId,
+						supplierId: data.supplierId,
+						lineCount: data.lines.length,
+					},
+				}),
+				tx,
+			)
+
+			return { created, receivingNo }
 		})
 
-		// 6. Invalidate cache
+		// 6. Invalidate cache after commit
 		await this.cache.invalidateStandard()
 
-		// 7. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'inventory',
-			entity: 'receiving',
-			entityId: result.id,
-			action: 'create',
-			summary: `Created receiving ${receivingNo} from supplier #${data.supplierId} at location #${data.locationId}`,
-			newValues: {
-				receivingNo,
-				locationId: data.locationId,
-				supplierId: data.supplierId,
-				lineCount: data.lines.length,
-			},
-		})
-
-		return result
+		return result.created
 	}
 
-	async handleUpdate(data: ReceivingUpdateDto, actorId: ActorId): Promise<EntityRef> {
+	async handleUpdate(data: ReceivingUpdateDto, actor: Actor): Promise<EntityRef> {
 		// 1. Get receiving and validate draft status
 		const receiving = assertFound(await this.repo.findById(data.receivingId), () =>
 			ReceivingError.notFound(data.receivingId),
@@ -168,13 +176,13 @@ export class ReceivingService {
 		}
 
 		// 4. Update receiving + lines in transaction
-		const result = await this.repo.db.transaction(async (tx) => {
+		const result = await this.deps.uow.run(async (tx) => {
 			const updated = await this.repo.update(
 				data.receivingId,
 				{
 					...(data.supplierId ? { supplierId: data.supplierId } : {}),
 					...(data.notes === undefined ? {} : { notes: data.notes ?? null }),
-					...stampUpdate(actorId),
+					...stampUpdate(actor.id),
 				},
 				tx,
 			)
@@ -194,28 +202,28 @@ export class ReceivingService {
 				)
 			}
 
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'inventory',
+					entity: 'receiving',
+					entityId: data.receivingId,
+					action: 'update',
+					summary: `Updated receiving ${receiving.receivingNo}`,
+					newValues: { supplierId: data.supplierId, lineCount: data.lines?.length },
+				}),
+				tx,
+			)
+
 			return updated
 		})
 
-		// 5. Invalidate cache
+		// 5. Invalidate cache after commit
 		await this.cache.invalidateStandard()
-
-		// 6. Audit log
-		auditLog.record({
-			userId: actorId,
-			userName: '',
-			module: 'inventory',
-			entity: 'receiving',
-			entityId: data.receivingId,
-			action: 'update',
-			summary: `Updated receiving ${receiving.receivingNo}`,
-			newValues: { supplierId: data.supplierId, lineCount: data.lines?.length },
-		})
 
 		return result
 	}
 
-	async handleConfirm(data: ReceivingConfirmDto, actorId: ActorId): Promise<EntityRef> {
+	async handleConfirm(data: ReceivingConfirmDto, actor: Actor): Promise<EntityRef> {
 		return record('receiving.confirm', async () => {
 			// 1. Get receiving and validate status
 			const receiving = assertFound(await this.repo.findById(data.receivingId), () =>
@@ -229,58 +237,63 @@ export class ReceivingService {
 				throw ReceivingError.notDraft(data.receivingId)
 			}
 
-			// 2. Get lines
-			const lines = await this.repo.findLinesByReceivingId(data.receivingId)
+			// 2. Get lines and apply the complete confirmation atomically.
+			const { result, events } = await this.deps.uow.run(async (tx) => {
+				const lines = await this.repo.findLinesByReceivingId(data.receivingId, tx)
+				const events: StockMovementRecorded[] = []
 
-			// 3. For each line: convert UoM, record stock movement
-			for (const line of lines) {
-				const material = await this.deps.materialService.handleGetById(line.materialId)
-				const conversion = await this.#resolveConversion(
-					line.uomId,
-					material.baseUomId,
-					line.quantity,
+				for (const line of lines) {
+					const material = await this.deps.materialService.handleGetById(line.materialId)
+					const conversion = await this.#resolveConversion(
+						line.uomId,
+						material.baseUomId,
+						Qty.of(line.quantity),
+					)
+
+					const baseQty = conversion.result
+					const conversionFactor = baseQty.div(Qty.of(line.quantity))
+					const baseUnitCost = Money.of(line.unitCost).div(conversionFactor).toCost()
+
+					const movement = await this.deps.stockService.recordMovement(
+						{
+							materialId: line.materialId,
+							locationId: receiving.locationId,
+							type: 'purchase_receipt',
+							direction: 'in',
+							qty: baseQty.toNumeric(),
+							unitCost: baseUnitCost,
+							referenceType: 'receiving',
+							referenceId: data.receivingId,
+							notes: `Receiving: ${receiving.receivingNo}`,
+							actorId: actor.id,
+						},
+						tx,
+					)
+					events.push(movement.event)
+				}
+
+				const result = await this.repo.updateStatus(data.receivingId, 'confirmed', actor.id, tx)
+				if (!result) throw ReceivingError.notFound(data.receivingId)
+				await this.deps.audit.record(
+					{
+						actorId: actor.id,
+						actorName: actor.name,
+						locationId: receiving.locationId,
+						module: 'inventory',
+						entity: 'receiving',
+						entityId: data.receivingId,
+						action: 'confirm',
+						summary: `Confirmed receiving ${receiving.receivingNo} (${lines.length} lines)`,
+						newValues: { status: 'confirmed', lineCount: lines.length },
+					},
+					tx,
 				)
-
-				// baseQty = line.qty × conversionFactor
-				const baseQty = conversion.result
-				// baseUnitCost = line.unitCost / conversionFactor (proportional) — use Decimal for precision
-				const conversionFactor = safeDivide(toDecimal(baseQty), toDecimal(line.quantity))
-				const baseUnitCost = conversionFactor.isZero()
-					? '0'
-					: roundCost(safeDivide(toDecimal(line.unitCost), conversionFactor))
-
-				await this.deps.stockService.recordMovement({
-					materialId: line.materialId,
-					locationId: receiving.locationId,
-					type: 'receiving',
-					direction: 'in',
-					qty: baseQty,
-					unitCost: baseUnitCost,
-					referenceType: 'receiving',
-					referenceId: data.receivingId,
-					notes: `Receiving: ${receiving.receivingNo}`,
-					actorId,
-				})
-			}
-
-			// 4. Update status to confirmed
-			const result = await this.repo.updateStatus(data.receivingId, 'confirmed', actorId)
-			if (!result) throw ReceivingError.notFound(data.receivingId)
-
-			// 5. Invalidate cache
-			await this.cache.invalidateStandard()
-
-			// 6. Audit log
-			auditLog.record({
-				userId: actorId,
-				userName: '',
-				module: 'inventory',
-				entity: 'receiving',
-				entityId: data.receivingId,
-				action: 'update',
-				summary: `Confirmed receiving ${receiving.receivingNo} (${lines.length} lines)`,
-				newValues: { status: 'confirmed', lineCount: lines.length },
+				return { result, lines, events }
 			})
+
+			for (const event of events) this.deps.events.publish(event)
+			await this.deps.stockService.invalidateCache()
+			await this.cache.invalidateStandard()
 
 			return result
 		})
@@ -305,7 +318,7 @@ export class ReceivingService {
 
 		const conversions = await this.deps.uomService.getAllConversions()
 		const { resolveConversion } = await import('@/modules/uom/domain/uom.resolver.ts')
-		const resolved = resolveConversion(fromUomId, toUomId, '1', conversions)
+		const resolved = resolveConversion(fromUomId, toUomId, Qty.of('1'), conversions)
 		if (!resolved) {
 			throw ReceivingError.uomNotConvertible(materialId, fromUomId, toUomId)
 		}
@@ -314,8 +327,8 @@ export class ReceivingService {
 	async #resolveConversion(
 		fromUomId: number,
 		toUomId: number,
-		quantity: string,
-	): Promise<{ result: string }> {
+		quantity: Qty,
+	): Promise<{ result: Qty }> {
 		if (fromUomId === toUomId) return { result: quantity } // Identity
 
 		const conversions = await this.deps.uomService.getAllConversions()
@@ -324,6 +337,6 @@ export class ReceivingService {
 		if (!resolved) {
 			throw ReceivingError.uomNotConvertible(0, fromUomId, toUomId)
 		}
-		return resolved
+		return { result: resolved.result }
 	}
 }

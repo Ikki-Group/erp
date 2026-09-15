@@ -1,18 +1,13 @@
 import { Elysia } from 'elysia'
 
-import { authPluginMacro } from '@/server/plugins/auth.plugin.ts'
+import { authPlugin } from '@/server/plugins/auth.plugin.ts'
+import { rbac } from '@/server/plugins/rbac.plugin.ts'
 import { isProd } from '@/shared/config/env.ts'
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from '@/shared/config/index.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 
-import {
-	LoginDto,
-	LoginResponseDto,
-	MeResponseDto,
-	SwitchLocationDto,
-	SwitchLocationResponseDto,
-} from './auth.contract.ts'
+import { LoginDto, LoginResponseDto, MeResponseDto } from './auth.contract.ts'
 import type { AuthService } from './auth.service.ts'
 
 // ─── Route Factory ───
@@ -46,7 +41,8 @@ export function createAuthRoute(service: AuthService) {
 
 			// ─── Logout (auth required) ───
 
-			.use(authPluginMacro)
+			.use(authPlugin)
+			.use(rbac)
 			.post(
 				'/logout',
 				async ({ cookie }) => {
@@ -67,20 +63,7 @@ export function createAuthRoute(service: AuthService) {
 
 					return res.noData()
 				},
-				{ response: zRes.noData },
-			)
-
-			// ─── Switch Location (auth required) ───
-
-			.post(
-				'/switch-location',
-				async ({ body, cookie, auth }) => {
-					const sessionCookie = cookie[SESSION_COOKIE_NAME]
-					const sessionId = sessionCookie ? String(sessionCookie.value) : ''
-					const result = await service.handleSwitchLocation(sessionId, body.locationId, auth.userId)
-					return res.ok(result)
-				},
-				{ body: SwitchLocationDto, response: zRes.ok(SwitchLocationResponseDto) },
+				{ response: zRes.noData, permission: 'auth.logout' },
 			)
 
 			// ─── Me (auth required) ───
@@ -91,7 +74,7 @@ export function createAuthRoute(service: AuthService) {
 					const result = await service.handleMe(auth)
 					return res.ok(result)
 				},
-				{ response: zRes.ok(MeResponseDto) },
+				{ response: zRes.ok(MeResponseDto), permission: 'auth.me' },
 			)
 	)
 }
