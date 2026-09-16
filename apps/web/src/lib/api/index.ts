@@ -15,7 +15,23 @@ export { parseOrThrow } from './validate.ts'
 export { createQueryKeys } from './query-keys.ts'
 export type { QueryKeys } from './query-keys.ts'
 
-export type { Args, EndpointKind, HttpMethod, Input, MaybeSchema, Output, QueryKey } from './types.ts'
+export { createResourceKeys } from './resource-keys.ts'
+export type { CreateResourceKeysOptions, ResourceKeys } from './resource-keys.ts'
+
+export { getActiveLocationId, setActiveLocationAccessor } from './active-location.ts'
+
+export { FRESHNESS_TIERS, resolveFreshness } from './freshness.ts'
+export type { FreshnessOptions, FreshnessTier } from './freshness.ts'
+
+export type {
+	Args,
+	EndpointKind,
+	HttpMethod,
+	Input,
+	MaybeSchema,
+	Output,
+	QueryKey,
+} from './types.ts'
 
 export { defineEndpoint, defineMutation, defineQuery } from './endpoint.ts'
 export type {
