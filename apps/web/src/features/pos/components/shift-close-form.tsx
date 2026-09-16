@@ -75,10 +75,10 @@ export function ShiftCloseFormBody({
 								<span
 									className={
 										difference === 0
-											? 'font-medium text-green-600'
+											? 'font-medium text-success'
 											: difference < 0
-												? 'font-medium text-red-600'
-												: 'font-medium text-amber-600'
+												? 'font-medium text-destructive'
+												: 'font-medium text-warning'
 									}
 								>
 									{difference > 0 ? '+' : ''}

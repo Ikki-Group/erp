@@ -68,7 +68,7 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 							<span>Rp {Number(order.subtotal).toLocaleString('id-ID')}</span>
 						</div>
 						{Number(order.discountAmount) > 0 && (
-							<div className="flex justify-between text-green-600">
+							<div className="flex justify-between text-success">
 								<span>
 									Diskon
 									{order.voucherCode && ` (${order.voucherCode})`}

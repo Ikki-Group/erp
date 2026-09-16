@@ -119,8 +119,8 @@ export function OpnameCountForm({
 											<span
 												className={cn(
 													'font-medium',
-													diff > 0 && 'text-emerald-600',
-													diff < 0 && 'text-red-600',
+													diff > 0 && 'text-success',
+													diff < 0 && 'text-destructive',
 													diff === 0 && 'text-muted-foreground',
 												)}
 											>

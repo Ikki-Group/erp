@@ -215,7 +215,7 @@ function ShiftsPage() {
 					<div className="flex items-center gap-3">
 						{activeShift && (
 							<Badge variant="outline" className="gap-1.5 px-3 py-1">
-								<span className="size-2 rounded-full bg-green-500" />
+								<span className="size-2 rounded-full bg-success" />
 								Shift active
 							</Badge>
 						)}

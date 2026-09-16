@@ -132,7 +132,7 @@ export function OrderCart({
 						</span>
 					</div>
 					{discountAmount > 0 && (
-						<div className="flex justify-between text-green-600">
+						<div className="flex justify-between text-success">
 							<span className="flex items-center gap-1">
 								Diskon
 								{voucherCode && <span className="text-[10px]">({voucherCode})</span>}

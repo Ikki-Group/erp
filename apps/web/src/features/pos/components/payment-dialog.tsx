@@ -174,7 +174,7 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 							</div>
 						)}
 						{change > 0 && (
-							<div className="flex justify-between font-medium text-green-600">
+							<div className="flex justify-between font-medium text-success">
 								<span>Kembalian</span>
 								<span>Rp {change.toLocaleString('id-ID')}</span>
 							</div>
