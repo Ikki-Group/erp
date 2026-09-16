@@ -25,6 +25,7 @@ export type { FreshnessOptions, FreshnessTier } from './freshness.ts'
 
 export type {
 	Args,
+	EndpointArgs,
 	EndpointKind,
 	HttpMethod,
 	Input,

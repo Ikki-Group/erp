@@ -1,7 +1,11 @@
 import { useState } from 'react'
 
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+
 import { AlertCircleIcon, LoaderIcon } from 'lucide-react'
+
+import { isApiError } from '@/lib/api/errors.ts'
+import { queryClient } from '@/lib/tanstack-query.ts'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -9,17 +13,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-import { isApiError } from '@/lib/api/errors.ts'
-import { queryClient } from '@/lib/tanstack-query.ts'
-
 import { authMeQuery } from '@/features/auth/api.ts'
+
 import { useAuth } from '@/providers/auth-provider.tsx'
 
 export const Route = createFileRoute('/login')({
 	beforeLoad: async () => {
 		// If already authenticated, redirect to dashboard
 		try {
-			const data = await queryClient.fetchQuery(authMeQuery.queryOptions(undefined as never))
+			const data = await queryClient.fetchQuery(authMeQuery.queryOptions())
 			if (data?.data?.user) {
 				throw redirect({ to: '/' })
 			}

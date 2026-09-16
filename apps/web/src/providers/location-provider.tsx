@@ -80,7 +80,7 @@ export function LocationProvider({ children, locations, activeLocation }: Locati
 			await queryClient.invalidateQueries({
 				predicate: (query) => {
 					const key = query.queryKey
-					return key[0] !== authMeQuery.queryKey(undefined as never)[0]
+					return key[0] !== authMeQuery.queryKey()[0]
 				},
 			})
 		},

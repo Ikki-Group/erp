@@ -37,6 +37,8 @@ import {
 // ─── Table Resource ───
 
 export const tableResource = defineResource({
+	feature: 'pos',
+	resource: 'table',
 	urls: endpoint.pos.table,
 	entitySchema: TableDto,
 	filter: TableFilterDto,
@@ -117,6 +119,8 @@ export const shiftResource = {
 // ─── Voucher Resource ───
 
 export const voucherResource = defineResource({
+	feature: 'pos',
+	resource: 'voucher',
 	urls: endpoint.pos.voucher,
 	entitySchema: VoucherDto,
 	filter: VoucherFilterDto,

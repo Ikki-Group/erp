@@ -17,6 +17,8 @@ import {
 // ─── Recipe Resource (CRUD) ───
 
 export const recipeResource = defineResource({
+	feature: 'recipe',
+	resource: 'recipe',
 	urls: endpoint.recipe,
 	entitySchema: RecipeDto,
 	filter: RecipeFilterDto,

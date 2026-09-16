@@ -21,6 +21,8 @@ import {
 // ─── Unit Resource (CRUD) ───
 
 export const uomResource = defineResource({
+	feature: 'uom',
+	resource: 'uom',
 	urls: endpoint.uom,
 	entitySchema: UomDto,
 	filter: UomFilterDto,

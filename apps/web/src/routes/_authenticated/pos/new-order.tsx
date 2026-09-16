@@ -45,7 +45,7 @@ function NewOrderPage() {
 
 	// ─── Shift check ───
 	const activeShiftQuery = useQuery({
-		...shiftResource.active.queryOptions(undefined as never),
+		...shiftResource.active.queryOptions(),
 		queryKey: shiftResource.keys.active(locationId),
 		enabled: locationId > 0,
 	})

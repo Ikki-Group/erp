@@ -24,6 +24,8 @@ const byLocationKeys = {
 // ─── Payment Method Resource (CRUD) ───
 
 export const paymentMethodResource = defineResource({
+	feature: 'payment-method',
+	resource: 'payment-method',
 	urls: endpoint.paymentMethod,
 	entitySchema: PaymentMethodDto,
 	filter: PaymentMethodFilterDto,

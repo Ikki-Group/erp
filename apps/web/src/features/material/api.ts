@@ -21,6 +21,8 @@ import {
 // ─── Material Resource (CRUD) ───
 
 export const materialResource = defineResource({
+	feature: 'material',
+	resource: 'material',
 	urls: endpoint.material,
 	entitySchema: MaterialDto,
 	filter: MaterialFilterDto,
@@ -31,6 +33,8 @@ export const materialResource = defineResource({
 // ─── Category Resource (CRUD) ───
 
 export const categoryResource = defineResource({
+	feature: 'material',
+	resource: 'category',
 	urls: endpoint.material.category,
 	entitySchema: MaterialCategoryDto,
 	filter: MaterialCategoryFilterDto,

@@ -45,15 +45,19 @@ function shouldRetry(failureCount: number, error: unknown): boolean {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Controls which errors bubble to the nearest React error boundary.
- *   - Dev: throw everything → loud, immediate feedback.
- *   - Prod: throw only unrecoverable errors (network). Recoverable errors
- *     (4xx, 5xx) stay in query `error` state for per-component handling.
+ * Controls which errors bubble to the nearest route error boundary
+ * (`errorComponent`) versus staying in query `error` state for inline,
+ * per-component handling.
+ *
+ * Only **network-level** failures throw — a page whose data couldn't reach the
+ * server at all has nothing meaningful to render inline, so a retryable route
+ * boundary is the honest response. Recoverable errors (4xx/5xx that did get a
+ * response) stay inline, where the affected component can show a precise
+ * message via `ApiError.friendlyMessage`. Auth expiry (401/403) is handled
+ * separately by the single-fire global redirect below.
  */
 function shouldThrowOnError(error: unknown): boolean {
-	// if (IS_DEV) return true
-	// if (isApiError(error) && error.isNetworkError) return true
-	return false
+	return isApiError(error) && error.isNetworkError
 }
 
 /* -------------------------------------------------------------------------- */

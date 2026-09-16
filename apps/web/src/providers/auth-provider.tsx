@@ -64,7 +64,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	})
 
 	// ─── /auth/me query ───
-	const meQuery = useQuery(authMeQuery.queryOptions(undefined as never))
+	const meQuery = useQuery(authMeQuery.queryOptions())
 	const meData = meQuery.data?.data
 
 	// ─── Login mutation ───
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const logoutMut = useMutation(authLogoutMutation.mutationOptions())
 
 	const logout = useCallback(async () => {
-		await logoutMut.mutateAsync(undefined as never)
+		await logoutMut.mutateAsync()
 		queryClient.clear()
 		clearLocations()
 		navigate({ to: '/login', replace: true })

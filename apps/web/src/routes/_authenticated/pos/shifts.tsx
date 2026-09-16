@@ -12,6 +12,7 @@ import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
+import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -20,10 +21,8 @@ import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 
 import { shiftResource } from '@/features/pos/api.ts'
-import { ShiftCloseForm } from '@/features/pos/components/shift-close-form.tsx'
-import type { ShiftCloseFormRef } from '@/features/pos/components/shift-close-form.tsx'
-import { ShiftOpenForm } from '@/features/pos/components/shift-open-form.tsx'
-import type { ShiftOpenFormRef } from '@/features/pos/components/shift-open-form.tsx'
+import { ShiftCloseFormBody } from '@/features/pos/components/shift-close-form.tsx'
+import { ShiftOpenFormBody } from '@/features/pos/components/shift-open-form.tsx'
 import type { ShiftDto, ShiftStatusEnum } from '@/features/pos/dto/index.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
@@ -94,6 +93,8 @@ const baseColumns = [
 function ShiftsPage() {
 	const { activeLocation } = useLocationContext()
 	const locationId = activeLocation?.id
+	const canOpen = usePermissionCheck({ permission: 'shift.open' })
+	const canClose = usePermissionCheck({ permission: 'shift.close' })
 
 	const [listParams, setListParams] = useState({
 		page: 1,
@@ -110,7 +111,7 @@ function ShiftsPage() {
 	})
 
 	const activeShiftQuery = useQuery({
-		...shiftResource.active.queryOptions(undefined as never),
+		...shiftResource.active.queryOptions(),
 		queryKey: shiftResource.keys.active(locationId),
 		enabled: !!locationId,
 	})
@@ -124,28 +125,23 @@ function ShiftsPage() {
 
 	const handleOpenShift = useCallback(async () => {
 		if (!locationId) return
-		const formRef = { current: null } as React.MutableRefObject<ShiftOpenFormRef | null>
 
 		const saved = await formDialog({
 			title: 'Open Shift',
 			description: 'Start a new cashier shift. Count your opening cash.',
-			submitLabel: 'Open Shift',
-			content: (
-				<ShiftOpenForm
-					ref={(el) => {
-						formRef.current = el
-					}}
+			// oxlint-disable-next-line react/no-unstable-nested-components
+			content: ({ close }) => (
+				<ShiftOpenFormBody
+					onSaved={() => close(true)}
+					onCancel={() => close(false)}
+					onCreate={(values) =>
+						openMut.mutateAsync({
+							locationId,
+							openingCash: Number(values.openingCash),
+						})
+					}
 				/>
 			),
-			onSubmit: async () => {
-				const errors = formRef.current?.validate()
-				if (errors) throw new Error('Please fix the validation errors.')
-				const values = formRef.current!.getValues()
-				await openMut.mutateAsync({
-					locationId,
-					openingCash: Number(values.openingCash),
-				})
-			},
 		})
 
 		if (saved) {
@@ -155,30 +151,25 @@ function ShiftsPage() {
 
 	const handleCloseShift = useCallback(async () => {
 		if (!activeShift) return
-		const formRef = { current: null } as React.MutableRefObject<ShiftCloseFormRef | null>
 
 		const saved = await formDialog({
 			title: 'Close Shift',
 			description: 'End your current shift. Count the cash drawer.',
-			submitLabel: 'Close Shift',
-			content: (
-				<ShiftCloseForm
-					ref={(el) => {
-						formRef.current = el
-					}}
+			// oxlint-disable-next-line react/no-unstable-nested-components
+			content: ({ close }) => (
+				<ShiftCloseFormBody
 					expectedCash={activeShift.expectedCash}
+					onSaved={() => close(true)}
+					onCancel={() => close(false)}
+					onCreate={(values) =>
+						closeMut.mutateAsync({
+							shiftId: activeShift.id,
+							closingCash: Number(values.closingCash),
+							notes: values.notes,
+						})
+					}
 				/>
 			),
-			onSubmit: async () => {
-				const errors = formRef.current?.validate()
-				if (errors) throw new Error('Please fix the validation errors.')
-				const values = formRef.current!.getValues()
-				await closeMut.mutateAsync({
-					shiftId: activeShift.id,
-					closingCash: Number(values.closingCash),
-					notes: values.notes || undefined,
-				})
-			},
 		})
 
 		if (saved) {
@@ -229,17 +220,19 @@ function ShiftsPage() {
 								Shift active
 							</Badge>
 						)}
-						{activeShift ? (
-							<Button size="sm" variant="outline" onClick={handleCloseShift}>
-								<LockIcon className="size-4" />
-								Close Shift
-							</Button>
-						) : (
-							<Button size="sm" onClick={handleOpenShift}>
-								<UnlockIcon className="size-4" />
-								Open Shift
-							</Button>
-						)}
+						{activeShift
+							? canClose && (
+									<Button size="sm" variant="outline" onClick={handleCloseShift}>
+										<LockIcon className="size-4" />
+										Close Shift
+									</Button>
+								)
+							: canOpen && (
+									<Button size="sm" onClick={handleOpenShift}>
+										<UnlockIcon className="size-4" />
+										Open Shift
+									</Button>
+								)}
 					</div>
 				}
 			/>
@@ -249,7 +242,7 @@ function ShiftsPage() {
 					title="No shifts yet"
 					description="Open your first shift to start tracking cash."
 					action={
-						!activeShift ? (
+						!activeShift && canOpen ? (
 							<Button size="sm" onClick={handleOpenShift}>
 								<UnlockIcon className="size-4" />
 								Open Shift

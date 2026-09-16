@@ -13,7 +13,7 @@ import { LocationProvider } from '@/providers/location-provider.tsx'
 export const Route = createFileRoute('/_authenticated')({
 	beforeLoad: async () => {
 		try {
-			const data = await queryClient.ensureQueryData(authMeQuery.queryOptions(undefined as never))
+			const data = await queryClient.ensureQueryData(authMeQuery.queryOptions())
 			if (!data?.data?.user) {
 				throw redirect({ to: '/login' })
 			}
@@ -35,7 +35,7 @@ function AuthenticatedLayout() {
 	if (!user) return null
 
 	// Derive activeLocation from me query cache
-	const meData = queryClient.getQueryData(authMeQuery.queryKey(undefined as never)) as
+	const meData = queryClient.getQueryData(authMeQuery.queryKey()) as
 		| { data: { activeLocation: { id: number; code: string; name: string; type: string } | null } }
 		| undefined
 

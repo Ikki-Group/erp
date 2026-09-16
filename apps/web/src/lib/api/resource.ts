@@ -1,10 +1,16 @@
 import { z } from 'zod'
 
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation/index.ts'
+import {
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+	zc,
+} from '@/lib/validation/index.ts'
 
-import { defineMutation, defineQuery } from './endpoint.ts'
 import type { ApiClient } from './client.ts'
-import type { HttpMethod, QueryKey } from './types.ts'
+import { defineMutation, defineQuery } from './endpoint.ts'
+import type { FreshnessTier } from './freshness.ts'
+import { createResourceKeys } from './resource-keys.ts'
+import type { HttpMethod } from './types.ts'
 import type { ZodType } from 'zod'
 
 type IdLike = string | number | boolean | null | undefined
@@ -32,6 +38,10 @@ export interface DefineResourceConfig<
 	TUpdate extends ZodType,
 	TId extends ZodType,
 > {
+	/** Feature namespace for the canonical query keys (e.g. `'location'`, `'inventory'`). */
+	feature: string
+	/** Resource namespace for the canonical query keys (e.g. `'location'`, `'stock'`). */
+	resource: string
 	urls: ResourceUrls
 	/** Schema describing a single entity record, used for `list`/`detail` responses. */
 	entitySchema: TEntity
@@ -49,12 +59,26 @@ export interface DefineResourceConfig<
 	 * perform a delete-like mutation over `post`.
 	 */
 	removeMethod?: HttpMethod
+	/** Freshness tier for `list`/`detail` reads. Defaults to `'standard'`. */
+	tier?: FreshnessTier
+	/**
+	 * When true, this resource's data is scoped to the active location: the
+	 * active `locationId` is folded into every key so the cache partitions per
+	 * location, and location-switch invalidation targets these keys precisely.
+	 */
+	locationScoped?: boolean
 }
 
 /**
  * CRUD sugar built on top of `defineQuery`/`defineMutation`. Wires up
  * `list`/`detail`/`create`/`update`/`remove` following the server's actual
- * conventions.
+ * conventions, keyed through the canonical `createResourceKeys` factory.
+ *
+ * `defineResource` deliberately stays CRUD-only. A resource that needs extra
+ * endpoints (`void`, `ship`, `active`, …) composes them at the feature level by
+ * spreading the returned bundle and adding hand-written `defineQuery`/
+ * `defineMutation` that reuse the exported `keys` — no config-callback plugin
+ * surface here.
  */
 export function defineResource<
 	TEntity extends ZodType,
@@ -63,16 +87,13 @@ export function defineResource<
 	TUpdate extends ZodType,
 	TId extends ZodType = typeof zc.RecordId,
 >(config: DefineResourceConfig<TEntity, TFilter, TCreate, TUpdate, TId>) {
-	const { urls, entitySchema, filter, create, update, client } = config
+	const { feature, resource, urls, entitySchema, filter, create, update, client } = config
 	const id = (config.id ?? zc.RecordId) as TId
 	const removeMethod = config.removeMethod ?? 'delete'
+	const tier = config.tier ?? 'standard'
+	const locationScoped = config.locationScoped ?? false
 
-	const keys = {
-		lists: (): QueryKey => [urls.list],
-		list: (query?: unknown): QueryKey => [urls.list, query ?? null],
-		details: (): QueryKey => [urls.detail],
-		detail: (query?: unknown): QueryKey => [urls.detail, query ?? null],
-	}
+	const keys = createResourceKeys(feature, resource, { locationScoped })
 
 	const list = defineQuery({
 		method: 'get',
@@ -80,6 +101,7 @@ export function defineResource<
 		query: filter,
 		result: createPaginatedResponseSchema(entitySchema),
 		queryKey: (query) => keys.list(query),
+		tier,
 		client,
 	})
 
@@ -89,6 +111,7 @@ export function defineResource<
 		query: id,
 		result: createSuccessResponseSchema(entitySchema),
 		queryKey: (query) => keys.detail(query),
+		tier,
 		client,
 	})
 

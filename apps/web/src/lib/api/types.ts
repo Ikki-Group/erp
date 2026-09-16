@@ -49,3 +49,15 @@ export type Args<
 	: TBody extends ZodType
 		? Input<TBody>
 		: undefined
+
+/**
+ * The `Args` of an endpoint spread into a *parameter tuple*, so a no-schema
+ * endpoint (whose `Args` is `undefined`) is callable with **zero** arguments,
+ * while a schema-bearing endpoint requires exactly its one arg. This is what
+ * lets `authMeQuery.queryOptions()` be called with no argument instead of
+ * `queryOptions(undefined as never)`.
+ */
+export type EndpointArgs<
+	TQuery extends MaybeSchema = undefined,
+	TBody extends MaybeSchema = undefined,
+> = Args<TQuery, TBody> extends undefined ? [] : [args: Args<TQuery, TBody>]

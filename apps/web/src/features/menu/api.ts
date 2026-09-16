@@ -28,6 +28,8 @@ import {
 // ─── Menu Item Resource ───
 
 export const menuItemResource = defineResource({
+	feature: 'menu',
+	resource: 'item',
 	urls: endpoint.menu.item,
 	entitySchema: MenuItemDto,
 	filter: MenuItemFilterDto,
@@ -112,6 +114,8 @@ export const menuCategoryResource = {
 // ─── Modifier Group Resource ───
 
 export const modifierGroupResource = defineResource({
+	feature: 'menu',
+	resource: 'modifier',
 	urls: endpoint.menu.modifier,
 	entitySchema: ModifierGroupDto,
 	filter: ModifierGroupFilterDto,

@@ -26,6 +26,8 @@ import {
 // ─── Role Resource ───
 
 export const roleResource = defineResource({
+	feature: 'iam',
+	resource: 'role',
 	urls: endpoint.iam.role,
 	entitySchema: RoleDto,
 	filter: RoleFilterDto,

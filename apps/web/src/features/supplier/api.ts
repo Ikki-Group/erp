@@ -21,6 +21,8 @@ import {
 // ─── Supplier Resource (CRUD) ───
 
 export const supplierResource = defineResource({
+	feature: 'supplier',
+	resource: 'supplier',
 	urls: endpoint.supplier,
 	entitySchema: SupplierDto,
 	filter: SupplierFilterDto,

@@ -2,9 +2,20 @@ import type { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query'
 
 import { queryClient } from '@/lib/tanstack-query.ts'
 
+import { getActiveLocationId } from './active-location.ts'
 import type { ApiClient } from './client.ts'
+import { resolveFreshness } from './freshness.ts'
+import type { FreshnessTier } from './freshness.ts'
 import { requestJson } from './http.ts'
-import type { Args, HttpMethod, Input, MaybeSchema, QueryKey, TaggedQueryKey } from './types.ts'
+import type {
+	Args,
+	EndpointArgs,
+	HttpMethod,
+	Input,
+	MaybeSchema,
+	QueryKey,
+	TaggedQueryKey,
+} from './types.ts'
 import { parseOrThrow } from './validate.ts'
 import type { z, ZodType } from 'zod'
 
@@ -90,6 +101,18 @@ export interface QueryEndpointConfig<
 	type: 'query'
 	/** Builds the React Query key from the call args. Defaults to `[url, args ?? null]`. */
 	queryKey?: (args: Args<TQuery, TBody>) => QueryKey
+	/**
+	 * Freshness tier controlling `staleTime`/`gcTime`/`refetchInterval`. Defaults
+	 * to `'standard'` (the app-wide default). Overrides on `queryOptions` still win.
+	 */
+	tier?: FreshnessTier
+	/**
+	 * When true, the active `locationId` is folded into the query key so the
+	 * cache partitions per location and location-switch invalidation can target
+	 * this endpoint precisely. The `{ loc }` segment is appended to the default
+	 * key; a custom `queryKey` is responsible for its own location scoping.
+	 */
+	locationScoped?: boolean
 }
 
 type QueryOptionsOverrides<TResult extends ZodType = ZodType> = Omit<
@@ -104,11 +127,12 @@ export interface QueryEndpoint<
 > {
 	type: 'query'
 	method: HttpMethod
-	fetch: (args: Args<TQuery, TBody>, signal?: AbortSignal) => Promise<z.output<TResult>>
-	queryKey: (args: Args<TQuery, TBody>) => TaggedQueryKey<z.output<TResult>>
+	fetch: (
+		...args: [...EndpointArgs<TQuery, TBody>, signal?: AbortSignal]
+	) => Promise<z.output<TResult>>
+	queryKey: (...args: EndpointArgs<TQuery, TBody>) => TaggedQueryKey<z.output<TResult>>
 	queryOptions: (
-		args: Args<TQuery, TBody>,
-		overrides?: QueryOptionsOverrides<TResult>,
+		...args: [...EndpointArgs<TQuery, TBody>, overrides?: QueryOptionsOverrides<TResult>]
 	) => UseQueryOptions<z.output<TResult>, Error, z.output<TResult>, QueryKey>
 }
 
@@ -118,22 +142,80 @@ function createQueryEndpoint<
 	TResult extends ZodType = ZodType,
 >(config: QueryEndpointConfig<TQuery, TBody, TResult>): QueryEndpoint<TQuery, TBody, TResult> {
 	const coreFetch = createCoreFetch(config)
-	const buildKey = (config.queryKey ??
-		((args: Args<TQuery, TBody>) => [config.url, args ?? null])) as (
-		args: Args<TQuery, TBody>,
-	) => TaggedQueryKey<z.output<TResult>>
+	const tier = config.tier ?? 'standard'
+
+	// A custom `queryKey` owns its own location scoping — the factory can't fold
+	// `{ loc }` into a key it didn't build. Combining both is a silent footgun
+	// (unscoped cache that cross-contaminates locations), so reject it up front.
+	if (config.locationScoped && config.queryKey) {
+		throw new Error(
+			`[api] defineQuery(${config.url}): \`locationScoped\` cannot be combined with a custom ` +
+				'`queryKey`. Fold the active location into the key yourself (via createResourceKeys ' +
+				'or getActiveLocationId), or drop the custom queryKey.',
+		)
+	}
+
+	const buildKey = (args: Args<TQuery, TBody>): QueryKey => {
+		if (config.locationScoped) {
+			return [config.url, { loc: getActiveLocationId() }, args ?? null]
+		}
+		return config.queryKey ? config.queryKey(args) : [config.url, args ?? null]
+	}
 
 	return {
 		type: 'query',
 		method: config.method,
-		fetch: coreFetch,
-		queryKey: buildKey,
-		queryOptions: (args, overrides) => ({
-			queryKey: buildKey(args),
-			queryFn: ({ signal }: { signal: AbortSignal }) => coreFetch(args, signal),
-			...overrides,
-		}),
+		fetch: ((...callArgs: unknown[]) => {
+			// `args` is present only for schema-bearing endpoints; a trailing
+			// AbortSignal may follow. No-arg endpoints pass only the signal.
+			const [maybeArgs, maybeSignal] = splitCallArgs(callArgs, config)
+			return coreFetch(maybeArgs as Args<TQuery, TBody>, maybeSignal)
+		}) as QueryEndpoint<TQuery, TBody, TResult>['fetch'],
+		queryKey: ((...callArgs: unknown[]) =>
+			buildKey(callArgs[0] as Args<TQuery, TBody>)) as unknown as QueryEndpoint<
+			TQuery,
+			TBody,
+			TResult
+		>['queryKey'],
+		queryOptions: ((...callArgs: unknown[]) => {
+			const [args, overrides] = splitArgsAndOverrides(callArgs, config)
+			return {
+				queryKey: buildKey(args as Args<TQuery, TBody>),
+				queryFn: ({ signal }: { signal: AbortSignal }) =>
+					coreFetch(args as Args<TQuery, TBody>, signal),
+				...resolveFreshness(tier),
+				...(overrides as QueryOptionsOverrides<TResult> | undefined),
+			}
+		}) as QueryEndpoint<TQuery, TBody, TResult>['queryOptions'],
 	}
+}
+
+/**
+ * Splits a variadic call into `[args, signal]`. For a schema-bearing endpoint
+ * the first value is the args and an optional `AbortSignal` follows; for a
+ * no-arg endpoint only the signal (if any) is passed.
+ */
+function splitCallArgs(
+	callArgs: unknown[],
+	config: { query?: unknown; body?: unknown },
+): [unknown, AbortSignal | undefined] {
+	const hasSchema = config.query !== undefined || config.body !== undefined
+	if (hasSchema) return [callArgs[0], callArgs[1] as AbortSignal | undefined]
+	return [undefined, callArgs[0] as AbortSignal | undefined]
+}
+
+/**
+ * Splits a variadic `queryOptions` call into `[args, overrides]`. For a
+ * schema-bearing endpoint the first value is the args and the optional
+ * overrides object follows; for a no-arg endpoint only the overrides (if any).
+ */
+function splitArgsAndOverrides(
+	callArgs: unknown[],
+	config: { query?: unknown; body?: unknown },
+): [unknown, unknown] {
+	const hasSchema = config.query !== undefined || config.body !== undefined
+	if (hasSchema) return [callArgs[0], callArgs[1]]
+	return [undefined, callArgs[0]]
 }
 
 /* -------------------------------------------------------------------------- */
@@ -169,7 +251,9 @@ export interface MutationEndpoint<
 > {
 	type: 'mutation'
 	method: HttpMethod
-	fetch: (args: Args<TQuery, TBody>, signal?: AbortSignal) => Promise<z.output<TResult>>
+	fetch: (
+		...args: [...EndpointArgs<TQuery, TBody>, signal?: AbortSignal]
+	) => Promise<z.output<TResult>>
 	mutationOptions: (
 		overrides?: MutationOptionsOverrides<TQuery, TBody, TResult>,
 	) => UseMutationOptions<z.output<TResult>, Error, Args<TQuery, TBody>>
@@ -206,10 +290,16 @@ function createMutationEndpoint<
 		return result
 	}
 
+	const hasSchema = config.query !== undefined || config.body !== undefined
+
 	return {
 		type: 'mutation',
 		method: config.method,
-		fetch: fetchImpl,
+		fetch: ((...callArgs: unknown[]) => {
+			const args = hasSchema ? callArgs[0] : undefined
+			const signal = (hasSchema ? callArgs[1] : callArgs[0]) as AbortSignal | undefined
+			return fetchImpl(args as Args<TQuery, TBody>, signal)
+		}) as MutationEndpoint<TQuery, TBody, TResult>['fetch'],
 		mutationOptions: (overrides) => ({
 			mutationFn: (args: Args<TQuery, TBody>) => fetchImpl(args),
 			...overrides,
