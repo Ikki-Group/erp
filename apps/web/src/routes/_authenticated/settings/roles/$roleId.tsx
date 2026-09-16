@@ -1,15 +1,19 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
+
 import { FormPage } from '@/components/shared/form-page.tsx'
 import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 
 import { toast } from '@/components/ui/toast'
 
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
-
 import { roleResource } from '@/features/iam/api.ts'
-import { RoleFormFields, toRoleFormValues, useRoleForm } from '@/features/iam/components/role-form.tsx'
+import {
+	RoleFormFields,
+	toRoleFormValues,
+	useRoleForm,
+} from '@/features/iam/components/role-form.tsx'
 import type { RoleDto } from '@/features/iam/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/settings/roles/$roleId')({

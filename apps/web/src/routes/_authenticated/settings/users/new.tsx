@@ -3,11 +3,11 @@ import { useMemo } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
+
 import { FormPage } from '@/components/shared/form-page.tsx'
 
 import { toast } from '@/components/ui/toast'
-
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
 import { assignmentResource, roleResource, userResource } from '@/features/iam/api.ts'
 import { UserFormFields, useUserForm } from '@/features/iam/components/user-form.tsx'

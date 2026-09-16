@@ -1,14 +1,14 @@
-import { useMutation } from '@tanstack/react-query'
 import { useStore } from '@tanstack/react-form'
+import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+
+import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
 import { EmptyState } from '@/components/shared/empty-state.tsx'
 import { PageHeader } from '@/components/shared/page-header.tsx'
 import { WizardPage } from '@/components/shared/wizard-page.tsx'
 
 import { toast } from '@/components/ui/toast'
-
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
 import { transferResource } from '@/features/inventory/api.ts'
 import {
@@ -32,11 +32,11 @@ function NewTransferPage() {
 	if (!activeLocation) {
 		return (
 			<div className="space-y-6">
-				<PageHeader title="Buat Transfer" description="Buat permintaan transfer bahan antar lokasi." />
-				<EmptyState
-					title="Pilih lokasi"
-					description="Pilih lokasi aktif untuk membuat transfer."
+				<PageHeader
+					title="Buat Transfer"
+					description="Buat permintaan transfer bahan antar lokasi."
 				/>
+				<EmptyState title="Pilih lokasi" description="Pilih lokasi aktif untuk membuat transfer." />
 			</div>
 		)
 	}

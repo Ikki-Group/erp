@@ -1,14 +1,17 @@
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
+
 import { FormPage } from '@/components/shared/form-page.tsx'
 
 import { toast } from '@/components/ui/toast'
 
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
-
 import { locationResource } from '@/features/location/api.ts'
-import { LocationFormFields, useLocationForm } from '@/features/location/components/location-form.tsx'
+import {
+	LocationFormFields,
+	useLocationForm,
+} from '@/features/location/components/location-form.tsx'
 
 export const Route = createFileRoute('/_authenticated/master/locations/new')({
 	component: NewLocationPage,

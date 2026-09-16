@@ -1,15 +1,19 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
+
 import { FormPage } from '@/components/shared/form-page.tsx'
 import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 
 import { toast } from '@/components/ui/toast'
 
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
-
 import { tableResource } from '@/features/pos/api.ts'
-import { TableFormFields, toTableFormValues, useTableForm } from '@/features/pos/components/table-form.tsx'
+import {
+	TableFormFields,
+	toTableFormValues,
+	useTableForm,
+} from '@/features/pos/components/table-form.tsx'
 import type { TableDto } from '@/features/pos/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/pos/tables/$tableId')({

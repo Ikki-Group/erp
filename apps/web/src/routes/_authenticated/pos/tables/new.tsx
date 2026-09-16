@@ -1,13 +1,13 @@
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
+
 import { EmptyState } from '@/components/shared/empty-state.tsx'
 import { FormPage } from '@/components/shared/form-page.tsx'
 import { PageHeader } from '@/components/shared/page-header.tsx'
 
 import { toast } from '@/components/ui/toast'
-
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
 import { tableResource } from '@/features/pos/api.ts'
 import { TableFormFields, useTableForm } from '@/features/pos/components/table-form.tsx'

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { z } from 'zod'
 
 import { PlusIcon, Trash2Icon } from 'lucide-react'
+import { z } from 'zod'
 
 import { useEntityForm } from '@/lib/form/index.ts'
 

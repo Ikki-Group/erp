@@ -3,15 +3,19 @@ import { useMemo } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
+
 import { FormPage } from '@/components/shared/form-page.tsx'
 import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 
 import { toast } from '@/components/ui/toast'
 
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
-
 import { roleResource, userResource } from '@/features/iam/api.ts'
-import { UserFormFields, toUserFormValues, useUserForm } from '@/features/iam/components/user-form.tsx'
+import {
+	UserFormFields,
+	toUserFormValues,
+	useUserForm,
+} from '@/features/iam/components/user-form.tsx'
 import type { UserDetailDto } from '@/features/iam/dto/index.ts'
 import { locationResource } from '@/features/location/api.ts'
 

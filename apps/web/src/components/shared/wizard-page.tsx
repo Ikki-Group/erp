@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useStore } from '@tanstack/react-form'
 import type { AnyFormApi } from '@tanstack/react-form'
 import { useRouter } from '@tanstack/react-router'
+
 import { ArrowLeftIcon, CheckIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -17,6 +18,7 @@ import {
 	StepperTitle,
 	StepperTrigger,
 } from '@/components/reui/stepper'
+
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 

@@ -1,6 +1,6 @@
-import { z } from 'zod'
-
 import type { PaginationState, SortingState } from '@tanstack/react-table'
+
+import { z } from 'zod'
 
 /**
  * The canonical URL-search shape for a server-driven list page. Routes spread
@@ -18,7 +18,13 @@ const DEFAULT_PAGE_SIZE = 10
 export const listSearchSchema = z.object({
 	/** 1-based page number as seen in the URL. */
 	page: z.coerce.number().int().min(1).catch(1).default(1),
-	pageSize: z.coerce.number().int().min(1).max(100).catch(DEFAULT_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
+	pageSize: z.coerce
+		.number()
+		.int()
+		.min(1)
+		.max(100)
+		.catch(DEFAULT_PAGE_SIZE)
+		.default(DEFAULT_PAGE_SIZE),
 	/** Free-text search term. Absent when empty. */
 	q: z.string().min(1).optional(),
 	/** Sort spec as `"field:asc"` / `"field:desc"`. Absent when unsorted. */
@@ -71,7 +77,11 @@ export function searchToTableState(search: ListSearch): DerivedTableState {
  */
 export function tableChangeToSearch(current: ListSearch, change: TableStateChange): ListSearch {
 	if (change.pagination) {
-		return { ...current, page: change.pagination.pageIndex + 1, pageSize: change.pagination.pageSize }
+		return {
+			...current,
+			page: change.pagination.pageIndex + 1,
+			pageSize: change.pagination.pageSize,
+		}
 	}
 
 	if (change.globalFilter !== undefined) {

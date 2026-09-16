@@ -17,7 +17,13 @@ describe('POS location-scoped keys partition per active location', () => {
 
 		// Same list kind, different active location → distinct cache entries.
 		expect(atLoc1).not.toEqual(atLoc2)
-		expect(atLoc1).toEqual(['pos', 'order', { loc: 1 }, 'list', { page: 1, limit: 20, locationId: 1 }])
+		expect(atLoc1).toEqual([
+			'pos',
+			'order',
+			{ loc: 1 },
+			'list',
+			{ page: 1, limit: 20, locationId: 1 },
+		])
 	})
 
 	it('folds the active locationId into the shift active key', () => {
