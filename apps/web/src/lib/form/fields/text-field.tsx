@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-import { formatFieldError } from '../field-error.tsx'
 import { useFieldContext } from '../contexts.ts'
+import { formatFieldError } from '../field-error.tsx'
 
 export interface TextFieldProps extends Omit<ComponentProps<'input'>, 'value' | 'onChange'> {
 	label: string
@@ -28,9 +28,7 @@ export function TextField({
 }: TextFieldProps) {
 	const field = useFieldContext<string>()
 	const fieldId = id ?? field.name
-	const error = field.state.meta.isTouched
-		? formatFieldError(field.state.meta.errors)
-		: undefined
+	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
 
 	return (
 		<div className={cn('space-y-1.5', wrapperClassName)}>

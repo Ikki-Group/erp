@@ -52,7 +52,11 @@ test.describe('Menu - Category CRUD', () => {
 		await page.goto('/master/menu')
 
 		const categoryRow = page.locator('div').filter({ hasText: 'Minuman E2E' }).first()
-		await categoryRow.getByRole('button').filter({ has: page.locator('svg') }).first().click()
+		await categoryRow
+			.getByRole('button')
+			.filter({ has: page.locator('svg') })
+			.first()
+			.click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 		await expect(page.getByText(/edit kategori/i)).toBeVisible()
@@ -72,7 +76,10 @@ test.describe('Menu - Category CRUD', () => {
 		await page.goto('/master/menu')
 
 		const categoryRow = page.locator('div').filter({ hasText: 'Minuman Updated' }).first()
-		const deleteBtn = categoryRow.getByRole('button').filter({ has: page.locator('svg') }).last()
+		const deleteBtn = categoryRow
+			.getByRole('button')
+			.filter({ has: page.locator('svg') })
+			.last()
 		await deleteBtn.click()
 
 		await expect(page.getByText(/hapus kategori/i)).toBeVisible()
@@ -203,7 +210,11 @@ test.describe('Menu - Modifier Group CRUD', () => {
 		await page.getByRole('button', { name: /modifier groups/i }).click()
 
 		const groupRow = page.locator('div').filter({ hasText: 'Level Gula E2E' }).first()
-		await groupRow.getByRole('button').filter({ has: page.locator('svg') }).first().click()
+		await groupRow
+			.getByRole('button')
+			.filter({ has: page.locator('svg') })
+			.first()
+			.click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 
@@ -224,7 +235,10 @@ test.describe('Menu - Modifier Group CRUD', () => {
 		await page.getByRole('button', { name: /modifier groups/i }).click()
 
 		const groupRow = page.locator('div').filter({ hasText: 'Level Gula Updated' }).first()
-		const deleteBtn = groupRow.getByRole('button').filter({ has: page.locator('svg') }).last()
+		const deleteBtn = groupRow
+			.getByRole('button')
+			.filter({ has: page.locator('svg') })
+			.last()
 		await deleteBtn.click()
 
 		await expect(page.getByText(/hapus modifier group/i)).toBeVisible()

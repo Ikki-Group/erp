@@ -10,8 +10,8 @@ import {
 
 import { Label } from '@/components/ui/label'
 
-import { formatFieldError } from '../field-error.tsx'
 import { useFieldContext } from '../contexts.ts'
+import { formatFieldError } from '../field-error.tsx'
 
 export interface NumberFieldProps {
 	label: string
@@ -35,9 +35,7 @@ export function NumberField({
 }: NumberFieldProps) {
 	const field = useFieldContext<number | null>()
 	const fieldId = field.name
-	const error = field.state.meta.isTouched
-		? formatFieldError(field.state.meta.errors)
-		: undefined
+	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
 
 	return (
 		<div className={cn('space-y-1.5', className)}>

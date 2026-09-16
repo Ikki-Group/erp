@@ -1,8 +1,8 @@
+import { endpoint } from '@/config/endpoint.ts'
+
 import { mockError, mockSuccess } from '../response.ts'
 import { registerRoute } from '../router.ts'
 import * as session from '../session.ts'
-
-import { endpoint } from '@/config/endpoint.ts'
 
 interface LoginBody {
 	username: string

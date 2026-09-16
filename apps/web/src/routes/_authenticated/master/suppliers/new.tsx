@@ -37,7 +37,9 @@ function NewSupplierPage() {
 				})
 			} catch (err) {
 				if (isApiError(err) && err.status === 409) {
-					throw new Error('Supplier code already exists. Please use a different code.')
+					throw new Error('Supplier code already exists. Please use a different code.', {
+						cause: err,
+					})
 				}
 				throw err
 			}

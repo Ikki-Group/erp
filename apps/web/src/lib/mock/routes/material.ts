@@ -1,13 +1,5 @@
-import {
-	mockMaterialCategorySeed,
-	mockMaterialLocationSeed,
-	mockMaterialSeed,
-} from '../fixtures/material.ts'
-import { createTable, paginate } from '../db.ts'
-import { mockError, mockPaginated, mockSuccess } from '../response.ts'
-import { registerRoute } from '../router.ts'
-
 import { endpoint } from '@/config/endpoint.ts'
+
 import type {
 	MaterialAssignDto,
 	MaterialCategoryCreateDto,
@@ -15,6 +7,15 @@ import type {
 	MaterialCreateDto,
 	MaterialUpdateDto,
 } from '@/features/material/dto/index.ts'
+
+import { createTable, paginate } from '../db.ts'
+import {
+	mockMaterialCategorySeed,
+	mockMaterialLocationSeed,
+	mockMaterialSeed,
+} from '../fixtures/material.ts'
+import { mockError, mockPaginated, mockSuccess } from '../response.ts'
+import { registerRoute } from '../router.ts'
 
 const materials = createTable(mockMaterialSeed)
 const categories = createTable(mockMaterialCategorySeed)
@@ -30,7 +31,10 @@ registerRoute('get', endpoint.material.list, (params) => {
 	const type = params.get('type')
 
 	let items = materials.all()
-	if (q) items = items.filter((m) => m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q))
+	if (q)
+		items = items.filter(
+			(m) => m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q),
+		)
 	if (categoryId) items = items.filter((m) => m.categoryId === Number(categoryId))
 	if (type) items = items.filter((m) => m.type === type)
 

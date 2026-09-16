@@ -10,7 +10,13 @@ interface PageSectionProps {
 	className?: string
 }
 
-export function PageSection({ title, description, actions, children, className }: PageSectionProps) {
+export function PageSection({
+	title,
+	description,
+	actions,
+	children,
+	className,
+}: PageSectionProps) {
 	return (
 		<section className={cn('space-y-4', className)}>
 			{(title || actions) && (

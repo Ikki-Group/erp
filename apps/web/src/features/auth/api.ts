@@ -1,7 +1,9 @@
+import { z } from 'zod'
+
 import { endpoint } from '@/config/endpoint.ts'
+
 import { defineMutation, defineQuery } from '@/lib/api/index.ts'
 import { createSuccessResponseSchema } from '@/lib/validation/index.ts'
-import { z } from 'zod'
 
 import {
 	LoginDto,

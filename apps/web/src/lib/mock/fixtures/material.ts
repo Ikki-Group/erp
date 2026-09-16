@@ -1,6 +1,10 @@
-import { nowIso } from '../now.ts'
+import type {
+	MaterialCategoryDto,
+	MaterialDto,
+	MaterialLocationDto,
+} from '@/features/material/dto/index.ts'
 
-import type { MaterialCategoryDto, MaterialDto, MaterialLocationDto } from '@/features/material/dto/index.ts'
+import { nowIso } from '../now.ts'
 
 const now = nowIso()
 
@@ -185,7 +189,31 @@ export const mockMaterialSeed: MaterialDto[] = [
 ]
 
 export const mockMaterialLocationSeed: MaterialLocationDto[] = [
-	{ id: 1, materialId: 1, locationId: 1, createdAt: now, updatedAt: now, createdBy: 1, updatedBy: 1 },
-	{ id: 2, materialId: 1, locationId: 2, createdAt: now, updatedAt: now, createdBy: 1, updatedBy: 1 },
-	{ id: 3, materialId: 2, locationId: 1, createdAt: now, updatedAt: now, createdBy: 1, updatedBy: 1 },
+	{
+		id: 1,
+		materialId: 1,
+		locationId: 1,
+		createdAt: now,
+		updatedAt: now,
+		createdBy: 1,
+		updatedBy: 1,
+	},
+	{
+		id: 2,
+		materialId: 1,
+		locationId: 2,
+		createdAt: now,
+		updatedAt: now,
+		createdBy: 1,
+		updatedBy: 1,
+	},
+	{
+		id: 3,
+		materialId: 2,
+		locationId: 1,
+		createdAt: now,
+		updatedAt: now,
+		createdBy: 1,
+		updatedBy: 1,
+	},
 ]

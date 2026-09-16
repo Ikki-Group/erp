@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
+
 import { AlertCircleIcon, CheckCircleIcon, InfoIcon, AlertTriangleIcon } from 'lucide-react'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-
 import { cn } from '@/lib/utils'
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const icons = {
 	error: AlertCircleIcon,

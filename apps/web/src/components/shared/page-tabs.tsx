@@ -47,9 +47,7 @@ export function PageTabs({ tabs, activeTab, onTabChange, className }: PageTabsPr
 								<span
 									className={cn(
 										'ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none',
-										isActive
-											? 'bg-primary/10 text-primary'
-											: 'bg-muted text-muted-foreground',
+										isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
 									)}
 								>
 									{tab.count}

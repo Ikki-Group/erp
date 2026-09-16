@@ -8,7 +8,18 @@
 	"sortPackageJson": true,
 	"objectWrap": "preserve",
 	"useTabs": true,
-	"ignorePatterns": ["node_modules", ".agents/**", "./docs/**", "**/*.lock"],
+	"ignorePatterns": [
+		"node_modules",
+		".agents/**",
+		".scratch/**",
+		".kiro/**",
+		".vscode/**",
+		"docs/**",
+		"skills-lock.json",
+		"apps/server/src/db/migrations/**",
+		"apps/web/src/routeTree.gen.ts",
+		"**/*.lock"
+	],
 	"overrides": [
 		{
 			"files": ["apps/web/**/*.{ts,tsx}"],

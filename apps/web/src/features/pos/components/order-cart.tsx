@@ -63,14 +63,11 @@ export function OrderCart({
 					<div className="divide-y">
 						{lines.map((line) => {
 							const key = getModifierKey(line)
-							const lineTotal =
-								(line.unitPrice + line.modifierTotal) * line.qty
+							const lineTotal = (line.unitPrice + line.modifierTotal) * line.qty
 							return (
 								<div key={key} className="flex items-start gap-2 py-2.5">
 									<div className="flex-1 min-w-0">
-										<p className="text-xs font-medium truncate">
-											{line.menuItemName}
-										</p>
+										<p className="text-xs font-medium truncate">{line.menuItemName}</p>
 										{line.modifierNames.length > 0 && (
 											<p className="text-[11px] text-muted-foreground truncate">
 												{line.modifierNames.join(', ')}
@@ -83,30 +80,23 @@ export function OrderCart({
 										)}
 										<p className="mt-0.5 text-xs text-muted-foreground">
 											Rp {line.unitPrice.toLocaleString('id-ID')}
-											{line.modifierTotal > 0 &&
-												` + ${line.modifierTotal.toLocaleString('id-ID')}`}
+											{line.modifierTotal > 0 && ` + ${line.modifierTotal.toLocaleString('id-ID')}`}
 										</p>
 									</div>
 									<div className="flex items-center gap-1">
 										<Button
 											variant="outline"
 											size="icon-sm"
-											onClick={() =>
-												onUpdateQty(line.menuItemId, key, line.qty - 1)
-											}
+											onClick={() => onUpdateQty(line.menuItemId, key, line.qty - 1)}
 											disabled={disabled}
 										>
 											<MinusIcon className="size-3" />
 										</Button>
-										<span className="w-6 text-center text-xs font-medium">
-											{line.qty}
-										</span>
+										<span className="w-6 text-center text-xs font-medium">{line.qty}</span>
 										<Button
 											variant="outline"
 											size="icon-sm"
-											onClick={() =>
-												onUpdateQty(line.menuItemId, key, line.qty + 1)
-											}
+											onClick={() => onUpdateQty(line.menuItemId, key, line.qty + 1)}
 											disabled={disabled}
 										>
 											<PlusIcon className="size-3" />
@@ -140,9 +130,7 @@ export function OrderCart({
 						<div className="flex justify-between text-green-600">
 							<span className="flex items-center gap-1">
 								Diskon
-								{voucherCode && (
-									<span className="text-[10px]">({voucherCode})</span>
-								)}
+								{voucherCode && <span className="text-[10px]">({voucherCode})</span>}
 							</span>
 							<span>-Rp {discountAmount.toLocaleString('id-ID')}</span>
 						</div>
@@ -169,12 +157,7 @@ export function OrderCart({
 						{voucherCode ? 'Ganti Voucher' : 'Voucher'}
 					</Button>
 					{voucherCode && (
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={onRemoveVoucher}
-							disabled={disabled}
-						>
+						<Button variant="ghost" size="sm" onClick={onRemoveVoucher} disabled={disabled}>
 							Hapus
 						</Button>
 					)}

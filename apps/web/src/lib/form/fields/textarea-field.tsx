@@ -5,11 +5,10 @@ import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
-import { formatFieldError } from '../field-error.tsx'
 import { useFieldContext } from '../contexts.ts'
+import { formatFieldError } from '../field-error.tsx'
 
-export interface TextareaFieldProps
-	extends Omit<ComponentProps<'textarea'>, 'value' | 'onChange'> {
+export interface TextareaFieldProps extends Omit<ComponentProps<'textarea'>, 'value' | 'onChange'> {
 	label: string
 	description?: string
 	wrapperClassName?: string
@@ -25,9 +24,7 @@ export function TextareaField({
 }: TextareaFieldProps) {
 	const field = useFieldContext<string>()
 	const fieldId = id ?? field.name
-	const error = field.state.meta.isTouched
-		? formatFieldError(field.state.meta.errors)
-		: undefined
+	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
 
 	return (
 		<div className={cn('space-y-1.5', wrapperClassName)}>

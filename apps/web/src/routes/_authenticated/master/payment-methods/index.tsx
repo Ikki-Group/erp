@@ -112,6 +112,7 @@ function PaymentMethodsPage() {
 		return col.display({
 			id: 'actions',
 			size: 60,
+			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) => {
 				const items = []
 				if (canEdit) {

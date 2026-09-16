@@ -201,6 +201,7 @@ function ReceivingPage() {
 		return col.display({
 			id: 'actions',
 			size: 80,
+			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) => {
 				const receiving = row.original
 				return (

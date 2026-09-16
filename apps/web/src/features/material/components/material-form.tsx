@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
+
 import { z } from 'zod'
 
 import { useEntityForm } from '@/lib/form/index.ts'
 
+import { uomResource } from '@/features/uom/api.ts'
+
 import { categoryResource } from '../api.ts'
 import { MATERIAL_TYPE_OPTIONS, MaterialTypeEnum } from '../dto/index.ts'
-
-import { uomResource } from '@/features/uom/api.ts'
 
 export interface MaterialFormValues {
 	code: string
@@ -143,7 +144,11 @@ export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
 			<div className="grid grid-cols-2 gap-4">
 				<form.AppField name="baseUomId">
 					{(field) => (
-						<field.IdSelectField label="Base UoM" options={uomOptions} placeholder="Select unit..." />
+						<field.IdSelectField
+							label="Base UoM"
+							options={uomOptions}
+							placeholder="Select unit..."
+						/>
 					)}
 				</form.AppField>
 				<form.AppField name="defaultPurchaseUomId">
@@ -182,14 +187,15 @@ export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
 			</div>
 
 			<form.AppField name="minStock">
-				{(field) => (
-					<field.TextField label="Min Stock" placeholder="e.g. 10.5 (optional)" />
-				)}
+				{(field) => <field.TextField label="Min Stock" placeholder="e.g. 10.5 (optional)" />}
 			</form.AppField>
 
 			<form.AppField name="isActive">
 				{(field) => (
-					<field.SwitchField label="Active" description="Whether this material is available for use." />
+					<field.SwitchField
+						label="Active"
+						description="Whether this material is available for use."
+					/>
 				)}
 			</form.AppField>
 

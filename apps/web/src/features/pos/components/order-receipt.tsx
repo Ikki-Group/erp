@@ -50,8 +50,7 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 								<div className="flex-1 min-w-0">
 									<p className="truncate">{line.menuItemName}</p>
 									<p className="text-muted-foreground">
-										{Number(line.quantity)} x Rp{' '}
-										{Number(line.unitPrice).toLocaleString('id-ID')}
+										{Number(line.quantity)} x Rp {Number(line.unitPrice).toLocaleString('id-ID')}
 									</p>
 								</div>
 								<span className="flex-shrink-0">
@@ -74,17 +73,13 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 									Diskon
 									{order.voucherCode && ` (${order.voucherCode})`}
 								</span>
-								<span>
-									-Rp {Number(order.discountAmount).toLocaleString('id-ID')}
-								</span>
+								<span>-Rp {Number(order.discountAmount).toLocaleString('id-ID')}</span>
 							</div>
 						)}
 						{Number(order.taxAmount) > 0 && (
 							<div className="flex justify-between">
 								<span className="text-muted-foreground">Pajak</span>
-								<span>
-									Rp {Number(order.taxAmount).toLocaleString('id-ID')}
-								</span>
+								<span>Rp {Number(order.taxAmount).toLocaleString('id-ID')}</span>
 							</div>
 						)}
 						<Separator />
@@ -101,12 +96,8 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 								<p className="font-medium">Pembayaran:</p>
 								{order.payments.map((payment) => (
 									<div key={payment.id} className="flex justify-between">
-										<span className="text-muted-foreground">
-											#{payment.paymentMethodId}
-										</span>
-										<span>
-											Rp {Number(payment.amount).toLocaleString('id-ID')}
-										</span>
+										<span className="text-muted-foreground">#{payment.paymentMethodId}</span>
+										<span>Rp {Number(payment.amount).toLocaleString('id-ID')}</span>
 									</div>
 								))}
 							</div>

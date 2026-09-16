@@ -1,5 +1,7 @@
 import { CartesianGrid, Line, LineChart as RechartsLineChart, XAxis, YAxis } from 'recharts'
 
+import { cn } from '@/lib/utils'
+
 import {
 	ChartContainer,
 	ChartLegend,
@@ -8,8 +10,6 @@ import {
 	ChartTooltipContent,
 	type ChartConfig,
 } from '@/components/ui/chart'
-
-import { cn } from '@/lib/utils'
 
 interface LineChartProps {
 	data: Record<string, unknown>[]

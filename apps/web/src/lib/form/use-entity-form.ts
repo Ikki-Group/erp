@@ -1,8 +1,7 @@
-import type { ZodTypeAny } from 'zod'
-
 import { isApiError } from '@/lib/api/errors.ts'
 
 import { useAppForm } from './app-form.ts'
+import type { ZodTypeAny } from 'zod'
 
 export interface UseEntityFormOptions<TValues> {
 	/** Initial field values. Pass the entity being edited, mapped to form shape — or an empty-record default for create mode. */

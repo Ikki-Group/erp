@@ -201,6 +201,7 @@ function OpnamePage() {
 		return colHelper.display({
 			id: 'actions',
 			size: 80,
+			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) => (
 				<Button
 					size="sm"

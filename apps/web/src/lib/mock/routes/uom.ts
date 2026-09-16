@@ -1,10 +1,11 @@
-import { mockUomSeed } from '../fixtures/uom.ts'
+import { endpoint } from '@/config/endpoint.ts'
+
+import type { UomCreateDto, UomUpdateDto } from '@/features/uom/dto/index.ts'
+
 import { createTable, paginate } from '../db.ts'
+import { mockUomSeed } from '../fixtures/uom.ts'
 import { mockError, mockPaginated, mockSuccess } from '../response.ts'
 import { registerRoute } from '../router.ts'
-
-import { endpoint } from '@/config/endpoint.ts'
-import type { UomCreateDto, UomUpdateDto } from '@/features/uom/dto/index.ts'
 
 const table = createTable(mockUomSeed)
 
@@ -15,7 +16,10 @@ registerRoute('get', endpoint.uom.list, (params) => {
 	const category = params.get('category')
 
 	let items = table.all()
-	if (q) items = items.filter((u) => u.name.toLowerCase().includes(q) || u.code.toLowerCase().includes(q))
+	if (q)
+		items = items.filter(
+			(u) => u.name.toLowerCase().includes(q) || u.code.toLowerCase().includes(q),
+		)
 	if (category) items = items.filter((u) => u.category === category)
 
 	return mockPaginated(paginate(items, page, limit), { page, limit, total: items.length })

@@ -211,6 +211,7 @@ function RecipesPage() {
 			id: 'menuItem',
 			header: 'Menu Item',
 			size: 180,
+			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) => (
 				<span className="text-sm">
 					{menuItemMap.get(row.original.menuItemId) ?? `#${row.original.menuItemId}`}
@@ -224,6 +225,7 @@ function RecipesPage() {
 			id: 'hpp',
 			header: 'HPP',
 			size: 140,
+			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) =>
 				locationId ? <HppCell menuItemId={row.original.menuItemId} locationId={locationId} /> : '—',
 		})

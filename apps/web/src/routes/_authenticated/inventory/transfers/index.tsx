@@ -197,6 +197,7 @@ function TransfersPage() {
 			col.accessor('status', {
 				header: 'Status',
 				size: 130,
+				// oxlint-disable-next-line react/no-unstable-nested-components
 				cell: ({ getValue }) => {
 					const status = getValue()
 					return (
@@ -219,6 +220,7 @@ function TransfersPage() {
 			col.accessor('notes', {
 				header: 'Catatan',
 				size: 200,
+				// oxlint-disable-next-line react/no-unstable-nested-components
 				cell: ({ getValue }) => getValue() ?? <span className="text-muted-foreground">—</span>,
 			}),
 			col.accessor('createdAt', {
@@ -234,6 +236,7 @@ function TransfersPage() {
 		return col.display({
 			id: 'actions',
 			size: 60,
+			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) => {
 				const transfer = row.original
 				const items = []

@@ -1,7 +1,7 @@
+import type { HttpMethod } from '@/lib/api/types.ts'
+
 import { mockError } from './response.ts'
 import type { MockRouteHandler } from './types.ts'
-
-import type { HttpMethod } from '@/lib/api/types.ts'
 
 type RouteKey = `${HttpMethod} ${string}`
 

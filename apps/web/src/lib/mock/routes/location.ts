@@ -1,10 +1,11 @@
-import { mockLocationSeed } from '../fixtures/location.ts'
+import { endpoint } from '@/config/endpoint.ts'
+
+import type { LocationCreateDto, LocationUpdateDto } from '@/features/location/dto/index.ts'
+
 import { createTable, paginate } from '../db.ts'
+import { mockLocationSeed } from '../fixtures/location.ts'
 import { mockError, mockPaginated, mockSuccess } from '../response.ts'
 import { registerRoute } from '../router.ts'
-
-import { endpoint } from '@/config/endpoint.ts'
-import type { LocationCreateDto, LocationUpdateDto } from '@/features/location/dto/index.ts'
 
 const table = createTable(mockLocationSeed)
 
@@ -15,7 +16,10 @@ registerRoute('get', endpoint.location.list, (params) => {
 	const type = params.get('type')
 
 	let items = table.all()
-	if (q) items = items.filter((l) => l.name.toLowerCase().includes(q) || l.code.toLowerCase().includes(q))
+	if (q)
+		items = items.filter(
+			(l) => l.name.toLowerCase().includes(q) || l.code.toLowerCase().includes(q),
+		)
 	if (type) items = items.filter((l) => l.type === type)
 
 	return mockPaginated(paginate(items, page, limit), { page, limit, total: items.length })

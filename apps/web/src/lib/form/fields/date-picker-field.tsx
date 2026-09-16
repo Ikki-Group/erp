@@ -10,8 +10,8 @@ import { Calendar } from '@/components/ui/calendar'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
-import { formatFieldError } from '../field-error.tsx'
 import { useFieldContext } from '../contexts.ts'
+import { formatFieldError } from '../field-error.tsx'
 
 export interface DatePickerFieldProps {
 	label: string
@@ -38,9 +38,7 @@ export function DatePickerField({
 }: DatePickerFieldProps) {
 	const field = useFieldContext<Date | undefined>()
 	const fieldId = field.name
-	const error = field.state.meta.isTouched
-		? formatFieldError(field.state.meta.errors)
-		: undefined
+	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
 
 	const [open, setOpen] = useState(false)
 	const currentYear = new Date().getFullYear()

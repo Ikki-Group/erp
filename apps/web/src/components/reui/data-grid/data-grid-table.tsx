@@ -9,7 +9,7 @@ import type {
 } from 'react'
 
 import { flexRender, Subscribe } from '@tanstack/react-table'
-import type { Cell, Column, Header, Row, Table } from '@tanstack/react-table'
+import type { Cell, Column, Header, Row } from '@tanstack/react-table'
 
 import { cn } from '@/lib/utils'
 
@@ -712,7 +712,7 @@ function DataGridTableHead({ children }: { children: ReactNode }) {
 	)
 }
 
-function DataGridTableHeadRow({ children, rowId }: { children: ReactNode; rowId: string }) {
+function DataGridTableHeadRow({ children }: { children: ReactNode; rowId: string }) {
 	const { props } = useDataGrid()
 
 	return (
@@ -1680,7 +1680,7 @@ const MemoizedDataGridTableBodyRows = memo(
 	(_prev, next) => !!next.table.state.columnResizing.isResizingColumn,
 ) as typeof DataGridTableBodyRows
 
-function DataGridTableHeader<TData extends object>() {
+function DataGridTableHeader() {
 	const { table, props } = useDataGrid()
 	const mergedHeaderGroups = getDataGridTableMergedHeaderGroups(table)
 	const hasRightPinnedColumns = hasDataGridTableRightPinnedColumns(table)
@@ -1739,7 +1739,7 @@ function DataGridTableHeader<TData extends object>() {
 	)
 }
 
-function DataGridTable<TData extends object>({
+function DataGridTable({
 	footerContent,
 	renderHeader = true,
 }: {

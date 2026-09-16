@@ -1,9 +1,8 @@
 // oxlint-disable-next-line import/no-unassigned-import
 import './routes/index.ts'
+import type { ApiClient } from '@/lib/api/client.ts'
 
 import { mockFetch } from './router.ts'
-
-import type { ApiClient } from '@/lib/api/client.ts'
 
 /**
  * Mock `ApiClient` — same call signature as the real `httpClient`

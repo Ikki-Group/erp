@@ -14,24 +14,12 @@
 		"src/modules/**/index.ts",
 		"src/modules/**/*.contract.ts",
 		"src/shared/types/pagination.ts",
-		"src/shared/types/utils.ts"
+		"src/shared/types/utils.ts",
 	],
-	"project": [
-		"src/**/*.ts"
-	],
-	"ignoreDependencies": [
-		"@total-typescript/ts-reset",
-		"bcrypt",
-		"lint-staged",
-		"ws",
-		"@types/ws"
-	],
-	"ignoreBinaries": [
-		"flyctl"
-	],
+	"project": ["src/**/*.ts"],
+	"ignoreDependencies": ["@total-typescript/ts-reset", "bcrypt", "lint-staged", "ws", "@types/ws"],
+	"ignoreBinaries": ["flyctl"],
 	"ignoreIssues": {
-		"src/server/plugins/auth.plugin.ts": [
-			"duplicates"
-		]
-	}
+		"src/server/plugins/auth.plugin.ts": ["duplicates"],
+	},
 }

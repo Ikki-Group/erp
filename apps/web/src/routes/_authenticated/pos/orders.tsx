@@ -196,6 +196,7 @@ function OrdersPage() {
 		return col.display({
 			id: 'actions',
 			size: 100,
+			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) => (
 				<OrderActions
 					order={row.original}

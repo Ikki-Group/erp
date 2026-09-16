@@ -11,14 +11,7 @@ import {
 
 import { AreaChart } from '@/components/charts/area-chart'
 import { BarChart } from '@/components/charts/bar-chart'
-
-import {
-	DataCard,
-	PageHeader,
-	SegmentedBar,
-	StatCard,
-	StatusBadge,
-} from '@/components/shared'
+import { DataCard, PageHeader, SegmentedBar, StatCard, StatusBadge } from '@/components/shared'
 
 import { Button } from '@/components/ui/button'
 import type { ChartConfig } from '@/components/ui/chart'
@@ -66,17 +59,37 @@ const lowStockItems = [
 ]
 
 const recentActivity = [
-	{ label: 'Order #ORD-0231 selesai', location: 'Kemang', time: '2 menit lalu', variant: 'success' as const },
-	{ label: 'Penerimaan barang PO-0089 dikonfirmasi', location: 'Gudang Pusat', time: '18 menit lalu', variant: 'info' as const },
-	{ label: 'Shift kasir dibuka', location: 'BSD', time: '41 menit lalu', variant: 'default' as const },
-	{ label: 'Stock opname OPN-0012 selesai', location: 'Kemang', time: '1 jam lalu', variant: 'success' as const },
+	{
+		label: 'Order #ORD-0231 selesai',
+		location: 'Kemang',
+		time: '2 menit lalu',
+		variant: 'success' as const,
+	},
+	{
+		label: 'Penerimaan barang PO-0089 dikonfirmasi',
+		location: 'Gudang Pusat',
+		time: '18 menit lalu',
+		variant: 'info' as const,
+	},
+	{
+		label: 'Shift kasir dibuka',
+		location: 'BSD',
+		time: '41 menit lalu',
+		variant: 'default' as const,
+	},
+	{
+		label: 'Stock opname OPN-0012 selesai',
+		location: 'Kemang',
+		time: '1 jam lalu',
+		variant: 'success' as const,
+	},
 ]
 
 function DashboardPage() {
 	const { user } = useAuth()
 	const { activeLocation, isConsolidated } = useLocationContext()
 
-	const scopeLabel = isConsolidated ? 'Semua lokasi' : activeLocation?.name ?? 'Semua lokasi'
+	const scopeLabel = isConsolidated ? 'Semua lokasi' : (activeLocation?.name ?? 'Semua lokasi')
 
 	return (
 		<div className="space-y-6">

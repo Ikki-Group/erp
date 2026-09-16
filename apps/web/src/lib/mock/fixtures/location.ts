@@ -1,6 +1,6 @@
-import { nowIso } from '../now.ts'
-
 import type { LocationDto } from '@/features/location/dto/index.ts'
+
+import { nowIso } from '../now.ts'
 
 const now = nowIso()
 

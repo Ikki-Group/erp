@@ -63,6 +63,7 @@ function RolesPage() {
 		return col.display({
 			id: 'actions',
 			size: 60,
+			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) => {
 				if (row.original.isSystem) return null
 				const items = []

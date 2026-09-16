@@ -1,5 +1,7 @@
 import { Area, AreaChart as RechartsAreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
+import { cn } from '@/lib/utils'
+
 import {
 	ChartContainer,
 	ChartLegend,
@@ -8,8 +10,6 @@ import {
 	ChartTooltipContent,
 	type ChartConfig,
 } from '@/components/ui/chart'
-
-import { cn } from '@/lib/utils'
 
 interface AreaChartProps {
 	data: Record<string, unknown>[]
@@ -36,12 +36,7 @@ export function AreaChart({
 		<ChartContainer config={config} className={cn('h-64 w-full', className)}>
 			<RechartsAreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
 				{showGrid && <CartesianGrid vertical={false} />}
-				<XAxis
-					dataKey={xAxisKey}
-					tickLine={false}
-					axisLine={false}
-					tickMargin={8}
-				/>
+				<XAxis dataKey={xAxisKey} tickLine={false} axisLine={false} tickMargin={8} />
 				<YAxis tickLine={false} axisLine={false} tickMargin={8} />
 				<ChartTooltip content={<ChartTooltipContent />} />
 				{showLegend && <ChartLegend content={<ChartLegendContent />} />}

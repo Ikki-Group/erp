@@ -9,8 +9,8 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 
-import { formatFieldError } from '../field-error.tsx'
 import { useFieldContext } from '../contexts.ts'
+import { formatFieldError } from '../field-error.tsx'
 
 export interface SelectFieldOption {
 	label: string
@@ -42,9 +42,7 @@ export function SelectField({
 }: SelectFieldProps) {
 	const field = useFieldContext<string>()
 	const fieldId = field.name
-	const error = field.state.meta.isTouched
-		? formatFieldError(field.state.meta.errors)
-		: undefined
+	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
 
 	return (
 		<div className={cn('space-y-1.5', className)}>

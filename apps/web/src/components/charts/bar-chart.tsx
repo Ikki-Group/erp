@@ -1,5 +1,7 @@
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
+import { cn } from '@/lib/utils'
+
 import {
 	ChartContainer,
 	ChartLegend,
@@ -8,8 +10,6 @@ import {
 	ChartTooltipContent,
 	type ChartConfig,
 } from '@/components/ui/chart'
-
-import { cn } from '@/lib/utils'
 
 interface BarChartProps {
 	data: Record<string, unknown>[]
@@ -44,7 +44,13 @@ export function BarChart({
 				{showGrid && <CartesianGrid vertical={false} />}
 				{horizontal ? (
 					<>
-						<YAxis dataKey={xAxisKey} type="category" tickLine={false} axisLine={false} tickMargin={8} />
+						<YAxis
+							dataKey={xAxisKey}
+							type="category"
+							tickLine={false}
+							axisLine={false}
+							tickMargin={8}
+						/>
 						<XAxis type="number" tickLine={false} axisLine={false} tickMargin={8} />
 					</>
 				) : (

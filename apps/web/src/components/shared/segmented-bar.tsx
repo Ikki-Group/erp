@@ -66,8 +66,7 @@ export function SegmentedBar({
 								}}
 							/>
 							<span className="text-xs text-muted-foreground">
-								<span className="font-medium text-foreground">{item.value}</span>{' '}
-								{item.label}
+								<span className="font-medium text-foreground">{item.value}</span> {item.label}
 							</span>
 						</div>
 					))}
