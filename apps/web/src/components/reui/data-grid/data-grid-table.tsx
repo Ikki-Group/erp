@@ -1189,9 +1189,24 @@ function DataGridTableBodyRow<TData extends object>({
 			data-row-pinned={isRowPinned || undefined}
 			data-row-pinned-boundary={pinnedBoundary}
 			onClick={() => props.onRowClick && props.onRowClick(row.original)}
+			// Keyboard affordance for clickable rows: focusable + Enter/Space activate,
+			// so a row-click detail view is operable without a mouse (WCAG).
+			role={props.onRowClick ? 'button' : undefined}
+			tabIndex={props.onRowClick ? 0 : undefined}
+			onKeyDown={
+				props.onRowClick
+					? (event) => {
+							if (event.key === 'Enter' || event.key === ' ') {
+								event.preventDefault()
+								props.onRowClick?.(row.original)
+							}
+						}
+					: undefined
+			}
 			className={cn(
 				'hover:bg-muted/40 data-[state=selected]:bg-muted/50',
-				props.onRowClick && 'cursor-pointer',
+				props.onRowClick &&
+					'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
 				!props.tableLayout?.stripped && props.tableLayout?.rowBorder && bodyRowBottomBorderClasses,
 				props.tableLayout?.cellBorder && `*:last:border-e-0 ${bodyRowBottomBorderClasses}`,
 				// Virtualized rows stripe by absolute row index (CSS :nth-child

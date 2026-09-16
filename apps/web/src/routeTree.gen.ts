@@ -20,6 +20,7 @@ import { Route as AuthenticatedMasterRecipesRouteImport } from './routes/_authen
 import { Route as AuthenticatedPosNewOrderRouteImport } from './routes/_authenticated/pos/new-order'
 import { Route as AuthenticatedPosOrdersRouteImport } from './routes/_authenticated/pos/orders'
 import { Route as AuthenticatedPosShiftsRouteImport } from './routes/_authenticated/pos/shifts'
+import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings/audit'
 import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings/company'
 import { Route as AuthenticatedInventoryReceivingIndexRouteImport } from './routes/_authenticated/inventory/receiving/index'
 import { Route as AuthenticatedInventoryReceivingNewRouteImport } from './routes/_authenticated/inventory/receiving/new'
@@ -114,6 +115,12 @@ const AuthenticatedPosShiftsRoute = AuthenticatedPosShiftsRouteImport.update({
   path: '/pos/shifts',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSettingsAuditRoute =
+  AuthenticatedSettingsAuditRouteImport.update({
+    id: '/settings/audit',
+    path: '/settings/audit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSettingsCompanyRoute =
   AuthenticatedSettingsCompanyRouteImport.update({
     id: '/settings/company',
@@ -336,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
   '/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
+  '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
   '/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
@@ -383,6 +391,7 @@ export interface FileRoutesByTo {
   '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
   '/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
+  '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
   '/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
@@ -432,6 +441,7 @@ export interface FileRoutesById {
   '/_authenticated/pos/new-order': typeof AuthenticatedPosNewOrderRoute
   '/_authenticated/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/_authenticated/pos/shifts': typeof AuthenticatedPosShiftsRoute
+  '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/_authenticated/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
   '/_authenticated/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
@@ -481,6 +491,7 @@ export interface FileRouteTypes {
     | '/pos/new-order'
     | '/pos/orders'
     | '/pos/shifts'
+    | '/settings/audit'
     | '/settings/company'
     | '/inventory/receiving/new'
     | '/inventory/transfers/new'
@@ -528,6 +539,7 @@ export interface FileRouteTypes {
     | '/pos/new-order'
     | '/pos/orders'
     | '/pos/shifts'
+    | '/settings/audit'
     | '/settings/company'
     | '/inventory/receiving/new'
     | '/inventory/transfers/new'
@@ -576,6 +588,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pos/new-order'
     | '/_authenticated/pos/orders'
     | '/_authenticated/pos/shifts'
+    | '/_authenticated/settings/audit'
     | '/_authenticated/settings/company'
     | '/_authenticated/inventory/receiving/new'
     | '/_authenticated/inventory/transfers/new'
@@ -696,6 +709,13 @@ declare module '@tanstack/react-router' {
       path: '/pos/shifts'
       fullPath: '/pos/shifts'
       preLoaderRoute: typeof AuthenticatedPosShiftsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/audit': {
+      id: '/_authenticated/settings/audit'
+      path: '/settings/audit'
+      fullPath: '/settings/audit'
+      preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings/company': {
@@ -955,6 +975,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPosNewOrderRoute: typeof AuthenticatedPosNewOrderRoute
   AuthenticatedPosOrdersRoute: typeof AuthenticatedPosOrdersRoute
   AuthenticatedPosShiftsRoute: typeof AuthenticatedPosShiftsRoute
+  AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsCompanyRoute: typeof AuthenticatedSettingsCompanyRoute
   AuthenticatedInventoryReceivingNewRoute: typeof AuthenticatedInventoryReceivingNewRoute
   AuthenticatedInventoryTransfersNewRoute: typeof AuthenticatedInventoryTransfersNewRoute
@@ -1001,6 +1022,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPosNewOrderRoute: AuthenticatedPosNewOrderRoute,
   AuthenticatedPosOrdersRoute: AuthenticatedPosOrdersRoute,
   AuthenticatedPosShiftsRoute: AuthenticatedPosShiftsRoute,
+  AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
   AuthenticatedSettingsCompanyRoute: AuthenticatedSettingsCompanyRoute,
   AuthenticatedInventoryReceivingNewRoute:
     AuthenticatedInventoryReceivingNewRoute,

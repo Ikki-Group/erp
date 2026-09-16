@@ -7,6 +7,7 @@ import {
 	ClipboardListIcon,
 	ClockIcon,
 	GaugeIcon,
+	HistoryIcon,
 	LayersIcon,
 	MapPinIcon,
 	PackageIcon,
@@ -77,6 +78,7 @@ const navGroups = [
 			{ title: 'Company', icon: StoreIcon, href: '/settings/company' },
 			{ title: 'Users', icon: UsersIcon, href: '/settings/users' },
 			{ title: 'Roles', icon: ShieldCheckIcon, href: '/settings/roles' },
+			{ title: 'Audit Log', icon: HistoryIcon, href: '/settings/audit' },
 		],
 	},
 ]

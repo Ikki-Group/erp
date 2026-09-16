@@ -36,8 +36,11 @@ export const AuditLogFilterDto = z.object({
 	entityId: z.coerce.number().int().positive().optional(),
 	userId: z.coerce.number().int().positive().optional(),
 	action: z.string().trim().optional(),
-	dateFrom: z.coerce.date().optional(),
-	dateTo: z.coerce.date().optional(),
+	// ISO strings on the wire; the server's `z.coerce.date()` parses them. Mirrors
+	// the POS/inventory list filters — `String(Date)` in query params would emit a
+	// locale string, so the route sends `.toISOString()`.
+	dateFrom: z.string().optional(),
+	dateTo: z.string().optional(),
 })
 export type AuditLogFilterDto = z.infer<typeof AuditLogFilterDto>
 
