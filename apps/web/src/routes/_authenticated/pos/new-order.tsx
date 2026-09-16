@@ -44,9 +44,10 @@ function NewOrderPage() {
 	const queryClient = useQueryClient()
 
 	// ─── Shift check ───
+	// The active-shift key is location-scoped inside the endpoint (folds the
+	// active locationId), so no manual queryKey override is needed here.
 	const activeShiftQuery = useQuery({
 		...shiftResource.active.queryOptions(),
-		queryKey: shiftResource.keys.active(locationId),
 		enabled: locationId > 0,
 	})
 	const activeShift = activeShiftQuery.data?.data ?? null

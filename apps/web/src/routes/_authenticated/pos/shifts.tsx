@@ -115,9 +115,9 @@ function ShiftsPage() {
 		enabled: !!locationId,
 	})
 
+	// Active-shift key is location-scoped inside the endpoint — no override here.
 	const activeShiftQuery = useQuery({
 		...shiftResource.active.queryOptions(),
-		queryKey: shiftResource.keys.active(locationId),
 		enabled: !!locationId,
 	})
 

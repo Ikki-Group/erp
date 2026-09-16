@@ -45,6 +45,22 @@ test.describe('POS Shifts - Open/Close', () => {
 		await expect(page.getByText(/opened successfully/i)).toBeVisible()
 	})
 
+	/** Status filter is reflected in the URL (URL-driven list state) */
+	test('reflects the status filter in the URL', async ({ page, login }) => {
+		await login()
+		await page.goto('/pos/shifts')
+
+		// Pick a status from the toolbar filter; the choice is pushed to the URL
+		// as ?status=… and survives a reload (shareable, refresh-stable).
+		await page.getByRole('button', { name: /all status/i }).click()
+		await page.getByRole('option', { name: 'Open' }).click()
+
+		await expect(page).toHaveURL(/[?&]status=open/)
+
+		await page.reload()
+		await expect(page).toHaveURL(/[?&]status=open/)
+	})
+
 	/** Active shift indicator shown + close flow */
 	test('shows active indicator and can close shift', async ({ page, login }) => {
 		await login()

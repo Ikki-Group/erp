@@ -1,6 +1,6 @@
 import { endpoint } from '@/config/endpoint.ts'
 
-import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
+import { createResourceKeys, defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
@@ -47,17 +47,19 @@ export const tableResource = defineResource({
 })
 
 // ─── Shift Endpoints ───
+//
+// Shift isn't plain CRUD (no update/remove; opens/closes rather than
+// creates/deletes), so it composes canonical location-scoped keys from
+// `createResourceKeys` with hand-written endpoints instead of `defineResource`.
+// Shift data is always scoped to the active location, so the keys fold in the
+// active `locationId` — location 1's shifts and location 2's cache separately,
+// and a location switch invalidates only this location's entries.
 
 const shiftUrls = endpoint.pos.shift
 
-const shiftKeys = {
-	lists: () => [shiftUrls.list] as const,
-	list: (query?: unknown) => [shiftUrls.list, query ?? null] as const,
-	details: () => [shiftUrls.detail] as const,
-	detail: (query?: unknown) => [shiftUrls.detail, query ?? null] as const,
-	actives: () => [shiftUrls.active] as const,
-	active: (locationId?: unknown) => [shiftUrls.active, locationId ?? null] as const,
-}
+const shiftKeys = createResourceKeys('pos', 'shift', { locationScoped: true })
+/** Active-shift key — location-scoped, distinct from the list/detail kinds. */
+const shiftActiveKey = () => [...shiftKeys.all(), 'active']
 
 const shiftList = defineQuery({
 	method: 'get',
@@ -65,6 +67,7 @@ const shiftList = defineQuery({
 	query: ShiftFilterDto,
 	result: createPaginatedResponseSchema(ShiftDto),
 	queryKey: (query) => shiftKeys.list(query),
+	tier: 'volatile',
 })
 
 const shiftDetail = defineQuery({
@@ -79,15 +82,19 @@ const shiftActive = defineQuery({
 	method: 'get',
 	url: shiftUrls.active,
 	result: createSuccessResponseSchema(ShiftDto.nullable()),
-	queryKey: () => shiftKeys.actives(),
+	queryKey: shiftActiveKey,
+	tier: 'volatile',
 })
 
+// Invalidation targets are resolver functions, not precomputed keys: a
+// location-scoped key folds in the active `locationId` via `getActiveLocationId()`,
+// which must be read at mutation time (post-switch), not at module-load time.
 const shiftOpen = defineMutation({
 	method: 'post',
 	url: shiftUrls.open,
 	body: ShiftOpenDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [shiftKeys.lists(), shiftKeys.actives()],
+	invalidates: [() => shiftKeys.lists(), () => shiftActiveKey()],
 })
 
 const shiftClose = defineMutation({
@@ -95,7 +102,7 @@ const shiftClose = defineMutation({
 	url: shiftUrls.close,
 	body: ShiftCloseDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [shiftKeys.lists(), shiftKeys.actives()],
+	invalidates: [() => shiftKeys.lists(), () => shiftActiveKey()],
 })
 
 const shiftCloseOther = defineMutation({
@@ -103,11 +110,12 @@ const shiftCloseOther = defineMutation({
 	url: shiftUrls.closeOther,
 	body: ShiftCloseDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [shiftKeys.lists(), shiftKeys.actives()],
+	invalidates: [() => shiftKeys.lists(), () => shiftActiveKey()],
 })
 
 export const shiftResource = {
 	keys: shiftKeys,
+	activeKey: shiftActiveKey,
 	list: shiftList,
 	detail: shiftDetail,
 	active: shiftActive,
@@ -128,16 +136,18 @@ export const voucherResource = defineResource({
 	update: VoucherUpdateDto,
 })
 
-// ─── Order Resource ───
+// ─── Order Endpoints ───
+//
+// Like shift, order isn't plain CRUD (create/complete/void/payment rather than
+// create/update/remove), so it composes canonical location-scoped keys with
+// hand-written endpoints. Both list and detail keys fold the active location
+// (order detail is only ever read within the location that owns the order, so
+// scoping it is consistent and harmless). Both are `volatile` since an open
+// order's lines/total change continuously as it's built.
 
 const orderUrls = endpoint.pos.order
 
-const orderKeys = {
-	lists: () => [orderUrls.list] as const,
-	list: (query?: unknown) => [orderUrls.list, query ?? null] as const,
-	details: () => [orderUrls.detail] as const,
-	detail: (query?: unknown) => [orderUrls.detail, query ?? null] as const,
-}
+const orderKeys = createResourceKeys('pos', 'order', { locationScoped: true })
 
 const orderList = defineQuery({
 	method: 'get',
@@ -145,6 +155,7 @@ const orderList = defineQuery({
 	query: OrderFilterDto,
 	result: createPaginatedResponseSchema(OrderDto),
 	queryKey: (query) => orderKeys.list(query),
+	tier: 'volatile',
 })
 
 const orderDetail = defineQuery({
@@ -153,14 +164,17 @@ const orderDetail = defineQuery({
 	query: zc.RecordId,
 	result: createSuccessResponseSchema(OrderDetailDto),
 	queryKey: (query) => orderKeys.detail(query),
+	tier: 'volatile',
 })
 
+// Invalidation targets are resolvers so the location-scoped keys read the
+// active `locationId` at mutation time, not at module load.
 const orderCreate = defineMutation({
 	method: 'post',
 	url: orderUrls.create,
 	body: OrderCreateDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [orderKeys.lists()],
+	invalidates: [() => orderKeys.lists()],
 })
 
 const orderComplete = defineMutation({
@@ -168,7 +182,7 @@ const orderComplete = defineMutation({
 	url: orderUrls.complete,
 	body: OrderCompleteDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [orderKeys.lists(), orderKeys.details()],
+	invalidates: [() => orderKeys.lists(), () => orderKeys.details()],
 })
 
 const orderVoid = defineMutation({
@@ -176,7 +190,7 @@ const orderVoid = defineMutation({
 	url: orderUrls.void,
 	body: OrderVoidDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [orderKeys.lists(), orderKeys.details()],
+	invalidates: [() => orderKeys.lists(), () => orderKeys.details()],
 })
 
 const orderLinesSync = defineMutation({
@@ -184,7 +198,7 @@ const orderLinesSync = defineMutation({
 	url: orderUrls.linesSync,
 	body: OrderLineSyncDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [orderKeys.details()],
+	invalidates: [() => orderKeys.details()],
 })
 
 const orderVoucherApply = defineMutation({
@@ -192,7 +206,7 @@ const orderVoucherApply = defineMutation({
 	url: orderUrls.voucherApply,
 	body: OrderApplyVoucherDto,
 	result: createSuccessResponseSchema(OrderVoucherApplyResultDto),
-	invalidates: [orderKeys.details()],
+	invalidates: [() => orderKeys.details()],
 })
 
 const orderVoucherRemove = defineMutation({
@@ -200,7 +214,7 @@ const orderVoucherRemove = defineMutation({
 	url: orderUrls.voucherRemove,
 	body: OrderRemoveVoucherDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [orderKeys.details()],
+	invalidates: [() => orderKeys.details()],
 })
 
 const orderPayment = defineMutation({
@@ -208,7 +222,7 @@ const orderPayment = defineMutation({
 	url: orderUrls.payment,
 	body: OrderPaymentInputDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [orderKeys.details()],
+	invalidates: [() => orderKeys.details()],
 })
 
 export const orderResource = {
