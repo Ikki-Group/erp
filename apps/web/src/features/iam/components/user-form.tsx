@@ -1,12 +1,7 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { z } from 'zod'
 
-import { FormInput } from '@/components/form/form-input'
-import { FormSelect } from '@/components/form/form-select'
-import { FormSwitch } from '@/components/form/form-switch'
+import { useEntityForm } from '@/lib/form/index.ts'
 
-import { UserCreateDto } from '../dto/index.ts'
-
-import type { FormSelectOption } from '@/components/form/form-select'
 import type { UserDetailDto } from '../dto/index.ts'
 
 export interface UserFormValues {
@@ -15,150 +10,147 @@ export interface UserFormValues {
 	name: string
 	password: string
 	isActive: boolean
-	roleId: string
-	locationId: string
+	roleId: number | null
+	locationId: number | null
 }
 
-export interface UserFormRef {
-	getValues: () => UserFormValues
-	validate: () => Record<string, string> | null
+export interface UserFormOptions {
+	label: string
+	value: number
 }
 
-interface UserFormProps {
+function buildSchema(mode: 'create' | 'edit') {
+	return z.object({
+		username: z.string().trim().min(3, 'Username must be at least 3 characters').max(100),
+		email: z
+			.string()
+			.trim()
+			.refine((v) => z.email().safeParse(v).success, { error: 'Invalid email address' }),
+		name: z.string().trim().min(1, 'Name is required').max(255),
+		password:
+			mode === 'create'
+				? z.string().min(8, 'Password must be at least 8 characters').max(100)
+				: z
+						.string()
+						.max(100)
+						.refine((v) => v === '' || v.length >= 8, {
+							error: 'Password must be at least 8 characters',
+						})
+						.default(''),
+		isActive: z.boolean(),
+		roleId: z
+			.number()
+			.int()
+			.positive()
+			.nullable()
+			.refine((v) => v !== null, { error: 'Role is required' }),
+		locationId: z.number().int().positive().nullable(),
+	})
+}
+
+export const EMPTY_USER_FORM_VALUES: UserFormValues = {
+	username: '',
+	email: '',
+	name: '',
+	password: '',
+	isActive: true,
+	roleId: null,
+	locationId: null,
+}
+
+export function toUserFormValues(user: UserDetailDto): UserFormValues {
+	const firstAssignment = user.assignments[0]
+	return {
+		username: user.username,
+		email: user.email,
+		name: user.name,
+		password: '',
+		isActive: user.isActive,
+		roleId: firstAssignment?.roleId ?? null,
+		locationId: firstAssignment?.locationId ?? null,
+	}
+}
+
+export interface UseUserFormOptions {
 	mode: 'create' | 'edit'
-	defaultValues?: UserDetailDto
-	roleOptions: FormSelectOption[]
-	locationOptions: FormSelectOption[]
+	defaultValues?: UserFormValues
+	onSubmit: (values: UserFormValues) => Promise<void>
 }
 
-export const UserForm = forwardRef<UserFormRef, UserFormProps>(
-	({ mode, defaultValues, roleOptions, locationOptions }, ref) => {
-		const firstAssignment = defaultValues?.assignments?.[0]
+export function useUserForm({ mode, defaultValues, onSubmit }: UseUserFormOptions) {
+	return useEntityForm({
+		defaultValues: defaultValues ?? EMPTY_USER_FORM_VALUES,
+		schema: buildSchema(mode),
+		onSubmit,
+	})
+}
 
-		const [values, setValues] = useState<UserFormValues>({
-			username: defaultValues?.username ?? '',
-			email: defaultValues?.email ?? '',
-			name: defaultValues?.name ?? '',
-			password: '',
-			isActive: defaultValues?.isActive ?? true,
-			roleId: firstAssignment?.roleId?.toString() ?? '',
-			locationId: firstAssignment?.locationId?.toString() ?? '',
-		})
-		const [errors, setErrors] = useState<Record<string, string>>({})
+export type UserForm = ReturnType<typeof useUserForm>
 
-		const update = (field: keyof UserFormValues, value: string | boolean) => {
-			setValues((prev) => ({ ...prev, [field]: value }))
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[field]
-				return next
-			})
-		}
+export interface UserFormFieldsProps {
+	form: UserForm
+	mode: 'create' | 'edit'
+	roleOptions: UserFormOptions[]
+	locationOptions: UserFormOptions[]
+}
 
-		useImperativeHandle(ref, () => ({
-			getValues: () => values,
-			validate: () => {
-				const payload = {
-					username: values.username,
-					email: values.email,
-					name: values.name,
-					isActive: values.isActive,
-					...(mode === 'create'
-						? { password: values.password }
-						: values.password
-							? { password: values.password }
-							: {}),
-				}
-
-				const schema = mode === 'create' ? UserCreateDto : UserCreateDto.partial({ password: true })
-				const result = schema.safeParse(payload)
-
-				const fieldErrors: Record<string, string> = {}
-
-				if (!result.success) {
-					for (const issue of result.error.issues) {
-						const path = issue.path[0]
-						if (path && !fieldErrors[String(path)]) {
-							fieldErrors[String(path)] = issue.message
-						}
-					}
-				}
-
-				if (!values.roleId) {
-					fieldErrors.roleId = 'Role is required'
-				}
-
-				if (Object.keys(fieldErrors).length > 0) {
-					setErrors(fieldErrors)
-					return fieldErrors
-				}
-
-				setErrors({})
-				return null
-			},
-		}))
-
-		return (
-			<div className="grid gap-4">
-				<div className="grid grid-cols-2 gap-4">
-					<FormInput
-						label="Username"
-						value={values.username}
-						onChange={(e) => update('username', e.target.value)}
-						error={errors.username}
-						placeholder="e.g. john_doe"
-						disabled={mode === 'edit'}
-					/>
-					<FormInput
-						label="Email"
-						value={values.email}
-						onChange={(e) => update('email', e.target.value)}
-						error={errors.email}
-						placeholder="user@example.com"
-					/>
-				</div>
-				<FormInput
-					label="Full Name"
-					value={values.name}
-					onChange={(e) => update('name', e.target.value)}
-					error={errors.name}
-					placeholder="Full name"
-				/>
-				<FormInput
-					label={mode === 'create' ? 'Password' : 'New Password (leave blank to keep)'}
-					value={values.password}
-					onChange={(e) => update('password', e.target.value)}
-					error={errors.password}
-					placeholder={mode === 'create' ? 'Min 8 characters' : 'Leave blank to keep current'}
-					type="password"
-				/>
-				<div className="grid grid-cols-2 gap-4">
-					<FormSelect
-						label="Role"
-						options={roleOptions}
-						value={values.roleId}
-						onValueChange={(v) => update('roleId', v ?? '')}
-						error={errors.roleId}
-						placeholder="Select role..."
-					/>
-					<FormSelect
-						label="Location"
-						options={[{ label: 'Global (all locations)', value: '' }, ...locationOptions]}
-						value={values.locationId}
-						onValueChange={(v) => update('locationId', v ?? '')}
-						error={errors.locationId}
-						placeholder="Select location..."
-					/>
-				</div>
-				<FormSwitch
-					label="Active"
-					description="Inactive users cannot log in"
-					checked={values.isActive}
-					onCheckedChange={(v) => update('isActive', v)}
-				/>
+export function UserFormFields({ form, mode, roleOptions, locationOptions }: UserFormFieldsProps) {
+	return (
+		<div className="grid gap-4">
+			<div className="grid grid-cols-2 gap-4">
+				<form.AppField name="username">
+					{(field) => (
+						<field.TextField
+							label="Username"
+							placeholder="e.g. john_doe"
+							disabled={mode === 'edit'}
+						/>
+					)}
+				</form.AppField>
+				<form.AppField name="email">
+					{(field) => <field.TextField label="Email" placeholder="user@example.com" />}
+				</form.AppField>
 			</div>
-		)
-	},
-)
 
-UserForm.displayName = 'UserForm'
+			<form.AppField name="name">
+				{(field) => <field.TextField label="Full Name" placeholder="Full name" />}
+			</form.AppField>
+
+			<form.AppField name="password">
+				{(field) => (
+					<field.TextField
+						label={mode === 'create' ? 'Password' : 'New Password (leave blank to keep)'}
+						type="password"
+						placeholder={mode === 'create' ? 'Min 8 characters' : 'Leave blank to keep current'}
+					/>
+				)}
+			</form.AppField>
+
+			<div className="grid grid-cols-2 gap-4">
+				<form.AppField name="roleId">
+					{(field) => (
+						<field.IdSelectField label="Role" options={roleOptions} placeholder="Select role..." />
+					)}
+				</form.AppField>
+				<form.AppField name="locationId">
+					{(field) => (
+						<field.IdSelectField
+							label="Location"
+							options={locationOptions}
+							nullableLabel="Global (all locations)"
+							placeholder="Select location..."
+						/>
+					)}
+				</form.AppField>
+			</div>
+
+			<form.AppField name="isActive">
+				{(field) => (
+					<field.SwitchField label="Active" description="Inactive users cannot log in." />
+				)}
+			</form.AppField>
+
+			<form.FormError />
+		</div>
+	)
+}

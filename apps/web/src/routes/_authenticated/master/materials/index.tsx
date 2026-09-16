@@ -1,21 +1,23 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, MapPinIcon, PlusIcon, TagIcon, TrashIcon } from 'lucide-react'
+import { z } from 'zod'
 
 import { FormDialogFooter } from '@/lib/form/index.ts'
 
+import { listSearchSchema, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
-import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { ActionMenu } from '@/components/shared/action-menu'
 import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
+import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -32,7 +34,12 @@ import { LocationAssignment } from '@/features/material/components/location-assi
 import { MATERIAL_TYPE_OPTIONS } from '@/features/material/dto/index.ts'
 import type { MaterialCategoryDto, MaterialDto } from '@/features/material/dto/index.ts'
 
+const materialsSearchSchema = listSearchSchema.extend({
+	categoryId: z.coerce.number().int().positive().optional(),
+})
+
 export const Route = createFileRoute('/_authenticated/master/materials/')({
+	validateSearch: materialsSearchSchema,
 	component: MaterialsPage,
 })
 
@@ -116,16 +123,20 @@ function CategoryDialogBody({
 // ─── Page Component ───
 
 function MaterialsPage() {
-	const navigate = useNavigate()
+	const navigate = useNavigate({ from: Route.fullPath })
+	const search = Route.useSearch()
+	const canCreate = usePermissionCheck({ permission: 'material.create' })
+	const canEdit = usePermissionCheck({ permission: 'material.update' })
+	const canDelete = usePermissionCheck({ permission: 'material.delete' })
 
-	const [listParams, setListParams] = useState({
-		page: 1,
-		limit: 10,
-		q: undefined as string | undefined,
-		categoryId: undefined as number | undefined,
-	})
-
-	const listQuery = useQuery(materialResource.list.queryOptions(listParams))
+	const listQuery = useQuery(
+		materialResource.list.queryOptions({
+			page: search.page,
+			limit: search.pageSize,
+			q: search.q,
+			categoryId: search.categoryId,
+		}),
+	)
 	const categoriesQuery = useQuery(categoryResource.list.queryOptions({ page: 1, limit: 100 }))
 
 	const removeMut = useMutation(materialResource.remove.mutationOptions())
@@ -218,57 +229,54 @@ function MaterialsPage() {
 			id: 'actions',
 			size: 60,
 			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => (
-				<ActionMenu
-					items={[
-						{
-							label: 'Edit',
-							icon: <EditIcon className="size-4" />,
-							onClick: () =>
-								navigate({
-									to: '/master/materials/$materialId',
-									params: { materialId: String(row.original.id) },
-								}),
-						},
-						{
-							label: 'Locations',
-							icon: <MapPinIcon className="size-4" />,
-							onClick: () => handleLocations(row.original),
-						},
-						{
-							label: 'Delete',
-							icon: <TrashIcon className="size-4" />,
-							onClick: () => handleDelete(row.original),
-							variant: 'destructive' as const,
-						},
-					]}
-				/>
-			),
+			cell: ({ row }) => {
+				const items = []
+				if (canEdit) {
+					items.push({
+						label: 'Edit',
+						icon: <EditIcon className="size-4" />,
+						onClick: () =>
+							navigate({
+								to: '/master/materials/$materialId',
+								params: { materialId: String(row.original.id) },
+							}),
+					})
+				}
+				if (canCreate || canDelete) {
+					items.push({
+						label: 'Locations',
+						icon: <MapPinIcon className="size-4" />,
+						onClick: () => handleLocations(row.original),
+					})
+				}
+				if (canDelete) {
+					items.push({
+						label: 'Delete',
+						icon: <TrashIcon className="size-4" />,
+						onClick: () => handleDelete(row.original),
+						variant: 'destructive' as const,
+					})
+				}
+				if (items.length === 0) return null
+				return <ActionMenu items={items} />
+			},
 		})
-	}, [handleDelete, handleLocations, navigate])
+	}, [canCreate, canEdit, canDelete, handleDelete, handleLocations, navigate])
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, MaterialDto>[],
 		[actionsColumn],
 	)
 
-	const { table, globalFilter, setGlobalFilter } = useServerTable({
+	const { table, globalFilter } = useServerTable({
 		data,
 		columns,
 		totalCount,
-		pageSize: listParams.limit,
-		onStateChange: (params) => {
-			setListParams((prev) => ({
-				...prev,
-				page: params.page + 1,
-				limit: params.pageSize,
-				q: params.search || undefined,
-			}))
-		},
+		search,
+		onSearchChange: (next) => navigate({ search: next }),
 	})
 
-	const isEmpty =
-		!listQuery.isLoading && data.length === 0 && !globalFilter && !listParams.categoryId
+	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !search.categoryId
 
 	return (
 		<div className="space-y-6">
@@ -276,16 +284,18 @@ function MaterialsPage() {
 				title="Materials"
 				description="Manage materials, categories, and location assignments."
 				actions={
-					<div className="flex gap-2">
-						<Button size="sm" variant="outline" onClick={handleCreateCategory}>
-							<TagIcon className="size-4" />
-							Add Category
-						</Button>
-						<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
-							<PlusIcon className="size-4" />
-							Add Material
-						</Button>
-					</div>
+					<PermissionGate permission="material.create">
+						<div className="flex gap-2">
+							<Button size="sm" variant="outline" onClick={handleCreateCategory}>
+								<TagIcon className="size-4" />
+								Add Category
+							</Button>
+							<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
+								<PlusIcon className="size-4" />
+								Add Material
+							</Button>
+						</div>
+					</PermissionGate>
 				}
 			/>
 
@@ -294,10 +304,12 @@ function MaterialsPage() {
 					title="No materials yet"
 					description="Get started by creating your first material."
 					action={
-						<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
-							<PlusIcon className="size-4" />
-							Add Material
-						</Button>
+						<PermissionGate permission="material.create">
+							<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
+								<PlusIcon className="size-4" />
+								Add Material
+							</Button>
+						</PermissionGate>
 					}
 				/>
 			) : (
@@ -315,19 +327,21 @@ function MaterialsPage() {
 					toolbar={
 						<TableToolbar
 							searchValue={globalFilter}
-							onSearchChange={setGlobalFilter}
+							onSearchChange={(value) => table.setGlobalFilter(value)}
 							searchPlaceholder="Search materials..."
 							filters={[
 								{
 									key: 'categoryId',
 									label: 'Category',
-									value: listParams.categoryId?.toString(),
+									value: search.categoryId?.toString(),
 									onChange: (v) =>
-										setListParams((prev) => ({
-											...prev,
-											page: 1,
-											categoryId: v === undefined ? undefined : Number(v),
-										})),
+										navigate({
+											search: {
+												...search,
+												page: 1,
+												categoryId: v ? Number(v) : undefined,
+											},
+										}),
 									options: categories.map((cat) => ({
 										label: cat.name,
 										value: cat.id.toString(),
@@ -347,24 +361,30 @@ function MaterialsPage() {
 						{categories.map((cat) => (
 							<div key={cat.id} className="flex items-center justify-between px-4 py-3">
 								<span className="text-sm font-medium">{cat.name}</span>
-								<div className="flex gap-1">
-									<Button
-										size="icon"
-										variant="ghost"
-										className="size-7"
-										onClick={() => handleEditCategory(cat)}
-									>
-										<EditIcon className="size-3.5" />
-									</Button>
-									<Button
-										size="icon"
-										variant="ghost"
-										className="size-7"
-										onClick={() => handleDeleteCategory(cat)}
-									>
-										<TrashIcon className="size-3.5" />
-									</Button>
-								</div>
+								{(canEdit || canDelete) && (
+									<div className="flex gap-1">
+										{canEdit && (
+											<Button
+												size="icon"
+												variant="ghost"
+												className="size-7"
+												onClick={() => handleEditCategory(cat)}
+											>
+												<EditIcon className="size-3.5" />
+											</Button>
+										)}
+										{canDelete && (
+											<Button
+												size="icon"
+												variant="ghost"
+												className="size-7"
+												onClick={() => handleDeleteCategory(cat)}
+											>
+												<TrashIcon className="size-3.5" />
+											</Button>
+										)}
+									</div>
+								)}
 							</div>
 						))}
 					</div>

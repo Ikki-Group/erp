@@ -4,76 +4,134 @@ import { zc, zp, zq } from '@/lib/validation/index.ts'
 
 // ─── Permission Groups ───
 
+/**
+ * Mirrors the server's actual RBAC permission strings exactly — see the
+ * `permission: '...'` literals on each route in `apps/server/src/modules/**\/*.route.ts`
+ * and the seeded role permission lists in `apps/server/scripts/seeds/iam.ts`
+ * (the source of truth for the full permission universe). These are dot-notation,
+ * per-verb strings (`location.create`, `material.update`, `iam.delete`, ...),
+ * NOT the `module:action` shape used by earlier web-only permission checks —
+ * that shape never matched anything the server actually checks, so any
+ * `PermissionGate`/role assignment built against it was silently inert for
+ * every non-owner user. Keep this list in sync with the server's routes.
+ */
 export const PERMISSION_GROUPS = [
 	{
 		module: 'company',
 		label: 'Company',
-		permissions: ['company:read', 'company:write'],
+		permissions: ['company.read', 'company.update'],
 	},
 	{
 		module: 'location',
 		label: 'Location',
-		permissions: ['location:read', 'location:write'],
+		permissions: ['location.read', 'location.create', 'location.update', 'location.delete'],
 	},
 	{
 		module: 'iam',
 		label: 'Users & Roles',
-		permissions: ['iam:read', 'iam:write'],
+		permissions: ['iam.read', 'iam.create', 'iam.update', 'iam.delete'],
 	},
 	{
 		module: 'uom',
 		label: 'Unit of Measure',
-		permissions: ['uom:read', 'uom:write'],
+		permissions: ['uom.read', 'uom.create', 'uom.update', 'uom.delete'],
 	},
 	{
 		module: 'material',
 		label: 'Material',
-		permissions: ['material:read', 'material:write'],
+		permissions: ['material.read', 'material.create', 'material.update', 'material.delete'],
 	},
 	{
 		module: 'supplier',
 		label: 'Supplier',
-		permissions: ['supplier:read', 'supplier:write'],
+		permissions: ['supplier.read', 'supplier.create', 'supplier.update', 'supplier.delete'],
 	},
 	{
 		module: 'menu',
 		label: 'Menu',
-		permissions: ['menu:read', 'menu:write'],
+		permissions: [
+			'category.read',
+			'category.create',
+			'category.update',
+			'category.delete',
+			'item.read',
+			'item.create',
+			'item.update',
+			'item.delete',
+			'modifier.read',
+			'modifier.create',
+			'modifier.update',
+			'modifier.delete',
+		],
 	},
 	{
 		module: 'recipe',
 		label: 'Recipe',
-		permissions: ['recipe:read', 'recipe:write'],
+		permissions: ['recipe.read', 'recipe.create', 'recipe.update', 'recipe.delete'],
 	},
 	{
 		module: 'payment-method',
 		label: 'Payment Method',
-		permissions: ['payment-method:read', 'payment-method:write'],
+		permissions: [
+			'payment-method.read',
+			'payment-method.create',
+			'payment-method.update',
+			'payment-method.delete',
+		],
 	},
 	{
 		module: 'pos',
 		label: 'Point of Sale',
-		permissions: ['pos:read', 'pos:write', 'pos:void'],
+		permissions: [
+			'order.read',
+			'order.create',
+			'order.update',
+			'order.void',
+			'payment.create',
+			'shift.read',
+			'shift.open',
+			'shift.close',
+			'shift.close-other',
+			'discount.apply',
+			'voucher.manage',
+			'table.manage',
+		],
 	},
 	{
 		module: 'inventory',
 		label: 'Inventory',
-		permissions: ['inventory:read', 'inventory:write'],
+		permissions: [
+			'stock.read',
+			'stock.adjust',
+			'receiving.read',
+			'receiving.create',
+			'receiving.update',
+			'receiving.confirm',
+			'transfer.read',
+			'transfer.create',
+			'transfer.ship',
+			'transfer.receive',
+			'opname.read',
+			'opname.create',
+			'opname.update',
+			'opname.complete',
+		],
 	},
 	{
 		module: 'production',
 		label: 'Production',
-		permissions: ['production:read', 'production:write'],
-	},
-	{
-		module: 'report',
-		label: 'Report',
-		permissions: ['report:read'],
+		permissions: [
+			'production.read',
+			'production.create',
+			'production.update',
+			'production.delete',
+			'production.confirm',
+		],
 	},
 	{
 		module: 'audit',
 		label: 'Audit Log',
-		permissions: ['audit:read'],
+		permissions: ['audit.read'],
 	},
 ] as const
 

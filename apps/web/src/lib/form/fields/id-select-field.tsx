@@ -9,9 +9,9 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 
+import { useFieldContext } from '../contexts.ts'
 import { formatFieldError } from '../field-error.tsx'
 import { idToString, toId } from '../transform.ts'
-import { useFieldContext } from '../contexts.ts'
 
 export interface IdSelectFieldOption {
 	label: string
@@ -27,6 +27,13 @@ export interface IdSelectFieldProps {
 	description?: string
 	disabled?: boolean
 	className?: string
+	/**
+	 * Called in addition to the field's own `handleChange` — for cross-field
+	 * side effects (e.g. auto-filling a related field's default when this one
+	 * changes). Most fields don't need this; reach for `form.Subscribe`
+	 * instead when the effect is read-only.
+	 */
+	onValueChange?: (value: number | null) => void
 }
 
 /**
@@ -47,19 +54,22 @@ export function IdSelectField({
 	description,
 	disabled,
 	className,
+	onValueChange,
 }: IdSelectFieldProps) {
 	const field = useFieldContext<number | null>()
 	const fieldId = field.name
-	const error = field.state.meta.isTouched
-		? formatFieldError(field.state.meta.errors)
-		: undefined
+	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
 
 	return (
 		<div className={cn('space-y-1.5', className)}>
 			<Label htmlFor={fieldId}>{label}</Label>
 			<Select
 				value={idToString(field.state.value)}
-				onValueChange={(v: string | null) => field.handleChange(toId(v ?? undefined))}
+				onValueChange={(v: string | null) => {
+					const id = toId(v ?? undefined)
+					field.handleChange(id)
+					onValueChange?.(id)
+				}}
 				disabled={disabled}
 			>
 				<SelectTrigger id={fieldId} className="w-full" aria-invalid={!!error}>

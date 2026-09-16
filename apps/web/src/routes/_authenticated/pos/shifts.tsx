@@ -1,13 +1,13 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { LockIcon, UnlockIcon } from 'lucide-react'
 
+import { listSearchSchema, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
-import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
@@ -23,11 +23,18 @@ import { toast } from '@/components/ui/toast'
 import { shiftResource } from '@/features/pos/api.ts'
 import { ShiftCloseFormBody } from '@/features/pos/components/shift-close-form.tsx'
 import { ShiftOpenFormBody } from '@/features/pos/components/shift-open-form.tsx'
-import type { ShiftDto, ShiftStatusEnum } from '@/features/pos/dto/index.ts'
+import { ShiftStatusEnum } from '@/features/pos/dto/index.ts'
+import type { ShiftDto } from '@/features/pos/dto/index.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
+// Shifts have no free-text search server-side; only pagination + a status filter.
+const shiftSearchSchema = listSearchSchema.omit({ q: true }).extend({
+	status: ShiftStatusEnum.optional(),
+})
+
 export const Route = createFileRoute('/_authenticated/pos/shifts')({
+	validateSearch: shiftSearchSchema,
 	component: ShiftsPage,
 })
 
@@ -91,20 +98,18 @@ const baseColumns = [
 // ─── Page Component ───
 
 function ShiftsPage() {
+	const navigate = useNavigate({ from: Route.fullPath })
+	const search = Route.useSearch()
 	const { activeLocation } = useLocationContext()
 	const locationId = activeLocation?.id
 	const canOpen = usePermissionCheck({ permission: 'shift.open' })
 	const canClose = usePermissionCheck({ permission: 'shift.close' })
 
-	const [listParams, setListParams] = useState({
-		page: 1,
-		limit: 10,
-		status: undefined as ShiftStatusEnum | undefined,
-	})
-
 	const listQuery = useQuery({
 		...shiftResource.list.queryOptions({
-			...listParams,
+			page: search.page,
+			limit: search.pageSize,
+			status: search.status,
 			locationId: locationId!,
 		}),
 		enabled: !!locationId,
@@ -185,14 +190,8 @@ function ShiftsPage() {
 		data,
 		columns,
 		totalCount,
-		pageSize: listParams.limit,
-		onStateChange: (params) => {
-			setListParams((prev) => ({
-				...prev,
-				page: params.page + 1,
-				limit: params.pageSize,
-			}))
-		},
+		search,
+		onSearchChange: (next) => navigate({ search: next }),
 	})
 
 	if (!locationId) {
@@ -237,7 +236,7 @@ function ShiftsPage() {
 				}
 			/>
 
-			{data.length === 0 && !listQuery.isLoading && !listParams.status ? (
+			{data.length === 0 && !listQuery.isLoading && !search.status ? (
 				<EmptyState
 					title="No shifts yet"
 					description="Open your first shift to start tracking cash."
@@ -262,13 +261,11 @@ function ShiftsPage() {
 								{
 									key: 'status',
 									label: 'Status',
-									value: listParams.status,
+									value: search.status,
 									onChange: (v) =>
-										setListParams((prev) => ({
-											...prev,
-											page: 1,
-											status: v as ShiftStatusEnum | undefined,
-										})),
+										navigate({
+											search: { ...search, page: 1, status: v as ShiftStatusEnum | undefined },
+										}),
 									options: [
 										{ label: 'Open', value: 'open' },
 										{ label: 'Closed', value: 'closed' },

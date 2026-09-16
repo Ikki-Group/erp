@@ -1,16 +1,19 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { BanIcon, EyeIcon } from 'lucide-react'
+import { z } from 'zod'
 
+import { listSearchSchema, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
-import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
+import type { DateRange } from '@/components/shared/date-range-filter'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -28,11 +31,17 @@ import { toast } from '@/components/ui/toast'
 
 import { orderResource } from '@/features/pos/api.ts'
 import { OrderReceipt } from '@/features/pos/components/order-receipt.tsx'
+import { OrderStatusEnum } from '@/features/pos/dto/index.ts'
 import type { OrderDetailDto, OrderDto } from '@/features/pos/dto/index.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
+const ordersSearchSchema = listSearchSchema
+	.extend({ status: OrderStatusEnum.optional() })
+	.extend({ pageSize: z.coerce.number().int().min(1).max(100).catch(20).default(20) })
+
 export const Route = createFileRoute('/_authenticated/pos/orders')({
+	validateSearch: ordersSearchSchema,
 	component: OrdersPage,
 })
 
@@ -77,10 +86,12 @@ const baseColumns = [
 
 function OrderActions({
 	order,
+	canVoid,
 	onView,
 	onVoid,
 }: {
 	order: OrderDto
+	canVoid: boolean
 	onView: (order: OrderDto) => void
 	onVoid: (order: OrderDto) => void
 }) {
@@ -89,7 +100,7 @@ function OrderActions({
 			<Button variant="ghost" size="icon-sm" onClick={() => onView(order)}>
 				<EyeIcon className="size-3.5" />
 			</Button>
-			{order.status === 'completed' && (
+			{order.status === 'completed' && canVoid && (
 				<Button variant="ghost" size="icon-sm" onClick={() => onVoid(order)}>
 					<BanIcon className="size-3.5 text-destructive" />
 				</Button>
@@ -102,14 +113,12 @@ function OrderActions({
 
 function OrdersPage() {
 	const { activeLocation } = useLocationContext()
+	const navigate = useNavigate({ from: Route.fullPath })
+	const search = Route.useSearch()
 	const locationId = activeLocation?.id
+	const canVoid = usePermissionCheck({ permission: 'order.void' })
 
-	const [listParams, setListParams] = useState({
-		page: 1,
-		limit: 20,
-		q: undefined as string | undefined,
-		status: undefined as OrderDto['status'] | undefined,
-	})
+	const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 	const [selectedOrder, setSelectedOrder] = useState<OrderDetailDto | null>(null)
 	const [showReceipt, setShowReceipt] = useState(false)
 	const [showVoidDialog, setShowVoidDialog] = useState(false)
@@ -120,7 +129,10 @@ function OrdersPage() {
 
 	const listQuery = useQuery({
 		...orderResource.list.queryOptions({
-			...listParams,
+			page: search.page,
+			limit: search.pageSize,
+			q: search.q,
+			status: search.status,
 			locationId: locationId!,
 		}),
 		enabled: !!locationId,
@@ -128,7 +140,23 @@ function OrdersPage() {
 
 	const voidMut = useMutation(orderResource.void.mutationOptions())
 
-	const data = listQuery.data?.data ?? []
+	const rawData = listQuery.data?.data ?? []
+
+	/**
+	 * `orderResource.list` has no server-side date filter (see `OrderFilterDto`),
+	 * so the range only narrows the current page client-side — pagination/count
+	 * still reflect the unfiltered server total. Good enough for a same-page
+	 * "find that order from earlier today" search; a true cross-page date
+	 * filter needs backend support.
+	 */
+	const data = useMemo(() => {
+		if (!dateRange) return rawData
+		return rawData.filter((order) => {
+			const orderedAt = new Date(order.orderedAt).getTime()
+			return orderedAt >= dateRange.from.getTime() && orderedAt <= dateRange.to.getTime()
+		})
+	}, [rawData, dateRange])
+
 	const totalCount = listQuery.data?.meta?.total ?? 0
 
 	const handleViewOrder = useCallback(
@@ -169,29 +197,27 @@ function OrdersPage() {
 			id: 'actions',
 			size: 100,
 			cell: ({ row }) => (
-				<OrderActions order={row.original} onView={handleViewOrder} onVoid={handleVoidOrder} />
+				<OrderActions
+					order={row.original}
+					canVoid={canVoid}
+					onView={handleViewOrder}
+					onVoid={handleVoidOrder}
+				/>
 			),
 		})
-	}, [handleViewOrder, handleVoidOrder])
+	}, [canVoid, handleViewOrder, handleVoidOrder])
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, OrderDto>[],
 		[actionsColumn],
 	)
 
-	const { table, globalFilter, setGlobalFilter } = useServerTable({
+	const { table, globalFilter } = useServerTable({
 		data,
 		columns,
 		totalCount,
-		pageSize: listParams.limit,
-		onStateChange: (params) => {
-			setListParams((prev) => ({
-				...prev,
-				page: params.page + 1,
-				limit: params.pageSize,
-				q: params.search || undefined,
-			}))
-		},
+		search,
+		onSearchChange: (next) => navigate({ search: next }),
 	})
 
 	if (!locationId) {
@@ -210,7 +236,7 @@ function OrdersPage() {
 		<div className="space-y-6">
 			<PageHeader title="Riwayat Order" description="Daftar order POS untuk lokasi ini." />
 
-			{data.length === 0 && !listQuery.isLoading && !globalFilter && !listParams.status ? (
+			{data.length === 0 && !listQuery.isLoading && !globalFilter && !search.status ? (
 				<EmptyState title="Belum ada order" description="Order yang dibuat akan muncul di sini." />
 			) : (
 				<DataTable
@@ -221,19 +247,21 @@ function OrdersPage() {
 					toolbar={
 						<TableToolbar
 							searchValue={globalFilter}
-							onSearchChange={setGlobalFilter}
+							onSearchChange={(value) => table.setGlobalFilter(value)}
 							searchPlaceholder="Cari no. order..."
 							filters={[
 								{
 									key: 'status',
 									label: 'Status',
-									value: listParams.status,
+									value: search.status,
 									onChange: (v) =>
-										setListParams((prev) => ({
-											...prev,
-											page: 1,
-											status: v as OrderDto['status'] | undefined,
-										})),
+										navigate({
+											search: {
+												...search,
+												page: 1,
+												status: v as OrderDto['status'] | undefined,
+											},
+										}),
 									options: [
 										{ label: 'Open', value: 'open' },
 										{ label: 'Selesai', value: 'completed' },
@@ -242,6 +270,13 @@ function OrdersPage() {
 									allLabel: 'All status',
 								},
 							]}
+							dateRange={{
+								key: 'orderedAt',
+								label: 'Tanggal',
+								value: dateRange,
+								onChange: setDateRange,
+								placeholder: 'Filter tanggal order',
+							}}
 						/>
 					}
 				/>

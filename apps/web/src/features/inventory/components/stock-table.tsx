@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
+import type { ListSearch } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
@@ -99,15 +100,16 @@ interface StockTableProps {
 	onRowClick?: (balance: StockBalanceDto) => void
 }
 
+// Embedded (non-route) table: its pagination isn't a shareable URL, so it holds
+// the same URL-shaped `ListSearch` state locally and feeds it to the hook.
+const INITIAL_SEARCH: ListSearch = { page: 1, pageSize: 10 }
+
 export function StockTable({ locationId, onRowClick }: StockTableProps) {
-	const [listParams, setListParams] = useState({
-		page: 1,
-		limit: 10,
-	})
+	const [search, setSearch] = useState<ListSearch>(INITIAL_SEARCH)
 
 	const listQuery = useQuery(
 		stockBalanceList.queryOptions(
-			{ locationId, page: listParams.page, limit: listParams.limit },
+			{ locationId, page: search.page, limit: search.pageSize },
 			{ enabled: locationId > 0 },
 		),
 	)
@@ -117,19 +119,12 @@ export function StockTable({ locationId, onRowClick }: StockTableProps) {
 
 	const columns = useMemo(() => baseColumns as ColumnDef<DataGridFeatures, StockBalanceDto>[], [])
 
-	const handleStateChange = useCallback((params: { page: number; pageSize: number }) => {
-		setListParams({
-			page: params.page + 1,
-			limit: params.pageSize,
-		})
-	}, [])
-
 	const { table } = useServerTable({
 		data,
 		columns,
 		totalCount,
-		pageSize: listParams.limit,
-		onStateChange: handleStateChange,
+		search,
+		onSearchChange: setSearch,
 	})
 
 	const isEmpty = !listQuery.isLoading && data.length === 0

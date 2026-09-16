@@ -1,171 +1,174 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { z } from 'zod'
 
-import { FormDatePicker } from '@/components/form/form-date-picker'
-import { FormInput } from '@/components/form/form-input'
-import { FormNumberField } from '@/components/form/form-number-field'
-import { FormSelect } from '@/components/form/form-select'
-import { FormSwitch } from '@/components/form/form-switch'
+import { useEntityForm } from '@/lib/form/index.ts'
 
-import { VOUCHER_TYPE_OPTIONS, VoucherCreateDto } from '../dto/index.ts'
-
+import { VOUCHER_TYPE_OPTIONS, VoucherTypeEnum } from '../dto/index.ts'
 import type { VoucherDto } from '../dto/index.ts'
 
 export interface VoucherFormValues {
 	code: string
 	name: string
-	type: string
-	value: number | null
-	minPurchase: number | null
-	maxDiscount: number | null
+	type: VoucherTypeEnum
+	value: string
+	minPurchase: string
+	maxDiscount: string
 	validFrom: Date | undefined
 	validUntil: Date | undefined
-	usageLimit: number | null
+	usageLimit: string
 	isActive: boolean
 }
 
-export interface VoucherFormRef {
-	getValues: () => VoucherFormValues
-	validate: () => Record<string, string> | null
+const decimalString = (message: string) =>
+	z
+		.string()
+		.trim()
+		.regex(/^\d*(\.\d+)?$/u, message)
+		.default('')
+
+const VoucherFormSchema = z
+	.object({
+		code: z.string().trim().min(1, 'Code is required').max(50),
+		name: z.string().trim().min(3, 'Name must be at least 3 characters').max(255),
+		type: VoucherTypeEnum,
+		value: z
+			.string()
+			.trim()
+			.regex(/^\d+(\.\d+)?$/u, 'Must be a positive number'),
+		minPurchase: decimalString('Must be a positive number'),
+		maxDiscount: decimalString('Must be a positive number'),
+		validFrom: z.date({ error: 'Valid From is required' }),
+		validUntil: z.date({ error: 'Valid Until is required' }),
+		usageLimit: z.string().trim().regex(/^\d*$/u, 'Must be a whole number').default(''),
+		isActive: z.boolean(),
+	})
+	.refine((v) => v.validFrom < v.validUntil, {
+		error: 'Must be after Valid From',
+		path: ['validUntil'],
+	})
+	.refine((v) => v.type !== 'percentage' || Number(v.value) <= 100, {
+		error: 'Percentage cannot exceed 100',
+		path: ['value'],
+	})
+
+export const EMPTY_VOUCHER_FORM_VALUES: VoucherFormValues = {
+	code: '',
+	name: '',
+	type: 'percentage',
+	value: '',
+	minPurchase: '',
+	maxDiscount: '',
+	validFrom: undefined,
+	validUntil: undefined,
+	usageLimit: '',
+	isActive: true,
 }
 
-interface VoucherFormProps {
-	defaultValues?: VoucherDto
+export function toVoucherFormValues(voucher: VoucherDto): VoucherFormValues {
+	return {
+		code: voucher.code,
+		name: voucher.name,
+		type: voucher.type,
+		value: voucher.value,
+		minPurchase: voucher.minPurchase ?? '',
+		maxDiscount: voucher.maxDiscount ?? '',
+		validFrom: new Date(voucher.validFrom),
+		validUntil: new Date(voucher.validUntil),
+		usageLimit: voucher.usageLimit?.toString() ?? '',
+		isActive: voucher.isActive,
+	}
 }
 
-export const VoucherForm = forwardRef<VoucherFormRef, VoucherFormProps>(
-	({ defaultValues }, ref) => {
-		const [values, setValues] = useState<VoucherFormValues>({
-			code: defaultValues?.code ?? '',
-			name: defaultValues?.name ?? '',
-			type: defaultValues?.type ?? 'percentage',
-			value: defaultValues?.value ? Number(defaultValues.value) : null,
-			minPurchase: defaultValues?.minPurchase ? Number(defaultValues.minPurchase) : null,
-			maxDiscount: defaultValues?.maxDiscount ? Number(defaultValues.maxDiscount) : null,
-			validFrom: defaultValues?.validFrom ? new Date(defaultValues.validFrom) : undefined,
-			validUntil: defaultValues?.validUntil ? new Date(defaultValues.validUntil) : undefined,
-			usageLimit: defaultValues?.usageLimit ?? null,
-			isActive: defaultValues?.isActive ?? true,
-		})
-		const [errors, setErrors] = useState<Record<string, string>>({})
+export interface UseVoucherFormOptions {
+	defaultValues?: VoucherFormValues
+	onSubmit: (values: VoucherFormValues) => Promise<void>
+}
 
-		const update = (field: keyof VoucherFormValues, value: string | number | boolean | Date | null | undefined) => {
-			setValues((prev) => ({ ...prev, [field]: value }))
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[field]
-				return next
-			})
-		}
+export function useVoucherForm({ defaultValues, onSubmit }: UseVoucherFormOptions) {
+	return useEntityForm({
+		defaultValues: defaultValues ?? EMPTY_VOUCHER_FORM_VALUES,
+		schema: VoucherFormSchema,
+		onSubmit,
+	})
+}
 
-		useImperativeHandle(ref, () => ({
-			getValues: () => values,
-			validate: () => {
-				const result = VoucherCreateDto.safeParse({
-					...values,
-					minPurchase: values.minPurchase || null,
-					maxDiscount: values.maxDiscount || null,
-					usageLimit: values.usageLimit || null,
-				})
-				if (result.success) {
-					setErrors({})
-					return null
+export type VoucherForm = ReturnType<typeof useVoucherForm>
+
+export function VoucherFormFields({ form }: { form: VoucherForm }) {
+	return (
+		<div className="grid gap-4">
+			<div className="grid grid-cols-2 gap-4">
+				<form.AppField name="code">
+					{(field) => <field.TextField label="Code" placeholder="e.g. DISKON20" />}
+				</form.AppField>
+				<form.AppField name="type">
+					{(field) => <field.SelectField label="Type" options={[...VOUCHER_TYPE_OPTIONS]} />}
+				</form.AppField>
+			</div>
+
+			<form.AppField name="name">
+				{(field) => <field.TextField label="Name" placeholder="e.g. Diskon 20% All Items" />}
+			</form.AppField>
+
+			<div className="grid grid-cols-2 gap-4">
+				<form.Subscribe selector={(state) => state.values.type}>
+					{(type) => (
+						<form.AppField name="value">
+							{(field) =>
+								type === 'percentage' ? (
+									<field.TextField label="Value (%)" placeholder="e.g. 20" />
+								) : (
+									<field.CurrencyField label="Value" />
+								)
+							}
+						</form.AppField>
+					)}
+				</form.Subscribe>
+				<form.AppField name="minPurchase">
+					{(field) => <field.CurrencyField label="Min. Purchase" description="Optional" />}
+				</form.AppField>
+			</div>
+
+			<form.Subscribe selector={(state) => state.values.type}>
+				{(type) =>
+					type === 'percentage' && (
+						<form.AppField name="maxDiscount">
+							{(field) => (
+								<field.CurrencyField label="Max Discount" description="Cap the discount amount" />
+							)}
+						</form.AppField>
+					)
 				}
-				const fieldErrors: Record<string, string> = {}
-				for (const issue of result.error.issues) {
-					const path = issue.path[0]
-					if (path && !fieldErrors[String(path)]) {
-						fieldErrors[String(path)] = issue.message
-					}
-				}
-				setErrors(fieldErrors)
-				return fieldErrors
-			},
-		}))
+			</form.Subscribe>
 
-		return (
-			<div className="grid gap-4">
-				<div className="grid grid-cols-2 gap-4">
-					<FormInput
-						label="Code"
-						value={values.code}
-						onChange={(e) => update('code', e.target.value)}
-						error={errors.code}
-						placeholder="e.g. DISKON20"
-					/>
-					<FormSelect
-						label="Type"
-						options={[...VOUCHER_TYPE_OPTIONS]}
-						value={values.type}
-						onValueChange={(v) => v && update('type', v)}
-						error={errors.type}
-					/>
-				</div>
-				<FormInput
-					label="Name"
-					value={values.name}
-					onChange={(e) => update('name', e.target.value)}
-					error={errors.name}
-					placeholder="e.g. Diskon 20% All Items"
-				/>
-				<div className="grid grid-cols-2 gap-4">
-					<FormNumberField
-						label={values.type === 'percentage' ? 'Value (%)' : 'Value (Rp)'}
-						value={values.value ?? undefined}
-						onChange={(v) => update('value', v)}
-						min={1}
-						max={values.type === 'percentage' ? 100 : undefined}
-						error={errors.value}
-					/>
-					<FormNumberField
-						label="Min. Purchase (Rp)"
-						value={values.minPurchase ?? undefined}
-						onChange={(v) => update('minPurchase', v)}
-						min={0}
-						error={errors.minPurchase}
-						description="Optional"
-					/>
-				</div>
-				{values.type === 'percentage' && (
-					<FormNumberField
-						label="Max Discount (Rp)"
-						value={values.maxDiscount ?? undefined}
-						onChange={(v) => update('maxDiscount', v)}
-						min={1}
-						error={errors.maxDiscount}
-						description="Cap the discount amount"
+			<div className="grid grid-cols-2 gap-4">
+				<form.AppField name="validFrom">
+					{(field) => <field.DatePickerField label="Valid From" />}
+				</form.AppField>
+				<form.AppField name="validUntil">
+					{(field) => <field.DatePickerField label="Valid Until" />}
+				</form.AppField>
+			</div>
+
+			<form.AppField name="usageLimit">
+				{(field) => (
+					<field.TextField
+						label="Usage Limit"
+						placeholder="Leave empty for unlimited usage"
+						description="Leave empty for unlimited usage"
 					/>
 				)}
-				<div className="grid grid-cols-2 gap-4">
-					<FormDatePicker
-						label="Valid From"
-						value={values.validFrom}
-						onChange={(d) => update('validFrom', d)}
-						error={errors.validFrom}
-					/>
-					<FormDatePicker
-						label="Valid Until"
-						value={values.validUntil}
-						onChange={(d) => update('validUntil', d)}
-						error={errors.validUntil}
-					/>
-				</div>
-				<FormNumberField
-					label="Usage Limit"
-					value={values.usageLimit ?? undefined}
-					onChange={(v) => update('usageLimit', v)}
-					min={1}
-					error={errors.usageLimit}
-					description="Leave empty for unlimited usage"
-				/>
-				<FormSwitch
-					label="Active"
-					description="Inactive vouchers cannot be applied at checkout."
-					checked={values.isActive}
-					onCheckedChange={(checked) => update('isActive', checked)}
-				/>
-			</div>
-		)
-	},
-)
+			</form.AppField>
 
-VoucherForm.displayName = 'VoucherForm'
+			<form.AppField name="isActive">
+				{(field) => (
+					<field.SwitchField
+						label="Active"
+						description="Inactive vouchers cannot be applied at checkout."
+					/>
+				)}
+			</form.AppField>
+
+			<form.FormError />
+		</div>
+	)
+}

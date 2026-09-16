@@ -1,9 +1,12 @@
 import type { ReactNode } from 'react'
 
+import { format } from 'date-fns'
 import { SearchIcon, XIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+import { DateRangeFilter } from '@/components/shared/date-range-filter'
+import type { DateRange } from '@/components/shared/date-range-filter'
 import { TableFilterSelect } from '@/components/shared/table-filter-select'
 
 import { Badge } from '@/components/ui/badge'
@@ -40,11 +43,23 @@ export interface MultiTableFilterDef extends TableFilterDefBase {
  */
 export type TableFilterDef = SingleTableFilterDef | MultiTableFilterDef
 
+export interface TableDateRangeFilterDef {
+	/** Unique key, also used as the active-filter chip key. */
+	key: string
+	/** Human label used in the active-filter chip. */
+	label: string
+	value: DateRange | undefined
+	onChange: (value: DateRange | undefined) => void
+	placeholder?: string
+}
+
 interface TableToolbarProps {
 	searchValue?: string
 	onSearchChange?: (value: string) => void
 	searchPlaceholder?: string
 	filters?: TableFilterDef[]
+	/** Optional date-range filter, rendered alongside the dropdown filters. */
+	dateRange?: TableDateRangeFilterDef
 	actions?: ReactNode
 	className?: string
 }
@@ -64,6 +79,7 @@ export function TableToolbar({
 	onSearchChange,
 	searchPlaceholder = 'Search...',
 	filters = NO_FILTERS,
+	dateRange,
 	actions,
 	className,
 }: TableToolbarProps) {
@@ -118,10 +134,18 @@ export function TableToolbar({
 					),
 				)}
 
+				{dateRange && (
+					<DateRangeFilter
+						value={dateRange.value}
+						onChange={dateRange.onChange}
+						placeholder={dateRange.placeholder}
+					/>
+				)}
+
 				{actions && <div className="ml-auto flex items-center gap-2">{actions}</div>}
 			</div>
 
-			{activeFilters.length > 0 && (
+			{(activeFilters.length > 0 || dateRange?.value) && (
 				<div className="flex flex-wrap items-center gap-1.5">
 					{activeFilters.flatMap((filter) => {
 						const values = Array.isArray(filter.value) ? filter.value : [filter.value]
@@ -149,11 +173,28 @@ export function TableToolbar({
 							)
 						})
 					})}
+					{dateRange?.value && (
+						<Badge key={dateRange.key} variant="outline" className="gap-1 pr-1">
+							{dateRange.label}: {format(dateRange.value.from, 'dd MMM')} –{' '}
+							{format(dateRange.value.to, 'dd MMM yyyy')}
+							<button
+								type="button"
+								onClick={() => dateRange.onChange(undefined)}
+								aria-label={`Remove ${dateRange.label} filter`}
+								className="rounded-full p-0.5 hover:bg-muted"
+							>
+								<XIcon className="size-2.5" />
+							</button>
+						</Badge>
+					)}
 					<Button
 						variant="ghost"
 						size="xs"
 						className="text-muted-foreground"
-						onClick={() => filters.forEach((f) => f.onChange(undefined))}
+						onClick={() => {
+							filters.forEach((f) => f.onChange(undefined))
+							dateRange?.onChange(undefined)
+						}}
 					>
 						Clear filters
 					</Button>

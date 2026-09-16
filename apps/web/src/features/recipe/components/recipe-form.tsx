@@ -1,12 +1,9 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
-
 import { useQuery } from '@tanstack/react-query'
 
 import { PlusIcon, TrashIcon } from 'lucide-react'
+import { z } from 'zod'
 
-import { FormInput } from '@/components/form/form-input'
-import { FormSelect } from '@/components/form/form-select'
-import type { FormSelectOption } from '@/components/form/form-select'
+import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
 
 import { Button } from '@/components/ui/button'
 
@@ -14,251 +11,237 @@ import { materialResource } from '@/features/material/api.ts'
 import { menuItemResource } from '@/features/menu/api.ts'
 import { uomResource } from '@/features/uom/api.ts'
 
-import { RecipeCreateDto } from '../dto/index.ts'
 import type { RecipeDetailDto } from '../dto/index.ts'
 
-// ─── Types ───
+// ─── Values / Schema ───
 
-interface RecipeLineValues {
-	key: string
-	materialId: string
+export interface RecipeLineValues {
+	materialId: number | null
 	quantity: string
-	uomId: string
+	uomId: number | null
 }
 
 export interface RecipeFormValues {
-	menuItemId: string
+	menuItemId: number | null
 	name: string
 	yieldQty: string
 	lines: RecipeLineValues[]
 }
 
-export interface RecipeFormRef {
-	getValues: () => RecipeFormValues
-	validate: () => Record<string, string> | null
-}
+const decimal = (message: string) =>
+	z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, message)
 
-interface RecipeFormProps {
-	locationId: number
-	defaultValues?: RecipeDetailDto
-}
+const RecipeLineSchema = z.object({
+	materialId: z
+		.number()
+		.int()
+		.positive()
+		.nullable()
+		.refine((v) => v !== null, { error: 'Material wajib dipilih' }),
+	quantity: decimal('Jumlah harus angka positif'),
+	uomId: z
+		.number()
+		.int()
+		.positive()
+		.nullable()
+		.refine((v) => v !== null, { error: 'Satuan wajib dipilih' }),
+})
+
+const RecipeFormSchema = z.object({
+	menuItemId: z
+		.number()
+		.int()
+		.positive()
+		.nullable()
+		.refine((v) => v !== null, { error: 'Menu item wajib dipilih' }),
+	name: z.string().trim().min(2, 'Minimal 2 karakter').max(255),
+	yieldQty: decimal('Yield qty harus angka positif'),
+	lines: z.array(RecipeLineSchema).min(1, 'Tambahkan minimal satu bahan'),
+})
 
 function emptyLine(): RecipeLineValues {
-	return { key: crypto.randomUUID(), materialId: '', quantity: '', uomId: '' }
+	return { materialId: null, quantity: '', uomId: null }
 }
 
-// ─── Component ───
+function toFormValues(defaultValues?: RecipeDetailDto): RecipeFormValues {
+	if (!defaultValues) {
+		return { menuItemId: null, name: '', yieldQty: '1', lines: [emptyLine()] }
+	}
+	return {
+		menuItemId: defaultValues.menuItemId,
+		name: defaultValues.name,
+		yieldQty: defaultValues.yieldQty,
+		lines: defaultValues.lines.map((l) => ({
+			materialId: l.materialId,
+			quantity: l.quantity,
+			uomId: l.uomId,
+		})),
+	}
+}
 
-export const RecipeForm = forwardRef<RecipeFormRef, RecipeFormProps>(
-	({ locationId, defaultValues }, ref) => {
-		const [values, setValues] = useState<RecipeFormValues>({
-			menuItemId: defaultValues?.menuItemId?.toString() ?? '',
-			name: defaultValues?.name ?? '',
-			yieldQty: defaultValues?.yieldQty ?? '1',
-			lines: defaultValues?.lines?.map((l) => ({
-				key: crypto.randomUUID(),
-				materialId: l.materialId.toString(),
-				quantity: l.quantity,
-				uomId: l.uomId.toString(),
-			})) ?? [emptyLine()],
-		})
-		const [errors, setErrors] = useState<Record<string, string>>({})
+export interface RecipeFormBodyProps {
+	locationId: number
+	defaultValues?: RecipeDetailDto
+	onSaved: () => void
+	onCancel: () => void
+	onSubmitValues: (values: {
+		menuItemId: number
+		name: string
+		yieldQty: string
+		lines: { materialId: number; quantity: string; uomId: number }[]
+	}) => Promise<unknown>
+}
 
-		// ─── Queries ───
+/** Recipe (BOM) form — menu item + dynamic ingredient lines. Kept as a dialog. */
+export function RecipeFormBody({
+	locationId,
+	defaultValues,
+	onSaved,
+	onCancel,
+	onSubmitValues,
+}: RecipeFormBodyProps) {
+	const menuItemsQuery = useQuery({
+		...menuItemResource.list.queryOptions({ page: 1, limit: 200, locationId }),
+		enabled: !!locationId,
+	})
+	const materialsQuery = useQuery({
+		...materialResource.list.queryOptions({ page: 1, limit: 200, locationId }),
+		enabled: !!locationId,
+	})
+	const uomsQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 200 }))
 
-		const menuItemsQuery = useQuery({
-			...menuItemResource.list.queryOptions({
-				page: 1,
-				limit: 200,
-				locationId,
-			}),
-			enabled: !!locationId,
-		})
+	const menuItemOptions = (menuItemsQuery.data?.data ?? []).map((m) => ({
+		label: `${m.name} (${m.sku})`,
+		value: m.id,
+	}))
+	const materialOptions = (materialsQuery.data?.data ?? []).map((m) => ({
+		label: `${m.name} (${m.code})`,
+		value: m.id,
+	}))
+	const uomOptions = (uomsQuery.data?.data ?? []).map((u) => ({
+		label: `${u.name} (${u.code})`,
+		value: u.id,
+	}))
 
-		const materialsQuery = useQuery({
-			...materialResource.list.queryOptions({
-				page: 1,
-				limit: 200,
-				locationId,
-			}),
-			enabled: !!locationId,
-		})
-
-		const uomsQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 200 }))
-
-		// ─── Options ───
-
-		const menuItemOptions: FormSelectOption[] = (menuItemsQuery.data?.data ?? []).map((m) => ({
-			label: `${m.name} (${m.sku})`,
-			value: m.id.toString(),
-		}))
-
-		const materialOptions: FormSelectOption[] = (materialsQuery.data?.data ?? []).map((m) => ({
-			label: `${m.name} (${m.code})`,
-			value: m.id.toString(),
-		}))
-
-		const uomOptions: FormSelectOption[] = (uomsQuery.data?.data ?? []).map((u) => ({
-			label: `${u.name} (${u.code})`,
-			value: u.id.toString(),
-		}))
-
-		// ─── Handlers ───
-
-		const updateField = (field: keyof Omit<RecipeFormValues, 'lines'>, value: string) => {
-			setValues((prev) => ({ ...prev, [field]: value }))
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[field]
-				return next
+	const form = useEntityForm<RecipeFormValues>({
+		defaultValues: toFormValues(defaultValues),
+		schema: RecipeFormSchema,
+		onSubmit: async (values) => {
+			await onSubmitValues({
+				menuItemId: values.menuItemId!,
+				name: values.name,
+				yieldQty: values.yieldQty,
+				lines: values.lines.map((l) => ({
+					materialId: l.materialId!,
+					quantity: l.quantity,
+					uomId: l.uomId!,
+				})),
 			})
-		}
+			onSaved()
+		},
+	})
 
-		const updateLine = (index: number, field: keyof RecipeLineValues, value: string) => {
-			setValues((prev) => {
-				const lines = prev.lines.map((line, i) =>
-					i === index ? { ...line, [field]: value } : line,
-				)
-				return { ...prev, lines }
-			})
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[`lines.${index}.${field}`]
-				delete next.lines
-				return next
-			})
-		}
+	return (
+		<form.AppForm>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					void form.handleSubmit()
+				}}
+				className="grid gap-4"
+			>
+				<form.AppField name="menuItemId">
+					{(field) => (
+						<field.IdSelectField
+							label="Menu Item"
+							options={menuItemOptions}
+							placeholder="Pilih menu item..."
+							disabled={!!defaultValues}
+						/>
+					)}
+				</form.AppField>
 
-		const addLine = () => {
-			setValues((prev) => ({ ...prev, lines: [...prev.lines, emptyLine()] }))
-		}
-
-		const removeLine = (index: number) => {
-			setValues((prev) => ({
-				...prev,
-				lines: prev.lines.filter((_, i) => i !== index),
-			}))
-		}
-
-		// ─── Imperative Handle ───
-
-		useImperativeHandle(ref, () => ({
-			getValues: () => values,
-			validate: () => {
-				const payload = {
-					menuItemId: values.menuItemId ? Number(values.menuItemId) : undefined,
-					name: values.name,
-					yieldQty: values.yieldQty,
-					lines: values.lines.map((l) => ({
-						materialId: l.materialId ? Number(l.materialId) : undefined,
-						quantity: l.quantity,
-						uomId: l.uomId ? Number(l.uomId) : undefined,
-					})),
-				}
-				const result = RecipeCreateDto.safeParse(payload)
-				if (result.success) {
-					setErrors({})
-					return null
-				}
-				const fieldErrors: Record<string, string> = {}
-				for (const issue of result.error.issues) {
-					const path = issue.path.join('.')
-					if (path && !fieldErrors[path]) {
-						fieldErrors[path] = issue.message
-					}
-				}
-				setErrors(fieldErrors)
-				return fieldErrors
-			},
-		}))
-
-		return (
-			<div className="grid gap-4">
-				<FormSelect
-					label="Menu Item"
-					options={menuItemOptions}
-					value={values.menuItemId}
-					onValueChange={(v) => updateField('menuItemId', v ?? '')}
-					error={errors.menuItemId}
-					placeholder="Pilih menu item..."
-					disabled={!!defaultValues}
-				/>
 				<div className="grid grid-cols-2 gap-4">
-					<FormInput
-						label="Nama Resep"
-						value={values.name}
-						onChange={(e) => updateField('name', e.target.value)}
-						error={errors.name}
-						placeholder="e.g. Es Kopi Susu Standard"
-					/>
-					<FormInput
-						label="Yield Qty"
-						value={values.yieldQty}
-						onChange={(e) => updateField('yieldQty', e.target.value)}
-						error={errors.yieldQty}
-						placeholder="e.g. 1"
-					/>
+					<form.AppField name="name">
+						{(field) => (
+							<field.TextField label="Nama Resep" placeholder="e.g. Es Kopi Susu Standard" />
+						)}
+					</form.AppField>
+					<form.AppField name="yieldQty">
+						{(field) => <field.TextField label="Yield Qty" placeholder="e.g. 1" />}
+					</form.AppField>
 				</div>
 
-				{/* Ingredient Lines */}
-				<div className="space-y-3">
-					<div className="flex items-center justify-between">
-						<span className="text-sm font-medium">Bahan (Ingredients)</span>
-						<Button type="button" size="sm" variant="outline" onClick={addLine}>
-							<PlusIcon className="size-4" />
-							Tambah Bahan
-						</Button>
-					</div>
+				<form.AppField name="lines" mode="array">
+					{(linesField) => (
+						<div className="space-y-3">
+							<div className="flex items-center justify-between">
+								<span className="text-sm font-medium">Bahan (Ingredients)</span>
+								<Button
+									type="button"
+									size="sm"
+									variant="outline"
+									onClick={() => linesField.pushValue(emptyLine())}
+								>
+									<PlusIcon className="size-4" />
+									Tambah Bahan
+								</Button>
+							</div>
 
-					{errors.lines && <p className="text-sm text-destructive">{errors.lines}</p>}
-
-					{values.lines.map((line, idx) => (
-						<div key={line.key} className="flex items-end gap-2">
-							<div className="flex-1">
-								<FormSelect
-									label={idx === 0 ? 'Material' : ''}
-									options={materialOptions}
-									value={line.materialId}
-									onValueChange={(v) => updateLine(idx, 'materialId', v ?? '')}
-									error={errors[`lines.${idx}.materialId`]}
-									placeholder="Pilih material..."
-								/>
-							</div>
-							<div className="w-24">
-								<FormInput
-									label={idx === 0 ? 'Qty' : ''}
-									value={line.quantity}
-									onChange={(e) => updateLine(idx, 'quantity', e.target.value)}
-									error={errors[`lines.${idx}.quantity`]}
-									placeholder="0.5"
-								/>
-							</div>
-							<div className="w-32">
-								<FormSelect
-									label={idx === 0 ? 'UoM' : ''}
-									options={uomOptions}
-									value={line.uomId}
-									onValueChange={(v) => updateLine(idx, 'uomId', v ?? '')}
-									error={errors[`lines.${idx}.uomId`]}
-									placeholder="Satuan..."
-								/>
-							</div>
-							<Button
-								type="button"
-								size="icon"
-								variant="ghost"
-								className="size-9 shrink-0"
-								onClick={() => removeLine(idx)}
-								disabled={values.lines.length <= 1}
-							>
-								<TrashIcon className="size-4" />
-							</Button>
+							{linesField.state.value.map((_, idx) => (
+								<div key={idx} className="flex items-end gap-2">
+									<div className="flex-1">
+										<form.AppField name={`lines[${idx}].materialId`}>
+											{(field) => (
+												<field.IdSelectField
+													label={idx === 0 ? 'Material' : '\u00A0'}
+													options={materialOptions}
+													placeholder="Pilih material..."
+												/>
+											)}
+										</form.AppField>
+									</div>
+									<div className="w-24">
+										<form.AppField name={`lines[${idx}].quantity`}>
+											{(field) => (
+												<field.TextField label={idx === 0 ? 'Qty' : '\u00A0'} placeholder="0.5" />
+											)}
+										</form.AppField>
+									</div>
+									<div className="w-32">
+										<form.AppField name={`lines[${idx}].uomId`}>
+											{(field) => (
+												<field.IdSelectField
+													label={idx === 0 ? 'UoM' : '\u00A0'}
+													options={uomOptions}
+													placeholder="Satuan..."
+												/>
+											)}
+										</form.AppField>
+									</div>
+									<Button
+										type="button"
+										size="icon"
+										variant="ghost"
+										className="size-9 shrink-0"
+										onClick={() => linesField.removeValue(idx)}
+										disabled={linesField.state.value.length <= 1}
+									>
+										<TrashIcon className="size-4" />
+									</Button>
+								</div>
+							))}
 						</div>
-					))}
-				</div>
-			</div>
-		)
-	},
-)
+					)}
+				</form.AppField>
 
-RecipeForm.displayName = 'RecipeForm'
+				<form.FormError />
+				<FormDialogFooter onCancel={onCancel} submitLabel="Simpan" />
+			</form>
+		</form.AppForm>
+	)
+}

@@ -1,6 +1,8 @@
 import { createFormHook } from '@tanstack/react-form'
 
+import { fieldContext, formContext } from './contexts.ts'
 import { ComboboxField } from './fields/combobox-field.tsx'
+import { CurrencyField } from './fields/currency-field.tsx'
 import { DatePickerField } from './fields/date-picker-field.tsx'
 import { IdSelectField } from './fields/id-select-field.tsx'
 import { NumberField } from './fields/number-field.tsx'
@@ -9,7 +11,6 @@ import { SwitchField } from './fields/switch-field.tsx'
 import { TextField } from './fields/text-field.tsx'
 import { TextareaField } from './fields/textarea-field.tsx'
 import { FormError } from './form-error.tsx'
-import { fieldContext, formContext } from './contexts.ts'
 
 /**
  * The app's one form hook. Every field component here is pre-bound to
@@ -37,6 +38,7 @@ export const { useAppForm, withForm } = createFormHook({
 		IdSelectField,
 		ComboboxField,
 		NumberField,
+		CurrencyField,
 		SwitchField,
 		DatePickerField,
 	},

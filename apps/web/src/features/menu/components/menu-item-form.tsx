@@ -1,140 +1,117 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
-
 import { useQuery } from '@tanstack/react-query'
 
-import { FormInput } from '@/components/form/form-input'
-import { FormSelect } from '@/components/form/form-select'
-import type { FormSelectOption } from '@/components/form/form-select'
+import { z } from 'zod'
+
+import { useEntityForm } from '@/lib/form/index.ts'
 
 import { menuCategoryResource } from '../api.ts'
-import { MenuItemCreateDto } from '../dto/index.ts'
-import type { MenuItemDto, MenuItemStatusEnum } from '../dto/index.ts'
+import { MenuItemStatusEnum } from '../dto/index.ts'
+import type { MenuItemDto } from '../dto/index.ts'
 
 export interface MenuItemFormValues {
 	sku: string
 	name: string
-	categoryId: string
+	categoryId: number | null
 	basePrice: string
 	status: MenuItemStatusEnum
 }
 
-export interface MenuItemFormRef {
-	getValues: () => MenuItemFormValues
-	validate: () => Record<string, string> | null
-}
+const MenuItemFormSchema = z.object({
+	sku: z.string().trim().min(1, 'SKU is required').max(100),
+	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
+	categoryId: z.number().int().positive().nullable(),
+	basePrice: z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a valid price'),
+	status: MenuItemStatusEnum,
+})
 
-interface MenuItemFormProps {
-	locationId: number
-	defaultValues?: MenuItemDto
-}
-
-const STATUS_OPTIONS: FormSelectOption[] = [
+const STATUS_OPTIONS: { label: string; value: string }[] = [
 	{ label: 'Active', value: 'active' },
 	{ label: 'Inactive', value: 'inactive' },
 ]
 
-export const MenuItemForm = forwardRef<MenuItemFormRef, MenuItemFormProps>(
-	({ locationId, defaultValues }, ref) => {
-		const [values, setValues] = useState<MenuItemFormValues>({
-			sku: defaultValues?.sku ?? '',
-			name: defaultValues?.name ?? '',
-			categoryId: defaultValues?.categoryId?.toString() ?? '',
-			basePrice: defaultValues?.basePrice ?? '',
-			status: defaultValues?.status ?? 'active',
-		})
-		const [errors, setErrors] = useState<Record<string, string>>({})
+export const EMPTY_MENU_ITEM_FORM_VALUES: MenuItemFormValues = {
+	sku: '',
+	name: '',
+	categoryId: null,
+	basePrice: '',
+	status: 'active',
+}
 
-		const categoriesQuery = useQuery(
-			menuCategoryResource.list.queryOptions({ page: 1, limit: 100, locationId }),
-		)
+export function toMenuItemFormValues(item: MenuItemDto): MenuItemFormValues {
+	return {
+		sku: item.sku,
+		name: item.name,
+		categoryId: item.categoryId,
+		basePrice: item.basePrice,
+		status: item.status,
+	}
+}
 
-		const categoryOptions: FormSelectOption[] = (categoriesQuery.data?.data ?? []).map((c) => ({
-			label: c.name,
-			value: c.id.toString(),
-		}))
+export interface UseMenuItemFormOptions {
+	defaultValues?: MenuItemFormValues
+	onSubmit: (values: MenuItemFormValues) => Promise<void>
+}
 
-		const update = (field: keyof MenuItemFormValues, value: string) => {
-			setValues((prev) => ({ ...prev, [field]: value }))
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[field]
-				return next
-			})
-		}
+export function useMenuItemForm({ defaultValues, onSubmit }: UseMenuItemFormOptions) {
+	return useEntityForm({
+		defaultValues: defaultValues ?? EMPTY_MENU_ITEM_FORM_VALUES,
+		schema: MenuItemFormSchema,
+		onSubmit,
+	})
+}
 
-		useImperativeHandle(ref, () => ({
-			getValues: () => values,
-			validate: () => {
-				const payload = {
-					locationId,
-					sku: values.sku,
-					name: values.name,
-					categoryId: values.categoryId ? Number(values.categoryId) : null,
-					basePrice: values.basePrice,
-					status: values.status,
-				}
-				const result = MenuItemCreateDto.safeParse(payload)
-				if (result.success) {
-					setErrors({})
-					return null
-				}
-				const fieldErrors: Record<string, string> = {}
-				for (const issue of result.error.issues) {
-					const path = issue.path[0]
-					if (path && !fieldErrors[String(path)]) {
-						fieldErrors[String(path)] = issue.message
-					}
-				}
-				setErrors(fieldErrors)
-				return fieldErrors
-			},
-		}))
+export type MenuItemForm = ReturnType<typeof useMenuItemForm>
 
-		return (
-			<div className="grid gap-4">
-				<div className="grid grid-cols-2 gap-4">
-					<FormInput
-						label="SKU"
-						value={values.sku}
-						onChange={(e) => update('sku', e.target.value)}
-						error={errors.sku}
-						placeholder="e.g. MNU-001"
-					/>
-					<FormSelect
-						label="Status"
-						options={STATUS_OPTIONS}
-						value={values.status}
-						onValueChange={(v) => v && update('status', v)}
-						error={errors.status}
-					/>
-				</div>
-				<FormInput
-					label="Nama"
-					value={values.name}
-					onChange={(e) => update('name', e.target.value)}
-					error={errors.name}
-					placeholder="e.g. Es Kopi Susu"
-				/>
-				<div className="grid grid-cols-2 gap-4">
-					<FormInput
-						label="Harga Dasar"
-						value={values.basePrice}
-						onChange={(e) => update('basePrice', e.target.value)}
-						error={errors.basePrice}
-						placeholder="e.g. 25000"
-					/>
-					<FormSelect
-						label="Kategori"
-						options={[{ label: '— Tanpa Kategori —', value: '' }, ...categoryOptions]}
-						value={values.categoryId}
-						onValueChange={(v) => update('categoryId', v ?? '')}
-						error={errors.categoryId}
-						placeholder="Pilih kategori..."
-					/>
-				</div>
+export function MenuItemFormFields({
+	form,
+	locationId,
+}: {
+	form: MenuItemForm
+	locationId: number
+}) {
+	const categoriesQuery = useQuery(
+		menuCategoryResource.list.queryOptions({ page: 1, limit: 100, locationId }),
+	)
+	const categoryOptions = (categoriesQuery.data?.data ?? []).map((c) => ({
+		label: c.name,
+		value: c.id,
+	}))
+
+	return (
+		<div className="grid gap-4">
+			<div className="grid grid-cols-2 gap-4">
+				<form.AppField name="sku">
+					{(field) => <field.TextField label="SKU" placeholder="e.g. MNU-001" />}
+				</form.AppField>
+				<form.AppField name="status">
+					{(field) => <field.SelectField label="Status" options={STATUS_OPTIONS} />}
+				</form.AppField>
 			</div>
-		)
-	},
-)
 
-MenuItemForm.displayName = 'MenuItemForm'
+			<form.AppField name="name">
+				{(field) => <field.TextField label="Nama" placeholder="e.g. Es Kopi Susu" />}
+			</form.AppField>
+
+			<div className="grid grid-cols-2 gap-4">
+				<form.AppField name="basePrice">
+					{(field) => <field.CurrencyField label="Harga Dasar" />}
+				</form.AppField>
+				<form.AppField name="categoryId">
+					{(field) => (
+						<field.IdSelectField
+							label="Kategori"
+							options={categoryOptions}
+							nullableLabel="— Tanpa Kategori —"
+							placeholder="Pilih kategori..."
+						/>
+					)}
+				</form.AppField>
+			</div>
+
+			<form.FormError />
+		</div>
+	)
+}

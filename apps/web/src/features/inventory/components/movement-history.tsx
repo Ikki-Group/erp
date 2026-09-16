@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react'
 
+import type { ListSearch } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
@@ -96,42 +97,32 @@ interface MovementHistoryProps {
 	locationId: number
 }
 
+// Embedded (non-route) table: holds URL-shaped `ListSearch` state locally.
+const INITIAL_SEARCH: ListSearch = { page: 1, pageSize: 10 }
+
 export function MovementHistory({ materialId, locationId }: MovementHistoryProps) {
-	const [listParams, setListParams] = useState({
-		page: 1,
-		limit: 10,
-	})
+	const [search, setSearch] = useState<ListSearch>(INITIAL_SEARCH)
 
 	const listQuery = useQuery(
 		stockMovementList.queryOptions({
 			materialId,
 			locationId,
-			page: listParams.page,
-			limit: listParams.limit,
+			page: search.page,
+			limit: search.pageSize,
 		}),
 	)
 
 	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
 
-	const columns = useMemo(
-		() => baseColumns as ColumnDef<DataGridFeatures, StockMovementDto>[],
-		[],
-	)
-
-	const handleStateChange = useCallback((params: { page: number; pageSize: number }) => {
-		setListParams({
-			page: params.page + 1,
-			limit: params.pageSize,
-		})
-	}, [])
+	const columns = useMemo(() => baseColumns as ColumnDef<DataGridFeatures, StockMovementDto>[], [])
 
 	const { table } = useServerTable({
 		data,
 		columns,
 		totalCount,
-		pageSize: listParams.limit,
-		onStateChange: handleStateChange,
+		search,
+		onSearchChange: setSearch,
 	})
 
 	const isEmpty = !listQuery.isLoading && data.length === 0

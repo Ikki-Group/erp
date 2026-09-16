@@ -1,7 +1,10 @@
 import { useCallback, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
+
 import { PlusIcon, Trash2Icon } from 'lucide-react'
+
+import { CurrencyInput } from '@/components/shared/currency-input.tsx'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -105,48 +108,32 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 				<div className="space-y-4">
 					<div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
 						<span className="text-xs text-muted-foreground">Total Tagihan</span>
-						<span className="text-sm font-semibold">
-							Rp {orderTotal.toLocaleString('id-ID')}
-						</span>
+						<span className="text-sm font-semibold">Rp {orderTotal.toLocaleString('id-ID')}</span>
 					</div>
 
 					{entries.length > 0 && (
 						<div className="space-y-2">
 							{entries.map((entry, index) => (
-								<div
-									key={index}
-									className="flex items-center gap-2 rounded-md border p-2"
-								>
+								<div key={index} className="flex items-center gap-2 rounded-md border p-2">
 									<div className="flex-1 space-y-1">
-										<p className="text-xs font-medium">
-											{entry.paymentMethodName}
-										</p>
-										<Input
-											type="number"
-											value={entry.amount || ''}
-											onChange={(e) =>
-												updateAmount(index, Number(e.target.value))
-											}
+										<p className="text-xs font-medium">{entry.paymentMethodName}</p>
+										<CurrencyInput
+											value={entry.amount || undefined}
+											onValueChange={(amount) => updateAmount(index, amount)}
 											placeholder="Jumlah"
+											aria-label={`Jumlah pembayaran ${entry.paymentMethodName}`}
 											className="h-7 text-xs"
 										/>
-										{methods.find((m) => m.id === entry.paymentMethodId)
-											?.type === 'digital' && (
+										{methods.find((m) => m.id === entry.paymentMethodId)?.type === 'digital' && (
 											<Input
 												value={entry.reference ?? ''}
-												onChange={(e) =>
-													updateReference(index, e.target.value)
-												}
+												onChange={(e) => updateReference(index, e.target.value)}
 												placeholder="Referensi (opsional)"
 												className="h-7 text-xs"
 											/>
 										)}
 									</div>
-									<Button
-										variant="ghost"
-										size="icon-sm"
-										onClick={() => removeEntry(index)}
-									>
+									<Button variant="ghost" size="icon-sm" onClick={() => removeEntry(index)}>
 										<Trash2Icon className="size-3.5 text-destructive" />
 									</Button>
 								</div>
@@ -155,9 +142,7 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 					)}
 
 					<div>
-						<Label className="text-xs text-muted-foreground">
-							Tambah Metode Pembayaran
-						</Label>
+						<Label className="text-xs text-muted-foreground">Tambah Metode Pembayaran</Label>
 						<div className="mt-1.5 flex flex-wrap gap-1.5">
 							{methods
 								.filter((m) => m.isActive)

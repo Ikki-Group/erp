@@ -1,17 +1,21 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { ArrowLeftIcon, CheckCircleIcon, ClipboardListIcon, PlusIcon } from 'lucide-react'
 
+import { listSearchSchema, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
-import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
+import { AuditTrail } from '@/components/shared/audit-trail'
 import { confirm } from '@/components/shared/confirm'
+import type { DateRange } from '@/components/shared/date-range-filter'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { PageSection } from '@/components/shared/page-section'
+import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { StatusBadge } from '@/components/shared/status-badge'
 import type { StatusBadgeVariant } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
@@ -19,15 +23,22 @@ import { TableToolbar } from '@/components/shared/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 
+import { auditResource } from '@/features/audit/api.ts'
 import { opnameResource } from '@/features/inventory/api.ts'
 import { OpnameCountForm } from '@/features/inventory/components/opname-count-form.tsx'
 import type { CountLine } from '@/features/inventory/components/opname-count-form.tsx'
-import { OPNAME_STATUS_LABELS } from '@/features/inventory/dto/index.ts'
-import type { OpnameDto, OpnameStatusEnum } from '@/features/inventory/dto/index.ts'
+import { OPNAME_STATUS_LABELS, OpnameStatusEnum } from '@/features/inventory/dto/index.ts'
+import type { OpnameDto } from '@/features/inventory/dto/index.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
+// No server-side text search on this endpoint — status filter + pagination only.
+const opnameSearchSchema = listSearchSchema.omit({ q: true }).extend({
+	status: OpnameStatusEnum.optional(),
+})
+
 export const Route = createFileRoute('/_authenticated/inventory/opname')({
+	validateSearch: opnameSearchSchema,
 	component: OpnamePage,
 })
 
@@ -82,19 +93,22 @@ const baseColumns = [
 
 function OpnamePage() {
 	const { activeLocation } = useLocationContext()
+	const navigate = useNavigate({ from: Route.fullPath })
+	const search = Route.useSearch()
 	const locationId = activeLocation?.id
+	const canCreate = usePermissionCheck({ permission: 'opname.create' })
+	const canUpdate = usePermissionCheck({ permission: 'opname.update' })
+	const canComplete = usePermissionCheck({ permission: 'opname.complete' })
+	const canReadAudit = usePermissionCheck({ permission: 'audit.read' })
 
 	const [selectedOpnameId, setSelectedOpnameId] = useState<number | null>(null)
-
-	const [listParams, setListParams] = useState({
-		page: 1,
-		limit: 10,
-		status: undefined as OpnameStatusEnum | undefined,
-	})
+	const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 
 	const listQuery = useQuery({
 		...opnameResource.list.queryOptions({
-			...listParams,
+			page: search.page,
+			limit: search.pageSize,
+			status: search.status,
 			locationId,
 		}),
 		enabled: !!locationId,
@@ -104,7 +118,17 @@ function OpnamePage() {
 	const updateCountsMut = useMutation(opnameResource.updateCounts.mutationOptions())
 	const approveMut = useMutation(opnameResource.approve.mutationOptions())
 
-	const data = listQuery.data?.data ?? []
+	const rawData = listQuery.data?.data ?? []
+
+	/** No server-side date filter on this endpoint — narrows the current page only. */
+	const data = useMemo(() => {
+		if (!dateRange) return rawData
+		return rawData.filter((o) => {
+			const createdAt = new Date(o.createdAt).getTime()
+			return createdAt >= dateRange.from.getTime() && createdAt <= dateRange.to.getTime()
+		})
+	}, [rawData, dateRange])
+
 	const totalCount = listQuery.data?.meta?.total ?? 0
 
 	// ─── Detail query ───
@@ -114,6 +138,11 @@ function OpnamePage() {
 		enabled: !!selectedOpnameId,
 	})
 	const detail = detailQuery.data?.data
+
+	const auditQuery = useQuery({
+		...auditResource.byEntity.queryOptions({ entity: 'stock_opname', entityId: selectedOpnameId! }),
+		enabled: !!selectedOpnameId && canReadAudit,
+	})
 
 	// ─── Create ───
 
@@ -190,18 +219,12 @@ function OpnamePage() {
 		[actionsColumn],
 	)
 
-	const { table, globalFilter, setGlobalFilter } = useServerTable({
+	const { table } = useServerTable({
 		data,
 		columns,
 		totalCount,
-		pageSize: listParams.limit,
-		onStateChange: (params) => {
-			setListParams((prev) => ({
-				...prev,
-				page: params.page + 1,
-				limit: params.pageSize,
-			}))
-		},
+		search,
+		onSearchChange: (next) => navigate({ search: next }),
 	})
 
 	// ─── No location ───
@@ -225,7 +248,7 @@ function OpnamePage() {
 	// ─── Detail View ───
 
 	if (selectedOpnameId) {
-		const isEditable = detail?.status === 'draft' || detail?.status === 'in_progress'
+		const isEditable = canUpdate && (detail?.status === 'draft' || detail?.status === 'in_progress')
 		const canApprove = detail?.status === 'in_progress'
 
 		return (
@@ -235,7 +258,7 @@ function OpnamePage() {
 					description={`Status: ${detail ? OPNAME_STATUS_LABELS[detail.status] : '...'}`}
 					actions={
 						<div className="flex gap-2">
-							{canApprove && (
+							{canApprove && canComplete && (
 								<Button size="sm" onClick={handleApprove}>
 									<CheckCircleIcon className="size-4" />
 									Setujui
@@ -267,13 +290,23 @@ function OpnamePage() {
 						isSubmitting={updateCountsMut.isPending}
 					/>
 				) : null}
+
+				{canReadAudit && (
+					<PageSection title="Activity" description="History of changes to this opname.">
+						<AuditTrail
+							entries={auditQuery.data?.data ?? []}
+							isLoading={auditQuery.isLoading}
+							emptyMessage="No changes recorded for this opname yet."
+						/>
+					</PageSection>
+				)}
 			</div>
 		)
 	}
 
 	// ─── List View ───
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !listParams.status
+	const isEmpty = !listQuery.isLoading && data.length === 0 && !search.status
 
 	return (
 		<div className="space-y-6">
@@ -281,10 +314,12 @@ function OpnamePage() {
 				title="Stock Opname"
 				description={`Hitung fisik stok di ${activeLocation?.name ?? ''}`}
 				actions={
-					<Button size="sm" onClick={handleCreate} disabled={createMut.isPending}>
-						<PlusIcon className="size-4" />
-						Buat Opname
-					</Button>
+					canCreate ? (
+						<Button size="sm" onClick={handleCreate} disabled={createMut.isPending}>
+							<PlusIcon className="size-4" />
+							Buat Opname
+						</Button>
+					) : undefined
 				}
 			/>
 
@@ -293,10 +328,12 @@ function OpnamePage() {
 					title="Belum ada opname"
 					description="Buat opname pertama untuk memulai penghitungan fisik stok."
 					action={
-						<Button size="sm" onClick={handleCreate} disabled={createMut.isPending}>
-							<PlusIcon className="size-4" />
-							Buat Opname
-						</Button>
+						canCreate ? (
+							<Button size="sm" onClick={handleCreate} disabled={createMut.isPending}>
+								<PlusIcon className="size-4" />
+								Buat Opname
+							</Button>
+						) : undefined
 					}
 				/>
 			) : (
@@ -307,20 +344,19 @@ function OpnamePage() {
 					emptyMessage="Tidak ada opname ditemukan."
 					toolbar={
 						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={setGlobalFilter}
-							searchPlaceholder="Cari opname..."
 							filters={[
 								{
 									key: 'status',
 									label: 'Status',
-									value: listParams.status,
+									value: search.status,
 									onChange: (v) =>
-										setListParams((prev) => ({
-											...prev,
-											page: 1,
-											status: v as OpnameStatusEnum | undefined,
-										})),
+										navigate({
+											search: {
+												...search,
+												page: 1,
+												status: v as OpnameStatusEnum | undefined,
+											},
+										}),
 									options: Object.entries(OPNAME_STATUS_LABELS).map(([value, label]) => ({
 										label,
 										value,
@@ -328,6 +364,13 @@ function OpnamePage() {
 									allLabel: 'All status',
 								},
 							]}
+							dateRange={{
+								key: 'createdAt',
+								label: 'Tanggal',
+								value: dateRange,
+								onChange: setDateRange,
+								placeholder: 'Filter tanggal opname',
+							}}
 						/>
 					}
 				/>

@@ -1,9 +1,7 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { z } from 'zod'
 
-import { FormInput } from '@/components/form/form-input'
-import { FormSwitch } from '@/components/form/form-switch'
+import { useEntityForm } from '@/lib/form/index.ts'
 
-import { SupplierCreateDto } from '../dto/index.ts'
 import type { SupplierDto } from '../dto/index.ts'
 
 export interface SupplierFormValues {
@@ -17,133 +15,106 @@ export interface SupplierFormValues {
 	isActive: boolean
 }
 
-export interface SupplierFormRef {
-	getValues: () => SupplierFormValues
-	validate: () => Record<string, string> | null
+/** Form-shape schema — see `docs/web/06-ui-patterns.md` for why this isn't `SupplierCreateDto` directly. */
+const SupplierFormSchema = z.object({
+	code: z.string().trim().min(1, 'Code is required').max(50),
+	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
+	contactPerson: z.string().trim().max(255).default(''),
+	phone: z.string().trim().max(50).default(''),
+	email: z
+		.string()
+		.trim()
+		.max(255)
+		.refine((v) => v === '' || z.email().safeParse(v).success, { error: 'Invalid email address' })
+		.default(''),
+	address: z.string().trim().max(500).default(''),
+	paymentTerms: z.string().trim().regex(/^\d*$/u, 'Must be a whole number of days').default(''),
+	isActive: z.boolean(),
+})
+
+export const EMPTY_SUPPLIER_FORM_VALUES: SupplierFormValues = {
+	code: '',
+	name: '',
+	contactPerson: '',
+	phone: '',
+	email: '',
+	address: '',
+	paymentTerms: '',
+	isActive: true,
 }
 
-interface SupplierFormProps {
-	defaultValues?: SupplierDto
+export function toSupplierFormValues(supplier: SupplierDto): SupplierFormValues {
+	return {
+		code: supplier.code,
+		name: supplier.name,
+		contactPerson: supplier.contactPerson ?? '',
+		phone: supplier.phone ?? '',
+		email: supplier.email ?? '',
+		address: supplier.address ?? '',
+		paymentTerms: supplier.paymentTerms?.toString() ?? '',
+		isActive: supplier.isActive,
+	}
 }
 
-export const SupplierForm = forwardRef<SupplierFormRef, SupplierFormProps>(
-	({ defaultValues }, ref) => {
-		const [values, setValues] = useState<SupplierFormValues>({
-			code: defaultValues?.code ?? '',
-			name: defaultValues?.name ?? '',
-			contactPerson: defaultValues?.contactPerson ?? '',
-			phone: defaultValues?.phone ?? '',
-			email: defaultValues?.email ?? '',
-			address: defaultValues?.address ?? '',
-			paymentTerms: defaultValues?.paymentTerms?.toString() ?? '',
-			isActive: defaultValues?.isActive ?? true,
-		})
-		const [errors, setErrors] = useState<Record<string, string>>({})
+export interface UseSupplierFormOptions {
+	defaultValues?: SupplierFormValues
+	onSubmit: (values: SupplierFormValues) => Promise<void>
+}
 
-		const update = (field: keyof SupplierFormValues, value: string) => {
-			setValues((prev) => ({ ...prev, [field]: value }))
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[field]
-				return next
-			})
-		}
+export function useSupplierForm({ defaultValues, onSubmit }: UseSupplierFormOptions) {
+	return useEntityForm({
+		defaultValues: defaultValues ?? EMPTY_SUPPLIER_FORM_VALUES,
+		schema: SupplierFormSchema,
+		onSubmit,
+	})
+}
 
-		useImperativeHandle(ref, () => ({
-			getValues: () => values,
-			validate: () => {
-				const payload = {
-					code: values.code,
-					name: values.name,
-					contactPerson: values.contactPerson || null,
-					phone: values.phone || null,
-					email: values.email || null,
-					address: values.address || null,
-					paymentTerms: values.paymentTerms ? Number(values.paymentTerms) : null,
-					isActive: values.isActive,
-				}
-				const result = SupplierCreateDto.safeParse(payload)
-				if (result.success) {
-					setErrors({})
-					return null
-				}
-				const fieldErrors: Record<string, string> = {}
-				for (const issue of result.error.issues) {
-					const path = issue.path[0]
-					if (path && !fieldErrors[String(path)]) {
-						fieldErrors[String(path)] = issue.message
-					}
-				}
-				setErrors(fieldErrors)
-				return fieldErrors
-			},
-		}))
+export type SupplierForm = ReturnType<typeof useSupplierForm>
 
-		return (
-			<div className="grid gap-4">
-				<div className="grid grid-cols-2 gap-4">
-					<FormInput
-						label="Code"
-						value={values.code}
-						onChange={(e) => update('code', e.target.value)}
-						error={errors.code}
-						placeholder="e.g. SUP-001"
-					/>
-					<FormInput
-						label="Name"
-						value={values.name}
-						onChange={(e) => update('name', e.target.value)}
-						error={errors.name}
-						placeholder="e.g. PT Sumber Makmur"
-					/>
-				</div>
-				<div className="grid grid-cols-2 gap-4">
-					<FormInput
-						label="Contact Person"
-						value={values.contactPerson}
-						onChange={(e) => update('contactPerson', e.target.value)}
-						error={errors.contactPerson}
-						placeholder="Optional"
-					/>
-					<FormInput
-						label="Phone"
-						value={values.phone}
-						onChange={(e) => update('phone', e.target.value)}
-						error={errors.phone}
-						placeholder="Optional"
-					/>
-				</div>
-				<FormInput
-					label="Email"
-					value={values.email}
-					onChange={(e) => update('email', e.target.value)}
-					error={errors.email}
-					placeholder="Optional"
-				/>
-				<FormInput
-					label="Address"
-					value={values.address}
-					onChange={(e) => update('address', e.target.value)}
-					error={errors.address}
-					placeholder="Optional"
-				/>
-				<FormInput
-					label="Payment Terms (days)"
-					type="number"
-					value={values.paymentTerms}
-					onChange={(e) => update('paymentTerms', e.target.value)}
-					error={errors.paymentTerms}
-					placeholder="e.g. 30"
-				/>
-				<FormSwitch
-					label="Active"
-					description="Inactive suppliers won't appear in purchasing selections."
-					checked={values.isActive}
-					onCheckedChange={(checked) => setValues((prev) => ({ ...prev, isActive: checked }))}
-				/>
+/** The supplier form's field layout. Shared by the full-page create/edit routes. */
+export function SupplierFormFields({ form }: { form: SupplierForm }) {
+	return (
+		<div className="grid gap-4">
+			<div className="grid grid-cols-2 gap-4">
+				<form.AppField name="code">
+					{(field) => <field.TextField label="Code" placeholder="e.g. SUP-001" />}
+				</form.AppField>
+				<form.AppField name="name">
+					{(field) => <field.TextField label="Name" placeholder="e.g. PT Sumber Makmur" />}
+				</form.AppField>
 			</div>
-		)
-	},
-)
 
-SupplierForm.displayName = 'SupplierForm'
+			<div className="grid grid-cols-2 gap-4">
+				<form.AppField name="contactPerson">
+					{(field) => <field.TextField label="Contact Person" placeholder="Optional" />}
+				</form.AppField>
+				<form.AppField name="phone">
+					{(field) => <field.TextField label="Phone" placeholder="Optional" />}
+				</form.AppField>
+			</div>
+
+			<form.AppField name="email">
+				{(field) => <field.TextField label="Email" placeholder="Optional" />}
+			</form.AppField>
+
+			<form.AppField name="address">
+				{(field) => <field.TextField label="Address" placeholder="Optional" />}
+			</form.AppField>
+
+			<form.AppField name="paymentTerms">
+				{(field) => <field.TextField label="Payment Terms (days)" placeholder="e.g. 30" />}
+			</form.AppField>
+
+			<form.AppField name="isActive">
+				{(field) => (
+					<field.SwitchField
+						label="Active"
+						description="Inactive suppliers won't appear in purchasing selections."
+					/>
+				)}
+			</form.AppField>
+
+			<form.FormError />
+		</div>
+	)
+}

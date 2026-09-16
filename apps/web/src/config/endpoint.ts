@@ -128,6 +128,12 @@ const company = {
 	update: 'company/update',
 }
 
+const audit = {
+	list: 'audit/list',
+	detail: 'audit/detail',
+	byEntity: 'audit/by-entity',
+}
+
 const pos = {
 	voucher: crud('pos/voucher'),
 	table: crud('pos/table'),
@@ -165,6 +171,7 @@ export const endpoint = {
 	inventory,
 	company,
 	pos,
+	audit,
 } as const
 
 export { crud, p }

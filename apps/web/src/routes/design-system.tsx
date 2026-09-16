@@ -12,21 +12,15 @@ import {
 	TrashIcon,
 	TruckIcon,
 } from 'lucide-react'
+import { z } from 'zod'
+
+import { FormDialogFooter, useAppForm, useEntityForm } from '@/lib/form/index.ts'
 
 import { AreaChart } from '@/components/charts/area-chart'
 import { BarChart } from '@/components/charts/bar-chart'
 import { ChartSwitch } from '@/components/charts/chart-switch'
 import { LineChart } from '@/components/charts/line-chart'
 import { DataTable, useClientTable } from '@/components/data-table'
-import {
-	FormCombobox,
-	FormDatePicker,
-	FormInput,
-	FormNumberField,
-	FormSelect,
-	FormSwitch,
-	FormTextarea,
-} from '@/components/form'
 import { createFilter, Filters } from '@/components/reui/filters'
 import type { Filter } from '@/components/reui/filters'
 import {
@@ -431,43 +425,11 @@ function DesignSystemPage() {
 			<Separator />
 
 			{/* ─── FORM COMPONENTS ─── */}
-			<PageSection title="Form Components" description="All form field wrappers.">
-				<div className="grid max-w-3xl gap-4 sm:grid-cols-2">
-					<FormInput label="Material Code" placeholder="e.g. MAT-001" />
-					<FormInput label="Name" placeholder="Coffee Beans" error="Name is required" />
-					<FormSelect
-						label="Category"
-						options={[
-							{ label: 'Raw Material', value: 'raw' },
-							{ label: 'Packaging', value: 'packaging' },
-							{ label: 'Dairy', value: 'dairy' },
-						]}
-						placeholder="Select category"
-					/>
-					<FormCombobox
-						label="Supplier"
-						options={[
-							{ label: 'PT Sumber Jaya', value: '1' },
-							{ label: 'CV Makmur Sentosa', value: '2' },
-							{ label: 'UD Berkah', value: '3' },
-						]}
-						placeholder="Search supplier..."
-					/>
-					<FormNumberField label="Min Stock" value={10} min={0} step={1} />
-					<FormDatePicker label="Expiry Date" placeholder="Pick a date" />
-					<FormTextarea
-						label="Notes"
-						placeholder="Additional notes..."
-						description="Optional notes about this material."
-						className="sm:col-span-2"
-					/>
-					<FormSwitch
-						label="Active"
-						description="Whether this material is available for use."
-						checked={true}
-						className="sm:col-span-2"
-					/>
-				</div>
+			<PageSection
+				title="Form Components"
+				description="Field components bound to the useAppForm/useEntityForm engine — see @/lib/form."
+			>
+				<FormFieldsDemo />
 			</PageSection>
 
 			<Separator />
@@ -853,21 +815,12 @@ function DesignSystemPage() {
 			>
 				<Button
 					size="sm"
-					// oxlint-disable-next-line react/no-unstable-nested-components
 					onClick={async () => {
 						const saved = await formDialog({
 							title: 'Quick Add Material',
 							description: 'Add a new material to your inventory.',
-							content: (
-								<div className="space-y-3">
-									<FormInput label="Code" placeholder="MAT-XXX" />
-									<FormInput label="Name" placeholder="Material name" />
-								</div>
-							),
-							onSubmit: async () => {
-								// oxlint-disable-next-line no-promise-executor-return
-								await new Promise((r) => setTimeout(r, 1500))
-							},
+							// oxlint-disable-next-line react/no-unstable-nested-components
+							content: ({ close }) => <QuickAddMaterialDialogBody onDone={close} />,
 						})
 						if (saved) alert('Material saved!')
 					}}
@@ -876,6 +829,124 @@ function DesignSystemPage() {
 				</Button>
 			</PageSection>
 		</div>
+	)
+}
+
+// -- Form field components demo (bound to useAppForm, no backing mutation) --
+function FormFieldsDemo() {
+	const form = useAppForm({
+		defaultValues: {
+			code: '',
+			name: '',
+			category: '',
+			supplier: '',
+			minStock: 10 as number | null,
+			expiryDate: undefined as Date | undefined,
+			notes: '',
+			active: true,
+		},
+	})
+
+	return (
+		<form.AppForm>
+			<div className="grid max-w-3xl gap-4 sm:grid-cols-2">
+				<form.AppField name="code">
+					{(field) => <field.TextField label="Material Code" placeholder="e.g. MAT-001" />}
+				</form.AppField>
+				<form.AppField name="name">
+					{(field) => <field.TextField label="Name" placeholder="Coffee Beans" />}
+				</form.AppField>
+				<form.AppField name="category">
+					{(field) => (
+						<field.SelectField
+							label="Category"
+							options={[
+								{ label: 'Raw Material', value: 'raw' },
+								{ label: 'Packaging', value: 'packaging' },
+								{ label: 'Dairy', value: 'dairy' },
+							]}
+							placeholder="Select category"
+						/>
+					)}
+				</form.AppField>
+				<form.AppField name="supplier">
+					{(field) => (
+						<field.ComboboxField
+							label="Supplier"
+							options={[
+								{ label: 'PT Sumber Jaya', value: '1' },
+								{ label: 'CV Makmur Sentosa', value: '2' },
+								{ label: 'UD Berkah', value: '3' },
+							]}
+							placeholder="Search supplier..."
+						/>
+					)}
+				</form.AppField>
+				<form.AppField name="minStock">
+					{(field) => <field.NumberField label="Min Stock" min={0} step={1} />}
+				</form.AppField>
+				<form.AppField name="expiryDate">
+					{(field) => <field.DatePickerField label="Expiry Date" placeholder="Pick a date" />}
+				</form.AppField>
+				<form.AppField name="notes">
+					{(field) => (
+						<field.TextareaField
+							label="Notes"
+							placeholder="Additional notes..."
+							description="Optional notes about this material."
+							wrapperClassName="sm:col-span-2"
+						/>
+					)}
+				</form.AppField>
+				<form.AppField name="active">
+					{(field) => (
+						<field.SwitchField
+							label="Active"
+							description="Whether this material is available for use."
+							className="sm:col-span-2"
+						/>
+					)}
+				</form.AppField>
+			</div>
+		</form.AppForm>
+	)
+}
+
+// -- Quick-add dialog body demo (useEntityForm, mimics a real quick-add form) --
+function QuickAddMaterialDialogBody({ onDone }: { onDone: (result: boolean) => void }) {
+	const form = useEntityForm({
+		defaultValues: { code: '', name: '' },
+		schema: z.object({
+			code: z.string().trim().min(1, 'Code is required'),
+			name: z.string().trim().min(1, 'Name is required'),
+		}),
+		onSubmit: async () => {
+			// oxlint-disable-next-line no-promise-executor-return
+			await new Promise((r) => setTimeout(r, 1500))
+			onDone(true)
+		},
+	})
+
+	return (
+		<form.AppForm>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					void form.handleSubmit()
+				}}
+				className="grid gap-4"
+			>
+				<form.AppField name="code">
+					{(field) => <field.TextField label="Code" placeholder="MAT-XXX" />}
+				</form.AppField>
+				<form.AppField name="name">
+					{(field) => <field.TextField label="Name" placeholder="Material name" />}
+				</form.AppField>
+				<form.FormError />
+				<FormDialogFooter onCancel={() => onDone(false)} />
+			</form>
+		</form.AppForm>
 	)
 }
 

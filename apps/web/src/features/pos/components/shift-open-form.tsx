@@ -1,67 +1,55 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { z } from 'zod'
 
-import { FormInput } from '@/components/form/form-input'
-
-import { ShiftOpenDto } from '../dto/index.ts'
+import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
 
 export interface ShiftOpenFormValues {
 	openingCash: string
 }
 
-export interface ShiftOpenFormRef {
-	getValues: () => ShiftOpenFormValues
-	validate: () => Record<string, string> | null
-}
-
-export const ShiftOpenForm = forwardRef<ShiftOpenFormRef>((_props, ref) => {
-	const [values, setValues] = useState<ShiftOpenFormValues>({
-		openingCash: '0',
-	})
-	const [errors, setErrors] = useState<Record<string, string>>({})
-
-	const update = (field: keyof ShiftOpenFormValues, value: string) => {
-		setValues((prev) => ({ ...prev, [field]: value }))
-		setErrors((prev) => {
-			const next = { ...prev }
-			delete next[field]
-			return next
-		})
-	}
-
-	useImperativeHandle(ref, () => ({
-		getValues: () => values,
-		validate: () => {
-			const result = ShiftOpenDto.omit({ locationId: true }).safeParse({
-				openingCash: Number(values.openingCash),
-			})
-			if (result.success) {
-				setErrors({})
-				return null
-			}
-			const fieldErrors: Record<string, string> = {}
-			for (const issue of result.error.issues) {
-				const path = issue.path[0]
-				if (path && !fieldErrors[String(path)]) {
-					fieldErrors[String(path)] = issue.message
-				}
-			}
-			setErrors(fieldErrors)
-			return fieldErrors
-		},
-	}))
-
-	return (
-		<div className="grid gap-4">
-			<FormInput
-				label="Opening Cash"
-				type="number"
-				value={values.openingCash}
-				onChange={(e) => update('openingCash', e.target.value)}
-				error={errors.openingCash}
-				placeholder="0"
-			/>
-		</div>
-	)
+const ShiftOpenFormSchema = z.object({
+	openingCash: z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
 })
 
-ShiftOpenForm.displayName = 'ShiftOpenForm'
+const EMPTY_SHIFT_OPEN_FORM_VALUES: ShiftOpenFormValues = {
+	openingCash: '0',
+}
+
+export interface ShiftOpenFormBodyProps {
+	onSaved: () => void
+	onCancel: () => void
+	onCreate: (values: { openingCash: string }) => Promise<unknown>
+}
+
+/** Quick "open shift" form — a single money field, small enough to stay a dialog. */
+export function ShiftOpenFormBody({ onSaved, onCancel, onCreate }: ShiftOpenFormBodyProps) {
+	const form = useEntityForm({
+		defaultValues: EMPTY_SHIFT_OPEN_FORM_VALUES,
+		schema: ShiftOpenFormSchema,
+		onSubmit: async (values) => {
+			await onCreate({ openingCash: values.openingCash })
+			onSaved()
+		},
+	})
+
+	return (
+		<form.AppForm>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					void form.handleSubmit()
+				}}
+				className="grid gap-4"
+			>
+				<form.AppField name="openingCash">
+					{(field) => <field.CurrencyField label="Opening Cash" />}
+				</form.AppField>
+				<form.FormError />
+				<FormDialogFooter onCancel={onCancel} submitLabel="Open Shift" />
+			</form>
+		</form.AppForm>
+	)
+}

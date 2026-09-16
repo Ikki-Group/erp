@@ -1,85 +1,66 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { z } from 'zod'
 
-import { FormInput } from '@/components/form/form-input'
+import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
 
-import { MenuCategoryCreateDto } from '../dto/index.ts'
 import type { MenuCategoryDto } from '../dto/index.ts'
 
 export interface CategoryFormValues {
 	name: string
-	sortOrder: number
+	sortOrder: number | null
 }
 
-export interface CategoryFormRef {
-	getValues: () => CategoryFormValues
-	validate: () => Record<string, string> | null
-}
+const CategoryFormSchema = z.object({
+	name: z.string().trim().min(2, 'Minimal 2 karakter').max(100),
+	sortOrder: z.number().int().min(0).nullable(),
+})
 
-interface CategoryFormProps {
+export interface CategoryFormBodyProps {
 	defaultValues?: MenuCategoryDto
+	onSaved: () => void
+	onCancel: () => void
+	onSubmitValues: (values: { name: string; sortOrder: number }) => Promise<unknown>
 }
 
-export const CategoryForm = forwardRef<CategoryFormRef, CategoryFormProps>(
-	({ defaultValues }, ref) => {
-		const [values, setValues] = useState<CategoryFormValues>({
+/** Quick-add form for a menu category — name + sort order, small enough to stay a dialog. */
+export function CategoryFormBody({
+	defaultValues,
+	onSaved,
+	onCancel,
+	onSubmitValues,
+}: CategoryFormBodyProps) {
+	const form = useEntityForm<CategoryFormValues>({
+		defaultValues: {
 			name: defaultValues?.name ?? '',
 			sortOrder: defaultValues?.sortOrder ?? 0,
-		})
-		const [errors, setErrors] = useState<Record<string, string>>({})
+		},
+		schema: CategoryFormSchema,
+		onSubmit: async (values) => {
+			await onSubmitValues({ name: values.name, sortOrder: values.sortOrder ?? 0 })
+			onSaved()
+		},
+	})
 
-		const update = (field: keyof CategoryFormValues, value: string | number) => {
-			setValues((prev) => ({ ...prev, [field]: value }))
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[field]
-				return next
-			})
-		}
-
-		useImperativeHandle(ref, () => ({
-			getValues: () => values,
-			validate: () => {
-				const payload = {
-					locationId: 1,
-					name: values.name,
-					sortOrder: values.sortOrder,
-				}
-				const result = MenuCategoryCreateDto.safeParse(payload)
-				if (result.success) {
-					setErrors({})
-					return null
-				}
-				const fieldErrors: Record<string, string> = {}
-				for (const issue of result.error.issues) {
-					const path = issue.path[0]
-					if (path && !fieldErrors[String(path)]) {
-						fieldErrors[String(path)] = issue.message
-					}
-				}
-				setErrors(fieldErrors)
-				return fieldErrors
-			},
-		}))
-
-		return (
-			<div className="grid gap-4">
-				<FormInput
-					label="Nama Kategori"
-					value={values.name}
-					onChange={(e) => update('name', e.target.value)}
-					error={errors.name}
-					placeholder="e.g. Minuman, Makanan Berat"
-				/>
-				<FormInput
-					label="Urutan"
-					value={values.sortOrder.toString()}
-					onChange={(e) => update('sortOrder', Number(e.target.value) || 0)}
-					error={errors.sortOrder}
-					placeholder="0"
-				/>
-			</div>
-		)
-	},
-)
-
-CategoryForm.displayName = 'CategoryForm'
+	return (
+		<form.AppForm>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					void form.handleSubmit()
+				}}
+				className="grid gap-4"
+			>
+				<form.AppField name="name">
+					{(field) => (
+						<field.TextField label="Nama Kategori" placeholder="e.g. Minuman, Makanan Berat" />
+					)}
+				</form.AppField>
+				<form.AppField name="sortOrder">
+					{(field) => <field.NumberField label="Urutan" min={0} />}
+				</form.AppField>
+				<form.FormError />
+				<FormDialogFooter onCancel={onCancel} submitLabel="Simpan" />
+			</form>
+		</form.AppForm>
+	)
+}

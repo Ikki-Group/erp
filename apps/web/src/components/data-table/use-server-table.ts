@@ -1,54 +1,48 @@
-import { useState } from 'react'
 import { useTable } from '@tanstack/react-table'
-import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { dataGridFeatures, type DataGridFeatures } from '@/components/reui/data-grid/data-grid'
+
+import { searchToTableState, tableChangeToSearch } from './list-search.ts'
+import type { ListSearch } from './list-search.ts'
 
 interface UseServerTableOptions<TData extends object> {
 	data: TData[]
 	columns: ColumnDef<DataGridFeatures, TData>[]
 	totalCount: number
-	pageSize?: number
-	defaultPage?: number
-	defaultSearch?: string
-	onStateChange?: (params: ServerTableParams) => void
-}
-
-export interface ServerTableParams {
-	page: number
-	pageSize: number
-	search: string
-	sorting: SortingState
+	/** Current list state, straight from the route's validated URL search. */
+	search: ListSearch
+	/** Called with the next list state to write back to the URL (router navigate). */
+	onSearchChange: (next: ListSearch) => void
 }
 
 /**
- * Server-side table where pagination, sorting, and search happen on the backend.
- * The hook manages local state and calls `onStateChange` whenever parameters change,
- * so the parent can refetch data.
+ * Server-side table whose pagination, sorting, and search state lives in the
+ * **URL** (via the route's `validateSearch`), not in component state. The hook
+ * derives TanStack Table's state from the passed `search` and, on any change,
+ * calls `onSearchChange` with the next `ListSearch` for the route to push onto
+ * the URL. Because the URL is the single source of truth, list views are
+ * shareable, survive refresh, and respond to the back button — and a route
+ * `loader` can prefetch the exact page the URL describes.
  *
- * Use for large datasets where only a page of data is fetched at a time.
+ * The hook is deliberately router-agnostic: it takes the current `search` and a
+ * setter, so each route owns its own `validateSearch` schema (spreading
+ * `listSearchSchema`) and its own `navigate` wiring.
  */
 export function useServerTable<TData extends object>({
 	data,
 	columns,
 	totalCount,
-	pageSize = 10,
-	defaultPage = 0,
-	defaultSearch = '',
-	onStateChange,
+	search,
+	onSearchChange,
 }: UseServerTableOptions<TData>) {
-	const [globalFilter, setGlobalFilter] = useState(defaultSearch)
-	const [sorting, setSorting] = useState<SortingState>([])
-	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: defaultPage,
-		pageSize,
-	})
+	const { pagination, globalFilter, sorting } = searchToTableState(search)
 
 	const table = useTable({
 		features: dataGridFeatures,
 		data,
 		columns,
-		pageCount: Math.ceil(totalCount / pageSize),
+		pageCount: Math.ceil(totalCount / search.pageSize),
 		state: {
 			globalFilter,
 			sorting,
@@ -59,34 +53,23 @@ export function useServerTable<TData extends object>({
 		manualFiltering: true,
 		onGlobalFilterChange: (updater) => {
 			const next = typeof updater === 'function' ? updater(globalFilter) : updater
-			setGlobalFilter(next)
-			setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-			onStateChange?.({ page: 0, pageSize: pagination.pageSize, search: next, sorting })
+			onSearchChange(tableChangeToSearch(search, { globalFilter: next as string }))
 		},
 		onSortingChange: (updater) => {
 			const next = typeof updater === 'function' ? updater(sorting) : updater
-			setSorting(next)
-			onStateChange?.({ page: pagination.pageIndex, pageSize: pagination.pageSize, search: globalFilter, sorting: next })
+			onSearchChange(tableChangeToSearch(search, { sorting: next }))
 		},
 		onPaginationChange: (updater) => {
 			const next = typeof updater === 'function' ? updater(pagination) : updater
-			setPagination(next)
-			onStateChange?.({ page: next.pageIndex, pageSize: next.pageSize, search: globalFilter, sorting })
+			onSearchChange(tableChangeToSearch(search, { pagination: next }))
 		},
 	})
 
 	return {
 		table,
 		globalFilter,
-		setGlobalFilter,
 		sorting,
 		pagination,
 		recordCount: totalCount,
-		params: {
-			page: pagination.pageIndex,
-			pageSize: pagination.pageSize,
-			search: globalFilter,
-			sorting,
-		} satisfies ServerTableParams,
 	}
 }

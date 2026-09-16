@@ -1,15 +1,22 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
+
+import { AuditTrail } from '@/components/shared/audit-trail.tsx'
 import { FormPage } from '@/components/shared/form-page.tsx'
+import { PageSection } from '@/components/shared/page-section.tsx'
 import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
+import { usePermissionCheck } from '@/components/shared/permission-gate.tsx'
 
 import { toast } from '@/components/ui/toast'
 
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
-
+import { auditResource } from '@/features/audit/api.ts'
 import { materialResource } from '@/features/material/api.ts'
-import { MaterialFormFields, useMaterialForm } from '@/features/material/components/material-form.tsx'
+import {
+	MaterialFormFields,
+	useMaterialForm,
+} from '@/features/material/components/material-form.tsx'
 import type { MaterialDto } from '@/features/material/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/master/materials/$materialId')({
@@ -48,10 +55,7 @@ function EditMaterialPage() {
 	}
 
 	return (
-		<EditMaterialForm
-			material={material}
-			onDone={() => navigate({ to: '/master/materials' })}
-		/>
+		<EditMaterialForm material={material} onDone={() => navigate({ to: '/master/materials' })} />
 	)
 }
 
@@ -66,6 +70,12 @@ interface EditMaterialFormProps {
  * re-initialize from a stale/empty value on every parent re-render.
  */
 function EditMaterialForm({ material, onDone }: EditMaterialFormProps) {
+	const canReadAudit = usePermissionCheck({ permission: 'audit.read' })
+	const auditQuery = useQuery({
+		...auditResource.byEntity.queryOptions({ entity: 'material', entityId: material.id }),
+		enabled: canReadAudit,
+	})
+
 	const updateMut = useMutation(materialResource.update.mutationOptions())
 	const form = useMaterialForm({
 		defaultValues: toFormValues(material),
@@ -100,6 +110,16 @@ function EditMaterialForm({ material, onDone }: EditMaterialFormProps) {
 				onCancel={onDone}
 			>
 				<MaterialFormFields form={form} />
+
+				{canReadAudit && (
+					<PageSection title="Activity" description="Recent changes to this material.">
+						<AuditTrail
+							entries={auditQuery.data?.data ?? []}
+							isLoading={auditQuery.isLoading}
+							emptyMessage="No changes recorded for this material yet."
+						/>
+					</PageSection>
+				)}
 			</FormPage>
 		</form.AppForm>
 	)

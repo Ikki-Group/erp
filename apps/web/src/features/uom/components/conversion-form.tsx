@@ -1,107 +1,110 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { z } from 'zod'
 
-import { FormInput } from '@/components/form/form-input'
-import { FormSelect } from '@/components/form/form-select'
-
-import { UomConversionCreateDto } from '../dto/index.ts'
+import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
 
 import type { UomDto } from '../dto/index.ts'
 
 export interface ConversionFormValues {
-	fromUomId: string
-	toUomId: string
+	fromUomId: number | null
+	toUomId: number | null
 	factor: string
 }
 
-export interface ConversionFormRef {
-	getValues: () => ConversionFormValues
-	validate: () => Record<string, string> | null
+const ConversionFormSchema = z
+	.object({
+		fromUomId: z
+			.number()
+			.int()
+			.positive()
+			.nullable()
+			.refine((v) => v !== null, { error: 'Source unit is required' }),
+		toUomId: z
+			.number()
+			.int()
+			.positive()
+			.nullable()
+			.refine((v) => v !== null, { error: 'Target unit is required' }),
+		factor: z
+			.string()
+			.trim()
+			.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
+	})
+	.refine((v) => v.fromUomId === null || v.fromUomId !== v.toUomId, {
+		error: 'Must differ from source unit',
+		path: ['toUomId'],
+	})
+
+const EMPTY_CONVERSION_FORM_VALUES: ConversionFormValues = {
+	fromUomId: null,
+	toUomId: null,
+	factor: '',
 }
 
-interface ConversionFormProps {
+export interface ConversionFormBodyProps {
 	units: UomDto[]
+	onSaved: () => void
+	onCancel: () => void
+	onCreate: (values: { fromUomId: number; toUomId: number; factor: string }) => Promise<unknown>
 }
 
-export const ConversionForm = forwardRef<ConversionFormRef, ConversionFormProps>(
-	({ units }, ref) => {
-		const [values, setValues] = useState<ConversionFormValues>({
-			fromUomId: '',
-			toUomId: '',
-			factor: '',
-		})
-		const [errors, setErrors] = useState<Record<string, string>>({})
+/** Quick-add form for a UoM conversion factor — small enough to stay a dialog. */
+export function ConversionFormBody({
+	units,
+	onSaved,
+	onCancel,
+	onCreate,
+}: ConversionFormBodyProps) {
+	const unitOptions = units.map((u) => ({ label: `${u.name} (${u.code})`, value: u.id }))
 
-		const unitOptions = units.map((u) => ({ label: `${u.name} (${u.code})`, value: String(u.id) }))
-
-		const update = (field: keyof ConversionFormValues, value: string) => {
-			setValues((prev) => ({ ...prev, [field]: value }))
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[field]
-				return next
+	const form = useEntityForm({
+		defaultValues: EMPTY_CONVERSION_FORM_VALUES,
+		schema: ConversionFormSchema,
+		onSubmit: async (values) => {
+			await onCreate({
+				fromUomId: values.fromUomId!,
+				toUomId: values.toUomId!,
+				factor: values.factor,
 			})
-		}
+			onSaved()
+		},
+	})
 
-		useImperativeHandle(ref, () => ({
-			getValues: () => values,
-			validate: () => {
-				const payload = {
-					fromUomId: Number(values.fromUomId) || 0,
-					toUomId: Number(values.toUomId) || 0,
-					factor: values.factor,
-				}
-				const result = UomConversionCreateDto.safeParse(payload)
-				if (result.success) {
-					if (payload.fromUomId === payload.toUomId) {
-						const fieldErrors = { toUomId: 'Must differ from source unit' }
-						setErrors(fieldErrors)
-						return fieldErrors
-					}
-					setErrors({})
-					return null
-				}
-				const fieldErrors: Record<string, string> = {}
-				for (const issue of result.error.issues) {
-					const path = issue.path[0]
-					if (path && !fieldErrors[String(path)]) {
-						fieldErrors[String(path)] = issue.message
-					}
-				}
-				setErrors(fieldErrors)
-				return fieldErrors
-			},
-		}))
-
-		return (
-			<div className="grid gap-4">
+	return (
+		<form.AppForm>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					void form.handleSubmit()
+				}}
+				className="grid gap-4"
+			>
 				<div className="grid grid-cols-2 gap-4">
-					<FormSelect
-						label="From Unit"
-						options={unitOptions}
-						value={values.fromUomId}
-						onValueChange={(v) => v && update('fromUomId', v)}
-						error={errors.fromUomId}
-						placeholder="Select unit"
-					/>
-					<FormSelect
-						label="To Unit"
-						options={unitOptions}
-						value={values.toUomId}
-						onValueChange={(v) => v && update('toUomId', v)}
-						error={errors.toUomId}
-						placeholder="Select unit"
-					/>
+					<form.AppField name="fromUomId">
+						{(field) => (
+							<field.IdSelectField
+								label="From Unit"
+								options={unitOptions}
+								placeholder="Select unit"
+							/>
+						)}
+					</form.AppField>
+					<form.AppField name="toUomId">
+						{(field) => (
+							<field.IdSelectField
+								label="To Unit"
+								options={unitOptions}
+								placeholder="Select unit"
+							/>
+						)}
+					</form.AppField>
 				</div>
-				<FormInput
-					label="Factor"
-					value={values.factor}
-					onChange={(e) => update('factor', e.target.value)}
-					error={errors.factor}
-					placeholder="e.g. 1000 (1 from = 1000 to)"
-				/>
-			</div>
-		)
-	},
-)
-
-ConversionForm.displayName = 'ConversionForm'
+				<form.AppField name="factor">
+					{(field) => <field.TextField label="Factor" placeholder="e.g. 1000 (1 from = 1000 to)" />}
+				</form.AppField>
+				<form.FormError />
+				<FormDialogFooter onCancel={onCancel} submitLabel="Create" />
+			</form>
+		</form.AppForm>
+	)
+}

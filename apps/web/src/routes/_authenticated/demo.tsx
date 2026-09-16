@@ -3,8 +3,9 @@ import { useTable } from '@tanstack/react-table'
 
 import { PlusIcon } from 'lucide-react'
 
+import { useAppForm } from '@/lib/form/index.ts'
+
 import { DataTable } from '@/components/data-table'
-import { FormCombobox, FormInput, FormSelect, FormTextarea } from '@/components/form'
 import { dataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState, PageError, PageHeader, PageSkeleton } from '@/components/shared'
 
@@ -75,35 +76,7 @@ function DemoPage() {
 			{/* Form Components */}
 			<section>
 				<SectionTitle>Form Components</SectionTitle>
-				<div className="grid max-w-2xl gap-4 sm:grid-cols-2">
-					<FormInput label="Material Code" placeholder="e.g. MAT-001" />
-					<FormInput label="Name" placeholder="Coffee Beans" error="Name is required" />
-					<FormSelect
-						label="Category"
-						options={[
-							{ label: 'Raw Material', value: 'raw' },
-							{ label: 'Packaging', value: 'packaging' },
-							{ label: 'Dairy', value: 'dairy' },
-							{ label: 'Condiment', value: 'condiment' },
-						]}
-						placeholder="Select category"
-					/>
-					<FormCombobox
-						label="Supplier"
-						options={[
-							{ label: 'PT Sumber Jaya', value: '1' },
-							{ label: 'CV Makmur Sentosa', value: '2' },
-							{ label: 'UD Berkah', value: '3' },
-						]}
-						placeholder="Search supplier..."
-					/>
-					<FormTextarea
-						label="Notes"
-						placeholder="Additional notes..."
-						description="Optional notes about this material."
-						className="sm:col-span-2"
-					/>
-				</div>
+				<DemoFormFields />
 			</section>
 
 			<Separator />
@@ -156,4 +129,67 @@ function DemoPage() {
 
 function SectionTitle({ children }: { children: string }) {
 	return <h2 className="mb-4 text-sm font-semibold text-muted-foreground">{children}</h2>
+}
+
+// -- Form field components demo (bound to useAppForm, no backing mutation) --
+function DemoFormFields() {
+	const form = useAppForm({
+		defaultValues: {
+			code: '',
+			name: '',
+			category: '',
+			supplier: '',
+			notes: '',
+		},
+	})
+
+	return (
+		<form.AppForm>
+			<div className="grid max-w-2xl gap-4 sm:grid-cols-2">
+				<form.AppField name="code">
+					{(field) => <field.TextField label="Material Code" placeholder="e.g. MAT-001" />}
+				</form.AppField>
+				<form.AppField name="name">
+					{(field) => <field.TextField label="Name" placeholder="Coffee Beans" />}
+				</form.AppField>
+				<form.AppField name="category">
+					{(field) => (
+						<field.SelectField
+							label="Category"
+							options={[
+								{ label: 'Raw Material', value: 'raw' },
+								{ label: 'Packaging', value: 'packaging' },
+								{ label: 'Dairy', value: 'dairy' },
+								{ label: 'Condiment', value: 'condiment' },
+							]}
+							placeholder="Select category"
+						/>
+					)}
+				</form.AppField>
+				<form.AppField name="supplier">
+					{(field) => (
+						<field.ComboboxField
+							label="Supplier"
+							options={[
+								{ label: 'PT Sumber Jaya', value: '1' },
+								{ label: 'CV Makmur Sentosa', value: '2' },
+								{ label: 'UD Berkah', value: '3' },
+							]}
+							placeholder="Search supplier..."
+						/>
+					)}
+				</form.AppField>
+				<form.AppField name="notes">
+					{(field) => (
+						<field.TextareaField
+							label="Notes"
+							placeholder="Additional notes..."
+							description="Optional notes about this material."
+							wrapperClassName="sm:col-span-2"
+						/>
+					)}
+				</form.AppField>
+			</div>
+		</form.AppForm>
+	)
 }

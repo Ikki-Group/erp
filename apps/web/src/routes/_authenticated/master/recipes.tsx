@@ -1,20 +1,20 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
+import { listSearchSchema, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
-import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { ActionMenu } from '@/components/shared/action-menu'
 import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
-import { TableToolbar } from '@/components/shared/table-toolbar'
+import { usePermissionCheck } from '@/components/shared/permission-gate'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,13 +22,17 @@ import { toast } from '@/components/ui/toast'
 
 import { menuItemResource } from '@/features/menu/api.ts'
 import { recipeExtras, recipeResource } from '@/features/recipe/api.ts'
-import { RecipeForm } from '@/features/recipe/components/recipe-form.tsx'
-import type { RecipeFormRef, RecipeFormValues } from '@/features/recipe/components/recipe-form.tsx'
+import { RecipeFormBody } from '@/features/recipe/components/recipe-form.tsx'
 import type { RecipeDto } from '@/features/recipe/dto/index.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
+// Recipe list has no server-side text search (RecipeFilterDto has no `q`), so
+// the URL carries only pagination — no dead search box.
+const recipesSearchSchema = listSearchSchema.omit({ q: true })
+
 export const Route = createFileRoute('/_authenticated/master/recipes')({
+	validateSearch: recipesSearchSchema,
 	component: RecipesPage,
 })
 
@@ -41,32 +45,6 @@ function formatCurrency(value: string): string {
 		currency: 'IDR',
 		maximumFractionDigits: 0,
 	}).format(num)
-}
-
-function formToCreatePayload(v: RecipeFormValues) {
-	return {
-		menuItemId: Number(v.menuItemId),
-		name: v.name,
-		yieldQty: v.yieldQty,
-		lines: v.lines.map((l) => ({
-			materialId: Number(l.materialId),
-			quantity: l.quantity,
-			uomId: Number(l.uomId),
-		})),
-	}
-}
-
-function formToUpdatePayload(v: RecipeFormValues, id: number) {
-	return {
-		id,
-		name: v.name,
-		yieldQty: v.yieldQty,
-		lines: v.lines.map((l) => ({
-			materialId: Number(l.materialId),
-			quantity: l.quantity,
-			uomId: Number(l.uomId),
-		})),
-	}
 }
 
 // ─── HPP Cell ───
@@ -109,18 +87,20 @@ const baseColumns = [
 
 function RecipesPage() {
 	const { activeLocation } = useLocationContext()
+	const navigate = useNavigate({ from: Route.fullPath })
+	const search = Route.useSearch()
 	const locationId = activeLocation?.id
-
-	const [listParams, setListParams] = useState({
-		page: 1,
-		limit: 10,
-		q: undefined as string | undefined,
-	})
+	const canCreate = usePermissionCheck({ permission: 'recipe.create' })
+	const canEdit = usePermissionCheck({ permission: 'recipe.update' })
+	const canDelete = usePermissionCheck({ permission: 'recipe.delete' })
 
 	// ─── Queries ───
 
 	const listQuery = useQuery({
-		...recipeResource.list.queryOptions(listParams),
+		...recipeResource.list.queryOptions({
+			page: search.page,
+			limit: search.pageSize,
+		}),
 		enabled: !!locationId,
 	})
 
@@ -152,26 +132,20 @@ function RecipesPage() {
 
 	const handleCreate = useCallback(async () => {
 		if (!locationId) return
-		const formRef = { current: null } as React.MutableRefObject<RecipeFormRef | null>
 
 		const saved = await formDialog({
 			title: 'Tambah Resep',
 			description: 'Definisikan resep (BOM) untuk menu item.',
-			submitLabel: 'Simpan',
-			content: (
-				<RecipeForm
-					ref={(el) => {
-						formRef.current = el
-					}}
+			className: 'sm:max-w-lg',
+			// oxlint-disable-next-line react/no-unstable-nested-components
+			content: ({ close }) => (
+				<RecipeFormBody
 					locationId={locationId}
+					onSaved={() => close(true)}
+					onCancel={() => close(false)}
+					onSubmitValues={(v) => createMut.mutateAsync(v)}
 				/>
 			),
-			onSubmit: async () => {
-				const errors = formRef.current?.validate()
-				if (errors) throw new Error('Mohon perbaiki error validasi.')
-				const v = formRef.current!.getValues()
-				await createMut.mutateAsync(formToCreatePayload(v))
-			},
 		})
 
 		if (saved) {
@@ -182,7 +156,6 @@ function RecipesPage() {
 	const handleEdit = useCallback(
 		async (recipe: RecipeDto) => {
 			if (!locationId) return
-			const formRef = { current: null } as React.MutableRefObject<RecipeFormRef | null>
 
 			const detailQuery = await recipeExtras.detail.fetch({ id: recipe.id })
 			const detail = detailQuery?.data
@@ -195,22 +168,17 @@ function RecipesPage() {
 			const saved = await formDialog({
 				title: 'Edit Resep',
 				description: `Edit "${recipe.name}".`,
-				submitLabel: 'Simpan',
-				content: (
-					<RecipeForm
-						ref={(el) => {
-							formRef.current = el
-						}}
+				className: 'sm:max-w-lg',
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				content: ({ close }) => (
+					<RecipeFormBody
 						locationId={locationId}
 						defaultValues={detail}
+						onSaved={() => close(true)}
+						onCancel={() => close(false)}
+						onSubmitValues={(v) => updateMut.mutateAsync({ id: recipe.id, ...v })}
 					/>
 				),
-				onSubmit: async () => {
-					const errors = formRef.current?.validate()
-					if (errors) throw new Error('Mohon perbaiki error validasi.')
-					const v = formRef.current!.getValues()
-					await updateMut.mutateAsync(formToUpdatePayload(v, recipe.id))
-				},
 			})
 
 			if (saved) {
@@ -265,25 +233,29 @@ function RecipesPage() {
 		return col.display({
 			id: 'actions',
 			size: 60,
-			cell: ({ row }) => (
-				<ActionMenu
-					items={[
-						{
-							label: 'Edit',
-							icon: <EditIcon className="size-4" />,
-							onClick: () => handleEdit(row.original),
-						},
-						{
-							label: 'Hapus',
-							icon: <TrashIcon className="size-4" />,
-							onClick: () => handleDelete(row.original),
-							variant: 'destructive' as const,
-						},
-					]}
-				/>
-			),
+			// oxlint-disable-next-line react/no-unstable-nested-components
+			cell: ({ row }) => {
+				const items = []
+				if (canEdit) {
+					items.push({
+						label: 'Edit',
+						icon: <EditIcon className="size-4" />,
+						onClick: () => handleEdit(row.original),
+					})
+				}
+				if (canDelete) {
+					items.push({
+						label: 'Hapus',
+						icon: <TrashIcon className="size-4" />,
+						onClick: () => handleDelete(row.original),
+						variant: 'destructive' as const,
+					})
+				}
+				if (items.length === 0) return null
+				return <ActionMenu items={items} />
+			},
 		})
-	}, [handleEdit, handleDelete])
+	}, [canEdit, canDelete, handleEdit, handleDelete])
 
 	const columns = useMemo(
 		() =>
@@ -294,19 +266,12 @@ function RecipesPage() {
 		[menuItemColumn, hppColumn, actionsColumn],
 	)
 
-	const { table, globalFilter, setGlobalFilter } = useServerTable({
+	const { table } = useServerTable({
 		data: recipes,
 		columns,
 		totalCount,
-		pageSize: listParams.limit,
-		onStateChange: (params) => {
-			setListParams((prev) => ({
-				...prev,
-				page: params.page + 1,
-				limit: params.pageSize,
-				q: params.search || undefined,
-			}))
-		},
+		search,
+		onSearchChange: (next) => navigate({ search: next }),
 	})
 
 	// ─── No Location Guard ───
@@ -323,7 +288,7 @@ function RecipesPage() {
 		)
 	}
 
-	const isEmpty = !listQuery.isLoading && recipes.length === 0 && !globalFilter
+	const isEmpty = !listQuery.isLoading && recipes.length === 0
 
 	return (
 		<div className="space-y-6">
@@ -331,10 +296,12 @@ function RecipesPage() {
 				title="Resep (BOM)"
 				description={`Kelola resep dan HPP di ${activeLocation?.name ?? 'lokasi ini'}.`}
 				actions={
-					<Button size="sm" onClick={handleCreate}>
-						<PlusIcon className="size-4" />
-						Tambah Resep
-					</Button>
+					canCreate ? (
+						<Button size="sm" onClick={handleCreate}>
+							<PlusIcon className="size-4" />
+							Tambah Resep
+						</Button>
+					) : undefined
 				}
 			/>
 
@@ -343,10 +310,12 @@ function RecipesPage() {
 					title="Belum ada resep"
 					description="Mulai dengan menambahkan resep pertama untuk menu item."
 					action={
-						<Button size="sm" onClick={handleCreate}>
-							<PlusIcon className="size-4" />
-							Tambah Resep
-						</Button>
+						canCreate ? (
+							<Button size="sm" onClick={handleCreate}>
+								<PlusIcon className="size-4" />
+								Tambah Resep
+							</Button>
+						) : undefined
 					}
 				/>
 			) : (
@@ -355,13 +324,6 @@ function RecipesPage() {
 					recordCount={totalCount}
 					isLoading={listQuery.isLoading}
 					emptyMessage="Tidak ada resep yang cocok."
-					toolbar={
-						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={setGlobalFilter}
-							searchPlaceholder="Cari resep..."
-						/>
-					}
 				/>
 			)}
 		</div>

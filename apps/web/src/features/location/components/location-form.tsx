@@ -1,124 +1,92 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { z } from 'zod'
 
-import { FormInput } from '@/components/form/form-input'
-import { FormSelect } from '@/components/form/form-select'
-import { FormSwitch } from '@/components/form/form-switch'
+import { useEntityForm } from '@/lib/form/index.ts'
 
-import { LOCATION_TYPE_OPTIONS, LocationCreateDto } from '../dto/index.ts'
-
-import type { LocationDto } from '../dto/index.ts'
+import { LOCATION_TYPE_OPTIONS, LocationTypeEnum } from '../dto/index.ts'
 
 export interface LocationFormValues {
 	code: string
 	name: string
-	type: string
+	type: LocationTypeEnum
 	address: string
 	phone: string
 	isActive: boolean
 }
 
-export interface LocationFormRef {
-	getValues: () => LocationFormValues
-	validate: () => Record<string, string> | null
+/**
+ * Validates the form's own shape — see `docs/web/06-ui-patterns.md` for why
+ * this is never the wire-contract `LocationCreateDto` directly. `address`/
+ * `phone` are plain `string` here (empty text inputs) vs. the DTO's
+ * `string | null | undefined`.
+ */
+const LocationFormSchema = z.object({
+	code: z.string().trim().min(1, 'Code is required').max(50),
+	name: z.string().trim().min(3, 'Name must be at least 3 characters').max(100),
+	type: LocationTypeEnum,
+	address: z.string().trim().max(500).default(''),
+	phone: z.string().trim().max(50).default(''),
+	isActive: z.boolean(),
+})
+
+export const EMPTY_LOCATION_FORM_VALUES: LocationFormValues = {
+	code: '',
+	name: '',
+	type: 'store',
+	address: '',
+	phone: '',
+	isActive: true,
 }
 
-interface LocationFormProps {
-	defaultValues?: LocationDto
+export interface UseLocationFormOptions {
+	defaultValues?: LocationFormValues
+	onSubmit: (values: LocationFormValues) => Promise<void>
 }
 
-export const LocationForm = forwardRef<LocationFormRef, LocationFormProps>(
-	({ defaultValues }, ref) => {
-		const [values, setValues] = useState<LocationFormValues>({
-			code: defaultValues?.code ?? '',
-			name: defaultValues?.name ?? '',
-			type: defaultValues?.type ?? 'store',
-			address: defaultValues?.address ?? '',
-			phone: defaultValues?.phone ?? '',
-			isActive: defaultValues?.isActive ?? true,
-		})
-		const [errors, setErrors] = useState<Record<string, string>>({})
+export function useLocationForm({ defaultValues, onSubmit }: UseLocationFormOptions) {
+	return useEntityForm({
+		defaultValues: defaultValues ?? EMPTY_LOCATION_FORM_VALUES,
+		schema: LocationFormSchema,
+		onSubmit,
+	})
+}
 
-		const update = (field: keyof LocationFormValues, value: string | boolean) => {
-			setValues((prev) => ({ ...prev, [field]: value }))
-			setErrors((prev) => {
-				const next = { ...prev }
-				delete next[field]
-				return next
-			})
-		}
+export type LocationForm = ReturnType<typeof useLocationForm>
 
-		useImperativeHandle(ref, () => ({
-			getValues: () => values,
-			validate: () => {
-				const result = LocationCreateDto.safeParse({
-					...values,
-					address: values.address || null,
-					phone: values.phone || null,
-				})
-				if (result.success) {
-					setErrors({})
-					return null
-				}
-				const fieldErrors: Record<string, string> = {}
-				for (const issue of result.error.issues) {
-					const path = issue.path[0]
-					if (path && !fieldErrors[String(path)]) {
-						fieldErrors[String(path)] = issue.message
-					}
-				}
-				setErrors(fieldErrors)
-				return fieldErrors
-			},
-		}))
-
-		return (
-			<div className="grid gap-4">
-				<div className="grid grid-cols-2 gap-4">
-					<FormInput
-						label="Code"
-						value={values.code}
-						onChange={(e) => update('code', e.target.value)}
-						error={errors.code}
-						placeholder="e.g. LOC-001"
-					/>
-					<FormSelect
-						label="Type"
-						options={[...LOCATION_TYPE_OPTIONS]}
-						value={values.type}
-						onValueChange={(v) => v && update('type', v)}
-						error={errors.type}
-					/>
-				</div>
-				<FormInput
-					label="Name"
-					value={values.name}
-					onChange={(e) => update('name', e.target.value)}
-					error={errors.name}
-					placeholder="Location name"
-				/>
-				<FormInput
-					label="Address"
-					value={values.address}
-					onChange={(e) => update('address', e.target.value)}
-					error={errors.address}
-					placeholder="Optional"
-				/>
-				<FormInput
-					label="Phone"
-					value={values.phone}
-					onChange={(e) => update('phone', e.target.value)}
-					error={errors.phone}
-					placeholder="Optional"
-				/>
-				<FormSwitch
-					label="Active"
-					description="Inactive locations won't appear in selectors"
-					checked={values.isActive}
-					onCheckedChange={(v) => update('isActive', v)}
-				/>
+/** The location form's field layout. Shared by the full-page create/edit routes. */
+export function LocationFormFields({ form }: { form: LocationForm }) {
+	return (
+		<div className="grid gap-4">
+			<div className="grid grid-cols-2 gap-4">
+				<form.AppField name="code">
+					{(field) => <field.TextField label="Code" placeholder="e.g. LOC-001" />}
+				</form.AppField>
+				<form.AppField name="type">
+					{(field) => <field.SelectField label="Type" options={[...LOCATION_TYPE_OPTIONS]} />}
+				</form.AppField>
 			</div>
-		)
-	},
-)
 
-LocationForm.displayName = 'LocationForm'
+			<form.AppField name="name">
+				{(field) => <field.TextField label="Name" placeholder="Location name" />}
+			</form.AppField>
+
+			<form.AppField name="address">
+				{(field) => <field.TextField label="Address" placeholder="Optional" />}
+			</form.AppField>
+
+			<form.AppField name="phone">
+				{(field) => <field.TextField label="Phone" placeholder="Optional" />}
+			</form.AppField>
+
+			<form.AppField name="isActive">
+				{(field) => (
+					<field.SwitchField
+						label="Active"
+						description="Inactive locations won't appear in selectors."
+					/>
+				)}
+			</form.AppField>
+
+			<form.FormError />
+		</div>
+	)
+}

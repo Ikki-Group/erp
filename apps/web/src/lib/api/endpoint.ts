@@ -238,11 +238,23 @@ export interface MutationEndpointConfig<
 	invalidates?: ReadonlyArray<InvalidateTarget<Args<TQuery, TBody>, z.output<TResult>>>
 }
 
+/**
+ * The `TVariables` React Query sees for a mutation. A schema-less mutation has
+ * no payload, so it maps to `void` (not `undefined`) — which is what lets
+ * `useMutation(...).mutate()` / `.mutateAsync()` be called with zero arguments.
+ * A schema-bearing mutation keeps its `Args` as the variables type.
+ */
+type MutationVariables<TQuery extends MaybeSchema, TBody extends MaybeSchema> =
+	Args<TQuery, TBody> extends undefined ? void : Args<TQuery, TBody>
+
 type MutationOptionsOverrides<
 	TQuery extends MaybeSchema = undefined,
 	TBody extends MaybeSchema = undefined,
 	TResult extends ZodType = ZodType,
-> = Omit<UseMutationOptions<z.output<TResult>, Error, Args<TQuery, TBody>>, 'mutationFn'>
+> = Omit<
+	UseMutationOptions<z.output<TResult>, Error, MutationVariables<TQuery, TBody>>,
+	'mutationFn'
+>
 
 export interface MutationEndpoint<
 	TQuery extends MaybeSchema = undefined,
@@ -256,7 +268,7 @@ export interface MutationEndpoint<
 	) => Promise<z.output<TResult>>
 	mutationOptions: (
 		overrides?: MutationOptionsOverrides<TQuery, TBody, TResult>,
-	) => UseMutationOptions<z.output<TResult>, Error, Args<TQuery, TBody>>
+	) => UseMutationOptions<z.output<TResult>, Error, MutationVariables<TQuery, TBody>>
 }
 
 function toQueryKey(target: string | QueryKey): QueryKey {
@@ -300,10 +312,10 @@ function createMutationEndpoint<
 			const signal = (hasSchema ? callArgs[1] : callArgs[0]) as AbortSignal | undefined
 			return fetchImpl(args as Args<TQuery, TBody>, signal)
 		}) as MutationEndpoint<TQuery, TBody, TResult>['fetch'],
-		mutationOptions: (overrides) => ({
+		mutationOptions: ((overrides) => ({
 			mutationFn: (args: Args<TQuery, TBody>) => fetchImpl(args),
 			...overrides,
-		}),
+		})) as MutationEndpoint<TQuery, TBody, TResult>['mutationOptions'],
 	}
 }
 
