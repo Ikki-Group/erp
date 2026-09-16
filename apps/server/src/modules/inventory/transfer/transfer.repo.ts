@@ -4,6 +4,8 @@ import {
 	allOf,
 	eq,
 	eqIf,
+	gte,
+	lte,
 	sql,
 	takeFirst,
 	toLimitOffset,
@@ -203,6 +205,8 @@ export class TransferRepo implements ITransferRepo {
 			filter.locationId
 				? sql`(${transferRequests.fromLocationId} = ${filter.locationId} OR ${transferRequests.toLocationId} = ${filter.locationId})`
 				: undefined,
+			filter.dateFrom ? gte(transferRequests.createdAt, filter.dateFrom) : undefined,
+			filter.dateTo ? lte(transferRequests.createdAt, filter.dateTo) : undefined,
 		)
 	}
 }

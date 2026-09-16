@@ -134,29 +134,17 @@ function OrdersPage() {
 			q: search.q,
 			status: search.status,
 			locationId: locationId!,
+			dateFrom: dateRange?.from.toISOString(),
+			dateTo: dateRange?.to.toISOString(),
 		}),
 		enabled: !!locationId,
 	})
 
 	const voidMut = useMutation(orderResource.void.mutationOptions())
 
-	const rawData = listQuery.data?.data ?? []
-
-	/**
-	 * `orderResource.list` has no server-side date filter (see `OrderFilterDto`),
-	 * so the range only narrows the current page client-side — pagination/count
-	 * still reflect the unfiltered server total. Good enough for a same-page
-	 * "find that order from earlier today" search; a true cross-page date
-	 * filter needs backend support.
-	 */
-	const data = useMemo(() => {
-		if (!dateRange) return rawData
-		return rawData.filter((order) => {
-			const orderedAt = new Date(order.orderedAt).getTime()
-			return orderedAt >= dateRange.from.getTime() && orderedAt <= dateRange.to.getTime()
-		})
-	}, [rawData, dateRange])
-
+	// Server filters by date range (OrderFilterDto.dateFrom/dateTo), so the page
+	// and total count both honor the active range — no client-side slicing.
+	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
 
 	const handleViewOrder = useCallback(
@@ -275,7 +263,10 @@ function OrdersPage() {
 								key: 'orderedAt',
 								label: 'Tanggal',
 								value: dateRange,
-								onChange: setDateRange,
+								onChange: (v) => {
+									setDateRange(v)
+									if (search.page !== 1) navigate({ search: { ...search, page: 1 } })
+								},
 								placeholder: 'Filter tanggal order',
 							}}
 						/>

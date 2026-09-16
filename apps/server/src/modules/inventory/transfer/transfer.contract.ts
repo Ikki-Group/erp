@@ -85,6 +85,8 @@ export const TransferFilterDto = z.object({
 	...zq.pagination.shape,
 	locationId: z.coerce.number().int().positive().optional(),
 	status: TransferStatusEnum.optional(),
+	dateFrom: z.coerce.date().optional(),
+	dateTo: z.coerce.date().optional(),
 })
 export type TransferFilterDto = z.infer<typeof TransferFilterDto>
 

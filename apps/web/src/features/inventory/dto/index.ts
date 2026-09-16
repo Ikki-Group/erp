@@ -174,6 +174,8 @@ export const TransferFilterDto = z.object({
 	...zq.pagination.shape,
 	locationId: z.coerce.number().int().positive().optional(),
 	status: TransferStatusEnum.optional(),
+	dateFrom: z.string().optional(),
+	dateTo: z.string().optional(),
 })
 export type TransferFilterDto = z.infer<typeof TransferFilterDto>
 
@@ -260,6 +262,8 @@ export const OpnameFilterDto = z.object({
 	...zq.pagination.shape,
 	locationId: z.coerce.number().int().positive().optional(),
 	status: OpnameStatusEnum.optional(),
+	dateFrom: z.string().optional(),
+	dateTo: z.string().optional(),
 })
 export type OpnameFilterDto = z.infer<typeof OpnameFilterDto>
 
@@ -340,5 +344,7 @@ export const ReceivingFilterDto = z.object({
 	locationId: z.coerce.number().int().positive().optional(),
 	supplierId: z.coerce.number().int().positive().optional(),
 	status: ReceivingStatusEnum.optional(),
+	dateFrom: z.string().optional(),
+	dateTo: z.string().optional(),
 })
 export type ReceivingFilterDto = z.infer<typeof ReceivingFilterDto>

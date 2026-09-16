@@ -104,23 +104,17 @@ function ReceivingPage() {
 			limit: search.pageSize,
 			status: search.status,
 			locationId,
+			dateFrom: dateRange?.from.toISOString(),
+			dateTo: dateRange?.to.toISOString(),
 		}),
 		enabled: !!locationId,
 	})
 
 	const confirmMut = useMutation(receivingResource.confirm.mutationOptions())
 
-	const rawData = listQuery.data?.data ?? []
-
-	/** No server-side date filter on this endpoint — narrows the current page only. */
-	const data = useMemo(() => {
-		if (!dateRange) return rawData
-		return rawData.filter((r) => {
-			const createdAt = new Date(r.createdAt).getTime()
-			return createdAt >= dateRange.from.getTime() && createdAt <= dateRange.to.getTime()
-		})
-	}, [rawData, dateRange])
-
+	// Server filters by createdAt range (ReceivingFilterDto.dateFrom/dateTo), so
+	// page + total count both honor the range — no client-side slicing.
+	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
 
 	// ─── Lookup queries for name resolution ───
@@ -442,7 +436,10 @@ function ReceivingPage() {
 								key: 'createdAt',
 								label: 'Tanggal',
 								value: dateRange,
-								onChange: setDateRange,
+								onChange: (v) => {
+									setDateRange(v)
+									if (search.page !== 1) navigate({ search: { ...search, page: 1 } })
+								},
 								placeholder: 'Filter tanggal penerimaan',
 							}}
 						/>

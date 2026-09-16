@@ -19,6 +19,8 @@ export const SEED_USERS = {
 // ─── Seed Location ───
 
 export const SEED_LOCATION_ID = 1
+/** Second seeded location (WH-01) — used where a distinct from/to location is needed. */
+export const SEED_WAREHOUSE_ID = 2
 
 // ─── Seed Payment Method ───
 

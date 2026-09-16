@@ -1,6 +1,14 @@
 import { useState } from 'react'
 
-import { subDays, subMonths, startOfWeek, startOfMonth, format } from 'date-fns'
+import {
+	subDays,
+	subMonths,
+	startOfWeek,
+	startOfMonth,
+	startOfDay,
+	endOfDay,
+	format,
+} from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -17,6 +25,16 @@ export interface DateRange {
 interface Preset {
 	label: string
 	getValue: () => DateRange
+}
+
+/**
+ * A range means whole calendar days: snap `from` to the start of its day and
+ * `to` to the end of its day. Without this, the calendar hands back `to` at
+ * midnight (day start), and an inclusive server `<= dateTo` would exclude the
+ * entire selected end-day.
+ */
+function toWholeDays(range: DateRange): DateRange {
+	return { from: startOfDay(range.from), to: endOfDay(range.to) }
 }
 
 const createPresets = (): Preset[] => {
@@ -102,7 +120,7 @@ export function DateRangeFilter({
 								size="sm"
 								className="justify-start text-xs"
 								onClick={() => {
-									onChange?.(preset.getValue())
+									onChange?.(toWholeDays(preset.getValue()))
 									setOpen(false)
 								}}
 							>
@@ -131,11 +149,11 @@ export function DateRangeFilter({
 						selected={value ? { from: value.from, to: value.to } : undefined}
 						onSelect={(range) => {
 							if (range?.from && range?.to) {
-								onChange?.({ from: range.from, to: range.to })
+								onChange?.(toWholeDays({ from: range.from, to: range.to }))
 								setOpen(false)
 							} else if (range?.from) {
 								// Partial selection — keep popover open
-								onChange?.({ from: range.from, to: range.from })
+								onChange?.(toWholeDays({ from: range.from, to: range.from }))
 							}
 						}}
 						numberOfMonths={2}

@@ -252,6 +252,8 @@ export const OrderFilterDto = z.object({
 	status: OrderStatusEnum.optional(),
 	shiftId: z.coerce.number().int().positive().optional(),
 	q: zq.search,
+	dateFrom: z.string().optional(),
+	dateTo: z.string().optional(),
 })
 export type OrderFilterDto = z.infer<typeof OrderFilterDto>
 

@@ -84,6 +84,8 @@ export const ReceivingFilterDto = z.object({
 	locationId: z.coerce.number().int().positive().optional(),
 	supplierId: z.coerce.number().int().positive().optional(),
 	status: ReceivingStatusEnum.optional(),
+	dateFrom: z.coerce.date().optional(),
+	dateTo: z.coerce.date().optional(),
 })
 export type ReceivingFilterDto = z.infer<typeof ReceivingFilterDto>
 

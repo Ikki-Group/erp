@@ -5,6 +5,8 @@ import {
 	allOf,
 	eq,
 	eqIf,
+	gte,
+	lte,
 	sql,
 	takeFirst,
 	toLimitOffset,
@@ -208,6 +210,8 @@ export class OpnameRepo implements IOpnameRepo {
 		return allOf(
 			eqIf(stockOpnames.locationId, filter.locationId),
 			eqIf(stockOpnames.status, filter.status),
+			filter.dateFrom ? gte(stockOpnames.createdAt, filter.dateFrom) : undefined,
+			filter.dateTo ? lte(stockOpnames.createdAt, filter.dateTo) : undefined,
 		)
 	}
 }

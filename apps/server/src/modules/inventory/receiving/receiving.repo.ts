@@ -4,6 +4,8 @@ import {
 	allOf,
 	eq,
 	eqIf,
+	gte,
+	lte,
 	sql,
 	takeFirst,
 	toLimitOffset,
@@ -202,6 +204,8 @@ export class ReceivingRepo implements IReceivingRepo {
 			eqIf(receivings.locationId, filter.locationId),
 			eqIf(receivings.supplierId, filter.supplierId),
 			eqIf(receivings.status, filter.status),
+			filter.dateFrom ? gte(receivings.createdAt, filter.dateFrom) : undefined,
+			filter.dateTo ? lte(receivings.createdAt, filter.dateTo) : undefined,
 		)
 	}
 }

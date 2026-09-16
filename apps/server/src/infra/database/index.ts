@@ -1,4 +1,4 @@
-import { sql, eq, and, or, ilike, inArray, asc, desc } from 'drizzle-orm'
+import { sql, eq, and, or, ilike, inArray, asc, desc, gte, lte } from 'drizzle-orm'
 
 import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination.ts'
 
@@ -93,5 +93,5 @@ export function defineConflictFields<T>() {
 	return <F extends ConflictField<T>[]>(fields: F) => fields
 }
 
-export { sql, eq, and, or, ilike, inArray, asc, desc }
+export { sql, eq, and, or, ilike, inArray, asc, desc, gte, lte }
 export type { PgTable, PgColumn, SQL }

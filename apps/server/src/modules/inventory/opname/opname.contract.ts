@@ -78,6 +78,8 @@ export const OpnameFilterDto = z.object({
 	...zq.pagination.shape,
 	locationId: z.coerce.number().int().positive().optional(),
 	status: OpnameStatusEnum.optional(),
+	dateFrom: z.coerce.date().optional(),
+	dateTo: z.coerce.date().optional(),
 })
 export type OpnameFilterDto = z.infer<typeof OpnameFilterDto>
 

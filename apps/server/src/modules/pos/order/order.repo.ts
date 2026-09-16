@@ -4,6 +4,8 @@ import {
 	allOf,
 	eq,
 	eqIf,
+	gte,
+	lte,
 	searchAcross,
 	sql,
 	takeFirst,
@@ -260,6 +262,8 @@ export class OrderRepo implements IOrderRepo {
 			eq(orders.locationId, filter.locationId),
 			eqIf(orders.status, filter.status),
 			eqIf(orders.shiftId, filter.shiftId),
+			filter.dateFrom ? gte(orders.orderedAt, filter.dateFrom) : undefined,
+			filter.dateTo ? lte(orders.orderedAt, filter.dateTo) : undefined,
 			searchAcross(filter.q, [orders.orderNo]),
 		)
 	}

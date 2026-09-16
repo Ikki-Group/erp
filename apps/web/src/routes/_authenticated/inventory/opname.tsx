@@ -110,6 +110,8 @@ function OpnamePage() {
 			limit: search.pageSize,
 			status: search.status,
 			locationId,
+			dateFrom: dateRange?.from.toISOString(),
+			dateTo: dateRange?.to.toISOString(),
 		}),
 		enabled: !!locationId,
 	})
@@ -118,17 +120,9 @@ function OpnamePage() {
 	const updateCountsMut = useMutation(opnameResource.updateCounts.mutationOptions())
 	const approveMut = useMutation(opnameResource.approve.mutationOptions())
 
-	const rawData = listQuery.data?.data ?? []
-
-	/** No server-side date filter on this endpoint — narrows the current page only. */
-	const data = useMemo(() => {
-		if (!dateRange) return rawData
-		return rawData.filter((o) => {
-			const createdAt = new Date(o.createdAt).getTime()
-			return createdAt >= dateRange.from.getTime() && createdAt <= dateRange.to.getTime()
-		})
-	}, [rawData, dateRange])
-
+	// Server filters by createdAt range (OpnameFilterDto.dateFrom/dateTo), so
+	// page + total count both honor the range — no client-side slicing.
+	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
 
 	// ─── Detail query ───
@@ -369,7 +363,10 @@ function OpnamePage() {
 								key: 'createdAt',
 								label: 'Tanggal',
 								value: dateRange,
-								onChange: setDateRange,
+								onChange: (v) => {
+									setDateRange(v)
+									if (search.page !== 1) navigate({ search: { ...search, page: 1 } })
+								},
 								placeholder: 'Filter tanggal opname',
 							}}
 						/>
