@@ -2,27 +2,26 @@
 
 High-level architecture and technology decisions for the Ikki ERP web frontend.
 
-> **Status:** Blueprint. The scaffold is in place (Vite + TanStack Start + shadcn primitives). The layers described below are the target — implement top-down following the build order at the end of this doc.
+> **Status:** Implemented. The app is a client-side React SPA (Vite + TanStack Router + TanStack Query + shadcn/ReUI). Data-fetching follows the redesign in ADR-0015/0016 (loader prefetch + Suspense, freshness tiers, location-scoped cache).
 
 ## Tech Stack
 
-| Layer          | Choice                                       |
-| -------------- | -------------------------------------------- |
-| Framework      | React 19                                     |
-| Meta-framework | TanStack Start (Vite-based, SSR-optional)    |
-| Bundler        | Vite 8 (via TanStack Start)                  |
-| Routing        | TanStack Router (file-based, code-splitting) |
-| Data Fetching  | TanStack Query                               |
-| Forms          | TanStack Form + Zod adapter                  |
-| Tables         | TanStack Table + ReUI DataGrid               |
-| HTTP Client    | Native fetch wrapper                         |
-| Styling        | Tailwind CSS 4                               |
-| Components     | ReUI (primary) + shadcn/base-ui (fallback)   |
-| Icons          | Lucide React                                 |
-| Validation     | Zod 4 (same version as server)               |
-| Linting        | oxlint                                       |
-| Formatting     | oxfmt                                        |
-| Testing        | Vitest + Testing Library                     |
+| Layer         | Choice                                                                               |
+| ------------- | ------------------------------------------------------------------------------------ |
+| Framework     | React 19 (client SPA — **not** TanStack Start / SSR)                                 |
+| Bundler       | Vite 8                                                                               |
+| Routing       | TanStack Router (file-based, code-splitting, `RouterProvider` mounted in `main.tsx`) |
+| Data Fetching | TanStack Query                                                                       |
+| Forms         | TanStack Form + Zod adapter                                                          |
+| Tables        | TanStack Table + ReUI DataGrid                                                       |
+| HTTP Client   | Native fetch wrapper                                                                 |
+| Styling       | Tailwind CSS 4                                                                       |
+| Components    | ReUI (primary) + shadcn/base-ui (fallback)                                           |
+| Icons         | Lucide React                                                                         |
+| Validation    | Zod 4 (same version as server)                                                       |
+| Linting       | oxlint                                                                               |
+| Formatting    | oxfmt                                                                                |
+| Testing       | Vitest + Testing Library                                                             |
 
 ## Layer Diagram
 
@@ -82,21 +81,22 @@ Location is the operational unit. The server tracks the active location in the s
 
 ### Data Fetching: TanStack Query as Server State
 
-All server state lives in TanStack Query cache. No duplication in local state.
+All server state lives in TanStack Query cache. No duplication in local state. See ADR-0015 (query keys + location-scoped cache) and ADR-0016 (error boundary + freshness tiers) for the normative decisions.
 
-- Query client injected into router context for `beforeLoad` prefetching.
+- Query client injected into router context; route `loader`s prefetch via `context.queryClient.ensureQueryData(endpoint.queryOptions(args))`, and components read the same options with `useSuspenseQuery` (via `suspenseOptions()`), so loading/error live at the route boundary (`pendingComponent`/`errorComponent`).
 - `QueryClientProvider` wraps the component tree.
-- Mutations use auto-invalidation pattern (awaited `invalidateQueries` on success).
+- Mutations declare `invalidates` (auto-invalidation on success). Freshness is a **named tier** (`static`/`standard`/`volatile`/`realtime`), not a raw `staleTime`.
 
-### API Layer: Port of apiv2 (Archive)
+### API Layer
 
-The API layer is ported from `web-archive/src/lib/apiv2/`, with `ky` replaced by native fetch. Core abstractions:
+Core abstractions in `src/lib/api/`:
 
-- `defineQuery` — typed query endpoint with auto query keys
-- `defineMutation` — typed mutation with declarative invalidation
-- `defineResource` — CRUD sugar combining list/detail/create/update/remove
+- `defineQuery` — typed query endpoint; accepts a `tier` and a `locationScoped` flag.
+- `defineMutation` — typed mutation with declarative (resolver-based) invalidation.
+- `defineResource` — CRUD sugar (list/detail/create/update/remove); non-CRUD resources compose extra endpoints on the resource's exported `keys`.
+- `createResourceKeys(feature, resource, { locationScoped })` — the single canonical query-key factory, producing structured `[feature, resource, kind, params]` keys (with a `{ loc }` segment when location-scoped).
 
-URL-anchored query keys enable safe cross-feature invalidation without circular imports.
+> Migration state: the two pilots (`location`, POS `order`/`shift`) run on `createResourceKeys` + `locationScoped`. The remaining features still use their pre-redesign hand-rolled key objects (and `createQueryKeys`); those are migrated onto the canonical factory in follow-up work and are not dead code.
 
 ### Component Strategy: ReUI Primary
 
@@ -110,26 +110,15 @@ Auth → App Shell → Master Data → Menu → Inventory → POS
 
 Matches server layer dependencies: operations depend on master data existing in the UI first.
 
-## Dependencies to Install
+## Key Libraries (installed)
 
-The scaffold ships with React, TanStack Router/Start, Tailwind, and shadcn primitives. The following packages are required before implementing the layers above — install them as each layer is built:
+`@tanstack/react-query` + devtools (server state), `zod` v4 (validation/DTOs/form schemas), `@tanstack/react-form` (forms, with the in-repo Zod bridge in `lib/form`), `@tanstack/react-table` + ReUI DataGrid (tables), `@tanstack/react-router` + devtools (routing).
 
-| Package                          | Needed for                       | Install when      |
-| -------------------------------- | -------------------------------- | ----------------- |
-| `@tanstack/react-query`          | Server state, cache, prefetching | Auth + API layer  |
-| `@tanstack/react-query-devtools` | Dev tooling                      | Same time         |
-| `zod` (v4)                       | Validation, DTOs, form schemas   | API layer         |
-| `@tanstack/react-form`           | Form management                  | Forms             |
-| `@tanstack/zod-form-adapter`     | Zod ↔ TanStack Form bridge       | Forms             |
-| `@tanstack/react-table`          | Data tables                      | Master Data pages |
+## Router wiring (current)
 
-## Scaffold vs. Target: Known Divergences
-
-The current scaffold has a few differences from the target architecture above. Resolve these as you build:
-
-1. **`main.tsx` creates its own router inline** — it should import `getRouter()` from `router.tsx` instead. The documented pattern in `router.tsx` (with `queryClient` context injection) is the target.
-2. **`__root.tsx` uses `shellComponent`** (TanStack Start pattern) — this is correct for Start. The code examples in `05-routing.md` show `component` for simplicity but `shellComponent` is the Start-native equivalent.
-3. **No `QueryClient` in router context yet** — add it when installing `@tanstack/react-query`. Route loaders depend on it.
+- `main.tsx` mounts `<RouterProvider router={getRouter()} />` — a plain client SPA render, **not** TanStack Start. There is no `shellComponent` and no SSR.
+- `getRouter()` (`router.tsx`) injects the `queryClient` into router context, so route `loader`s reach it as `context.queryClient`. `defaultPreload: 'intent'`, `defaultPreloadStaleTime: 0` (TanStack Query owns freshness).
+- `__root.tsx` uses `component` (the SPA `RootComponent`) and wraps the tree in `QueryClientProvider` + the app providers.
 
 ## What the Frontend Does NOT Own
 

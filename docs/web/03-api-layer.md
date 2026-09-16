@@ -1,8 +1,8 @@
 # API Layer
 
-HTTP client, endpoint registry, and the `defineQuery`/`defineMutation`/`defineResource` factory system. Ported from `web-archive/src/lib/apiv2/` with `ky` replaced by native fetch.
+HTTP client, endpoint registry, and the `defineQuery`/`defineMutation`/`defineResource` factory system. Native-fetch based (no `ky`).
 
-> **Status:** Blueprint. The API layer has not been ported yet. Source reference lives in `apps/web-archive/src/lib/apiv2/`. Install `@tanstack/react-query` and `zod` before building this layer (see `01-architecture.md`).
+> **Status:** Implemented. See ADR-0015 (query keys + location-scoped cache) and ADR-0016 (error boundary + freshness tiers) for the normative decisions this layer follows. Query keys come from the canonical `createResourceKeys` factory — **not** URL-anchored `[url, args]` (the older pattern described in some examples below is superseded; those examples are kept only where still illustrative of the fetch/validation flow).
 
 ## Overview
 
@@ -129,14 +129,24 @@ export const endpoint = {
 }
 ```
 
-### Why URL-Anchored Query Keys
+### Query keys: the canonical factory (ADR-0015)
 
-Query keys are built from the endpoint URL: `[url, args ?? null]`. This means any feature can invalidate another feature's cache by referencing the URL string from `config/endpoint.ts` — no circular imports.
+Keys come from `createResourceKeys(feature, resource, { locationScoped })`, producing a structured tuple:
+
+```
+plain:            [feature, resource, kind, params?]
+location-scoped:  [feature, resource, { loc }, kind, params?]
+```
+
+`kind` is `'list'`/`'detail'`; `lists()` is a prefix of every `list(params)`, so partial-match invalidation is unambiguous. A **location-scoped** endpoint folds the active `locationId` (via `getActiveLocationId()`) into the `{ loc }` segment so the cache partitions per location. Mutations declare `invalidates` as resolver functions that reference the resource's exported `keys`:
 
 ```ts
-// In inventory mutation, invalidate material list:
-invalidates: [endpoint.material.list]
+// Invalidation targets are resolvers so a location-scoped key reads the
+// active location at mutation time (not module-load time):
+invalidates: [() => orderKeys.lists(), () => orderKeys.details()]
 ```
+
+> The older URL-anchored default (`[url, args ?? null]`) is still what `defineQuery` produces when no `queryKey`/factory is supplied, and several not-yet-migrated features still use hand-rolled `{ lists, list, details, detail }` objects. Those are migrated onto `createResourceKeys` feature-by-feature; see ADR-0015 "Migration state".
 
 ## Endpoint Factories
 

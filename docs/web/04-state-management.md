@@ -2,7 +2,7 @@
 
 Auth context, location context, and the role of TanStack Query as server state manager.
 
-> **Status:** Blueprint. No providers, contexts, or TanStack Query setup exist yet. Build after the API layer is in place.
+> **Status:** Implemented. Auth/location providers and the TanStack Query client exist. Location-switch cache behavior follows ADR-0015 (per-location key partitioning, no blanket invalidation).
 
 ## State Categories
 
@@ -131,21 +131,22 @@ The active location is determined from multiple sources with this priority:
 
 ```
 User clicks location in switcher
-  → setActiveLocation(locationId) ← instant UI update
   → await POST /auth/switch-location { locationId }
-  → await queryClient.invalidateQueries() ← refetch all active queries
-  → URL updated with ?loc=locationId (if location-sensitive page)
+  → setCurrentLocation(...) ← context re-renders every consumer
+  → location-scoped keys now carry a different { loc } (and every other
+    location-dependent query has a different locationId param) → the new
+    location is a natural cache-miss that refetches; the previous location
+    stays cached for instant switch-back. NO blanket invalidateQueries.
 ```
 
 For "All locations":
 
 ```
 User clicks "All (N)" in switcher
-  → setActiveLocation(null) ← instant UI update
-  → await POST /auth/switch-location { locationId: null }
-  → await queryClient.invalidateQueries()
-  → URL: ?loc param removed
+  → setCurrentLocation(null) ← consolidated view; { loc: null } partition
 ```
+
+Global reference data (roles, UoM, company, `/auth/me`) keeps its keys and is untouched by a switch. See ADR-0015.
 
 ### localStorage Persistence
 
@@ -193,29 +194,25 @@ When `activeLocation = null`:
 
 ### Setup
 
-```tsx
-// router.tsx
-import { QueryClient } from '@tanstack/react-query'
+The `QueryClient` lives in `lib/tanstack-query.ts`. Per-query freshness is a **named tier** (ADR-0016), not a global number; the client defaults only set retry, refetch, and the `throwOnError` policy:
 
-const queryClient = new QueryClient({
+```ts
+// lib/tanstack-query.ts (shape)
+new QueryClient({
 	defaultOptions: {
 		queries: {
-			staleTime: 1000 * 60, // 1 minute
-			gcTime: 1000 * 60 * 5, // 5 minutes
-			refetchOnWindowFocus: false, // ERP — don't surprise users with refetches
-			retry: 1,
+			retry: shouldRetry, // dev: none; prod: 3x, skip 4xx/auth
+			refetchOnMount: true,
+			refetchOnWindowFocus: true,
+			staleTime: 3 * 60 * 1000, // the `standard` tier default; endpoints override via `tier`
+			throwOnError: shouldThrowOnError, // true only for network errors → route errorComponent
 		},
+		mutations: { retry: shouldRetry, onError: handleGlobalError }, // single-fire 401/403 redirect
 	},
 })
-
-export function getRouter() {
-	return createRouter({
-		routeTree,
-		context: { queryClient }, // inject for route loaders
-		defaultPreload: 'intent',
-	})
-}
 ```
+
+`getRouter()` (`router.tsx`) injects `queryClient` into router context and sets `defaultPreload: 'intent'`, `defaultPreloadStaleTime: 0` (TanStack Query owns freshness). Endpoints opt into `static`/`standard`/`volatile`/`realtime` tiers; see ADR-0016.
 
 ### Router Context Type
 
@@ -248,19 +245,22 @@ export const Route = createFileRoute('/_authenticated/master/locations')({
 })
 ```
 
-### Cache Invalidation After Location Switch
+### Cache Behavior After Location Switch (ADR-0015)
 
-When the user switches location, ALL active queries refetch because the server now scopes to a different location:
+Switching location does **not** call `queryClient.invalidateQueries()`. Location-scoped endpoints fold the active `locationId` into their key (`{ loc }` segment), and every other location-dependent query carries `locationId` in its key params — so a switch changes those keys, making the new location a natural cache-miss that refetches on re-render, while the previous location's entries stay cached for an instant switch-back:
 
 ```ts
 async function switchLocation(locationId: number | null) {
-	setActiveLocation(locationId)
-	await authApi.switchLocation.fetch({ locationId })
-	await queryClient.invalidateQueries() // broad invalidation — everything refetches
+	if (locationId === null) {
+		setCurrentLocation(null)
+		return
+	} // consolidated view
+	const result = await switchMut.mutateAsync({ locationId })
+	setCurrentLocation(result.data.activeLocation) // re-render → keys change → refetch
 }
 ```
 
-This is intentional. A location switch is infrequent (a few times per session) and changes the entire data context.
+The framework reads the active location via `getActiveLocationId()`, wired once by `LocationProvider` through `setActiveLocationAccessor`. Global reference data keeps its keys and is untouched.
 
 ## What NOT to Put in State
 

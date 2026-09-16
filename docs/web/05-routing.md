@@ -2,11 +2,11 @@
 
 TanStack Router setup, layout routes, authentication guards, and location query param conventions.
 
-> **Status:** Blueprint. The current scaffold has `__root.tsx` (Start-style `shellComponent`) and a placeholder `index.tsx`. The `_authenticated` layout, route loaders, and location params described below are the target to build.
+> **Status:** Implemented. Client-side SPA (`RouterProvider` in `main.tsx`), `_authenticated` layout with an auth guard, and — on the migrated pilots (`location`, POS) — `loader` prefetch + `useSuspenseQuery` with `pendingComponent`/`errorComponent`. See ADR-0016 for the loader/Suspense/error policy.
 
 ## Router Configuration
 
-The scaffold currently uses TanStack Start, which means `__root.tsx` uses `shellComponent` (not `component`) and `head()` for meta tags. The examples below show the target pattern once `QueryClient` is injected into router context:
+This is a plain client SPA: `__root.tsx` uses `component` (not `shellComponent` — there is no TanStack Start / SSR), and `main.tsx` mounts `<RouterProvider router={getRouter()} />`. `getRouter()` injects `QueryClient` into router context:
 
 ```tsx
 // router.tsx
@@ -185,17 +185,30 @@ The `_authenticated` layout renders the persistent app shell:
 
 ## Route Loaders (Data Prefetching)
 
-Routes can prefetch data so the page renders instantly:
+A list route prefetches in a `loader` (keyed off validated search via `loaderDeps`) and the component reads the same options with `useSuspenseQuery`, so it renders guaranteed data with no `isLoading` branch — loading/error move to `pendingComponent`/`errorComponent`. This is the pattern proven on the `location` pilot (ADR-0016):
 
 ```tsx
-export const Route = createFileRoute('/_authenticated/master/materials')({
-	validateSearch: (search) => MaterialFilterDto.parse(search),
-	loader: ({ context, search }) => {
-		return context.queryClient.ensureQueryData(materialApi.list.queryOptions(search))
-	},
-	component: MaterialsPage,
+const listQueryOptions = (search: ListSearch) =>
+	locationResource.list.queryOptions({ page: search.page, limit: search.pageSize, q: search.q })
+
+export const Route = createFileRoute('/_authenticated/master/locations/')({
+	validateSearch: listSearchSchema,
+	loaderDeps: ({ search }) => search,
+	loader: ({ context, deps }) => context.queryClient.ensureQueryData(listQueryOptions(deps)),
+	pendingComponent: () => <PageSkeleton />,
+	errorComponent: ({ reset }) => <PageError onRetry={reset} />,
+	component: LocationsPage,
 })
+
+function LocationsPage() {
+	const search = Route.useSearch()
+	// suspenseOptions() bridges UseQueryOptions → UseSuspenseQueryOptions (ADR-0016)
+	const { data } = useSuspenseQuery(suspenseOptions(listQueryOptions(search)))
+	// …
+}
 ```
+
+A detail route is the same shape, keyed off `params` instead of `search`.
 
 ### `validateSearch`
 
@@ -291,7 +304,7 @@ export const Route = createFileRoute('/_authenticated/master/materials')({
 
 - `pendingComponent` — shown during `loader` execution (page-level skeleton).
 - `errorComponent` — shown if `loader` throws (page-level error boundary).
-- Component-level loading/error — handled by individual `useQuery`/`useMutation` hooks inside the page.
+- Loader-backed routes read with `useSuspenseQuery`, so page-level loading/error live entirely at the route boundary (`pendingComponent`/`errorComponent`). Mutations still surface their own errors inline within the page.
 
 See [06-ui-patterns.md](./06-ui-patterns.md) for error/loading UI patterns.
 
