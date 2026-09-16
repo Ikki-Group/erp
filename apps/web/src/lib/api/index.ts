@@ -45,3 +45,5 @@ export type {
 
 export { defineResource } from './resource.ts'
 export type { DefineResourceConfig, ResourceUrls } from './resource.ts'
+
+export { suspenseOptions } from './suspense.ts'

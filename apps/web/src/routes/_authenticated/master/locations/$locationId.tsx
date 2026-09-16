@@ -1,18 +1,37 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { suspenseOptions } from '@/lib/api/index.ts'
+import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
+
 import { FormPage } from '@/components/shared/form-page.tsx'
+import { PageError } from '@/components/shared/page-error.tsx'
 import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 
 import { toast } from '@/components/ui/toast'
 
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
-
 import { locationResource } from '@/features/location/api.ts'
-import { LocationFormFields, useLocationForm } from '@/features/location/components/location-form.tsx'
+import {
+	LocationFormFields,
+	useLocationForm,
+} from '@/features/location/components/location-form.tsx'
 import type { LocationDto } from '@/features/location/dto/index.ts'
 
+function detailQueryOptions(id: number) {
+	return locationResource.detail.queryOptions({ id })
+}
+
 export const Route = createFileRoute('/_authenticated/master/locations/$locationId')({
+	loader: ({ context, params }) =>
+		context.queryClient.ensureQueryData(detailQueryOptions(Number(params.locationId))),
+	pendingComponent: () => <PageSkeleton />,
+	errorComponent: ({ reset }) => (
+		<PageError
+			title="Failed to load location"
+			message="Could not load this location. Check your connection and try again."
+			onRetry={reset}
+		/>
+	),
 	component: EditLocationPage,
 })
 
@@ -30,31 +49,12 @@ function toFormValues(location: LocationDto) {
 function EditLocationPage() {
 	const { locationId } = Route.useParams()
 	const navigate = useNavigate()
-	const id = Number(locationId)
+	const detailQuery = useSuspenseQuery(suspenseOptions(detailQueryOptions(Number(locationId))))
+	const location = detailQuery.data.data
 
-	const detailQuery = useQuery(locationResource.detail.queryOptions({ id }))
-
-	if (detailQuery.isLoading) {
-		return <PageSkeleton />
-	}
-
-	const location = detailQuery.data?.data
-	if (!location) {
-		return null
-	}
-
-	return (
-		<EditLocationForm location={location} onDone={() => navigate({ to: '/master/locations' })} />
-	)
-}
-
-interface EditLocationFormProps {
-	location: LocationDto
-	onDone: () => void
-}
-
-function EditLocationForm({ location, onDone }: EditLocationFormProps) {
 	const updateMut = useMutation(locationResource.update.mutationOptions())
+	const onDone = () => navigate({ to: '/master/locations' })
+
 	const form = useLocationForm({
 		defaultValues: toFormValues(location),
 		onSubmit: async (values) => {

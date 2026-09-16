@@ -1,18 +1,23 @@
 import { useCallback, useMemo } from 'react'
 
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
+import { suspenseOptions } from '@/lib/api/index.ts'
+
 import { listSearchSchema, useServerTable } from '@/components/data-table'
+import type { ListSearch } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { ActionMenu } from '@/components/shared/action-menu'
 import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
+import { PageError } from '@/components/shared/page-error'
 import { PageHeader } from '@/components/shared/page-header'
+import { PageSkeleton } from '@/components/shared/page-skeleton'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -23,8 +28,27 @@ import { locationResource } from '@/features/location/api.ts'
 import { locationColumns } from '@/features/location/components/location-table.tsx'
 import type { LocationDto } from '@/features/location/dto/index.ts'
 
+/** The list query options for a given URL search — shared by the loader and the component. */
+function listQueryOptions(search: ListSearch) {
+	return locationResource.list.queryOptions({
+		page: search.page,
+		limit: search.pageSize,
+		q: search.q,
+	})
+}
+
 export const Route = createFileRoute('/_authenticated/master/locations/')({
 	validateSearch: listSearchSchema,
+	loaderDeps: ({ search }) => search,
+	loader: ({ context, deps }) => context.queryClient.ensureQueryData(listQueryOptions(deps)),
+	pendingComponent: () => <PageSkeleton />,
+	errorComponent: ({ reset }) => (
+		<PageError
+			title="Failed to load locations"
+			message="Could not load locations. Check your connection and try again."
+			onRetry={reset}
+		/>
+	),
 	component: LocationsPage,
 })
 
@@ -34,13 +58,11 @@ function LocationsPage() {
 	const canEdit = usePermissionCheck({ permission: 'location.update' })
 	const canDelete = usePermissionCheck({ permission: 'location.delete' })
 
-	const listQuery = useQuery(
-		locationResource.list.queryOptions({ page: search.page, limit: search.pageSize, q: search.q }),
-	)
+	const listQuery = useSuspenseQuery(suspenseOptions(listQueryOptions(search)))
 	const removeMut = useMutation(locationResource.remove.mutationOptions())
 
-	const data = listQuery.data?.data ?? []
-	const totalCount = listQuery.data?.meta?.total ?? 0
+	const data = listQuery.data.data
+	const totalCount = listQuery.data.meta?.total ?? 0
 
 	const handleDelete = useCallback(
 		async (location: LocationDto) => {
@@ -103,7 +125,7 @@ function LocationsPage() {
 		onSearchChange: (next) => navigate({ search: next }),
 	})
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
+	const isEmpty = data.length === 0 && !globalFilter
 
 	return (
 		<div className="space-y-6">
@@ -137,7 +159,6 @@ function LocationsPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
 					emptyMessage="No locations match your search."
 					onRowClick={
 						canEdit
