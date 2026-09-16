@@ -19,10 +19,13 @@ interface OrderCartProps {
 	lines: CartLine[]
 	onUpdateQty: (menuItemId: number, modifierKey: string, qty: number) => void
 	onRemoveLine: (menuItemId: number, modifierKey: string) => void
-	subtotal: number
+	/** Server-authoritative subtotal; `null` while the cart is not yet synced (pending). */
+	subtotal: number | null
 	discountAmount: number
-	taxAmount: number
-	total: number
+	/** Server-authoritative tax; `null` while the cart is not yet synced (pending). */
+	taxAmount: number | null
+	/** Server-authoritative grand total; `null` while pending (computed at payment). */
+	total: number | null
 	voucherCode: string | null
 	onRemoveVoucher: () => void
 	onOpenPayment: () => void
@@ -124,7 +127,9 @@ export function OrderCart({
 				<div className="space-y-1 text-xs">
 					<div className="flex justify-between">
 						<span className="text-muted-foreground">Subtotal</span>
-						<span>Rp {subtotal.toLocaleString('id-ID')}</span>
+						<span className={subtotal === null ? 'text-muted-foreground' : undefined}>
+							{subtotal === null ? 'Dihitung saat bayar' : `Rp ${subtotal.toLocaleString('id-ID')}`}
+						</span>
 					</div>
 					{discountAmount > 0 && (
 						<div className="flex justify-between text-green-600">
@@ -137,12 +142,18 @@ export function OrderCart({
 					)}
 					<div className="flex justify-between">
 						<span className="text-muted-foreground">Pajak</span>
-						<span>Rp {taxAmount.toLocaleString('id-ID')}</span>
+						<span className={taxAmount === null ? 'text-muted-foreground' : undefined}>
+							{taxAmount === null
+								? 'Dihitung saat bayar'
+								: `Rp ${taxAmount.toLocaleString('id-ID')}`}
+						</span>
 					</div>
 					<Separator />
 					<div className="flex justify-between text-sm font-semibold">
 						<span>Total</span>
-						<span>Rp {total.toLocaleString('id-ID')}</span>
+						<span className={total === null ? 'text-muted-foreground' : undefined}>
+							{total === null ? 'Dihitung saat bayar' : `Rp ${total.toLocaleString('id-ID')}`}
+						</span>
 					</div>
 				</div>
 
@@ -167,9 +178,9 @@ export function OrderCart({
 					className="mt-2 w-full"
 					size="sm"
 					onClick={onOpenPayment}
-					disabled={disabled || lines.length === 0 || total <= 0}
+					disabled={disabled || lines.length === 0}
 				>
-					Bayar — Rp {total.toLocaleString('id-ID')}
+					Bayar
 				</Button>
 			</div>
 		</div>

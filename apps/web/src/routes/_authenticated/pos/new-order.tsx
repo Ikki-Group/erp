@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
@@ -35,8 +35,6 @@ export const Route = createFileRoute('/_authenticated/pos/new-order')({
 	component: NewOrderPage,
 })
 
-const TAX_RATE = 0.11
-
 function NewOrderPage() {
 	const { activeLocation } = useLocationContext()
 	const locationId = activeLocation?.id ?? 0
@@ -65,6 +63,9 @@ function NewOrderPage() {
 	const [showReceiptDialog, setShowReceiptDialog] = useState(false)
 	const [completedOrder, setCompletedOrder] = useState<OrderDetailDto | null>(null)
 	const [voucherInput, setVoucherInput] = useState('')
+	// Authoritative total for the open payment dialog, from the server order
+	// after lines are synced. Null until the cart has been synced for payment.
+	const [paymentTotal, setPaymentTotal] = useState<number | null>(null)
 
 	// ─── Mutations ───
 	const createMut = useMutation(orderResource.create.mutationOptions())
@@ -74,13 +75,16 @@ function NewOrderPage() {
 	const paymentMut = useMutation(orderResource.payment.mutationOptions())
 	const completeMut = useMutation(orderResource.complete.mutationOptions())
 
-	// ─── Computed totals ───
-	const subtotal = useMemo(
-		() => lines.reduce((sum, line) => sum + (line.unitPrice + line.modifierTotal) * line.qty, 0),
-		[lines],
-	)
-	const taxAmount = Math.round((subtotal - discountAmount) * TAX_RATE)
-	const total = subtotal - discountAmount + taxAmount
+	// ─── Order money is server-authoritative (ADR-0017) ───
+	// The client computes NO order money — not subtotal, tax, or total. The
+	// server calculates and persists them on `lines/sync` and returns them on the
+	// order detail. The cart shows the whole money summary as pending until the
+	// order is synced at payment time, when the authoritative total drives the
+	// payment dialog. Per-line catalog prices (rendered inside each cart row) are
+	// server-provided prices, which the ADR permits displaying.
+	// ponytail: sync-at-payment keeps the cart money summary pending until "Bayar".
+	// Upgrade path is a debounced live lines/sync so the cart shows the server
+	// totals as the cart is edited — deferred to avoid a per-keystroke sync.
 
 	// ─── Menu item selected ───
 	const handleSelectItem = useCallback((item: MenuItemDto) => {
@@ -131,6 +135,10 @@ function NewOrderPage() {
 
 	// ─── Order lifecycle ───
 	const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
+	// Synchronous re-entrancy guard: React state (isBusy/currentOrderId) only
+	// updates on the next render, so two fast clicks on "Bayar" would both pass a
+	// state-based check and create two orders. A ref flips synchronously.
+	const paymentInFlight = useRef(false)
 
 	const createOrderIfNeeded = useCallback(async (): Promise<number | null> => {
 		if (currentOrderId) return currentOrderId
@@ -186,24 +194,46 @@ function NewOrderPage() {
 	}, [currentOrderId, voucherRemoveMut])
 
 	// ─── Payment flow ───
+	// Opening payment syncs the cart to the server first, then reads the
+	// authoritative total back (server computes tax/total via company tax rate —
+	// ADR-0017). The payment dialog collects against that server total, never a
+	// client-computed one.
+	const handleOpenPayment = useCallback(async () => {
+		if (paymentInFlight.current) return
+		paymentInFlight.current = true
+		try {
+			const orderId = await createOrderIfNeeded()
+			if (!orderId) return
+
+			await linesSyncMut.mutateAsync({
+				orderId,
+				lines: lines.map((l) => ({
+					menuItemId: l.menuItemId,
+					qty: l.qty,
+					modifierOptionIds: l.modifierOptionIds.length > 0 ? l.modifierOptionIds : undefined,
+					notes: l.notes,
+				})),
+			})
+
+			const detail = await queryClient.fetchQuery(
+				orderResource.detail.queryOptions({ id: orderId }),
+			)
+			setPaymentTotal(Number(detail.data.total))
+			setShowPaymentDialog(true)
+		} catch {
+			toast.add({ title: 'Gagal menyiapkan pembayaran', type: 'error' })
+		} finally {
+			paymentInFlight.current = false
+		}
+	}, [createOrderIfNeeded, linesSyncMut, lines, queryClient])
+
 	const handlePaymentConfirm = useCallback(
 		async (payments: PaymentEntry[]) => {
+			if (!currentOrderId) return
+			const orderId = currentOrderId
 			try {
-				const orderId = await createOrderIfNeeded()
-				if (!orderId) return
-
-				// Sync lines
-				await linesSyncMut.mutateAsync({
-					orderId,
-					lines: lines.map((l) => ({
-						menuItemId: l.menuItemId,
-						qty: l.qty,
-						modifierOptionIds: l.modifierOptionIds.length > 0 ? l.modifierOptionIds : undefined,
-						notes: l.notes,
-					})),
-				})
-
-				// Record each payment
+				// Lines were already synced when the payment dialog opened; just
+				// record payments and complete against the server-authoritative order.
 				for (const payment of payments) {
 					await paymentMut.mutateAsync({
 						orderId,
@@ -228,13 +258,14 @@ function NewOrderPage() {
 				setVoucherCode(null)
 				setDiscountAmount(0)
 				setCurrentOrderId(null)
+				setPaymentTotal(null)
 
 				toast.add({ title: 'Pembayaran berhasil!', type: 'success' })
 			} catch {
 				toast.add({ title: 'Gagal memproses pembayaran', type: 'error' })
 			}
 		},
-		[createOrderIfNeeded, linesSyncMut, paymentMut, completeMut, lines, queryClient],
+		[currentOrderId, paymentMut, completeMut, queryClient],
 	)
 
 	const isBusy =
@@ -271,13 +302,13 @@ function NewOrderPage() {
 					lines={lines}
 					onUpdateQty={handleUpdateQty}
 					onRemoveLine={handleRemoveLine}
-					subtotal={subtotal}
+					subtotal={null}
 					discountAmount={discountAmount}
-					taxAmount={taxAmount}
-					total={total}
+					taxAmount={null}
+					total={null}
 					voucherCode={voucherCode}
 					onRemoveVoucher={handleRemoveVoucher}
-					onOpenPayment={() => setShowPaymentDialog(true)}
+					onOpenPayment={handleOpenPayment}
 					onOpenVoucher={() => setShowVoucherDialog(true)}
 					disabled={isBusy}
 				/>
@@ -294,8 +325,11 @@ function NewOrderPage() {
 			{/* Payment Dialog */}
 			<PaymentDialog
 				open={showPaymentDialog}
-				onOpenChange={setShowPaymentDialog}
-				orderTotal={total}
+				onOpenChange={(open) => {
+					setShowPaymentDialog(open)
+					if (!open) setPaymentTotal(null)
+				}}
+				orderTotal={paymentTotal ?? 0}
 				onConfirm={handlePaymentConfirm}
 			/>
 
