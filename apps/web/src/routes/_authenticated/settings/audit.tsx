@@ -35,6 +35,9 @@ export const Route = createFileRoute('/_authenticated/settings/audit')({
 // keep in sync when a module or domain verb is added server-side. Unknown values
 // still render fine (the badge/label degrade gracefully); they just aren't
 // filterable here until added.
+// Values MUST match the `module` strings the server writes in audit records
+// (the `module:` field in each *.service.ts audit.record call). POS is split
+// per sub-entity (pos-order/shift/table/voucher); there is no bare 'pos'.
 const MODULE_OPTIONS = [
 	{ label: 'Location', value: 'location' },
 	{ label: 'Material', value: 'material' },
@@ -43,11 +46,13 @@ const MODULE_OPTIONS = [
 	{ label: 'Menu', value: 'menu' },
 	{ label: 'Recipe', value: 'recipe' },
 	{ label: 'Inventory', value: 'inventory' },
-	{ label: 'POS', value: 'pos' },
+	{ label: 'POS · Order', value: 'pos-order' },
+	{ label: 'POS · Shift', value: 'pos-shift' },
+	{ label: 'POS · Table', value: 'pos-table' },
+	{ label: 'POS · Voucher', value: 'pos-voucher' },
 	{ label: 'Production', value: 'production' },
 	{ label: 'IAM', value: 'iam' },
 	{ label: 'Company', value: 'company' },
-	{ label: 'Payment Method', value: 'payment-method' },
 ]
 
 const ACTION_OPTIONS = [

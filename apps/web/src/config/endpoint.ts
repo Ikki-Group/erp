@@ -123,9 +123,7 @@ const recipe = {
 }
 
 const company = {
-	detail: 'company/detail',
-	create: 'company/create',
-	update: 'company/update',
+	settings: 'company/settings',
 }
 
 const audit = {

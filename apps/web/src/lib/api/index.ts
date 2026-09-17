@@ -1,4 +1,4 @@
-export { httpClient, setTokenAccessor } from './client.ts'
+export { httpClient } from './client.ts'
 export type { ApiClient } from './client.ts'
 
 export { ApiError, isApiError } from './errors.ts'

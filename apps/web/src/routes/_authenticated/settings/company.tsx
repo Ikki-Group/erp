@@ -9,7 +9,7 @@ import { usePermissionCheck } from '@/components/shared/permission-gate.tsx'
 
 import { toast } from '@/components/ui/toast'
 
-import { companyCreate, companyDetail, companyUpdate } from '@/features/company/api.ts'
+import { companyDetail, companyUpdate } from '@/features/company/api.ts'
 import { CompanyFormFields, useCompanyForm } from '@/features/company/components/company-form.tsx'
 import type { CompanyFormValues } from '@/features/company/components/company-form.tsx'
 import type { CompanySettingsDto } from '@/features/company/dto/index.ts'
@@ -47,15 +47,15 @@ interface CompanySettingsFormProps {
 }
 
 function CompanySettingsForm({ existing }: CompanySettingsFormProps) {
-	const isCreate = !existing
 	const canWrite = usePermissionCheck({ permission: 'company.update' })
-	const createMut = useMutation(companyCreate.mutationOptions())
 	const updateMut = useMutation(companyUpdate.mutationOptions())
 
 	const form = useCompanyForm({
 		defaultValues: existing ? toFormValues(existing) : undefined,
 		onSubmit: async (values) => {
-			const payload = {
+			if (!existing) return
+			await updateMut.mutateAsync({
+				id: existing.id,
 				name: values.name,
 				address: values.address || null,
 				phone: values.phone || null,
@@ -65,15 +65,8 @@ function CompanySettingsForm({ existing }: CompanySettingsFormProps) {
 				currencyCode: values.currencyCode,
 				currencySymbol: values.currencySymbol,
 				receiptFooter: values.receiptFooter || null,
-			}
-
-			if (isCreate) {
-				await createMut.mutateAsync(payload)
-				toast.add({ title: 'Company settings created.', type: 'success' })
-			} else {
-				await updateMut.mutateAsync({ ...payload, id: existing.id })
-				toast.add({ title: 'Company settings updated.', type: 'success' })
-			}
+			})
+			toast.add({ title: 'Company settings updated.', type: 'success' })
 		},
 	})
 
@@ -85,7 +78,7 @@ function CompanySettingsForm({ existing }: CompanySettingsFormProps) {
 				title="Company Settings"
 				description="Manage your company profile and tax configuration."
 				form={form}
-				submitLabel={isCreate ? 'Create' : 'Save Changes'}
+				submitLabel="Save Changes"
 				onCancel={() => window.history.back()}
 				actions={
 					!canWrite ? (

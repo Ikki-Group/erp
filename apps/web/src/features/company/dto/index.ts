@@ -20,26 +20,6 @@ export const CompanySettingsDto = z.object({
 })
 export type CompanySettingsDto = z.infer<typeof CompanySettingsDto>
 
-// ─── Create ───
-
-export const CompanySettingsCreateDto = z.object({
-	name: zc.strTrim.min(2).max(255),
-	address: zc.strTrimNullable.optional(),
-	phone: zc.strTrimNullable.optional(),
-	email: zc.strTrimNullable.optional(),
-	taxId: zc.strTrimNullable.optional(),
-	taxRate: z
-		.string()
-		.regex(/^\d+(\.\d{1,2})?$/u)
-		.optional()
-		.default('0'),
-	currencyCode: zc.strTrim.max(10).optional().default('IDR'),
-	currencySymbol: zc.strTrim.max(10).optional().default('Rp'),
-	logoUrl: zc.strTrimNullable.optional(),
-	receiptFooter: zc.strTrimNullable.optional(),
-})
-export type CompanySettingsCreateDto = z.infer<typeof CompanySettingsCreateDto>
-
 // ─── Update ───
 
 export const CompanySettingsUpdateDto = z.object({

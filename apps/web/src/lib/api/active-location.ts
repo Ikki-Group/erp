@@ -3,10 +3,9 @@
  *
  * The active location lives in React context (`location-provider.tsx`) plus
  * localStorage, which non-React modules — the endpoint/query-key factories —
- * cannot read via hooks. This module mirrors the `setTokenAccessor` pattern in
- * `client.ts`: the location provider wires an accessor once at boot, and
- * framework code reads the live value through `getActiveLocationId()` with no
- * hook and no circular dependency between the query layer and the provider.
+ * cannot read via hooks. The location provider wires an accessor once at boot,
+ * and framework code reads the live value through `getActiveLocationId()` with
+ * no hook and no circular dependency between the query layer and the provider.
  *
  * `null` means the consolidated (all-locations) view — the same convention the
  * server and location provider use.

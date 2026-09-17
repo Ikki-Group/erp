@@ -11,14 +11,9 @@ export interface ApiClient {
 	readonly baseUrl: string
 }
 
-/** Token accessor — will be wired to auth state once auth module lands. */
-let getToken: (() => string | null) | undefined
-
-export function setTokenAccessor(accessor: () => string | null): void {
-	getToken = accessor
-}
-
 function createClient(baseUrl: string): ApiClient {
+	// Auth is cookie-based: the session cookie rides on `credentials: 'include'`,
+	// so there is no bearer token to attach here.
 	const client = (url: string, init?: RequestInit): Promise<Response> => {
 		const fullUrl = `${baseUrl}/${url}`
 		const headers = new Headers(init?.headers)
@@ -27,9 +22,6 @@ function createClient(baseUrl: string): ApiClient {
 		if (!headers.has('Content-Type') && init?.body) {
 			headers.set('Content-Type', 'application/json')
 		}
-
-		const token = getToken?.()
-		if (token) headers.set('Authorization', `Bearer ${token}`)
 
 		return fetch(fullUrl, { ...init, headers, credentials: 'include' })
 	}
