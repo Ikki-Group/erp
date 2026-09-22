@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 
-import { clearStoredToken, setStoredToken } from '@/lib/api/client.ts'
+import { clearStoredToken, getStoredToken, setStoredToken } from '@/lib/api/client.ts'
 import { setOnAuthError } from '@/lib/tanstack-query.ts'
 
 import { authLoginMutation, authLogoutMutation, authMeQuery } from '@/features/auth/api.ts'
@@ -68,7 +68,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	})
 
 	// ─── /auth/me query ───
-	const meQuery = useQuery(authMeQuery.queryOptions())
+	const meQuery = useQuery({
+		...authMeQuery.queryOptions(),
+		enabled: Boolean(getStoredToken()),
+	})
 	const meData = meQuery.data?.data
 
 	// ─── Login mutation ───
@@ -79,8 +82,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			const result = await loginMut.mutateAsync(credentials)
 			setStoredToken(result.data.token)
 			persistLocations(result.data.locations)
+			await queryClient.invalidateQueries({ queryKey: authMeQuery.queryKey() })
 		},
-		[loginMut],
+		[loginMut, queryClient],
 	)
 
 	// ─── Logout mutation ───

@@ -14,7 +14,8 @@ export interface AuthContext {
 }
 
 export function effectivePermissions(auth: AuthContext, locationId = auth.locationId): string[] {
-	const globalPermissions = auth.globalPermissions ?? auth.permissions
+	const globalPermissions =
+		auth.globalPermissions ?? (auth.locationId === null ? auth.permissions : [])
 	const locationPermissions = locationId === null ? [] : (auth.access?.[String(locationId)] ?? [])
 	return [...new Set([...globalPermissions, ...locationPermissions])]
 }

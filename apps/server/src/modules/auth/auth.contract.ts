@@ -2,6 +2,8 @@ import { z } from 'zod'
 
 import { zc, zp } from '@/shared/schema'
 
+import { UserDetailDto } from '@/modules/iam'
+
 // ─── Request DTOs ───
 
 export const LoginDto = z.object({
@@ -36,7 +38,7 @@ export const LoginResponseDto = z.object({
 export type LoginResponseDto = z.infer<typeof LoginResponseDto>
 
 export const MeResponseDto = z.object({
-	user: LoginUserDto,
+	user: UserDetailDto,
 	locations: z.array(LoginLocationDto),
 	permissions: z.array(z.string()),
 	globalPermissions: z.array(z.string()),

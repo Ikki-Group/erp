@@ -18,6 +18,7 @@ interface AccessMap {
 	isActive: boolean
 	globalPermissions: string[]
 	access: Record<string, string[]>
+	hasGlobalAssignment: boolean
 	isOwner: boolean
 	roleIds: number[]
 }
@@ -51,12 +52,14 @@ async function loadAccessMap(userId: number): Promise<AccessMap> {
 	const roleIds = new Set<number>()
 	const access = new Map<string, Set<string>>()
 	let isOwner = false
+	let hasGlobalAssignment = false
 
 	for (const row of rows) {
 		if (row.roleId !== null) roleIds.add(row.roleId)
 		if (row.roleCode === OWNER_ROLE_CODE) isOwner = true
 		const permissions = permissionsFromRole(row.rolePermissions)
 		if (row.assignmentLocationId === null) {
+			hasGlobalAssignment = true
 			for (const permission of permissions) globalPermissions.add(permission)
 			continue
 		}
@@ -72,6 +75,7 @@ async function loadAccessMap(userId: number): Promise<AccessMap> {
 		access: Object.fromEntries(
 			[...access].map(([locationId, permissions]) => [locationId, [...permissions]]),
 		),
+		hasGlobalAssignment,
 		isOwner,
 		roleIds: [...roleIds],
 	}
@@ -93,7 +97,7 @@ async function resolveAuth(
 	if (
 		requestedLocationId !== null &&
 		!accessMap.isOwner &&
-		accessMap.globalPermissions.length === 0 &&
+		!accessMap.hasGlobalAssignment &&
 		!accessMap.access[String(requestedLocationId)]
 	) {
 		throw new ForbiddenError('Location access denied', {
@@ -119,8 +123,7 @@ export const authPlugin = new Elysia({ name: 'auth-plugin' }).derive(
 	{ as: 'scoped' },
 	async ({ headers }): Promise<{ auth: AuthContext }> => {
 		const authHeader = headers['authorization']
-		const sessionId =
-			authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
+		const sessionId = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
 		if (!sessionId) throw new UnauthorizedError('Authorization header missing')
 
 		const rawLocationId = headers[LOCATION_ID_HEADER]

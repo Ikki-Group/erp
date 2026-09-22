@@ -4,6 +4,7 @@ import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 
 import { AlertCircleIcon, LoaderIcon } from 'lucide-react'
 
+import { getStoredToken } from '@/lib/api/client.ts'
 import { isApiError } from '@/lib/api/errors.ts'
 import { queryClient } from '@/lib/tanstack-query.ts'
 
@@ -19,6 +20,9 @@ import { useAuth } from '@/providers/auth-provider.tsx'
 
 export const Route = createFileRoute('/login')({
 	beforeLoad: async () => {
+		// Do not probe a protected endpoint for an unauthenticated visitor.
+		if (!getStoredToken()) return
+
 		// If already authenticated, redirect to dashboard
 		try {
 			const data = await queryClient.fetchQuery(authMeQuery.queryOptions())

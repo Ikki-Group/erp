@@ -1,7 +1,7 @@
 import { loginAs } from '../helpers/auth.ts'
 import { POST, GET, json } from '../helpers/request.ts'
 import type { Json } from '../helpers/request.ts'
-import { SEED_USERS } from '../helpers/seed.ts'
+import { SEED_LOCATION_ID, SEED_USERS, SEED_WAREHOUSE_ID } from '../helpers/seed.ts'
 import { describe, expect, test, beforeAll } from 'bun:test'
 
 /**
@@ -72,6 +72,8 @@ describe('auth', () => {
 
 			const body: Json = await json(res)
 			expect(body.data.user.username).toBe('owner')
+			expect(body.data.user.isActive).toBe(true)
+			expect(body.data.user.assignments).toBeInstanceOf(Array)
 			expect(body.data.permissions).toBeInstanceOf(Array)
 			expect(body.data.isOwner).toBe(true)
 			expect(body.data.access).toBeDefined()
@@ -88,6 +90,45 @@ describe('auth', () => {
 			// Session should now be invalid — requests fail
 			const meRes = await GET('/auth/me', { token: freshToken })
 			expect(meRes.status).toBeGreaterThanOrEqual(400)
+		})
+	})
+
+	// ─── Cashier Role ───
+
+	describe('multi-location user', () => {
+		let token: string
+
+		beforeAll(async () => {
+			token = await loginAs(SEED_USERS.multiLocation.username)
+		})
+
+		test('GET /auth/me returns location-scoped assignments and access', async () => {
+			const res = await GET('/auth/me', { token })
+			expect(res.status).toBe(200)
+
+			const body: Json = await json(res)
+			expect(body.data.user.username).toBe('multi-location')
+			expect(body.data.user.assignments).toHaveLength(2)
+			expect(body.data.locations).toHaveLength(2)
+			expect(body.data.globalPermissions).toHaveLength(0)
+			expect(Object.keys(body.data.access)).toEqual(expect.arrayContaining(['1', '2']))
+		})
+
+		test('GET /auth/me resolves effective permissions per requested location', async () => {
+			const storeResponse = await GET('/auth/me', { token, locationId: SEED_LOCATION_ID })
+			expect(storeResponse.status).toBe(200)
+			const storeBody: Json = await json(storeResponse)
+			expect(storeBody.data.permissions).toContain('order.create')
+			expect(storeBody.data.permissions).not.toContain('receiving.confirm')
+
+			const warehouseResponse = await GET('/auth/me', { token, locationId: SEED_WAREHOUSE_ID })
+			expect(warehouseResponse.status).toBe(200)
+			const warehouseBody: Json = await json(warehouseResponse)
+			expect(warehouseBody.data.permissions).toContain('receiving.confirm')
+			expect(warehouseBody.data.permissions).not.toContain('order.create')
+
+			const deniedResponse = await GET('/auth/me', { token, locationId: 999 })
+			expect(deniedResponse.status).toBeGreaterThanOrEqual(400)
 		})
 	})
 

@@ -1,11 +1,12 @@
 import { record } from '@/infra/otel/otel.ts'
 import { invalidateAuthCache } from '@/shared/auth/access-cache.ts'
+import { effectivePermissions } from '@/shared/auth/permission.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
 import type { SessionStore } from '@/shared/auth/session.port.ts'
 import { SESSION_TTL_DAYS } from '@/shared/config/index.ts'
 import { verifyPassword } from '@/shared/utils/index.ts'
 
-import type { AssignmentService } from '@/modules/iam/assignment/assignment.service.ts'
+import type { AssignmentService, ComposedService } from '@/modules/iam'
 import type { IUserRepo } from '@/modules/iam/user/user.repo.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 
@@ -17,6 +18,7 @@ import { AuthError } from './auth.internal.ts'
 export interface AuthServiceDeps {
 	userRepo: IUserRepo
 	assignmentService: AssignmentService
+	composedService: ComposedService
 	locationService: LocationService
 	sessionStore: SessionStore
 }
@@ -103,32 +105,39 @@ export class AuthService {
 	// ─── Me ───
 
 	async handleMe(auth: AuthContext): Promise<MeResponseDto> {
-		// Resolve user info
-		const userRow = await this.deps.userRepo.findByIdRaw(auth.userId)
-		if (!userRow) throw AuthError.sessionExpired()
+		// Use the IAM domain projection so /me stays aligned with user detail.
+		const user = await this.deps.composedService.handleUserDetail(auth.userId)
 
-		const locations = auth.isOwner
+		const globalPermissions = [
+			...new Set(auth.globalPermissions ?? (auth.locationId === null ? auth.permissions : [])),
+		]
+		const access = auth.access ?? {}
+		const hasGlobalAssignment =
+			auth.isOwner || user.assignments.some((assignment) => assignment.locationId === null)
+		const assignedLocationIds = [
+			...new Set(
+				user.assignments
+					.map((assignment) => assignment.locationId)
+					.filter((locationId): locationId is number => locationId !== null),
+			),
+		]
+
+		const locations = hasGlobalAssignment
 			? await this.deps.locationService.getAll()
-			: await this.deps.locationService.getByIds(
-					Object.keys(auth.access ?? {}).map((locationId) => Number(locationId)),
-				)
+			: await this.deps.locationService.getByIds(assignedLocationIds)
+		const permissions = effectivePermissions({ ...auth, globalPermissions, access })
 
 		return {
-			user: {
-				id: userRow.id,
-				username: userRow.username,
-				name: userRow.name,
-				email: userRow.email,
-			},
+			user,
 			locations: locations.map((loc) => ({
 				id: loc.id,
 				code: loc.code,
 				name: loc.name,
 				type: loc.type,
 			})),
-			permissions: auth.permissions,
-			globalPermissions: auth.globalPermissions ?? auth.permissions,
-			access: auth.access ?? {},
+			permissions,
+			globalPermissions,
+			access,
 			isOwner: auth.isOwner,
 		}
 	}

@@ -104,7 +104,7 @@ describe('locationScoped query key folding (runtime)', () => {
 				locationScoped: true,
 				queryKey: () => ['custom'],
 			}),
-		).toThrow(/locationScoped/)
+		).toThrow(/locationScoped/u)
 	})
 })
 

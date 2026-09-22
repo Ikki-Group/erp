@@ -96,6 +96,7 @@ export const legacyModule: ModuleDescriptor = {
 		const auth = createAuthModule({
 			userRepo: iam.userRepo,
 			assignmentService: iam.assignmentService,
+			composedService: iam.composedService,
 			locationService: location.service,
 			sessionStore: ctx.sessionStore,
 		})

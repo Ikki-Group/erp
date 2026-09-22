@@ -1,6 +1,6 @@
 import type { SessionStore } from '@/shared/auth/session.port.ts'
 
-import type { AssignmentService } from '@/modules/iam/assignment/assignment.service.ts'
+import type { AssignmentService, ComposedService } from '@/modules/iam'
 import type { IUserRepo } from '@/modules/iam/user/user.repo.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 
@@ -12,6 +12,7 @@ import { AuthService } from './auth.service.ts'
 export interface AuthModuleDeps {
 	userRepo: IUserRepo
 	assignmentService: AssignmentService
+	composedService: ComposedService
 	locationService: LocationService
 	sessionStore: SessionStore
 }

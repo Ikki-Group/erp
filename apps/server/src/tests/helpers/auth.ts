@@ -17,8 +17,8 @@ export async function loginAs(username: string, password = 'password123'): Promi
 		throw new Error(`loginAs('${username}') failed with status ${res.status}: ${body}`)
 	}
 
-	const body = await json(res)
-	const token: unknown = body.data?.token
+	const body = await json<{ data?: { token?: unknown } }>(res)
+	const token = body.data?.token
 	if (typeof token !== 'string' || !token) {
 		throw new Error(`loginAs('${username}') succeeded but no token in response body`)
 	}

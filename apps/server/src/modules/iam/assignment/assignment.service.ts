@@ -63,7 +63,26 @@ export class AssignmentService {
 		}
 
 		const result = await this.deps.uow.run(async (tx) => {
-			// 2. Check duplicate assignment
+			// 2. Owner access is global by definition.
+			const [role] = await tx
+				.select({ code: roles.code })
+				.from(roles)
+				.where(eq(roles.id, data.roleId))
+				.limit(1)
+			if (!role) {
+				throw new NotFoundError('Role not found', {
+					code: 'ROLE_NOT_FOUND',
+					context: { roleId: data.roleId },
+				})
+			}
+			if (role.code === OWNER_ROLE_CODE && data.locationId !== null) {
+				throw new BadRequestError('Owner assignment must be global', {
+					code: 'OWNER_ASSIGNMENT_MUST_BE_GLOBAL',
+					context: { roleId: data.roleId, locationId: data.locationId },
+				})
+			}
+
+			// 3. Check duplicate assignment
 			const existing = await this.repo.findExact(data.userId, data.roleId, data.locationId, tx)
 			if (existing) {
 				throw new ConflictError('Assignment already exists', {

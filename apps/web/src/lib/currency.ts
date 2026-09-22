@@ -17,7 +17,7 @@
  * (as stored).
  */
 export function toCanonicalCurrency(display: string): string {
-	let cleaned = display.replace(/[^0-9,]/g, '')
+	let cleaned = display.replace(/[^0-9,]/gu, '')
 	const firstComma = cleaned.indexOf(',')
 	if (firstComma !== -1) {
 		cleaned = cleaned.slice(0, firstComma + 1) + cleaned.slice(firstComma + 1).replaceAll(',', '')

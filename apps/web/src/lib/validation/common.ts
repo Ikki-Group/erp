@@ -16,7 +16,7 @@ const username = z
 	.trim()
 	.min(3)
 	.max(30)
-	.regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
+	.regex(/^[a-zA-Z0-9_]+$/u, 'Username can only contain letters, numbers, and underscores')
 
 const password = z.string().min(8).max(100)
 
@@ -30,8 +30,8 @@ const Timestamps = z.object({
 })
 
 const Actors = z.object({
-	createdBy: zp.id,
-	updatedBy: zp.id,
+	createdBy: zp.id.nullable(),
+	updatedBy: zp.id.nullable(),
 })
 
 const SoftDelete = z.object({

@@ -186,7 +186,7 @@ export const DEFAULT_I18N: FilterI18nConfig = {
 
 	// Helper functions
 	helpers: {
-		formatOperator: (operator: string) => operator.replace(/_/g, ' '),
+		formatOperator: (operator: string) => operator.replace(/_/gu, ' '),
 	},
 
 	// Validation
@@ -269,7 +269,7 @@ function FilterInput<T = unknown>({
 	// Validation function to check if input matches pattern
 	const validateInput = (value: string, pattern?: string): boolean => {
 		if (!pattern || !value) return true
-		const regex = new RegExp(pattern)
+		const regex = new RegExp(pattern, 'u')
 		return regex.test(value)
 	}
 
@@ -1790,14 +1790,12 @@ export function Filters<T = unknown>({
 															fieldHasOptions(field)
 														if (!hasSubMenu) {
 															addFilter(field.key)
+														} else if (openSubMenu === field.key) {
+															setOpenSubMenu(null)
+															setActiveMenu('root')
 														} else {
-															if (openSubMenu === field.key) {
-																setOpenSubMenu(null)
-																setActiveMenu('root')
-															} else {
-																setOpenSubMenu(field.key)
-																setActiveMenu(field.key)
-															}
+															setOpenSubMenu(field.key)
+															setActiveMenu(field.key)
 														}
 													}
 												} else if (e.key === 'Escape') {
@@ -1856,11 +1854,9 @@ export function Filters<T = unknown>({
 															onOpenChange={(open) => {
 																if (open) {
 																	setOpenSubMenu(fieldKey)
-																} else {
-																	if (openSubMenu === fieldKey) {
-																		setOpenSubMenu(null)
-																		setActiveMenu('root')
-																	}
+																} else if (openSubMenu === fieldKey) {
+																	setOpenSubMenu(null)
+																	setActiveMenu('root')
 																}
 															}}
 														>

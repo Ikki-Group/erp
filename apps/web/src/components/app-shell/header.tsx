@@ -18,8 +18,7 @@ import { useLocationContext } from '@/providers/location-provider.tsx'
 
 export function AppHeader() {
 	const { user, logout } = useAuth()
-	const { activeLocation, locations, isConsolidated, switchLocation, isSwitching } =
-		useLocationContext()
+	const { activeLocation, locations, isConsolidated, switchLocation } = useLocationContext()
 
 	const initials = user?.name
 		? user.name
@@ -39,10 +38,7 @@ export function AppHeader() {
 
 			{/* Location switcher */}
 			<DropdownMenu>
-				<DropdownMenuTrigger
-					className="inline-flex h-7 items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-sm font-normal hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
-					disabled={isSwitching}
-				>
+				<DropdownMenuTrigger className="inline-flex h-7 items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-sm font-normal hover:bg-accent disabled:pointer-events-none disabled:opacity-50">
 					<MapPinIcon className="size-4 text-muted-foreground" />
 					<span>{displayLocation}</span>
 					<ChevronsUpDownIcon className="size-3.5 text-muted-foreground" />

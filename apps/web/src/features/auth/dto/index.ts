@@ -2,11 +2,13 @@ import { z } from 'zod'
 
 import { zp } from '@/lib/validation/index.ts'
 
+import { UserDetailDto } from '@/features/iam/dto/index.ts'
+
 // ─── Request DTOs ───
 
 export const LoginDto = z.object({
 	username: z.string().trim().min(1),
-	password: z.string().min(1),
+	password: z.string().trim().min(1),
 })
 export type LoginDto = z.input<typeof LoginDto>
 
@@ -36,7 +38,7 @@ export const LoginResponseDto = z.object({
 export type LoginResponse = z.infer<typeof LoginResponseDto>
 
 export const MeResponseDto = z.object({
-	user: AuthUserDto,
+	user: UserDetailDto,
 	locations: z.array(AuthLocationDto),
 	permissions: z.array(z.string()),
 	globalPermissions: z.array(z.string()),

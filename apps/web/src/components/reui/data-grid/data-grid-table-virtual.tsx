@@ -527,7 +527,7 @@ function DataGridTableVirtualBody<TData extends object>({
 		)
 	})
 
-	return <>{renderedRows}</>
+	return renderedRows
 }
 
 /**

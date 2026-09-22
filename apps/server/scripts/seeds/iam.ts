@@ -17,6 +17,7 @@ export interface UserIds {
 	manager: number
 	cashier: number
 	warehouseStaff: number
+	multiLocation: number
 }
 
 // ─── Roles ───
@@ -259,6 +260,11 @@ export async function seedUsers(sql: Sql): Promise<UserIds> {
 		{ username: 'manager', email: 'manager@kedaikopi.id', name: 'Siti Rahayu' },
 		{ username: 'cashier', email: 'cashier@kedaikopi.id', name: 'Andi Pratama' },
 		{ username: 'warehouse', email: 'warehouse@kedaikopi.id', name: 'Dian Kusuma' },
+		{
+			username: 'multi-location',
+			email: 'multi-location@kedaikopi.id',
+			name: 'Rina Multi Lokasi',
+		},
 	]
 
 	const rows = await Promise.all(
@@ -277,6 +283,7 @@ export async function seedUsers(sql: Sql): Promise<UserIds> {
 		manager: rows.find((r) => r.username === 'manager')!.id as number,
 		cashier: rows.find((r) => r.username === 'cashier')!.id as number,
 		warehouseStaff: rows.find((r) => r.username === 'warehouse')!.id as number,
+		multiLocation: rows.find((r) => r.username === 'multi-location')!.id as number,
 	}
 }
 
@@ -300,6 +307,9 @@ export async function seedAssignments(
 			(${userIds.owner}, ${roleIds.owner}, NULL),
 			(${userIds.manager}, ${roleIds.manager}, ${locationIds.store}),
 			(${userIds.cashier}, ${roleIds.cashier}, ${locationIds.store}),
-			(${userIds.warehouseStaff}, ${roleIds.warehouseStaff}, ${locationIds.warehouse})
+			(${userIds.warehouseStaff}, ${roleIds.warehouseStaff}, ${locationIds.warehouse}),
+			-- Rina: manager at the store, warehouse staff at the warehouse
+			(${userIds.multiLocation}, ${roleIds.manager}, ${locationIds.store}),
+			(${userIds.multiLocation}, ${roleIds.warehouseStaff}, ${locationIds.warehouse})
 	`
 }

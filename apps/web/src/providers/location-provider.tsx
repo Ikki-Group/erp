@@ -25,9 +25,7 @@ interface LocationContextValue {
 	/** All locations the user has access to. */
 	locations: AuthLocation[]
 	/** Switch the active location. Pass `null` for consolidated view. */
-	switchLocation: (locationId: number | null) => Promise<void>
-	/** Whether a switch is currently in-flight. */
-	isSwitching: boolean
+	switchLocation: (locationId: number | null) => void
 }
 
 const LocationContext = createContext<LocationContextValue | undefined>(undefined)
@@ -73,7 +71,7 @@ export function LocationProvider({ children, locations }: LocationProviderProps)
 	}, [currentLocation, locations])
 
 	const switchLocation = useCallback(
-		async (locationId: number | null) => {
+		(locationId: number | null) => {
 			// Location-scoped queries fold the active `locationId` into their cache
 			// key (see `createResourceKeys({ locationScoped: true })`), so switching
 			// location changes those keys: the new location's data is a natural
@@ -103,7 +101,6 @@ export function LocationProvider({ children, locations }: LocationProviderProps)
 			isConsolidated: currentLocation === null,
 			locations,
 			switchLocation,
-			isSwitching: false,
 		}),
 		[currentLocation, locations, switchLocation],
 	)
