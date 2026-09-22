@@ -73,7 +73,7 @@ export function IdSelectField({
 				<SelectTrigger id={fieldId} className="w-full" aria-invalid={!!error}>
 					<span
 						data-slot="select-value"
-						className={cn('flex flex-1 text-left', !selectedLabel && 'text-muted-foreground')}
+						className={cn('min-w-0 flex-1 text-left', !selectedLabel && 'text-muted-foreground')}
 					>
 						{selectedLabel ?? placeholder}
 					</span>
