@@ -3,6 +3,8 @@ import { createColumnHelper } from '@tanstack/react-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { StatusBadge } from '@/components/shared/status-badge'
 
+import { Badge } from '@/components/ui/badge'
+
 import type { RoleDto } from '../dto/index.ts'
 
 const col = createColumnHelper<DataGridFeatures, RoleDto>()
@@ -10,7 +12,8 @@ const col = createColumnHelper<DataGridFeatures, RoleDto>()
 export const roleColumns = [
 	col.accessor('code', {
 		header: 'Code',
-		size: 140,
+		size: 160,
+		cell: ({ getValue }) => <code className="text-xs text-muted-foreground">{getValue()}</code>,
 	}),
 	col.accessor('name', {
 		header: 'Name',
@@ -21,7 +24,11 @@ export const roleColumns = [
 		size: 120,
 		cell: ({ getValue }) => {
 			const perms = getValue()
-			return <span className="text-muted-foreground">{perms.length} assigned</span>
+			return (
+				<Badge variant="outline" className="font-normal">
+					{perms.length} permissions
+				</Badge>
+			)
 		},
 	}),
 	col.accessor('isSystem', {

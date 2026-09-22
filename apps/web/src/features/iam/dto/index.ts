@@ -156,6 +156,7 @@ export type RoleDto = z.infer<typeof RoleDto>
 export const RoleFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
+	isSystem: z.coerce.number().int().min(0).max(1).optional(),
 })
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 

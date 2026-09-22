@@ -5,6 +5,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import { z } from 'zod'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
@@ -24,7 +25,9 @@ import { roleColumns } from '@/features/iam/components/role-table.tsx'
 import type { RoleDto } from '@/features/iam/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/settings/roles/')({
-	validateSearch: listSearchSchema,
+	validateSearch: listSearchSchema.extend({
+		isSystem: z.coerce.number().int().min(0).max(1).optional(),
+	}),
 	component: RolesPage,
 })
 
@@ -35,7 +38,12 @@ function RolesPage() {
 	const canDelete = usePermissionCheck({ permission: 'iam.delete' })
 
 	const listQuery = useQuery(
-		roleResource.list.queryOptions({ page: search.page, limit: search.pageSize, q: search.q }),
+		roleResource.list.queryOptions({
+			page: search.page,
+			limit: search.pageSize,
+			q: search.q,
+			isSystem: search.isSystem,
+		}),
 	)
 	const removeMut = useMutation(roleResource.remove.mutationOptions())
 
@@ -139,7 +147,26 @@ function RolesPage() {
 						<TableToolbar
 							searchValue={globalFilter}
 							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search roles..."
+							searchPlaceholder="Search by code or name..."
+							filters={[
+								{
+									key: 'isSystem',
+									label: 'Type',
+									value: search.isSystem?.toString(),
+									options: [
+										{ label: 'System roles', value: '1' },
+										{ label: 'Custom roles', value: '0' },
+									],
+									onChange: (value) =>
+										navigate({
+											search: {
+												...search,
+												page: 1,
+												isSystem: value === undefined ? undefined : Number(value),
+											},
+										}),
+								},
+							]}
 						/>
 					}
 				/>

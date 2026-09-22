@@ -3,6 +3,7 @@ import { roles, userAssignments } from '@/db/schema/iam.ts'
 import {
 	allOf,
 	eq,
+	eqIf,
 	inArray,
 	searchAcross,
 	sql,
@@ -141,6 +142,9 @@ export class RoleRepo implements IRoleRepo {
 	// ─── Private ───
 
 	#buildWhere(filter: RoleFilterDto) {
-		return allOf(searchAcross(filter.q, [roles.code, roles.name]))
+		return allOf(
+			searchAcross(filter.q, [roles.code, roles.name]),
+			eqIf(roles.isSystem, filter.isSystem === undefined ? undefined : filter.isSystem === 1),
+		)
 	}
 }
