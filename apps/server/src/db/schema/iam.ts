@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import {
 	pgTable,
 	varchar,
@@ -58,10 +59,15 @@ export const userAssignments = pgTable(
 		roleId: integer('role_id')
 			.notNull()
 			.references(() => roles.id, { onDelete: 'restrict' }),
-		locationId: integer('location_id').references(() => locations.id, { onDelete: 'set null' }),
+		locationId: integer('location_id').references(() => locations.id, { onDelete: 'restrict' }),
 	},
 	(t) => [
-		uniqueIndex('user_assignments_user_role_location_uniq').on(t.userId, t.roleId, t.locationId),
+		uniqueIndex('user_assignments_user_role_location_uniq')
+			.on(t.userId, t.roleId, t.locationId)
+			.where(sql`${t.locationId} is not null`),
+		uniqueIndex('user_assignments_user_role_global_uniq')
+			.on(t.userId, t.roleId)
+			.where(sql`${t.locationId} is null`),
 		index('user_assignments_user_id_idx').on(t.userId),
 		index('user_assignments_role_id_idx').on(t.roleId),
 		index('user_assignments_location_id_idx').on(t.locationId),

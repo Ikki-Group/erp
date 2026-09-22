@@ -135,6 +135,12 @@ export const PERMISSION_GROUPS = [
 	},
 ] as const
 
+const permissionSet = new Set<string>(PERMISSION_GROUPS.flatMap((group) => group.permissions))
+const permissionValue = z.string().refine((value) => permissionSet.has(value), {
+	message: 'Unknown permission',
+})
+const rolePermissions = z.array(permissionValue).default([])
+
 // ─── Role ───
 
 export const RoleDto = z.object({
@@ -156,7 +162,7 @@ export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 export const RoleCreateDto = z.object({
 	code: zc.strTrim.min(2).max(50),
 	name: zc.strTrim.min(2).max(255),
-	permissions: z.array(z.string()).default([]),
+	permissions: rolePermissions,
 })
 export type RoleCreateDto = z.infer<typeof RoleCreateDto>
 
@@ -164,7 +170,7 @@ export const RoleUpdateDto = z.object({
 	id: zp.id,
 	code: zc.strTrim.min(2).max(50),
 	name: zc.strTrim.min(2).max(255),
-	permissions: z.array(z.string()).default([]),
+	permissions: rolePermissions,
 })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
 

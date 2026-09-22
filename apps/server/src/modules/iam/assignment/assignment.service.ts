@@ -1,4 +1,4 @@
-import { roles } from '@/db/schema/iam.ts'
+import { roles, users } from '@/db/schema/iam.ts'
 
 import { eq } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
@@ -63,6 +63,18 @@ export class AssignmentService {
 		}
 
 		const result = await this.deps.uow.run(async (tx) => {
+			const [user] = await tx
+				.select({ id: users.id })
+				.from(users)
+				.where(eq(users.id, data.userId))
+				.limit(1)
+			if (!user) {
+				throw new NotFoundError('User not found', {
+					code: 'USER_NOT_FOUND',
+					context: { userId: data.userId },
+				})
+			}
+
 			// 2. Owner access is global by definition.
 			const [role] = await tx
 				.select({ code: roles.code })

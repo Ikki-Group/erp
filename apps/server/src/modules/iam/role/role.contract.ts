@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { permissionsSchema } from '@/shared/auth/permissions.ts'
 import { zc, zp, zq } from '@/shared/schema/index.ts'
 
 // ─── Response ───
@@ -27,7 +28,7 @@ export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 const RoleMutationDto = z.object({
 	code: zc.strTrim.min(2).max(50),
 	name: zc.strTrim.min(2).max(255),
-	permissions: z.array(z.string()).default([]),
+	permissions: permissionsSchema,
 })
 
 // ─── Create / Update ───

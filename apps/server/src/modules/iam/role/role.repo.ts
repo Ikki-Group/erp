@@ -1,4 +1,4 @@
-import { roles } from '@/db/schema/iam.ts'
+import { roles, userAssignments } from '@/db/schema/iam.ts'
 
 import {
 	allOf,
@@ -49,6 +49,8 @@ export interface IRoleRepo {
 	findPage(filter: RoleFilterDto, db?: DbContext): Promise<WithPaginationResult<RoleDto>>
 	insert(data: RoleInsert, db?: DbContext): Promise<EntityRef | undefined>
 	update(id: number, data: RoleUpdate, db?: DbContext): Promise<EntityRef | undefined>
+	countAssignments(roleId: number, db?: DbContext): Promise<number>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
 }
 
 // ─── Implementation ───
@@ -120,6 +122,19 @@ export class RoleRepo implements IRoleRepo {
 			.set(data)
 			.where(eq(roles.id, id))
 			.returning({ id: roles.id })
+		return result
+	}
+
+	async countAssignments(roleId: number, db: DbContext = this.db): Promise<number> {
+		const rows = await db
+			.select({ id: userAssignments.id })
+			.from(userAssignments)
+			.where(eq(userAssignments.roleId, roleId))
+		return rows.length
+	}
+
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [result] = await db.delete(roles).where(eq(roles.id, id)).returning({ id: roles.id })
 		return result
 	}
 

@@ -58,7 +58,7 @@ async function loadAccessMap(userId: number): Promise<AccessMap> {
 		if (row.roleId !== null) roleIds.add(row.roleId)
 		if (row.roleCode === OWNER_ROLE_CODE) isOwner = true
 		const permissions = permissionsFromRole(row.rolePermissions)
-		if (row.assignmentLocationId === null) {
+		if (row.roleId !== null && row.assignmentLocationId === null) {
 			hasGlobalAssignment = true
 			for (const permission of permissions) globalPermissions.add(permission)
 			continue

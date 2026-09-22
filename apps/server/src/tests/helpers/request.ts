@@ -80,10 +80,15 @@ export async function PUT(path: string, opts: RequestOptions = {}): Promise<Resp
 }
 
 export async function DELETE(path: string, opts: RequestOptions = {}): Promise<Response> {
+	const headers: Record<string, string> = {
+		'content-type': 'application/json',
+		...buildHeaders(opts),
+	}
 	return testApp.handle(
 		new Request(buildUrl(path, opts.query), {
 			method: 'DELETE',
-			headers: buildHeaders(opts),
+			headers,
+			body: opts.body ? JSON.stringify(opts.body) : undefined,
 		}),
 	)
 }

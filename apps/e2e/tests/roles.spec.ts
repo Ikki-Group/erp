@@ -18,15 +18,15 @@ test.describe('Roles - CRUD', () => {
 		await expect(page.getByRole('button', { name: /add role/i })).toBeVisible()
 	})
 
-	/** Opening create dialog */
-	test('opens create dialog when clicking Add Role', async ({ page, login }) => {
+	/** Opening the full-page create form */
+	test('opens create form when clicking Add Role', async ({ page, login }) => {
 		await login()
 		await page.goto('/settings/roles')
 
 		await page.getByRole('button', { name: /add role/i }).click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText('Add Role')).toBeVisible()
+		await expect(page).toHaveURL(/\/settings\/roles\/new$/)
+		await expect(page.getByRole('heading', { name: 'Add Role' })).toBeVisible()
 	})
 
 	/** Create a new role end-to-end */

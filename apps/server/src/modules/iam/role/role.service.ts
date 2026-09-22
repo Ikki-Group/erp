@@ -143,9 +143,10 @@ export class RoleService {
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw RoleError.notFound(id)
 			if (existing.isSystem) throw RoleError.systemRoleImmutable()
+			if ((await this.repo.countAssignments(id, tx)) > 0) throw RoleError.assignedRole(id)
 
-			const written = await this.repo.update(id, stampUpdate(actor.id), tx)
-			if (!written) throw RoleError.updateFailed(id)
+			const written = await this.repo.remove(id, tx)
+			if (!written) throw RoleError.deleteFailed(id)
 			await this.deps.audit.record(
 				auditEntryOf(actor, {
 					module: 'iam',

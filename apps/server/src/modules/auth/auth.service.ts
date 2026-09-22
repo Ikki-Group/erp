@@ -33,6 +33,25 @@ export interface LoginResult {
 
 // ─── Service ───
 
+function locationIdsFromAssignments(
+	assignments: ReadonlyArray<{ locationId: number | null }>,
+): number[] {
+	return [
+		...new Set(
+			assignments
+				.map((assignment) => assignment.locationId)
+				.filter((locationId): locationId is number => locationId !== null),
+		),
+	]
+}
+
+function hasGlobalAssignment(
+	assignments: ReadonlyArray<{ locationId: number | null }>,
+	isOwner = false,
+): boolean {
+	return isOwner || assignments.some((assignment) => assignment.locationId === null)
+}
+
 export class AuthService {
 	constructor(private readonly deps: AuthServiceDeps) {}
 
@@ -53,11 +72,8 @@ export class AuthService {
 
 			// 4. Resolve user's assigned locations
 			const assignments = await this.deps.assignmentService.findByUserId(user.id)
-			const locationIds = [
-				...new Set(assignments.map((a) => a.locationId).filter((id): id is number => id !== null)),
-			]
-
-			const validLocations = assignments.some((assignment) => assignment.locationId === null)
+			const locationIds = locationIdsFromAssignments(assignments)
+			const validLocations = hasGlobalAssignment(assignments)
 				? await this.deps.locationService.getAll()
 				: await this.deps.locationService.getByIds(locationIds)
 
@@ -112,17 +128,10 @@ export class AuthService {
 			...new Set(auth.globalPermissions ?? (auth.locationId === null ? auth.permissions : [])),
 		]
 		const access = auth.access ?? {}
-		const hasGlobalAssignment =
-			auth.isOwner || user.assignments.some((assignment) => assignment.locationId === null)
-		const assignedLocationIds = [
-			...new Set(
-				user.assignments
-					.map((assignment) => assignment.locationId)
-					.filter((locationId): locationId is number => locationId !== null),
-			),
-		]
+		const hasGlobal = hasGlobalAssignment(user.assignments, auth.isOwner)
+		const assignedLocationIds = locationIdsFromAssignments(user.assignments)
 
-		const locations = hasGlobalAssignment
+		const locations = hasGlobal
 			? await this.deps.locationService.getAll()
 			: await this.deps.locationService.getByIds(assignedLocationIds)
 		const permissions = effectivePermissions({ ...auth, globalPermissions, access })

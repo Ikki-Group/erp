@@ -1,7 +1,12 @@
 import { roles } from '@/db/schema/iam.ts'
 
 import { defineConflictFields } from '@/infra/database/index.ts'
-import { ForbiddenError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import {
+	ConflictError,
+	ForbiddenError,
+	InternalServerError,
+	NotFoundError,
+} from '@/shared/errors/http-error.ts'
 
 import type { RoleCreateDto } from './role.contract.ts'
 
@@ -14,8 +19,18 @@ export const RoleError = {
 		new InternalServerError('Role creation failed', { code: 'ROLE_CREATE_FAILED' }),
 	updateFailed: (id: number) =>
 		new InternalServerError('Role update failed', { code: 'ROLE_UPDATE_FAILED', context: { id } }),
+	deleteFailed: (id: number) =>
+		new InternalServerError('Role deletion failed', {
+			code: 'ROLE_DELETE_FAILED',
+			context: { id },
+		}),
 	systemRoleImmutable: () =>
 		new ForbiddenError('System role cannot be modified', { code: 'SYSTEM_ROLE_IMMUTABLE' }),
+	assignedRole: (id: number) =>
+		new ConflictError('Role is assigned to one or more users', {
+			code: 'ROLE_ASSIGNED',
+			context: { id },
+		}),
 }
 
 // ─── Unique Constraint Fields ───

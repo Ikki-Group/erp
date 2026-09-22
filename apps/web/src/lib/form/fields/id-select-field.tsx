@@ -1,13 +1,7 @@
 import { cn } from '@/lib/utils'
 
 import { Label } from '@/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 
 import { useFieldContext } from '../contexts.ts'
 import { formatFieldError } from '../field-error.tsx'
@@ -59,6 +53,10 @@ export function IdSelectField({
 	const field = useFieldContext<number | null>()
 	const fieldId = field.name
 	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
+	const selectedLabel =
+		field.state.value === null
+			? nullableLabel
+			: options.find((option) => String(option.value) === idToString(field.state.value))?.label
 
 	return (
 		<div className={cn('space-y-1.5', className)}>
@@ -73,7 +71,12 @@ export function IdSelectField({
 				disabled={disabled}
 			>
 				<SelectTrigger id={fieldId} className="w-full" aria-invalid={!!error}>
-					<SelectValue placeholder={placeholder} />
+					<span
+						data-slot="select-value"
+						className={cn('flex flex-1 text-left', !selectedLabel && 'text-muted-foreground')}
+					>
+						{selectedLabel ?? placeholder}
+					</span>
 				</SelectTrigger>
 				<SelectContent>
 					{nullableLabel && <SelectItem value="">{nullableLabel}</SelectItem>}

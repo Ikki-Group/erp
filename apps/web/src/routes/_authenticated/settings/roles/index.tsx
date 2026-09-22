@@ -46,7 +46,7 @@ function RolesPage() {
 		async (role: RoleDto) => {
 			await confirm({
 				title: 'Delete role?',
-				description: `This will permanently delete "${role.name}". Users assigned to this role will lose its permissions.`,
+				description: `This will permanently delete "${role.name}". A role cannot be deleted while it is assigned to users.`,
 				confirmLabel: 'Delete',
 				variant: 'destructive',
 				onConfirm: async () => {

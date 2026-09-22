@@ -45,11 +45,10 @@ function NewUserPage() {
 				isActive: values.isActive,
 			})
 
-			if (values.roleId) {
+			for (const assignment of values.assignments) {
 				await assignMut.mutateAsync({
 					userId: result.data.id,
-					roleId: values.roleId,
-					locationId: values.locationId,
+					...assignment,
 				})
 			}
 

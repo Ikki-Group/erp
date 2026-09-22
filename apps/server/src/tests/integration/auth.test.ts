@@ -1,5 +1,5 @@
 import { loginAs } from '../helpers/auth.ts'
-import { POST, GET, json } from '../helpers/request.ts'
+import { DELETE, POST, GET, json } from '../helpers/request.ts'
 import type { Json } from '../helpers/request.ts'
 import { SEED_LOCATION_ID, SEED_USERS, SEED_WAREHOUSE_ID } from '../helpers/seed.ts'
 import { describe, expect, test, beforeAll } from 'bun:test'
@@ -130,6 +130,33 @@ describe('auth', () => {
 			const deniedResponse = await GET('/auth/me', { token, locationId: 999 })
 			expect(deniedResponse.status).toBeGreaterThanOrEqual(400)
 		})
+	})
+
+	test('user without assignments cannot use a location-scoped route', async () => {
+		const ownerToken = await loginAs(SEED_USERS.owner.username)
+		const suffix = Date.now()
+		const createResponse = await POST('/iam/user/create', {
+			token: ownerToken,
+			body: {
+				username: `unassigned-${suffix}`,
+				email: `unassigned-${suffix}@example.com`,
+				name: 'Unassigned User',
+				password: 'password123',
+				isActive: true,
+			},
+		})
+		expect(createResponse.status).toBe(201)
+		const token = await loginAs(`unassigned-${suffix}`)
+
+		const response = await GET('/location/list', { token, locationId: SEED_LOCATION_ID })
+		expect(response.status).toBeGreaterThanOrEqual(400)
+
+		const created = await json<{ data: { id: number } }>(createResponse)
+		const deactivateResponse = await DELETE('/iam/user/deactivate', {
+			token: ownerToken,
+			query: { id: String(created.data.id) },
+		})
+		expect(deactivateResponse.status).toBe(200)
 	})
 
 	// ─── Cashier Role ───
