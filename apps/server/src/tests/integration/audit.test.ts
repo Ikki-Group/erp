@@ -6,7 +6,7 @@ import { describe, expect, test } from 'bun:test'
 describe('audit', () => {
 	test('owner can list audit entries', async () => {
 		const response = await GET('/audit/list', {
-			cookie: await loginAs(SEED_USERS.owner.username),
+			token: await loginAs(SEED_USERS.owner.username),
 		})
 
 		expect(response.status).toBe(200)
@@ -18,7 +18,7 @@ describe('audit', () => {
 
 	test('cashier cannot list audit entries', async () => {
 		const response = await GET('/audit/list', {
-			cookie: await loginAs(SEED_USERS.cashier.username),
+			token: await loginAs(SEED_USERS.cashier.username),
 		})
 
 		expect(response.status).toBe(403)
@@ -29,9 +29,9 @@ describe('audit', () => {
 	})
 
 	test('list filters by module', async () => {
-		const cookie = await loginAs(SEED_USERS.owner.username)
+		const token = await loginAs(SEED_USERS.owner.username)
 		const response = await GET('/audit/list', {
-			cookie,
+			token,
 			query: { module: 'iam', limit: '100' },
 		})
 		expect(response.status).toBe(200)
@@ -43,12 +43,12 @@ describe('audit', () => {
 	})
 
 	test('list date range excludes entries outside the window', async () => {
-		const cookie = await loginAs(SEED_USERS.owner.username)
+		const token = await loginAs(SEED_USERS.owner.username)
 		// A window entirely in the future can contain no past audit entries.
 		const future = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
 		const laterFuture = new Date(future.getTime() + 24 * 60 * 60 * 1000)
 		const response = await GET('/audit/list', {
-			cookie,
+			token,
 			query: {
 				dateFrom: future.toISOString(),
 				dateTo: laterFuture.toISOString(),

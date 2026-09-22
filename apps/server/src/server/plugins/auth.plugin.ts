@@ -8,11 +8,7 @@ import { sessionStore } from '@/infra/session/index.ts'
 import { getAuthAccessMap, invalidateAuthCache } from '@/shared/auth/access-cache.ts'
 import { effectivePermissions } from '@/shared/auth/permission.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
-import {
-	SESSION_COOKIE_NAME,
-	OWNER_ROLE_CODE,
-	AUTH_CACHE_TTL_SECONDS,
-} from '@/shared/config/index.ts'
+import { OWNER_ROLE_CODE, AUTH_CACHE_TTL_SECONDS } from '@/shared/config/index.ts'
 import { ForbiddenError, UnauthorizedError } from '@/shared/errors/http-error.ts'
 
 const LOCATION_ID_HEADER = 'x-location-id'
@@ -107,6 +103,7 @@ async function resolveAuth(
 	}
 
 	const auth: AuthContext = {
+		sessionId,
 		userId: session.userId,
 		userName: accessMap.userName,
 		locationId: requestedLocationId,
@@ -120,10 +117,11 @@ async function resolveAuth(
 
 export const authPlugin = new Elysia({ name: 'auth-plugin' }).derive(
 	{ as: 'scoped' },
-	async ({ cookie, headers }): Promise<{ auth: AuthContext }> => {
-		const sessionCookie = cookie[SESSION_COOKIE_NAME]
-		const sessionId = sessionCookie ? String(sessionCookie.value) : undefined
-		if (!sessionId) throw new UnauthorizedError('Session cookie missing')
+	async ({ headers }): Promise<{ auth: AuthContext }> => {
+		const authHeader = headers['authorization']
+		const sessionId =
+			authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
+		if (!sessionId) throw new UnauthorizedError('Authorization header missing')
 
 		const rawLocationId = headers[LOCATION_ID_HEADER]
 		const requestedLocationId = rawLocationId === undefined ? null : Number(rawLocationId)

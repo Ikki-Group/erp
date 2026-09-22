@@ -74,6 +74,7 @@ export class AuthService {
 				sessionId,
 				expiresAt,
 				response: {
+					token: sessionId,
 					user: {
 						id: user.id,
 						username: user.username,
@@ -86,7 +87,6 @@ export class AuthService {
 						name: loc.name,
 						type: loc.type,
 					})),
-					activeLocationId: null,
 				},
 			}
 		})
@@ -113,20 +113,6 @@ export class AuthService {
 					Object.keys(auth.access ?? {}).map((locationId) => Number(locationId)),
 				)
 
-		// Resolve active location
-		let activeLocation: MeResponseDto['activeLocation'] = null
-		if (auth.locationId) {
-			const loc = await this.deps.locationService.getById(auth.locationId)
-			if (loc) {
-				activeLocation = {
-					id: loc.id,
-					code: loc.code,
-					name: loc.name,
-					type: loc.type,
-				}
-			}
-		}
-
 		return {
 			user: {
 				id: userRow.id,
@@ -140,7 +126,6 @@ export class AuthService {
 				name: loc.name,
 				type: loc.type,
 			})),
-			activeLocation,
 			permissions: auth.permissions,
 			globalPermissions: auth.globalPermissions ?? auth.permissions,
 			access: auth.access ?? {},

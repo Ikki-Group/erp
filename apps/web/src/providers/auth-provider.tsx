@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 
+import { clearStoredToken, setStoredToken } from '@/lib/api/client.ts'
 import { setOnAuthError } from '@/lib/tanstack-query.ts'
 
 import { authLoginMutation, authLogoutMutation, authMeQuery } from '@/features/auth/api.ts'
@@ -36,6 +37,8 @@ interface AuthContextValue {
 	user: AuthUser | null
 	permissions: string[]
 	isOwner: boolean
+	globalPermissions: string[]
+	access: Record<string, string[]>
 	isAuthenticated: boolean
 	isLoading: boolean
 	/** All locations the user has access to (persisted from login). */
@@ -60,6 +63,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	setOnAuthError(() => {
 		queryClient.clear()
 		clearLocations()
+		clearStoredToken()
 		navigate({ to: '/login', replace: true })
 	})
 
@@ -73,7 +77,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const login = useCallback(
 		async (credentials: LoginDto) => {
 			const result = await loginMut.mutateAsync(credentials)
-			// Persist locations for use after page refresh
+			setStoredToken(result.data.token)
 			persistLocations(result.data.locations)
 		},
 		[loginMut],
@@ -84,6 +88,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 	const logout = useCallback(async () => {
 		await logoutMut.mutateAsync()
+		clearStoredToken()
 		queryClient.clear()
 		clearLocations()
 		navigate({ to: '/login', replace: true })
@@ -92,22 +97,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	// ─── Derived state ───
 	const permissions = meData?.permissions ?? []
 	const isOwner = meData?.isOwner ?? false
+	const globalPermissions = meData?.globalPermissions ?? permissions
+	const access = meData?.access ?? {}
 
 	// Load locations from localStorage (set during login)
-	const locations = useMemo(() => loadLocations(), [meData])
+	const locations = meData?.locations ?? loadLocations()
 
 	const value = useMemo<AuthContextValue>(
 		() => ({
 			user: meData?.user ?? null,
 			permissions,
 			isOwner,
+			globalPermissions,
+			access,
 			isAuthenticated: !!meData?.user,
 			isLoading: meQuery.isLoading,
 			locations,
 			login,
 			logout,
 		}),
-		[meData, permissions, isOwner, meQuery.isLoading, locations, login, logout],
+		[
+			meData,
+			permissions,
+			isOwner,
+			globalPermissions,
+			access,
+			meQuery.isLoading,
+			locations,
+			login,
+			logout,
+		],
 	)
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

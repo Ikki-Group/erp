@@ -9,10 +9,6 @@ interface LoginBody {
 	password: string
 }
 
-interface SwitchLocationBody {
-	locationId: number
-}
-
 function toAuthUser(user: { id: number; username: string; name: string; email: string }) {
 	return { id: user.id, username: user.username, name: user.name, email: user.email }
 }
@@ -29,7 +25,6 @@ registerRoute('post', endpoint.auth.login, (_params, body) => {
 	return mockSuccess({
 		user: toAuthUser(user),
 		locations: session.accessibleLocations().map(toAuthLocation),
-		activeLocationId: session.currentLocation()?.id ?? null,
 	})
 })
 
@@ -39,8 +34,10 @@ registerRoute('get', endpoint.auth.me, () => {
 
 	return mockSuccess({
 		user: toAuthUser(user),
-		activeLocation: session.currentLocation() ? toAuthLocation(session.currentLocation()!) : null,
+		locations: session.accessibleLocations().map(toAuthLocation),
 		permissions: user.permissions,
+		globalPermissions: user.permissions,
+		access: {},
 		isOwner: user.isOwner,
 	})
 })
@@ -48,11 +45,4 @@ registerRoute('get', endpoint.auth.me, () => {
 registerRoute('post', endpoint.auth.logout, () => {
 	session.logout()
 	return mockSuccess(undefined)
-})
-
-registerRoute('post', endpoint.auth.switchLocation, (_params, body) => {
-	const { locationId } = body as SwitchLocationBody
-	const loc = session.switchLocation(locationId)
-	if (!loc) return mockError(404, 'Lokasi tidak ditemukan.', 'NOT_FOUND')
-	return mockSuccess({ activeLocation: toAuthLocation(loc) })
 })

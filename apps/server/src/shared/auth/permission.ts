@@ -3,6 +3,7 @@ import { ForbiddenError } from '@/shared/errors/http-error.ts'
 // ─── Types ───
 
 export interface AuthContext {
+	sessionId: string
 	userId: number
 	userName: string
 	locationId: number | null

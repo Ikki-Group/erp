@@ -10,11 +10,6 @@ export const LoginDto = z.object({
 })
 export type LoginDto = z.input<typeof LoginDto>
 
-export const SwitchLocationDto = z.object({
-	locationId: zp.id,
-})
-export type SwitchLocationDto = z.input<typeof SwitchLocationDto>
-
 // ─── Response DTOs ───
 
 const AuthUserDto = z.object({
@@ -34,21 +29,18 @@ const AuthLocationDto = z.object({
 export type AuthLocation = z.infer<typeof AuthLocationDto>
 
 export const LoginResponseDto = z.object({
+	token: zp.str,
 	user: AuthUserDto,
 	locations: z.array(AuthLocationDto),
-	activeLocationId: zp.id.nullable(),
 })
 export type LoginResponse = z.infer<typeof LoginResponseDto>
 
 export const MeResponseDto = z.object({
 	user: AuthUserDto,
-	activeLocation: AuthLocationDto.nullable(),
+	locations: z.array(AuthLocationDto),
 	permissions: z.array(z.string()),
+	globalPermissions: z.array(z.string()),
+	access: z.record(z.string(), z.array(z.string())),
 	isOwner: zp.bool,
 })
 export type MeResponse = z.infer<typeof MeResponseDto>
-
-export const SwitchLocationResponseDto = z.object({
-	activeLocation: AuthLocationDto,
-})
-export type SwitchLocationResponse = z.infer<typeof SwitchLocationResponseDto>

@@ -14,14 +14,14 @@ import { describe, expect, test, beforeAll } from 'bun:test'
 describe('auth', () => {
 	// ─── Login ───
 
-	test('login with valid credentials returns 200 + session cookie', async () => {
+	test('login with valid credentials returns 200 + token', async () => {
 		const res = await POST('/auth/login', {
 			body: { username: SEED_USERS.owner.username, password: SEED_USERS.owner.password },
 		})
 		expect(res.status).toBe(200)
-		expect(res.headers.get('set-cookie')).toBeTruthy()
 
 		const body = await json(res)
+		expect(typeof body.data.token).toBe('string')
 		expect(body.data.user.username).toBe('owner')
 		expect(body.data.locations).toBeInstanceOf(Array)
 	})
@@ -60,31 +60,33 @@ describe('auth', () => {
 	// ─── Protected Routes (with session) ───
 
 	describe('authenticated', () => {
-		let cookie: string
+		let token: string
 
 		beforeAll(async () => {
-			cookie = await loginAs(SEED_USERS.owner.username)
+			token = await loginAs(SEED_USERS.owner.username)
 		})
 
 		test('GET /auth/me returns user info', async () => {
-			const res = await GET('/auth/me', { cookie })
+			const res = await GET('/auth/me', { token })
 			expect(res.status).toBe(200)
 
 			const body: Json = await json(res)
 			expect(body.data.user.username).toBe('owner')
 			expect(body.data.permissions).toBeInstanceOf(Array)
 			expect(body.data.isOwner).toBe(true)
+			expect(body.data.access).toBeDefined()
+			expect(body.data.globalPermissions).toBeInstanceOf(Array)
 		})
 
 		test('logout clears session', async () => {
 			// Login fresh to get a disposable session
-			const freshCookie = await loginAs(SEED_USERS.owner.username)
+			const freshToken = await loginAs(SEED_USERS.owner.username)
 
-			const logoutRes = await POST('/auth/logout', { cookie: freshCookie })
+			const logoutRes = await POST('/auth/logout', { token: freshToken })
 			expect(logoutRes.status).toBe(200)
 
 			// Session should now be invalid — requests fail
-			const meRes = await GET('/auth/me', { cookie: freshCookie })
+			const meRes = await GET('/auth/me', { token: freshToken })
 			expect(meRes.status).toBeGreaterThanOrEqual(400)
 		})
 	})
@@ -92,14 +94,14 @@ describe('auth', () => {
 	// ─── Cashier Role ───
 
 	describe('cashier user', () => {
-		let cookie: string
+		let token: string
 
 		beforeAll(async () => {
-			cookie = await loginAs(SEED_USERS.cashier.username)
+			token = await loginAs(SEED_USERS.cashier.username)
 		})
 
 		test('GET /auth/me returns cashier info', async () => {
-			const res = await GET('/auth/me', { cookie })
+			const res = await GET('/auth/me', { token })
 			expect(res.status).toBe(200)
 
 			const body: Json = await json(res)

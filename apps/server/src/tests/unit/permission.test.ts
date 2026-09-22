@@ -7,6 +7,7 @@ import { describe, expect, test } from 'bun:test'
 // ─── Fixtures ───
 
 const owner: AuthContext = {
+	sessionId: 'test-session-owner',
 	userId: 1,
 	userName: 'Owner User',
 	locationId: 1,
@@ -15,6 +16,7 @@ const owner: AuthContext = {
 }
 
 const cashier: AuthContext = {
+	sessionId: 'test-session-cashier',
 	userId: 2,
 	userName: 'Cashier User',
 	locationId: 1,
@@ -23,6 +25,7 @@ const cashier: AuthContext = {
 }
 
 const noPerms: AuthContext = {
+	sessionId: 'test-session-noperms',
 	userId: 3,
 	userName: 'No Permissions User',
 	locationId: 1,

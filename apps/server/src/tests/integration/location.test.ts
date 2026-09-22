@@ -5,11 +5,11 @@ import { describe, expect, test } from 'bun:test'
 
 describe('location', () => {
 	test('create → get → update → list → soft delete', async () => {
-		const cookie = await loginAs(SEED_USERS.owner.username)
+		const token = await loginAs(SEED_USERS.owner.username)
 		const suffix = crypto.randomUUID().slice(0, 8)
 		const code = `TEST-${suffix}`
 		const created = await POST('/location/create', {
-			cookie,
+			token,
 			body: {
 				code,
 				name: `Test Location ${suffix}`,
@@ -24,12 +24,12 @@ describe('location', () => {
 		const createdBody = await json(created)
 		const id = createdBody.data.id
 
-		const detail = await GET('/location/detail', { cookie, query: { id: String(id) } })
+		const detail = await GET('/location/detail', { token, query: { id: String(id) } })
 		expect(detail.status).toBe(200)
 		expect((await json(detail)).data.code).toBe(code)
 
 		const updated = await PUT('/location/update', {
-			cookie,
+			token,
 			body: {
 				id,
 				code,
@@ -42,13 +42,13 @@ describe('location', () => {
 		})
 		expect(updated.status).toBe(200)
 
-		const listed = await GET('/location/list', { cookie, query: { q: suffix } })
+		const listed = await GET('/location/list', { token, query: { q: suffix } })
 		expect(listed.status).toBe(200)
 		expect((await json(listed)).data[0].name).toBe(`Updated Location ${suffix}`)
 
-		const removed = await DELETE('/location/remove', { cookie, query: { id: String(id) } })
+		const removed = await DELETE('/location/remove', { token, query: { id: String(id) } })
 		expect(removed.status).toBe(200)
-		const afterDelete = await GET('/location/detail', { cookie, query: { id: String(id) } })
+		const afterDelete = await GET('/location/detail', { token, query: { id: String(id) } })
 		expect(afterDelete.status).toBeGreaterThanOrEqual(400)
 	})
 })

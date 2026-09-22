@@ -34,13 +34,8 @@ function AuthenticatedLayout() {
 	// Query is guaranteed by beforeLoad; guard for type safety
 	if (!user) return null
 
-	// Derive activeLocation from me query cache
-	const meData = queryClient.getQueryData(authMeQuery.queryKey()) as
-		| { data: { activeLocation: { id: number; code: string; name: string; type: string } | null } }
-		| undefined
-
 	return (
-		<LocationProvider locations={locations} activeLocation={meData?.data?.activeLocation ?? null}>
+		<LocationProvider locations={locations}>
 			<AppShell>
 				<Outlet />
 			</AppShell>

@@ -1,10 +1,10 @@
 /**
- * Auth test helper — login and extract session cookie for authenticated requests.
+ * Auth test helper — login and extract bearer token for authenticated requests.
  */
-import { POST } from './request.ts'
+import { POST, json } from './request.ts'
 
 /**
- * Login as a seeded user and return the session cookie string.
+ * Login as a seeded user and return the bearer token.
  * Throws if login fails (test setup issue).
  */
 export async function loginAs(username: string, password = 'password123'): Promise<string> {
@@ -17,10 +17,11 @@ export async function loginAs(username: string, password = 'password123'): Promi
 		throw new Error(`loginAs('${username}') failed with status ${res.status}: ${body}`)
 	}
 
-	const cookie = res.headers.get('set-cookie')
-	if (!cookie) {
-		throw new Error(`loginAs('${username}') succeeded but no set-cookie header returned`)
+	const body = await json(res)
+	const token: unknown = body.data?.token
+	if (typeof token !== 'string' || !token) {
+		throw new Error(`loginAs('${username}') succeeded but no token in response body`)
 	}
 
-	return cookie
+	return token
 }

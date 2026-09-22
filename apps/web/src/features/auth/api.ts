@@ -5,13 +5,7 @@ import { endpoint } from '@/config/endpoint.ts'
 import { defineMutation, defineQuery } from '@/lib/api/index.ts'
 import { createSuccessResponseSchema } from '@/lib/validation/index.ts'
 
-import {
-	LoginDto,
-	LoginResponseDto,
-	MeResponseDto,
-	SwitchLocationDto,
-	SwitchLocationResponseDto,
-} from './dto/index.ts'
+import { LoginDto, LoginResponseDto, MeResponseDto } from './dto/index.ts'
 
 // ─── Query: /auth/me ───
 
@@ -38,15 +32,5 @@ export const authLogoutMutation = defineMutation({
 	method: 'post',
 	url: endpoint.auth.logout,
 	result: createSuccessResponseSchema(z.undefined()),
-	invalidates: [[endpoint.auth.me]],
-})
-
-// ─── Mutation: /auth/switch-location ───
-
-export const authSwitchLocationMutation = defineMutation({
-	method: 'post',
-	url: endpoint.auth.switchLocation,
-	body: SwitchLocationDto,
-	result: createSuccessResponseSchema(SwitchLocationResponseDto),
 	invalidates: [[endpoint.auth.me]],
 })

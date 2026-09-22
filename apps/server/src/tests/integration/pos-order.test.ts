@@ -12,14 +12,14 @@ import { describe, expect, test, beforeAll } from 'bun:test'
 type Json = any
 
 describe('pos/order lifecycle', () => {
-	let cookie: string
+	let token: string
 
 	beforeAll(async () => {
-		cookie = await loginAs(SEED_USERS.cashier.username)
+		token = await loginAs(SEED_USERS.cashier.username)
 
 		// Ensure shift is open (ignore error if already open)
 		await POST('/pos/shift/open', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			headers: { 'x-location-id': String(SEED_LOCATION_ID) },
 			body: { locationId: SEED_LOCATION_ID, openingCash: 500000 },
@@ -31,7 +31,7 @@ describe('pos/order lifecycle', () => {
 	test('create → sync lines → payment → complete', async () => {
 		// 1. Create order
 		const createRes = await POST('/pos/order/create', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { locationId: SEED_LOCATION_ID, type: 'dine_in' },
 		})
@@ -42,7 +42,7 @@ describe('pos/order lifecycle', () => {
 
 		// 2. Sync lines
 		const syncRes = await POST('/pos/order/lines/sync', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { orderId, lines: [{ menuItemId: SEED_MENU_ITEM_ID, qty: 2 }] },
 		})
@@ -50,7 +50,7 @@ describe('pos/order lifecycle', () => {
 
 		// 3. Get detail to verify lines and total
 		const detailRes = await GET('/pos/order/detail', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			query: { id: String(orderId) },
 		})
@@ -63,7 +63,7 @@ describe('pos/order lifecycle', () => {
 
 		// 4. Record payment
 		const payRes = await POST('/pos/order/payment', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { orderId, paymentMethodId: SEED_PAYMENT_METHOD_ID, amount: total },
 		})
@@ -71,7 +71,7 @@ describe('pos/order lifecycle', () => {
 
 		// 5. Complete order
 		const completeRes = await POST('/pos/order/complete', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { orderId },
 		})
@@ -79,7 +79,7 @@ describe('pos/order lifecycle', () => {
 
 		// 6. Verify final state
 		const finalRes = await GET('/pos/order/detail', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			query: { id: String(orderId) },
 		})
@@ -99,7 +99,7 @@ describe('pos/order lifecycle', () => {
 
 	test('sync lines with invalid orderId returns error', async () => {
 		const res = await POST('/pos/order/lines/sync', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { orderId: 999999, lines: [{ menuItemId: SEED_MENU_ITEM_ID, qty: 1 }] },
 		})
@@ -109,20 +109,20 @@ describe('pos/order lifecycle', () => {
 	test('complete already completed order returns error', async () => {
 		// Create and complete an order first
 		const createRes = await POST('/pos/order/create', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { locationId: SEED_LOCATION_ID, type: 'takeaway' },
 		})
 		const createBody: Json = await createRes.json()
 
 		await POST('/pos/order/lines/sync', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { orderId: createBody.data.id, lines: [{ menuItemId: SEED_MENU_ITEM_ID, qty: 1 }] },
 		})
 
 		const detailRes = await GET('/pos/order/detail', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			query: { id: String(createBody.data.id) },
 		})
@@ -130,19 +130,19 @@ describe('pos/order lifecycle', () => {
 		const total = Number(detail.data.total)
 
 		await POST('/pos/order/payment', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { orderId: createBody.data.id, paymentMethodId: SEED_PAYMENT_METHOD_ID, amount: total },
 		})
 		await POST('/pos/order/complete', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { orderId: createBody.data.id },
 		})
 
 		// Try to complete again
 		const res = await POST('/pos/order/complete', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { orderId: createBody.data.id },
 		})
@@ -154,7 +154,7 @@ describe('pos/order lifecycle', () => {
 	test('order list date range includes orders in range and excludes those outside', async () => {
 		// Create an order — it lands at "now" (orderedAt).
 		const createRes = await POST('/pos/order/create', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			body: { locationId: SEED_LOCATION_ID, type: 'takeaway' },
 		})
@@ -167,7 +167,7 @@ describe('pos/order lifecycle', () => {
 
 		// A range straddling now must include the just-created order.
 		const inRange = await GET('/pos/order/list', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			query: {
 				locationId: String(SEED_LOCATION_ID),
@@ -185,7 +185,7 @@ describe('pos/order lifecycle', () => {
 		// the range (this is the bug the client-side filter hid: total reflected
 		// the unfiltered set).
 		const pastRange = await GET('/pos/order/list', {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			query: {
 				locationId: String(SEED_LOCATION_ID),

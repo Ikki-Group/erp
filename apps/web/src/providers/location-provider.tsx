@@ -1,10 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
-import { useMutation } from '@tanstack/react-query'
-
 import { setActiveLocationAccessor } from '@/lib/api/index.ts'
 
-import { authSwitchLocationMutation } from '@/features/auth/api.ts'
 import type { AuthLocation } from '@/features/auth/dto/index.ts'
 
 // ─── Constants ───
@@ -41,13 +38,15 @@ interface LocationProviderProps {
 	children: React.ReactNode
 	/** Locations the current user has access to (from /auth/me or login response). */
 	locations: AuthLocation[]
-	/** The server-side active location (from /auth/me). */
-	activeLocation: AuthLocation | null
 }
 
-export function LocationProvider({ children, locations, activeLocation }: LocationProviderProps) {
-	// Track local state in sync with server
-	const [currentLocation, setCurrentLocation] = useState<AuthLocation | null>(activeLocation)
+export function LocationProvider({ children, locations }: LocationProviderProps) {
+	const [currentLocation, setCurrentLocation] = useState<AuthLocation | null>(() => {
+		const storedId = localStorage.getItem(STORAGE_KEY)
+		if (!storedId) return null
+		const locationId = Number(storedId)
+		return locations.find((location) => location.id === locationId) ?? null
+	})
 
 	// The query-key factory reads the active location at query-build time (not
 	// render time) via `getActiveLocationId`, so it needs a live ref rather than
@@ -65,18 +64,13 @@ export function LocationProvider({ children, locations, activeLocation }: Locati
 		setActiveLocationAccessor(() => currentLocationRef.current?.id ?? null)
 	}
 
-	// Sync from server when meQuery updates
+	// Drop a persisted location when it is no longer in the user's access list.
 	useEffect(() => {
-		setCurrentLocation(activeLocation)
-		if (activeLocation) {
-			localStorage.setItem(STORAGE_KEY, String(activeLocation.id))
-		} else {
+		if (currentLocation && !locations.some((location) => location.id === currentLocation.id)) {
+			setCurrentLocation(null)
 			localStorage.removeItem(STORAGE_KEY)
 		}
-	}, [activeLocation])
-
-	// ─── Switch mutation ───
-	const switchMut = useMutation(authSwitchLocationMutation.mutationOptions())
+	}, [currentLocation, locations])
 
 	const switchLocation = useCallback(
 		async (locationId: number | null) => {
@@ -93,15 +87,14 @@ export function LocationProvider({ children, locations, activeLocation }: Locati
 				return
 			}
 
-			// Validate the location exists in user's allowed locations
+			// Validate the location exists in the user's allowed locations.
 			const target = locations.find((l) => l.id === locationId)
 			if (!target) return
 
-			const result = await switchMut.mutateAsync({ locationId })
-			setCurrentLocation(result.data.activeLocation)
-			localStorage.setItem(STORAGE_KEY, String(result.data.activeLocation.id))
+			setCurrentLocation(target)
+			localStorage.setItem(STORAGE_KEY, String(target.id))
 		},
-		[switchMut, locations],
+		[locations],
 	)
 
 	const value = useMemo<LocationContextValue>(
@@ -110,9 +103,9 @@ export function LocationProvider({ children, locations, activeLocation }: Locati
 			isConsolidated: currentLocation === null,
 			locations,
 			switchLocation,
-			isSwitching: switchMut.isPending,
+			isSwitching: false,
 		}),
-		[currentLocation, locations, switchLocation, switchMut.isPending],
+		[currentLocation, locations, switchLocation],
 	)
 
 	return <LocationContext.Provider value={value}>{children}</LocationContext.Provider>

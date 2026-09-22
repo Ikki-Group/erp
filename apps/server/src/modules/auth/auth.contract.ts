@@ -29,16 +29,15 @@ const LoginLocationDto = z.object({
 type LoginLocationDto = z.infer<typeof LoginLocationDto>
 
 export const LoginResponseDto = z.object({
+	token: zp.str,
 	user: LoginUserDto,
 	locations: z.array(LoginLocationDto),
-	activeLocationId: zp.id.nullable(),
 })
 export type LoginResponseDto = z.infer<typeof LoginResponseDto>
 
 export const MeResponseDto = z.object({
 	user: LoginUserDto,
 	locations: z.array(LoginLocationDto),
-	activeLocation: LoginLocationDto.nullable(),
 	permissions: z.array(z.string()),
 	globalPermissions: z.array(z.string()),
 	access: z.record(z.string(), z.array(z.string())),

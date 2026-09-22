@@ -6,7 +6,7 @@ import { describe, expect, test } from 'bun:test'
 describe('company', () => {
 	test('owner can read company settings', async () => {
 		const response = await GET('/company/settings', {
-			cookie: await loginAs(SEED_USERS.owner.username),
+			token: await loginAs(SEED_USERS.owner.username),
 		})
 
 		expect(response.status).toBe(200)
@@ -18,7 +18,7 @@ describe('company', () => {
 
 	test('cashier cannot update company settings', async () => {
 		const response = await PUT('/company/settings', {
-			cookie: await loginAs(SEED_USERS.cashier.username),
+			token: await loginAs(SEED_USERS.cashier.username),
 			body: {
 				id: 1,
 				name: 'Unauthorized update',

@@ -22,7 +22,7 @@ type Json = any
  * filter left pagination/count reflecting the unfiltered set.
  */
 describe('inventory list date-range filter', () => {
-	let cookie: string
+	let token: string
 
 	const SEED_SUPPLIER_ID = 1
 	const SEED_UOM_ID = 1
@@ -31,7 +31,7 @@ describe('inventory list date-range filter', () => {
 	const iso = (ms: number) => new Date(ms).toISOString()
 
 	beforeAll(async () => {
-		cookie = await loginAs(SEED_USERS.owner.username)
+		token = await loginAs(SEED_USERS.owner.username)
 	})
 
 	/** Given a list path and a just-created id, assert include/exclude by range. */
@@ -44,7 +44,7 @@ describe('inventory list date-range filter', () => {
 
 		const inRange: Json = await (
 			await GET(path, {
-				cookie,
+				token,
 				locationId: SEED_LOCATION_ID,
 				query: {
 					page: '1',
@@ -58,7 +58,7 @@ describe('inventory list date-range filter', () => {
 		expect((inRange.data as Array<{ id: number }>).some((r) => r.id === createdId)).toBe(true)
 
 		const pastRes = await GET(path, {
-			cookie,
+			token,
 			locationId: SEED_LOCATION_ID,
 			query: {
 				page: '1',
@@ -80,7 +80,7 @@ describe('inventory list date-range filter', () => {
 
 	test('receiving list filters by createdAt range', async () => {
 		const createRes = await POST('/inventory/receiving/create', {
-			cookie,
+			token,
 			body: {
 				locationId: SEED_LOCATION_ID,
 				supplierId: SEED_SUPPLIER_ID,
@@ -102,7 +102,7 @@ describe('inventory list date-range filter', () => {
 
 	test('transfer list filters by createdAt range', async () => {
 		const createRes = await POST('/inventory/transfer/create', {
-			cookie,
+			token,
 			body: {
 				fromLocationId: SEED_LOCATION_ID,
 				toLocationId: SEED_WAREHOUSE_ID,
@@ -117,7 +117,7 @@ describe('inventory list date-range filter', () => {
 
 	test('opname list filters by createdAt range', async () => {
 		const createRes = await POST('/inventory/opname/create', {
-			cookie,
+			token,
 			body: { locationId: SEED_LOCATION_ID },
 		})
 		expect(createRes.status).toBe(200)

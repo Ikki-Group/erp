@@ -2,6 +2,22 @@ import { API_URL, IS_MOCK_API } from '@/config/constant.ts'
 
 import { createMockClient } from '@/lib/mock/client.ts'
 
+import { getActiveLocationId } from './active-location.ts'
+
+export const TOKEN_STORAGE_KEY = 'ikki-session-token'
+
+export function getStoredToken(): string | null {
+	return localStorage.getItem(TOKEN_STORAGE_KEY)
+}
+
+export function setStoredToken(token: string): void {
+	localStorage.setItem(TOKEN_STORAGE_KEY, token)
+}
+
+export function clearStoredToken(): void {
+	localStorage.removeItem(TOKEN_STORAGE_KEY)
+}
+
 /**
  * Minimal HTTP client interface — wraps native `fetch` with a base URL and
  * default headers. Replaces `ky` with zero external dependencies.
@@ -12,8 +28,6 @@ export interface ApiClient {
 }
 
 function createClient(baseUrl: string): ApiClient {
-	// Auth is cookie-based: the session cookie rides on `credentials: 'include'`,
-	// so there is no bearer token to attach here.
 	const client = (url: string, init?: RequestInit): Promise<Response> => {
 		const fullUrl = `${baseUrl}/${url}`
 		const headers = new Headers(init?.headers)
@@ -23,7 +37,13 @@ function createClient(baseUrl: string): ApiClient {
 			headers.set('Content-Type', 'application/json')
 		}
 
-		return fetch(fullUrl, { ...init, headers, credentials: 'include' })
+		const token = getStoredToken()
+		if (token) headers.set('Authorization', `Bearer ${token}`)
+
+		const locationId = getActiveLocationId()
+		if (locationId !== null) headers.set('X-Location-ID', String(locationId))
+
+		return fetch(fullUrl, { ...init, headers })
 	}
 
 	Object.defineProperty(client, 'baseUrl', { value: baseUrl, writable: false })

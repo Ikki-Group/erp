@@ -1,7 +1,5 @@
 import cors from '@elysiajs/cors'
-import { openapi } from '@elysiajs/openapi'
 import { Elysia } from 'elysia'
-import z from 'zod'
 
 import { auditPort } from './infra/audit/audit.drizzle.ts'
 import { cache as cachePort } from './infra/cache/cache.memory.ts'
@@ -21,8 +19,8 @@ import { paymentMethodModule } from './modules/payment-method/index.ts'
 import { recipeModule } from './modules/recipe/index.ts'
 import { supplierModule } from './modules/supplier/index.ts'
 import { uomModule } from './modules/uom/index.ts'
+import { openapiPlugin } from './server/openapi.ts'
 import { errorPlugin } from './server/plugins/error.plugin.ts'
-import { isDev } from './shared/config/env.ts'
 import { composeModules } from './shared/module/compose.ts'
 import type { ModuleContext, ModuleDescriptor } from './shared/module/registry.ts'
 import type { AnyElysia } from 'elysia'
@@ -57,48 +55,12 @@ const modules = composeModules(ALL_MODULE_DESCRIPTORS, ctx)
 // ─── App ───
 
 const base = new Elysia({ normalize: true, encodeSchema: true })
-	.use(cors())
-	.onParse(({ request, contentType }) => {
-		if (contentType === 'application/custom-type') return request.text()
-		return undefined
-	})
 
 if (otelPlugin) base.use(otelPlugin)
 
 let composedApp: AnyElysia = base
 	.use(errorPlugin)
-	.use(
-		openapi({
-			enabled: isDev,
-			path: '/openapi',
-			documentation: {
-				info: {
-					title: 'Ikki ERP API',
-					version: '1.0.0',
-					description: 'API documentation for Ikki ERP server',
-				},
-			},
-			mapJsonSchema: {
-				// oxlint-disable-next-line typescript/consistent-return
-				zod: (schema: any) => {
-					return z.toJSONSchema(schema, {
-						unrepresentable: 'any',
-						override(ctx) {
-							// oxlint-disable-next-line no-underscore-dangle
-							const def = ctx.zodSchema._zod.def
-							if (def.type === 'date') {
-								ctx.jsonSchema.type = 'string'
-								ctx.jsonSchema.format = 'date-time'
-								ctx.jsonSchema.examples = ['2026-08-09T06:06:00Z']
-							}
-
-							return ctx
-						},
-					})
-				},
-			},
-		}).as('global'),
-	)
+	.use(openapiPlugin)
 	.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }), {
 		detail: { hide: true },
 	})
@@ -106,5 +68,8 @@ let composedApp: AnyElysia = base
 for (const module of modules.values()) {
 	if (module.route) composedApp = composedApp.use(module.route)
 }
+
+// Apply CORS after module composition so it covers every final route.
+composedApp = composedApp.use(cors({ origin: true }).as('global'))
 
 export const app = composedApp

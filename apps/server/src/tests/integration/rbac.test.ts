@@ -16,10 +16,10 @@ const guardedApp = new Elysia({ name: 'rbac-test-app' })
 		permission: 't007.self-check',
 	})
 
-function requestWithCookie(cookie: string): Promise<Response> {
+function requestWithToken(token: string): Promise<Response> {
 	return guardedApp.handle(
 		new Request('http://localhost/guarded', {
-			headers: { cookie },
+			headers: { authorization: `Bearer ${token}` },
 		}),
 	)
 }
@@ -27,6 +27,7 @@ function requestWithCookie(cookie: string): Promise<Response> {
 describe('rbac', () => {
 	test('actorOf preserves the resolved authenticated user identity', () => {
 		const auth: AuthContext = {
+			sessionId: 'test-session-rbac',
 			userId: 7,
 			userName: 'Resolved User',
 			locationId: 3,
@@ -38,11 +39,11 @@ describe('rbac', () => {
 	})
 
 	test('guarded route allows owner and rejects a user without permission', async () => {
-		const ownerResponse = await requestWithCookie(await loginAs(SEED_USERS.owner.username))
+		const ownerResponse = await requestWithToken(await loginAs(SEED_USERS.owner.username))
 		expect(ownerResponse.status).toBe(200)
 		expect(await ownerResponse.json()).toEqual({ ok: true })
 
-		const cashierResponse = await requestWithCookie(await loginAs(SEED_USERS.cashier.username))
+		const cashierResponse = await requestWithToken(await loginAs(SEED_USERS.cashier.username))
 		expect(cashierResponse.status).toBe(403)
 		expect(await cashierResponse.json()).toMatchObject({
 			success: false,

@@ -2,8 +2,6 @@ import { Elysia } from 'elysia'
 
 import { authPlugin } from '@/server/plugins/auth.plugin.ts'
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { isProd } from '@/shared/config/env.ts'
-import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from '@/shared/config/index.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 
@@ -18,19 +16,8 @@ export function createAuthRoute(service: AuthService) {
 			// ─── Login (public — no auth required) ───
 			.post(
 				'/login',
-				async ({ body, cookie }) => {
+				async ({ body }) => {
 					const result = await service.handleLogin(body)
-
-					// Set session cookie
-					cookie[SESSION_COOKIE_NAME]!.set({
-						value: result.sessionId,
-						httpOnly: true,
-						secure: isProd,
-						sameSite: 'lax',
-						maxAge: SESSION_MAX_AGE_SECONDS,
-						path: '/',
-					})
-
 					return res.ok(result.response)
 				},
 				{
@@ -45,22 +32,8 @@ export function createAuthRoute(service: AuthService) {
 			.use(rbac)
 			.post(
 				'/logout',
-				async ({ cookie }) => {
-					const sessionCookie = cookie[SESSION_COOKIE_NAME]
-					const sessionId = sessionCookie ? String(sessionCookie.value) : ''
-
-					await service.handleLogout(sessionId)
-
-					// Clear cookie
-					cookie[SESSION_COOKIE_NAME]!.set({
-						value: '',
-						httpOnly: true,
-						secure: isProd,
-						sameSite: 'lax',
-						maxAge: 0,
-						path: '/',
-					})
-
+				async ({ auth }) => {
+					await service.handleLogout(auth.sessionId)
 					return res.noData()
 				},
 				{ response: zRes.noData, permission: 'auth.logout' },

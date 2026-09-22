@@ -20,13 +20,13 @@ type StockMovement = {
  * Each test is self-contained — verifies by reference ID, not absolute qty.
  */
 describe('inventory/stock', () => {
-	let cookie: string
+	let token: string
 
 	const SEED_SUPPLIER_ID = 1
 	const SEED_UOM_ID = 1
 
 	beforeAll(async () => {
-		cookie = await loginAs(SEED_USERS.owner.username)
+		token = await loginAs(SEED_USERS.owner.username)
 	})
 
 	// ─── Receiving → Stock Movement ───
@@ -34,7 +34,7 @@ describe('inventory/stock', () => {
 	test('receiving creates stock inbound and updates balance', async () => {
 		// Create receiving (draft)
 		const createRes = await POST('/inventory/receiving/create', {
-			cookie,
+			token,
 			body: {
 				locationId: SEED_LOCATION_ID,
 				supplierId: SEED_SUPPLIER_ID,
@@ -56,14 +56,14 @@ describe('inventory/stock', () => {
 
 		// Confirm receiving → triggers stock inbound
 		const confirmRes = await POST('/inventory/receiving/confirm', {
-			cookie,
+			token,
 			body: { receivingId },
 		})
 		expect(confirmRes.status).toBe(200)
 
 		// Verify balance exists and is positive
 		const afterRes = await GET('/inventory/stock/balance', {
-			cookie,
+			token,
 			query: {
 				materialId: String(SEED_MATERIAL_ID),
 				locationId: String(SEED_LOCATION_ID),
@@ -76,7 +76,7 @@ describe('inventory/stock', () => {
 
 		// Verify our specific movement was recorded
 		const movRes = await GET('/inventory/stock/movements', {
-			cookie,
+			token,
 			query: {
 				materialId: String(SEED_MATERIAL_ID),
 				locationId: String(SEED_LOCATION_ID),
@@ -97,7 +97,7 @@ describe('inventory/stock', () => {
 	test('receiving updates weighted avg cost correctly', async () => {
 		// Get current balance
 		const beforeRes = await GET('/inventory/stock/balance', {
-			cookie,
+			token,
 			query: {
 				materialId: String(SEED_MATERIAL_ID),
 				locationId: String(SEED_LOCATION_ID),
@@ -111,7 +111,7 @@ describe('inventory/stock', () => {
 		const inQty = 5
 		const inCost = 8000
 		const createRes = await POST('/inventory/receiving/create', {
-			cookie,
+			token,
 			body: {
 				locationId: SEED_LOCATION_ID,
 				supplierId: SEED_SUPPLIER_ID,
@@ -127,13 +127,13 @@ describe('inventory/stock', () => {
 		})
 		const createBody: Json = await createRes.json()
 		await POST('/inventory/receiving/confirm', {
-			cookie,
+			token,
 			body: { receivingId: createBody.data.id },
 		})
 
 		// Check new balance
 		const afterRes = await GET('/inventory/stock/balance', {
-			cookie,
+			token,
 			query: {
 				materialId: String(SEED_MATERIAL_ID),
 				locationId: String(SEED_LOCATION_ID),
@@ -161,7 +161,7 @@ describe('inventory/stock', () => {
 
 	test('stock movements are recorded', async () => {
 		const createRes = await POST('/inventory/receiving/create', {
-			cookie,
+			token,
 			body: {
 				locationId: SEED_LOCATION_ID,
 				supplierId: SEED_SUPPLIER_ID,
@@ -178,13 +178,13 @@ describe('inventory/stock', () => {
 		const createBody: Json = await createRes.json()
 		const receivingId = createBody.data.id
 		const confirmRes = await POST('/inventory/receiving/confirm', {
-			cookie,
+			token,
 			body: { receivingId },
 		})
 		expect(confirmRes.status).toBe(200)
 
 		const res = await GET('/inventory/stock/movements', {
-			cookie,
+			token,
 			query: {
 				materialId: String(SEED_MATERIAL_ID),
 				locationId: String(SEED_LOCATION_ID),
@@ -206,7 +206,7 @@ describe('inventory/stock', () => {
 
 	test('balance list by location', async () => {
 		const res = await GET('/inventory/stock/list', {
-			cookie,
+			token,
 			query: {
 				locationId: String(SEED_LOCATION_ID),
 				page: '1',
@@ -222,7 +222,7 @@ describe('inventory/stock', () => {
 
 	test('balance for non-existent material returns error', async () => {
 		const res = await GET('/inventory/stock/balance', {
-			cookie,
+			token,
 			query: {
 				materialId: '99999',
 				locationId: String(SEED_LOCATION_ID),
