@@ -5,6 +5,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, PlusIcon, UserXIcon } from 'lucide-react'
+import { z } from 'zod'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
@@ -24,7 +25,9 @@ import { userColumns } from '@/features/iam/components/user-table.tsx'
 import type { UserListItemDto } from '@/features/iam/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/settings/users/')({
-	validateSearch: listSearchSchema,
+	validateSearch: listSearchSchema.extend({
+		isActive: z.coerce.number().int().min(0).max(1).optional(),
+	}),
 	component: UsersPage,
 })
 
@@ -35,7 +38,12 @@ function UsersPage() {
 	const canDeactivate = usePermissionCheck({ permission: 'iam.delete' })
 
 	const listQuery = useQuery(
-		userResource.list.queryOptions({ page: search.page, limit: search.pageSize, q: search.q }),
+		userResource.list.queryOptions({
+			page: search.page,
+			limit: search.pageSize,
+			q: search.q,
+			isActive: search.isActive,
+		}),
 	)
 	const deactivateMut = useMutation(userResource.deactivate.mutationOptions())
 
@@ -144,7 +152,26 @@ function UsersPage() {
 						<TableToolbar
 							searchValue={globalFilter}
 							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search users..."
+							searchPlaceholder="Search by username, name, or email..."
+							filters={[
+								{
+									key: 'isActive',
+									label: 'Status',
+									value: search.isActive?.toString(),
+									options: [
+										{ label: 'Active', value: '1' },
+										{ label: 'Inactive', value: '0' },
+									],
+									onChange: (value) =>
+										navigate({
+											search: {
+												...search,
+												page: 1,
+												isActive: value === undefined ? undefined : Number(value),
+											},
+										}),
+								},
+							]}
 						/>
 					}
 				/>
