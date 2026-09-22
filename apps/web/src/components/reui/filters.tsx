@@ -338,8 +338,8 @@ function FilterInput<T = unknown>({
 				// height on purpose so the style's `.cn-input-group` applies (h-8 nova,
 				// h-9 maia/luma, h-7 mira, h-10 sera); sm/lg step down/up from it.
 				// Base covers nova/lyra/rhea/vega; only deviating styles are listed.
-				context.size == 'sm' && 'h-7! h-6!',
-				context.size == 'lg' && 'h-9! h-8!',
+				context.size == 'sm' && 'h-6!',
+				context.size == 'lg' && 'h-8!',
 				// Sera's `.cn-input` is `px-0` (underline inputs sit flush); inside a
 				// segmented chip that collides with the neighbouring segment, so give
 				// the value input the same inline padding sera uses elsewhere.
@@ -361,8 +361,8 @@ function FilterInput<T = unknown>({
 				onBlur={handleBlur}
 				onKeyDown={handleKeyDown}
 				className={cn(
-					context.size == 'sm' && 'h-7! text-xs h-6!',
-					context.size == 'lg' && 'h-9! h-8!',
+					context.size == 'sm' && 'h-7! text-xs',
+					context.size == 'lg' && 'h-8!',
 				)}
 				{...props}
 			/>
@@ -1038,7 +1038,7 @@ function SelectOptionsPopover<T = unknown>({
 							renderOption: renderOptionItem,
 						})
 					) : (
-						<ScrollArea className="size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 [&_[data-slot=scroll-area-viewport]]:h-full [&_[data-slot=scroll-area-viewport]]:overscroll-contain">
+						<ScrollArea className="size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 **:data-[slot=scroll-area-viewport]:h-full **:data-[slot=scroll-area-viewport]:overscroll-contain">
 							{/* Selected items */}
 							{filteredSelectedOptions.length > 0 && (
 								<DropdownMenuGroup className="px-1">
@@ -1109,7 +1109,7 @@ function SelectOptionsPopover<T = unknown>({
 					</Button>
 				}
 			/>
-			<DropdownMenuContent align="start" className={cn('w-[200px] px-0', field.className)}>
+			<DropdownMenuContent align="start" className={cn('w-50 px-0', field.className)}>
 				{renderMenuContent()}
 			</DropdownMenuContent>
 		</DropdownMenu>
@@ -1511,7 +1511,7 @@ function FilterSubmenuContent<T = unknown>({
 							renderOption: renderOptionItem,
 						})
 					) : (
-						<ScrollArea className="size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 [&_[data-slot=scroll-area-viewport]]:h-full [&_[data-slot=scroll-area-viewport]]:overscroll-contain">
+						<ScrollArea className="size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 **:data-[slot=scroll-area-viewport]:h-full **:data-[slot=scroll-area-viewport]:overscroll-contain">
 							<DropdownMenuGroup>
 								{filteredOptions.map((option, index) => renderOptionItem(option, index))}
 							</DropdownMenuGroup>
@@ -1722,7 +1722,7 @@ export function Filters<T = unknown>({
 						}}
 					>
 						<DropdownMenuTrigger render={triggerButton} />
-						<DropdownMenuContent className={cn('w-[220px]', menuPopupClassName)} align="start">
+						<DropdownMenuContent className={cn('w-55', menuPopupClassName)} align="start">
 							{showSearchInput && (
 								<>
 									<div className="relative">
@@ -1874,7 +1874,7 @@ export function Filters<T = unknown>({
 																{field.icon}
 																<span>{field.label}</span>
 															</DropdownMenuSubTrigger>
-															<DropdownMenuSubContent className="w-[200px]" side="right">
+															<DropdownMenuSubContent className="w-50" side="right">
 																<FilterSubmenuContent
 																	field={field}
 																	currentValues={currentValues}

@@ -324,7 +324,7 @@ function RecipesPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="Tidak ada resep yang cocok."
 				/>
 			)}

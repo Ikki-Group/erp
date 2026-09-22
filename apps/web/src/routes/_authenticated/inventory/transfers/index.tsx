@@ -430,7 +430,7 @@ function TransfersPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="Tidak ada transfer ditemukan."
 					toolbar={
 						<TableToolbar

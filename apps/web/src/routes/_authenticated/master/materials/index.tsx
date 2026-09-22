@@ -316,7 +316,7 @@ function MaterialsPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="No materials match your filters."
 					onRowClick={(row) =>
 						navigate({

@@ -160,6 +160,7 @@ function LocationsPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
+					isLoading={listQuery.isFetching}
 					emptyMessage="No locations match your search."
 					onRowClick={
 						canEdit

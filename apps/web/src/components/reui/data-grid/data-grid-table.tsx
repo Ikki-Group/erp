@@ -30,6 +30,9 @@ const bodyCellSpacingVariants = ({ size }: { size?: 'dense' | 'default' }) =>
 const footerCellSpacingVariants = ({ size }: { size?: 'dense' | 'default' }) =>
 	size === 'dense' ? 'px-2 py-1.5' : 'px-3 py-2'
 
+const bodyRowHeightVariants = ({ size }: { size?: 'dense' | 'default' }) =>
+	size === 'dense' ? 'h-9' : 'h-10'
+
 function getPinningStyles<TData extends object>(
 	column: Column<DataGridFeatures, TData>,
 ): CSSProperties {
@@ -1125,6 +1128,9 @@ function DataGridTableBodyRowSkeletonCell<TData extends object>({
 	const bodyCellSpacing = bodyCellSpacingVariants({
 		size: props.tableLayout?.dense ? 'dense' : 'default',
 	})
+	const bodyRowHeight = bodyRowHeightVariants({
+		size: props.tableLayout?.dense ? 'dense' : 'default',
+	})
 
 	return (
 		<td
@@ -1135,6 +1141,7 @@ function DataGridTableBodyRowSkeletonCell<TData extends object>({
 			}
 			className={cn(
 				'align-middle',
+				bodyRowHeight,
 				bodyCellSpacing,
 				props.tableLayout?.cellBorder && 'border-e',
 				props.tableLayout?.columnsResizable && column.getCanResize() && 'truncate',
@@ -1281,6 +1288,9 @@ function DataGridTableBodyRowCell<TData extends object>({
 	const bodyCellSpacing = bodyCellSpacingVariants({
 		size: props.tableLayout?.dense ? 'dense' : 'default',
 	})
+	const bodyRowHeight = bodyRowHeightVariants({
+		size: props.tableLayout?.dense ? 'dense' : 'default',
+	})
 
 	return (
 		<td
@@ -1296,6 +1306,7 @@ function DataGridTableBodyRowCell<TData extends object>({
 			data-last-col={isLastStartPinned ? 'start' : isFirstEndPinned ? 'end' : undefined}
 			className={cn(
 				'align-middle',
+				bodyRowHeight,
 				bodyCellSpacing,
 				props.tableLayout?.cellBorder && 'border-e',
 				props.tableLayout?.columnsResizable && column.getCanResize() && 'truncate',

@@ -198,7 +198,7 @@ function TablesPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="No tables match your search."
 					toolbar={
 						<TableToolbar

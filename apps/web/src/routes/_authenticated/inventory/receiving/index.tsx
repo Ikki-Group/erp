@@ -408,7 +408,7 @@ function ReceivingPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="Tidak ada penerimaan ditemukan."
 					toolbar={
 						<TableToolbar

@@ -138,7 +138,7 @@ function UsersPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="No users match your search."
 					toolbar={
 						<TableToolbar

@@ -335,7 +335,7 @@ function OpnamePage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="Tidak ada opname ditemukan."
 					toolbar={
 						<TableToolbar

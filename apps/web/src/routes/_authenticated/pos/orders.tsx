@@ -231,7 +231,7 @@ function OrdersPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="Tidak ada order ditemukan."
 					toolbar={
 						<TableToolbar

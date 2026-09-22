@@ -187,7 +187,7 @@ function PaymentMethodsPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="No payment methods match your search."
 					toolbar={
 						<TableToolbar

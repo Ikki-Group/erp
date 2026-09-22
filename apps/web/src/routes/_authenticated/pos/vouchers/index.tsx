@@ -240,7 +240,7 @@ function VouchersPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="No vouchers match your search."
 					toolbar={
 						<TableToolbar

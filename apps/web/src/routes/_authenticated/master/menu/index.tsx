@@ -421,7 +421,7 @@ function MenuPage() {
 						<DataTable
 							table={table}
 							recordCount={totalCount}
-							isLoading={itemListQuery.isLoading}
+							isLoading={itemListQuery.isFetching}
 							emptyMessage="Tidak ada menu item yang cocok."
 							toolbar={
 								<TableToolbar

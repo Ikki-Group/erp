@@ -106,40 +106,34 @@ function RolesPage() {
 	})
 
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
+	const addRoleAction = (
+		<PermissionGate permission="iam.create">
+			<Button size="sm" onClick={() => navigate({ to: '/settings/roles/new' })}>
+				<PlusIcon className="size-4" />
+				Add Role
+			</Button>
+		</PermissionGate>
+	)
 
 	return (
 		<div className="space-y-6">
 			<PageHeader
 				title="Roles"
 				description="Manage roles and their permission sets."
-				actions={
-					<PermissionGate permission="iam.create">
-						<Button size="sm" onClick={() => navigate({ to: '/settings/roles/new' })}>
-							<PlusIcon className="size-4" />
-							Add Role
-						</Button>
-					</PermissionGate>
-				}
+				actions={addRoleAction}
 			/>
 
 			{isEmpty ? (
 				<EmptyState
 					title="No roles yet"
 					description="Get started by creating your first role."
-					action={
-						<PermissionGate permission="iam.create">
-							<Button size="sm" onClick={() => navigate({ to: '/settings/roles/new' })}>
-								<PlusIcon className="size-4" />
-								Add Role
-							</Button>
-						</PermissionGate>
-					}
+					action={addRoleAction}
 				/>
 			) : (
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="No roles match your search."
 					toolbar={
 						<TableToolbar

@@ -118,7 +118,7 @@ function AuditPage() {
 			<DataTable
 				table={table}
 				recordCount={totalCount}
-				isLoading={listQuery.isLoading}
+				isLoading={listQuery.isFetching}
 				emptyMessage="Tidak ada entri audit yang cocok."
 				onRowClick={(row) => setDetailId(row.id)}
 				toolbar={

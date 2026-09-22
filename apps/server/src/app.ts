@@ -70,6 +70,6 @@ for (const module of modules.values()) {
 }
 
 // Apply CORS after module composition so it covers every final route.
-composedApp = composedApp.use(cors({ origin: true }).as('global'))
+composedApp = composedApp.use(cors({ origin: '*', credentials: false }).as('global'))
 
 export const app = composedApp

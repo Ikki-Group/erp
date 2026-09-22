@@ -42,17 +42,37 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 		tableLayout: {
 			headerSticky: true,
 			rowBorder: true,
-			headerBackground: true,
+			headerBackground: false,
 		},
 	}
 
 	return (
 		<div className={cn('space-y-4', className)}>
-			{toolbar}
-			<DataGrid {...layoutProps} table={table as unknown as DataGridTableInstance<TData>}>
-				<DataGridTable />
-				{showPagination && <DataGridPagination />}
-			</DataGrid>
+			<div
+				data-slot="data-table"
+				className={cn(
+					'overflow-hidden rounded-xl border border-border/70 bg-card shadow-xs',
+					'**:data-[slot=data-grid-pagination]:border-t **:data-[slot=data-grid-pagination]:bg-muted/20',
+					'**:data-[slot=data-grid-pagination]:px-4 **:data-[slot=data-grid-pagination]:py-3',
+				)}
+			>
+				{toolbar && (
+					<div className="border-b border-border/60 bg-muted/10 px-4 py-3">{toolbar}</div>
+				)}
+				<DataGrid
+					{...layoutProps}
+					table={table as unknown as DataGridTableInstance<TData>}
+					tableClassNames={{
+						header: 'bg-muted/15',
+						headerRow: 'border-b border-border/70',
+						bodyRow:
+							'group transition-colors hover:bg-accent/35 data-[state=selected]:bg-accent/55',
+					}}
+				>
+					<DataGridTable />
+					{showPagination && <DataGridPagination />}
+				</DataGrid>
+			</div>
 		</div>
 	)
 }

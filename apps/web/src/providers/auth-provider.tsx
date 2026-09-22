@@ -71,6 +71,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const meQuery = useQuery({
 		...authMeQuery.queryOptions(),
 		enabled: Boolean(getStoredToken()),
+		retry: false,
+		throwOnError: false,
 	})
 	const meData = meQuery.data?.data
 

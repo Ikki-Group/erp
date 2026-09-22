@@ -210,7 +210,7 @@ function SuppliersPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="No suppliers match your filters."
 					toolbar={
 						<TableToolbar

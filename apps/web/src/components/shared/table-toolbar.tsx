@@ -1,7 +1,8 @@
+import { useEffect, useState, useTransition } from 'react'
 import type { ReactNode } from 'react'
 
 import { format } from 'date-fns'
-import { SearchIcon, XIcon } from 'lucide-react'
+import { LoaderCircleIcon, SearchIcon, XIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -83,6 +84,23 @@ export function TableToolbar({
 	actions,
 	className,
 }: TableToolbarProps) {
+	const [draftSearch, setDraftSearch] = useState(searchValue ?? '')
+	const [isPending, startTransition] = useTransition()
+
+	useEffect(() => {
+		setDraftSearch(searchValue ?? '')
+	}, [searchValue])
+
+	useEffect(() => {
+		if (!onSearchChange || draftSearch === (searchValue ?? '')) return
+
+		const timer = window.setTimeout(() => {
+			startTransition(() => onSearchChange(draftSearch.trim()))
+		}, 250)
+
+		return () => window.clearTimeout(timer)
+	}, [draftSearch, onSearchChange, searchValue])
+
 	const activeFilters = filters.filter((f) =>
 		Array.isArray(f.value) ? f.value.length > 0 : f.value !== undefined,
 	)
@@ -94,20 +112,27 @@ export function TableToolbar({
 					<div className="relative flex-1 sm:max-w-xs">
 						<SearchIcon className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 						<Input
-							value={searchValue ?? ''}
-							onChange={(e) => onSearchChange(e.target.value)}
+							type="search"
+							inputMode="search"
+							value={draftSearch}
+							onChange={(e) => setDraftSearch(e.target.value)}
 							placeholder={searchPlaceholder}
+							aria-busy={isPending || draftSearch !== (searchValue ?? '')}
 							className="pl-7 pr-7"
 						/>
-						{searchValue && (
+						{draftSearch && (
 							<Button
 								variant="ghost"
 								size="icon-xs"
 								className="absolute right-1.5 top-1/2 -translate-y-1/2"
-								onClick={() => onSearchChange('')}
+								onClick={() => setDraftSearch('')}
 								aria-label="Clear search"
 							>
-								<XIcon className="size-3" />
+								{isPending ? (
+									<LoaderCircleIcon className="size-3 animate-spin" />
+								) : (
+									<XIcon className="size-3" />
+								)}
 							</Button>
 						)}
 					</div>

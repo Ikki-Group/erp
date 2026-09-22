@@ -253,7 +253,7 @@ function ShiftsPage() {
 				<DataTable
 					table={table}
 					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
+					isLoading={listQuery.isFetching}
 					emptyMessage="No shifts found."
 					toolbar={
 						<TableToolbar
