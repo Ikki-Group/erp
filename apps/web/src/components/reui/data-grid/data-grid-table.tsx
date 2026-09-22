@@ -783,7 +783,7 @@ function DataGridTableHeadRowCell<TData extends object>({
 			data-outer-pinned-col={isFirstStartPinned ? 'start' : isLastEndPinned ? 'end' : undefined}
 			data-last-col={isLastStartPinned ? 'start' : isFirstEndPinned ? 'end' : undefined}
 			className={cn(
-				'text-foreground relative h-10 text-left align-middle font-medium rtl:text-right [&:has([role=checkbox])]:pe-0',
+				'text-foreground relative h-10 text-left align-middle font-medium rtl:text-right has-[[role=checkbox]]:pe-0',
 				headerCellSpacing,
 				props.tableLayout?.headerBackground && 'bg-muted',
 				props.tableLayout?.cellBorder && 'border-e',
@@ -1490,7 +1490,7 @@ function DataGridTableRowSelect<TData extends object>({
 				<>
 					<div
 						className={cn(
-							'bg-primary absolute inset-s-0 top-0 bottom-0 hidden w-[2px]',
+							'bg-primary absolute inset-s-0 top-0 bottom-0 hidden w-0.5',
 							row.getIsSelected() && 'block',
 						)}
 					></div>
