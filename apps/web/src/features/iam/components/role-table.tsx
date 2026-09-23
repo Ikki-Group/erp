@@ -17,7 +17,17 @@ export const roleColumns = [
 	}),
 	col.accessor('name', {
 		header: 'Name',
-		size: 200,
+		size: 220,
+		cell: ({ row, getValue }) => (
+			<div className="min-w-0">
+				<div className="truncate">{getValue()}</div>
+				{row.original.description && (
+					<div className="max-w-56 truncate text-xs text-muted-foreground">
+						{row.original.description}
+					</div>
+				)}
+			</div>
+		),
 	}),
 	col.accessor('permissions', {
 		header: 'Permissions',

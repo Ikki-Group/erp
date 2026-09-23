@@ -9,6 +9,7 @@ export const RoleDto = z.object({
 	id: zp.id,
 	code: zp.str,
 	name: zp.str,
+	description: zp.str,
 	isSystem: zp.bool,
 	permissions: z.array(zp.str),
 	...zc.AuditBasic.shape,
@@ -29,6 +30,7 @@ export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 const RoleMutationDto = z.object({
 	code: zc.strTrim.min(2).max(50),
 	name: zc.strTrim.min(2).max(255),
+	description: zc.strTrim.max(500).default(''),
 	permissions: permissionsSchema,
 })
 

@@ -23,7 +23,12 @@ describe('iam roles', () => {
 		const code = `delete-me-${Date.now()}`
 		const createResponse = await POST('/iam/role/create', {
 			token,
-			body: { code, name: 'Delete Me', permissions: ['iam.read'] },
+			body: {
+				code,
+				name: 'Delete Me',
+				description: 'Temporary role used by the integration test.',
+				permissions: ['iam.read'],
+			},
 		})
 		expect(createResponse.status).toBe(201)
 		const created = await json<{ data: { id: number } }>(createResponse)

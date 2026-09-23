@@ -29,6 +29,7 @@ function toDto(row: RoleRow): RoleDto {
 		id: row.id,
 		code: row.code,
 		name: row.name,
+		description: row.description,
 		isSystem: row.isSystem,
 		permissions: Array.isArray(row.permissions)
 			? row.permissions.filter((p): p is string => typeof p === 'string')
@@ -87,6 +88,7 @@ export class RoleRepo implements IRoleRepo {
 				id: roles.id,
 				code: roles.code,
 				name: roles.name,
+				description: roles.description,
 				isSystem: roles.isSystem,
 				permissions: roles.permissions,
 				createdAt: roles.createdAt,

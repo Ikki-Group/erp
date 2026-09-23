@@ -21,6 +21,7 @@ export const roles = pgTable(
 		...pk,
 		code: varchar('code', { length: 50 }).notNull(),
 		name: varchar('name', { length: 255 }).notNull(),
+		description: varchar('description', { length: 500 }).notNull().default(''),
 		isSystem: boolean('is_system').notNull().default(false),
 		permissions: jsonb('permissions').notNull().default([]),
 		...auditBasicColumns,

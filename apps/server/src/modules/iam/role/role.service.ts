@@ -90,7 +90,12 @@ export class RoleService {
 					entityId: written.id,
 					action: 'create',
 					summary: `Created role "${data.name}" (${data.code})`,
-					newValues: { code: data.code, name: data.name, permissions: data.permissions },
+					newValues: {
+						code: data.code,
+						name: data.name,
+						description: data.description,
+						permissions: data.permissions,
+					},
 				}),
 				tx,
 			)
@@ -126,7 +131,12 @@ export class RoleService {
 					entityId: id,
 					action: 'update',
 					summary: `Updated role "${data.name}" (${data.code})`,
-					newValues: { code: data.code, name: data.name, permissions: data.permissions },
+					newValues: {
+						code: data.code,
+						name: data.name,
+						description: data.description,
+						permissions: data.permissions,
+					},
 				}),
 				tx,
 			)

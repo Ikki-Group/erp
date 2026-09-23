@@ -147,6 +147,7 @@ export const RoleDto = z.object({
 	id: zp.id,
 	code: zp.str,
 	name: zp.str,
+	description: z.string().default(''),
 	isSystem: zp.bool,
 	permissions: z.array(zp.str),
 	...zc.AuditBasic.shape,
@@ -163,6 +164,7 @@ export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 export const RoleCreateDto = z.object({
 	code: zc.strTrim.min(2).max(50),
 	name: zc.strTrim.min(2).max(255),
+	description: zc.strTrim.max(500).default(''),
 	permissions: rolePermissions,
 })
 export type RoleCreateDto = z.infer<typeof RoleCreateDto>
@@ -171,6 +173,7 @@ export const RoleUpdateDto = z.object({
 	id: zp.id,
 	code: zc.strTrim.min(2).max(50),
 	name: zc.strTrim.min(2).max(255),
+	description: zc.strTrim.max(500).default(''),
 	permissions: rolePermissions,
 })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>

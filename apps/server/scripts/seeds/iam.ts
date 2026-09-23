@@ -26,6 +26,7 @@ const ROLES = [
 	{
 		code: 'owner',
 		name: 'Owner',
+		description: 'Full access across the company and all locations.',
 		isSystem: true,
 		permissions: JSON.stringify([
 			'auth.me',
@@ -109,6 +110,7 @@ const ROLES = [
 	{
 		code: 'manager',
 		name: 'Manager',
+		description: 'Manages day-to-day operations and master data.',
 		isSystem: true,
 		permissions: JSON.stringify([
 			'auth.me',
@@ -170,6 +172,7 @@ const ROLES = [
 	{
 		code: 'cashier',
 		name: 'Cashier',
+		description: 'Handles point-of-sale transactions and shifts.',
 		isSystem: true,
 		permissions: JSON.stringify([
 			'auth.me',
@@ -193,6 +196,7 @@ const ROLES = [
 	{
 		code: 'warehouse_staff',
 		name: 'Warehouse Staff',
+		description: 'Handles receiving, stock, transfers, and production inventory.',
 		isSystem: true,
 		permissions: JSON.stringify([
 			'auth.me',
@@ -227,8 +231,8 @@ export async function seedRoles(sql: Sql): Promise<RoleIds> {
 	const rows = await Promise.all(
 		ROLES.map(async (r) => {
 			const [row] = await sql`
-				INSERT INTO roles (code, name, is_system, permissions)
-				VALUES (${r.code}, ${r.name}, true, ${r.permissions})
+				INSERT INTO roles (code, name, description, is_system, permissions)
+				VALUES (${r.code}, ${r.name}, ${r.description}, true, ${r.permissions})
 				RETURNING id, code
 			`
 			return row!
