@@ -363,9 +363,9 @@ function DataGridScrollArea({
 				<ScrollAreaPrimitive.Viewport
 					ref={viewportRef}
 					data-slot="scroll-area-viewport"
-					className="size-full min-w-0 max-w-full overflow-x-auto"
+					className="size-full min-w-0 max-w-full touch-pan-x overflow-x-auto"
 				>
-					<ScrollAreaPrimitive.Content data-slot="scroll-area-content">
+					<ScrollAreaPrimitive.Content data-slot="scroll-area-content" className="min-w-max">
 						{children}
 					</ScrollAreaPrimitive.Content>
 				</ScrollAreaPrimitive.Viewport>
