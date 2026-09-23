@@ -3,8 +3,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
+import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
 import { FormPage } from '@/components/shared/form-page.tsx'
-import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 
 import { toast } from '@/components/ui/toast'
 
@@ -27,16 +27,13 @@ function EditRolePage() {
 
 	const detailQuery = useQuery(roleResource.detail.queryOptions({ id }))
 
-	if (detailQuery.isLoading) {
-		return <PageSkeleton />
-	}
-
-	const role = detailQuery.data?.data
-	if (!role) {
-		return null
-	}
-
-	return <EditRoleForm role={role} onDone={() => navigate({ to: '/settings/roles' })} />
+	return (
+		<DetailBoundary query={detailQuery}>
+			{(response) => (
+				<EditRoleForm role={response.data} onDone={() => navigate({ to: '/settings/roles' })} />
+			)}
+		</DetailBoundary>
+	)
 }
 
 interface EditRoleFormProps {

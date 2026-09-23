@@ -4,9 +4,9 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
 import { AuditTrail } from '@/components/shared/audit-trail.tsx'
-import { FormPage } from '@/components/shared/form-page.tsx'
+import { CrudForm } from '@/components/shared/crud-form.tsx'
+import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
 import { PageSection } from '@/components/shared/page-section.tsx'
-import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 import { usePermissionCheck } from '@/components/shared/permission-gate.tsx'
 
 import { toast } from '@/components/ui/toast'
@@ -45,17 +45,15 @@ function EditMaterialPage() {
 
 	const detailQuery = useQuery(materialResource.detail.queryOptions({ id }))
 
-	if (detailQuery.isLoading) {
-		return <PageSkeleton />
-	}
-
-	const material = detailQuery.data?.data
-	if (!material) {
-		return null
-	}
-
 	return (
-		<EditMaterialForm material={material} onDone={() => navigate({ to: '/master/materials' })} />
+		<DetailBoundary query={detailQuery}>
+			{(response) => (
+				<EditMaterialForm
+					material={response.data}
+					onDone={() => navigate({ to: '/master/materials' })}
+				/>
+			)}
+		</DetailBoundary>
 	)
 }
 
@@ -102,7 +100,7 @@ function EditMaterialForm({ material, onDone }: EditMaterialFormProps) {
 
 	return (
 		<form.AppForm>
-			<FormPage
+			<CrudForm
 				title="Edit Material"
 				description={`Update details for ${material.name}.`}
 				form={form}
@@ -120,7 +118,7 @@ function EditMaterialForm({ material, onDone }: EditMaterialFormProps) {
 						/>
 					</PageSection>
 				)}
-			</FormPage>
+			</CrudForm>
 		</form.AppForm>
 	)
 }

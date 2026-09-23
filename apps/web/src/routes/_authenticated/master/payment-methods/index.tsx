@@ -7,12 +7,10 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
+import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EmptyState } from '@/components/shared/empty-state'
-import { PageHeader } from '@/components/shared/page-header'
+import { EntityListPage } from '@/components/shared/entity-list-page'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -108,37 +106,30 @@ function PaymentMethodsPage() {
 
 	// ─── Columns with actions ───
 
-	const actionsColumn = useMemo(() => {
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				const items = []
-				if (canEdit) {
-					items.push({
+	const actionsColumn = useMemo(
+		() =>
+			createActionColumn<PaymentMethodDto>({
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				getItems: (item) => [
+					canEdit && {
 						label: 'Edit',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
 								to: '/master/payment-methods/$paymentMethodId',
-								params: { paymentMethodId: String(row.original.id) },
+								params: { paymentMethodId: String(item.id) },
 							}),
-					})
-				}
-				if (canDelete) {
-					items.push({
+					},
+					canDelete && {
 						label: 'Delete',
 						icon: <TrashIcon className="size-4" />,
-						onClick: () => handleDelete(row.original),
+						onClick: () => handleDelete(item),
 						variant: 'destructive' as const,
-					})
-				}
-				if (items.length === 0) return null
-				return <ActionMenu items={items} />
-			},
-		})
-	}, [canEdit, canDelete, handleDelete, navigate])
+					},
+				],
+			}),
+		[canEdit, canDelete, handleDelete, navigate],
+	)
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, PaymentMethodDto>[],
@@ -156,65 +147,58 @@ function PaymentMethodsPage() {
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !search.type
 
 	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Payment Methods"
-				description="Manage payment methods available for POS checkout."
-				actions={
+		<EntityListPage
+			title="Payment Methods"
+			description="Manage payment methods available for POS checkout."
+			actions={
+				<PermissionGate permission="payment-method.create">
+					<Button size="sm" onClick={() => navigate({ to: '/master/payment-methods/new' })}>
+						<PlusIcon className="size-4" />
+						Add Payment Method
+					</Button>
+				</PermissionGate>
+			}
+			table={table}
+			recordCount={totalCount}
+			isLoading={listQuery.isFetching}
+			isEmpty={isEmpty}
+			emptyState={{
+				title: 'No payment methods yet',
+				description: 'Get started by creating your first payment method.',
+				action: (
 					<PermissionGate permission="payment-method.create">
 						<Button size="sm" onClick={() => navigate({ to: '/master/payment-methods/new' })}>
 							<PlusIcon className="size-4" />
 							Add Payment Method
 						</Button>
 					</PermissionGate>
-				}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="No payment methods yet"
-					description="Get started by creating your first payment method."
-					action={
-						<PermissionGate permission="payment-method.create">
-							<Button size="sm" onClick={() => navigate({ to: '/master/payment-methods/new' })}>
-								<PlusIcon className="size-4" />
-								Add Payment Method
-							</Button>
-						</PermissionGate>
-					}
+				),
+			}}
+			emptyMessage="No payment methods match your search."
+			toolbar={
+				<TableToolbar
+					searchValue={globalFilter}
+					onSearchChange={(value) => table.setGlobalFilter(value)}
+					searchPlaceholder="Search payment methods..."
+					filters={[
+						{
+							key: 'type',
+							label: 'Type',
+							value: search.type,
+							onChange: (v) =>
+								navigate({
+									search: {
+										...search,
+										page: 1,
+										type: v as PaymentMethodTypeEnum | undefined,
+									},
+								}),
+							options: PAYMENT_METHOD_TYPE_OPTIONS,
+							allLabel: 'All Types',
+						},
+					]}
 				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isFetching}
-					emptyMessage="No payment methods match your search."
-					toolbar={
-						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search payment methods..."
-							filters={[
-								{
-									key: 'type',
-									label: 'Type',
-									value: search.type,
-									onChange: (v) =>
-										navigate({
-											search: {
-												...search,
-												page: 1,
-												type: v as PaymentMethodTypeEnum | undefined,
-											},
-										}),
-									options: PAYMENT_METHOD_TYPE_OPTIONS,
-									allLabel: 'All Types',
-								},
-							]}
-						/>
-					}
-				/>
-			)}
-		</div>
+			}
+		/>
 	)
 }

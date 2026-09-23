@@ -2,18 +2,16 @@ import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
+import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EmptyState } from '@/components/shared/empty-state'
-import { PageHeader } from '@/components/shared/page-header'
+import { EntityListPage } from '@/components/shared/entity-list-page'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -66,39 +64,32 @@ function RolesPage() {
 		[removeMut],
 	)
 
-	const actionsColumn = useMemo(() => {
-		const col = createColumnHelper<DataGridFeatures, RoleDto>()
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				if (row.original.isSystem) return null
-				const items = []
-				if (canEdit) {
-					items.push({
-						label: 'Edit',
-						icon: <EditIcon className="size-4" />,
-						onClick: () =>
-							navigate({
-								to: '/settings/roles/$roleId',
-								params: { roleId: String(row.original.id) },
-							}),
-					})
-				}
-				if (canDelete) {
-					items.push({
-						label: 'Delete',
-						icon: <TrashIcon className="size-4" />,
-						onClick: () => handleDelete(row.original),
-						variant: 'destructive' as const,
-					})
-				}
-				if (items.length === 0) return null
-				return <ActionMenu items={items} />
-			},
-		})
-	}, [canEdit, canDelete, handleDelete, navigate])
+	const actionsColumn = useMemo(
+		() =>
+			createActionColumn<RoleDto>({
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				getItems: (role) => [
+					!role.isSystem &&
+						canEdit && {
+							label: 'Edit',
+							icon: <EditIcon className="size-4" />,
+							onClick: () =>
+								navigate({
+									to: '/settings/roles/$roleId',
+									params: { roleId: String(role.id) },
+								}),
+						},
+					!role.isSystem &&
+						canDelete && {
+							label: 'Delete',
+							icon: <TrashIcon className="size-4" />,
+							onClick: () => handleDelete(role),
+							variant: 'destructive' as const,
+						},
+				],
+			}),
+		[canEdit, canDelete, handleDelete, navigate],
+	)
 
 	const columns = useMemo(
 		() => [...roleColumns, actionsColumn] as ColumnDef<DataGridFeatures, RoleDto>[],
@@ -124,53 +115,46 @@ function RolesPage() {
 	)
 
 	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Roles"
-				description="Manage roles and their permission sets."
-				actions={addRoleAction}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="No roles yet"
-					description="Get started by creating your first role."
-					action={addRoleAction}
+		<EntityListPage
+			title="Roles"
+			description="Manage roles and their permission sets."
+			actions={addRoleAction}
+			table={table}
+			recordCount={totalCount}
+			isLoading={listQuery.isFetching}
+			isEmpty={isEmpty}
+			emptyState={{
+				title: 'No roles yet',
+				description: 'Get started by creating your first role.',
+				action: addRoleAction,
+			}}
+			emptyMessage="No roles match your search."
+			toolbar={
+				<TableToolbar
+					searchValue={globalFilter}
+					onSearchChange={(value) => table.setGlobalFilter(value)}
+					searchPlaceholder="Search by code or name..."
+					filters={[
+						{
+							key: 'isSystem',
+							label: 'Type',
+							value: search.isSystem?.toString(),
+							options: [
+								{ label: 'System roles', value: '1' },
+								{ label: 'Custom roles', value: '0' },
+							],
+							onChange: (value) =>
+								navigate({
+									search: {
+										...search,
+										page: 1,
+										isSystem: value === undefined ? undefined : Number(value),
+									},
+								}),
+						},
+					]}
 				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isFetching}
-					emptyMessage="No roles match your search."
-					toolbar={
-						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search by code or name..."
-							filters={[
-								{
-									key: 'isSystem',
-									label: 'Type',
-									value: search.isSystem?.toString(),
-									options: [
-										{ label: 'System roles', value: '1' },
-										{ label: 'Custom roles', value: '0' },
-									],
-									onChange: (value) =>
-										navigate({
-											search: {
-												...search,
-												page: 1,
-												isSystem: value === undefined ? undefined : Number(value),
-											},
-										}),
-								},
-							]}
-						/>
-					}
-				/>
-			)}
-		</div>
+			}
+		/>
 	)
 }

@@ -3,8 +3,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
+import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
 import { FormPage } from '@/components/shared/form-page.tsx'
-import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 
 import { toast } from '@/components/ui/toast'
 
@@ -27,20 +27,15 @@ function EditPaymentMethodPage() {
 
 	const detailQuery = useQuery(paymentMethodResource.detail.queryOptions({ id }))
 
-	if (detailQuery.isLoading) {
-		return <PageSkeleton />
-	}
-
-	const method = detailQuery.data?.data
-	if (!method) {
-		return null
-	}
-
 	return (
-		<EditPaymentMethodForm
-			method={method}
-			onDone={() => navigate({ to: '/master/payment-methods' })}
-		/>
+		<DetailBoundary query={detailQuery}>
+			{(response) => (
+				<EditPaymentMethodForm
+					method={response.data}
+					onDone={() => navigate({ to: '/master/payment-methods' })}
+				/>
+			)}
+		</DetailBoundary>
 	)
 }
 

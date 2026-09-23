@@ -5,8 +5,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
+import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
 import { FormPage } from '@/components/shared/form-page.tsx'
-import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 
 import { toast } from '@/components/ui/toast'
 
@@ -30,16 +30,13 @@ function EditUserPage() {
 
 	const detailQuery = useQuery(userResource.detail.queryOptions({ id }))
 
-	if (detailQuery.isLoading) {
-		return <PageSkeleton />
-	}
-
-	const user = detailQuery.data?.data
-	if (!user) {
-		return null
-	}
-
-	return <EditUserForm user={user} onDone={() => navigate({ to: '/settings/users' })} />
+	return (
+		<DetailBoundary query={detailQuery}>
+			{(response) => (
+				<EditUserForm user={response.data} onDone={() => navigate({ to: '/settings/users' })} />
+			)}
+		</DetailBoundary>
+	)
 }
 
 interface EditUserFormProps {
@@ -76,7 +73,8 @@ function EditUserForm({ user, onDone }: EditUserFormProps) {
 				...(values.password ? { password: values.password } : {}),
 			})
 
-			const keyOf = (roleId: number, locationId: number | null) => `${roleId}:${locationId ?? 'global'}`
+			const keyOf = (roleId: number, locationId: number | null) =>
+				`${roleId}:${locationId ?? 'global'}`
 			const existing = new Map(
 				user.assignments.map((assignment) => [
 					keyOf(assignment.roleId, assignment.locationId),

@@ -10,13 +10,11 @@ import { z } from 'zod'
 import { FormDialogFooter } from '@/lib/form/index.ts'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
+import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EmptyState } from '@/components/shared/empty-state'
+import { EntityListPage } from '@/components/shared/entity-list-page'
 import { formDialog } from '@/components/shared/form-dialog'
-import { PageHeader } from '@/components/shared/page-header'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
@@ -224,44 +222,35 @@ function MaterialsPage() {
 
 	// ─── Columns with actions ───
 
-	const actionsColumn = useMemo(() => {
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				const items = []
-				if (canEdit) {
-					items.push({
+	const actionsColumn = useMemo(
+		() =>
+			createActionColumn<MaterialDto>({
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				getItems: (material) => [
+					canEdit && {
 						label: 'Edit',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
 								to: '/master/materials/$materialId',
-								params: { materialId: String(row.original.id) },
+								params: { materialId: String(material.id) },
 							}),
-					})
-				}
-				if (canCreate || canDelete) {
-					items.push({
+					},
+					(canCreate || canDelete) && {
 						label: 'Locations',
 						icon: <MapPinIcon className="size-4" />,
-						onClick: () => handleLocations(row.original),
-					})
-				}
-				if (canDelete) {
-					items.push({
+						onClick: () => handleLocations(material),
+					},
+					canDelete && {
 						label: 'Delete',
 						icon: <TrashIcon className="size-4" />,
-						onClick: () => handleDelete(row.original),
+						onClick: () => handleDelete(material),
 						variant: 'destructive' as const,
-					})
-				}
-				if (items.length === 0) return null
-				return <ActionMenu items={items} />
-			},
-		})
-	}, [canCreate, canEdit, canDelete, handleDelete, handleLocations, navigate])
+					},
+				],
+			}),
+		[canCreate, canEdit, canDelete, handleDelete, handleLocations, navigate],
+	)
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, MaterialDto>[],
@@ -279,8 +268,8 @@ function MaterialsPage() {
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !search.categoryId
 
 	return (
-		<div className="space-y-6">
-			<PageHeader
+		<>
+			<EntityListPage
 				title="Materials"
 				description="Manage materials, categories, and location assignments."
 				actions={
@@ -297,62 +286,57 @@ function MaterialsPage() {
 						</div>
 					</PermissionGate>
 				}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="No materials yet"
-					description="Get started by creating your first material."
-					action={
+				table={table}
+				recordCount={totalCount}
+				isLoading={listQuery.isFetching}
+				isEmpty={isEmpty}
+				emptyState={{
+					title: 'No materials yet',
+					description: 'Get started by creating your first material.',
+					action: (
 						<PermissionGate permission="material.create">
 							<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
 								<PlusIcon className="size-4" />
 								Add Material
 							</Button>
 						</PermissionGate>
-					}
-				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isFetching}
-					emptyMessage="No materials match your filters."
-					onRowClick={(row) =>
-						navigate({
-							to: '/master/materials/$materialId',
-							params: { materialId: String(row.id) },
-						})
-					}
-					toolbar={
-						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search materials..."
-							filters={[
-								{
-									key: 'categoryId',
-									label: 'Category',
-									value: search.categoryId?.toString(),
-									onChange: (v) =>
-										navigate({
-											search: {
-												...search,
-												page: 1,
-												categoryId: v ? Number(v) : undefined,
-											},
-										}),
-									options: categories.map((cat) => ({
-										label: cat.name,
-										value: cat.id.toString(),
-									})),
-									allLabel: 'All categories',
-								},
-							]}
-						/>
-					}
-				/>
-			)}
+					),
+				}}
+				emptyMessage="No materials match your filters."
+				onRowClick={(row) =>
+					navigate({
+						to: '/master/materials/$materialId',
+						params: { materialId: String(row.id) },
+					})
+				}
+				toolbar={
+					<TableToolbar
+						searchValue={globalFilter}
+						onSearchChange={(value) => table.setGlobalFilter(value)}
+						searchPlaceholder="Search materials..."
+						filters={[
+							{
+								key: 'categoryId',
+								label: 'Category',
+								value: search.categoryId?.toString(),
+								onChange: (v) =>
+									navigate({
+										search: {
+											...search,
+											page: 1,
+											categoryId: v ? Number(v) : undefined,
+										},
+									}),
+								options: categories.map((cat) => ({
+									label: cat.name,
+									value: cat.id.toString(),
+								})),
+								allLabel: 'All categories',
+							},
+						]}
+					/>
+				}
+			/>
 
 			{categories.length > 0 && (
 				<div className="space-y-3">
@@ -390,6 +374,6 @@ function MaterialsPage() {
 					</div>
 				</div>
 			)}
-		</div>
+		</>
 	)
 }

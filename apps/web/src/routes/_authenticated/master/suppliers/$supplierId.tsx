@@ -4,8 +4,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { isApiError } from '@/lib/api/index.ts'
 import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
+import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
 import { FormPage } from '@/components/shared/form-page.tsx'
-import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 
 import { toast } from '@/components/ui/toast'
 
@@ -28,17 +28,15 @@ function EditSupplierPage() {
 
 	const detailQuery = useQuery(supplierResource.detail.queryOptions({ id }))
 
-	if (detailQuery.isLoading) {
-		return <PageSkeleton />
-	}
-
-	const supplier = detailQuery.data?.data
-	if (!supplier) {
-		return null
-	}
-
 	return (
-		<EditSupplierForm supplier={supplier} onDone={() => navigate({ to: '/master/suppliers' })} />
+		<DetailBoundary query={detailQuery}>
+			{(response) => (
+				<EditSupplierForm
+					supplier={response.data}
+					onDone={() => navigate({ to: '/master/suppliers' })}
+				/>
+			)}
+		</DetailBoundary>
 	)
 }
 

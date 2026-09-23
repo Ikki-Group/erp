@@ -10,7 +10,7 @@ import { z } from 'zod'
 import { listSearchSchema, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
+import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
@@ -292,37 +292,30 @@ function MenuPage() {
 
 	// ─── Table Columns ───
 
-	const actionsColumn = useMemo(() => {
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				const items = []
-				if (canEditItem) {
-					items.push({
+	const actionsColumn = useMemo(
+		() =>
+			createActionColumn<MenuItemDto>({
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				getItems: (item) => [
+					canEditItem && {
 						label: 'Edit',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
 								to: '/master/menu/items/$itemId',
-								params: { itemId: String(row.original.id) },
+								params: { itemId: String(item.id) },
 							}),
-					})
-				}
-				if (canDeleteItem) {
-					items.push({
+					},
+					canDeleteItem && {
 						label: 'Hapus',
 						icon: <TrashIcon className="size-4" />,
-						onClick: () => handleDeleteItem(row.original),
+						onClick: () => handleDeleteItem(item),
 						variant: 'destructive' as const,
-					})
-				}
-				if (items.length === 0) return null
-				return <ActionMenu items={items} />
-			},
-		})
-	}, [canEditItem, canDeleteItem, handleDeleteItem, navigate])
+					},
+				],
+			}),
+		[canEditItem, canDeleteItem, handleDeleteItem, navigate],
+	)
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, MenuItemDto>[],

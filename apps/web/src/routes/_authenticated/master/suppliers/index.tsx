@@ -8,13 +8,11 @@ import { EditIcon, PackageIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
+import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EmptyState } from '@/components/shared/empty-state'
+import { EntityListPage } from '@/components/shared/entity-list-page'
 import { formDialog } from '@/components/shared/form-dialog'
-import { PageHeader } from '@/components/shared/page-header'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -126,41 +124,35 @@ function SuppliersPage() {
 
 	// ─── Columns with actions ───
 
-	const actionsColumn = useMemo(() => {
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				const items = []
-				if (canEdit) {
-					items.push({
+	const actionsColumn = useMemo(
+		() =>
+			createActionColumn<SupplierDto>({
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				getItems: (supplier) => [
+					canEdit && {
 						label: 'Edit',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
 								to: '/master/suppliers/$supplierId',
-								params: { supplierId: String(row.original.id) },
+								params: { supplierId: String(supplier.id) },
 							}),
-					})
-				}
-				items.push({
-					label: 'Pricing',
-					icon: <PackageIcon className="size-4" />,
-					onClick: () => handlePricing(row.original),
-				})
-				if (canDelete) {
-					items.push({
+					},
+					{
+						label: 'Pricing',
+						icon: <PackageIcon className="size-4" />,
+						onClick: () => handlePricing(supplier),
+					},
+					canDelete && {
 						label: 'Delete',
 						icon: <TrashIcon className="size-4" />,
-						onClick: () => handleDelete(row.original),
+						onClick: () => handleDelete(supplier),
 						variant: 'destructive' as const,
-					})
-				}
-				return <ActionMenu items={items} />
-			},
-		})
-	}, [canEdit, canDelete, handleDelete, handlePricing, navigate])
+					},
+				],
+			}),
+		[canEdit, canDelete, handleDelete, handlePricing, navigate],
+	)
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, SupplierDto>[],
@@ -179,68 +171,61 @@ function SuppliersPage() {
 		!listQuery.isLoading && data.length === 0 && !globalFilter && search.isActive === undefined
 
 	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Suppliers"
-				description="Manage suppliers and their material pricing."
-				actions={
+		<EntityListPage
+			title="Suppliers"
+			description="Manage suppliers and their material pricing."
+			actions={
+				<PermissionGate permission="supplier.create">
+					<Button size="sm" onClick={() => navigate({ to: '/master/suppliers/new' })}>
+						<PlusIcon className="size-4" />
+						Add Supplier
+					</Button>
+				</PermissionGate>
+			}
+			table={table}
+			recordCount={totalCount}
+			isLoading={listQuery.isFetching}
+			isEmpty={isEmpty}
+			emptyState={{
+				title: 'No suppliers yet',
+				description: 'Get started by creating your first supplier.',
+				action: (
 					<PermissionGate permission="supplier.create">
 						<Button size="sm" onClick={() => navigate({ to: '/master/suppliers/new' })}>
 							<PlusIcon className="size-4" />
 							Add Supplier
 						</Button>
 					</PermissionGate>
-				}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="No suppliers yet"
-					description="Get started by creating your first supplier."
-					action={
-						<PermissionGate permission="supplier.create">
-							<Button size="sm" onClick={() => navigate({ to: '/master/suppliers/new' })}>
-								<PlusIcon className="size-4" />
-								Add Supplier
-							</Button>
-						</PermissionGate>
-					}
+				),
+			}}
+			emptyMessage="No suppliers match your filters."
+			toolbar={
+				<TableToolbar
+					searchValue={globalFilter}
+					onSearchChange={(value) => table.setGlobalFilter(value)}
+					searchPlaceholder="Search suppliers..."
+					filters={[
+						{
+							key: 'isActive',
+							label: 'Status',
+							value: search.isActive?.toString(),
+							onChange: (v) =>
+								navigate({
+									search: {
+										...search,
+										page: 1,
+										isActive: v !== undefined ? Number(v) : undefined,
+									},
+								}),
+							options: [
+								{ label: 'Active', value: '1' },
+								{ label: 'Inactive', value: '0' },
+							],
+							allLabel: 'All status',
+						},
+					]}
 				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isFetching}
-					emptyMessage="No suppliers match your filters."
-					toolbar={
-						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search suppliers..."
-							filters={[
-								{
-									key: 'isActive',
-									label: 'Status',
-									value: search.isActive?.toString(),
-									onChange: (v) =>
-										navigate({
-											search: {
-												...search,
-												page: 1,
-												isActive: v !== undefined ? Number(v) : undefined,
-											},
-										}),
-									options: [
-										{ label: 'Active', value: '1' },
-										{ label: 'Inactive', value: '0' },
-									],
-									allLabel: 'All status',
-								},
-							]}
-						/>
-					}
-				/>
-			)}
-		</div>
+			}
+		/>
 	)
 }

@@ -7,13 +7,11 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { ArrowRightIcon, EditIcon, LoaderIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
+import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EmptyState } from '@/components/shared/empty-state'
+import { EntityListPage } from '@/components/shared/entity-list-page'
 import { formDialog } from '@/components/shared/form-dialog'
-import { PageHeader } from '@/components/shared/page-header'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -158,37 +156,30 @@ function UomPage() {
 
 	// ─── Columns with actions ───
 
-	const actionsColumn = useMemo(() => {
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				const items = []
-				if (canEdit) {
-					items.push({
+	const actionsColumn = useMemo(
+		() =>
+			createActionColumn<UomDto>({
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				getItems: (unit) => [
+					canEdit && {
 						label: 'Edit',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
 								to: '/master/uom/$uomId',
-								params: { uomId: String(row.original.id) },
+								params: { uomId: String(unit.id) },
 							}),
-					})
-				}
-				if (canDelete) {
-					items.push({
+					},
+					canDelete && {
 						label: 'Delete',
 						icon: <TrashIcon className="size-4" />,
-						onClick: () => handleDelete(row.original),
+						onClick: () => handleDelete(unit),
 						variant: 'destructive' as const,
-					})
-				}
-				if (items.length === 0) return null
-				return <ActionMenu items={items} />
-			},
-		})
-	}, [canEdit, canDelete, handleDelete, navigate])
+					},
+				],
+			}),
+		[canEdit, canDelete, handleDelete, navigate],
+	)
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, UomDto>[],
@@ -206,8 +197,8 @@ function UomPage() {
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !search.category
 
 	return (
-		<div className="space-y-6">
-			<PageHeader
+		<>
+			<EntityListPage
 				title="Units of Measure"
 				description="Manage units and conversion factors."
 				actions={
@@ -231,55 +222,50 @@ function UomPage() {
 						</PermissionGate>
 					</div>
 				}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="No units yet"
-					description="Get started by creating your first unit of measure."
-					action={
+				table={table}
+				recordCount={totalCount}
+				isLoading={listQuery.isLoading}
+				isEmpty={isEmpty}
+				emptyState={{
+					title: 'No units yet',
+					description: 'Get started by creating your first unit of measure.',
+					action: (
 						<PermissionGate permission="uom.create">
 							<Button size="sm" onClick={() => navigate({ to: '/master/uom/new' })}>
 								<PlusIcon className="size-4" />
 								Add Unit
 							</Button>
 						</PermissionGate>
-					}
-				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isLoading}
-					emptyMessage="No units match your search."
-					toolbar={
-						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search units..."
-							filters={[
-								{
-									key: 'category',
-									label: 'Category',
-									value: search.category,
-									onChange: (v) =>
-										navigate({
-											search: {
-												...search,
-												page: 1,
-												category: v as UomCategoryEnum | undefined,
-											},
-										}),
-									options: UOM_CATEGORY_OPTIONS,
-									allLabel: 'All categories',
-								},
-							]}
-						/>
-					}
-				/>
-			)}
+					),
+				}}
+				emptyMessage="No units match your search."
+				toolbar={
+					<TableToolbar
+						searchValue={globalFilter}
+						onSearchChange={(value) => table.setGlobalFilter(value)}
+						searchPlaceholder="Search units..."
+						filters={[
+							{
+								key: 'category',
+								label: 'Category',
+								value: search.category,
+								onChange: (v) =>
+									navigate({
+										search: {
+											...search,
+											page: 1,
+											category: v as UomCategoryEnum | undefined,
+										},
+									}),
+								options: UOM_CATEGORY_OPTIONS,
+								allLabel: 'All categories',
+							},
+						]}
+					/>
+				}
+			/>
 
-			<div className="space-y-3">
+			<div className="mt-6 space-y-3">
 				<h3 className="text-sm font-medium">Conversions</h3>
 				{conversionsQuery.isLoading ? (
 					<div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
@@ -313,6 +299,6 @@ function UomPage() {
 					</div>
 				)}
 			</div>
-		</div>
+		</>
 	)
 }

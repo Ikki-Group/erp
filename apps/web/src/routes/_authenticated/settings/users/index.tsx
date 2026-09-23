@@ -2,18 +2,16 @@ import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, PlusIcon, UserXIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
+import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EmptyState } from '@/components/shared/empty-state'
-import { PageHeader } from '@/components/shared/page-header'
+import { EntityListPage } from '@/components/shared/entity-list-page'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -66,38 +64,30 @@ function UsersPage() {
 		[deactivateMut],
 	)
 
-	const actionsColumn = useMemo(() => {
-		const col = createColumnHelper<DataGridFeatures, UserListItemDto>()
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				const items = []
-				if (canEdit) {
-					items.push({
+	const actionsColumn = useMemo(
+		() =>
+			createActionColumn<UserListItemDto>({
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				getItems: (user) => [
+					canEdit && {
 						label: 'Edit',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
 								to: '/settings/users/$userId',
-								params: { userId: String(row.original.id) },
+								params: { userId: String(user.id) },
 							}),
-					})
-				}
-				if (canDeactivate) {
-					items.push({
+					},
+					canDeactivate && {
 						label: 'Deactivate',
 						icon: <UserXIcon className="size-4" />,
-						onClick: () => handleDeactivate(row.original),
+						onClick: () => handleDeactivate(user),
 						variant: 'destructive' as const,
-					})
-				}
-				if (items.length === 0) return null
-				return <ActionMenu items={items} />
-			},
-		})
-	}, [canEdit, canDeactivate, handleDeactivate, navigate])
+					},
+				],
+			}),
+		[canEdit, canDeactivate, handleDeactivate, navigate],
+	)
 
 	const columns = useMemo(
 		() => [...userColumns, actionsColumn] as ColumnDef<DataGridFeatures, UserListItemDto>[],
@@ -115,67 +105,60 @@ function UsersPage() {
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
 
 	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Users"
-				description="Manage user accounts and their role assignments."
-				actions={
+		<EntityListPage
+			title="Users"
+			description="Manage user accounts and their role assignments."
+			actions={
+				<PermissionGate permission="iam.create">
+					<Button size="sm" onClick={() => navigate({ to: '/settings/users/new' })}>
+						<PlusIcon className="size-4" />
+						Add User
+					</Button>
+				</PermissionGate>
+			}
+			table={table}
+			recordCount={totalCount}
+			isLoading={listQuery.isFetching}
+			isEmpty={isEmpty}
+			emptyState={{
+				title: 'No users yet',
+				description: 'Get started by creating the first user account.',
+				action: (
 					<PermissionGate permission="iam.create">
 						<Button size="sm" onClick={() => navigate({ to: '/settings/users/new' })}>
 							<PlusIcon className="size-4" />
 							Add User
 						</Button>
 					</PermissionGate>
-				}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="No users yet"
-					description="Get started by creating the first user account."
-					action={
-						<PermissionGate permission="iam.create">
-							<Button size="sm" onClick={() => navigate({ to: '/settings/users/new' })}>
-								<PlusIcon className="size-4" />
-								Add User
-							</Button>
-						</PermissionGate>
-					}
+				),
+			}}
+			emptyMessage="No users match your search."
+			toolbar={
+				<TableToolbar
+					searchValue={globalFilter}
+					onSearchChange={(value) => table.setGlobalFilter(value)}
+					searchPlaceholder="Search by username, name, or email..."
+					filters={[
+						{
+							key: 'isActive',
+							label: 'Status',
+							value: search.isActive?.toString(),
+							options: [
+								{ label: 'Active', value: '1' },
+								{ label: 'Inactive', value: '0' },
+							],
+							onChange: (value) =>
+								navigate({
+									search: {
+										...search,
+										page: 1,
+										isActive: value === undefined ? undefined : Number(value),
+									},
+								}),
+						},
+					]}
 				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isFetching}
-					emptyMessage="No users match your search."
-					toolbar={
-						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search by username, name, or email..."
-							filters={[
-								{
-									key: 'isActive',
-									label: 'Status',
-									value: search.isActive?.toString(),
-									options: [
-										{ label: 'Active', value: '1' },
-										{ label: 'Inactive', value: '0' },
-									],
-									onChange: (value) =>
-										navigate({
-											search: {
-												...search,
-												page: 1,
-												isActive: value === undefined ? undefined : Number(value),
-											},
-										}),
-								},
-							]}
-						/>
-					}
-				/>
-			)}
-		</div>
+			}
+		/>
 	)
 }

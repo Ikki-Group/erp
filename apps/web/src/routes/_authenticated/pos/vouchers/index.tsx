@@ -9,12 +9,10 @@ import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
+import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EmptyState } from '@/components/shared/empty-state'
-import { PageHeader } from '@/components/shared/page-header'
+import { EntityListPage } from '@/components/shared/entity-list-page'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -161,37 +159,30 @@ function VouchersPage() {
 
 	// ─── Columns with actions ───
 
-	const actionsColumn = useMemo(() => {
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				if (!canManage) return null
-				return (
-					<ActionMenu
-						items={[
-							{
-								label: 'Edit',
-								icon: <EditIcon className="size-4" />,
-								onClick: () =>
-									navigate({
-										to: '/pos/vouchers/$voucherId',
-										params: { voucherId: String(row.original.id) },
-									}),
-							},
-							{
-								label: 'Delete',
-								icon: <TrashIcon className="size-4" />,
-								onClick: () => handleDelete(row.original),
-								variant: 'destructive' as const,
-							},
-						]}
-					/>
-				)
-			},
-		})
-	}, [canManage, handleDelete, navigate])
+	const actionsColumn = useMemo(
+		() =>
+			createActionColumn<VoucherDto>({
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				getItems: (voucher) => [
+					canManage && {
+						label: 'Edit',
+						icon: <EditIcon className="size-4" />,
+						onClick: () =>
+							navigate({
+								to: '/pos/vouchers/$voucherId',
+								params: { voucherId: String(voucher.id) },
+							}),
+					},
+					canManage && {
+						label: 'Delete',
+						icon: <TrashIcon className="size-4" />,
+						onClick: () => handleDelete(voucher),
+						variant: 'destructive' as const,
+					},
+				],
+			}),
+		[canManage, handleDelete, navigate],
+	)
 
 	const columns = useMemo(
 		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, VoucherDto>[],
@@ -209,61 +200,52 @@ function VouchersPage() {
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
 
 	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Vouchers"
-				description="Manage discount vouchers for POS checkout."
-				actions={
-					canManage ? (
-						<Button size="sm" onClick={() => navigate({ to: '/pos/vouchers/new' })}>
-							<PlusIcon className="size-4" />
-							Add Voucher
-						</Button>
-					) : undefined
-				}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="No vouchers yet"
-					description="Get started by creating your first discount voucher."
-					action={
-						canManage ? (
-							<Button size="sm" onClick={() => navigate({ to: '/pos/vouchers/new' })}>
-								<PlusIcon className="size-4" />
-								Add Voucher
-							</Button>
-						) : undefined
-					}
+		<EntityListPage
+			title="Vouchers"
+			description="Manage discount vouchers for POS checkout."
+			actions={
+				canManage ? (
+					<Button size="sm" onClick={() => navigate({ to: '/pos/vouchers/new' })}>
+						<PlusIcon className="size-4" />
+						Add Voucher
+					</Button>
+				) : undefined
+			}
+			table={table}
+			recordCount={totalCount}
+			isLoading={listQuery.isFetching}
+			isEmpty={isEmpty}
+			emptyState={{
+				title: 'No vouchers yet',
+				description: 'Get started by creating your first discount voucher.',
+				action: canManage ? (
+					<Button size="sm" onClick={() => navigate({ to: '/pos/vouchers/new' })}>
+						<PlusIcon className="size-4" />
+						Add Voucher
+					</Button>
+				) : undefined,
+			}}
+			emptyMessage="No vouchers match your search."
+			toolbar={
+				<TableToolbar
+					searchValue={globalFilter}
+					onSearchChange={(value) => table.setGlobalFilter(value)}
+					searchPlaceholder="Search vouchers..."
+					filters={[
+						{
+							key: 'isActive',
+							label: 'Status',
+							value: search.isActive,
+							onChange: (v) =>
+								navigate({
+									search: { ...search, page: 1, isActive: v as 'true' | 'false' | undefined },
+								}),
+							options: STATUS_FILTER_OPTIONS,
+							allLabel: 'All',
+						},
+					]}
 				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isFetching}
-					emptyMessage="No vouchers match your search."
-					toolbar={
-						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search vouchers..."
-							filters={[
-								{
-									key: 'isActive',
-									label: 'Status',
-									value: search.isActive,
-									onChange: (v) =>
-										navigate({
-											search: { ...search, page: 1, isActive: v as 'true' | 'false' | undefined },
-										}),
-									options: STATUS_FILTER_OPTIONS,
-									allLabel: 'All',
-								},
-							]}
-						/>
-					}
-				/>
-			)}
-		</div>
+			}
+		/>
 	)
 }

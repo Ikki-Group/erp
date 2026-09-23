@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
@@ -10,13 +10,11 @@ import { suspenseOptions } from '@/lib/api/index.ts'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
 import type { ListSearch } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
+import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EmptyState } from '@/components/shared/empty-state'
+import { EntityListPage } from '@/components/shared/entity-list-page'
 import { PageError } from '@/components/shared/page-error'
-import { PageHeader } from '@/components/shared/page-header'
 import { PageSkeleton } from '@/components/shared/page-skeleton'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
@@ -80,38 +78,30 @@ function LocationsPage() {
 		[removeMut],
 	)
 
-	const actionsColumn = useMemo(() => {
-		const col = createColumnHelper<DataGridFeatures, LocationDto>()
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				const items = []
-				if (canEdit) {
-					items.push({
+	const actionsColumn = useMemo(
+		() =>
+			createActionColumn<LocationDto>({
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				getItems: (location) => [
+					canEdit && {
 						label: 'Edit',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
 								to: '/master/locations/$locationId',
-								params: { locationId: String(row.original.id) },
+								params: { locationId: String(location.id) },
 							}),
-					})
-				}
-				if (canDelete) {
-					items.push({
+					},
+					canDelete && {
 						label: 'Delete',
 						icon: <TrashIcon className="size-4" />,
-						onClick: () => handleDelete(row.original),
+						onClick: () => handleDelete(location),
 						variant: 'destructive' as const,
-					})
-				}
-				if (items.length === 0) return null
-				return <ActionMenu items={items} />
-			},
-		})
-	}, [canEdit, canDelete, handleDelete, navigate])
+					},
+				],
+			}),
+		[canEdit, canDelete, handleDelete, navigate],
+	)
 
 	const columns = useMemo(
 		() => [...locationColumns, actionsColumn] as ColumnDef<DataGridFeatures, LocationDto>[],
@@ -129,57 +119,50 @@ function LocationsPage() {
 	const isEmpty = data.length === 0 && !globalFilter
 
 	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Locations"
-				description="Manage stores and warehouses in your organization."
-				actions={
+		<EntityListPage
+			title="Locations"
+			description="Manage stores and warehouses in your organization."
+			actions={
+				<PermissionGate permission="location.create">
+					<Button size="sm" onClick={() => navigate({ to: '/master/locations/new' })}>
+						<PlusIcon className="size-4" />
+						Add Location
+					</Button>
+				</PermissionGate>
+			}
+			table={table}
+			recordCount={totalCount}
+			isLoading={listQuery.isFetching}
+			isEmpty={isEmpty}
+			emptyState={{
+				title: 'No locations yet',
+				description: 'Get started by creating your first location.',
+				action: (
 					<PermissionGate permission="location.create">
 						<Button size="sm" onClick={() => navigate({ to: '/master/locations/new' })}>
 							<PlusIcon className="size-4" />
 							Add Location
 						</Button>
 					</PermissionGate>
-				}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="No locations yet"
-					description="Get started by creating your first location."
-					action={
-						<PermissionGate permission="location.create">
-							<Button size="sm" onClick={() => navigate({ to: '/master/locations/new' })}>
-								<PlusIcon className="size-4" />
-								Add Location
-							</Button>
-						</PermissionGate>
-					}
+				),
+			}}
+			emptyMessage="No locations match your search."
+			onRowClick={
+				canEdit
+					? (row) =>
+							navigate({
+								to: '/master/locations/$locationId',
+								params: { locationId: String(row.id) },
+							})
+					: undefined
+			}
+			toolbar={
+				<TableToolbar
+					searchValue={globalFilter}
+					onSearchChange={(value) => table.setGlobalFilter(value)}
+					searchPlaceholder="Search locations..."
 				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isFetching}
-					emptyMessage="No locations match your search."
-					onRowClick={
-						canEdit
-							? (row) =>
-									navigate({
-										to: '/master/locations/$locationId',
-										params: { locationId: String(row.id) },
-									})
-							: undefined
-					}
-					toolbar={
-						<TableToolbar
-							searchValue={globalFilter}
-							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search locations..."
-						/>
-					}
-				/>
-			)}
-		</div>
+			}
+		/>
 	)
 }

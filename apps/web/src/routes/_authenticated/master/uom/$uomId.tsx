@@ -3,8 +3,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
+import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
 import { FormPage } from '@/components/shared/form-page.tsx'
-import { PageSkeleton } from '@/components/shared/page-skeleton.tsx'
 
 import { toast } from '@/components/ui/toast'
 
@@ -23,16 +23,13 @@ function EditUomPage() {
 
 	const detailQuery = useQuery(uomResource.detail.queryOptions({ id }))
 
-	if (detailQuery.isLoading) {
-		return <PageSkeleton />
-	}
-
-	const unit = detailQuery.data?.data
-	if (!unit) {
-		return null
-	}
-
-	return <EditUomForm unit={unit} onDone={() => navigate({ to: '/master/uom' })} />
+	return (
+		<DetailBoundary query={detailQuery}>
+			{(response) => (
+				<EditUomForm unit={response.data} onDone={() => navigate({ to: '/master/uom' })} />
+			)}
+		</DetailBoundary>
+	)
 }
 
 interface EditUomFormProps {
