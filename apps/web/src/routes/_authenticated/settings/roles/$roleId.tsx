@@ -17,31 +17,58 @@ import {
 import type { RoleDto } from '@/features/iam/dto/index.ts'
 
 export const Route = createFileRoute('/_authenticated/settings/roles/$roleId')({
-	component: EditRolePage,
+	component: RoleDetailPage,
 })
 
-function EditRolePage() {
+function RoleDetailPage() {
 	const { roleId } = Route.useParams()
 	const navigate = useNavigate()
-	const id = Number(roleId)
-
-	const detailQuery = useQuery(roleResource.detail.queryOptions({ id }))
+	const detailQuery = useQuery(roleResource.detail.queryOptions({ id: Number(roleId) }))
 
 	return (
 		<DetailBoundary query={detailQuery}>
-			{(response) => (
-				<EditRoleForm role={response.data} onDone={() => navigate({ to: '/settings/roles' })} />
-			)}
+			{(response) =>
+				response.data.isSystem ? (
+					<SystemRoleDetail
+						role={response.data}
+						onDone={() => navigate({ to: '/settings/roles' })}
+					/>
+				) : (
+					<EditRoleForm role={response.data} onDone={() => navigate({ to: '/settings/roles' })} />
+				)
+			}
 		</DetailBoundary>
 	)
 }
 
-interface EditRoleFormProps {
+interface RolePageProps {
 	role: RoleDto
 	onDone: () => void
 }
 
-function EditRoleForm({ role, onDone }: EditRoleFormProps) {
+function SystemRoleDetail({ role, onDone }: RolePageProps) {
+	const form = useRoleForm({
+		defaultValues: toRoleFormValues(role),
+		onSubmit: async () => undefined,
+	})
+
+	return (
+		<form.AppForm>
+			<FormPage
+				title="System Role Details"
+				description={`${role.name} is managed by the system and cannot be modified.`}
+				form={form}
+				onCancel={onDone}
+				cancelLabel="Back"
+				readOnly
+			>
+				<RoleFormFields form={form} readOnly />
+			</FormPage>
+		</form.AppForm>
+	)
+}
+
+function EditRoleForm({ role, onDone }: RolePageProps) {
 	const updateMut = useMutation(roleResource.update.mutationOptions())
 	const form = useRoleForm({
 		defaultValues: toRoleFormValues(role),

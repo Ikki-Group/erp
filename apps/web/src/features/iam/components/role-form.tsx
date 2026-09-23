@@ -53,16 +53,20 @@ export type RoleForm = ReturnType<typeof useRoleForm>
 function PermissionsPicker({
 	value,
 	onChange,
+	readOnly = false,
 }: {
 	value: string[]
 	onChange: (next: string[]) => void
+	readOnly?: boolean
 }) {
 	const togglePermission = (permission: string) => {
+		if (readOnly) return
 		const has = value.includes(permission)
 		onChange(has ? value.filter((p) => p !== permission) : [...value, permission])
 	}
 
 	const toggleGroup = (permissions: readonly string[]) => {
+		if (readOnly) return
 		const allChecked = permissions.every((p) => value.includes(p))
 		if (allChecked) {
 			onChange(value.filter((p) => !permissions.includes(p)))
@@ -86,6 +90,7 @@ function PermissionsPicker({
 									<Checkbox
 										checked={allChecked}
 										indeterminate={someChecked}
+										disabled={readOnly}
 										onCheckedChange={() => toggleGroup(group.permissions)}
 									/>
 									<span className="text-sm font-medium">{group.label}</span>
@@ -95,6 +100,7 @@ function PermissionsPicker({
 										<label key={perm} className="flex items-center gap-1.5 text-xs">
 											<Checkbox
 												checked={value.includes(perm)}
+												disabled={readOnly}
 												onCheckedChange={() => togglePermission(perm)}
 												className="size-3.5"
 											/>
@@ -113,21 +119,29 @@ function PermissionsPicker({
 	)
 }
 
-export function RoleFormFields({ form }: { form: RoleForm }) {
+export function RoleFormFields({ form, readOnly = false }: { form: RoleForm; readOnly?: boolean }) {
 	return (
 		<div className="grid gap-5">
 			<div className="grid grid-cols-2 gap-4">
 				<form.AppField name="code">
-					{(field) => <field.TextField label="Code" placeholder="e.g. manager" />}
+					{(field) => (
+						<field.TextField label="Code" placeholder="e.g. manager" disabled={readOnly} />
+					)}
 				</form.AppField>
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Name" placeholder="e.g. Store Manager" />}
+					{(field) => (
+						<field.TextField label="Name" placeholder="e.g. Store Manager" disabled={readOnly} />
+					)}
 				</form.AppField>
 			</div>
 
 			<form.AppField name="permissions">
 				{(field) => (
-					<PermissionsPicker value={field.state.value} onChange={(v) => field.handleChange(v)} />
+					<PermissionsPicker
+						value={field.state.value}
+						onChange={(v) => field.handleChange(v)}
+						readOnly={readOnly}
+					/>
 				)}
 			</form.AppField>
 

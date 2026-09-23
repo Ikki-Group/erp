@@ -23,6 +23,8 @@ export interface FormPageProps {
 	onCancel?: () => void
 	submitLabel?: string
 	cancelLabel?: string
+	/** Renders the form as a read-only detail page without a submit action. */
+	readOnly?: boolean
 	className?: string
 }
 
@@ -65,6 +67,7 @@ export function FormPage({
 	onCancel,
 	submitLabel = 'Save',
 	cancelLabel = 'Cancel',
+	readOnly = false,
 	className,
 }: FormPageProps) {
 	const router = useRouter()
@@ -105,10 +108,12 @@ export function FormPage({
 					<Button type="button" variant="outline" onClick={handleCancel} disabled={isSubmitting}>
 						{cancelLabel}
 					</Button>
-					<Button type="submit" disabled={isSubmitting || !canSubmit}>
-						{isSubmitting && <Spinner className="mr-1.5 size-3.5" />}
-						{submitLabel}
-					</Button>
+					{!readOnly && (
+						<Button type="submit" disabled={isSubmitting || !canSubmit}>
+							{isSubmitting && <Spinner className="mr-1.5 size-3.5" />}
+							{submitLabel}
+						</Button>
+					)}
 				</div>
 			</form>
 		</div>

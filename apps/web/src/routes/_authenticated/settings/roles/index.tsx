@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import { EditIcon, EyeIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
@@ -69,6 +69,15 @@ function RolesPage() {
 			createActionColumn<RoleDto>({
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (role) => [
+					role.isSystem && {
+						label: 'View',
+						icon: <EyeIcon className="size-4" />,
+						onClick: () =>
+							navigate({
+								to: '/settings/roles/$roleId',
+								params: { roleId: String(role.id) },
+							}),
+					},
 					!role.isSystem &&
 						canEdit && {
 							label: 'Edit',

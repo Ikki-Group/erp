@@ -98,18 +98,24 @@ test.describe('Roles - CRUD', () => {
 		await expect(page.getByText(/deleted/i)).toBeVisible()
 	})
 
-	/** System roles should not show edit/delete actions */
-	test('system roles do not show action menu', async ({ page, login }) => {
+	/** System roles are viewable but remain immutable */
+	test('system roles show view action without edit/delete', async ({ page, login }) => {
 		await login()
 		await page.goto('/settings/roles')
 
-		// System roles (e.g., Owner, Cashier) should exist in the table
-		// but should NOT have action buttons
+		// System roles (e.g., Owner, Cashier) should exist in the table.
 		const ownerRow = page.getByRole('row').filter({ hasText: /owner/i })
 		await expect(ownerRow).toBeVisible()
 
-		// System rows should not have an action trigger within them
 		const actionsInRow = ownerRow.getByRole('button', { name: /actions/i })
-		await expect(actionsInRow).toHaveCount(0)
+		await actionsInRow.click()
+		await expect(page.getByRole('menuitem', { name: 'View' })).toBeVisible()
+		await expect(page.getByRole('menuitem', { name: 'Edit' })).toHaveCount(0)
+		await expect(page.getByRole('menuitem', { name: 'Delete' })).toHaveCount(0)
+		await page.getByRole('menuitem', { name: 'View' }).click()
+
+		await expect(page).toHaveURL(/\/settings\/roles\/\d+$/)
+		await expect(page.getByRole('heading', { name: 'System Role Details' })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Save' })).toHaveCount(0)
 	})
 })
