@@ -17,14 +17,15 @@ test.describe('Users - CRUD', () => {
 		await expect(page.getByRole('button', { name: /add user/i })).toBeVisible()
 	})
 
-	/** Opening create dialog */
-	test('opens create dialog when clicking Add User', async ({ page, login }) => {
+	/** Opening the full-page create form */
+	test('opens create form when clicking Add User', async ({ page, login }) => {
 		await login()
 		await page.goto('/settings/users')
 
 		await page.getByRole('button', { name: /add user/i }).click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
+		await expect(page).toHaveURL(/\/settings\/users\/new$/)
+		await expect(page.getByRole('heading', { name: 'Add User' })).toBeVisible()
 	})
 
 	/** Create a new user end-to-end */

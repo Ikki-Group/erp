@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { EditIcon, PlusIcon, UserXIcon } from 'lucide-react'
+import { EditIcon, EyeIcon, PlusIcon, UserXIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
@@ -69,6 +69,15 @@ function UsersPage() {
 			createActionColumn<UserListItemDto>({
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (user) => [
+					{
+						label: 'View',
+						icon: <EyeIcon className="size-4" />,
+						onClick: () =>
+							navigate({
+								to: '/settings/users/$userId',
+								params: { userId: String(user.id) },
+							}),
+					},
 					canEdit && {
 						label: 'Edit',
 						icon: <EditIcon className="size-4" />,
@@ -76,6 +85,7 @@ function UsersPage() {
 							navigate({
 								to: '/settings/users/$userId',
 								params: { userId: String(user.id) },
+								search: { mode: 'edit' },
 							}),
 					},
 					canDeactivate && {
