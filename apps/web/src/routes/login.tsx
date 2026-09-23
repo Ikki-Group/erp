@@ -77,7 +77,7 @@ function LoginPage() {
 
 	return (
 		<main className="min-h-svh bg-background text-foreground lg:grid lg:grid-cols-2">
-			<section className="relative flex min-h-svh min-w-0 items-center justify-center overflow-hidden bg-white px-6 py-10 text-zinc-900 sm:px-10 lg:order-2 lg:px-16 light:bg-white light:text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
+			<section className="relative flex min-h-svh min-w-0 items-center justify-center overflow-hidden bg-background px-6 py-10 text-foreground sm:px-10 lg:order-2 lg:px-16">
 				<div className="pointer-events-none absolute -top-36 -right-36 size-96 rounded-full bg-primary/10 blur-3xl" />
 				<div className="pointer-events-none absolute -bottom-48 -left-24 size-96 rounded-full bg-accent-warm/10 blur-3xl" />
 
@@ -89,7 +89,7 @@ function LoginPage() {
 
 					<div className="mb-9">
 						<p className="mb-3 text-sm font-medium text-primary">Selamat datang kembali</p>
-						<h1 className="text-zinc-900 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl light:text-zinc-900 dark:text-zinc-50">
+						<h1 className="text-foreground text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
 							Masuk untuk mengelola bisnis Anda.
 						</h1>
 						<p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
@@ -135,17 +135,14 @@ function LoginPage() {
 									onChange={(e) => setUsername(e.target.value)}
 									disabled={isSubmitting}
 									placeholder="Masukkan nama pengguna"
-									className="h-11 rounded-lg bg-white pl-10 text-sm text-zinc-900 light:bg-white light:text-zinc-900 dark:bg-zinc-900 dark:text-zinc-50"
+									className="h-11 rounded-lg bg-background pl-10 text-sm text-foreground"
 								/>
 							</div>
 						</div>
 
 						<div className="space-y-2">
 							<div className="flex items-center justify-between">
-								<Label
-									htmlFor="password"
-									className="text-zinc-900 light:text-zinc-900 dark:text-zinc-50"
-								>
+								<Label htmlFor="password" className="text-foreground">
 									Kata sandi
 								</Label>
 							</div>
@@ -165,7 +162,7 @@ function LoginPage() {
 									onChange={(e) => setPassword(e.target.value)}
 									disabled={isSubmitting}
 									placeholder="Masukkan kata sandi"
-									className="h-11 rounded-lg bg-white pr-12 pl-10 text-sm text-zinc-900 light:bg-white light:text-zinc-900 dark:bg-zinc-900 dark:text-zinc-50"
+									className="h-11 rounded-lg bg-background pr-12 pl-10 text-sm text-foreground"
 								/>
 								<button
 									type="button"

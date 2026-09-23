@@ -3,7 +3,6 @@
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/geist';
 
-@custom-variant light (&:where(html.light, html.light *));
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
