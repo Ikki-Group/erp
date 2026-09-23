@@ -246,6 +246,27 @@ function DesignSystemPage() {
 				actions={<ThemeToggle />}
 			/>
 
+			{/* ─── THEME TOKENS ─── */}
+			<PageSection
+				title="Theme Tokens"
+				description="Semantic color pairs used across light and dark themes. Toggle the theme above to verify contrast and state consistency."
+			>
+				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+					<TokenSwatch name="Background" className="bg-background text-foreground" />
+					<TokenSwatch name="Card" className="bg-card text-card-foreground" />
+					<TokenSwatch name="Primary" className="bg-primary text-primary-foreground" />
+					<TokenSwatch name="Secondary" className="bg-secondary text-secondary-foreground" />
+					<TokenSwatch name="Muted" className="bg-muted text-muted-foreground" />
+					<TokenSwatch name="Info" className="bg-info text-info-foreground" />
+					<TokenSwatch name="Success" className="bg-success text-success-foreground" />
+					<TokenSwatch name="Warning" className="bg-warning text-warning-foreground" />
+					<TokenSwatch name="Destructive" className="bg-destructive text-destructive-foreground" />
+					<TokenSwatch name="Invert" className="bg-invert text-invert-foreground" />
+				</div>
+			</PageSection>
+
+			<Separator />
+
 			{/* ─── STAT CARDS ─── */}
 			<PageSection title="Stat Cards" description="Dashboard-style metric display.">
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -1097,6 +1118,14 @@ function PageTabsDemo() {
 			<p className="text-sm text-muted-foreground">
 				Active tab: <span className="font-medium text-foreground">{activeTab}</span>
 			</p>
+		</div>
+	)
+}
+
+function TokenSwatch({ name, className }: { name: string; className: string }) {
+	return (
+		<div className={`flex min-h-20 items-end rounded-lg border border-border p-3 ${className}`}>
+			<span className="text-sm font-medium">{name}</span>
 		</div>
 	)
 }
