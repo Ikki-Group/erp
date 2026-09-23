@@ -70,7 +70,13 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 							'group transition-colors hover:bg-accent/35 data-[state=selected]:bg-accent/55',
 					}}
 				>
-					<div className="min-w-0 max-w-full touch-pan-x overscroll-x-contain overflow-x-auto overflow-y-hidden">
+					<div
+						data-slot="data-table-scroll"
+						role="region"
+						aria-label="Scrollable table"
+						tabIndex={0}
+						className="data-table-horizontal-scroll min-w-0 max-w-full touch-pan-x overscroll-x-contain overflow-x-scroll overflow-y-hidden"
+					>
 						<DataGridTable />
 					</div>
 					{showPagination && <DataGridPagination />}
