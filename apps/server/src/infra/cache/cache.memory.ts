@@ -1,12 +1,20 @@
 import { BentoCache, bentostore } from 'bentocache'
 import { memoryDriver } from 'bentocache/drivers/memory'
+import { redisDriver } from 'bentocache/drivers/redis'
 
+import { redisConnection } from '@/infra/redis/index.ts'
 import type { CachePort } from '@/shared/cache/cache.port.ts'
 
+const store = bentostore().useL1Layer(memoryDriver({ maxSize: 1000 }))
+
 const bento = new BentoCache({
-	default: 'memory',
+	default: 'primary',
 	stores: {
-		memory: bentostore().useL1Layer(memoryDriver({ maxSize: 1000 })),
+		// L2 (Redis) layer is added only when REDIS_URL is configured; otherwise
+		// the cache stays L1-memory-only (e.g. local dev/tests).
+		primary: redisConnection
+			? store.useL2Layer(redisDriver({ connection: redisConnection }))
+			: store,
 	},
 })
 

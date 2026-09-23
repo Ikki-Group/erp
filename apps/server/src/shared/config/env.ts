@@ -24,6 +24,9 @@ const envSchema = z.object({
 	// Database
 	DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
+	// Redis (optional — session store and BentoCache L2 layer; memory-only when unset)
+	REDIS_URL: z.string().optional(),
+
 	// Axiom / OTel (optional — no traces exported if missing)
 	AXIOM_URL: z.url().optional(),
 	AXIOM_TOKEN: z.string().optional(),
