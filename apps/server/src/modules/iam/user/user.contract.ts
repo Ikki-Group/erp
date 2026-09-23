@@ -43,6 +43,13 @@ export type UserCreateDto = z.infer<typeof UserCreateDto>
 export const UserUpdateDto = z.object({
 	id: zp.id,
 	...UserMutationDto.shape,
-	password: z.string().min(8).max(100).optional(),
 })
 export type UserUpdateDto = z.infer<typeof UserUpdateDto>
+
+// ─── Reset Password ───
+
+export const UserResetPasswordDto = z.object({
+	id: zp.id,
+	password: z.string().min(8).max(100),
+})
+export type UserResetPasswordDto = z.infer<typeof UserResetPasswordDto>

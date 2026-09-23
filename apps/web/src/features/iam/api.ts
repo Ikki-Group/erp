@@ -20,6 +20,7 @@ import {
 	UserDetailDto,
 	UserFilterDto,
 	UserListItemDto,
+	UserResetPasswordDto,
 	UserUpdateDto,
 } from './dto/index.ts'
 
@@ -86,6 +87,13 @@ const userDeactivate = defineMutation({
 	invalidates: [userKeys.lists()],
 })
 
+const userResetPassword = defineMutation({
+	method: 'put',
+	url: userUrls.resetPassword,
+	body: UserResetPasswordDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+})
+
 export const userResource = {
 	keys: userKeys,
 	list: userList,
@@ -93,6 +101,7 @@ export const userResource = {
 	create: userCreate,
 	update: userUpdate,
 	deactivate: userDeactivate,
+	resetPassword: userResetPassword,
 }
 
 // ─── Assignment ───

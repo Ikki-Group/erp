@@ -19,6 +19,11 @@ export const UserError = {
 			code: 'USER_DEACTIVATE_FAILED',
 			context: { id },
 		}),
+	resetPasswordFailed: (id: number) =>
+		new InternalServerError('User password reset failed', {
+			code: 'USER_RESET_PASSWORD_FAILED',
+			context: { id },
+		}),
 }
 
 // ─── Unique Constraint Fields ───

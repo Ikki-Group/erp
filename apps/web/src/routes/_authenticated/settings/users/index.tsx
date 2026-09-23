@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { EditIcon, EyeIcon, PlusIcon, UserXIcon } from 'lucide-react'
+import { EditIcon, EyeIcon, KeyRoundIcon, PlusIcon, UserXIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema, useServerTable } from '@/components/data-table'
@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 
 import { userResource } from '@/features/iam/api.ts'
+import { resetUserPassword } from '@/features/iam/components/reset-password-dialog.tsx'
 import { userColumns } from '@/features/iam/components/user-table.tsx'
 import type { UserListItemDto } from '@/features/iam/dto/index.ts'
 
@@ -64,6 +65,11 @@ function UsersPage() {
 		[deactivateMut],
 	)
 
+	const handleResetPassword = useCallback(async (user: UserListItemDto) => {
+		const saved = await resetUserPassword(user)
+		if (saved) toast.add({ title: 'Password reset successfully.', type: 'success' })
+	}, [])
+
 	const actionsColumn = useMemo(
 		() =>
 			createActionColumn<UserListItemDto>({
@@ -88,6 +94,11 @@ function UsersPage() {
 								search: { mode: 'edit' },
 							}),
 					},
+					canEdit && {
+						label: 'Reset Password',
+						icon: <KeyRoundIcon className="size-4" />,
+						onClick: () => handleResetPassword(user),
+					},
 					canDeactivate && {
 						label: 'Deactivate',
 						icon: <UserXIcon className="size-4" />,
@@ -96,7 +107,7 @@ function UsersPage() {
 					},
 				],
 			}),
-		[canEdit, canDeactivate, handleDeactivate, navigate],
+		[canEdit, canDeactivate, handleDeactivate, handleResetPassword, navigate],
 	)
 
 	const columns = useMemo(

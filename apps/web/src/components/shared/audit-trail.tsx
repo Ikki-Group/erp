@@ -35,6 +35,7 @@ const ACTION_LABELS: Record<string, string> = {
 	receive: 'Received',
 	void: 'Voided',
 	'close-other': 'Closed (by manager)',
+	'reset-password': 'Password Reset',
 }
 
 function formatAction(action: string): string {

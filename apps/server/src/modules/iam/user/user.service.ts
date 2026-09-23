@@ -8,12 +8,19 @@ import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import { invalidateAuthCache } from '@/shared/auth/access-cache.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
+import type { SessionStore } from '@/shared/auth/session.port.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound, hashPassword } from '@/shared/utils/index.ts'
 
-import type { UserCreateDto, UserDto, UserFilterDto, UserUpdateDto } from './user.contract.ts'
+import type {
+	UserCreateDto,
+	UserDto,
+	UserFilterDto,
+	UserResetPasswordDto,
+	UserUpdateDto,
+} from './user.contract.ts'
 import { UserError, uniqueFields } from './user.internal.ts'
 import type { IUserRepo } from './user.repo.ts'
 
@@ -22,6 +29,7 @@ import type { IUserRepo } from './user.repo.ts'
 export interface UserServiceDeps {
 	uow: UnitOfWork
 	audit: AuditPort
+	sessionStore: SessionStore
 }
 
 // ─── Service ───
@@ -99,7 +107,7 @@ export class UserService {
 	}
 
 	async handleUpdate(data: UserUpdateDto, actor: Actor): Promise<EntityRef> {
-		const { id, password, ...updateData } = data
+		const { id, ...updateData } = data
 		const result = await this.deps.uow.run(async (tx) => {
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw UserError.notFound(id)
@@ -113,14 +121,13 @@ export class UserService {
 				excludeId: id,
 			})
 
-			const payload: Record<string, unknown> = {
+			const payload = {
 				username: updateData.username,
 				email: updateData.email,
 				name: updateData.name,
 				isActive: updateData.isActive,
 				...stampUpdate(actor.id),
 			}
-			if (password) payload['passwordHash'] = await hashPassword(password)
 
 			const written = await this.repo.update(id, payload, tx)
 			if (!written) throw UserError.updateFailed(id)
@@ -141,6 +148,40 @@ export class UserService {
 
 		await this.cache.invalidateStandard(id)
 		await invalidateAuthCache(id)
+		return result
+	}
+
+	async handleResetPassword(data: UserResetPasswordDto, actor: Actor): Promise<EntityRef> {
+		const passwordHash = await hashPassword(data.password)
+		const result = await this.deps.uow.run(async (tx) => {
+			const existing = await this.repo.findById(data.id, tx)
+			if (!existing) throw UserError.notFound(data.id)
+
+			const written = await this.repo.update(
+				data.id,
+				{ passwordHash, ...stampUpdate(actor.id) },
+				tx,
+			)
+			if (!written) throw UserError.resetPasswordFailed(data.id)
+
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'iam',
+					entity: 'user',
+					entityId: data.id,
+					action: 'reset-password',
+					summary: `Reset password for user "${existing.username}" (${existing.email})`,
+				}),
+				tx,
+			)
+			return written
+		})
+
+		await this.cache.invalidateStandard(data.id)
+		await invalidateAuthCache(data.id)
+		// Force sign-out everywhere — a password reset should invalidate every
+		// existing session, not just future auth checks.
+		await this.deps.sessionStore.deleteAllForUser(data.id)
 		return result
 	}
 

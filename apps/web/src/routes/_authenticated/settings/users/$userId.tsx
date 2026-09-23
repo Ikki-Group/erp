@@ -1,22 +1,29 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { EditIcon, Globe2Icon, MapPinIcon } from 'lucide-react'
+import { ArrowLeftIcon, EditIcon, Globe2Icon, KeyRoundIcon, MapPinIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
+import { AuditTrail } from '@/components/shared/audit-trail.tsx'
+import { CrudForm } from '@/components/shared/crud-form.tsx'
 import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
-import { FormPage } from '@/components/shared/form-page.tsx'
+import { DetailList } from '@/components/shared/detail-list.tsx'
+import { EmptyState } from '@/components/shared/empty-state.tsx'
+import { PageHeader } from '@/components/shared/page-header.tsx'
+import { PageSection } from '@/components/shared/page-section.tsx'
+import { usePermissionCheck } from '@/components/shared/permission-gate.tsx'
 import { StatusBadge } from '@/components/shared/status-badge.tsx'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from '@/components/ui/toast'
 
+import { auditResource } from '@/features/audit/api.ts'
 import { assignmentResource, roleResource, userResource } from '@/features/iam/api.ts'
+import { resetUserPassword } from '@/features/iam/components/reset-password-dialog.tsx'
 import {
 	UserFormFields,
 	toUserFormValues,
@@ -60,101 +67,116 @@ interface UserDetailViewProps {
 }
 
 function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
+	const canEdit = usePermissionCheck({ permission: 'iam.update' })
+	const canReadAudit = usePermissionCheck({ permission: 'audit.read' })
+
+	const auditQuery = useQuery({
+		...auditResource.byEntity.queryOptions({ entity: 'user', entityId: user.id }),
+		enabled: canReadAudit,
+	})
+
+	const handleResetPassword = useCallback(async () => {
+		const saved = await resetUserPassword(user)
+		if (saved) toast.add({ title: 'Password reset successfully.', type: 'success' })
+	}, [user])
+
 	return (
-		<div className="mx-auto max-w-3xl space-y-5 pb-20">
-			<div className="flex items-start justify-between gap-4">
-				<div className="space-y-1">
-					<Button variant="ghost" size="sm" className="-ml-2 gap-1.5" onClick={onBack}>
-						Back to users
-					</Button>
-					<h1 className="text-lg font-semibold tracking-tight">User Details</h1>
-					<p className="text-xs text-muted-foreground">
-						View profile and access assignments for {user.name}.
-					</p>
-				</div>
-				<Button variant="outline" size="sm" onClick={onEdit}>
-					<EditIcon className="size-4" />
-					Edit user
-				</Button>
-			</div>
+		<div className="mx-auto max-w-3xl space-y-6 pb-20">
+			<Button variant="ghost" size="sm" className="-ml-2 gap-1.5" onClick={onBack}>
+				<ArrowLeftIcon className="size-3.5" />
+				Back to users
+			</Button>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Profile</CardTitle>
-					<CardDescription>Basic account information and sign-in status.</CardDescription>
-				</CardHeader>
-				<CardContent className="grid gap-4 sm:grid-cols-2">
-					<DetailItem label="Full name" value={user.name} />
-					<DetailItem label="Username" value={user.username} mono />
-					<DetailItem label="Email" value={user.email} />
-					<div className="space-y-1">
-						<p className="text-xs text-muted-foreground">Status</p>
-						<StatusBadge variant={user.isActive ? 'success' : 'default'}>
-							{user.isActive ? 'Active' : 'Inactive'}
-						</StatusBadge>
-					</div>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader>
-					<CardTitle>Role assignments</CardTitle>
-					<CardDescription>
-						{user.assignments.length === 0
-							? 'This user has no access assignments.'
-							: `${user.assignments.length} role assignment${user.assignments.length === 1 ? '' : 's'}.`}
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{user.assignments.length === 0 ? (
-						<div className="rounded-md border border-dashed p-5 text-center text-sm text-muted-foreground">
-							No roles assigned
+			<PageHeader
+				title="User Details"
+				description={`View profile and access assignments for ${user.name}.`}
+				actions={
+					canEdit && (
+						<div className="flex gap-2">
+							<Button variant="outline" size="sm" onClick={handleResetPassword}>
+								<KeyRoundIcon className="size-4" />
+								Reset Password
+							</Button>
+							<Button size="sm" onClick={onEdit}>
+								<EditIcon className="size-4" />
+								Edit User
+							</Button>
 						</div>
-					) : (
-						<div className="grid gap-3 sm:grid-cols-2">
-							{user.assignments.map((assignment) => (
-								<div key={assignment.id} className="rounded-md border p-3">
-									<div className="flex items-start justify-between gap-3">
-										<div>
-											<p className="font-medium">{assignment.role.name}</p>
-											<p className="font-mono text-[11px] text-muted-foreground">
-												{assignment.role.code}
-											</p>
-										</div>
-										{assignment.location ? (
-											<MapPinIcon className="size-4 text-muted-foreground" />
-										) : (
-											<Globe2Icon className="size-4 text-muted-foreground" />
-										)}
+					)
+				}
+			/>
+
+			<PageSection title="Profile" description="Basic account information and sign-in status.">
+				<DetailList
+					items={[
+						{ label: 'Full name', value: user.name },
+						{
+							label: 'Username',
+							value: <code className="font-mono text-sm">{user.username}</code>,
+						},
+						{ label: 'Email', value: user.email },
+						{
+							label: 'Status',
+							value: (
+								<StatusBadge variant={user.isActive ? 'success' : 'default'}>
+									{user.isActive ? 'Active' : 'Inactive'}
+								</StatusBadge>
+							),
+						},
+					]}
+				/>
+			</PageSection>
+
+			<PageSection
+				title="Role assignments"
+				description={
+					user.assignments.length === 0
+						? undefined
+						: `${user.assignments.length} role assignment${user.assignments.length === 1 ? '' : 's'}.`
+				}
+			>
+				{user.assignments.length === 0 ? (
+					<EmptyState
+						title="No roles assigned"
+						description="This user cannot access any protected resources."
+					/>
+				) : (
+					<div className="grid gap-3 sm:grid-cols-2">
+						{user.assignments.map((assignment) => (
+							<div key={assignment.id} className="rounded-lg border p-3">
+								<div className="flex items-start justify-between gap-3">
+									<div>
+										<p className="font-medium">{assignment.role.name}</p>
+										<p className="font-mono text-[11px] text-muted-foreground">
+											{assignment.role.code}
+										</p>
 									</div>
-									<p className="mt-3 text-xs text-muted-foreground">
-										{assignment.location
-											? `${assignment.location.name} (${assignment.location.code})`
-											: 'Global access · all locations'}
-									</p>
+									{assignment.location ? (
+										<MapPinIcon className="size-4 text-muted-foreground" />
+									) : (
+										<Globe2Icon className="size-4 text-muted-foreground" />
+									)}
 								</div>
-							))}
-						</div>
-					)}
-				</CardContent>
-			</Card>
-		</div>
-	)
-}
+								<p className="mt-3 text-xs text-muted-foreground">
+									{assignment.location
+										? `${assignment.location.name} (${assignment.location.code})`
+										: 'Global access · all locations'}
+								</p>
+							</div>
+						))}
+					</div>
+				)}
+			</PageSection>
 
-function DetailItem({
-	label,
-	value,
-	mono = false,
-}: {
-	label: string
-	value: string
-	mono?: boolean
-}) {
-	return (
-		<div className="space-y-1">
-			<p className="text-xs text-muted-foreground">{label}</p>
-			<p className={mono ? 'font-mono text-sm' : 'text-sm'}>{value}</p>
+			{canReadAudit && (
+				<PageSection title="Activity" description="Recent changes to this account.">
+					<AuditTrail
+						entries={auditQuery.data?.data ?? []}
+						isLoading={auditQuery.isLoading}
+						emptyMessage="No changes recorded for this user yet."
+					/>
+				</PageSection>
+			)}
 		</div>
 	)
 }
@@ -194,7 +216,6 @@ function EditUserForm({ user, onDone }: EditUserFormProps) {
 				email: values.email,
 				name: values.name,
 				isActive: values.isActive,
-				...(values.password ? { password: values.password } : {}),
 			})
 
 			const keyOf = (roleId: number, locationId: number | null) =>
@@ -231,7 +252,7 @@ function EditUserForm({ user, onDone }: EditUserFormProps) {
 
 	return (
 		<form.AppForm>
-			<FormPage
+			<CrudForm
 				title="Edit User"
 				description={`Update details and access assignments for ${user.name}.`}
 				form={form}
@@ -244,7 +265,7 @@ function EditUserForm({ user, onDone }: EditUserFormProps) {
 					roleOptions={roleOptions}
 					locationOptions={locationOptions}
 				/>
-			</FormPage>
+			</CrudForm>
 		</form.AppForm>
 	)
 }

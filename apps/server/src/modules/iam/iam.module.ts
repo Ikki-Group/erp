@@ -1,6 +1,7 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import type { SessionStore } from '@/shared/auth/session.port.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
@@ -28,6 +29,7 @@ interface IamModuleDeps {
 	locationService: LocationService
 	uow: UnitOfWork
 	audit: AuditPort
+	sessionStore: SessionStore
 }
 
 // ─── Module Factory ───
@@ -47,6 +49,7 @@ function createIamModule(db: DbContext, cacheClient: CacheClient, deps: IamModul
 	const userService = new UserService(userRepo, cacheClient, {
 		uow: deps.uow,
 		audit: deps.audit,
+		sessionStore: deps.sessionStore,
 	})
 	const assignmentService = new AssignmentService(assignmentRepo, {
 		locationService: deps.locationService,
@@ -80,6 +83,7 @@ export const iamModule: ModuleDescriptor = {
 			locationService: deps.location.api.service,
 			uow: ctx.uow,
 			audit: ctx.auditPort,
+			sessionStore: ctx.sessionStore,
 		})
 		return { route: built.route, api: built }
 	},

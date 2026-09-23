@@ -21,7 +21,7 @@ import {
 import type { ComposedService } from './composed/composed.service.ts'
 import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from './role/role.contract.ts'
 import type { RoleService } from './role/role.service.ts'
-import { UserCreateDto, UserUpdateDto } from './user/user.contract.ts'
+import { UserCreateDto, UserResetPasswordDto, UserUpdateDto } from './user/user.contract.ts'
 import type { UserService } from './user/user.service.ts'
 
 export function createIamRoute(
@@ -113,6 +113,15 @@ export function createIamRoute(
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
 				permission: 'iam.delete',
+			},
+		)
+		.put(
+			'/user/reset-password',
+			async ({ body, auth }) => res.ok(await userService.handleResetPassword(body, actorOf(auth))),
+			{
+				body: UserResetPasswordDto,
+				response: zRes.ok(EntityRefDto),
+				permission: 'iam.update',
 			},
 		)
 		.get(

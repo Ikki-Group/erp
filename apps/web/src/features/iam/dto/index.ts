@@ -242,10 +242,17 @@ export const UserUpdateDto = z.object({
 	username: zc.strTrim.min(3).max(100),
 	email: z.string().email().max(255),
 	name: zc.strTrim.min(1).max(255),
-	password: z.string().min(8).max(100).optional(),
 	isActive: z.boolean().default(true),
 })
 export type UserUpdateDto = z.infer<typeof UserUpdateDto>
+
+// ─── Reset Password ───
+
+export const UserResetPasswordDto = z.object({
+	id: zp.id,
+	password: z.string().min(8).max(100),
+})
+export type UserResetPasswordDto = z.infer<typeof UserResetPasswordDto>
 
 // ─── Assignment ───
 

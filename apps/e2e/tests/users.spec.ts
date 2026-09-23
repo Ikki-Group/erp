@@ -57,6 +57,21 @@ test.describe('Users - CRUD', () => {
 		await page.waitForLoadState('networkidle')
 	})
 
+	/** View user details */
+	test('can view user details via action menu', async ({ page, login }) => {
+		await login()
+		await page.goto('/settings/users')
+
+		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		await actionTrigger.click()
+
+		await page.getByRole('menuitem', { name: 'View' }).click()
+
+		await expect(page).toHaveURL(/\/settings\/users\/\d+$/)
+		await expect(page.getByRole('heading', { name: 'User Details' })).toBeVisible()
+		await expect(page.getByRole('button', { name: /edit user/i })).toBeVisible()
+	})
+
 	/** Edit an existing user */
 	test('can edit a user via action menu', async ({ page, login }) => {
 		await login()
@@ -68,16 +83,34 @@ test.describe('Users - CRUD', () => {
 
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
+		await expect(page).toHaveURL(/\/settings\/users\/\d+\?mode=edit$/)
+		await expect(page.getByRole('heading', { name: 'Edit User' })).toBeVisible()
 
 		// Modify display name
-		const nameField = page.getByLabel('Name')
+		const nameField = page.getByLabel('Full Name')
 		await nameField.clear()
 		await nameField.fill('Updated User Name')
 
 		await page.getByRole('button', { name: /save changes/i }).click()
 
 		await expect(page.getByText(/updated successfully|berhasil/i)).toBeVisible()
+	})
+
+	/** Reset a user's password via action menu */
+	test('can reset a user password via action menu', async ({ page, login }) => {
+		await login()
+		await page.goto('/settings/users')
+
+		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		await actionTrigger.click()
+
+		await page.getByRole('menuitem', { name: 'Reset Password' }).click()
+
+		await expect(page.getByRole('dialog')).toBeVisible()
+		await page.getByLabel('New password').fill('newpassword123')
+		await page.getByRole('button', { name: /reset password/i }).click()
+
+		await expect(page.getByText(/reset successfully/i)).toBeVisible()
 	})
 
 	/** Deactivate a user via action menu */

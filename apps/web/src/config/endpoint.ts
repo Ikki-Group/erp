@@ -25,6 +25,7 @@ const iam = {
 	user: {
 		...crud('iam/user'),
 		deactivate: p('iam/user', 'deactivate'),
+		resetPassword: p('iam/user', 'reset-password'),
 	},
 	assignment: {
 		list: p('iam/assignment', 'list'),
