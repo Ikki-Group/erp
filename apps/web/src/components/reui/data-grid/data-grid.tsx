@@ -541,7 +541,7 @@ function DataGridContainer({
 	border?: boolean
 }) {
 	return (
-		<div data-slot="data-grid" className={cn('w-full overflow-hidden', className)}>
+		<div data-slot="data-grid" className={cn('w-full min-w-0 overflow-hidden', className)}>
 			{children}
 		</div>
 	)
