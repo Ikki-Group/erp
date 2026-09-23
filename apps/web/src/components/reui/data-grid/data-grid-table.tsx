@@ -566,7 +566,9 @@ function DataGridTableBase({ children }: { children: ReactNode }) {
 							...columnSizeVars,
 							width: `calc(${table.getTotalSize()}px + var(--data-grid-fill-size, 0px))`,
 						}
-					: undefined
+					: props.tableLayout?.width === 'fixed'
+						? { width: `max(100%, ${table.getTotalSize()}px)` }
+						: undefined
 			}
 		>
 			<colgroup>

@@ -52,7 +52,7 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 			<div
 				data-slot="data-table"
 				className={cn(
-					'min-w-0 max-w-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-xs',
+					'min-w-0 max-w-full touch-pan-x overscroll-x-contain overflow-x-auto overflow-y-hidden rounded-xl border border-border/70 bg-card shadow-xs',
 					'**:data-[slot=data-grid-pagination]:border-t **:data-[slot=data-grid-pagination]:bg-muted/20',
 					'**:data-[slot=data-grid-pagination]:px-4 **:data-[slot=data-grid-pagination]:py-3',
 				)}
