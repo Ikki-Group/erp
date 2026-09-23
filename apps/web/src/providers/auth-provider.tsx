@@ -6,6 +6,8 @@ import { useNavigate } from '@tanstack/react-router'
 import { clearStoredToken, getStoredToken, setStoredToken } from '@/lib/api/client.ts'
 import { setOnAuthError } from '@/lib/tanstack-query.ts'
 
+import { toast } from '@/components/ui/toast'
+
 import { authLoginMutation, authLogoutMutation, authMeQuery } from '@/features/auth/api.ts'
 import type { AuthLocation, AuthUser, LoginDto } from '@/features/auth/dto/index.ts'
 
@@ -59,15 +61,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const queryClient = useQueryClient()
 	const navigate = useNavigate()
 
-	// Wire global auth-error redirect (expired session → /login)
+	// Wire global auth-error redirect (expired/revoked session → /login).
+	// Fires from `handleGlobalError` (lib/tanstack-query.ts) on any 401/403,
+	// debounced so parallel failing requests only trigger this once.
 	setOnAuthError(() => {
 		queryClient.clear()
 		clearLocations()
 		clearStoredToken()
-		navigate({ to: '/login', replace: true })
+		toast.add({
+			title: 'Sesi berakhir',
+			description: 'Silakan masuk kembali untuk melanjutkan.',
+			type: 'warning',
+		})
+		// Remember where the user was so they land back there after logging in
+		// again — same `redirect` search param `_authenticated`'s beforeLoad uses.
+		navigate({
+			to: '/login',
+			replace: true,
+			search: { redirect: window.location.pathname + window.location.search },
+		})
 	})
 
 	// ─── /auth/me query ───
+	//
+	// This is the reactive session watchdog — distinct from `_authenticated`'s
+	// `beforeLoad` `ensureQueryData` call, which only forces a fetch on cold
+	// boot. This `useQuery` is what actually re-verifies the session on the
+	// `session` freshness tier's cadence plus window-focus/reconnect, so a
+	// server-side revoke (another device, or a future admin force-logout —
+	// ADR-0018) gets noticed without requiring a full navigation. The two are
+	// complementary, not duplicative: same query key, one network round-trip.
 	const meQuery = useQuery({
 		...authMeQuery.queryOptions(),
 		enabled: Boolean(getStoredToken()),
@@ -93,11 +116,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const logoutMut = useMutation(authLogoutMutation.mutationOptions())
 
 	const logout = useCallback(async () => {
-		await logoutMut.mutateAsync()
-		clearStoredToken()
-		queryClient.clear()
-		clearLocations()
-		navigate({ to: '/login', replace: true })
+		try {
+			await logoutMut.mutateAsync()
+		} finally {
+			// Always clear local state and navigate away, even if the server call
+			// itself failed (e.g. the session was already dead) — "Logout" must
+			// always work from the user's point of view.
+			clearStoredToken()
+			queryClient.clear()
+			clearLocations()
+			navigate({ to: '/login', replace: true })
+		}
 	}, [logoutMut, queryClient, navigate])
 
 	// ─── Derived state ───

@@ -117,48 +117,57 @@ function RootComponent() {
 The `_authenticated` layout route protects all child routes. It checks auth state in `beforeLoad` and renders the app shell.
 
 ```tsx
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { createFileRoute, isRedirect, Outlet, redirect } from '@tanstack/react-router'
 
 import { AppShell } from '@/components/app-shell'
-import { authApi } from '@/features/auth/api'
+import { AppBootScreen } from '@/components/shared/app-boot-screen.tsx'
+import { authMeQuery } from '@/features/auth/api'
 
 export const Route = createFileRoute('/_authenticated')({
-	beforeLoad: async ({ context }) => {
-		// Attempt to load current user from cache or fetch
+	beforeLoad: async ({ location }) => {
 		try {
-			await context.queryClient.ensureQueryData(authApi.me.queryOptions(undefined))
-		} catch {
-			// Not authenticated — redirect to login
-			throw redirect({ to: '/login' })
+			const data = await queryClient.ensureQueryData(authMeQuery.queryOptions())
+			if (!data?.data?.user) {
+				throw redirect({ to: '/login', search: { redirect: location.href } })
+			}
+		} catch (error) {
+			if (isRedirect(error)) throw error
+			throw redirect({ to: '/login', search: { redirect: location.href } })
 		}
 	},
+	pendingComponent: () => <AppBootScreen />,
 	component: AuthenticatedLayout,
 })
-
-function AuthenticatedLayout() {
-	return (
-		<AppShell>
-			<Outlet />
-		</AppShell>
-	)
-}
 ```
 
 ### How It Works
 
-1. `beforeLoad` runs before any child route renders.
-2. Calls `GET /auth/me` via TanStack Query (`ensureQueryData` — returns cached if fresh, fetches if stale/missing).
-3. If the request fails (401) → `throw redirect({ to: '/login' })`.
-4. If successful → user is authenticated, child routes render inside `AppShell`.
+1. `beforeLoad` runs on every navigation into/within `_authenticated/*` — but `ensureQueryData` does **not** check `staleTime`: it fetches only when the cache holds no data at all (cold boot), and otherwise returns whatever's cached synchronously, no network call. So in practice this only performs a real check once per app load; `pendingComponent` (`AppBootScreen`) covers that one moment so cold boot shows an intentional loading screen instead of a blank flash.
+2. The actual "is my session still valid" watchdog for the rest of the SPA session is `AuthProvider`'s own `useQuery(authMeQuery)` (see 04-state-management.md), which reacts to the `session` freshness tier (45s stale) plus window-focus/reconnect — this is what notices a session revoked elsewhere (another device via `/auth/sessions/revoke`, ADR-0018) without requiring a navigation.
+3. On failure (401, network error, or no `user` in the response) → `throw redirect({ to: '/login', search: { redirect: location.href } })`, preserving the page the user was headed to.
+4. On success → child routes render inside `AppShell`.
+
+Full reasoning (primary-source citations against the installed TanStack versions): `.scratch/tanstack-router-auth-guard-research.md`.
 
 ### After Login Navigation
 
+`/login` declares `validateSearch: z.object({ redirect: z.string().optional().catch('') })` and uses the same `redirect` param on both sides of the round trip:
+
 ```tsx
-// In login page, after successful login:
-const navigate = useNavigate()
-await login(username, password)
-navigate({ to: '/' }) // → hits _authenticated.beforeLoad → /me succeeds → dashboard renders
+// Already authenticated, bounced off /login → send them back where they were headed
+beforeLoad: async ({ search }) => {
+	if (!getStoredToken()) return
+	const data = await queryClient.fetchQuery(authMeQuery.queryOptions())
+	if (data?.data?.user) throw redirect({ to: search.redirect || '/' })
+}
+
+// After a fresh login submit → same target
+const { redirect: redirectTo } = Route.useSearch()
+await login({ username, password })
+navigate({ to: redirectTo || '/', replace: true })
 ```
+
+A forced logout (expired/revoked session, `AuthProvider`'s global `onAuthError`) sets the same `redirect` param from the current URL before navigating to `/login`, so re-authenticating after a mid-session kickout also returns the user to where they were — paired with a toast ("Sesi berakhir") so the bounce isn't silent.
 
 ## App Shell Layout
 

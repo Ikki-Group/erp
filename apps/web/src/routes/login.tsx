@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, isRedirect, redirect, useNavigate } from '@tanstack/react-router'
 
 import {
 	ArrowRightIcon,
@@ -12,6 +12,7 @@ import {
 	StoreIcon,
 	UserRoundIcon,
 } from 'lucide-react'
+import { z } from 'zod'
 
 import { getStoredToken } from '@/lib/api/client.ts'
 import { isApiError } from '@/lib/api/errors.ts'
@@ -26,20 +27,27 @@ import { authMeQuery } from '@/features/auth/api.ts'
 
 import { useAuth } from '@/providers/auth-provider.tsx'
 
+const loginSearchSchema = z.object({
+	/** Where to send the user after signing in — set by `_authenticated`'s
+	 * `beforeLoad` (or a forced logout) when it bounced them here. */
+	redirect: z.string().optional().catch(''),
+})
+
 export const Route = createFileRoute('/login')({
-	beforeLoad: async () => {
+	validateSearch: loginSearchSchema,
+	beforeLoad: async ({ search }) => {
 		// Do not probe a protected endpoint for an unauthenticated visitor.
 		if (!getStoredToken()) return
 
-		// If already authenticated, redirect to dashboard
+		// If already authenticated, bounce back to wherever they were headed
+		// (falling back to the dashboard) instead of always landing on `/`.
 		try {
 			const data = await queryClient.fetchQuery(authMeQuery.queryOptions())
 			if (data?.data?.user) {
-				throw redirect({ to: '/' })
+				throw redirect({ to: search.redirect || '/' })
 			}
 		} catch (error) {
-			// If it's a redirect, rethrow
-			if (error instanceof Error && 'to' in error) throw error
+			if (isRedirect(error)) throw error
 			// Otherwise (401, network error) — let user stay on login
 		}
 	},
@@ -48,6 +56,7 @@ export const Route = createFileRoute('/login')({
 
 function LoginPage() {
 	const navigate = useNavigate()
+	const { redirect: redirectTo } = Route.useSearch()
 	const { login } = useAuth()
 
 	const [username, setUsername] = useState('')
@@ -63,7 +72,7 @@ function LoginPage() {
 
 		try {
 			await login({ username, password })
-			navigate({ to: '/', replace: true })
+			navigate({ to: redirectTo || '/', replace: true })
 		} catch (err) {
 			if (isApiError(err)) {
 				setError(err.friendlyMessage)

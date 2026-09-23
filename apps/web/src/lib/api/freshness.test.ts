@@ -5,7 +5,7 @@ import type { FreshnessTier } from './freshness.ts'
 
 describe('freshness tiers', () => {
 	it('maps every named tier to concrete query options', () => {
-		const tiers: FreshnessTier[] = ['static', 'standard', 'volatile', 'realtime']
+		const tiers: FreshnessTier[] = ['static', 'standard', 'session', 'volatile', 'realtime']
 		for (const tier of tiers) {
 			const opts = resolveFreshness(tier)
 			expect(opts).toHaveProperty('staleTime')
@@ -13,14 +13,16 @@ describe('freshness tiers', () => {
 		}
 	})
 
-	it('orders staleness by tier: static > standard > volatile >= realtime', () => {
+	it('orders staleness by tier: static > standard > session > volatile >= realtime', () => {
 		const s = resolveFreshness('static').staleTime
 		const std = resolveFreshness('standard').staleTime
+		const session = resolveFreshness('session').staleTime
 		const vol = resolveFreshness('volatile').staleTime
 		const rt = resolveFreshness('realtime').staleTime
 
 		expect(s).toBeGreaterThan(std)
-		expect(std).toBeGreaterThan(vol)
+		expect(std).toBeGreaterThan(session)
+		expect(session).toBeGreaterThan(vol)
 		expect(vol).toBeGreaterThanOrEqual(rt)
 	})
 
@@ -34,10 +36,17 @@ describe('freshness tiers', () => {
 		expect(resolveFreshness('standard').staleTime).toBe(3 * 60 * 1000)
 	})
 
+	it('gives session a short-but-not-thrashing staleTime for out-of-band revoke detection', () => {
+		const session = resolveFreshness('session').staleTime
+		expect(session).toBeGreaterThan(0)
+		expect(session).toBeLessThan(resolveFreshness('standard').staleTime)
+	})
+
 	it('attaches a refetchInterval only to volatile', () => {
 		expect(resolveFreshness('volatile').refetchInterval).toBeGreaterThan(0)
 		expect(resolveFreshness('static').refetchInterval).toBeUndefined()
 		expect(resolveFreshness('standard').refetchInterval).toBeUndefined()
+		expect(resolveFreshness('session').refetchInterval).toBeUndefined()
 	})
 
 	it('returns a fresh options object each call (no shared mutable reference)', () => {
@@ -50,6 +59,7 @@ describe('freshness tiers', () => {
 	it('exposes the tier table for documentation/inspection', () => {
 		expect(Object.keys(FRESHNESS_TIERS).sort()).toEqual([
 			'realtime',
+			'session',
 			'standard',
 			'static',
 			'volatile',

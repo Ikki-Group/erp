@@ -57,21 +57,29 @@ type AuthContextValue = AuthState & AuthActions
 ```
 App Mount
   → AuthProvider renders
-  → calls GET /auth/me
+  → useQuery(authMeQuery) — enabled only if a token is stored (localStorage)
   → if 200: populate user, permissions, locations → isAuthenticated = true
-  → if 401: user = null → isAuthenticated = false → redirect to /login
+  → if 401: user = null → isAuthenticated = false → _authenticated's beforeLoad redirects to /login
 
 Login
-  → POST /auth/login (sets cookie)
-  → response: { user, locations, activeLocationId }
-  → populate auth context
-  → navigate to dashboard
+  → POST /auth/login { username, password } (Bearer token, NOT cookies —
+    web and API are cross-origin; see .scratch/auth-review-action-items.md)
+  → response: { token, user, locations }
+  → store token in localStorage, persist locations, invalidate authMeQuery
+  → navigate to the `redirect` search param (or dashboard) — see 05-routing.md
 
 Logout
-  → POST /auth/logout (clears cookie)
-  → clear auth context
+  → POST /auth/logout (revokes the session server-side — ADR-0018)
+  → clear token/cache/locations regardless of whether the request succeeded
   → navigate to /login
+
+Forced logout (session expired/revoked mid-use)
+  → any request 401s → global handler (lib/tanstack-query.ts) fires once
+  → clear token/cache/locations, toast "Sesi berakhir", navigate to /login
+    with `search.redirect` set to the current page
 ```
+
+`authMeQuery` uses the `session` freshness tier (45s stale — see `lib/api/freshness.ts`), tighter than the `standard` 3-minute default: a session can now be revoked from another device (`/auth/sessions/revoke`, `/auth/sessions/revoke-others`) or a future admin action, not just expire naturally, so this query's staleness window is what bounds how quickly the client notices. See `.scratch/tanstack-router-auth-guard-research.md` for the full reasoning.
 
 ### Permission Helpers
 
