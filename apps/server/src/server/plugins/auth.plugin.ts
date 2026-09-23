@@ -3,15 +3,32 @@ import { Elysia } from 'elysia'
 
 import { roles, userAssignments, users } from '@/db/schema/iam.ts'
 
+import { cache as cacheClient } from '@/infra/cache/index.ts'
 import { db } from '@/infra/database/index.ts'
+import { getLogger } from '@/infra/logger/index.ts'
 import { sessionStore } from '@/infra/session/index.ts'
 import { getAuthAccessMap, invalidateAuthCache } from '@/shared/auth/access-cache.ts'
 import { effectivePermissions } from '@/shared/auth/permission.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
-import { OWNER_ROLE_CODE, AUTH_CACHE_TTL_SECONDS } from '@/shared/config/index.ts'
+import type { SessionData } from '@/shared/auth/session.port.ts'
+import {
+	OWNER_ROLE_CODE,
+	AUTH_CACHE_TTL_SECONDS,
+	SESSION_LAST_SEEN_THROTTLE_SECONDS,
+} from '@/shared/config/index.ts'
 import { ForbiddenError, UnauthorizedError } from '@/shared/errors/http-error.ts'
 
+import { SessionRepo } from '@/modules/auth/session/session.repo.ts'
+
 const LOCATION_ID_HEADER = 'x-location-id'
+
+const logger = getLogger(['auth', 'session'])
+
+// The plugin avoids depending on the `auth` module's service/route layer (that
+// would cycle back here); it only reaches for the leaf `SessionRepo` class,
+// mirroring how `loadAccessMap` below queries IAM tables directly instead of
+// going through the `iam` module.
+const sessionRepo = new SessionRepo(db)
 
 interface AccessMap {
 	userName: string
@@ -81,12 +98,49 @@ async function loadAccessMap(userId: number): Promise<AccessMap> {
 	}
 }
 
+/**
+ * Cache-first session lookup with a DB fallback (source of truth). A cache
+ * miss (Redis/memory eviction, restart, etc.) falls back to `sessions` in
+ * Postgres; a valid row rehydrates the cache so subsequent requests hit the
+ * fast path again.
+ */
+async function resolveSession(sessionId: string): Promise<SessionData> {
+	const cached = await sessionStore.get(sessionId)
+	if (cached) return cached
+
+	const row = await sessionRepo.findById(sessionId)
+	const isValid = row !== undefined && row.revokedAt === null && row.expiresAt > new Date()
+	if (!row || !isValid) throw new UnauthorizedError('Session expired or invalid')
+
+	const session: SessionData = { id: row.id, userId: row.userId, expiresAt: row.expiresAt }
+	await sessionStore.create(session)
+	return session
+}
+
+/**
+ * Throttled "heartbeat" — writes `sessions.last_seen_at` at most once per
+ * `SESSION_LAST_SEEN_THROTTLE_SECONDS`, using the cache as a debounce so the
+ * hot auth path never waits on this write. Fire-and-forget by callers.
+ */
+async function touchLastSeen(sessionId: string): Promise<void> {
+	await cacheClient.getOrSet({
+		key: `auth:session:lastseen:${sessionId}`,
+		factory: async () => {
+			await sessionRepo.touchLastSeen(sessionId)
+			return true
+		},
+		ttl: `${SESSION_LAST_SEEN_THROTTLE_SECONDS}s`,
+	})
+}
+
 async function resolveAuth(
 	sessionId: string,
 	requestedLocationId: number | null,
 ): Promise<AuthContext> {
-	const session = await sessionStore.get(sessionId)
-	if (!session) throw new UnauthorizedError('Session expired or invalid')
+	const session = await resolveSession(sessionId)
+	touchLastSeen(sessionId).catch((error: unknown) => {
+		logger.warn('Failed to update session last_seen_at', { sessionId, error })
+	})
 
 	const accessMap = await getAuthAccessMap(
 		session.userId,

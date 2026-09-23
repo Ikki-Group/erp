@@ -6,6 +6,7 @@ import type { LocationService } from '@/modules/location/location.service.ts'
 
 import { createAuthRoute } from './auth.route.ts'
 import { AuthService } from './auth.service.ts'
+import type { ISessionRepo } from './session/session.repo.ts'
 
 // ─── Dependencies ───
 
@@ -15,6 +16,7 @@ export interface AuthModuleDeps {
 	composedService: ComposedService
 	locationService: LocationService
 	sessionStore: SessionStore
+	sessionRepo: ISessionRepo
 }
 
 // ─── Module Factory ───

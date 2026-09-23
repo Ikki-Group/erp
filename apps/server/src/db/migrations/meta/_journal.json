@@ -50,6 +50,20 @@
       "when": 1790138516673,
       "tag": "0006_tearful_nighthawk",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790141577386,
+      "tag": "0007_petite_queen_noir",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790141599927,
+      "tag": "0008_normal_power_man",
+      "breakpoints": true
     }
   ]
 }

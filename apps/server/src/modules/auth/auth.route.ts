@@ -4,9 +4,15 @@ import { authPlugin } from '@/server/plugins/auth.plugin.ts'
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
+import { z } from '@/shared/schema/index.ts'
 
 import { LoginDto, LoginResponseDto, MeResponseDto } from './auth.contract.ts'
 import type { AuthService } from './auth.service.ts'
+import {
+	RevokeSessionResultDto,
+	SessionDto,
+	SessionIdQueryDto,
+} from './session/session.contract.ts'
 
 // ─── Route Factory ───
 
@@ -16,8 +22,11 @@ export function createAuthRoute(service: AuthService) {
 			// ─── Login (public — no auth required) ───
 			.post(
 				'/login',
-				async ({ body }) => {
-					const result = await service.handleLogin(body)
+				async ({ body, headers }) => {
+					const result = await service.handleLogin(body, {
+						userAgent: headers['user-agent'],
+						ipAddress: headers['x-forwarded-for'],
+					})
 					return res.ok(result.response)
 				},
 				{
@@ -33,7 +42,7 @@ export function createAuthRoute(service: AuthService) {
 			.post(
 				'/logout',
 				async ({ auth }) => {
-					await service.handleLogout(auth.sessionId)
+					await service.handleLogout(auth)
 					return res.noData()
 				},
 				{ response: zRes.noData, permission: 'auth.logout' },
@@ -48,6 +57,26 @@ export function createAuthRoute(service: AuthService) {
 					return res.ok(result)
 				},
 				{ response: zRes.ok(MeResponseDto), permission: 'auth.me' },
+			)
+
+			// ─── Session management (auth required) ───
+
+			.get('/sessions/list', async ({ auth }) => res.ok(await service.handleListSessions(auth)), {
+				response: zRes.ok(z.array(SessionDto)),
+				permission: 'auth.session.list',
+			})
+			.delete(
+				'/sessions/revoke',
+				async ({ query, auth }) => {
+					await service.handleRevokeSession(auth, query.id)
+					return res.noData()
+				},
+				{ query: SessionIdQueryDto, response: zRes.noData, permission: 'auth.session.revoke' },
+			)
+			.delete(
+				'/sessions/revoke-others',
+				async ({ auth }) => res.ok(await service.handleRevokeOtherSessions(auth)),
+				{ response: zRes.ok(RevokeSessionResultDto), permission: 'auth.session.revoke' },
 			)
 	)
 }

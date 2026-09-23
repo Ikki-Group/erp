@@ -4,6 +4,8 @@ import { z } from 'zod'
 const PERMISSIONS = [
 	'auth.me',
 	'auth.logout',
+	'auth.session.list',
+	'auth.session.revoke',
 	'company.read',
 	'company.update',
 	'location.read',

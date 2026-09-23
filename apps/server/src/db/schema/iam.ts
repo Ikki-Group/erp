@@ -84,8 +84,12 @@ export const sessions = pgTable(
 		userId: integer('user_id')
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
-		locationId: integer('location_id'),
+		userAgent: varchar('user_agent', { length: 500 }),
+		ipAddress: varchar('ip_address', { length: 100 }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
 		expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+		revokedAt: timestamp('revoked_at', { withTimezone: true }),
 	},
 	(t) => [index('sessions_user_id_idx').on(t.userId)],
 )

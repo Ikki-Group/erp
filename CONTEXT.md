@@ -31,16 +31,16 @@ Decisions (the reasoning behind a choice) live in `docs/adr/`, not here.
 
 ## Access-control terms
 
-| Term                | Definition                                                                                                                                                                                                       |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Permission**      | A `<slice>.<action>` string (e.g. `location.read`, `order.void`) required by a route. `<slice>` is the smallest entity; `<action>` is CRUD or a first-class domain verb.                                         |
-| **Slice**           | The smallest entity a permission scopes to — the module itself for a simple module, a sub-entity for a complex one (`order`, `shift`, `stock`).                                                                  |
-| **Role**            | A named bundle of permissions. System roles (Owner, Manager, Cashier, Warehouse Staff, Accountant) ship by default; custom roles combine any catalog permissions.                                                |
-| **Assignment**      | A user↔role↔location grant. Location-scoped or global; determines which permissions apply in the active location.                                                                                                |
-| **Owner**           | The role that bypasses all permission checks. At least one user must hold it; it cannot be restricted.                                                                                                           |
-| **Active location** | The location context of a request, carried as a `locationId` on each request (not stored server-side); validated per request against the user's access map.                                                      |
-| **Access map**      | The materialized authorization state for a user: `isOwner`, global permissions, and per-location permission sets. Returned whole by `GET /me`; cached per user; the sole source the per-request auth path reads. |
-| **Session store**   | The port holding server-side sessions, memory-backed now (BentoCache), swappable to Redis.                                                                                                                       |
+| Term                | Definition                                                                                                                                                                                                                                    |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Permission**      | A `<slice>.<action>` string (e.g. `location.read`, `order.void`) required by a route. `<slice>` is the smallest entity; `<action>` is CRUD or a first-class domain verb.                                                                      |
+| **Slice**           | The smallest entity a permission scopes to — the module itself for a simple module, a sub-entity for a complex one (`order`, `shift`, `stock`).                                                                                               |
+| **Role**            | A named bundle of permissions. System roles (Owner, Manager, Cashier, Warehouse Staff, Accountant) ship by default; custom roles combine any catalog permissions.                                                                             |
+| **Assignment**      | A user↔role↔location grant. Location-scoped or global; determines which permissions apply in the active location.                                                                                                                             |
+| **Owner**           | The role that bypasses all permission checks. At least one user must hold it; it cannot be restricted.                                                                                                                                        |
+| **Active location** | The location context of a request, carried as a `locationId` on each request (not stored server-side); validated per request against the user's access map.                                                                                   |
+| **Access map**      | The materialized authorization state for a user: `isOwner`, global permissions, and per-location permission sets. Returned whole by `GET /me`; cached per user; the sole source the per-request auth path reads.                              |
+| **Session store**   | The cache-first lookup for sessions (`SessionStore` port — memory-backed by default, Redis-backed when `REDIS_URL` is set); `sessions` in Postgres is the source of truth behind it, enabling per-user session listing/revocation (ADR-0018). |
 
 ## Audit terms
 

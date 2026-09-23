@@ -22,7 +22,12 @@ export function effectivePermissions(auth: AuthContext, locationId = auth.locati
 
 // Authentication utility endpoints are available to every authenticated session,
 // independent of the active business location.
-const AUTH_UTILITY_PERMISSIONS = new Set(['auth.me', 'auth.logout'])
+const AUTH_UTILITY_PERMISSIONS = new Set([
+	'auth.me',
+	'auth.logout',
+	'auth.session.list',
+	'auth.session.revoke',
+])
 
 export function hasPermission(auth: AuthContext, permission: string): boolean {
 	if (auth.isOwner || AUTH_UTILITY_PERMISSIONS.has(permission)) return true

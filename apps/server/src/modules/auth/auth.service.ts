@@ -12,6 +12,8 @@ import type { LocationService } from '@/modules/location/location.service.ts'
 
 import type { LoginDto, LoginResponseDto, MeResponseDto } from './auth.contract.ts'
 import { AuthError } from './auth.internal.ts'
+import type { RevokeSessionResultDto, SessionDto } from './session/session.contract.ts'
+import type { ISessionRepo, SessionRow } from './session/session.repo.ts'
 
 // ─── Dependencies ───
 
@@ -21,6 +23,7 @@ export interface AuthServiceDeps {
 	composedService: ComposedService
 	locationService: LocationService
 	sessionStore: SessionStore
+	sessionRepo: ISessionRepo
 }
 
 // ─── Internal Result ───
@@ -29,6 +32,11 @@ export interface LoginResult {
 	sessionId: string
 	expiresAt: Date
 	response: LoginResponseDto
+}
+
+export interface LoginDeviceContext {
+	userAgent?: string | undefined
+	ipAddress?: string | undefined
 }
 
 // ─── Service ───
@@ -52,12 +60,24 @@ function hasGlobalAssignment(
 	return isOwner || assignments.some((assignment) => assignment.locationId === null)
 }
 
+function toSessionDto(row: SessionRow, currentSessionId: string): SessionDto {
+	return {
+		id: row.id,
+		userAgent: row.userAgent,
+		ipAddress: row.ipAddress,
+		createdAt: row.createdAt,
+		lastSeenAt: row.lastSeenAt,
+		expiresAt: row.expiresAt,
+		isCurrent: row.id === currentSessionId,
+	}
+}
+
 export class AuthService {
 	constructor(private readonly deps: AuthServiceDeps) {}
 
 	// ─── Login ───
 
-	async handleLogin(data: LoginDto): Promise<LoginResult> {
+	async handleLogin(data: LoginDto, device: LoginDeviceContext = {}): Promise<LoginResult> {
 		return record('auth.login', async () => {
 			// 1. Find user by username
 			const user = await this.deps.userRepo.findByUsername(data.username)
@@ -77,11 +97,18 @@ export class AuthService {
 				? await this.deps.locationService.getAll()
 				: await this.deps.locationService.getByIds(locationIds)
 
-			// 5. Create session
+			// 5. Create session — DB is the source of truth, cache is the fast-path lookup.
 			const sessionId = crypto.randomUUID()
 			const expiresAt = new Date()
 			expiresAt.setDate(expiresAt.getDate() + SESSION_TTL_DAYS)
 
+			await this.deps.sessionRepo.insert({
+				id: sessionId,
+				userId: user.id,
+				userAgent: device.userAgent ?? null,
+				ipAddress: device.ipAddress ?? null,
+				expiresAt,
+			})
 			await this.deps.sessionStore.create({
 				id: sessionId,
 				userId: user.id,
@@ -112,10 +139,31 @@ export class AuthService {
 
 	// ─── Logout ───
 
-	async handleLogout(sessionId: string): Promise<void> {
-		const session = await this.deps.sessionStore.get(sessionId)
+	async handleLogout(auth: AuthContext): Promise<void> {
+		await this.deps.sessionRepo.revoke(auth.sessionId)
+		await this.deps.sessionStore.delete(auth.sessionId)
+		await invalidateAuthCache(auth.userId)
+	}
+
+	// ─── Session management (device list / revoke) ───
+
+	async handleListSessions(auth: AuthContext): Promise<SessionDto[]> {
+		const rows = await this.deps.sessionRepo.findActiveByUserId(auth.userId)
+		return rows.map((row) => toSessionDto(row, auth.sessionId))
+	}
+
+	async handleRevokeSession(auth: AuthContext, sessionId: string): Promise<void> {
+		const session = await this.deps.sessionRepo.findById(sessionId)
+		if (!session || session.userId !== auth.userId) throw AuthError.sessionNotFound()
+
+		await this.deps.sessionRepo.revoke(sessionId)
 		await this.deps.sessionStore.delete(sessionId)
-		if (session) await invalidateAuthCache(session.userId)
+	}
+
+	async handleRevokeOtherSessions(auth: AuthContext): Promise<RevokeSessionResultDto> {
+		const revokedIds = await this.deps.sessionRepo.revokeAllForUser(auth.userId, auth.sessionId)
+		await Promise.all(revokedIds.map((id) => this.deps.sessionStore.delete(id)))
+		return { revoked: revokedIds.length }
 	}
 
 	// ─── Me ───

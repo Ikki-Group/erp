@@ -3,6 +3,7 @@ import { Elysia } from 'elysia'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 
 import { createAuthModule } from '@/modules/auth/index.ts'
+import { SessionRepo } from '@/modules/auth/session/session.repo.ts'
 import type { CompanyApi } from '@/modules/company/index.ts'
 import type { IamApi } from '@/modules/iam/index.ts'
 import { createInventoryModule } from '@/modules/inventory/index.ts'
@@ -99,6 +100,7 @@ export const legacyModule: ModuleDescriptor = {
 			composedService: iam.composedService,
 			locationService: location.service,
 			sessionStore: ctx.sessionStore,
+			sessionRepo: new SessionRepo(ctx.db),
 		})
 
 		const route = new Elysia({ name: 'legacy-module-routes' })
