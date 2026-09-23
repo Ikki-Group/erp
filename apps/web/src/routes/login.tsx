@@ -113,10 +113,7 @@ function LoginPage() {
 						)}
 
 						<div className="space-y-2">
-							<Label
-								htmlFor="username"
-								className="text-zinc-900 light:text-zinc-900 dark:text-zinc-50"
-							>
+							<Label htmlFor="username" className="text-foreground">
 								Nama pengguna
 							</Label>
 							<div className="relative">
