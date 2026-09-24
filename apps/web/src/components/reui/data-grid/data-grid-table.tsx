@@ -362,6 +362,19 @@ function getDataGridTableRowSections<TData extends object>(
 	}
 }
 
+function isDataGridInteractiveTarget(
+	target: EventTarget | null,
+	currentTarget: EventTarget | null,
+): boolean {
+	if (!(target instanceof Element)) return false
+
+	const interactiveTarget = target.closest(
+		'button, a, input, select, textarea, summary, [role="button"], [role="checkbox"], [role="link"], [role="menuitem"], [data-row-click-ignore]',
+	)
+
+	return interactiveTarget !== null && interactiveTarget !== currentTarget
+}
+
 function getDataGridTableResolvedRows<TData extends object>(
 	table: DataGridTableInstance<TData>,
 	rowsPinnable?: boolean,
@@ -1197,7 +1210,11 @@ function DataGridTableBodyRow<TData extends object>({
 			data-depth={row.depth || undefined}
 			data-row-pinned={isRowPinned || undefined}
 			data-row-pinned-boundary={pinnedBoundary}
-			onClick={() => props.onRowClick && props.onRowClick(row.original)}
+			onClick={(event) => {
+				if (!isDataGridInteractiveTarget(event.target, event.currentTarget)) {
+					props.onRowClick?.(row.original)
+				}
+			}}
 			// Keyboard affordance for clickable rows: focusable + Enter/Space activate,
 			// so a row-click detail view is operable without a mouse (WCAG).
 			role={props.onRowClick ? 'button' : undefined}
@@ -1205,7 +1222,10 @@ function DataGridTableBodyRow<TData extends object>({
 			onKeyDown={
 				props.onRowClick
 					? (event) => {
-							if (event.key === 'Enter' || event.key === ' ') {
+							if (
+								(event.key === 'Enter' || event.key === ' ') &&
+								!isDataGridInteractiveTarget(event.target, event.currentTarget)
+							) {
 								event.preventDefault()
 								props.onRowClick?.(row.original)
 							}
