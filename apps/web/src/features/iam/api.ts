@@ -12,6 +12,7 @@ import {
 	AssignmentDto,
 	AssignmentFilterDto,
 	AssignmentRemoveDto,
+	LocationStaffListItemDto,
 	RoleCreateDto,
 	RoleDto,
 	RoleFilterDto,
@@ -63,6 +64,14 @@ const userDetail = defineQuery({
 	queryKey: (query) => [userUrls.detail, query ?? null],
 })
 
+const locationStaffList = defineQuery({
+	method: 'get',
+	url: userUrls.locationStaff,
+	query: UserFilterDto,
+	result: createPaginatedResponseSchema(LocationStaffListItemDto),
+	queryKey: (query) => [userUrls.locationStaff, query ?? null],
+})
+
 const userCreate = defineMutation({
 	method: 'post',
 	url: userUrls.create,
@@ -98,6 +107,7 @@ export const userResource = {
 	keys: userKeys,
 	list: userList,
 	detail: userDetail,
+	locationStaff: locationStaffList,
 	create: userCreate,
 	update: userUpdate,
 	deactivate: userDeactivate,

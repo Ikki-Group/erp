@@ -1,7 +1,12 @@
 import { NotFoundError } from '@/shared/errors/http-error.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 
-import type { ComposedUserFilterDto, UserDetailDto, UserListItemDto } from './composed.contract.ts'
+import type {
+	ComposedUserFilterDto,
+	LocationStaffListItemDto,
+	UserDetailDto,
+	UserListItemDto,
+} from './composed.contract.ts'
 import type { IComposedRepo } from './composed.repo.ts'
 
 // ─── Service ───
@@ -21,5 +26,12 @@ export class ComposedService {
 		filter: ComposedUserFilterDto,
 	): Promise<WithPaginationResult<UserListItemDto>> {
 		return this.repo.findUserList(filter)
+	}
+
+	async handleLocationStaffList(
+		filter: ComposedUserFilterDto,
+		locationId: number,
+	): Promise<WithPaginationResult<LocationStaffListItemDto>> {
+		return this.repo.findLocationStaffList(filter, locationId)
 	}
 }

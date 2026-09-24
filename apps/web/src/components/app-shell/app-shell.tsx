@@ -11,11 +11,13 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
 	return (
-		<SidebarProvider>
+		<SidebarProvider className="h-svh min-h-0 overflow-hidden">
 			<SidebarNav />
-			<SidebarInset className="contain-inline-size">
+			<SidebarInset className="min-h-0 overflow-hidden contain-inline-size">
 				<AppHeader />
-				<main className="flex-1 overflow-y-auto p-6 contain-inline-size">{children}</main>
+				<main className="min-h-0 flex-1 overflow-y-auto p-4 contain-inline-size sm:p-6">
+					{children}
+				</main>
 			</SidebarInset>
 		</SidebarProvider>
 	)

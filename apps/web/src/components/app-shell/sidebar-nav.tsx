@@ -21,12 +21,12 @@ import {
 	UsersIcon,
 	UtensilsCrossedIcon,
 	WalletIcon,
+	type LucideIcon,
 } from 'lucide-react'
 
 import {
 	Sidebar,
 	SidebarContent,
-	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
@@ -36,55 +36,141 @@ import {
 	SidebarMenuItem,
 } from '@/components/ui/sidebar'
 
-const navGroups = [
+import { useAuth } from '@/providers/auth-provider.tsx'
+import { useLocationContext } from '@/providers/location-provider.tsx'
+
+type NavItem = {
+	title: string
+	icon: LucideIcon
+	href: string
+	anyOf?: readonly string[]
+}
+
+type NavGroup = {
+	label: string
+	items: readonly NavItem[]
+}
+
+const navGroups: readonly NavGroup[] = [
 	{
 		label: 'Overview',
 		items: [{ title: 'Dashboard', icon: GaugeIcon, href: '/' }],
 	},
 	{
-		label: 'Master',
+		label: 'Point of Sale',
 		items: [
-			{ title: 'Locations', icon: MapPinIcon, href: '/master/locations' },
-			{ title: 'UoM', icon: RulerIcon, href: '/master/uom' },
-			{ title: 'Materials', icon: BoxesIcon, href: '/master/materials' },
-			{ title: 'Suppliers', icon: TruckIcon, href: '/master/suppliers' },
-			{ title: 'Menu', icon: UtensilsCrossedIcon, href: '/master/menu' },
-			{ title: 'Recipes', icon: ChefHatIcon, href: '/master/recipes' },
-			{ title: 'Payment Methods', icon: WalletIcon, href: '/master/payment-methods' },
-		],
-	},
-	{
-		label: 'POS',
-		items: [
-			{ title: 'New Order', icon: PlusCircleIcon, href: '/pos/new-order' },
-			{ title: 'Orders', icon: ShoppingCartIcon, href: '/pos/orders' },
-			{ title: 'Vouchers', icon: TagIcon, href: '/pos/vouchers' },
-			{ title: 'Tables', icon: LayersIcon, href: '/pos/tables' },
-			{ title: 'Shifts', icon: ClockIcon, href: '/pos/shifts' },
+			{
+				title: 'New Order',
+				icon: PlusCircleIcon,
+				href: '/pos/new-order',
+				anyOf: ['order.create'],
+			},
+			{ title: 'Orders', icon: ShoppingCartIcon, href: '/pos/orders', anyOf: ['order.read'] },
+			{
+				title: 'Shifts',
+				icon: ClockIcon,
+				href: '/pos/shifts',
+				anyOf: ['shift.read', 'shift.open'],
+			},
+			{ title: 'Tables', icon: LayersIcon, href: '/pos/tables', anyOf: ['table.manage'] },
+			{ title: 'Vouchers', icon: TagIcon, href: '/pos/vouchers', anyOf: ['voucher.manage'] },
 		],
 	},
 	{
 		label: 'Inventory',
 		items: [
-			{ title: 'Stock', icon: PackageIcon, href: '/inventory/stock' },
-			{ title: 'Penerimaan', icon: TruckIcon, href: '/inventory/receiving' },
-			{ title: 'Transfers', icon: ClipboardListIcon, href: '/inventory/transfers' },
-			{ title: 'Opname', icon: ClipboardCheckIcon, href: '/inventory/opname' },
+			{ title: 'Stock', icon: PackageIcon, href: '/inventory/stock', anyOf: ['stock.read'] },
+			{
+				title: 'Goods Receipts',
+				icon: TruckIcon,
+				href: '/inventory/receiving',
+				anyOf: ['receiving.read'],
+			},
+			{
+				title: 'Stock Transfers',
+				icon: ClipboardListIcon,
+				href: '/inventory/transfers',
+				anyOf: ['transfer.read'],
+			},
+			{
+				title: 'Stock Count',
+				icon: ClipboardCheckIcon,
+				href: '/inventory/opname',
+				anyOf: ['opname.read', 'opname.create'],
+			},
 		],
 	},
 	{
-		label: 'Settings',
+		label: 'Master Data',
 		items: [
-			{ title: 'Company', icon: StoreIcon, href: '/settings/company' },
-			{ title: 'Users', icon: UsersIcon, href: '/settings/users' },
-			{ title: 'Roles', icon: ShieldCheckIcon, href: '/settings/roles' },
-			{ title: 'Audit Log', icon: HistoryIcon, href: '/settings/audit' },
+			{
+				title: 'Materials',
+				icon: BoxesIcon,
+				href: '/master/materials',
+				anyOf: ['material.read'],
+			},
+			{
+				title: 'Suppliers',
+				icon: TruckIcon,
+				href: '/master/suppliers',
+				anyOf: ['supplier.read'],
+			},
+			{ title: 'Units of Measure', icon: RulerIcon, href: '/master/uom', anyOf: ['uom.read'] },
+			{
+				title: 'Menu',
+				icon: UtensilsCrossedIcon,
+				href: '/master/menu',
+				anyOf: ['item.read', 'category.read', 'modifier.read'],
+			},
+			{ title: 'Recipes', icon: ChefHatIcon, href: '/master/recipes', anyOf: ['recipe.read'] },
+			{
+				title: 'Payment Methods',
+				icon: WalletIcon,
+				href: '/master/payment-methods',
+				anyOf: ['payment-method.read'],
+			},
+		],
+	},
+	{
+		label: 'Administration',
+		items: [
+			{ title: 'Company', icon: StoreIcon, href: '/settings/company', anyOf: ['company.read'] },
+			{
+				title: 'Location Staff',
+				icon: UsersIcon,
+				href: '/settings/location-staff',
+				anyOf: ['location-staff.read'],
+			},
+			{ title: 'Locations', icon: MapPinIcon, href: '/master/locations', anyOf: ['location.read'] },
+			{ title: 'Users', icon: UsersIcon, href: '/settings/users', anyOf: ['iam.read'] },
+			{ title: 'Roles', icon: ShieldCheckIcon, href: '/settings/roles', anyOf: ['iam.read'] },
+			{ title: 'Audit Log', icon: HistoryIcon, href: '/settings/audit', anyOf: ['audit.read'] },
 		],
 	},
 ]
 
 export function SidebarNav() {
 	const location = useLocation()
+	const { access, globalPermissions, isOwner, permissions } = useAuth()
+	const { activeLocation } = useLocationContext()
+
+	const effectivePermissions = new Set([
+		...globalPermissions,
+		...permissions,
+		...(activeLocation ? (access[String(activeLocation.id)] ?? []) : []),
+	])
+
+	const visibleGroups = navGroups
+		.map((group) => ({
+			...group,
+			items: group.items.filter(
+				(item) =>
+					isOwner ||
+					!item.anyOf ||
+					item.anyOf.some((permission) => effectivePermissions.has(permission)),
+			),
+		}))
+		.filter((group) => group.items.length > 0)
 
 	return (
 		<Sidebar>
@@ -97,22 +183,27 @@ export function SidebarNav() {
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
-				{navGroups.map((group) => (
+				{visibleGroups.map((group) => (
 					<SidebarGroup key={group.label}>
 						<SidebarGroupLabel>{group.label}</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<SidebarMenu>
 								{group.items.map((item) => {
-									// Dashboard ('/') only matches exactly; every other item also
-									// matches its own nested/detail routes (e.g. '/master/materials/1').
+									// Dashboard only matches exactly; other items also match nested detail routes.
 									const isActive =
 										item.href === '/'
 											? location.pathname === '/'
-											: location.pathname.startsWith(item.href)
+											: location.pathname === item.href ||
+												location.pathname.startsWith(`${item.href}/`)
 
 									return (
 										<SidebarMenuItem key={item.title}>
-											<SidebarMenuButton isActive={isActive} render={<Link to={item.href} />}>
+											<SidebarMenuButton
+												isActive={isActive}
+												size="default"
+												className="h-10 text-sm md:h-8 md:text-xs"
+												render={<Link to={item.href} />}
+											>
 												<item.icon />
 												<span>{item.title}</span>
 											</SidebarMenuButton>
@@ -124,7 +215,6 @@ export function SidebarNav() {
 					</SidebarGroup>
 				))}
 			</SidebarContent>
-			<SidebarFooter />
 		</Sidebar>
 	)
 }

@@ -2,6 +2,7 @@ import { Elysia } from 'elysia'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
+import { BadRequestError } from '@/shared/errors/http-error.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -15,6 +16,7 @@ import {
 import type { AssignmentService } from './assignment/assignment.service.ts'
 import {
 	ComposedUserFilterDto,
+	LocationStaffListItemDto,
 	UserDetailDto,
 	UserListItemDto,
 } from './composed/composed.contract.ts'
@@ -76,6 +78,22 @@ export function createIamRoute(
 				query: ComposedUserFilterDto,
 				response: zRes.paginated(UserListItemDto),
 				permission: 'iam.read',
+			},
+		)
+		.get(
+			'/user/location-staff/list',
+			async ({ query, auth }) => {
+				if (auth.locationId === null) {
+					throw new BadRequestError('An active location is required', {
+						code: 'ACTIVE_LOCATION_REQUIRED',
+					})
+				}
+				return res.paginated(await composedService.handleLocationStaffList(query, auth.locationId))
+			},
+			{
+				query: ComposedUserFilterDto,
+				response: zRes.paginated(LocationStaffListItemDto),
+				permission: 'location-staff.read',
 			},
 		)
 		.get(

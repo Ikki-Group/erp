@@ -32,15 +32,15 @@ export function AppHeader() {
 	const displayLocation = isConsolidated ? 'Semua Lokasi' : (activeLocation?.name ?? 'Semua Lokasi')
 
 	return (
-		<header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
+		<header className="z-10 flex h-14 min-w-0 shrink-0 items-center gap-2 border-b bg-background px-3 sm:px-4">
 			<SidebarTrigger className="-ml-1" />
-			<Separator orientation="vertical" className="mx-2 h-6" />
+			<Separator orientation="vertical" className="mx-2" />
 
 			{/* Location switcher */}
 			<DropdownMenu>
-				<DropdownMenuTrigger className="inline-flex h-7 items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-sm font-normal hover:bg-accent disabled:pointer-events-none disabled:opacity-50">
+				<DropdownMenuTrigger className="inline-flex min-h-9 min-w-0 max-w-[min(18rem,calc(100vw-9rem))] items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-sm font-normal hover:bg-accent disabled:pointer-events-none disabled:opacity-50">
 					<MapPinIcon className="size-4 text-muted-foreground" />
-					<span>{displayLocation}</span>
+					<span className="truncate">{displayLocation}</span>
 					<ChevronsUpDownIcon className="size-3.5 text-muted-foreground" />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start" sideOffset={8}>
@@ -64,7 +64,10 @@ export function AppHeader() {
 
 			{/* User menu */}
 			<DropdownMenu>
-				<DropdownMenuTrigger className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none hover:bg-accent">
+				<DropdownMenuTrigger
+					className="flex min-h-9 min-w-9 items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none hover:bg-accent"
+					aria-label={`Open user menu for ${user?.name ?? 'User'}`}
+				>
 					<Avatar size="sm">
 						<AvatarFallback>{initials}</AvatarFallback>
 					</Avatar>

@@ -41,6 +41,19 @@ export const UserListItemDto = z.object({
 })
 export type UserListItemDto = z.infer<typeof UserListItemDto>
 
+// ─── Location Staff List Item ───
+
+/** Read-only staff projection scoped to the authenticated user's active location. */
+export const LocationStaffListItemDto = z.object({
+	id: zp.id,
+	username: zp.str,
+	email: zp.str,
+	name: zp.str,
+	isActive: zp.bool,
+	roleName: zp.str,
+})
+export type LocationStaffListItemDto = z.infer<typeof LocationStaffListItemDto>
+
 // ─── Filter (reuse user filter shape) ───
 
 export const ComposedUserFilterDto = z.object({

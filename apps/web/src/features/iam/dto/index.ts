@@ -27,6 +27,11 @@ export const PERMISSION_GROUPS = [
 		permissions: ['location.read', 'location.create', 'location.update', 'location.delete'],
 	},
 	{
+		module: 'location-staff',
+		label: 'Location Staff',
+		permissions: ['location-staff.read'],
+	},
+	{
 		module: 'iam',
 		label: 'Users & Roles',
 		permissions: ['iam.read', 'iam.create', 'iam.update', 'iam.delete'],
@@ -195,6 +200,16 @@ export const UserListItemDto = z.object({
 	roleNames: z.array(zp.str),
 })
 export type UserListItemDto = z.infer<typeof UserListItemDto>
+
+export const LocationStaffListItemDto = z.object({
+	id: zp.id,
+	username: zp.str,
+	email: zp.str,
+	name: zp.str,
+	isActive: zp.bool,
+	roleName: zp.str,
+})
+export type LocationStaffListItemDto = z.infer<typeof LocationStaffListItemDto>
 
 export const AssignmentWithRelationsDto = z.object({
 	id: zp.id,

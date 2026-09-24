@@ -16,6 +16,7 @@ import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type {
 	AssignmentWithRelationsDto,
 	ComposedUserFilterDto,
+	LocationStaffListItemDto,
 	UserDetailDto,
 	UserListItemDto,
 } from './composed.contract.ts'
@@ -29,6 +30,11 @@ export interface IComposedRepo {
 		filter: ComposedUserFilterDto,
 		db?: DbContext,
 	): Promise<WithPaginationResult<UserListItemDto>>
+	findLocationStaffList(
+		filter: ComposedUserFilterDto,
+		locationId: number,
+		db?: DbContext,
+	): Promise<WithPaginationResult<LocationStaffListItemDto>>
 }
 
 // ─── Implementation ───
@@ -104,6 +110,42 @@ export class ComposedRepo implements IComposedRepo {
 			createdBy: user.createdBy,
 			updatedBy: user.updatedBy,
 			assignments,
+		}
+	}
+
+	async findLocationStaffList(
+		filter: ComposedUserFilterDto,
+		locationId: number,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<LocationStaffListItemDto>> {
+		const where = allOf(
+			eq(userAssignments.locationId, locationId),
+			searchAcross(filter.q, [users.username, users.email, users.name]),
+			eqIf(users.isActive, filter.isActive),
+		)
+		const { limit, offset } = toLimitOffset(filter)
+
+		const rows = await db
+			.select({
+				id: users.id,
+				username: users.username,
+				email: users.email,
+				name: users.name,
+				isActive: users.isActive,
+				roleName: roles.name,
+				rowCount: sql<number>`count(*) over()`.as('row_count'),
+			})
+			.from(users)
+			.innerJoin(userAssignments, eq(userAssignments.userId, users.id))
+			.innerJoin(roles, eq(userAssignments.roleId, roles.id))
+			.where(where)
+			.orderBy(users.name)
+			.limit(limit)
+			.offset(offset)
+
+		return {
+			data: rows.map(({ rowCount: _rowCount, ...row }) => row),
+			meta: buildPaginationMeta(filter.page, filter.limit, rows[0]?.rowCount ?? 0),
 		}
 	}
 
