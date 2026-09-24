@@ -1,3 +1,5 @@
+import { sql } from 'drizzle-orm'
+
 import { roles, users } from '@/db/schema/iam.ts'
 
 import { eq } from '@/infra/database/index.ts'
@@ -63,6 +65,10 @@ export class AssignmentService {
 		}
 
 		const result = await this.deps.uow.run(async (tx) => {
+			// Serialize assignments for one user so the scope invariant also holds
+			// when two administrators submit changes concurrently.
+			await tx.execute(sql`select pg_advisory_xact_lock(${data.userId})`)
+
 			const [user] = await tx
 				.select({ id: users.id })
 				.from(users)
@@ -94,7 +100,38 @@ export class AssignmentService {
 				})
 			}
 
-			// 3. Check duplicate assignment
+			// 3. Enforce one assignment scope per user. A user is either global
+			// or location-scoped; mixing the two makes effective permissions ambiguous.
+			const userAssignments = await this.repo.findByUserId(data.userId, tx)
+			const hasGlobalAssignment = userAssignments.some(
+				(assignment) => assignment.locationId === null,
+			)
+			const hasLocationAssignment = userAssignments.some(
+				(assignment) => assignment.locationId !== null,
+			)
+
+			if (
+				(data.locationId === null && hasLocationAssignment) ||
+				(data.locationId !== null && hasGlobalAssignment)
+			) {
+				throw new ConflictError('Global and location-specific assignments cannot be mixed', {
+					code: 'ASSIGNMENT_SCOPE_CONFLICT',
+					context: { userId: data.userId, locationId: data.locationId },
+				})
+			}
+
+			// 4. A location may only appear once for a user, regardless of role.
+			if (
+				data.locationId !== null &&
+				userAssignments.some((assignment) => assignment.locationId === data.locationId)
+			) {
+				throw new ConflictError('Location is already assigned to this user', {
+					code: 'ASSIGNMENT_LOCATION_EXISTS',
+					context: { userId: data.userId, locationId: data.locationId },
+				})
+			}
+
+			// 5. Check duplicate global assignment (the database also protects this).
 			const existing = await this.repo.findExact(data.userId, data.roleId, data.locationId, tx)
 			if (existing) {
 				throw new ConflictError('Assignment already exists', {
@@ -103,7 +140,7 @@ export class AssignmentService {
 				})
 			}
 
-			// 3. Insert
+			// 6. Insert
 			const written = await this.repo.insert(
 				{
 					userId: data.userId,

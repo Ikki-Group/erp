@@ -48,6 +48,12 @@ test('IAM assignments enforce role and access invariants', async () => {
 	})
 	expect(duplicateResponse.status).toBe(409)
 
+	const mixedScopeResponse = await POST('/iam/assignment/assign', {
+		token,
+		body: { userId: multiLocationUser!.id, roleId: managerRole!.id, locationId: null },
+	})
+	expect(mixedScopeResponse.status).toBe(409)
+
 	const removeLastOwnerResponse = await DELETE('/iam/assignment/remove', {
 		token,
 		body: { userId: ownerUser!.id, roleId: ownerRole!.id, locationId: null },

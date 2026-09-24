@@ -63,8 +63,8 @@ export const userAssignments = pgTable(
 		locationId: integer('location_id').references(() => locations.id, { onDelete: 'restrict' }),
 	},
 	(t) => [
-		uniqueIndex('user_assignments_user_role_location_uniq')
-			.on(t.userId, t.roleId, t.locationId)
+		uniqueIndex('user_assignments_user_location_uniq')
+			.on(t.userId, t.locationId)
 			.where(sql`${t.locationId} is not null`),
 		uniqueIndex('user_assignments_user_role_global_uniq')
 			.on(t.userId, t.roleId)

@@ -64,6 +64,13 @@
       "when": 1790141599927,
       "tag": "0008_normal_power_man",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790231071207,
+      "tag": "0009_salty_mulholland_black",
+      "breakpoints": true
     }
   ]
 }
