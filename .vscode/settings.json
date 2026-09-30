@@ -46,7 +46,8 @@
 		"dump-cherio/**": true,
 		"postman/**": true,
 		".codegraph/**": true,
-		".gortex/**": true
+		".gortex/**": true,
+		"apps/web-archive": true
 	},
 	// ─── Explorer: hide noise ────────────────────────────────────────────────
 	"files.exclude": {

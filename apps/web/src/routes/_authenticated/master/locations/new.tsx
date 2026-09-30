@@ -44,6 +44,7 @@ function NewLocationPage() {
 				title="Add Location"
 				description="Create a new location for your organization."
 				form={form}
+				className="max-w-5xl"
 				submitLabel="Create"
 				onCancel={() => navigate({ to: '/master/locations' })}
 			>

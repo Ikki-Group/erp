@@ -54,3 +54,4 @@ docs/draft
 .codegraph
 .playwright-mcp
 .gortex
+.playwright-cli

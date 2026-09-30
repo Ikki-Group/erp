@@ -80,6 +80,7 @@ function EditLocationPage() {
 				title="Edit Location"
 				description={`Update details for ${location.name}.`}
 				form={form}
+				className="max-w-5xl"
 				submitLabel="Save Changes"
 				onCancel={onDone}
 			>
