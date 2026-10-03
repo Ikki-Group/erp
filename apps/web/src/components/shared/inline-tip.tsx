@@ -8,29 +8,25 @@ const variants = {
 	tip: {
 		icon: InfoIcon,
 		border: 'border-info/30',
-		bg: 'bg-info/5',
-		label: 'text-info-foreground',
+		label: 'text-info',
 		iconColor: 'text-info',
 	},
 	success: {
 		icon: CircleCheckIcon,
 		border: 'border-success/30',
-		bg: 'bg-success/5',
-		label: 'text-success-foreground',
+		label: 'text-success',
 		iconColor: 'text-success',
 	},
 	warning: {
 		icon: AlertTriangleIcon,
 		border: 'border-warning/30',
-		bg: 'bg-warning/5',
-		label: 'text-warning-foreground',
+		label: 'text-warning',
 		iconColor: 'text-warning',
 	},
 	error: {
 		icon: AlertCircleIcon,
 		border: 'border-destructive/30',
-		bg: 'bg-destructive/5',
-		label: 'text-destructive-foreground',
+		label: 'text-destructive',
 		iconColor: 'text-destructive',
 	},
 } as const
@@ -62,12 +58,7 @@ export function InlineTip({ variant = 'tip', label, children, className }: Inlin
 
 	return (
 		<div
-			className={cn(
-				'flex gap-2.5 rounded-md border px-3 py-2.5',
-				config.border,
-				config.bg,
-				className,
-			)}
+			className={cn('flex gap-2.5 rounded-md border bg-card px-3 py-2.5', config.border, className)}
 		>
 			<Icon className={cn('mt-0.5 size-4 shrink-0', config.iconColor)} />
 			<div className="text-xs leading-relaxed">
