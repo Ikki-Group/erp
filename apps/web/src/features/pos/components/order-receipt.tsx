@@ -33,6 +33,8 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 					<DialogTitle>Struk Pesanan</DialogTitle>
 				</DialogHeader>
 
+				{/* print:text-[10px] is a deliberate exception for thermal receipt paper — a
+				    different physical medium than the screen type ramp governs. */}
 				<div id="receipt-content" className="space-y-3 text-xs print:text-[10px]">
 					<div className="text-center">
 						<p className="font-semibold">{locationName}</p>

@@ -124,10 +124,10 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 								<div className="flex items-center gap-2">
 									<Label className="text-xs font-semibold">{group.name}</Label>
 									{group.isRequired === 1 && (
-										<span className="text-[10px] text-destructive">Wajib</span>
+										<span className="text-xs text-destructive">Wajib</span>
 									)}
 									{group.selectionType === 'multiple' && group.maxSelect && (
-										<span className="text-[10px] text-muted-foreground">
+										<span className="text-xs text-muted-foreground">
 											(maks. {group.maxSelect})
 										</span>
 									)}

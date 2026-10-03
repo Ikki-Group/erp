@@ -72,12 +72,12 @@ export function OrderCart({
 									<div className="flex-1 min-w-0">
 										<p className="text-xs font-medium truncate">{line.menuItemName}</p>
 										{line.modifierNames.length > 0 && (
-											<p className="text-[11px] text-muted-foreground truncate">
+											<p className="text-xs text-muted-foreground truncate">
 												{line.modifierNames.join(', ')}
 											</p>
 										)}
 										{line.notes && (
-											<p className="text-[11px] italic text-muted-foreground truncate">
+											<p className="text-xs italic text-muted-foreground truncate">
 												{line.notes}
 											</p>
 										)}
@@ -135,7 +135,7 @@ export function OrderCart({
 						<div className="flex justify-between text-success">
 							<span className="flex items-center gap-1">
 								Diskon
-								{voucherCode && <span className="text-[10px]">({voucherCode})</span>}
+								{voucherCode && <span className="text-xs">({voucherCode})</span>}
 							</span>
 							<span>-Rp {discountAmount.toLocaleString('id-ID')}</span>
 						</div>
