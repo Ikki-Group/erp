@@ -46,6 +46,13 @@ const revenueChartConfig: ChartConfig = {
 	orders: { label: 'Orders', color: 'var(--chart-2)' },
 }
 
+/** Compact Rp axis label (e.g. "Rp 42jt") -- full precision stays in the tooltip. */
+function formatCompactRupiah(value: number): string {
+	if (value >= 1_000_000) return `Rp ${(value / 1_000_000).toFixed(0)}jt`
+	if (value >= 1_000) return `Rp ${(value / 1_000).toFixed(0)}rb`
+	return `Rp ${value}`
+}
+
 const categoryChartConfig: ChartConfig = {
 	sales: { label: 'Sales', color: 'var(--primary)' },
 }
@@ -69,6 +76,8 @@ function ChartsPage() {
 							config={revenueChartConfig}
 							xAxisKey="month"
 							dataKeys={['revenue']}
+							yAxisFormatter={formatCompactRupiah}
+							yAxisWidth={56}
 						/>
 					</DataCard>
 					<DataCard title="Orders" description="Monthly order count.">
@@ -113,7 +122,7 @@ function ChartSwitchDemo() {
 
 	return (
 		<DataCard
-			title="Total Views"
+			title="Sales Overview"
 			description="Switch between chart types."
 			actions={
 				<ChartSwitch

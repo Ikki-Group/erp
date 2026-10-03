@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
-import { BoxesIcon, PackageIcon, SearchIcon, ShoppingCartIcon, UsersIcon } from 'lucide-react'
+import { ArrowLeftRightIcon, BoxesIcon, PackageIcon, SearchIcon, UsersIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
@@ -348,13 +348,13 @@ function CommandPaletteDemo() {
 
 	const actions: CommandAction[] = [
 		{
-			id: 'new-order',
-			label: 'New Order',
-			description: 'Start a POS order',
-			icon: <ShoppingCartIcon />,
+			id: 'new-transfer',
+			label: 'New Transfer',
+			description: 'Move stock between locations',
+			icon: <ArrowLeftRightIcon />,
 			group: 'Create',
 			shortcut: ['⌘', 'N'],
-			onSelect: () => alert('Would navigate to /pos/new-order'),
+			onSelect: () => alert('Would navigate to /inventory/transfers/new'),
 		},
 		{
 			id: 'new-material',

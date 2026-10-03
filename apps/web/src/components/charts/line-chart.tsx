@@ -49,6 +49,8 @@ export function LineChart({
 						strokeWidth={2}
 						dot={showDots ? { r: 3, fill: `var(--color-${key})` } : false}
 						activeDot={{ r: 5 }}
+						animationDuration={400}
+						animationEasing="ease-out"
 					/>
 				))}
 			</RechartsLineChart>

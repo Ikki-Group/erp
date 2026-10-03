@@ -176,12 +176,12 @@ function DataDisplayPage() {
 					</DataCard>
 
 					<DataCard
-						title="Stok Menipis"
-						description="Perlu perhatian segera."
+						title="Low Stock"
+						description="Needs attention soon."
 						icon={<AlertTriangleIcon className="size-4" />}
 						tone="warning"
 					>
-						<p className="text-sm text-muted-foreground">7 material di bawah stok minimum.</p>
+						<p className="text-sm text-muted-foreground">7 materials below minimum stock.</p>
 					</DataCard>
 				</div>
 			</PageSection>
@@ -226,12 +226,12 @@ function DataDisplayPage() {
 			<PageSection title="Segmented Bar" description="Proportional breakdown visualization.">
 				<div className="max-w-md space-y-6">
 					<div className="space-y-1.5">
-						<p className="text-xs font-medium text-muted-foreground uppercase">Helpful Rate</p>
+						<p className="text-xs font-medium text-muted-foreground uppercase">Opname Accuracy</p>
 						<SegmentedBar
 							items={[
-								{ label: 'Helpful', value: 188, className: 'bg-success' },
-								{ label: 'Not helpful', value: 22, className: 'bg-destructive' },
-								{ label: 'Not reviewed', value: 144, className: 'bg-muted' },
+								{ label: 'Matched', value: 188, className: 'bg-success' },
+								{ label: 'Variance', value: 22, className: 'bg-destructive' },
+								{ label: 'Not counted', value: 144, className: 'bg-muted' },
 							]}
 						/>
 					</div>
@@ -284,7 +284,7 @@ function DataDisplayPage() {
 			{/* ─── RELATIVE TIME ─── */}
 			<PageSection
 				title="Relative Time"
-				description="«X ago» timestamps for activity feeds — ticks forward automatically, absolute date/time on hover. Backed by date-fns' id locale, not hand-rolled minute/hour math."
+				description="«X ago» timestamps for activity feeds — ticks forward automatically, absolute date/time on hover. Backed by date-fns, not hand-rolled minute/hour math."
 			>
 				<dl className="grid max-w-md grid-cols-2 gap-3 text-sm">
 					<dt className="text-muted-foreground">Just now</dt>

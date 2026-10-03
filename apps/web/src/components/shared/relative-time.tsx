@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 
 import { format, formatDistanceToNow } from 'date-fns'
-import { id as idLocale } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export interface RelativeTimeProps {
 	/** The timestamp to render relative to now. */
 	value: Date | string
-	/** Appends "ago"/"lalu". Defaults to `true`. */
+	/** Appends "ago". Defaults to `true`. */
 	addSuffix?: boolean
 	/**
 	 * Re-renders on this interval (ms) so "2 minutes ago" keeps ticking
@@ -20,10 +20,10 @@ export interface RelativeTimeProps {
 }
 
 /**
- * Formats a timestamp as "2 menit lalu" / "3 jam lalu", with the absolute
- * date/time available on hover via `Tooltip`. Backed by `date-fns`'
- * `id` locale instead of hand-rolled minute/hour math — see the activity
- * feed in `routes/_authenticated/index.tsx` for the pattern this replaces.
+ * Formats a timestamp as "2 minutes ago" / "3 hours ago", with the absolute
+ * date/time available on hover via `Tooltip`. Backed by `date-fns` instead of
+ * hand-rolled minute/hour math — see the activity feed in
+ * `routes/_authenticated/index.tsx` for the pattern this replaces.
  */
 export function RelativeTime({
 	value,
@@ -46,8 +46,8 @@ export function RelativeTime({
 		return <span className={className}>—</span>
 	}
 
-	const relative = formatDistanceToNow(date, { addSuffix, locale: idLocale })
-	const absolute = format(date, 'dd MMM yyyy, HH:mm', { locale: idLocale })
+	const relative = formatDistanceToNow(date, { addSuffix, locale: enUS })
+	const absolute = format(date, 'dd MMM yyyy, HH:mm', { locale: enUS })
 
 	return (
 		<Tooltip>

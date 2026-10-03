@@ -68,6 +68,8 @@ export function BarChart({
 						fill={`var(--color-${key})`}
 						radius={[4, 4, 0, 0]}
 						stackId={stacked ? 'stack' : undefined}
+						animationDuration={400}
+						animationEasing="ease-out"
 					/>
 				))}
 			</RechartsBarChart>

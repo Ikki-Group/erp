@@ -19,6 +19,10 @@ interface AreaChartProps {
 	stacked?: boolean
 	showGrid?: boolean
 	showLegend?: boolean
+	/** Formats Y-axis tick values (e.g. compact currency). Defaults to the raw number. */
+	yAxisFormatter?: (value: number) => string
+	/** Reserved width for Y-axis labels, in px. Widen when formatted ticks run long. */
+	yAxisWidth?: number
 	className?: string
 }
 
@@ -30,6 +34,8 @@ export function AreaChart({
 	stacked = false,
 	showGrid = true,
 	showLegend = false,
+	yAxisFormatter,
+	yAxisWidth,
 	className,
 }: AreaChartProps) {
 	return (
@@ -37,7 +43,13 @@ export function AreaChart({
 			<RechartsAreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
 				{showGrid && <CartesianGrid vertical={false} />}
 				<XAxis dataKey={xAxisKey} tickLine={false} axisLine={false} tickMargin={8} />
-				<YAxis tickLine={false} axisLine={false} tickMargin={8} />
+				<YAxis
+					tickLine={false}
+					axisLine={false}
+					tickMargin={8}
+					width={yAxisWidth}
+					tickFormatter={yAxisFormatter}
+				/>
 				<ChartTooltip content={<ChartTooltipContent />} />
 				{showLegend && <ChartLegend content={<ChartLegendContent />} />}
 				{dataKeys.map((key) => (
@@ -49,6 +61,8 @@ export function AreaChart({
 						stroke={`var(--color-${key})`}
 						fillOpacity={0.15}
 						stackId={stacked ? 'stack' : undefined}
+						animationDuration={400}
+						animationEasing="ease-out"
 					/>
 				))}
 			</RechartsAreaChart>

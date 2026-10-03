@@ -342,7 +342,7 @@ function DataTableSection() {
 			</div>
 			<DataTable
 				table={table}
-				recordCount={state === 'empty' ? 0 : recordCount}
+				recordCount={state === 'empty' || state === 'error' ? 0 : recordCount}
 				isLoading={state === 'loading'}
 				isError={state === 'error'}
 				errorMessage="We couldn't load materials. Check your connection and try again."
