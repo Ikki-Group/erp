@@ -47,7 +47,7 @@ export function CurrencyField({
 			<Label htmlFor={fieldId}>{label}</Label>
 			<InputGroup>
 				{prefix && (
-					<InputGroupAddon>
+					<InputGroupAddon className="border-r pr-2">
 						<InputGroupText>{prefix}</InputGroupText>
 					</InputGroupAddon>
 				)}
@@ -62,6 +62,7 @@ export function CurrencyField({
 					aria-invalid={!!error}
 					aria-describedby={error ? `${fieldId}-error` : undefined}
 					disabled={disabled}
+					className="text-right font-mono tabular-nums"
 				/>
 			</InputGroup>
 			{description && !error && <p className="text-xs text-muted-foreground">{description}</p>}

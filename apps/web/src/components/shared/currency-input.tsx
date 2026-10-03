@@ -44,7 +44,7 @@ export function CurrencyInput({
 	return (
 		<InputGroup className={cn(className)}>
 			{prefix && (
-				<InputGroupAddon>
+				<InputGroupAddon className="border-r pr-2">
 					<InputGroupText>{prefix}</InputGroupText>
 				</InputGroupAddon>
 			)}
@@ -59,6 +59,7 @@ export function CurrencyInput({
 				placeholder={placeholder}
 				disabled={disabled}
 				aria-label={ariaLabel}
+				className="text-right font-mono tabular-nums"
 			/>
 		</InputGroup>
 	)
