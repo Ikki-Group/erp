@@ -114,7 +114,6 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 						</Button>
 						<Button
 							variant="destructive"
-							className="bg-destructive text-white hover:bg-destructive/90"
 							disabled={!isMatch || loading}
 							onClick={handleConfirm}
 						>

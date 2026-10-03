@@ -3,8 +3,6 @@ import { useState } from 'react'
 import { AlertTriangleIcon } from 'lucide-react'
 import { createCallable } from 'react-call'
 
-import { cn } from '@/lib/utils'
-
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -92,9 +90,6 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 						</Button>
 						<Button
 							variant={variant === 'destructive' ? 'destructive' : 'default'}
-							className={cn(
-								variant === 'destructive' && 'bg-destructive text-white hover:bg-destructive/90',
-							)}
 							disabled={loading}
 							onClick={handleConfirm}
 						>
