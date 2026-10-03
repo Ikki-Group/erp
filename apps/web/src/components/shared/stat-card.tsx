@@ -8,9 +8,10 @@ import { IconTile } from '@/components/reui/icon-tile'
 
 import { Skeleton } from '@/components/ui/skeleton'
 
-type StatCardTone = 'default' | 'success' | 'warning' | 'info' | 'destructive'
+export type StatCardTone = 'default' | 'success' | 'warning' | 'info' | 'destructive'
 
-const TONE_CLASS: Record<StatCardTone, string> = {
+/** Tints an `IconTile`'s `soft` variant to match a metric's meaning. Shared with `DataCard`'s `icon`/`tone` pair so stat cards and data cards read as one visual family. */
+export const TONE_CLASS: Record<StatCardTone, string> = {
 	default: 'text-primary',
 	success: 'text-success',
 	warning: 'text-warning',
@@ -72,7 +73,7 @@ export function StatCard({
 					: undefined
 			}
 			className={cn(
-				'rounded-lg border bg-card p-4 text-card-foreground transition-colors hover:border-foreground/15',
+				'rounded-lg border bg-card p-5 text-card-foreground transition-colors hover:border-foreground/15',
 				onClick && 'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/30',
 				className,
 			)}
@@ -80,20 +81,20 @@ export function StatCard({
 			<div className="flex items-center justify-between">
 				<p className="text-xs font-medium text-muted-foreground">{title}</p>
 				{icon && (
-					<IconTile variant="soft" size="sm" className={TONE_CLASS[tone]}>
+					<IconTile variant="soft" size="default" className={TONE_CLASS[tone]}>
 						{icon}
 					</IconTile>
 				)}
 			</div>
 
 			{isLoading ? (
-				<div className="mt-3 space-y-2">
+				<div className="mt-4 space-y-2">
 					<Skeleton className="h-7 w-20" />
 					<Skeleton className="h-3 w-28" />
 				</div>
 			) : (
 				<>
-					<div className="mt-3 flex items-baseline gap-2">
+					<div className="mt-4 flex items-baseline gap-2">
 						<p className="text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
 						{trend && (
 							<span
