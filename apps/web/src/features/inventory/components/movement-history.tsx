@@ -6,10 +6,12 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react'
 
 import type { ListSearch } from '@/components/data-table'
+import { DateCell, rightAlignedHeader, TextCell } from '@/components/data-table/cell'
 import { DataTable } from '@/components/data-table/data-table'
 import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'
+import { PageError } from '@/components/shared/page-error'
 import { StatusBadge } from '@/components/shared/status-badge'
 
 import { stockMovementList } from '@/features/inventory/api.ts'
@@ -24,17 +26,7 @@ const baseColumns = [
 	col.accessor('createdAt', {
 		header: 'Tanggal',
 		size: 140,
-		cell: ({ getValue }) => {
-			const date = getValue()
-			return (
-				<span className="text-sm">
-					{new Intl.DateTimeFormat('id-ID', {
-						dateStyle: 'medium',
-						timeStyle: 'short',
-					}).format(new Date(date))}
-				</span>
-			)
-		},
+		cell: ({ getValue }) => <DateCell value={getValue()} withTime />,
 	}),
 	col.accessor('type', {
 		header: 'Tipe',
@@ -66,27 +58,25 @@ const baseColumns = [
 		},
 	}),
 	col.accessor('quantity', {
-		header: 'Qty',
+		header: rightAlignedHeader('Qty'),
 		size: 90,
 		cell: ({ row }) => {
 			const qty = Number(row.original.quantity)
 			const isOut = row.original.direction === 'out'
 			return (
-				<span className={`font-mono text-sm ${isOut ? 'text-destructive' : 'text-success'}`}>
+				<div
+					className={`text-right font-mono text-sm tabular-nums ${isOut ? 'text-destructive' : 'text-success'}`}
+				>
 					{isOut ? '-' : '+'}
 					{qty.toLocaleString('id-ID')}
-				</span>
+				</div>
 			)
 		},
 	}),
 	col.accessor('notes', {
 		header: 'Catatan',
 		size: 180,
-		cell: ({ getValue }) => {
-			const notes = getValue()
-			if (!notes) return <span className="text-muted-foreground">—</span>
-			return <span className="truncate text-sm">{notes}</span>
-		},
+		cell: ({ getValue }) => <TextCell value={getValue()} truncate />,
 	}),
 ]
 
@@ -126,6 +116,16 @@ export function MovementHistory({ materialId, locationId }: MovementHistoryProps
 	})
 
 	const isEmpty = !listQuery.isLoading && data.length === 0
+
+	if (listQuery.isError) {
+		return (
+			<PageError
+				title="Gagal memuat riwayat pergerakan"
+				message="Tidak dapat terhubung ke server. Periksa koneksi Anda dan coba lagi."
+				onRetry={() => listQuery.refetch()}
+			/>
+		)
+	}
 
 	if (isEmpty) {
 		return (

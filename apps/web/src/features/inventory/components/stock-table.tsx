@@ -4,10 +4,17 @@ import { useQuery } from '@tanstack/react-query'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import type { ListSearch } from '@/components/data-table'
+import {
+	CurrencyCell,
+	NumericCell,
+	rightAlignedHeader,
+	TextCell,
+} from '@/components/data-table/cell'
 import { DataTable } from '@/components/data-table/data-table'
 import { useServerTable } from '@/components/data-table/use-server-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'
+import { PageError } from '@/components/shared/page-error'
 import { StatusBadge, type StatusBadgeVariant } from '@/components/shared/status-badge'
 
 import { stockBalanceList } from '@/features/inventory/api.ts'
@@ -38,53 +45,34 @@ const baseColumns = [
 	col.accessor('materialCode', {
 		header: 'Kode',
 		size: 90,
-		cell: ({ getValue }) => <span className="font-mono text-xs">{getValue()}</span>,
+		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
 	}),
 	col.accessor('materialName', {
 		header: 'Material',
-		size: 200,
+		size: 220,
+		cell: ({ getValue }) => <TextCell value={getValue()} truncate className="font-medium" />,
 	}),
 	col.accessor('quantity', {
-		header: 'Stok',
-		size: 100,
-		cell: ({ row }) => {
-			const qty = Number(row.original.quantity)
-			return (
-				<span className="font-mono text-sm">
-					{qty.toLocaleString('id-ID')} {row.original.uomCode}
-				</span>
-			)
-		},
+		header: rightAlignedHeader('Stok'),
+		size: 110,
+		cell: ({ row }) => <NumericCell value={row.original.quantity} unit={row.original.uomCode} />,
 	}),
 	col.accessor('minStock', {
-		header: 'Min. Stok',
-		size: 90,
-		cell: ({ getValue, row }) => {
-			const min = getValue()
-			if (min === null) return <span className="text-muted-foreground">—</span>
-			return (
-				<span className="font-mono text-sm text-muted-foreground">
-					{Number(min).toLocaleString('id-ID')} {row.original.uomCode}
-				</span>
-			)
-		},
+		header: rightAlignedHeader('Min. Stok'),
+		size: 100,
+		cell: ({ getValue, row }) => (
+			<NumericCell value={getValue()} unit={row.original.uomCode} muted />
+		),
 	}),
 	col.accessor('costPrice', {
-		header: 'Harga Pokok',
-		size: 130,
-		cell: ({ getValue }) => {
-			const val = Number(getValue())
-			return (
-				<span className="font-mono text-sm">
-					Rp {val.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-				</span>
-			)
-		},
+		header: rightAlignedHeader('Harga Pokok'),
+		size: 140,
+		cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
 	}),
 	col.display({
 		id: 'status',
 		header: 'Status',
-		size: 120,
+		size: 130,
 		cell: ({ row }) => {
 			const status = getStockStatus(row.original.quantity, row.original.minStock)
 			const config = STATUS_CONFIG[status]
@@ -128,6 +116,16 @@ export function StockTable({ locationId, onRowClick }: StockTableProps) {
 	})
 
 	const isEmpty = !listQuery.isLoading && data.length === 0
+
+	if (listQuery.isError) {
+		return (
+			<PageError
+				title="Gagal memuat data stok"
+				message="Tidak dapat terhubung ke server. Periksa koneksi Anda dan coba lagi."
+				onRetry={() => listQuery.refetch()}
+			/>
+		)
+	}
 
 	if (isEmpty) {
 		return (
