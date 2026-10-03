@@ -40,24 +40,27 @@ export function ComboboxField({
 	const field = useFieldContext<string>()
 	const fieldId = field.name
 	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
+	const selectedOption = options.find((opt) => opt.value === field.state.value)
 
 	return (
 		<div className={cn('space-y-1.5', className)}>
 			<Label htmlFor={fieldId}>{label}</Label>
 			<Combobox
-				value={field.state.value || undefined}
-				onValueChange={(v) => field.handleChange(v ?? '')}
+				items={options}
+				value={selectedOption ?? null}
+				onValueChange={(opt: ComboboxFieldOption | null) => field.handleChange(opt?.value ?? '')}
+				isItemEqualToValue={(a: ComboboxFieldOption, b: ComboboxFieldOption) => a.value === b.value}
 				disabled={disabled}
 			>
 				<ComboboxInput placeholder={placeholder} disabled={disabled} aria-invalid={!!error} />
 				<ComboboxContent>
+					<ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
 					<ComboboxList>
-						<ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
-						{options.map((opt) => (
-							<ComboboxItem key={opt.value} value={opt.value}>
+						{(opt: ComboboxFieldOption) => (
+							<ComboboxItem key={opt.value} value={opt}>
 								{opt.label}
 							</ComboboxItem>
-						))}
+						)}
 					</ComboboxList>
 				</ComboboxContent>
 			</Combobox>
