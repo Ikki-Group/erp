@@ -14,6 +14,15 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
+import { Route as DesignSystemIndexRouteImport } from './routes/design-system/index'
+import { Route as DesignSystemButtonsRouteImport } from './routes/design-system/buttons'
+import { Route as DesignSystemChartsRouteImport } from './routes/design-system/charts'
+import { Route as DesignSystemDataDisplayRouteImport } from './routes/design-system/data-display'
+import { Route as DesignSystemFeedbackRouteImport } from './routes/design-system/feedback'
+import { Route as DesignSystemFormsRouteImport } from './routes/design-system/forms'
+import { Route as DesignSystemNavigationRouteImport } from './routes/design-system/navigation'
+import { Route as DesignSystemOverlaysRouteImport } from './routes/design-system/overlays'
+import { Route as DesignSystemTablesRouteImport } from './routes/design-system/tables'
 import { Route as AuthenticatedInventoryOpnameRouteImport } from './routes/_authenticated/inventory/opname'
 import { Route as AuthenticatedInventoryStockRouteImport } from './routes/_authenticated/inventory/stock'
 import { Route as AuthenticatedMasterRecipesRouteImport } from './routes/_authenticated/master/recipes'
@@ -81,6 +90,51 @@ const AuthenticatedDemoRoute = AuthenticatedDemoRouteImport.update({
   id: '/demo',
   path: '/demo',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const DesignSystemIndexRoute = DesignSystemIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
+const DesignSystemButtonsRoute = DesignSystemButtonsRouteImport.update({
+  id: '/buttons',
+  path: '/buttons',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
+const DesignSystemChartsRoute = DesignSystemChartsRouteImport.update({
+  id: '/charts',
+  path: '/charts',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
+const DesignSystemDataDisplayRoute = DesignSystemDataDisplayRouteImport.update({
+  id: '/data-display',
+  path: '/data-display',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
+const DesignSystemFeedbackRoute = DesignSystemFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
+const DesignSystemFormsRoute = DesignSystemFormsRouteImport.update({
+  id: '/forms',
+  path: '/forms',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
+const DesignSystemNavigationRoute = DesignSystemNavigationRouteImport.update({
+  id: '/navigation',
+  path: '/navigation',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
+const DesignSystemOverlaysRoute = DesignSystemOverlaysRouteImport.update({
+  id: '/overlays',
+  path: '/overlays',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
+const DesignSystemTablesRoute = DesignSystemTablesRouteImport.update({
+  id: '/tables',
+  path: '/tables',
+  getParentRoute: () => DesignSystemRoute,
 } as any)
 const AuthenticatedInventoryOpnameRoute =
   AuthenticatedInventoryOpnameRouteImport.update({
@@ -341,9 +395,18 @@ const AuthenticatedMasterMenuItemsNewRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
-  '/design-system': typeof DesignSystemRoute
+  '/design-system': typeof DesignSystemRouteWithChildren
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
+  '/design-system/buttons': typeof DesignSystemButtonsRoute
+  '/design-system/charts': typeof DesignSystemChartsRoute
+  '/design-system/data-display': typeof DesignSystemDataDisplayRoute
+  '/design-system/feedback': typeof DesignSystemFeedbackRoute
+  '/design-system/forms': typeof DesignSystemFormsRoute
+  '/design-system/navigation': typeof DesignSystemNavigationRoute
+  '/design-system/overlays': typeof DesignSystemOverlaysRoute
+  '/design-system/tables': typeof DesignSystemTablesRoute
+  '/design-system/': typeof DesignSystemIndexRoute
   '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/master/recipes': typeof AuthenticatedMasterRecipesRoute
@@ -389,10 +452,18 @@ export interface FileRoutesByFullPath {
   '/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
 }
 export interface FileRoutesByTo {
-  '/design-system': typeof DesignSystemRoute
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
+  '/design-system/buttons': typeof DesignSystemButtonsRoute
+  '/design-system/charts': typeof DesignSystemChartsRoute
+  '/design-system/data-display': typeof DesignSystemDataDisplayRoute
+  '/design-system/feedback': typeof DesignSystemFeedbackRoute
+  '/design-system/forms': typeof DesignSystemFormsRoute
+  '/design-system/navigation': typeof DesignSystemNavigationRoute
+  '/design-system/overlays': typeof DesignSystemOverlaysRoute
+  '/design-system/tables': typeof DesignSystemTablesRoute
   '/': typeof AuthenticatedIndexRoute
+  '/design-system': typeof DesignSystemIndexRoute
   '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/master/recipes': typeof AuthenticatedMasterRecipesRoute
@@ -440,10 +511,19 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/design-system': typeof DesignSystemRoute
+  '/design-system': typeof DesignSystemRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/demo': typeof AuthenticatedDemoRoute
+  '/design-system/buttons': typeof DesignSystemButtonsRoute
+  '/design-system/charts': typeof DesignSystemChartsRoute
+  '/design-system/data-display': typeof DesignSystemDataDisplayRoute
+  '/design-system/feedback': typeof DesignSystemFeedbackRoute
+  '/design-system/forms': typeof DesignSystemFormsRoute
+  '/design-system/navigation': typeof DesignSystemNavigationRoute
+  '/design-system/overlays': typeof DesignSystemOverlaysRoute
+  '/design-system/tables': typeof DesignSystemTablesRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/design-system/': typeof DesignSystemIndexRoute
   '/_authenticated/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/_authenticated/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/_authenticated/master/recipes': typeof AuthenticatedMasterRecipesRoute
@@ -495,6 +575,15 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/login'
     | '/demo'
+    | '/design-system/buttons'
+    | '/design-system/charts'
+    | '/design-system/data-display'
+    | '/design-system/feedback'
+    | '/design-system/forms'
+    | '/design-system/navigation'
+    | '/design-system/overlays'
+    | '/design-system/tables'
+    | '/design-system/'
     | '/inventory/opname'
     | '/inventory/stock'
     | '/master/recipes'
@@ -540,10 +629,18 @@ export interface FileRouteTypes {
     | '/master/menu/items/new'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/design-system'
     | '/login'
     | '/demo'
+    | '/design-system/buttons'
+    | '/design-system/charts'
+    | '/design-system/data-display'
+    | '/design-system/feedback'
+    | '/design-system/forms'
+    | '/design-system/navigation'
+    | '/design-system/overlays'
+    | '/design-system/tables'
     | '/'
+    | '/design-system'
     | '/inventory/opname'
     | '/inventory/stock'
     | '/master/recipes'
@@ -593,7 +690,16 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/login'
     | '/_authenticated/demo'
+    | '/design-system/buttons'
+    | '/design-system/charts'
+    | '/design-system/data-display'
+    | '/design-system/feedback'
+    | '/design-system/forms'
+    | '/design-system/navigation'
+    | '/design-system/overlays'
+    | '/design-system/tables'
     | '/_authenticated/'
+    | '/design-system/'
     | '/_authenticated/inventory/opname'
     | '/_authenticated/inventory/stock'
     | '/_authenticated/master/recipes'
@@ -641,7 +747,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  DesignSystemRoute: typeof DesignSystemRoute
+  DesignSystemRoute: typeof DesignSystemRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -681,6 +787,69 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo'
       preLoaderRoute: typeof AuthenticatedDemoRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/design-system/': {
+      id: '/design-system/'
+      path: '/'
+      fullPath: '/design-system/'
+      preLoaderRoute: typeof DesignSystemIndexRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
+    '/design-system/buttons': {
+      id: '/design-system/buttons'
+      path: '/buttons'
+      fullPath: '/design-system/buttons'
+      preLoaderRoute: typeof DesignSystemButtonsRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
+    '/design-system/charts': {
+      id: '/design-system/charts'
+      path: '/charts'
+      fullPath: '/design-system/charts'
+      preLoaderRoute: typeof DesignSystemChartsRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
+    '/design-system/data-display': {
+      id: '/design-system/data-display'
+      path: '/data-display'
+      fullPath: '/design-system/data-display'
+      preLoaderRoute: typeof DesignSystemDataDisplayRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
+    '/design-system/feedback': {
+      id: '/design-system/feedback'
+      path: '/feedback'
+      fullPath: '/design-system/feedback'
+      preLoaderRoute: typeof DesignSystemFeedbackRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
+    '/design-system/forms': {
+      id: '/design-system/forms'
+      path: '/forms'
+      fullPath: '/design-system/forms'
+      preLoaderRoute: typeof DesignSystemFormsRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
+    '/design-system/navigation': {
+      id: '/design-system/navigation'
+      path: '/navigation'
+      fullPath: '/design-system/navigation'
+      preLoaderRoute: typeof DesignSystemNavigationRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
+    '/design-system/overlays': {
+      id: '/design-system/overlays'
+      path: '/overlays'
+      fullPath: '/design-system/overlays'
+      preLoaderRoute: typeof DesignSystemOverlaysRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
+    '/design-system/tables': {
+      id: '/design-system/tables'
+      path: '/tables'
+      fullPath: '/design-system/tables'
+      preLoaderRoute: typeof DesignSystemTablesRouteImport
+      parentRoute: typeof DesignSystemRoute
     }
     '/_authenticated/inventory/opname': {
       id: '/_authenticated/inventory/opname'
@@ -1102,9 +1271,37 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface DesignSystemRouteChildren {
+  DesignSystemButtonsRoute: typeof DesignSystemButtonsRoute
+  DesignSystemChartsRoute: typeof DesignSystemChartsRoute
+  DesignSystemDataDisplayRoute: typeof DesignSystemDataDisplayRoute
+  DesignSystemFeedbackRoute: typeof DesignSystemFeedbackRoute
+  DesignSystemFormsRoute: typeof DesignSystemFormsRoute
+  DesignSystemNavigationRoute: typeof DesignSystemNavigationRoute
+  DesignSystemOverlaysRoute: typeof DesignSystemOverlaysRoute
+  DesignSystemTablesRoute: typeof DesignSystemTablesRoute
+  DesignSystemIndexRoute: typeof DesignSystemIndexRoute
+}
+
+const DesignSystemRouteChildren: DesignSystemRouteChildren = {
+  DesignSystemButtonsRoute: DesignSystemButtonsRoute,
+  DesignSystemChartsRoute: DesignSystemChartsRoute,
+  DesignSystemDataDisplayRoute: DesignSystemDataDisplayRoute,
+  DesignSystemFeedbackRoute: DesignSystemFeedbackRoute,
+  DesignSystemFormsRoute: DesignSystemFormsRoute,
+  DesignSystemNavigationRoute: DesignSystemNavigationRoute,
+  DesignSystemOverlaysRoute: DesignSystemOverlaysRoute,
+  DesignSystemTablesRoute: DesignSystemTablesRoute,
+  DesignSystemIndexRoute: DesignSystemIndexRoute,
+}
+
+const DesignSystemRouteWithChildren = DesignSystemRoute._addFileChildren(
+  DesignSystemRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  DesignSystemRoute: DesignSystemRoute,
+  DesignSystemRoute: DesignSystemRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
