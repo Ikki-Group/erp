@@ -8,18 +8,18 @@ import { id as idLocale } from 'date-fns/locale'
 import {
 	AlertTriangleIcon,
 	ArrowRightIcon,
-	BoxesIcon,
 	CalendarIcon,
 	ClockIcon,
+	HistoryIcon,
 	ShoppingCartIcon,
 	TrendingUpIcon,
 } from 'lucide-react'
 
 import {
+	AuditTrail,
 	DataCard,
 	EmptyState,
 	PageHeader,
-	RelativeTime,
 	StatCard,
 	StatusBadge,
 } from '@/components/shared'
@@ -230,36 +230,15 @@ function DashboardPage() {
 					/>
 				</DataCard>
 
-				<DataCard title="Aktivitas Terbaru" noPadding>
-					{activityQuery.isLoading ? (
-						<div className="space-y-2 p-4">
-							<Skeleton className="h-8 w-full" />
-							<Skeleton className="h-8 w-full" />
-							<Skeleton className="h-8 w-full" />
-						</div>
-					) : activityQuery.isError ? (
-						<div className="p-4 text-xs text-destructive">Gagal memuat aktivitas.</div>
-					) : recentActivity.length === 0 ? (
-						<div className="p-4">
-							<EmptyState
-								title="Belum ada aktivitas"
-								description="Aktivitas terbaru akan muncul di sini."
-							/>
-						</div>
+				<DataCard title="Aktivitas Terbaru" icon={<HistoryIcon className="size-4" />}>
+					{activityQuery.isError ? (
+						<p className="text-xs text-destructive">Gagal memuat aktivitas.</p>
 					) : (
-						<div className="divide-y">
-							{recentActivity.map((activity) => (
-								<div key={activity.id} className="flex items-start gap-3 px-4 py-3">
-									<BoxesIcon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-									<div className="min-w-0 flex-1 space-y-0.5">
-										<p className="text-xs font-medium">{activity.summary}</p>
-										<p className="text-xs text-muted-foreground">
-											{activity.userName} · <RelativeTime value={activity.timestamp} />
-										</p>
-									</div>
-								</div>
-							))}
-						</div>
+						<AuditTrail
+							entries={recentActivity}
+							isLoading={activityQuery.isLoading}
+							emptyMessage="Aktivitas terbaru akan muncul di sini."
+						/>
 					)}
 				</DataCard>
 			</div>
