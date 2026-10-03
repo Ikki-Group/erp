@@ -6,7 +6,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { ArrowLeftIcon, PackageIcon, PlusIcon, SendIcon, TruckIcon } from 'lucide-react'
 
-import { listSearchSchema, useServerTable } from '@/components/data-table'
+import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { ActionMenu } from '@/components/shared/action-menu'
@@ -187,6 +187,8 @@ function TransfersPage() {
 			col.accessor('transferNo', {
 				header: 'No. Transfer',
 				size: 140,
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				cell: ({ getValue }) => <TextCell value={getValue()} mono />,
 			}),
 			col.accessor('status', {
 				header: 'Status',

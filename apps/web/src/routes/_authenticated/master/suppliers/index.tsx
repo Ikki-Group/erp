@@ -7,7 +7,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { EditIcon, PackageIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { listSearchSchema, useServerTable } from '@/components/data-table'
+import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
@@ -41,6 +41,8 @@ const baseColumns = [
 	col.accessor('code', {
 		header: 'Code',
 		size: 100,
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
 	}),
 	col.accessor('name', {
 		header: 'Name',
