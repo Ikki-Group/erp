@@ -7,7 +7,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { BanIcon, EyeIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { listSearchSchema, useServerTable } from '@/components/data-table'
+import { CurrencyCell, listSearchSchema, rightAlignedHeader, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import type { DateRange } from '@/components/shared/date-range-filter'
@@ -71,9 +71,10 @@ const baseColumns = [
 		cell: ({ getValue }) => (getValue() === 'dine_in' ? 'Dine In' : 'Takeaway'),
 	}),
 	col.accessor('total', {
-		header: 'Total',
+		header: rightAlignedHeader('Total'),
 		size: 130,
-		cell: ({ getValue }) => `Rp ${Number(getValue()).toLocaleString('id-ID')}`,
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
 	}),
 	col.accessor('orderedAt', {
 		header: 'Waktu',

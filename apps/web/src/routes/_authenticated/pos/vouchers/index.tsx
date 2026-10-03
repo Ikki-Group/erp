@@ -8,7 +8,7 @@ import { format, isPast } from 'date-fns'
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
+import { listSearchSchema, rightAlignedHeader, TextCell, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
@@ -81,13 +81,15 @@ const baseColumns = [
 		),
 	}),
 	col.accessor('value', {
-		header: 'Value',
+		header: rightAlignedHeader('Value'),
 		size: 100,
 		cell: ({ row }) => {
 			const v = row.original
-			return v.type === 'percentage'
-				? `${v.value}%`
-				: `Rp ${Number(v.value).toLocaleString('id-ID')}`
+			return (
+				<div className="text-right font-mono text-sm tabular-nums">
+					{v.type === 'percentage' ? `${v.value}%` : `Rp ${Number(v.value).toLocaleString('id-ID')}`}
+				</div>
+			)
 		},
 	}),
 	col.display({

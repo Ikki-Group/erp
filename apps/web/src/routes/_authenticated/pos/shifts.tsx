@@ -6,7 +6,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { LockIcon, UnlockIcon } from 'lucide-react'
 
-import { listSearchSchema, NumericCell, rightAlignedHeader, useServerTable } from '@/components/data-table'
+import { CurrencyCell, listSearchSchema, NumericCell, rightAlignedHeader, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -62,21 +62,16 @@ const baseColumns = [
 		},
 	}),
 	col.accessor('openingCash', {
-		header: 'Opening Cash',
+		header: rightAlignedHeader('Opening Cash'),
 		size: 140,
-		cell: ({ getValue }) => Number(getValue()).toLocaleString('id-ID'),
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
 	}),
 	col.accessor('closingCash', {
-		header: 'Closing Cash',
+		header: rightAlignedHeader('Closing Cash'),
 		size: 140,
-		cell: ({ getValue }) => {
-			const val = getValue()
-			return val ? (
-				Number(val).toLocaleString('id-ID')
-			) : (
-				<span className="text-muted-foreground">—</span>
-			)
-		},
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
 	}),
 	col.accessor('openedAt', {
 		header: 'Opened',

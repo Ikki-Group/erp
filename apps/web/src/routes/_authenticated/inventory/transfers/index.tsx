@@ -358,11 +358,13 @@ function TransfersPage() {
 										<td className="px-3 py-2">
 											{materialsMap.get(line.materialId) ?? `#${line.materialId}`}
 										</td>
-										<td className="px-3 py-2 text-right">{line.requestedQty}</td>
-										<td className="px-3 py-2 text-right">
+										<td className="px-3 py-2 text-right font-mono tabular-nums">
+											{line.requestedQty}
+										</td>
+										<td className="px-3 py-2 text-right font-mono tabular-nums">
 											{line.shippedQty ?? <span className="text-muted-foreground">—</span>}
 										</td>
-										<td className="px-3 py-2 text-right">
+										<td className="px-3 py-2 text-right font-mono tabular-nums">
 											{line.receivedQty ?? <span className="text-muted-foreground">—</span>}
 										</td>
 										<td className="px-3 py-2">{uomsMap.get(line.uomId) ?? `#${line.uomId}`}</td>

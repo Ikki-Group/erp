@@ -97,7 +97,9 @@ export function OpnameCountForm({
 										{line.materialCode}
 									</TableCell>
 									<TableCell className="font-medium">{line.materialName}</TableCell>
-									<TableCell className="text-right tabular-nums">{line.systemQty}</TableCell>
+									<TableCell className="text-right font-mono tabular-nums">
+										{line.systemQty}
+									</TableCell>
 									<TableCell className="text-right">
 										{isEditable ? (
 											<Input
@@ -108,13 +110,13 @@ export function OpnameCountForm({
 												aria-label={`Jumlah aktual ${line.materialName}`}
 												value={counts[line.materialId] ?? ''}
 												onChange={(e) => handleCountChange(line.materialId, e.target.value)}
-												className="ml-auto w-24 text-right"
+												className="ml-auto w-24 text-right font-mono tabular-nums"
 											/>
 										) : (
-											<span className="tabular-nums">{line.actualQty}</span>
+											<span className="font-mono tabular-nums">{line.actualQty}</span>
 										)}
 									</TableCell>
-									<TableCell className="text-right tabular-nums">
+									<TableCell className="text-right font-mono tabular-nums">
 										{diff !== null ? (
 											<span
 												className={cn(

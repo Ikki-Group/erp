@@ -6,11 +6,12 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
-import { listSearchSchema, useServerTable } from '@/components/data-table'
+import { listSearchSchema, NumericCell, rightAlignedHeader, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { ActionMenu } from '@/components/shared/action-menu'
 import { confirm } from '@/components/shared/confirm'
+import { CurrencyDisplay } from '@/components/shared/currency-display'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
@@ -36,17 +37,6 @@ export const Route = createFileRoute('/_authenticated/master/recipes')({
 	component: RecipesPage,
 })
 
-// ─── Helpers ───
-
-function formatCurrency(value: string): string {
-	const num = Number(value)
-	return new Intl.NumberFormat('id-ID', {
-		style: 'currency',
-		currency: 'IDR',
-		maximumFractionDigits: 0,
-	}).format(num)
-}
-
 // ─── HPP Cell ───
 
 function HppCell({ menuItemId, locationId }: { menuItemId: number; locationId: number }) {
@@ -55,10 +45,14 @@ function HppCell({ menuItemId, locationId }: { menuItemId: number; locationId: n
 		enabled: !!menuItemId && !!locationId,
 	})
 
-	if (hppQuery.isLoading) return <span className="text-muted-foreground">...</span>
-	if (!hppQuery.data?.data) return <span className="text-muted-foreground">—</span>
+	if (hppQuery.isLoading) return <span className="text-right text-muted-foreground">...</span>
+	if (!hppQuery.data?.data) return <span className="text-right text-muted-foreground">—</span>
 
-	return <span className="font-mono text-sm">{formatCurrency(hppQuery.data.data.hpp)}</span>
+	return (
+		<div className="text-right">
+			<CurrencyDisplay value={hppQuery.data.data.hpp} className="font-mono text-sm" />
+		</div>
+	)
 }
 
 // ─── Table Columns ───
@@ -68,9 +62,10 @@ const col = createColumnHelper<DataGridFeatures, RecipeDto>()
 const baseColumns = [
 	col.accessor('name', { header: 'Nama Resep', size: 200 }),
 	col.accessor('yieldQty', {
-		header: 'Yield',
+		header: rightAlignedHeader('Yield'),
 		size: 80,
-		cell: ({ getValue }) => getValue(),
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <NumericCell value={getValue()} />,
 	}),
 	col.accessor('isActive', {
 		header: 'Status',
@@ -223,7 +218,7 @@ function RecipesPage() {
 	const hppColumn = useMemo(() => {
 		return col.display({
 			id: 'hpp',
-			header: 'HPP',
+			header: rightAlignedHeader('HPP'),
 			size: 140,
 			// oxlint-disable-next-line react/no-unstable-nested-components
 			cell: ({ row }) =>

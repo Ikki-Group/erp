@@ -321,12 +321,14 @@ function ReceivingPage() {
 											<td className="px-3 py-2">
 												{materialsMap.get(line.materialId) ?? `#${line.materialId}`}
 											</td>
-											<td className="px-3 py-2 text-right">{line.quantity}</td>
+											<td className="px-3 py-2 text-right font-mono tabular-nums">
+												{line.quantity}
+											</td>
 											<td className="px-3 py-2">{uomsMap.get(line.uomId) ?? `#${line.uomId}`}</td>
-											<td className="px-3 py-2 text-right">
+											<td className="px-3 py-2 text-right font-mono tabular-nums">
 												{Number(line.unitCost).toLocaleString('id-ID')}
 											</td>
-											<td className="px-3 py-2 text-right font-medium">
+											<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
 												{subtotal.toLocaleString('id-ID')}
 											</td>
 										</tr>
@@ -338,7 +340,7 @@ function ReceivingPage() {
 									<td colSpan={4} className="px-3 py-2 text-right font-medium">
 										Total
 									</td>
-									<td className="px-3 py-2 text-right font-medium">
+									<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
 										{detail.lines
 											.reduce((sum, l) => sum + Number(l.quantity) * Number(l.unitCost), 0)
 											.toLocaleString('id-ID')}

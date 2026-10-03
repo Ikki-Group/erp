@@ -7,7 +7,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { EditIcon, LayersIcon, PlusIcon, TagIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
+import { CurrencyCell, listSearchSchema, rightAlignedHeader, TextCell, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
@@ -42,17 +42,6 @@ export const Route = createFileRoute('/_authenticated/master/menu/')({
 	component: MenuPage,
 })
 
-// ─── Helpers ───
-
-function formatPrice(price: string): string {
-	const num = Number(price)
-	return new Intl.NumberFormat('id-ID', {
-		style: 'currency',
-		currency: 'IDR',
-		maximumFractionDigits: 0,
-	}).format(num)
-}
-
 // ─── Table Columns ───
 
 const col = createColumnHelper<DataGridFeatures, MenuItemDto>()
@@ -66,9 +55,10 @@ const baseColumns = [
 	}),
 	col.accessor('name', { header: 'Name', size: 200 }),
 	col.accessor('basePrice', {
-		header: 'Price',
+		header: rightAlignedHeader('Price'),
 		size: 120,
-		cell: ({ getValue }) => formatPrice(getValue()),
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
 	}),
 	col.accessor('status', {
 		header: 'Status',
