@@ -213,31 +213,22 @@ export function TableToolbar<TData extends object = object>({
 
 			{(activeFilters.length > 0 || dateRange?.value) && (
 				<div className="flex flex-wrap items-center gap-1.5">
-					{activeFilters.flatMap((filter) => {
+					{activeFilters.map((filter) => {
 						const values = Array.isArray(filter.value) ? filter.value : [filter.value]
-						return values.map((v) => {
-							const optionLabel = filter.options.find((o) => o.value === v)?.label ?? v
-							return (
-								<Badge key={`${filter.key}:${v}`} variant="outline" className="gap-1 pr-1">
-									{filter.label}: {optionLabel}
-									<button
-										type="button"
-										onClick={() => {
-											if (filter.multiple) {
-												const next = (filter.value ?? []).filter((x) => x !== v)
-												filter.onChange(next.length > 0 ? next : undefined)
-											} else {
-												filter.onChange(undefined)
-											}
-										}}
-										aria-label={`Remove ${filter.label} filter`}
-										className="rounded-full p-0.5 hover:bg-muted"
-									>
-										<XIcon className="size-2.5" />
-									</button>
-								</Badge>
-							)
-						})
+						const labels = values.map((v) => filter.options.find((o) => o.value === v)?.label ?? v)
+						return (
+							<Badge key={filter.key} variant="outline" className="gap-1 pr-1">
+								{filter.label}: {labels.join(', ')}
+								<button
+									type="button"
+									onClick={() => filter.onChange(undefined)}
+									aria-label={`Remove ${filter.label} filter`}
+									className="rounded-full p-0.5 hover:bg-muted"
+								>
+									<XIcon className="size-2.5" />
+								</button>
+							</Badge>
+						)
 					})}
 					{dateRange?.value && (
 						<Badge key={dateRange.key} variant="outline" className="gap-1 pr-1">
