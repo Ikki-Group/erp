@@ -3,12 +3,16 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
+import { format } from 'date-fns'
+import { id as idLocale } from 'date-fns/locale'
 import {
 	AlertTriangleIcon,
 	ArrowRightIcon,
 	BoxesIcon,
+	CalendarIcon,
 	ClockIcon,
 	ShoppingCartIcon,
+	TrendingUpIcon,
 } from 'lucide-react'
 
 import {
@@ -100,6 +104,12 @@ function DashboardPage() {
 			<PageHeader
 				title={`Selamat datang, ${user?.name?.split(' ')[0] ?? 'kembali'}`}
 				description={`Ringkasan operasional — ${scopeLabel}.`}
+				actions={
+					<div className="hidden items-center gap-1.5 rounded-md border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
+						<CalendarIcon className="size-3.5" />
+						{format(new Date(), 'EEEE, d MMMM yyyy', { locale: idLocale })}
+					</div>
+				}
 			/>
 
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -138,6 +148,7 @@ function DashboardPage() {
 				<DataCard
 					title="Tren Pendapatan"
 					description="Pendapatan harian 7 hari terakhir."
+					icon={<TrendingUpIcon className="size-4" />}
 					className="lg:col-span-2"
 				>
 					<EmptyState
@@ -146,7 +157,13 @@ function DashboardPage() {
 					/>
 				</DataCard>
 
-				<DataCard title="Stok Menipis" description="Perlu perhatian segera." noPadding>
+				<DataCard
+					title="Stok Menipis"
+					description="Perlu perhatian segera."
+					icon={<AlertTriangleIcon className="size-4" />}
+					tone={!isConsolidated && lowStockItems.length > 0 ? 'warning' : 'default'}
+					noPadding
+				>
 					{isConsolidated ? (
 						<div className="p-4">
 							<EmptyState title="Pilih lokasi" description="Stok menipis dihitung per lokasi." />
@@ -179,7 +196,7 @@ function DashboardPage() {
 											<p className="text-xs text-muted-foreground">{item.materialCode}</p>
 										</div>
 										<StatusBadge variant="warning">
-											{Number(item.quantity)} {item.uomCode}
+											<span className="tabular-nums">{Number(item.quantity)}</span> {item.uomCode}
 										</StatusBadge>
 									</div>
 								))}
@@ -204,6 +221,7 @@ function DashboardPage() {
 				<DataCard
 					title="Penjualan per Kategori"
 					description="Jumlah item terjual."
+					icon={<ShoppingCartIcon className="size-4" />}
 					className="lg:col-span-2"
 				>
 					<EmptyState
