@@ -81,7 +81,7 @@ export function OrderCart({
 												{line.notes}
 											</p>
 										)}
-										<p className="mt-0.5 text-xs text-muted-foreground">
+										<p className="mt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
 											Rp {line.unitPrice.toLocaleString('id-ID')}
 											{line.modifierTotal > 0 && ` + ${line.modifierTotal.toLocaleString('id-ID')}`}
 										</p>
@@ -95,7 +95,9 @@ export function OrderCart({
 										>
 											<MinusIcon className="size-3" />
 										</Button>
-										<span className="w-6 text-center text-xs font-medium">{line.qty}</span>
+										<span className="w-6 text-center font-mono text-xs font-medium tabular-nums">
+											{line.qty}
+										</span>
 										<Button
 											variant="outline"
 											size="icon-sm"
@@ -113,7 +115,7 @@ export function OrderCart({
 											<Trash2Icon className="size-3 text-destructive" />
 										</Button>
 									</div>
-									<span className="w-20 text-right text-xs font-medium">
+									<span className="w-20 text-right font-mono text-xs font-medium tabular-nums">
 										Rp {lineTotal.toLocaleString('id-ID')}
 									</span>
 								</div>
@@ -124,16 +126,16 @@ export function OrderCart({
 			</ScrollArea>
 
 			<div className="border-t px-4 py-3">
-				<div className="space-y-1 text-xs">
+				<div className="space-y-1 font-mono text-xs tabular-nums">
 					<div className="flex justify-between">
-						<span className="text-muted-foreground">Subtotal</span>
+						<span className="font-sans text-muted-foreground">Subtotal</span>
 						<span className={subtotal === null ? 'text-muted-foreground' : undefined}>
 							{subtotal === null ? 'Dihitung saat bayar' : `Rp ${subtotal.toLocaleString('id-ID')}`}
 						</span>
 					</div>
 					{discountAmount > 0 && (
 						<div className="flex justify-between text-success">
-							<span className="flex items-center gap-1">
+							<span className="flex items-center gap-1 font-sans">
 								Diskon
 								{voucherCode && <span className="text-xs">({voucherCode})</span>}
 							</span>
@@ -141,7 +143,7 @@ export function OrderCart({
 						</div>
 					)}
 					<div className="flex justify-between">
-						<span className="text-muted-foreground">Pajak</span>
+						<span className="font-sans text-muted-foreground">Pajak</span>
 						<span className={taxAmount === null ? 'text-muted-foreground' : undefined}>
 							{taxAmount === null
 								? 'Dihitung saat bayar'
@@ -150,7 +152,7 @@ export function OrderCart({
 					</div>
 					<Separator />
 					<div className="flex justify-between text-sm font-semibold">
-						<span>Total</span>
+						<span className="font-sans">Total</span>
 						<span className={total === null ? 'text-muted-foreground' : undefined}>
 							{total === null ? 'Dihitung saat bayar' : `Rp ${total.toLocaleString('id-ID')}`}
 						</span>

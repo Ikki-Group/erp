@@ -33,9 +33,14 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 					<DialogTitle>Struk Pesanan</DialogTitle>
 				</DialogHeader>
 
-				{/* print:text-[10px] is a deliberate exception for thermal receipt paper — a
-				    different physical medium than the screen type ramp governs. */}
-				<div id="receipt-content" className="space-y-3 text-xs print:text-[10px]">
+				{/* The whole receipt renders in monospace — authentic to how a real thermal
+				    receipt printer outputs text, and gives every amount tabular alignment
+				    for free. The print-only override below shrinks further for thermal
+				    paper, a different physical medium than the screen type ramp governs. */}
+				<div
+					id="receipt-content"
+					className="space-y-3 font-mono text-xs tabular-nums print:text-[10px]"
+				>
 					<div className="text-center">
 						<p className="font-semibold">{locationName}</p>
 						<p className="text-muted-foreground">

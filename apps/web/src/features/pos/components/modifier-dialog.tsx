@@ -161,14 +161,14 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 														<span>{option.name}</span>
 													</div>
 													{Number(option.priceAdjustment) !== 0 && (
-														<span className="text-muted-foreground">
+														<span className="font-mono text-muted-foreground tabular-nums">
 															+Rp {Number(option.priceAdjustment).toLocaleString('id-ID')}
 														</span>
 													)}
 												</label>
 											))}
-									</RadioGroup>
-								) : (
+										</RadioGroup>
+									) : (
 									<div className="space-y-1">
 										{group.options
 											.filter((o) => o.isActive === 1)
@@ -187,7 +187,7 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 															<span>{option.name}</span>
 														</div>
 														{Number(option.priceAdjustment) !== 0 && (
-															<span className="text-muted-foreground">
+															<span className="font-mono text-muted-foreground tabular-nums">
 																+Rp {Number(option.priceAdjustment).toLocaleString('id-ID')}
 															</span>
 														)}

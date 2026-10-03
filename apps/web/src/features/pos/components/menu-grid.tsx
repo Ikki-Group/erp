@@ -101,7 +101,7 @@ export function MenuGrid({ onSelectItem }: MenuGridProps) {
 								className="flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors hover:bg-accent"
 							>
 								<span className="line-clamp-2 text-xs font-medium">{item.name}</span>
-								<span className="text-xs text-muted-foreground">
+								<span className="font-mono text-xs text-muted-foreground tabular-nums">
 									Rp {Number(item.basePrice).toLocaleString('id-ID')}
 								</span>
 							</button>

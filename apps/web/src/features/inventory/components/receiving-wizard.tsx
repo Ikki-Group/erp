@@ -310,12 +310,12 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 									<td className="px-3 py-2">
 										{material ? `${material.name} (${material.code})` : `#${line.materialId}`}
 									</td>
-									<td className="px-3 py-2 text-right">{line.qty}</td>
+									<td className="px-3 py-2 text-right font-mono tabular-nums">{line.qty}</td>
 									<td className="px-3 py-2">{uom?.code ?? `#${line.uomId}`}</td>
-									<td className="px-3 py-2 text-right">
+									<td className="px-3 py-2 text-right font-mono tabular-nums">
 										{Number(line.unitCost || 0).toLocaleString('id-ID')}
 									</td>
-									<td className="px-3 py-2 text-right font-medium">
+									<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
 										{subtotal.toLocaleString('id-ID')}
 									</td>
 								</tr>
@@ -327,7 +327,9 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 							<td colSpan={4} className="px-3 py-2 text-right font-medium">
 								Total
 							</td>
-							<td className="px-3 py-2 text-right font-medium">{total.toLocaleString('id-ID')}</td>
+							<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
+								{total.toLocaleString('id-ID')}
+							</td>
 						</tr>
 					</tfoot>
 				</table>
