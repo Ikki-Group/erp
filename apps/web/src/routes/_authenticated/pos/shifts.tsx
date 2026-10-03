@@ -6,7 +6,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { LockIcon, UnlockIcon } from 'lucide-react'
 
-import { listSearchSchema, useServerTable } from '@/components/data-table'
+import { listSearchSchema, NumericCell, rightAlignedHeader, useServerTable } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -44,8 +44,10 @@ const col = createColumnHelper<DataGridFeatures, ShiftDto>()
 
 const baseColumns = [
 	col.accessor('id', {
-		header: 'ID',
+		header: rightAlignedHeader('ID'),
 		size: 60,
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <NumericCell value={getValue()} muted />,
 	}),
 	col.accessor('status', {
 		header: 'Status',

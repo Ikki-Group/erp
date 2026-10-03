@@ -6,7 +6,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { z } from 'zod'
 
-import { listSearchSchema, useServerTable } from '@/components/data-table'
+import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EntityListPage } from '@/components/shared/entity-list-page'
 import { PageError } from '@/components/shared/page-error'
@@ -37,7 +37,7 @@ const locationStaffColumns = [
 	col.accessor('username', {
 		header: 'Username',
 		size: 160,
-		cell: ({ getValue }) => <code className="text-xs text-muted-foreground">{getValue()}</code>,
+		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
 	}),
 	col.accessor('email', {
 		header: 'Email',

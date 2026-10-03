@@ -1,5 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table'
 
+import { TextCell } from '@/components/data-table/cell'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { StatusBadge } from '@/components/shared/status-badge'
 
@@ -13,7 +14,7 @@ export const roleColumns = [
 	col.accessor('code', {
 		header: 'Code',
 		size: 160,
-		cell: ({ getValue }) => <code className="text-xs text-muted-foreground">{getValue()}</code>,
+		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
 	}),
 	col.accessor('name', {
 		header: 'Name',

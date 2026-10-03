@@ -8,7 +8,7 @@ import { format, isPast } from 'date-fns'
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { listSearchSchema, useServerTable } from '@/components/data-table'
+import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
@@ -65,7 +65,7 @@ const baseColumns = [
 	col.accessor('code', {
 		header: 'Code',
 		size: 140,
-		cell: ({ getValue }) => <span className="font-mono text-xs">{getValue()}</span>,
+		cell: ({ getValue }) => <TextCell value={getValue()} mono />,
 	}),
 	col.accessor('name', {
 		header: 'Name',

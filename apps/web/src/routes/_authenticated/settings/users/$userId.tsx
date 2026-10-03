@@ -147,7 +147,7 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 								<div className="flex items-start justify-between gap-3">
 									<div>
 										<p className="font-medium">{assignment.role.name}</p>
-										<p className="font-mono text-[11px] text-muted-foreground">
+										<p className="font-mono text-xs text-muted-foreground">
 											{assignment.role.code}
 										</p>
 									</div>
