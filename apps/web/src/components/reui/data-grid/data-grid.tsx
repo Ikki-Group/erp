@@ -298,6 +298,11 @@ export interface DataGridProps<TFeatures extends TableFeatures, TData extends ob
 	fetchingMoreMessage?: ReactNode | string
 	allRowsLoadedMessage?: ReactNode | string
 	emptyMessage?: ReactNode | string
+	/** Renders an error row in place of the body — header/toolbar/pagination stay put, same as the empty state. */
+	isError?: boolean
+	errorTitle?: ReactNode | string
+	errorMessage?: ReactNode | string
+	onRetry?: () => void
 	tableLayout?: {
 		dense?: boolean
 		cellBorder?: boolean

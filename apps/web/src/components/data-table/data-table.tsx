@@ -21,6 +21,11 @@ interface DataTableProps<TFeatures extends TableFeatures, TData extends object> 
 	showPagination?: boolean
 	toolbar?: ReactNode
 	className?: string
+	/** Shows an error row in place of the body — header/toolbar/pagination stay put, same as the empty state. */
+	isError?: boolean
+	errorTitle?: string
+	errorMessage?: string
+	onRetry?: () => void
 }
 
 export function DataTable<TFeatures extends TableFeatures, TData extends object>({
@@ -32,12 +37,20 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 	showPagination = true,
 	toolbar,
 	className,
+	isError = false,
+	errorTitle,
+	errorMessage,
+	onRetry,
 }: DataTableProps<TFeatures, TData>) {
 	const layoutProps: DataGridLayoutProps<TData> = {
 		recordCount,
 		isLoading,
 		emptyMessage,
 		onRowClick,
+		isError,
+		errorTitle,
+		errorMessage,
+		onRetry,
 		loadingMode: 'skeleton',
 		tableLayout: {
 			headerSticky: true,

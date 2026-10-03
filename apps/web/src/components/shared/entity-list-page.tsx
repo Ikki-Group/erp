@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { DataTable } from '@/components/data-table/data-table'
 
 import { EmptyState } from './empty-state'
+import { PageError } from './page-error'
 import { PageShell } from './page-shell'
 
 export interface EntityListEmptyState {
@@ -23,6 +24,12 @@ export interface EntityListPageProps<TFeatures extends TableFeatures, TData exte
 	table: Table<TFeatures, TData>
 	recordCount?: number
 	isLoading?: boolean
+	/** When true, renders `errorState` (or the default `PageError`) instead of the table. */
+	isError?: boolean
+	/** Custom error display. Falls back to `<PageError onRetry={onRetry} />` when omitted. */
+	errorState?: ReactNode
+	/** Retry handler used by the default error state (e.g. `() => query.refetch()`). */
+	onRetry?: () => void
 	isEmpty?: boolean
 	emptyState?: EntityListEmptyState
 	emptyMessage?: string
@@ -39,6 +46,9 @@ export function EntityListPage<TFeatures extends TableFeatures, TData extends ob
 	table,
 	recordCount,
 	isLoading,
+	isError = false,
+	errorState,
+	onRetry,
 	isEmpty = false,
 	emptyState,
 	emptyMessage,
@@ -48,7 +58,9 @@ export function EntityListPage<TFeatures extends TableFeatures, TData extends ob
 }: EntityListPageProps<TFeatures, TData>) {
 	return (
 		<PageShell title={title} description={description} actions={actions} className={className}>
-			{isEmpty && emptyState ? (
+			{isError ? (
+				(errorState ?? <PageError onRetry={onRetry} />)
+			) : isEmpty && emptyState ? (
 				<EmptyState
 					title={emptyState.title}
 					description={emptyState.description}

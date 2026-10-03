@@ -289,6 +289,8 @@ function MaterialsPage() {
 				table={table}
 				recordCount={totalCount}
 				isLoading={listQuery.isFetching}
+				isError={listQuery.isError}
+				onRetry={() => listQuery.refetch()}
 				isEmpty={isEmpty}
 				emptyState={{
 					title: 'No materials yet',

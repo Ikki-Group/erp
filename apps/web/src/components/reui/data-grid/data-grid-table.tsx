@@ -11,12 +11,16 @@ import type {
 import { flexRender, Subscribe } from '@tanstack/react-table'
 import type { Cell, Column, Header, Row } from '@tanstack/react-table'
 
+import { AlertCircleIcon, InboxIcon, RefreshCwIcon } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 import { useDataGrid } from '@/components/reui/data-grid/data-grid'
 import type { DataGridFeatures, DataGridTableInstance } from '@/components/reui/data-grid/data-grid'
 
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 
 // Static spacing lookups; called once per cell, so they stay plain string
@@ -1408,11 +1412,38 @@ function DataGridTableEmpty() {
 
 	return (
 		<tr>
-			<td
-				colSpan={Math.max(visibleColumnCount, 1)}
-				className="text-muted-foreground py-6 text-center text-sm"
-			>
-				{props.emptyMessage || 'No data available'}
+			<td colSpan={Math.max(visibleColumnCount, 1)} className="py-10 text-center">
+				<div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+					<InboxIcon className="size-5 opacity-60" />
+					<span className="text-sm">{props.emptyMessage || 'No data available'}</span>
+				</div>
+			</td>
+		</tr>
+	)
+}
+
+function DataGridTableError() {
+	const { table, props } = useDataGrid()
+	const visibleColumnCount =
+		getDataGridTableOrderedVisibleColumns(table).length +
+		(props.tableLayout?.columnsResizable ? 1 : 0)
+
+	return (
+		<tr>
+			<td colSpan={Math.max(visibleColumnCount, 1)} className="py-10 text-center">
+				<div className="flex flex-col items-center justify-center gap-2">
+					<AlertCircleIcon className="size-5 text-destructive" />
+					<p className="text-sm font-medium">{props.errorTitle || 'Something went wrong'}</p>
+					<p className="max-w-sm text-xs text-muted-foreground">
+						{props.errorMessage || 'An unexpected error occurred. Please try again.'}
+					</p>
+					{props.onRetry && (
+						<Button variant="outline" size="sm" className="mt-1 gap-1.5" onClick={props.onRetry}>
+							<RefreshCwIcon className="size-3.5" />
+							Retry
+						</Button>
+					)}
+				</div>
 			</td>
 		</tr>
 	)
@@ -1636,6 +1667,8 @@ function DataGridTableBodyRows<TData extends object>({
 	const { isLoading, props } = useDataGrid()
 	const pagination = table.state.pagination
 
+	if (props.isError) return <DataGridTableError />
+
 	if (isLoading && props.loadingMode === 'skeleton' && pagination?.pageSize) {
 		const leftVisibleColumns = table.getStartVisibleLeafColumns()
 		const centerVisibleColumns = table.getCenterVisibleLeafColumns()
@@ -1648,7 +1681,7 @@ function DataGridTableBodyRows<TData extends object>({
 					<DataGridTableBodyRowSkeleton key={rowIndex}>
 						{[...leftVisibleColumns, ...centerVisibleColumns].map((column) => (
 							<DataGridTableBodyRowSkeletonCell column={column} key={column.id}>
-								{column.columnDef.meta?.skeleton}
+								{column.columnDef.meta?.skeleton ?? <Skeleton className="h-4 w-3/4" />}
 							</DataGridTableBodyRowSkeletonCell>
 						))}
 						{props.tableLayout?.columnsResizable && hasRightPinnedColumns ? (
@@ -1656,7 +1689,7 @@ function DataGridTableBodyRows<TData extends object>({
 						) : null}
 						{rightVisibleColumns.map((column) => (
 							<DataGridTableBodyRowSkeletonCell column={column} key={column.id}>
-								{column.columnDef.meta?.skeleton}
+								{column.columnDef.meta?.skeleton ?? <Skeleton className="h-4 w-3/4" />}
 							</DataGridTableBodyRowSkeletonCell>
 						))}
 						{props.tableLayout?.columnsResizable && !hasRightPinnedColumns ? (
