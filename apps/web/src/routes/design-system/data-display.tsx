@@ -151,25 +151,39 @@ function DataDisplayPage() {
 			<Separator />
 
 			{/* ─── DATA CARD ─── */}
-			<PageSection title="Data Card" description="Titled card section for grouped content.">
-				<DataCard
-					title="Material Info"
-					description="Basic information about the material."
-					actions={
-						<Button variant="outline" size="sm">
-							Edit
-						</Button>
-					}
-				>
-					<DetailList
-						items={[
-							{ label: 'Supplier', value: 'PT Sumber Jaya' },
-							{ label: 'Last Price', value: 'Rp 85,000 / kg' },
-							{ label: 'Stock', value: '24.5 kg' },
-							{ label: 'Avg Cost', value: 'Rp 82,340 / kg' },
-						]}
-					/>
-				</DataCard>
+			<PageSection
+				title="Data Card"
+				description="Titled card section for grouped content. icon/tone pair with StatCard's tone tints — same visual family."
+			>
+				<div className="grid gap-4 lg:grid-cols-2">
+					<DataCard
+						title="Material Info"
+						description="Basic information about the material."
+						actions={
+							<Button variant="outline" size="sm">
+								Edit
+							</Button>
+						}
+					>
+						<DetailList
+							items={[
+								{ label: 'Supplier', value: 'PT Sumber Jaya' },
+								{ label: 'Last Price', value: 'Rp 85,000 / kg' },
+								{ label: 'Stock', value: '24.5 kg' },
+								{ label: 'Avg Cost', value: 'Rp 82,340 / kg' },
+							]}
+						/>
+					</DataCard>
+
+					<DataCard
+						title="Stok Menipis"
+						description="Perlu perhatian segera."
+						icon={<AlertTriangleIcon className="size-4" />}
+						tone="warning"
+					>
+						<p className="text-sm text-muted-foreground">7 material di bawah stok minimum.</p>
+					</DataCard>
+				</div>
 			</PageSection>
 
 			<Separator />
