@@ -223,7 +223,7 @@ function LoginPage() {
 					</div>
 
 					<div className="max-w-lg py-16">
-						<div className="mb-7 flex size-14 items-center justify-center rounded-2xl border border-invert-foreground/15 bg-invert-foreground/10 backdrop-blur-sm">
+						<div className="mb-7 flex size-14 items-center justify-center rounded-xl border border-invert-foreground/15 bg-invert-foreground/10 backdrop-blur-sm">
 							<StoreIcon aria-hidden="true" className="size-6 text-accent-warm" />
 						</div>
 						<h2 className="max-w-md text-4xl font-semibold leading-[1.08] tracking-tighter xl:text-5xl">
