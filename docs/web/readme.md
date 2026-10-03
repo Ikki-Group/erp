@@ -14,17 +14,19 @@ Architecture, patterns, and conventions for `apps/web` — the Ikki ERP frontend
 | [04-state-management.md](./04-state-management.md)   | Auth context, location context, server state via TanStack Query |
 | [05-routing.md](./05-routing.md)                     | Router setup, layout routes, auth guards, location params       |
 | [06-ui-patterns.md](./06-ui-patterns.md)             | Component sources, forms, tables, error/loading states          |
+| [07-design-system.md](./07-design-system.md)         | Color tokens, status-color convention, radius/spacing, numeric table conventions |
 
 ## Quick Reference
 
 | Task                               | Read first                          |
-| ---------------------------------- | ----------------------------------- |
+| ----------------------------------- | ------------------------------------ |
 | Understanding overall architecture | `01-architecture.md`                |
 | Adding a new feature module        | `02-project-structure.md`           |
 | Wiring an API endpoint             | `03-api-layer.md`                   |
 | Auth or location context           | `04-state-management.md`            |
 | Adding routes or pages             | `05-routing.md`                     |
 | Building UI (forms, tables, etc.)  | `06-ui-patterns.md`                 |
+| Colors, tokens, visual conventions | `07-design-system.md`               |
 | Product requirements               | `docs/product/01-vision.md`         |
 
 ## Principles
