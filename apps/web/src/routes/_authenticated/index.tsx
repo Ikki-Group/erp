@@ -9,10 +9,10 @@ import {
 	AlertTriangleIcon,
 	ArrowRightIcon,
 	CalendarIcon,
-	ClockIcon,
+	ClipboardListIcon,
 	HistoryIcon,
-	ShoppingCartIcon,
-	TrendingUpIcon,
+	InboxIcon,
+	TruckIcon,
 } from 'lucide-react'
 
 import {
@@ -28,8 +28,8 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { auditResource } from '@/features/audit/api.ts'
-import { stockBalanceList } from '@/features/inventory/api.ts'
-import { orderResource, shiftResource } from '@/features/pos/api.ts'
+import { opnameResource, receivingResource, stockBalanceList, transferResource } from '@/features/inventory/api.ts'
+import { RECEIVING_STATUS_LABELS, TRANSFER_STATUS_LABELS } from '@/features/inventory/dto/index.ts'
 
 import { useAuth } from '@/providers/auth-provider.tsx'
 import { useLocationContext } from '@/providers/location-provider.tsx'
@@ -38,50 +38,13 @@ export const Route = createFileRoute('/_authenticated/')({
 	component: DashboardPage,
 })
 
-/** Local-day [start, end] as ISO strings, for "today" list filters. */
-function todayRange(): { dateFrom: string; dateTo: string } {
-	const start = new Date()
-	start.setHours(0, 0, 0, 0)
-	const end = new Date()
-	end.setHours(23, 59, 59, 999)
-	return { dateFrom: start.toISOString(), dateTo: end.toISOString() }
-}
-
 function DashboardPage() {
 	const { user } = useAuth()
-	const { activeLocation, isConsolidated } = useLocationContext()
+	const { activeLocation, isConsolidated, locations } = useLocationContext()
 	const locationId = activeLocation?.id
 	const scopeLabel = isConsolidated ? 'Semua lokasi' : (activeLocation?.name ?? 'Semua lokasi')
 
-	// Computed once per mount — a fresh value each render would change the query
-	// key every render and cause a refetch loop.
-	// ponytail: "today" is fixed at mount; a midnight rollover mid-session shows
-	// stale bounds until reload. Acceptable for a dashboard glance.
-	const range = useMemo(() => todayRange(), [])
-
-	// ─── Today's orders (count only — revenue is a server aggregation, see below) ───
-	const ordersQuery = useQuery({
-		...orderResource.list.queryOptions({
-			page: 1,
-			limit: 1,
-			locationId: locationId!,
-			...range,
-		}),
-		enabled: locationId !== undefined,
-	})
-	const todayOrders = ordersQuery.data?.meta?.total
-
-	// ─── Active shifts (count of open shifts) ───
-	const shiftsQuery = useQuery({
-		...shiftResource.list.queryOptions({
-			page: 1,
-			limit: 1,
-			status: 'open',
-			locationId: locationId!,
-		}),
-		enabled: locationId !== undefined,
-	})
-	const activeShifts = shiftsQuery.data?.meta?.total
+	const locationNameById = useMemo(() => new Map(locations.map((l) => [l.id, l.name])), [locations])
 
 	// ─── Low stock (materials below their minimum at the active location) ───
 	// ponytail: reads only the first 200 balances and filters client-side; a
@@ -94,6 +57,44 @@ function DashboardPage() {
 	const lowStockItems = (stockQuery.data?.data ?? []).filter(
 		(b) => b.minStock !== null && Number(b.quantity) < Number(b.minStock),
 	)
+
+	// ─── Transfers in transit (either direction) at the active location ───
+	const transfersQuery = useQuery({
+		...transferResource.list.queryOptions({
+			page: 1,
+			limit: 6,
+			locationId: locationId!,
+			status: 'in_transit',
+		}),
+		enabled: locationId !== undefined,
+	})
+	const inTransitTransfers = transfersQuery.data?.data ?? []
+	const inTransitCount = transfersQuery.data?.meta?.total
+
+	// ─── Active stock counts (opname in progress) at the active location ───
+	const opnameQuery = useQuery({
+		...opnameResource.list.queryOptions({
+			page: 1,
+			limit: 1,
+			locationId: locationId!,
+			status: 'in_progress',
+		}),
+		enabled: locationId !== undefined,
+	})
+	const activeOpnameCount = opnameQuery.data?.meta?.total
+
+	// ─── Draft receivings awaiting confirmation at the active location ───
+	const receivingQuery = useQuery({
+		...receivingResource.list.queryOptions({
+			page: 1,
+			limit: 6,
+			locationId: locationId!,
+			status: 'draft',
+		}),
+		enabled: locationId !== undefined,
+	})
+	const draftReceivings = receivingQuery.data?.data ?? []
+	const draftReceivingCount = receivingQuery.data?.meta?.total
 
 	// ─── Recent activity (audit log — works consolidated) ───
 	const activityQuery = useQuery(auditResource.list.queryOptions({ page: 1, limit: 6 }))
@@ -114,20 +115,6 @@ function DashboardPage() {
 
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard
-					title="Order Hari Ini"
-					value={isConsolidated ? '—' : (todayOrders ?? 0)}
-					icon={<ShoppingCartIcon className="size-4" />}
-					description={isConsolidated ? 'Pilih lokasi' : 'Order hari ini'}
-					isLoading={!isConsolidated && ordersQuery.isLoading}
-				/>
-				<StatCard
-					title="Pendapatan Hari Ini"
-					value="Segera"
-					icon={<AlertTriangleIcon className="size-4" />}
-					description="Butuh agregasi server"
-					tone="info"
-				/>
-				<StatCard
 					title="Stok Menipis"
 					value={isConsolidated ? '—' : lowStockItems.length}
 					icon={<AlertTriangleIcon className="size-4" />}
@@ -136,25 +123,88 @@ function DashboardPage() {
 					isLoading={!isConsolidated && stockQuery.isLoading}
 				/>
 				<StatCard
-					title="Shift Aktif"
-					value={isConsolidated ? '—' : (activeShifts ?? 0)}
-					icon={<ClockIcon className="size-4" />}
-					description={isConsolidated ? 'Pilih lokasi' : 'Kasir bertugas'}
-					isLoading={!isConsolidated && shiftsQuery.isLoading}
+					title="Transfer Berjalan"
+					value={isConsolidated ? '—' : (inTransitCount ?? 0)}
+					icon={<TruckIcon className="size-4" />}
+					description={isConsolidated ? 'Pilih lokasi' : 'Dalam perjalanan'}
+					isLoading={!isConsolidated && transfersQuery.isLoading}
+				/>
+				<StatCard
+					title="Opname Aktif"
+					value={isConsolidated ? '—' : (activeOpnameCount ?? 0)}
+					icon={<ClipboardListIcon className="size-4" />}
+					description={isConsolidated ? 'Pilih lokasi' : 'Sedang berjalan'}
+					isLoading={!isConsolidated && opnameQuery.isLoading}
+				/>
+				<StatCard
+					title="Penerimaan Draft"
+					value={isConsolidated ? '—' : (draftReceivingCount ?? 0)}
+					icon={<InboxIcon className="size-4" />}
+					description={isConsolidated ? 'Pilih lokasi' : 'Menunggu konfirmasi'}
+					isLoading={!isConsolidated && receivingQuery.isLoading}
 				/>
 			</div>
 
 			<div className="grid gap-4 lg:grid-cols-3">
 				<DataCard
-					title="Tren Pendapatan"
-					description="Pendapatan harian 7 hari terakhir."
-					icon={<TrendingUpIcon className="size-4" />}
+					title="Transfer Berjalan"
+					description="Perpindahan stok antar lokasi yang sedang berjalan."
+					icon={<TruckIcon className="size-4" />}
+					tone="default"
+					noPadding
 					className="lg:col-span-2"
 				>
-					<EmptyState
-						title="Segera hadir"
-						description="Grafik tren pendapatan menunggu endpoint agregasi di server."
-					/>
+					{isConsolidated ? (
+						<div className="p-4">
+							<EmptyState title="Pilih lokasi" description="Transfer dihitung per lokasi." />
+						</div>
+					) : transfersQuery.isLoading ? (
+						<div className="space-y-2 p-4">
+							<Skeleton className="h-10 w-full" />
+							<Skeleton className="h-10 w-full" />
+							<Skeleton className="h-10 w-full" />
+						</div>
+					) : transfersQuery.isError ? (
+						<div className="p-4 text-xs text-destructive">Gagal memuat data transfer.</div>
+					) : inTransitTransfers.length === 0 ? (
+						<div className="p-4">
+							<EmptyState
+								title="Tidak ada transfer berjalan"
+								description="Semua transfer sudah diterima."
+							/>
+						</div>
+					) : (
+						<>
+							<div className="divide-y">
+								{inTransitTransfers.map((t) => (
+									<div key={t.id} className="flex items-center justify-between gap-3 px-4 py-3">
+										<div className="space-y-0.5">
+											<p className="font-mono text-sm font-medium">{t.transferNo}</p>
+											<p className="text-xs text-muted-foreground">
+												{locationNameById.get(t.fromLocationId) ?? '—'}
+												{' → '}
+												{locationNameById.get(t.toLocationId) ?? '—'}
+											</p>
+										</div>
+										<StatusBadge variant="warning">
+											{TRANSFER_STATUS_LABELS[t.status]}
+										</StatusBadge>
+									</div>
+								))}
+							</div>
+							<div className="border-t px-4 py-3">
+								<Button
+									variant="ghost"
+									size="sm"
+									className="w-full justify-between"
+									render={<Link to="/inventory/transfers" />}
+								>
+									Lihat semua transfer
+									<ArrowRightIcon className="size-3.5" />
+								</Button>
+							</div>
+						</>
+					)}
 				</DataCard>
 
 				<DataCard
@@ -193,7 +243,7 @@ function DashboardPage() {
 									>
 										<div className="space-y-0.5">
 											<p className="text-sm font-medium">{item.materialName}</p>
-											<p className="text-xs text-muted-foreground">{item.materialCode}</p>
+											<p className="text-xs font-mono text-muted-foreground">{item.materialCode}</p>
 										</div>
 										<StatusBadge variant="warning">
 											<span className="tabular-nums">{Number(item.quantity)}</span> {item.uomCode}
@@ -219,15 +269,61 @@ function DashboardPage() {
 
 			<div className="grid gap-4 lg:grid-cols-3">
 				<DataCard
-					title="Penjualan per Kategori"
-					description="Jumlah item terjual."
-					icon={<ShoppingCartIcon className="size-4" />}
+					title="Penerimaan Draft"
+					description="Penerimaan barang yang menunggu konfirmasi."
+					icon={<InboxIcon className="size-4" />}
+					noPadding
 					className="lg:col-span-2"
 				>
-					<EmptyState
-						title="Segera hadir"
-						description="Rincian penjualan per kategori menunggu endpoint agregasi di server."
-					/>
+					{isConsolidated ? (
+						<div className="p-4">
+							<EmptyState title="Pilih lokasi" description="Penerimaan dihitung per lokasi." />
+						</div>
+					) : receivingQuery.isLoading ? (
+						<div className="space-y-2 p-4">
+							<Skeleton className="h-10 w-full" />
+							<Skeleton className="h-10 w-full" />
+							<Skeleton className="h-10 w-full" />
+						</div>
+					) : receivingQuery.isError ? (
+						<div className="p-4 text-xs text-destructive">Gagal memuat data penerimaan.</div>
+					) : draftReceivings.length === 0 ? (
+						<div className="p-4">
+							<EmptyState
+								title="Tidak ada penerimaan draft"
+								description="Semua penerimaan sudah dikonfirmasi."
+							/>
+						</div>
+					) : (
+						<>
+							<div className="divide-y">
+								{draftReceivings.map((r) => (
+									<div key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
+										<div className="space-y-0.5">
+											<p className="font-mono text-sm font-medium">{r.receivingNo}</p>
+											<p className="text-xs text-muted-foreground">
+												{locationNameById.get(r.locationId) ?? '—'}
+											</p>
+										</div>
+										<StatusBadge variant="warning">
+											{RECEIVING_STATUS_LABELS[r.status]}
+										</StatusBadge>
+									</div>
+								))}
+							</div>
+							<div className="border-t px-4 py-3">
+								<Button
+									variant="ghost"
+									size="sm"
+									className="w-full justify-between"
+									render={<Link to="/inventory/receiving" />}
+								>
+									Lihat semua penerimaan
+									<ArrowRightIcon className="size-3.5" />
+								</Button>
+							</div>
+						</>
+					)}
 				</DataCard>
 
 				<DataCard title="Aktivitas Terbaru" icon={<HistoryIcon className="size-4" />}>
