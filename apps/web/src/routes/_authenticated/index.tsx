@@ -11,7 +11,14 @@ import {
 	ShoppingCartIcon,
 } from 'lucide-react'
 
-import { DataCard, EmptyState, PageHeader, StatCard, StatusBadge } from '@/components/shared'
+import {
+	DataCard,
+	EmptyState,
+	PageHeader,
+	RelativeTime,
+	StatCard,
+	StatusBadge,
+} from '@/components/shared'
 
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -34,16 +41,6 @@ function todayRange(): { dateFrom: string; dateTo: string } {
 	const end = new Date()
 	end.setHours(23, 59, 59, 999)
 	return { dateFrom: start.toISOString(), dateTo: end.toISOString() }
-}
-
-function relativeTime(value: Date | string): string {
-	const diffMs = Date.now() - new Date(value).getTime()
-	const min = Math.round(diffMs / 60000)
-	if (min < 1) return 'baru saja'
-	if (min < 60) return `${min} menit lalu`
-	const hours = Math.round(min / 60)
-	if (hours < 24) return `${hours} jam lalu`
-	return `${Math.round(hours / 24)} hari lalu`
 }
 
 function DashboardPage() {
@@ -108,27 +105,32 @@ function DashboardPage() {
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard
 					title="Order Hari Ini"
-					value={isConsolidated ? '—' : (todayOrders ?? '…')}
+					value={isConsolidated ? '—' : (todayOrders ?? 0)}
 					icon={<ShoppingCartIcon className="size-4" />}
 					description={isConsolidated ? 'Pilih lokasi' : 'Order hari ini'}
+					isLoading={!isConsolidated && ordersQuery.isLoading}
 				/>
 				<StatCard
 					title="Pendapatan Hari Ini"
 					value="Segera"
 					icon={<AlertTriangleIcon className="size-4" />}
 					description="Butuh agregasi server"
+					tone="info"
 				/>
 				<StatCard
 					title="Stok Menipis"
-					value={isConsolidated ? '—' : stockQuery.isLoading ? '…' : lowStockItems.length}
+					value={isConsolidated ? '—' : lowStockItems.length}
 					icon={<AlertTriangleIcon className="size-4" />}
 					description={isConsolidated ? 'Pilih lokasi' : 'Di bawah minimum'}
+					tone={!isConsolidated && lowStockItems.length > 0 ? 'warning' : 'default'}
+					isLoading={!isConsolidated && stockQuery.isLoading}
 				/>
 				<StatCard
 					title="Shift Aktif"
-					value={isConsolidated ? '—' : (activeShifts ?? '…')}
+					value={isConsolidated ? '—' : (activeShifts ?? 0)}
 					icon={<ClockIcon className="size-4" />}
 					description={isConsolidated ? 'Pilih lokasi' : 'Kasir bertugas'}
+					isLoading={!isConsolidated && shiftsQuery.isLoading}
 				/>
 			</div>
 
@@ -234,7 +236,7 @@ function DashboardPage() {
 									<div className="min-w-0 flex-1 space-y-0.5">
 										<p className="text-xs font-medium">{activity.summary}</p>
 										<p className="text-xs text-muted-foreground">
-											{activity.userName} · {relativeTime(activity.timestamp)}
+											{activity.userName} · <RelativeTime value={activity.timestamp} />
 										</p>
 									</div>
 								</div>
