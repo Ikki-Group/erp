@@ -24,7 +24,7 @@ To add a page: create `routes/design-system/<name>.tsx` (own `PageHeader` + one 
 
 ## Direction
 
-Warm, precise, understated ERP interface for Ikki Coffee & Resto. Warm neutral app background, white working surfaces, a deep charcoal-green sidebar, and a restrained forest-green primary accent. Minimal shadows, subtle borders, modest radius. No gradients, no glassmorphism, no oversized dashboard cards.
+Warm, precise, understated ERP interface for Ikki Coffee & Resto. Warm neutral app background, white working surfaces, a deep charcoal-green sidebar, and a restrained forest-green primary accent. Minimal shadows, subtle borders, modest radius, no glassmorphism, no oversized dashboard cards. The one deliberate exception: a very low-opacity ambient glow (see "Shell backdrop" below) — everything else stays flat.
 
 ## Where tokens live
 
@@ -70,6 +70,12 @@ In **dark mode**, `sidebar` switches to the same ~85 warm-neutral hue as `backgr
 - `sidebar-border`, `sidebar-ring` — hairline + focus ring tuned for the dark surface
 
 `invert` / `invert-foreground` follow the same rule (charcoal-green in light mode, warm-neutral in dark) — used for the login hero panel, ties the brand surface together across the two unauthenticated/authenticated entry points. When you change the sidebar hue, change `invert` to match.
+
+### Shell backdrop
+
+`AppShell` (`components/app-shell/app-shell.tsx`) renders a `ShellBackdrop` behind the header + `<main>` stack: two blurred, 5%-opacity circles (`bg-primary/5`, `bg-accent-warm/5`) pinned to the corners of `SidebarInset`'s fixed-size box via `position: absolute` + `-z-10`. Same technique as the login hero's orbs (`routes/login.tsx`), turned down from a feature splash to a background texture — it only shows through the gutters between opaque white cards and disappears completely under the header bar and any card. It's deliberately on the bounded `SidebarInset` box, not inside the scrolling `<main>`, so it reads as a fixed backdrop instead of scrolling away with a long table.
+
+Don't reach for this pattern per-page — it's shell-level chrome, set once. A page that wants its own accent (e.g. a hero banner) should still prefer a flat card per the rest of this doc.
 
 ### Status colors — the `-foreground` rule
 
