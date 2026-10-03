@@ -1,4 +1,12 @@
 export { DataTable } from './data-table'
+export {
+	CurrencyCell,
+	DateCell,
+	EmptyCell,
+	NumericCell,
+	rightAlignedHeader,
+	TextCell,
+} from './cell'
 export { useClientTable } from './use-client-table'
 export { useServerTable } from './use-server-table'
 
