@@ -24,7 +24,7 @@ export function PageError({
 			<IconTile variant="soft" size="lg" className="mb-3 text-destructive">
 				<AlertCircleIcon />
 			</IconTile>
-			<p className="text-sm font-medium">{title}</p>
+			<p className="font-heading text-sm font-semibold tracking-tight">{title}</p>
 			<p className="mt-1 max-w-sm text-xs text-muted-foreground">{message}</p>
 			{onRetry && (
 				<Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={onRetry}>

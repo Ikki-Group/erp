@@ -33,8 +33,8 @@ export function NotFound({
 			<div className="mb-4 flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground">
 				<FileQuestionIcon className="size-7" />
 			</div>
-			<h1 className="text-2xl font-semibold tracking-tight">404</h1>
-			<p className="mt-1 text-lg font-medium">{title}</p>
+			<h1 className="font-heading text-2xl font-semibold tracking-tight">404</h1>
+			<p className="font-heading mt-1 text-lg font-semibold tracking-tight">{title}</p>
 			<p className="mt-2 max-w-sm text-sm text-muted-foreground">{description}</p>
 			{showHomeLink && (
 				<Link to="/" className="mt-6">

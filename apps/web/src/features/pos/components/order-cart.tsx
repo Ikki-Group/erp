@@ -54,7 +54,7 @@ export function OrderCart({
 	return (
 		<div className="flex h-full flex-col rounded-lg border bg-card">
 			<div className="border-b px-4 py-3">
-				<h3 className="text-sm font-semibold">Pesanan</h3>
+				<h3 className="font-heading text-sm font-semibold tracking-tight">Pesanan</h3>
 			</div>
 
 			<ScrollArea className="flex-1 px-4">

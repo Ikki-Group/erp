@@ -280,7 +280,7 @@ export function PricingTable({ supplierId }: PricingTableProps) {
 	return (
 		<div className="space-y-3">
 			<div className="flex items-center justify-between">
-				<h4 className="text-sm font-medium">Material Pricing</h4>
+				<h4 className="font-heading text-sm font-semibold tracking-tight">Material Pricing</h4>
 				<Button size="sm" variant="outline" onClick={handleAdd}>
 					<PlusIcon className="size-4" />
 					Add

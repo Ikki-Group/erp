@@ -128,7 +128,9 @@ function DemoPage() {
 }
 
 function SectionTitle({ children }: { children: string }) {
-	return <h2 className="mb-4 text-sm font-semibold text-muted-foreground">{children}</h2>
+	return (
+		<h2 className="mb-4 text-sm font-semibold tracking-tight text-muted-foreground">{children}</h2>
+	)
 }
 
 // -- Form field components demo (bound to useAppForm, no backing mutation) --

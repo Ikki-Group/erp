@@ -64,7 +64,9 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 							<MapPinIcon className="size-4" />
 						</div>
 						<div>
-							<h2 className="text-sm font-semibold">Location identity</h2>
+							<h2 className="font-heading text-sm font-semibold tracking-tight">
+								Location identity
+							</h2>
 							<p className="mt-1 text-xs leading-relaxed text-muted-foreground">
 								Use a clear name and a short code your team can recognize at a glance.
 							</p>
@@ -111,7 +113,7 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 							<PhoneIcon className="size-4" />
 						</div>
 						<div>
-							<h2 className="text-sm font-semibold">Contact details</h2>
+							<h2 className="font-heading text-sm font-semibold tracking-tight">Contact details</h2>
 							<p className="mt-1 text-xs leading-relaxed text-muted-foreground">
 								Optional details help your team reach the right people quickly.
 							</p>
@@ -145,7 +147,9 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 			<aside className="hidden space-y-5 lg:block">
 				<div className="rounded-xl border bg-primary/4.5 p-5">
 					<Building2Icon className="mb-4 size-5 text-primary" />
-					<h2 className="text-sm font-semibold">A location is a working place</h2>
+					<h2 className="font-heading text-sm font-semibold tracking-tight">
+						A location is a working place
+					</h2>
 					<p className="mt-2 text-xs leading-relaxed text-muted-foreground">
 						Stores and warehouses keep stock, materials, and daily operations organized by place.
 					</p>

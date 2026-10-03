@@ -297,7 +297,9 @@ function ReceivingPage() {
 				/>
 
 				<div className="space-y-3">
-					<h3 className="text-sm font-medium">Item Penerimaan ({detail.lines.length})</h3>
+					<h3 className="font-heading text-sm font-semibold tracking-tight">
+						Item Penerimaan ({detail.lines.length})
+					</h3>
 					<div className="overflow-x-auto rounded-md border">
 						<table className="w-full text-sm">
 							<thead className="bg-muted/50">

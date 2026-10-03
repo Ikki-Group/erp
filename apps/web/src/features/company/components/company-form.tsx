@@ -66,7 +66,7 @@ export function CompanyFormFields({ form }: { form: CompanyForm }) {
 	return (
 		<div className="grid gap-6">
 			<div className="grid gap-4 rounded-lg border p-4">
-				<h2 className="text-sm font-medium">Company Info</h2>
+				<h2 className="font-heading text-sm font-semibold tracking-tight">Company Info</h2>
 				<form.AppField name="name">
 					{(field) => <field.TextField label="Company Name" placeholder="PT. Example" />}
 				</form.AppField>
@@ -88,7 +88,7 @@ export function CompanyFormFields({ form }: { form: CompanyForm }) {
 			</div>
 
 			<div className="grid gap-4 rounded-lg border p-4">
-				<h2 className="text-sm font-medium">Tax & Currency</h2>
+				<h2 className="font-heading text-sm font-semibold tracking-tight">Tax & Currency</h2>
 				<form.AppField name="taxId">
 					{(field) => <field.TextField label="Tax ID (NPWP)" placeholder="00.000.000.0-000.000" />}
 				</form.AppField>
@@ -112,7 +112,7 @@ export function CompanyFormFields({ form }: { form: CompanyForm }) {
 			</div>
 
 			<div className="grid gap-4 rounded-lg border p-4">
-				<h2 className="text-sm font-medium">Receipt</h2>
+				<h2 className="font-heading text-sm font-semibold tracking-tight">Receipt</h2>
 				<form.AppField name="receiptFooter">
 					{(field) => (
 						<field.TextareaField

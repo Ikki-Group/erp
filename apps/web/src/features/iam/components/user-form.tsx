@@ -5,7 +5,6 @@ import { useEntityForm } from '@/lib/form/index.ts'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
 
@@ -215,7 +214,9 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 												<ShieldCheckIcon className="size-4" />
 											</div>
 											<div>
-												<h2 className="text-sm font-semibold">Access and roles</h2>
+												<h2 className="font-heading text-sm font-semibold tracking-tight">
+													Access and roles
+												</h2>
 												<p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
 													Choose how this user receives access, then add the roles they need.
 												</p>
@@ -263,7 +264,7 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 
 											<div className="mt-7 flex items-end justify-between gap-3">
 												<div>
-													<h3 className="text-sm font-medium">
+													<h3 className="font-heading text-sm font-semibold tracking-tight">
 														{isGlobal ? 'Global roles' : 'Location access'}
 													</h3>
 													<p className="mt-1 text-xs text-muted-foreground">
