@@ -44,7 +44,7 @@ export function CurrencyDisplay({
 		<span
 			className={cn(
 				'tabular-nums',
-				colored && numValue > 0 && 'text-success-foreground',
+				colored && numValue > 0 && 'text-success',
 				colored && numValue < 0 && 'text-destructive',
 				className,
 			)}

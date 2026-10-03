@@ -10,10 +10,10 @@ const statusBadgeVariants = cva(
 		variants: {
 			variant: {
 				default: 'bg-secondary text-secondary-foreground',
-				success: 'bg-success/10 text-success-foreground',
-				warning: 'bg-warning/10 text-warning-foreground',
-				destructive: 'bg-destructive/10 text-destructive-foreground',
-				info: 'bg-info/10 text-info-foreground',
+				success: 'bg-success/10 text-success',
+				warning: 'bg-warning/10 text-warning',
+				destructive: 'bg-destructive/10 text-destructive',
+				info: 'bg-info/10 text-info',
 				outline: 'border border-border text-foreground',
 			},
 		},

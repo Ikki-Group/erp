@@ -28,9 +28,9 @@ export function InlineAlert({ variant, title, children, className }: InlineAlert
 			variant={variant === 'error' ? 'destructive' : 'default'}
 			className={cn(
 				{
-					'border-success/30 text-success-foreground': variant === 'success',
-					'border-warning/30 text-warning-foreground': variant === 'warning',
-					'border-info/30 text-info-foreground': variant === 'info',
+					'border-success/30 text-success': variant === 'success',
+					'border-warning/30 text-warning': variant === 'warning',
+					'border-info/30 text-info': variant === 'info',
 				},
 				className,
 			)}
