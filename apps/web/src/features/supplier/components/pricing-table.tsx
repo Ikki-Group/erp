@@ -293,7 +293,8 @@ export function PricingTable({ supplierId }: PricingTableProps) {
 						<div className="grid gap-0.5">
 							<span className="text-sm font-medium">{getMaterialName(item.materialId)}</span>
 							<span className="text-xs text-muted-foreground">
-								{formatCurrency(item.unitPrice)} / {getUomName(item.uomId)}
+								<span className="font-mono tabular-nums">{formatCurrency(item.unitPrice)}</span> /{' '}
+								{getUomName(item.uomId)}
 								{item.minOrderQty && ` · Min: ${item.minOrderQty}`}
 							</span>
 						</div>
