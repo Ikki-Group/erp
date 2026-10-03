@@ -73,7 +73,11 @@ In **dark mode**, `sidebar` switches to the same ~85 warm-neutral hue as `backgr
 
 ### Shell backdrop
 
-`AppShell` (`components/app-shell/app-shell.tsx`) renders a `ShellBackdrop` behind the header + `<main>` stack: two blurred, 5%-opacity circles (`bg-primary/5`, `bg-accent-warm/5`) pinned to the corners of `SidebarInset`'s fixed-size box via `position: absolute` + `-z-10`. Same technique as the login hero's orbs (`routes/login.tsx`), turned down from a feature splash to a background texture — it only shows through the gutters between opaque white cards and disappears completely under the header bar and any card. It's deliberately on the bounded `SidebarInset` box, not inside the scrolling `<main>`, so it reads as a fixed backdrop instead of scrolling away with a long table.
+`AppShell` (`components/app-shell/app-shell.tsx`) renders a `ShellBackdrop` on `SidebarInset`, and `SidebarNav` (`components/app-shell/sidebar-nav.tsx`) renders its own glow directly inside `<Sidebar>`. Both are blurred, low-opacity circles pinned to opposite corners via `position: absolute inset-0` — 10% primary/accent-warm against the content area's lighter surface, 25%/15% against the much darker sidebar (it can carry more opacity before looking heavy). Same technique as the login hero's orbs (`routes/login.tsx`), turned down from a feature splash to a background texture.
+
+**Deliberately no `z-index` on either layer.** Both live inside ancestors that already carry their own `z-index` (`sidebar-container`, the fixed desktop sidebar panel, is `z-10`). Giving the glow a negative `z-index` makes it resolve against *that* ancestor's stacking context instead of the panel directly wrapping it — which pushes it behind the panel's own `bg-sidebar`/`bg-background` fill, i.e. it silently disappears, even though it's correctly sized and colored in the DOM. Omitting `z-index` entirely keeps it in normal paint order instead: as the *first* child, it paints right after its parent's own background and before any content that comes after it in the markup — exactly "behind the nav items, in front of the panel fill." If you add another glow somewhere else in the shell, don't reach for `-z-10` "to be safe" — swap the gradient for an opaque `bg-red-500` first and confirm it's actually visible before dialing the opacity back down.
+
+The sidebar glow is the more noticeable of the two — the content-area one is mostly covered by opaque white/dark cards and only shows through the gutters between them, which is intentional (it's wallpaper, not a feature).
 
 Don't reach for this pattern per-page — it's shell-level chrome, set once. A page that wants its own accent (e.g. a hero banner) should still prefer a flat card per the rest of this doc.
 
@@ -154,6 +158,8 @@ See the "Form Dialog (react-call)" demo in `/design-system` for the live result.
 - `tone`: `'default' | 'success' | 'warning' | 'info' | 'destructive'` — tints the icon tile to match the metric's meaning. Pick it from what the metric *means*, not from a hardcoded `text-*` class on the icon — the icon alone does nothing without it (`IconTile`'s `soft` variant takes its color from the tile, not the glyph). The dashboard's "Stok Menipis" card is the reference: `tone={lowStockItems.length > 0 ? 'warning' : 'default'}`.
 - `isLoading`: shows skeleton bars in place of value/trend/description. Prefer this over embedding a loading sentinel (`'…'`) in the `value` string.
 - `onClick`: makes the whole card a keyboard-operable button (`role="button"`, `tabIndex`, Enter/Space, focus-visible ring) — the same accessibility pattern already used for clickable table rows (`reui/data-grid`). Use it to link a metric to its detail list; don't wrap `StatCard` in a second interactive element.
+
+`DataCard` (`components/shared/data-card.tsx`) shares the same `tone` type and `TONE_CLASS` tint via its own optional `icon`/`tone` pair, so a page's stat tiles and content cards read as one family instead of two unrelated styles.
 
 ## Verifying a change
 
