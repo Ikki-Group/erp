@@ -1,5 +1,7 @@
 export { ActionMenu } from './action-menu'
 export type { ActionMenuItem, ActionMenuProps } from './action-menu'
+export { AsyncCombobox } from './async-combobox'
+export type { AsyncComboboxOption } from './async-combobox'
 export { createActionColumn } from './action-column'
 export type { ActionColumnItem, ActionColumnOptions } from './action-column'
 export { AppBootScreen } from './app-boot-screen'
