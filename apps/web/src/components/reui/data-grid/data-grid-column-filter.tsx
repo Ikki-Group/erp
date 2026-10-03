@@ -74,7 +74,7 @@ function DataGridColumnFilter<TData extends object, TValue>({
 					</Button>
 				}
 			/>
-			<PopoverContent className="w-[200px] p-0" align="start">
+			<PopoverContent className="w-50 p-0" align="start">
 				<div className="p-2">
 					<Input
 						placeholder={title}
@@ -83,7 +83,7 @@ function DataGridColumnFilter<TData extends object, TValue>({
 						className="h-8"
 					/>
 				</div>
-				<div className="max-h-[300px] overflow-y-auto">
+				<div className="max-h-75 overflow-y-auto">
 					{filteredOptions.length === 0 ? (
 						<div className="text-muted-foreground py-6 text-center text-sm">No results found.</div>
 					) : (

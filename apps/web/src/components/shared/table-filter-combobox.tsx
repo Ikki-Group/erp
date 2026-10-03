@@ -73,7 +73,7 @@ export function TableFilterCombobox({
 		>
 			<ComboboxTrigger
 				className={cn(
-					'flex h-7 w-[150px] items-center justify-between gap-1.5 rounded-md border border-input bg-input/20 px-2 text-xs/relaxed whitespace-nowrap outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 dark:bg-input/30 dark:hover:bg-input/50',
+					'flex h-7 w-37.5 items-center justify-between gap-1.5 rounded-md border border-input bg-input/20 px-2 text-xs/relaxed whitespace-nowrap outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 dark:bg-input/30 dark:hover:bg-input/50',
 					className,
 				)}
 			>

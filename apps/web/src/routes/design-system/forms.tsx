@@ -335,7 +335,7 @@ function CrudFormDemo() {
 	})
 
 	return (
-		<div className="max-h-[420px] overflow-y-auto rounded-lg border">
+		<div className="max-h-105 overflow-y-auto rounded-lg border">
 			<form.AppForm>
 				<CrudForm
 					className="p-6"
