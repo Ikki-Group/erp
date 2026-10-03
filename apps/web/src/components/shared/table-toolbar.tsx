@@ -2,12 +2,15 @@ import { useEffect, useState, useTransition } from 'react'
 import type { ReactNode } from 'react'
 
 import { format } from 'date-fns'
-import { LoaderCircleIcon, SearchIcon, XIcon } from 'lucide-react'
+import { ColumnsSettingsIcon, LoaderCircleIcon, SearchIcon, XIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+import type { DataGridTableInstance } from '@/components/reui/data-grid/data-grid'
+import { DataGridColumnVisibility } from '@/components/reui/data-grid/data-grid-column-visibility'
 import { DateRangeFilter } from '@/components/shared/date-range-filter'
-import type { DateRange } from '@/components/shared/date-range-filter'
+import type { DateRange, DateRangePreset } from '@/components/shared/date-range-filter'
+import { TableFilterCombobox } from '@/components/shared/table-filter-combobox'
 import { TableFilterSelect } from '@/components/shared/table-filter-select'
 
 import { Badge } from '@/components/ui/badge'
@@ -34,6 +37,13 @@ export interface MultiTableFilterDef extends TableFilterDefBase {
 	value: string[] | undefined
 	onChange: (value: string[] | undefined) => void
 	multiple: true
+	/**
+	 * Renders a searchable combobox (type-to-filter + removable chips) instead
+	 * of the checkbox-style dropdown. Reach for this once an option list is
+	 * long enough that scanning a plain checklist stops being faster than
+	 * typing (suppliers, materials, users — anything not a short fixed enum).
+	 */
+	searchable?: boolean
 }
 
 /**
@@ -52,15 +62,19 @@ export interface TableDateRangeFilterDef {
 	value: DateRange | undefined
 	onChange: (value: DateRange | undefined) => void
 	placeholder?: string
+	/** Override the default preset templates (Today, Last 7 days, ...). */
+	presets?: DateRangePreset[]
 }
 
-interface TableToolbarProps {
+interface TableToolbarProps<TData extends object = object> {
 	searchValue?: string
 	onSearchChange?: (value: string) => void
 	searchPlaceholder?: string
 	filters?: TableFilterDef[]
 	/** Optional date-range filter, rendered alongside the dropdown filters. */
 	dateRange?: TableDateRangeFilterDef
+	/** Renders a "Columns" button that toggles which columns are visible. Pass the same `table` given to `DataTable`. */
+	table?: DataGridTableInstance<TData>
 	actions?: ReactNode
 	className?: string
 }
@@ -75,15 +89,16 @@ const NO_FILTERS: TableFilterDef[] = []
  * `DataTable` list pages — search alone, search+filter, or search+multiple
  * filters all use this same component.
  */
-export function TableToolbar({
+export function TableToolbar<TData extends object = object>({
 	searchValue,
 	onSearchChange,
 	searchPlaceholder = 'Search...',
 	filters = NO_FILTERS,
 	dateRange,
+	table,
 	actions,
 	className,
-}: TableToolbarProps) {
+}: TableToolbarProps<TData>) {
 	const [draftSearch, setDraftSearch] = useState(searchValue ?? '')
 	const [isPending, startTransition] = useTransition()
 
@@ -140,14 +155,24 @@ export function TableToolbar({
 
 				{filters.map((filter) =>
 					filter.multiple ? (
-						<TableFilterSelect
-							key={filter.key}
-							multiple
-							value={filter.value}
-							onValueChange={filter.onChange}
-							options={filter.options}
-							allLabel={filter.allLabel ?? `All ${filter.label}`}
-						/>
+						filter.searchable ? (
+							<TableFilterCombobox
+								key={filter.key}
+								value={filter.value}
+								onValueChange={filter.onChange}
+								options={filter.options}
+								placeholder={filter.allLabel ?? `All ${filter.label}`}
+							/>
+						) : (
+							<TableFilterSelect
+								key={filter.key}
+								multiple
+								value={filter.value}
+								onValueChange={filter.onChange}
+								options={filter.options}
+								allLabel={filter.allLabel ?? `All ${filter.label}`}
+							/>
+						)
 					) : (
 						<TableFilterSelect
 							key={filter.key}
@@ -164,10 +189,26 @@ export function TableToolbar({
 						value={dateRange.value}
 						onChange={dateRange.onChange}
 						placeholder={dateRange.placeholder}
+						presets={dateRange.presets}
 					/>
 				)}
 
-				{actions && <div className="ml-auto flex items-center gap-2">{actions}</div>}
+				{(table || actions) && (
+					<div className="ml-auto flex items-center gap-2">
+						{table && (
+							<DataGridColumnVisibility
+								table={table}
+								trigger={
+									<Button variant="outline" size="sm" className="gap-1.5">
+										<ColumnsSettingsIcon className="size-3.5" />
+										Columns
+									</Button>
+								}
+							/>
+						)}
+						{actions}
+					</div>
+				)}
 			</div>
 
 			{(activeFilters.length > 0 || dateRange?.value) && (

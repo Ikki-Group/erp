@@ -22,7 +22,7 @@ export interface DateRange {
 	to: Date
 }
 
-interface Preset {
+export interface DateRangePreset {
 	label: string
 	getValue: () => DateRange
 }
@@ -37,7 +37,14 @@ function toWholeDays(range: DateRange): DateRange {
 	return { from: startOfDay(range.from), to: endOfDay(range.to) }
 }
 
-const createPresets = (): Preset[] => {
+/**
+ * The default preset templates (Today, Last 7 days, ...). Exported so a page
+ * with domain-specific ranges (e.g. "This fiscal quarter") can extend rather
+ * than replace them: `presets={[...createDefaultDateRangePresets(), custom]}`.
+ * A function, not a frozen constant, so "today" stays current across a long
+ * session.
+ */
+export function createDefaultDateRangePresets(): DateRangePreset[] {
 	const today = new Date()
 	return [
 		{
@@ -75,6 +82,8 @@ interface DateRangeFilterProps {
 	value?: DateRange
 	onChange?: (range: DateRange | undefined) => void
 	placeholder?: string
+	/** Override the default preset templates (Today, Last 7 days, ...). */
+	presets?: DateRangePreset[]
 	className?: string
 }
 
@@ -82,10 +91,11 @@ export function DateRangeFilter({
 	value,
 	onChange,
 	placeholder = 'Select date range',
+	presets,
 	className,
 }: DateRangeFilterProps) {
 	const [open, setOpen] = useState(false)
-	const presets = createPresets()
+	const resolvedPresets = presets ?? createDefaultDateRangePresets()
 
 	const displayValue = value
 		? `${format(value.from, 'dd MMM yyyy')} – ${format(value.to, 'dd MMM yyyy')}`
@@ -113,7 +123,7 @@ export function DateRangeFilter({
 				{/* Presets sidebar */}
 				<div className="flex flex-row gap-1 border-b p-2 sm:flex-col sm:border-b-0 sm:border-r">
 					<div className="flex flex-row flex-wrap gap-1 sm:flex-col sm:flex-nowrap">
-						{presets.map((preset) => (
+						{resolvedPresets.map((preset) => (
 							<Button
 								key={preset.label}
 								variant="ghost"
