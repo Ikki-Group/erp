@@ -1,13 +1,13 @@
 import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, EyeIcon, KeyRoundIcon, PlusIcon, UserXIcon } from 'lucide-react'
-import { z } from 'zod'
 
-import { listSearchSchema, useServerTable } from '@/components/data-table'
+import type { ListSearch } from '@/components/data-table'
+import { useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
@@ -23,16 +23,27 @@ import { resetUserPassword } from '@/features/iam/components/reset-password-dial
 import { userColumns } from '@/features/iam/components/user-table.tsx'
 import type { UserListItemDto } from '@/features/iam/dto/index.ts'
 
-export const Route = createFileRoute('/_authenticated/settings/users/')({
-	validateSearch: listSearchSchema.extend({
-		isActive: z.coerce.number().int().min(0).max(1).optional(),
-	}),
-	component: UsersPage,
-})
+export interface UsersListProps {
+	searchParams: {
+		page?: number
+		pageSize?: number
+		q?: string
+		isActive?: number
+	}
+}
 
-function UsersPage() {
-	const navigate = useNavigate({ from: Route.fullPath })
-	const search = Route.useSearch()
+interface UsersSearch extends ListSearch {
+	isActive?: number
+}
+
+export function UsersList({ searchParams }: UsersListProps) {
+	const navigate = useNavigate()
+	const search: UsersSearch = {
+		page: searchParams.page ?? 1,
+		pageSize: searchParams.pageSize ?? 10,
+		q: searchParams.q,
+		isActive: searchParams.isActive,
+	}
 	const canEdit = usePermissionCheck({ permission: 'iam.update' })
 	const canDeactivate = usePermissionCheck({ permission: 'iam.delete' })
 
@@ -70,6 +81,45 @@ function UsersPage() {
 		if (saved) toast.add({ title: 'Password reset successfully.', type: 'success' })
 	}, [])
 
+	const handleView = useCallback(
+		(userId: number) => {
+			navigate({
+				to: '/settings/users/$userId',
+				params: { userId: String(userId) },
+			})
+		},
+		[navigate],
+	)
+
+	const handleEdit = useCallback(
+		(userId: number) => {
+			navigate({
+				to: '/settings/users/$userId',
+				params: { userId: String(userId) },
+				search: { mode: 'edit' },
+			})
+		},
+		[navigate],
+	)
+
+	const handleAdd = useCallback(() => {
+		navigate({ to: '/settings/users/new' })
+	}, [navigate])
+
+	const handleSearchChange = useCallback(
+		(next: ListSearch) => {
+			const usersNext: UsersSearch = {
+				...next,
+				isActive: search.isActive,
+			}
+			navigate({
+				to: '/settings/access-control',
+				search: { ...usersNext, tab: 'users' as const },
+			})
+		},
+		[navigate, search.isActive],
+	)
+
 	const actionsColumn = useMemo(
 		() =>
 			createActionColumn<UserListItemDto>({
@@ -78,21 +128,12 @@ function UsersPage() {
 					{
 						label: 'View',
 						icon: <EyeIcon className="size-4" />,
-						onClick: () =>
-							navigate({
-								to: '/settings/users/$userId',
-								params: { userId: String(user.id) },
-							}),
+						onClick: () => handleView(user.id),
 					},
 					canEdit && {
 						label: 'Edit',
 						icon: <EditIcon className="size-4" />,
-						onClick: () =>
-							navigate({
-								to: '/settings/users/$userId',
-								params: { userId: String(user.id) },
-								search: { mode: 'edit' },
-							}),
+						onClick: () => handleEdit(user.id),
 					},
 					canEdit && {
 						label: 'Reset Password',
@@ -107,7 +148,7 @@ function UsersPage() {
 					},
 				],
 			}),
-		[canEdit, canDeactivate, handleDeactivate, handleResetPassword, navigate],
+		[canEdit, canDeactivate, handleDeactivate, handleResetPassword, handleView, handleEdit],
 	)
 
 	const columns = useMemo(
@@ -120,7 +161,7 @@ function UsersPage() {
 		columns,
 		totalCount,
 		search,
-		onSearchChange: (next) => navigate({ search: next }),
+		onSearchChange: handleSearchChange,
 	})
 
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
@@ -131,7 +172,7 @@ function UsersPage() {
 			description="Manage user accounts and their role assignments."
 			actions={
 				<PermissionGate permission="iam.create">
-					<Button size="sm" onClick={() => navigate({ to: '/settings/users/new' })}>
+					<Button size="sm" onClick={handleAdd}>
 						<PlusIcon className="size-4" />
 						Add User
 					</Button>
@@ -146,7 +187,7 @@ function UsersPage() {
 				description: 'Get started by creating the first user account.',
 				action: (
 					<PermissionGate permission="iam.create">
-						<Button size="sm" onClick={() => navigate({ to: '/settings/users/new' })}>
+						<Button size="sm" onClick={handleAdd}>
 							<PlusIcon className="size-4" />
 							Add User
 						</Button>
@@ -168,14 +209,18 @@ function UsersPage() {
 								{ label: 'Active', value: '1' },
 								{ label: 'Inactive', value: '0' },
 							],
-							onChange: (value) =>
+							onChange: (value) => {
+								const nextIsActive = value === undefined ? undefined : Number(value)
 								navigate({
+									to: '/settings/access-control',
 									search: {
 										...search,
 										page: 1,
-										isActive: value === undefined ? undefined : Number(value),
+										isActive: nextIsActive,
+										tab: 'users' as const,
 									},
-								}),
+								})
+								},
 						},
 					]}
 				/>

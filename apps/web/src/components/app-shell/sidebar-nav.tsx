@@ -110,15 +110,14 @@ const navGroups: readonly NavGroup[] = [
 		label: 'Administration',
 		items: [
 			{ title: 'Company', icon: StoreIcon, href: '/settings/company', anyOf: ['company.read'] },
+			{ title: 'Locations', icon: MapPinIcon, href: '/master/locations', anyOf: ['location.read'] },
 			{
 				title: 'Location Staff',
 				icon: UsersIcon,
 				href: '/settings/location-staff',
 				anyOf: ['location-staff.read'],
 			},
-			{ title: 'Locations', icon: MapPinIcon, href: '/master/locations', anyOf: ['location.read'] },
-			{ title: 'Users', icon: UsersIcon, href: '/settings/users', anyOf: ['iam.read'] },
-			{ title: 'Roles', icon: ShieldCheckIcon, href: '/settings/roles', anyOf: ['iam.read'] },
+			{ title: 'Access Control', icon: ShieldCheckIcon, href: '/settings/access-control', anyOf: ['iam.read'] },
 			{ title: 'Audit Log', icon: HistoryIcon, href: '/settings/audit', anyOf: ['audit.read'] },
 		],
 	},

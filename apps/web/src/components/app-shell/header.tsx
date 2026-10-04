@@ -36,7 +36,7 @@ export function AppHeader() {
 			<SidebarTrigger className="-ml-1" />
 			<Separator orientation="vertical" className="mx-2" />
 
-			{/* Location switcher */}
+			{/* Location switcher with accessible indicator */}
 			<DropdownMenu>
 				<DropdownMenuTrigger className="inline-flex min-h-9 min-w-0 max-w-[min(18rem,calc(100vw-9rem))] items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-sm font-normal hover:bg-accent disabled:pointer-events-none disabled:opacity-50">
 					<MapPinIcon className="size-4 text-muted-foreground" />
@@ -57,6 +57,11 @@ export function AppHeader() {
 					))}
 				</DropdownMenuContent>
 			</DropdownMenu>
+
+			{/* Screen reader announcement for location changes */}
+			<div className="sr-only" aria-live="polite" aria-atomic="true">
+				Lokasi aktif: {displayLocation}
+			</div>
 
 			<div className="flex-1" />
 

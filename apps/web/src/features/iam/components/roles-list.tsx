@@ -1,13 +1,13 @@
 import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, EyeIcon, PlusIcon, TrashIcon } from 'lucide-react'
-import { z } from 'zod'
 
-import { listSearchSchema, useServerTable } from '@/components/data-table'
+import type { ListSearch } from '@/components/data-table'
+import { useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
@@ -22,16 +22,27 @@ import { roleResource } from '@/features/iam/api.ts'
 import { roleColumns } from '@/features/iam/components/role-table.tsx'
 import type { RoleDto } from '@/features/iam/dto/index.ts'
 
-export const Route = createFileRoute('/_authenticated/settings/roles/')({
-	validateSearch: listSearchSchema.extend({
-		isSystem: z.coerce.number().int().min(0).max(1).optional(),
-	}),
-	component: RolesPage,
-})
+export interface RolesListProps {
+	searchParams: {
+		page?: number
+		pageSize?: number
+		q?: string
+		isSystem?: number
+	}
+}
 
-function RolesPage() {
-	const navigate = useNavigate({ from: Route.fullPath })
-	const search = Route.useSearch()
+interface RolesSearch extends ListSearch {
+	isSystem?: number
+}
+
+export function RolesList({ searchParams }: RolesListProps) {
+	const navigate = useNavigate()
+	const search: RolesSearch = {
+		page: searchParams.page ?? 1,
+		pageSize: searchParams.pageSize ?? 10,
+		q: searchParams.q,
+		isSystem: searchParams.isSystem,
+	}
 	const canEdit = usePermissionCheck({ permission: 'iam.update' })
 	const canDelete = usePermissionCheck({ permission: 'iam.delete' })
 
@@ -64,6 +75,44 @@ function RolesPage() {
 		[removeMut],
 	)
 
+	const handleView = useCallback(
+		(roleId: number) => {
+			navigate({
+				to: '/settings/roles/$roleId',
+				params: { roleId: String(roleId) },
+			})
+		},
+		[navigate],
+	)
+
+	const handleEdit = useCallback(
+		(roleId: number) => {
+			navigate({
+				to: '/settings/roles/$roleId',
+				params: { roleId: String(roleId) },
+			})
+		},
+		[navigate],
+	)
+
+	const handleAdd = useCallback(() => {
+		navigate({ to: '/settings/roles/new' })
+	}, [navigate])
+
+	const handleSearchChange = useCallback(
+		(next: ListSearch) => {
+			const rolesNext: RolesSearch = {
+				...next,
+				isSystem: search.isSystem,
+			}
+			navigate({
+				to: '/settings/access-control',
+				search: { ...rolesNext, tab: 'roles' as const },
+			})
+		},
+		[navigate, search.isSystem],
+	)
+
 	const actionsColumn = useMemo(
 		() =>
 			createActionColumn<RoleDto>({
@@ -72,21 +121,13 @@ function RolesPage() {
 					role.isSystem && {
 						label: 'View',
 						icon: <EyeIcon className="size-4" />,
-						onClick: () =>
-							navigate({
-								to: '/settings/roles/$roleId',
-								params: { roleId: String(role.id) },
-							}),
+						onClick: () => handleView(role.id),
 					},
 					!role.isSystem &&
 						canEdit && {
 							label: 'Edit',
 							icon: <EditIcon className="size-4" />,
-							onClick: () =>
-								navigate({
-									to: '/settings/roles/$roleId',
-									params: { roleId: String(role.id) },
-								}),
+							onClick: () => handleEdit(role.id),
 						},
 					!role.isSystem &&
 						canDelete && {
@@ -97,7 +138,7 @@ function RolesPage() {
 						},
 				],
 			}),
-		[canEdit, canDelete, handleDelete, navigate],
+		[canEdit, canDelete, handleDelete, handleView, handleEdit],
 	)
 
 	const columns = useMemo(
@@ -110,13 +151,14 @@ function RolesPage() {
 		columns,
 		totalCount,
 		search,
-		onSearchChange: (next) => navigate({ search: next }),
+		onSearchChange: handleSearchChange,
 	})
 
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
+
 	const addRoleAction = (
 		<PermissionGate permission="iam.create">
-			<Button size="sm" onClick={() => navigate({ to: '/settings/roles/new' })}>
+			<Button size="sm" onClick={handleAdd}>
 				<PlusIcon className="size-4" />
 				Add Role
 			</Button>
@@ -152,14 +194,18 @@ function RolesPage() {
 								{ label: 'System roles', value: '1' },
 								{ label: 'Custom roles', value: '0' },
 							],
-							onChange: (value) =>
+							onChange: (value) => {
+								const nextIsSystem = value === undefined ? undefined : Number(value)
 								navigate({
+									to: '/settings/access-control',
 									search: {
 										...search,
 										page: 1,
-										isSystem: value === undefined ? undefined : Number(value),
+										isSystem: nextIsSystem,
+										tab: 'roles' as const,
 									},
-								}),
+								})
+								},
 						},
 					]}
 				/>

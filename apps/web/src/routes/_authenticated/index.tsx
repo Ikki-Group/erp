@@ -12,6 +12,7 @@ import {
 	ClipboardListIcon,
 	HistoryIcon,
 	InboxIcon,
+	RefreshCwIcon,
 	TruckIcon,
 } from 'lucide-react'
 
@@ -46,6 +47,10 @@ function DashboardPage() {
 
 	const locationNameById = useMemo(() => new Map(locations.map((l) => [l.id, l.name])), [locations])
 
+	// Real-time query configuration
+	const REFETCH_INTERVAL_MS = 30000 // 30 seconds
+	const STALE_TIME_MS = 20000 // 20 seconds
+
 	// ─── Low stock (materials below their minimum at the active location) ───
 	// ponytail: reads only the first 200 balances and filters client-side; a
 	// location with >200 materials under-reports. Fine for a dashboard glance —
@@ -53,6 +58,8 @@ function DashboardPage() {
 	const stockQuery = useQuery({
 		...stockBalanceList.queryOptions({ page: 1, limit: 200, locationId: locationId! }),
 		enabled: locationId !== undefined,
+		refetchInterval: REFETCH_INTERVAL_MS,
+		staleTime: STALE_TIME_MS,
 	})
 	const lowStockItems = (stockQuery.data?.data ?? []).filter(
 		(b) => b.minStock !== null && Number(b.quantity) < Number(b.minStock),
@@ -67,6 +74,8 @@ function DashboardPage() {
 			status: 'in_transit',
 		}),
 		enabled: locationId !== undefined,
+		refetchInterval: REFETCH_INTERVAL_MS,
+		staleTime: STALE_TIME_MS,
 	})
 	const inTransitTransfers = transfersQuery.data?.data ?? []
 	const inTransitCount = transfersQuery.data?.meta?.total
@@ -80,6 +89,8 @@ function DashboardPage() {
 			status: 'in_progress',
 		}),
 		enabled: locationId !== undefined,
+		refetchInterval: REFETCH_INTERVAL_MS,
+		staleTime: STALE_TIME_MS,
 	})
 	const activeOpnameCount = opnameQuery.data?.meta?.total
 
@@ -92,16 +103,30 @@ function DashboardPage() {
 			status: 'draft',
 		}),
 		enabled: locationId !== undefined,
+		refetchInterval: REFETCH_INTERVAL_MS,
+		staleTime: STALE_TIME_MS,
 	})
 	const draftReceivings = receivingQuery.data?.data ?? []
 	const draftReceivingCount = receivingQuery.data?.meta?.total
 
 	// ─── Recent activity (audit log — works consolidated) ───
-	const activityQuery = useQuery(auditResource.list.queryOptions({ page: 1, limit: 6 }))
+	const activityQuery = useQuery({
+		...auditResource.list.queryOptions({ page: 1, limit: 6 }),
+		refetchInterval: REFETCH_INTERVAL_MS,
+		staleTime: STALE_TIME_MS,
+	})
 	const recentActivity = activityQuery.data?.data ?? []
 
 	return (
 		<div className="space-y-6">
+			{/* Screen reader announcement for location and alerts */}
+			<div className="sr-only" aria-live="polite" aria-atomic="true">
+				{scopeLabel}
+				{!isConsolidated && lowStockItems.length > 0 && 
+					`: ${lowStockItems.length} item membutuhkan perhatian`
+				}
+			</div>
+
 			<PageHeader
 				title={`Selamat datang, ${user?.name?.split(' ')[0] ?? 'kembali'}`}
 				description={`Ringkasan operasional — ${scopeLabel}.`}
@@ -165,7 +190,13 @@ function DashboardPage() {
 							<Skeleton className="h-10 w-full" />
 						</div>
 					) : transfersQuery.isError ? (
-						<div className="p-4 text-xs text-destructive">Gagal memuat data transfer.</div>
+						<div className="space-y-2 p-4">
+							<p className="text-xs text-destructive">Gagal memuat data transfer.</p>
+							<Button variant="ghost" size="sm" onClick={() => transfersQuery.refetch()}>
+								<RefreshCwIcon className="mr-1.5 size-3" />
+								Coba lagi
+							</Button>
+						</div>
 					) : inTransitTransfers.length === 0 ? (
 						<div className="p-4">
 							<EmptyState
@@ -225,7 +256,13 @@ function DashboardPage() {
 							<Skeleton className="h-10 w-full" />
 						</div>
 					) : stockQuery.isError ? (
-						<div className="p-4 text-xs text-destructive">Gagal memuat data stok.</div>
+						<div className="space-y-2 p-4">
+							<p className="text-xs text-destructive">Gagal memuat data stok.</p>
+							<Button variant="ghost" size="sm" onClick={() => stockQuery.refetch()}>
+								<RefreshCwIcon className="mr-1.5 size-3" />
+								Coba lagi
+							</Button>
+						</div>
 					) : lowStockItems.length === 0 ? (
 						<div className="p-4">
 							<EmptyState
@@ -286,7 +323,13 @@ function DashboardPage() {
 							<Skeleton className="h-10 w-full" />
 						</div>
 					) : receivingQuery.isError ? (
-						<div className="p-4 text-xs text-destructive">Gagal memuat data penerimaan.</div>
+						<div className="space-y-2 p-4">
+							<p className="text-xs text-destructive">Gagal memuat data penerimaan.</p>
+							<Button variant="ghost" size="sm" onClick={() => receivingQuery.refetch()}>
+								<RefreshCwIcon className="mr-1.5 size-3" />
+								Coba lagi
+							</Button>
+						</div>
 					) : draftReceivings.length === 0 ? (
 						<div className="p-4">
 							<EmptyState
@@ -328,7 +371,13 @@ function DashboardPage() {
 
 				<DataCard title="Aktivitas Terbaru" icon={<HistoryIcon className="size-4" />}>
 					{activityQuery.isError ? (
-						<p className="text-xs text-destructive">Gagal memuat aktivitas.</p>
+						<div className="space-y-2">
+							<p className="text-xs text-destructive">Gagal memuat aktivitas.</p>
+							<Button variant="ghost" size="sm" onClick={() => activityQuery.refetch()}>
+								<RefreshCwIcon className="mr-1.5 size-3" />
+								Coba lagi
+							</Button>
+						</div>
 					) : (
 						<AuditTrail
 							entries={recentActivity}

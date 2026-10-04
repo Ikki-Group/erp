@@ -30,6 +30,7 @@ import { Route as AuthenticatedMasterRecipesRouteImport } from './routes/_authen
 import { Route as AuthenticatedPosNewOrderRouteImport } from './routes/_authenticated/pos/new-order'
 import { Route as AuthenticatedPosOrdersRouteImport } from './routes/_authenticated/pos/orders'
 import { Route as AuthenticatedPosShiftsRouteImport } from './routes/_authenticated/pos/shifts'
+import { Route as AuthenticatedSettingsAccessControlRouteImport } from './routes/_authenticated/settings/access-control'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings/audit'
 import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings/company'
 import { Route as AuthenticatedSettingsLocationStaffRouteImport } from './routes/_authenticated/settings/location-staff'
@@ -59,10 +60,8 @@ import { Route as AuthenticatedPosTablesNewRouteImport } from './routes/_authent
 import { Route as AuthenticatedPosVouchersIndexRouteImport } from './routes/_authenticated/pos/vouchers/index'
 import { Route as AuthenticatedPosVouchersVoucherIdRouteImport } from './routes/_authenticated/pos/vouchers/$voucherId'
 import { Route as AuthenticatedPosVouchersNewRouteImport } from './routes/_authenticated/pos/vouchers/new'
-import { Route as AuthenticatedSettingsRolesIndexRouteImport } from './routes/_authenticated/settings/roles/index'
 import { Route as AuthenticatedSettingsRolesRoleIdRouteImport } from './routes/_authenticated/settings/roles/$roleId'
 import { Route as AuthenticatedSettingsRolesNewRouteImport } from './routes/_authenticated/settings/roles/new'
-import { Route as AuthenticatedSettingsUsersIndexRouteImport } from './routes/_authenticated/settings/users/index'
 import { Route as AuthenticatedSettingsUsersUserIdRouteImport } from './routes/_authenticated/settings/users/$userId'
 import { Route as AuthenticatedSettingsUsersNewRouteImport } from './routes/_authenticated/settings/users/new'
 import { Route as AuthenticatedMasterMenuItemsItemIdRouteImport } from './routes/_authenticated/master/menu/items/$itemId'
@@ -176,6 +175,12 @@ const AuthenticatedPosShiftsRoute = AuthenticatedPosShiftsRouteImport.update({
   path: '/pos/shifts',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSettingsAccessControlRoute =
+  AuthenticatedSettingsAccessControlRouteImport.update({
+    id: '/settings/access-control',
+    path: '/settings/access-control',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSettingsAuditRoute =
   AuthenticatedSettingsAuditRouteImport.update({
     id: '/settings/audit',
@@ -350,12 +355,6 @@ const AuthenticatedPosVouchersNewRoute =
     path: '/pos/vouchers/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedSettingsRolesIndexRoute =
-  AuthenticatedSettingsRolesIndexRouteImport.update({
-    id: '/settings/roles/',
-    path: '/settings/roles/',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedSettingsRolesRoleIdRoute =
   AuthenticatedSettingsRolesRoleIdRouteImport.update({
     id: '/settings/roles/$roleId',
@@ -366,12 +365,6 @@ const AuthenticatedSettingsRolesNewRoute =
   AuthenticatedSettingsRolesNewRouteImport.update({
     id: '/settings/roles/new',
     path: '/settings/roles/new',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedSettingsUsersIndexRoute =
-  AuthenticatedSettingsUsersIndexRouteImport.update({
-    id: '/settings/users/',
-    path: '/settings/users/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedSettingsUsersUserIdRoute =
@@ -420,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
   '/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
+  '/settings/access-control': typeof AuthenticatedSettingsAccessControlRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
@@ -453,8 +447,6 @@ export interface FileRoutesByFullPath {
   '/master/uom/': typeof AuthenticatedMasterUomIndexRoute
   '/pos/tables/': typeof AuthenticatedPosTablesIndexRoute
   '/pos/vouchers/': typeof AuthenticatedPosVouchersIndexRoute
-  '/settings/roles/': typeof AuthenticatedSettingsRolesIndexRoute
-  '/settings/users/': typeof AuthenticatedSettingsUsersIndexRoute
   '/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
   '/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
 }
@@ -478,6 +470,7 @@ export interface FileRoutesByTo {
   '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
   '/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
+  '/settings/access-control': typeof AuthenticatedSettingsAccessControlRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
@@ -511,8 +504,6 @@ export interface FileRoutesByTo {
   '/master/uom': typeof AuthenticatedMasterUomIndexRoute
   '/pos/tables': typeof AuthenticatedPosTablesIndexRoute
   '/pos/vouchers': typeof AuthenticatedPosVouchersIndexRoute
-  '/settings/roles': typeof AuthenticatedSettingsRolesIndexRoute
-  '/settings/users': typeof AuthenticatedSettingsUsersIndexRoute
   '/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
   '/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
 }
@@ -539,6 +530,7 @@ export interface FileRoutesById {
   '/_authenticated/pos/new-order': typeof AuthenticatedPosNewOrderRoute
   '/_authenticated/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/_authenticated/pos/shifts': typeof AuthenticatedPosShiftsRoute
+  '/_authenticated/settings/access-control': typeof AuthenticatedSettingsAccessControlRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/_authenticated/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
@@ -572,8 +564,6 @@ export interface FileRoutesById {
   '/_authenticated/master/uom/': typeof AuthenticatedMasterUomIndexRoute
   '/_authenticated/pos/tables/': typeof AuthenticatedPosTablesIndexRoute
   '/_authenticated/pos/vouchers/': typeof AuthenticatedPosVouchersIndexRoute
-  '/_authenticated/settings/roles/': typeof AuthenticatedSettingsRolesIndexRoute
-  '/_authenticated/settings/users/': typeof AuthenticatedSettingsUsersIndexRoute
   '/_authenticated/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
   '/_authenticated/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
 }
@@ -600,6 +590,7 @@ export interface FileRouteTypes {
     | '/pos/new-order'
     | '/pos/orders'
     | '/pos/shifts'
+    | '/settings/access-control'
     | '/settings/audit'
     | '/settings/company'
     | '/settings/location-staff'
@@ -633,8 +624,6 @@ export interface FileRouteTypes {
     | '/master/uom/'
     | '/pos/tables/'
     | '/pos/vouchers/'
-    | '/settings/roles/'
-    | '/settings/users/'
     | '/master/menu/items/$itemId'
     | '/master/menu/items/new'
   fileRoutesByTo: FileRoutesByTo
@@ -658,6 +647,7 @@ export interface FileRouteTypes {
     | '/pos/new-order'
     | '/pos/orders'
     | '/pos/shifts'
+    | '/settings/access-control'
     | '/settings/audit'
     | '/settings/company'
     | '/settings/location-staff'
@@ -691,8 +681,6 @@ export interface FileRouteTypes {
     | '/master/uom'
     | '/pos/tables'
     | '/pos/vouchers'
-    | '/settings/roles'
-    | '/settings/users'
     | '/master/menu/items/$itemId'
     | '/master/menu/items/new'
   id:
@@ -718,6 +706,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pos/new-order'
     | '/_authenticated/pos/orders'
     | '/_authenticated/pos/shifts'
+    | '/_authenticated/settings/access-control'
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/company'
     | '/_authenticated/settings/location-staff'
@@ -751,8 +740,6 @@ export interface FileRouteTypes {
     | '/_authenticated/master/uom/'
     | '/_authenticated/pos/tables/'
     | '/_authenticated/pos/vouchers/'
-    | '/_authenticated/settings/roles/'
-    | '/_authenticated/settings/users/'
     | '/_authenticated/master/menu/items/$itemId'
     | '/_authenticated/master/menu/items/new'
   fileRoutesById: FileRoutesById
@@ -910,6 +897,13 @@ declare module '@tanstack/react-router' {
       path: '/pos/shifts'
       fullPath: '/pos/shifts'
       preLoaderRoute: typeof AuthenticatedPosShiftsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/access-control': {
+      id: '/_authenticated/settings/access-control'
+      path: '/settings/access-control'
+      fullPath: '/settings/access-control'
+      preLoaderRoute: typeof AuthenticatedSettingsAccessControlRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings/audit': {
@@ -1115,13 +1109,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPosVouchersNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/settings/roles/': {
-      id: '/_authenticated/settings/roles/'
-      path: '/settings/roles'
-      fullPath: '/settings/roles/'
-      preLoaderRoute: typeof AuthenticatedSettingsRolesIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/settings/roles/$roleId': {
       id: '/_authenticated/settings/roles/$roleId'
       path: '/settings/roles/$roleId'
@@ -1134,13 +1121,6 @@ declare module '@tanstack/react-router' {
       path: '/settings/roles/new'
       fullPath: '/settings/roles/new'
       preLoaderRoute: typeof AuthenticatedSettingsRolesNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/settings/users/': {
-      id: '/_authenticated/settings/users/'
-      path: '/settings/users'
-      fullPath: '/settings/users/'
-      preLoaderRoute: typeof AuthenticatedSettingsUsersIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings/users/$userId': {
@@ -1183,6 +1163,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPosNewOrderRoute: typeof AuthenticatedPosNewOrderRoute
   AuthenticatedPosOrdersRoute: typeof AuthenticatedPosOrdersRoute
   AuthenticatedPosShiftsRoute: typeof AuthenticatedPosShiftsRoute
+  AuthenticatedSettingsAccessControlRoute: typeof AuthenticatedSettingsAccessControlRoute
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsCompanyRoute: typeof AuthenticatedSettingsCompanyRoute
   AuthenticatedSettingsLocationStaffRoute: typeof AuthenticatedSettingsLocationStaffRoute
@@ -1216,8 +1197,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMasterUomIndexRoute: typeof AuthenticatedMasterUomIndexRoute
   AuthenticatedPosTablesIndexRoute: typeof AuthenticatedPosTablesIndexRoute
   AuthenticatedPosVouchersIndexRoute: typeof AuthenticatedPosVouchersIndexRoute
-  AuthenticatedSettingsRolesIndexRoute: typeof AuthenticatedSettingsRolesIndexRoute
-  AuthenticatedSettingsUsersIndexRoute: typeof AuthenticatedSettingsUsersIndexRoute
   AuthenticatedMasterMenuItemsItemIdRoute: typeof AuthenticatedMasterMenuItemsItemIdRoute
   AuthenticatedMasterMenuItemsNewRoute: typeof AuthenticatedMasterMenuItemsNewRoute
 }
@@ -1231,6 +1210,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPosNewOrderRoute: AuthenticatedPosNewOrderRoute,
   AuthenticatedPosOrdersRoute: AuthenticatedPosOrdersRoute,
   AuthenticatedPosShiftsRoute: AuthenticatedPosShiftsRoute,
+  AuthenticatedSettingsAccessControlRoute:
+    AuthenticatedSettingsAccessControlRoute,
   AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
   AuthenticatedSettingsCompanyRoute: AuthenticatedSettingsCompanyRoute,
   AuthenticatedSettingsLocationStaffRoute:
@@ -1279,8 +1260,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMasterUomIndexRoute: AuthenticatedMasterUomIndexRoute,
   AuthenticatedPosTablesIndexRoute: AuthenticatedPosTablesIndexRoute,
   AuthenticatedPosVouchersIndexRoute: AuthenticatedPosVouchersIndexRoute,
-  AuthenticatedSettingsRolesIndexRoute: AuthenticatedSettingsRolesIndexRoute,
-  AuthenticatedSettingsUsersIndexRoute: AuthenticatedSettingsUsersIndexRoute,
   AuthenticatedMasterMenuItemsItemIdRoute:
     AuthenticatedMasterMenuItemsItemIdRoute,
   AuthenticatedMasterMenuItemsNewRoute: AuthenticatedMasterMenuItemsNewRoute,
