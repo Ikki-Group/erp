@@ -16,7 +16,12 @@ interface EmptyStateProps {
 
 export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
 	return (
-		<div className={cn('flex flex-col items-center justify-center py-12 text-center', className)}>
+		<div
+			className={cn(
+				'animate-in fade-in-0 zoom-in-98 flex flex-col items-center justify-center py-12 text-center duration-200',
+				className,
+			)}
+		>
 			<IconTile variant="soft" size="lg" className="mb-3">
 				{icon ?? <InboxIcon />}
 			</IconTile>
