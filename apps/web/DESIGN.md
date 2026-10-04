@@ -136,17 +136,27 @@ Density-first: controls default to a compact height (buttons/inputs at 28px, `h-
 Flat by default. Inline, in-flow surfaces (`Card`, `StatCard`, `DataCard`) carry exactly one edge treatment — a hairline `border`, no shadow — because stacking a shadow on a bordered surface reads as a muddy double edge. Shadow is spent only on things that actually float above page content: dialogs, sheets, popovers, dropdowns, menus, comboboxes, hover cards, and toasts. Every one of those pairs its shadow with a 1px `ring-foreground/10` — the shadow carries the lift, the ring carries the crisp edge the shadow alone would blur.
 
 ### Shadow Vocabulary
-- **Floating-md** (`shadow-md` + `ring-1 ring-foreground/10`): popovers, dropdown/context/navigation menus, select, combobox, hover card.
-- **Floating-lg** (`shadow-lg` + `ring-1 ring-foreground/10`): dialogs, sheets, toasts — the surfaces with the most visual weight/urgency.
-- **Tooltip-xl** (`shadow-xl`): chart tooltips only — the one place a slightly heavier shadow is used, since it floats over dense chart content.
-- **Floating chrome** (`shadow-sm`): the optional "floating" sidebar variant and the inset `SidebarInset` container — a much lighter lift for large, mostly-static chrome rather than a transient overlay.
+Explicit tokens for elevation hierarchy (defined in `styles.css`):
+
+- **Floating-sm** (`shadow-floating-sm`): subtle lift for large chrome surfaces — the optional "floating" sidebar variant, `SidebarInset` container.
+- **Floating-md** (`shadow-floating-md` + `ring-1 ring-foreground/10`): standard floating overlays — popovers, dropdown/context/navigation menus, select, combobox, hover card. Apply as `shadow-md ring-1 ring-foreground/10` until Tailwind utilities are updated.
+- **Floating-lg** (`shadow-floating-lg` + `ring-1 ring-foreground/10`): heavy floating surfaces — dialogs, sheets, toasts. Apply as `shadow-lg ring-1 ring-foreground/10`.
+- **Tooltip-xl** (`shadow-tooltip-xl`): chart tooltips only — the one place a heavier shadow is used, since it floats over dense chart content. Apply as `shadow-xl`.
 
 ### Named Rules
-**The Flat-By-Default Rule.** A card gets more visual presence from a stronger border (`hover:border-foreground/15`), never from adding a shadow. Shadow always means "temporarily on top," never "more important."
+**The Flat-By-Default Rule.** A card gets more visual presence from a stronger border (`hover:border-foreground/15`), never from adding a shadow. Shadow always means "temporarily on top," never "more important." An inline surface with both border and shadow is a double-edge violation — one edge treatment per surface.
 
 ## Shapes
 
 One base radius (`--radius: 0.5rem` / 8px) drives the whole scale via `calc()` — `sm` (≈4.8px), `md` (≈6.4px), `lg` (8px), `xl` (≈11.2px) are all derived, so retuning the whole product's corner language is a one-variable change. Pruned to exactly four steps deliberately — a wider derived tail (`2xl`/`3xl`/`4xl`) existed but sat unused; a radius vocabulary should be as small as the product actually needs, not as large as `calc()` can generate. The scale is deliberately modest: buttons/inputs/chips sit at `rounded-md`/`rounded-sm`, cards/dialogs/popovers at `rounded-lg`/`rounded-xl`, and only pill-shaped status badges and the sidebar's active-item/sub-item corners reach toward fully rounded. Borders are 1px hairlines throughout; there is no decorative or thick-border treatment anywhere in the system.
+
+**Radius Guard:** `2xl`, `3xl`, and `4xl` are explicitly forbidden in this system. The brief is a precise, understated operations tool — not a rounded consumer app. Any component needing larger radius should use `rounded-full` (9999px) for true pill shapes only.
+
+## Typography Hierarchy Enforcements
+
+**Monospace for Identifiers:** Document/reference identifiers (`MAT-001`, `TRF-STORE-01-...`, supplier codes, UoM codes) MUST render in `font-mono`. When these identifiers are secondary reference (not the primary content), apply `text-muted-foreground` in addition to `font-mono`. Use `TextCell`'s `mono` prop consistently across all table columns displaying codes/IDs.
+
+**Weight Cap:** `font-bold` (700+) is forbidden in this system. The weight vocabulary stops at `font-semibold` (600). Precision reads through tracking and size steps, not heavier weights.
 
 ## Components
 
@@ -159,8 +169,9 @@ One base radius (`--radius: 0.5rem` / 8px) drives the whole scale via `calc()` �
 - **States:** a 2px `ring-ring/30` focus ring; a 1px downward nudge (`translate-y-px`) on `:active` for solid tactile feedback, suppressed on menu-trigger buttons.
 
 ### Chips / Badges
-- **Status Badge:** fully rounded pill, soft-wash background (`bg-success/10 text-success`, etc.) with a small solid dot in the same hue — never a solid-fill badge.
-- **Combobox Chip:** a muted rounded-rectangle tag (`bg-muted-foreground/10`) with an inline remove button that fades in on hover — distinct from a status badge; chips represent selected values, not state.
+- **Status Badge:** fully rounded pill, soft-wash background (`bg-success/10 text-success`, etc.) with a small solid dot in the same hue — never a solid-fill badge. The color carries status; the background stays recessive.
+- **Combobox Chip:** a muted rounded-rectangle tag (`bg-muted-foreground/10 text-foreground`, `rounded-md`) with an inline remove button (X icon) that fades in on hover. Distinct from a status badge: chips represent selected values, not state. Use `rounded-md`, not `rounded-full` — chips are functional, not decorative.
+- **Chip vs Badge distinction:** If it's a removable filter/selection → Chip (rounded-rectangle). If it's a status indicator → Badge (pill shape).
 
 ### Cards / Containers
 - **Corner Style:** `rounded-lg` (8px).
@@ -169,9 +180,17 @@ One base radius (`--radius: 0.5rem` / 8px) drives the whole scale via `calc()` �
 - **Internal Padding:** one shared `--card-spacing` token (16px default, 12px for the `sm` size variant) driving header/content/footer alike.
 
 ### Inputs / Fields
-- **Style:** `rounded-md`, 1px `border-input`, a faint 20% tint of the input color as background (`bg-input/20`), `h-7` to match button height.
+- **Style:** `rounded-md`, 1px `border-input`, a faint tint of the input color as background (`bg-input/20` in light mode, `bg-input/30` in dark mode), `h-7` to match button height. The opacity difference is intentional: dark backgrounds need slightly more contrast to maintain the recessed input affordance.
 - **Focus:** border shifts to `ring` color plus a 2px `ring-ring/30` halo — the same focus treatment as buttons, for a consistent "this is focused" signal across all controls.
 - **Error:** `aria-invalid` swaps the border to `destructive` and adds a `ring-destructive/20` halo — no separate error-only component.
+
+### Opacity Vocabulary
+Three opacity tiers are used throughout the system for consistent translucency:
+- **10%** (`/10`): Soft washes for status badges, inline tips, secondary backgrounds — never meant to draw attention
+- **20%** (`/20`): Hover states, focus ring halos, input backgrounds in light mode — visible but not competing
+- **30%** (`/30`): Active/expanded states, input backgrounds in dark mode, stronger hover feedback — clearly visible while still reading as transparent
+
+Extensions beyond 30% should generally become solid fills instead (`bg-X text-X-foreground`).
 
 ### Navigation (Sidebar)
 - **Style:** charcoal-green fill in light mode, warm-neutral (matching the page background, just darker) in dark mode — see Named Rules under Colors.
@@ -195,11 +214,14 @@ Three horizontal bands rather than one undifferentiated padded box: a `bg-muted/
 - **Do** use `font-semibold tracking-tight` for anything functioning as a title, at the size matching its tier (page vs. section) — regardless of HTML tag.
 - **Do** render document/reference identifiers (`MAT-001`, `TRF-STORE-01-...`, supplier/UoM codes) in `font-mono`, muted when they're a secondary reference — the precision-instrument cue that marks something as an exact identifier, not prose. `TextCell`'s `mono` prop is the sanctioned way; apply it to every list column holding a code, not just some.
 - **Do** keep the radius vocabulary at exactly four derived steps (`sm`/`md`/`lg`/`xl`) plus `full` for pills — a system earns a new radius step only when a real surface needs it, not because `calc()` can generate one.
+- **Do** pair shadow with `ring-1 ring-foreground/10` on floating surfaces — the shadow carries the lift, the ring carries the crisp edge.
 
 ### Don't:
 - **Don't** raise the base radius for a "softer" feel — the brief is a precise, understated operations tool, not a rounded consumer app.
+- **Don't** use `rounded-2xl`, `rounded-3xl`, or `rounded-4xl` — these are explicitly forbidden; stay within the four-step scale or use `rounded-full` for true pills.
 - **Don't** stack a shadow on top of a border for inline surfaces (`Card`, `StatCard`, `DataCard`) — one edge treatment per surface; reach for a stronger border before a shadow.
 - **Don't** use `font-medium` on anything meant to read as a title — that weight is reserved for labels, legends, and emphasized data, a different tier.
 - **Don't** reach for `font-bold` (700+) anywhere — the system caps at `font-semibold` (600). Precision reads through tracking and size steps, not heavier weight; this product has never used a bolder weight and should stay that way.
 - **Don't** reach for the ambient shell-backdrop glow per-page — it's shell-level chrome, set once; a page wanting its own accent should still prefer a flat card.
 - **Don't** treat the POS module's existing screens as a styling reference — per `PRODUCT.md`, POS is currently out of scope for product direction, not just incomplete.
+- **Don't** apply shadow to inline/content surfaces — shadow is reserved for things that float above the page (dialogs, menus, tooltips), never for cards or containers in flow.
