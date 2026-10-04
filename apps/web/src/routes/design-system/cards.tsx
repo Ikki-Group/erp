@@ -223,7 +223,10 @@ function CardsPage() {
 			<Separator />
 
 			{/* ─── EMPTY & LOADING STATES ─── */}
-			<PageSection title="Empty & Loading States" description="Handling data-less and loading scenarios.">
+			<PageSection
+				title="Empty & Loading States"
+				description="Handling data-less and loading scenarios."
+			>
 				<div className="grid gap-4 lg:grid-cols-2">
 					<Card className="max-w-sm">
 						<CardHeader>

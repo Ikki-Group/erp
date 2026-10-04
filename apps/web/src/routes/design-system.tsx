@@ -19,9 +19,10 @@ import {
 
 import { cn } from '@/lib/utils'
 
+import { ThemeToggle } from '@/components/shared/theme-toggle'
+
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
-import { ThemeToggle } from '@/components/shared/theme-toggle'
 
 export const Route = createFileRoute('/design-system')({
 	component: DesignSystemLayout,
