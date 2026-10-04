@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
-import { AlertTriangleIcon } from 'lucide-react'
+import { AlertTriangleIcon, CheckCircle2Icon } from 'lucide-react'
 import { createCallable } from 'react-call'
+
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -30,7 +32,11 @@ interface ConfirmProps {
 
 type ConfirmResponse = boolean
 
-const UNMOUNTING_DELAY = 150
+/** Must cover the dialog's own close animation (150ms) so it finishes before unmount. */
+const UNMOUNTING_DELAY = 300
+
+/** How long the success state is shown before the dialog auto-closes. */
+const SUCCESS_DISPLAY_DURATION = 600
 
 export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 	({
@@ -44,10 +50,20 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 	}) => {
 		const [loading, setLoading] = useState(false)
 		const [error, setError] = useState<string | null>(null)
+		const [success, setSuccess] = useState(false)
+		const isClosingRef = useRef(false)
 
-		const handleConfirm = async () => {
+		const close = useCallback(
+			(result: boolean) => {
+				isClosingRef.current = true
+				call.end(result)
+			},
+			[call],
+		)
+
+		const handleConfirm = useCallback(async () => {
 			if (!onConfirm) {
-				call.end(true)
+				close(true)
 				return
 			}
 
@@ -55,48 +71,91 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 			setError(null)
 			try {
 				await onConfirm()
-				call.end(true)
+				setSuccess(true)
+				setLoading(false)
+				setTimeout(() => close(true), SUCCESS_DISPLAY_DURATION)
 			} catch (e) {
 				setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
 				setLoading(false)
 			}
+		}, [onConfirm, close])
+
+		const handleRetry = () => {
+			setError(null)
+			void handleConfirm()
 		}
 
+		const handleCancel = useCallback(() => {
+			if (!loading && !isClosingRef.current && !success) {
+				close(false)
+			}
+		}, [loading, success, close])
+
+		const handleOpenChange = useCallback(
+			(open: boolean) => {
+				if (!open && !loading && !isClosingRef.current && !success && !call.ended) {
+					close(false)
+				}
+			},
+			[loading, success, call.ended, close],
+		)
+
+		const showFooter = !error && !success
+
 		return (
-			<Dialog
-				open={!call.ended}
-				onOpenChange={(open) => {
-					if (!open && !loading) call.end(false)
-				}}
-			>
-				<DialogContent>
-					<DialogHeader>
-						{variant === 'destructive' && (
-							<div className="mb-2 flex size-10 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-								<AlertTriangleIcon className="size-5" />
+			<Dialog open={!call.ended} onOpenChange={handleOpenChange}>
+				<DialogContent showCloseButton={false}>
+					<DialogHeader className={variant === 'destructive' ? 'bg-destructive/5' : ''}>
+						{!success && variant === 'destructive' && (
+							<div className="mb-1 flex size-10 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/8 text-destructive">
+								<AlertTriangleIcon className="size-5 stroke-[2.5]" />
+							</div>
+						)}
+						{success && (
+							<div className="mb-1 flex size-10 items-center justify-center rounded-lg border border-success/20 bg-success/8 text-success animate-pulse">
+								<CheckCircle2Icon className="size-5" />
 							</div>
 						)}
 						<DialogTitle>{title}</DialogTitle>
 						<DialogDescription>{description}</DialogDescription>
 					</DialogHeader>
+
 					{error && (
-						<p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
-							{error}
-						</p>
+						<div className="animate-in slide-in-from-top-2 duration-200 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs font-medium text-destructive">
+							<div className="mb-2">{error}</div>
+							<Button size="sm" variant="outline" onClick={handleRetry} className="text-xs">
+								Try Again
+							</Button>
+						</div>
 					)}
-					<DialogFooter>
-						<Button variant="outline" onClick={() => call.end(false)} disabled={loading}>
-							{cancelLabel}
-						</Button>
-						<Button
-							variant={variant === 'destructive' ? 'destructive' : 'default'}
-							disabled={loading}
-							onClick={handleConfirm}
-						>
-							{loading && <Spinner className="mr-1.5 size-3.5" />}
-							{confirmLabel}
-						</Button>
-					</DialogFooter>
+
+					{showFooter && (
+						<DialogFooter>
+							<Button variant="outline" onClick={handleCancel} disabled={loading}>
+								{cancelLabel}
+							</Button>
+							<Button
+								variant={variant === 'destructive' ? 'destructive' : 'default'}
+								disabled={loading}
+								onClick={handleConfirm}
+								className={cn(variant === 'destructive' && 'shadow-sm hover:shadow-md')}
+							>
+								{loading && <Spinner className="mr-1.5 size-3.5" />}
+								{confirmLabel}
+							</Button>
+						</DialogFooter>
+					)}
+
+					{success && (
+						<DialogFooter>
+							<Button
+								onClick={() => close(true)}
+								className="w-full animate-in fade-in-0 zoom-in-95 duration-200 sm:w-auto"
+							>
+								Done
+							</Button>
+						</DialogFooter>
+					)}
 				</DialogContent>
 			</Dialog>
 		)
