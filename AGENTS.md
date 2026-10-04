@@ -81,3 +81,12 @@ Default triage vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `rea
 ### Domain docs
 
 Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### UI Components & Design System
+
+Use the `ui-components` skill when building UI features, forms, tables, or ensuring design consistency. It provides component discovery, usage patterns, and critical design rules (e.g., numbers are right-aligned, use cell components in tables).
+
+**Quick links:**
+- Live examples: http://localhost:3000/design-system
+- Full guide: apps/web/COMPONENT_GUIDE.md
+- Skill: .agents/skills/ui-components/SKILL.md
