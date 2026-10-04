@@ -2,6 +2,11 @@ import { useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
+import { useFieldContext } from '@/lib/form/contexts'
+import {
+	NumberInputGroupAddonField,
+	NumberInputGroupField,
+} from '@/lib/form/fields/number-input-group-field'
 import { useAppForm } from '@/lib/form/index.ts'
 
 import {
@@ -162,6 +167,10 @@ function FormFieldsDemo() {
 			category: '',
 			supplier: '',
 			minStock: 10 as number | null,
+			quantity: null as number | null,
+			uomId: null as number | null,
+			quantityEditable: null as number | null,
+			uomIdEditable: null as number | null,
 			expiryDate: undefined as Date | undefined,
 			notes: '',
 			active: true,
@@ -219,6 +228,22 @@ function FormFieldsDemo() {
 						/>
 					)}
 				</form.AppField>
+				{/* Static UOM input group demo */}
+				<form.AppField name="quantity">
+					{() => (
+						<NumberInputGroupAddonField
+							label="Quantity (Static UOM)"
+							uomLabel="kg"
+							description="Fixed unit - weight in kilograms."
+						/>
+					)}
+				</form.AppField>
+				{/* Editable UOM input group demo */}
+				<form.AppField name="quantityEditable">
+					{() => (
+						<form.AppField name="uomIdEditable">{() => <EditableUomInputDemo />}</form.AppField>
+					)}
+				</form.AppField>
 				<form.AppField name="active">
 					{(field) => (
 						<field.SwitchField
@@ -230,6 +255,28 @@ function FormFieldsDemo() {
 				</form.AppField>
 			</div>
 		</form.AppForm>
+	)
+}
+
+// -- Editable UOM input demo --
+function EditableUomInputDemo() {
+	const quantityField = useFieldContext<number | null>()
+	const uomField = useFieldContext<number | null>()
+
+	return (
+		<NumberInputGroupField
+			label="Quantity (Editable UOM)"
+			uomOptions={[
+				{ id: 1, code: 'kg' },
+				{ id: 2, code: 'g' },
+				{ id: 3, code: 'L' },
+				{ id: 4, code: 'mL' },
+				{ id: 5, code: 'pcs' },
+			]}
+			quantityField={quantityField}
+			uomField={uomField}
+			description="Select unit - choose quantity and unit of measure."
+		/>
 	)
 }
 
