@@ -38,9 +38,6 @@ import { Route as AuthenticatedInventoryReceivingIndexRouteImport } from './rout
 import { Route as AuthenticatedInventoryReceivingNewRouteImport } from './routes/_authenticated/inventory/receiving/new'
 import { Route as AuthenticatedInventoryTransfersIndexRouteImport } from './routes/_authenticated/inventory/transfers/index'
 import { Route as AuthenticatedInventoryTransfersNewRouteImport } from './routes/_authenticated/inventory/transfers/new'
-import { Route as AuthenticatedMasterLocationsIndexRouteImport } from './routes/_authenticated/master/locations/index'
-import { Route as AuthenticatedMasterLocationsLocationIdRouteImport } from './routes/_authenticated/master/locations/$locationId'
-import { Route as AuthenticatedMasterLocationsNewRouteImport } from './routes/_authenticated/master/locations/new'
 import { Route as AuthenticatedMasterMaterialsIndexRouteImport } from './routes/_authenticated/master/materials/index'
 import { Route as AuthenticatedMasterMaterialsMaterialIdRouteImport } from './routes/_authenticated/master/materials/$materialId'
 import { Route as AuthenticatedMasterMaterialsNewRouteImport } from './routes/_authenticated/master/materials/new'
@@ -225,24 +222,6 @@ const AuthenticatedInventoryTransfersNewRoute =
   AuthenticatedInventoryTransfersNewRouteImport.update({
     id: '/inventory/transfers/new',
     path: '/inventory/transfers/new',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedMasterLocationsIndexRoute =
-  AuthenticatedMasterLocationsIndexRouteImport.update({
-    id: '/master/locations/',
-    path: '/master/locations/',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedMasterLocationsLocationIdRoute =
-  AuthenticatedMasterLocationsLocationIdRouteImport.update({
-    id: '/master/locations/$locationId',
-    path: '/master/locations/$locationId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedMasterLocationsNewRoute =
-  AuthenticatedMasterLocationsNewRouteImport.update({
-    id: '/master/locations/new',
-    path: '/master/locations/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedMasterMaterialsIndexRoute =
@@ -447,8 +426,6 @@ export interface FileRoutesByFullPath {
   '/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
   '/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
   '/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
-  '/master/locations/$locationId': typeof AuthenticatedMasterLocationsLocationIdRoute
-  '/master/locations/new': typeof AuthenticatedMasterLocationsNewRoute
   '/master/materials/$materialId': typeof AuthenticatedMasterMaterialsMaterialIdRoute
   '/master/materials/new': typeof AuthenticatedMasterMaterialsNewRoute
   '/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
@@ -469,7 +446,6 @@ export interface FileRoutesByFullPath {
   '/settings/users/new': typeof AuthenticatedSettingsUsersNewRoute
   '/inventory/receiving/': typeof AuthenticatedInventoryReceivingIndexRoute
   '/inventory/transfers/': typeof AuthenticatedInventoryTransfersIndexRoute
-  '/master/locations/': typeof AuthenticatedMasterLocationsIndexRoute
   '/master/materials/': typeof AuthenticatedMasterMaterialsIndexRoute
   '/master/menu/': typeof AuthenticatedMasterMenuIndexRoute
   '/master/payment-methods/': typeof AuthenticatedMasterPaymentMethodsIndexRoute
@@ -508,8 +484,6 @@ export interface FileRoutesByTo {
   '/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
   '/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
   '/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
-  '/master/locations/$locationId': typeof AuthenticatedMasterLocationsLocationIdRoute
-  '/master/locations/new': typeof AuthenticatedMasterLocationsNewRoute
   '/master/materials/$materialId': typeof AuthenticatedMasterMaterialsMaterialIdRoute
   '/master/materials/new': typeof AuthenticatedMasterMaterialsNewRoute
   '/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
@@ -530,7 +504,6 @@ export interface FileRoutesByTo {
   '/settings/users/new': typeof AuthenticatedSettingsUsersNewRoute
   '/inventory/receiving': typeof AuthenticatedInventoryReceivingIndexRoute
   '/inventory/transfers': typeof AuthenticatedInventoryTransfersIndexRoute
-  '/master/locations': typeof AuthenticatedMasterLocationsIndexRoute
   '/master/materials': typeof AuthenticatedMasterMaterialsIndexRoute
   '/master/menu': typeof AuthenticatedMasterMenuIndexRoute
   '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsIndexRoute
@@ -572,8 +545,6 @@ export interface FileRoutesById {
   '/_authenticated/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
   '/_authenticated/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
   '/_authenticated/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
-  '/_authenticated/master/locations/$locationId': typeof AuthenticatedMasterLocationsLocationIdRoute
-  '/_authenticated/master/locations/new': typeof AuthenticatedMasterLocationsNewRoute
   '/_authenticated/master/materials/$materialId': typeof AuthenticatedMasterMaterialsMaterialIdRoute
   '/_authenticated/master/materials/new': typeof AuthenticatedMasterMaterialsNewRoute
   '/_authenticated/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
@@ -594,7 +565,6 @@ export interface FileRoutesById {
   '/_authenticated/settings/users/new': typeof AuthenticatedSettingsUsersNewRoute
   '/_authenticated/inventory/receiving/': typeof AuthenticatedInventoryReceivingIndexRoute
   '/_authenticated/inventory/transfers/': typeof AuthenticatedInventoryTransfersIndexRoute
-  '/_authenticated/master/locations/': typeof AuthenticatedMasterLocationsIndexRoute
   '/_authenticated/master/materials/': typeof AuthenticatedMasterMaterialsIndexRoute
   '/_authenticated/master/menu/': typeof AuthenticatedMasterMenuIndexRoute
   '/_authenticated/master/payment-methods/': typeof AuthenticatedMasterPaymentMethodsIndexRoute
@@ -636,8 +606,6 @@ export interface FileRouteTypes {
     | '/settings/location-staff'
     | '/inventory/receiving/new'
     | '/inventory/transfers/new'
-    | '/master/locations/$locationId'
-    | '/master/locations/new'
     | '/master/materials/$materialId'
     | '/master/materials/new'
     | '/master/payment-methods/$paymentMethodId'
@@ -658,7 +626,6 @@ export interface FileRouteTypes {
     | '/settings/users/new'
     | '/inventory/receiving/'
     | '/inventory/transfers/'
-    | '/master/locations/'
     | '/master/materials/'
     | '/master/menu/'
     | '/master/payment-methods/'
@@ -697,8 +664,6 @@ export interface FileRouteTypes {
     | '/settings/location-staff'
     | '/inventory/receiving/new'
     | '/inventory/transfers/new'
-    | '/master/locations/$locationId'
-    | '/master/locations/new'
     | '/master/materials/$materialId'
     | '/master/materials/new'
     | '/master/payment-methods/$paymentMethodId'
@@ -719,7 +684,6 @@ export interface FileRouteTypes {
     | '/settings/users/new'
     | '/inventory/receiving'
     | '/inventory/transfers'
-    | '/master/locations'
     | '/master/materials'
     | '/master/menu'
     | '/master/payment-methods'
@@ -760,8 +724,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/location-staff'
     | '/_authenticated/inventory/receiving/new'
     | '/_authenticated/inventory/transfers/new'
-    | '/_authenticated/master/locations/$locationId'
-    | '/_authenticated/master/locations/new'
     | '/_authenticated/master/materials/$materialId'
     | '/_authenticated/master/materials/new'
     | '/_authenticated/master/payment-methods/$paymentMethodId'
@@ -782,7 +744,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/users/new'
     | '/_authenticated/inventory/receiving/'
     | '/_authenticated/inventory/transfers/'
-    | '/_authenticated/master/locations/'
     | '/_authenticated/master/materials/'
     | '/_authenticated/master/menu/'
     | '/_authenticated/master/payment-methods/'
@@ -1005,27 +966,6 @@ declare module '@tanstack/react-router' {
       path: '/inventory/transfers/new'
       fullPath: '/inventory/transfers/new'
       preLoaderRoute: typeof AuthenticatedInventoryTransfersNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/master/locations/': {
-      id: '/_authenticated/master/locations/'
-      path: '/master/locations'
-      fullPath: '/master/locations/'
-      preLoaderRoute: typeof AuthenticatedMasterLocationsIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/master/locations/$locationId': {
-      id: '/_authenticated/master/locations/$locationId'
-      path: '/master/locations/$locationId'
-      fullPath: '/master/locations/$locationId'
-      preLoaderRoute: typeof AuthenticatedMasterLocationsLocationIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/master/locations/new': {
-      id: '/_authenticated/master/locations/new'
-      path: '/master/locations/new'
-      fullPath: '/master/locations/new'
-      preLoaderRoute: typeof AuthenticatedMasterLocationsNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/master/materials/': {
@@ -1264,8 +1204,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSettingsLocationStaffRoute: typeof AuthenticatedSettingsLocationStaffRoute
   AuthenticatedInventoryReceivingNewRoute: typeof AuthenticatedInventoryReceivingNewRoute
   AuthenticatedInventoryTransfersNewRoute: typeof AuthenticatedInventoryTransfersNewRoute
-  AuthenticatedMasterLocationsLocationIdRoute: typeof AuthenticatedMasterLocationsLocationIdRoute
-  AuthenticatedMasterLocationsNewRoute: typeof AuthenticatedMasterLocationsNewRoute
   AuthenticatedMasterMaterialsMaterialIdRoute: typeof AuthenticatedMasterMaterialsMaterialIdRoute
   AuthenticatedMasterMaterialsNewRoute: typeof AuthenticatedMasterMaterialsNewRoute
   AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute: typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
@@ -1286,7 +1224,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSettingsUsersNewRoute: typeof AuthenticatedSettingsUsersNewRoute
   AuthenticatedInventoryReceivingIndexRoute: typeof AuthenticatedInventoryReceivingIndexRoute
   AuthenticatedInventoryTransfersIndexRoute: typeof AuthenticatedInventoryTransfersIndexRoute
-  AuthenticatedMasterLocationsIndexRoute: typeof AuthenticatedMasterLocationsIndexRoute
   AuthenticatedMasterMaterialsIndexRoute: typeof AuthenticatedMasterMaterialsIndexRoute
   AuthenticatedMasterMenuIndexRoute: typeof AuthenticatedMasterMenuIndexRoute
   AuthenticatedMasterPaymentMethodsIndexRoute: typeof AuthenticatedMasterPaymentMethodsIndexRoute
@@ -1318,9 +1255,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
     AuthenticatedInventoryReceivingNewRoute,
   AuthenticatedInventoryTransfersNewRoute:
     AuthenticatedInventoryTransfersNewRoute,
-  AuthenticatedMasterLocationsLocationIdRoute:
-    AuthenticatedMasterLocationsLocationIdRoute,
-  AuthenticatedMasterLocationsNewRoute: AuthenticatedMasterLocationsNewRoute,
   AuthenticatedMasterMaterialsMaterialIdRoute:
     AuthenticatedMasterMaterialsMaterialIdRoute,
   AuthenticatedMasterMaterialsNewRoute: AuthenticatedMasterMaterialsNewRoute,
@@ -1350,8 +1284,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
     AuthenticatedInventoryReceivingIndexRoute,
   AuthenticatedInventoryTransfersIndexRoute:
     AuthenticatedInventoryTransfersIndexRoute,
-  AuthenticatedMasterLocationsIndexRoute:
-    AuthenticatedMasterLocationsIndexRoute,
   AuthenticatedMasterMaterialsIndexRoute:
     AuthenticatedMasterMaterialsIndexRoute,
   AuthenticatedMasterMenuIndexRoute: AuthenticatedMasterMenuIndexRoute,

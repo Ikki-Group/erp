@@ -219,8 +219,14 @@ function LocationDetailPage() {
 				</CardHeader>
 				<CardContent className="p-0">
 					<DataTable
-						columns={useMemo(() => columns as ColumnDef<DataGridFeatures, AssignedUser>[], [])}
-						data={usersQuery.data?.data ?? []}
+						table={useServerTable({
+							data: usersQuery.data?.data ?? [],
+							columns: columns as ColumnDef<DataGridFeatures, AssignedUser>[],
+							totalCount: userCount,
+							search,
+							onSearchChange: (next) => navigate({ search: next }),
+						}).table}
+						recordCount={userCount}
 						isLoading={usersQuery.isLoading}
 						emptyMessage="No users assigned to this location."
 					/>

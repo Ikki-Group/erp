@@ -47,11 +47,11 @@ function UserPage() {
 		<DetailBoundary query={detailQuery}>
 			{(response) =>
 				search.mode === 'edit' ? (
-					<EditUserForm user={response.data} onDone={() => navigate({ to: '/settings/users' })} />
+					<EditUserForm user={response.data} onDone={() => navigate({ to: '/settings/access-control', search: { tab: 'users' } })} />
 				) : (
 					<UserDetailView
 						user={response.data}
-						onBack={() => navigate({ to: '/settings/users' })}
+						onBack={() => navigate({ to: '/settings/access-control', search: { tab: 'users' } })}
 						onEdit={() => navigate({ search: { mode: 'edit' } })}
 					/>
 				)

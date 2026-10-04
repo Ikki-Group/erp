@@ -22,7 +22,7 @@ function NewRolePage() {
 		onSubmit: async (values) => {
 			await createMut.mutateAsync(values)
 			toast.add({ title: 'Role created successfully.', type: 'success' })
-			navigate({ to: '/settings/roles' })
+			navigate({ to: '/settings/access-control', search: { tab: 'roles' } })
 		},
 	})
 
@@ -35,7 +35,7 @@ function NewRolePage() {
 				description="Create a new role with specific permissions."
 				form={form}
 				submitLabel="Create"
-				onCancel={() => navigate({ to: '/settings/roles' })}
+				onCancel={() => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })}
 			>
 				<RoleFormFields form={form} />
 			</FormPage>

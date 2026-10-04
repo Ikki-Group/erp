@@ -53,7 +53,7 @@ function NewUserPage() {
 			}
 
 			toast.add({ title: 'User created successfully.', type: 'success' })
-			navigate({ to: '/settings/users' })
+			navigate({ to: '/settings/access-control', search: { tab: 'users' } })
 		},
 	})
 
@@ -66,7 +66,7 @@ function NewUserPage() {
 				description="Create a new user account."
 				form={form}
 				submitLabel="Create"
-				onCancel={() => navigate({ to: '/settings/users' })}
+				onCancel={() => navigate({ to: '/settings/access-control', search: { tab: 'users' } })}
 			>
 				<UserFormFields
 					form={form}

@@ -13,7 +13,6 @@ import {
 	ShieldCheckIcon,
 	StoreIcon,
 	TruckIcon,
-	UsersIcon,
 	UtensilsCrossedIcon,
 	WalletIcon,
 	type LucideIcon,

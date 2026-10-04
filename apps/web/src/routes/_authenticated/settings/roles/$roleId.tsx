@@ -31,10 +31,10 @@ function RoleDetailPage() {
 				response.data.isSystem ? (
 					<SystemRoleDetail
 						role={response.data}
-						onDone={() => navigate({ to: '/settings/roles' })}
+						onDone={() => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })}
 					/>
 				) : (
-					<EditRoleForm role={response.data} onDone={() => navigate({ to: '/settings/roles' })} />
+					<EditRoleForm role={response.data} onDone={() => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })} />
 				)
 			}
 		</DetailBoundary>

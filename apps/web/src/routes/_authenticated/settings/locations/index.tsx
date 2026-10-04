@@ -5,13 +5,17 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
 
-import { Building2Icon, MapPinIcon, PlusIcon, WarehouseIcon } from 'lucide-react'
+import { Building2Icon, MapPinIcon, PlusIcon, WarehouseIcon, EditIcon, TrashIcon } from 'lucide-react'
 
 import { DataTable, listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { Button } from '@/components/ui/button'
 import { PageHeader, StatCard } from '@/components/shared'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { createActionColumn } from '@/components/shared/action-column'
+import { usePermissionCheck } from '@/components/shared/permission-gate'
+import { confirm } from '@/components/shared/confirm'
+import { toast } from '@/components/ui/toast'
 
 import { locationResource } from '@/features/location/api'
 import type { LocationDto } from '@/features/location/dto'
@@ -77,6 +81,9 @@ const columns = [
 function LocationsPage() {
 	const search = Route.useSearch()
 	const navigate = useNavigate({ from: Route.fullPath })
+	const canCreate = usePermissionCheck({ permission: 'location.create' })
+	const canEdit = usePermissionCheck({ permission: 'location.update' })
+	const canDelete = usePermissionCheck({ permission: 'location.delete' })
 
 	const listQuery = useQuery(
 		locationResource.list.queryOptions({
@@ -90,16 +97,55 @@ function LocationsPage() {
 	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
 
-	const { table, globalFilter } = useServerTable({
-		data,
-		columns: useMemo(
-			() => columns as ColumnDef<DataGridFeatures, LocationDto>[],
-			[],
-		),
-		totalCount,
-		search,
-		onSearchChange: (next) => navigate({ search: next }),
+const handleDelete = async (location: LocationDto) => {
+	await confirm({
+		title: 'Delete location?',
+		description: `This will permanently delete "${location.name}". This action cannot be undone.`,
+		confirmLabel: 'Delete',
+		variant: 'destructive',
+		onConfirm: async () => {
+			await locationResource.remove.fetch({ id: location.id })
+			toast.add({ title: 'Location deleted successfully.', type: 'success' })
+		},
 	})
+}
+
+const actionsColumn = useMemo(
+	() =>
+		createActionColumn<LocationDto>({
+			getItems: (location) => [
+				canEdit && {
+					label: 'Edit',
+					icon: <EditIcon className="size-4" />,
+					onClick: () =>
+						navigate({
+							to: '/settings/locations/$locationId/edit',
+							params: { locationId: String(location.id) },
+						}),
+				},
+				canDelete && {
+					label: 'Delete',
+					icon: <TrashIcon className="size-4" />,
+					onClick: () => handleDelete(location),
+					variant: 'destructive' as const,
+				},
+			],
+		}),
+	[canEdit, canDelete, handleDelete, navigate],
+)
+
+const allColumns = useMemo(
+	() => [...columns, actionsColumn] as ColumnDef<DataGridFeatures, LocationDto>[],
+	[actionsColumn],
+)
+
+const { table, globalFilter } = useServerTable({
+	data,
+	columns: allColumns,
+	totalCount,
+	search,
+	onSearchChange: (next) => navigate({ search: next }),
+})
 
 	const stores = useMemo(() => data.filter((l) => l.type === 'store').length, [data])
 	const warehouses = useMemo(() => data.filter((l) => l.type === 'warehouse').length, [data])
@@ -139,10 +185,12 @@ function LocationsPage() {
 				title="Locations"
 				description="Manage stores and warehouses."
 				actions={
-					<Button size="sm" onClick={() => navigate({ to: '/settings/locations/new' })}>
-						<PlusIcon className="size-4" />
-						Add Location
-					</Button>
+					canCreate && (
+						<Button size="sm" onClick={() => navigate({ to: '/settings/locations/new' })}>
+							<PlusIcon className="size-4" />
+							Add Location
+						</Button>
+					)
 				}
 			/>
 
@@ -152,14 +200,7 @@ function LocationsPage() {
 				table={table}
 				recordCount={totalCount}
 				isLoading={listQuery.isLoading}
-				isEmpty={!listQuery.isLoading && data.length === 0 && !globalFilter}
 				emptyMessage="No locations found."
-				onRowClick={(row: LocationDto) =>
-					navigate({
-						to: '/settings/locations/$locationId',
-						params: { locationId: String(row.id) },
-					})
-				}
 			/>
 		</div>
 	)
