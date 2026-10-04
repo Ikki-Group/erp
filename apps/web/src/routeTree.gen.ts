@@ -16,6 +16,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
 import { Route as DesignSystemIndexRouteImport } from './routes/design-system/index'
 import { Route as DesignSystemButtonsRouteImport } from './routes/design-system/buttons'
+import { Route as DesignSystemCardsRouteImport } from './routes/design-system/cards'
 import { Route as DesignSystemChartsRouteImport } from './routes/design-system/charts'
 import { Route as DesignSystemDataDisplayRouteImport } from './routes/design-system/data-display'
 import { Route as DesignSystemFeedbackRouteImport } from './routes/design-system/feedback'
@@ -99,6 +100,11 @@ const DesignSystemIndexRoute = DesignSystemIndexRouteImport.update({
 const DesignSystemButtonsRoute = DesignSystemButtonsRouteImport.update({
   id: '/buttons',
   path: '/buttons',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
+const DesignSystemCardsRoute = DesignSystemCardsRouteImport.update({
+  id: '/cards',
+  path: '/cards',
   getParentRoute: () => DesignSystemRoute,
 } as any)
 const DesignSystemChartsRoute = DesignSystemChartsRouteImport.update({
@@ -399,6 +405,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
   '/design-system/buttons': typeof DesignSystemButtonsRoute
+  '/design-system/cards': typeof DesignSystemCardsRoute
   '/design-system/charts': typeof DesignSystemChartsRoute
   '/design-system/data-display': typeof DesignSystemDataDisplayRoute
   '/design-system/feedback': typeof DesignSystemFeedbackRoute
@@ -455,6 +462,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/demo': typeof AuthenticatedDemoRoute
   '/design-system/buttons': typeof DesignSystemButtonsRoute
+  '/design-system/cards': typeof DesignSystemCardsRoute
   '/design-system/charts': typeof DesignSystemChartsRoute
   '/design-system/data-display': typeof DesignSystemDataDisplayRoute
   '/design-system/feedback': typeof DesignSystemFeedbackRoute
@@ -515,6 +523,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/demo': typeof AuthenticatedDemoRoute
   '/design-system/buttons': typeof DesignSystemButtonsRoute
+  '/design-system/cards': typeof DesignSystemCardsRoute
   '/design-system/charts': typeof DesignSystemChartsRoute
   '/design-system/data-display': typeof DesignSystemDataDisplayRoute
   '/design-system/feedback': typeof DesignSystemFeedbackRoute
@@ -576,6 +585,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/demo'
     | '/design-system/buttons'
+    | '/design-system/cards'
     | '/design-system/charts'
     | '/design-system/data-display'
     | '/design-system/feedback'
@@ -632,6 +642,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/demo'
     | '/design-system/buttons'
+    | '/design-system/cards'
     | '/design-system/charts'
     | '/design-system/data-display'
     | '/design-system/feedback'
@@ -691,6 +702,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/demo'
     | '/design-system/buttons'
+    | '/design-system/cards'
     | '/design-system/charts'
     | '/design-system/data-display'
     | '/design-system/feedback'
@@ -800,6 +812,13 @@ declare module '@tanstack/react-router' {
       path: '/buttons'
       fullPath: '/design-system/buttons'
       preLoaderRoute: typeof DesignSystemButtonsRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
+    '/design-system/cards': {
+      id: '/design-system/cards'
+      path: '/cards'
+      fullPath: '/design-system/cards'
+      preLoaderRoute: typeof DesignSystemCardsRouteImport
       parentRoute: typeof DesignSystemRoute
     }
     '/design-system/charts': {
@@ -1273,6 +1292,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 interface DesignSystemRouteChildren {
   DesignSystemButtonsRoute: typeof DesignSystemButtonsRoute
+  DesignSystemCardsRoute: typeof DesignSystemCardsRoute
   DesignSystemChartsRoute: typeof DesignSystemChartsRoute
   DesignSystemDataDisplayRoute: typeof DesignSystemDataDisplayRoute
   DesignSystemFeedbackRoute: typeof DesignSystemFeedbackRoute
@@ -1285,6 +1305,7 @@ interface DesignSystemRouteChildren {
 
 const DesignSystemRouteChildren: DesignSystemRouteChildren = {
   DesignSystemButtonsRoute: DesignSystemButtonsRoute,
+  DesignSystemCardsRoute: DesignSystemCardsRoute,
   DesignSystemChartsRoute: DesignSystemChartsRoute,
   DesignSystemDataDisplayRoute: DesignSystemDataDisplayRoute,
   DesignSystemFeedbackRoute: DesignSystemFeedbackRoute,

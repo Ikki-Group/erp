@@ -53,6 +53,7 @@ const NAV_GROUPS: readonly NavGroup[] = [
 		items: [
 			{ title: 'Buttons & Actions', href: '/design-system/buttons', icon: MousePointerClickIcon },
 			{ title: 'Forms & Inputs', href: '/design-system/forms', icon: SlidersHorizontalIcon },
+			{ title: 'Cards', href: '/design-system/cards', icon: BoxesIcon },
 			{ title: 'Data Display', href: '/design-system/data-display', icon: BoxesIcon },
 			{ title: 'Tables', href: '/design-system/tables', icon: TableIcon },
 			{ title: 'Feedback', href: '/design-system/feedback', icon: MessageSquareWarningIcon },
