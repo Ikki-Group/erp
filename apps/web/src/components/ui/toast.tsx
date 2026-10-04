@@ -126,7 +126,7 @@ function ToastClose({
 			aria-label="Close toast"
 			render={render}
 			className={cn(
-				"relative shrink-0 text-muted-foreground after:absolute after:-inset-2 after:content-[''] hover:text-foreground",
+				"relative shrink-0 text-muted-foreground transition-transform after:absolute after:-inset-2 after:content-[''] hover:text-foreground hover:rotate-90",
 				className,
 			)}
 			{...props}
@@ -134,6 +134,14 @@ function ToastClose({
 			{children ?? <XIcon aria-hidden="true" />}
 		</ToastPrimitive.Close>
 	)
+}
+
+const TOAST_ICON_TONE: Record<string, string> = {
+	success: 'bg-success/10 text-success',
+	info: 'bg-info/10 text-info',
+	warning: 'bg-warning/10 text-warning',
+	error: 'bg-destructive/10 text-destructive',
+	loading: 'bg-muted text-muted-foreground',
 }
 
 function ToastIcon({ type }: { type: string | undefined }) {
@@ -152,21 +160,24 @@ function ToastIcon({ type }: { type: string | undefined }) {
 	}
 
 	if (type === 'error') {
-		icon = <OctagonXIcon className="text-destructive" aria-hidden="true" />
+		icon = <OctagonXIcon aria-hidden="true" />
 	}
 
 	if (type === 'loading') {
 		icon = <Loader2Icon className="animate-spin" aria-hidden="true" />
 	}
 
-	if (!icon) {
+	if (!icon || !type) {
 		return null
 	}
 
 	return (
 		<span
 			data-slot="toast-icon"
-			className="shrink-0 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4"
+			className={cn(
+				"flex size-7 shrink-0 items-center justify-center rounded-md [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
+				TOAST_ICON_TONE[type],
+			)}
 		>
 			{icon}
 		</span>
