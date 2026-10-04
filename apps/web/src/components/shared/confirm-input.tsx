@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import { AlertTriangleIcon } from 'lucide-react'
 import { createCallable } from 'react-call'
@@ -33,7 +33,8 @@ interface ConfirmInputProps {
 
 type ConfirmInputResponse = boolean
 
-const UNMOUNTING_DELAY = 150
+/** Must cover the dialog's own close animation (150ms) so it finishes before unmount. */
+const UNMOUNTING_DELAY = 300
 
 export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputResponse>(
 	({
@@ -50,11 +51,20 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 		const [value, setValue] = useState('')
 		const [loading, setLoading] = useState(false)
 		const [error, setError] = useState<string | null>(null)
+		const isClosingRef = useRef(false)
 		const isMatch = value === confirmWord
+
+		const close = useCallback(
+			(result: boolean) => {
+				isClosingRef.current = true
+				call.end(result)
+			},
+			[call],
+		)
 
 		const handleConfirm = async () => {
 			if (!onConfirm) {
-				call.end(true)
+				close(true)
 				return
 			}
 
@@ -62,24 +72,34 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 			setError(null)
 			try {
 				await onConfirm()
-				call.end(true)
+				close(true)
 			} catch (e) {
 				setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
 				setLoading(false)
 			}
 		}
 
+		const handleCancel = useCallback(() => {
+			if (!loading && !isClosingRef.current) {
+				close(false)
+			}
+		}, [loading, close])
+
+		const handleOpenChange = useCallback(
+			(open: boolean) => {
+				if (!open && !loading && !isClosingRef.current && !call.ended) {
+					close(false)
+				}
+			},
+			[loading, call.ended, close],
+		)
+
 		return (
-			<Dialog
-				open={!call.ended}
-				onOpenChange={(open) => {
-					if (!open && !loading) call.end(false)
-				}}
-			>
-				<DialogContent>
-					<DialogHeader>
-						<div className="mb-2 flex size-10 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-							<AlertTriangleIcon className="size-5" />
+			<Dialog open={!call.ended} onOpenChange={handleOpenChange}>
+				<DialogContent showCloseButton={false}>
+					<DialogHeader className="bg-destructive/5">
+						<div className="mb-1 flex size-10 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/8 text-destructive">
+							<AlertTriangleIcon className="size-5 stroke-[2.5]" />
 						</div>
 						<DialogTitle>{title}</DialogTitle>
 						<DialogDescription>{description}</DialogDescription>
@@ -104,18 +124,19 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 						/>
 					</div>
 					{error && (
-						<p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+						<div className="animate-in slide-in-from-top-2 duration-200 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs font-medium text-destructive">
 							{error}
-						</p>
+						</div>
 					)}
 					<DialogFooter>
-						<Button variant="outline" onClick={() => call.end(false)} disabled={loading}>
+						<Button variant="outline" onClick={handleCancel} disabled={loading}>
 							{cancelLabel}
 						</Button>
 						<Button
 							variant="destructive"
 							disabled={!isMatch || loading}
 							onClick={handleConfirm}
+							className="shadow-sm hover:shadow-md"
 						>
 							{loading && <Spinner className="mr-1.5 size-3.5" />}
 							{confirmLabel}
