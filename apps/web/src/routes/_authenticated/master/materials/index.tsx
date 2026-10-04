@@ -55,6 +55,8 @@ const baseColumns = [
 	col.accessor('name', {
 		header: 'Name',
 		size: 200,
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <TextCell value={getValue()} truncate />,
 	}),
 	col.accessor('type', {
 		header: 'Type',

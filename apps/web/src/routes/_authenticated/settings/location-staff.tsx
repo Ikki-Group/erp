@@ -33,6 +33,8 @@ const locationStaffColumns = [
 	col.accessor('name', {
 		header: 'Name',
 		size: 220,
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <TextCell value={getValue()} truncate />,
 	}),
 	col.accessor('username', {
 		header: 'Username',
@@ -42,6 +44,8 @@ const locationStaffColumns = [
 	col.accessor('email', {
 		header: 'Email',
 		size: 220,
+		// oxlint-disable-next-line react/no-unstable-nested-components
+		cell: ({ getValue }) => <TextCell value={getValue()} truncate />,
 	}),
 	col.accessor('roleName', {
 		header: 'Role',

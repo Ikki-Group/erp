@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { CurrencyDisplay } from '@/components/shared/currency-display'
 
 /**
@@ -94,7 +95,7 @@ export function CurrencyCell({ value, currency, locale, className }: CurrencyCel
 
 interface TextCellProps {
 	value: ReactNode
-	/** Truncates with an ellipsis and shows the full string in a title tooltip. */
+	/** Truncates with an ellipsis and shows a tooltip on hover/focus when text overflows. */
 	truncate?: boolean
 	muted?: boolean
 	/** Small monospaced text — the convention for codes/SKUs. */
@@ -102,7 +103,10 @@ interface TextCellProps {
 	className?: string
 }
 
-/** Left-aligned text cell with optional truncation + title tooltip for long values. */
+/**
+ * Left-aligned text cell with optional truncation.
+ * When `truncate` is true and the text overflows, a Tooltip shows the full content on hover and keyboard focus.
+ */
 export function TextCell({
 	value,
 	truncate = false,
@@ -110,9 +114,19 @@ export function TextCell({
 	mono = false,
 	className,
 }: TextCellProps) {
-	return (
+	const textRef = useRef<HTMLSpanElement>(null)
+	const [isOverflowing, setIsOverflowing] = useState(false)
+
+	useEffect(() => {
+		if (truncate && textRef.current) {
+			const { scrollWidth, clientWidth } = textRef.current
+			setIsOverflowing(scrollWidth > clientWidth)
+		}
+	}, [value, truncate])
+
+	const content = (
 		<span
-			title={truncate && typeof value === 'string' ? value : undefined}
+			ref={textRef}
 			className={cn(
 				truncate && 'block truncate',
 				mono ? 'font-mono text-xs' : 'text-sm',
@@ -122,6 +136,19 @@ export function TextCell({
 		>
 			{value}
 		</span>
+	)
+
+	if (!truncate || !isOverflowing || typeof value !== 'string') {
+		return content
+	}
+
+	return (
+		<Tooltip>
+			<TooltipTrigger render={content} />
+			<TooltipContent side="top" className="max-w-sm">
+				{value}
+			</TooltipContent>
+		</Tooltip>
 	)
 }
 
