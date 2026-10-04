@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { createCallable } from 'react-call'
@@ -62,7 +62,8 @@ export type FormDialogProps = FormDialogRenderProps | FormDialogLegacyProps
 
 type FormDialogResponse = boolean
 
-const UNMOUNTING_DELAY = 150
+/** Must cover the dialog's own close animation (150ms) so it finishes before unmount. */
+const UNMOUNTING_DELAY = 300
 
 function isRenderProp(
 	content: FormDialogProps['content'],
@@ -74,7 +75,15 @@ export const FormDialog = createCallable<FormDialogProps, FormDialogResponse>(
 	({ call, title, description, content, className, onSubmit, submitLabel, cancelLabel }) => {
 		const [loading, setLoading] = useState(false)
 		const [error, setError] = useState<string | null>(null)
-		const close = (result = false) => call.end(result)
+		const isClosingRef = useRef(false)
+
+		const close = useCallback(
+			(result = false) => {
+				isClosingRef.current = true
+				call.end(result)
+			},
+			[call],
+		)
 
 		const handleLegacySubmit = async () => {
 			if (!onSubmit) return
@@ -89,13 +98,23 @@ export const FormDialog = createCallable<FormDialogProps, FormDialogResponse>(
 			}
 		}
 
+		const handleCancel = useCallback(() => {
+			if (!loading && !isClosingRef.current) {
+				close(false)
+			}
+		}, [loading, close])
+
+		const handleOpenChange = useCallback(
+			(open: boolean) => {
+				if (!open && !loading && !isClosingRef.current && !call.ended) {
+					close(false)
+				}
+			},
+			[loading, call.ended, close],
+		)
+
 		return (
-			<Dialog
-				open={!call.ended}
-				onOpenChange={(open) => {
-					if (!open && !loading) close(false)
-				}}
-			>
+			<Dialog open={!call.ended} onOpenChange={handleOpenChange}>
 				<DialogContent className={cn('sm:max-w-md', className)}>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
@@ -108,12 +127,12 @@ export const FormDialog = createCallable<FormDialogProps, FormDialogResponse>(
 						<>
 							<div className="py-2">{content}</div>
 							{error && (
-								<p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+								<div className="animate-in slide-in-from-top-2 duration-200 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs font-medium text-destructive">
 									{error}
-								</p>
+								</div>
 							)}
 							<DialogFooter>
-								<Button variant="outline" onClick={() => close(false)} disabled={loading}>
+								<Button variant="outline" onClick={handleCancel} disabled={loading}>
 									{cancelLabel ?? 'Cancel'}
 								</Button>
 								<Button onClick={handleLegacySubmit} disabled={loading}>
