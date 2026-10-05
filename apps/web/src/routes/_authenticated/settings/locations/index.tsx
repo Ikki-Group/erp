@@ -179,29 +179,33 @@ const { table, globalFilter } = useServerTable({
 		[totalCount, stores, warehouses, listQuery.isLoading],
 	)
 
-	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Locations"
-				description="Manage stores and warehouses."
-				actions={
-					canCreate && (
-						<Button size="sm" onClick={() => navigate({ to: '/settings/locations/new' })}>
-							<PlusIcon className="size-4" />
-							Add Location
-						</Button>
-					)
-				}
-			/>
+return (
+	<div className="space-y-6">
+		<PageHeader
+			title="Locations"
+			description="Manage stores and warehouses."
+			actions={
+				canCreate && (
+					<Button size="sm" onClick={() => navigate({ to: '/settings/locations/new' })}>
+						<PlusIcon className="size-4" />
+						Add Location
+					</Button>
+				)
+			}
+		/>
 
-			{stats}
+		{stats}
 
-			<DataTable
-				table={table}
-				recordCount={totalCount}
-				isLoading={listQuery.isLoading}
-				emptyMessage="No locations found."
-			/>
-		</div>
-	)
+		<DataTable
+			table={table}
+			recordCount={totalCount}
+			isLoading={listQuery.isLoading}
+			emptyMessage="No locations found."
+			onRowClick={(location) => navigate({
+				to: '/settings/locations/$locationId',
+				params: { locationId: String(location.id) },
+			})}
+		/>
+	</div>
+)
 }
