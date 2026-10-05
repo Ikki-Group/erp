@@ -39,20 +39,20 @@ export const Route = createFileRoute('/_authenticated/settings/audit')({
 // (the `module:` field in each *.service.ts audit.record call). POS is split
 // per sub-entity (pos-order/shift/table/voucher); there is no bare 'pos'.
 const MODULE_OPTIONS = [
-	{ label: 'Location', value: 'location' },
-	{ label: 'Material', value: 'material' },
-	{ label: 'Supplier', value: 'supplier' },
-	{ label: 'UoM', value: 'uom' },
-	{ label: 'Menu', value: 'menu' },
-	{ label: 'Recipe', value: 'recipe' },
-	{ label: 'Inventory', value: 'inventory' },
-	{ label: 'POS · Order', value: 'pos-order' },
-	{ label: 'POS · Shift', value: 'pos-shift' },
-	{ label: 'POS · Table', value: 'pos-table' },
-	{ label: 'POS · Voucher', value: 'pos-voucher' },
-	{ label: 'Production', value: 'production' },
-	{ label: 'IAM', value: 'iam' },
-	{ label: 'Company', value: 'company' },
+	{ label: 'Location', value: 'location', description: 'Store and warehouse locations' },
+	{ label: 'Material', value: 'material', description: 'Raw materials and ingredients' },
+	{ label: 'Supplier', value: 'supplier', description: 'Vendor management' },
+	{ label: 'UoM', value: 'uom', description: 'Units of measurement' },
+	{ label: 'Menu', value: 'menu', description: 'Menu items and categories' },
+	{ label: 'Recipe', value: 'recipe', description: 'Recipe configurations' },
+	{ label: 'Inventory', value: 'inventory', description: 'Stock levels and adjustments' },
+	{ label: 'POS · Order', value: 'pos-order', description: 'Sales transactions' },
+	{ label: 'POS · Shift', value: 'pos-shift', description: 'Staff work sessions' },
+	{ label: 'POS · Table', value: 'pos-table', description: 'Table management' },
+	{ label: 'POS · Voucher', value: 'pos-voucher', description: 'Discount vouchers' },
+	{ label: 'Production', value: 'production', description: 'Manufacturing processes' },
+	{ label: 'IAM', value: 'iam', description: 'Users, roles, permissions' },
+	{ label: 'Company', value: 'company', description: 'Company settings' },
 ]
 
 const ACTION_OPTIONS = [

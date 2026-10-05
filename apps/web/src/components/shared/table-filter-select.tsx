@@ -11,6 +11,7 @@ import {
 export interface TableFilterOption {
 	label: string
 	value: string
+	description?: string
 }
 
 interface TableFilterSelectBaseProps {
@@ -107,7 +108,12 @@ export function TableFilterSelect({
 				<SelectItem value={ALL_VALUE}>{allLabel}</SelectItem>
 				{options.map((opt) => (
 					<SelectItem key={opt.value} value={opt.value}>
-						{opt.label}
+						<div className="flex flex-col gap-0.5">
+							<span className="font-medium">{opt.label}</span>
+							{opt.description && (
+								<span className="text-xs text-muted-foreground">{opt.description}</span>
+							)}
+						</div>
 					</SelectItem>
 				))}
 			</SelectContent>
