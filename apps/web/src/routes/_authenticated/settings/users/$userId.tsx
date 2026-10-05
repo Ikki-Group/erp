@@ -62,6 +62,90 @@ function UserPage() {
 	)
 }
 
+interface AssignmentGroupsProps {
+	assignments: UserDetailDto['assignments']
+}
+
+/**
+ * Groups role assignments by location for better visual hierarchy.
+ * Global assignments are shown first, followed by location-specific ones.
+ */
+function AssignmentGroups({ assignments }: AssignmentGroupsProps) {
+	const globalAssignments = assignments.filter((a) => !a.location)
+	const locationAssignments = assignments.filter((a) => a.location)
+
+	// Group location assignments by location
+	const locationGroups = locationAssignments.reduce(
+		(acc, assignment) => {
+			const key = assignment.location!.id
+			if (!acc[key]) {
+				acc[key] = {
+					location: assignment.location!,
+					assignments: [],
+				}
+			}
+			acc[key].assignments.push(assignment)
+			return acc
+		},
+		{} as Record<number, { location: NonNullable<UserDetailDto['assignments'][0]['location']>; assignments: typeof assignments }>
+)
+
+	return (
+		<div className="space-y-4">
+			{/* Global assignments */}
+			{globalAssignments.length > 0 && (
+				<div>
+					<div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+						<DetailIcon icon={<Globe2Icon />} className="size-3.5" />
+						<span>Global · all locations</span>
+					</div>
+					<div className="grid gap-3 sm:grid-cols-2">
+						{globalAssignments.map((assignment) => (
+							<AssignmentCard key={assignment.id} assignment={assignment} />
+						))}
+					</div>
+				</div>
+			)}
+
+			{/* Location-specific assignments */}
+			{Object.values(locationGroups).map(({ location, assignments: groupAssignments }) => (
+				<div key={location.id}>
+					<div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+						<DetailIcon icon={<MapPinIcon />} className="size-3.5" />
+						<span>
+							{location.name} ({location.code})
+						</span>
+					</div>
+					<div className="grid gap-3 sm:grid-cols-2">
+						{groupAssignments.map((assignment) => (
+							<AssignmentCard key={assignment.id} assignment={assignment} />
+						))}
+					</div>
+				</div>
+			))}
+		</div>
+	)
+}
+
+interface AssignmentCardProps {
+	assignment: UserDetailDto['assignments'][0]
+}
+
+function AssignmentCard({ assignment }: AssignmentCardProps) {
+	return (
+		<div className="rounded-lg border p-3">
+			<div className="flex items-start justify-between gap-3">
+				<div className="flex-1">
+					<p className="font-medium">{assignment.role.name}</p>
+					<p className="font-mono text-xs text-muted-foreground">
+						{assignment.role.code}
+					</p>
+				</div>
+			</div>
+		</div>
+	)
+}
+
 interface UserDetailViewProps {
 	user: UserDetailDto
 	onBack: () => void
@@ -153,35 +237,7 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 						description="This user cannot access any protected resources."
 					/>
 				) : (
-					<div className="grid gap-3 sm:grid-cols-2">
-						{user.assignments.map((assignment) => (
-							<div key={assignment.id} className="rounded-lg border p-3">
-								<div className="flex items-start justify-between gap-3">
-									<div>
-										<p className="font-medium">{assignment.role.name}</p>
-										<p className="font-mono text-xs text-muted-foreground">
-											{assignment.role.code}
-										</p>
-									</div>
-									<DetailIcon
-										icon={
-											assignment.location ? (
-												<MapPinIcon />
-											) : (
-												<Globe2Icon />
-											)
-										}
-										className="text-muted-foreground"
-										/>
-									</div>
-								<p className="mt-3 text-xs text-muted-foreground">
-									{assignment.location
-										? `${assignment.location.name} (${assignment.location.code})`
-										: 'Global access · all locations'}
-								</p>
-							</div>
-						))}
-					</div>
+					<AssignmentGroups assignments={user.assignments} />
 				)}
 			</DetailSection>
 
