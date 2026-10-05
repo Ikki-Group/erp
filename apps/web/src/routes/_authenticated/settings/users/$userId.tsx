@@ -3,18 +3,20 @@ import { useCallback, useMemo } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { ArrowLeftIcon, EditIcon, Globe2Icon, KeyRoundIcon, MapPinIcon } from 'lucide-react'
+import { ArrowLeftIcon, EditIcon, Globe2Icon, KeyRoundIcon, MapPinIcon, UserIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
+import { AuditInfo } from '@/components/shared/audit-info.tsx'
 import { AuditTrail } from '@/components/shared/audit-trail.tsx'
 import { CrudForm } from '@/components/shared/crud-form.tsx'
 import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
+import { DetailIcon } from '@/components/shared/detail-icon.tsx'
 import { DetailList } from '@/components/shared/detail-list.tsx'
+import { DetailPage } from '@/components/shared/detail-page.tsx'
+import { DetailSection } from '@/components/shared/detail-section.tsx'
 import { EmptyState } from '@/components/shared/empty-state.tsx'
-import { PageHeader } from '@/components/shared/page-header.tsx'
-import { PageSection } from '@/components/shared/page-section.tsx'
 import { usePermissionCheck } from '@/components/shared/permission-gate.tsx'
 import { StatusBadge } from '@/components/shared/status-badge.tsx'
 
@@ -81,53 +83,63 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 	}, [user])
 
 	return (
-		<div className="mx-auto max-w-3xl space-y-6 pb-20">
-			<Button variant="ghost" size="sm" className="-ml-2 gap-1.5" onClick={onBack}>
-				<ArrowLeftIcon className="size-3.5" />
-				Back to users
-			</Button>
-
-			<PageHeader
-				title="User Details"
-				description={`View profile and access assignments for ${user.name}.`}
-				actions={
-					canEdit && (
-						<div className="flex gap-2">
-							<Button variant="outline" size="sm" onClick={handleResetPassword}>
-								<KeyRoundIcon className="size-4" />
-								Reset Password
-							</Button>
-							<Button size="sm" onClick={onEdit}>
-								<EditIcon className="size-4" />
-								Edit User
-							</Button>
-						</div>
-					)
-				}
+		<DetailPage
+			title={user.name}
+			description={`Username: ${user.username}`}
+			breadcrumbs={
+				<Button variant="ghost" size="sm" className="-ml-2 gap-1.5" onClick={onBack}>
+					<ArrowLeftIcon className="size-3.5" />
+					Back to users
+				</Button>
+			}
+			status={
+				<StatusBadge variant={user.isActive ? 'success' : 'default'}>
+					{user.isActive ? 'Active' : 'Inactive'}
+				</StatusBadge>
+			}
+			actions={
+				canEdit && (
+					<div className="flex gap-2">
+						<Button variant="outline" size="sm" onClick={handleResetPassword}>
+							<KeyRoundIcon className="size-4" />
+							Reset Password
+						</Button>
+						<Button size="sm" onClick={onEdit}>
+							<EditIcon className="size-4" />
+							Edit User
+						</Button>
+					</div>
+				)
+			}
+		>
+			<DetailSection title="Profile" description="Basic account information and sign-in status.">
+			<DetailList
+				items={[
+					{ label: 'Full name', value: user.name },
+					{
+						label: 'Username',
+						value: <code className="font-mono text-sm">{user.username}</code>,
+					},
+					{ label: 'Email', value: user.email },
+					{
+						label: 'Status',
+						value: (
+							<StatusBadge variant={user.isActive ? 'success' : 'default'}>
+								{user.isActive ? 'Active' : 'Inactive'}
+							</StatusBadge>
+						),
+					},
+				]}
 			/>
+			<AuditInfo
+				createdAt={user.createdAt}
+				createdBy={user.createdBy}
+				updatedAt={user.updatedAt}
+				updatedBy={user.updatedBy}
+			/>
+			</DetailSection>
 
-			<PageSection title="Profile" description="Basic account information and sign-in status.">
-				<DetailList
-					items={[
-						{ label: 'Full name', value: user.name },
-						{
-							label: 'Username',
-							value: <code className="font-mono text-sm">{user.username}</code>,
-						},
-						{ label: 'Email', value: user.email },
-						{
-							label: 'Status',
-							value: (
-								<StatusBadge variant={user.isActive ? 'success' : 'default'}>
-									{user.isActive ? 'Active' : 'Inactive'}
-								</StatusBadge>
-							),
-						},
-					]}
-				/>
-			</PageSection>
-
-			<PageSection
+			<DetailSection
 				title="Role assignments"
 				description={
 					user.assignments.length === 0
@@ -151,12 +163,17 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 											{assignment.role.code}
 										</p>
 									</div>
-									{assignment.location ? (
-										<MapPinIcon className="size-4 text-muted-foreground" />
-									) : (
-										<Globe2Icon className="size-4 text-muted-foreground" />
-									)}
-								</div>
+									<DetailIcon
+										icon={
+											assignment.location ? (
+												<MapPinIcon />
+											) : (
+												<Globe2Icon />
+											)
+										}
+										className="text-muted-foreground"
+										/>
+									</div>
 								<p className="mt-3 text-xs text-muted-foreground">
 									{assignment.location
 										? `${assignment.location.name} (${assignment.location.code})`
@@ -166,18 +183,18 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 						))}
 					</div>
 				)}
-			</PageSection>
+			</DetailSection>
 
 			{canReadAudit && (
-				<PageSection title="Activity" description="Recent changes to this account.">
+				<DetailSection title="Activity" description="Recent changes to this account.">
 					<AuditTrail
 						entries={auditQuery.data?.data ?? []}
 						isLoading={auditQuery.isLoading}
 						emptyMessage="No changes recorded for this user yet."
 					/>
-				</PageSection>
+				</DetailSection>
 			)}
-		</div>
+		</DetailPage>
 	)
 }
 
