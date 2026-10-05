@@ -129,12 +129,12 @@ function PermissionsPicker({
 
 			<div className="flex flex-wrap items-center gap-2">
 				<div className="relative min-w-56 flex-1">
-					<SearchIcon className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+					<SearchIcon className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						value={query}
 						onChange={(event) => setQuery(event.target.value)}
 						placeholder="Search permissions..."
-						className="h-8 pl-7 pr-7 text-xs"
+						className="h-7 pl-8 pr-8 text-xs"
 						aria-label="Search permissions"
 					/>
 					{query && (
@@ -182,7 +182,7 @@ function PermissionsPicker({
 						const someChecked = selectedInGroup > 0 && !allChecked
 
 						return (
-							<div key={group.module} className="rounded-md border bg-muted/10 p-3">
+							<div key={group.module} className="rounded-md border bg-muted/30 p-3">
 								<div className="flex items-center justify-between gap-2">
 									<label className="flex items-center gap-2">
 										<Checkbox
@@ -201,17 +201,17 @@ function PermissionsPicker({
 									{group.permissions.map((permission) => (
 										<label
 											key={permission}
-											className="flex items-center gap-2 rounded px-1.5 py-1 text-xs hover:bg-muted/60"
+											className="flex items-center gap-2 rounded px-1.5 py-1 text-xs hover:bg-muted/50"
 										>
-											<Checkbox
-												checked={value.includes(permission)}
-												disabled={readOnly}
-												onCheckedChange={() => togglePermission(permission)}
-												className="size-3.5"
-											/>
-											<span className="truncate" title={permission}>
-												{permissionLabel(permission)}
-											</span>
+										<Checkbox
+											checked={value.includes(permission)}
+											disabled={readOnly}
+											onCheckedChange={() => togglePermission(permission)}
+											className="size-3.5"
+										/>
+										<span className="truncate" title={permission}>
+											{permissionLabel(permission)}
+										</span>
 										</label>
 									))}
 								</div>

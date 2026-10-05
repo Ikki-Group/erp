@@ -208,15 +208,15 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 
 							return (
 								<section className="overflow-hidden rounded-xl border bg-card shadow-sm">
-									<div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
+									<div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
 										<div className="flex gap-3">
-											<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+											<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
 												<ShieldCheckIcon className="size-4" />
 											</div>
 											<div>
-												<h2 className="font-heading text-sm font-semibold tracking-tight">
-													Access and roles
-												</h2>
+											<h3 className="font-medium tracking-tight">
+												Access and roles
+											</h3>
 												<p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
 													Choose how this user receives access, then add the roles they need.
 												</p>
@@ -231,7 +231,7 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 
 									<Separator />
 
-									<div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_220px]">
+									<div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_220px]">
 										<div className="min-w-0">
 											<fieldset>
 												<legend className="text-sm font-medium">Access scope</legend>
@@ -262,11 +262,11 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 												</RadioGroup>
 											</fieldset>
 
-											<div className="mt-7 flex items-end justify-between gap-3">
+											<div className="mt-6 flex items-end justify-between gap-3">
 												<div>
-													<h3 className="font-heading text-sm font-semibold tracking-tight">
+													<h4 className="font-medium tracking-tight">
 														{isGlobal ? 'Global roles' : 'Location access'}
-													</h3>
+													</h4>
 													<p className="mt-1 text-xs text-muted-foreground">
 														{isGlobal
 															? 'Each role applies everywhere.'
@@ -280,7 +280,7 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 											</div>
 
 											{assignments.length === 0 ? (
-												<div className="mt-3 rounded-lg border border-dashed bg-muted/20 px-4 py-7 text-center">
+											<div className="mt-3 rounded-lg border border-dashed bg-muted/30 px-4 py-7 text-center">
 													<p className="text-sm font-medium">No access assigned</p>
 													<p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
 														Add a {isGlobal ? 'role' : 'location'} to let this user access protected
@@ -347,7 +347,7 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 											)}
 										</div>
 
-										<aside className="h-fit rounded-lg bg-muted/40 p-4 lg:mt-8">
+									<aside className="h-fit rounded-lg bg-muted/40 p-4 lg:mt-6">
 											<p className="text-xs font-medium text-muted-foreground">Access summary</p>
 											<div className="mt-3 flex items-center gap-2">
 												{isGlobal ? (
