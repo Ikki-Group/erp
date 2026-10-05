@@ -1,0 +1,14 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - heading "404" [level=1] [ref=e8]
+      - paragraph [ref=e9]: Page not found
+      - paragraph [ref=e10]: The page you're looking for doesn't exist or has been moved.
+      - link [ref=e11] [cursor=pointer]:
+        - /url: /
+        - button "Back to Home" [ref=e12]
+    - button "Open Tanstack query devtools" [ref=e63] [cursor=pointer]
+  - generic:
+    - region "Notifications"
+  - button "Open TanStack Devtools" [ref=e112] [cursor=pointer]:
+    - img "TanStack Devtools" [ref=e113]

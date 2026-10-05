@@ -1,0 +1,7 @@
+feat(iam): add endpoint to query users by location ID
+
+- Add GET /iam/user/by-location endpoint
+- Accepts locationId parameter in query string
+- Returns paginated list of users assigned to a location
+- Reuses existing findLocationStaffList repository method
+- Required for location detail page to show assigned users

@@ -3,22 +3,24 @@ import { useCallback, useMemo } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { ArrowLeftIcon, EditIcon, Globe2Icon, KeyRoundIcon, MapPinIcon, UserIcon } from 'lucide-react'
+import { ArrowLeftIcon, EditIcon, Globe2Icon, KeyRoundIcon, MapPinIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
 
-import { AuditInfo } from '@/components/shared/audit-info.tsx'
-import { AuditTrail } from '@/components/shared/audit-trail.tsx'
-import { CrudForm } from '@/components/shared/crud-form.tsx'
-import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
-import { DetailIcon } from '@/components/shared/detail-icon.tsx'
-import { DetailList } from '@/components/shared/detail-list.tsx'
-import { DetailPage } from '@/components/shared/detail-page.tsx'
-import { DetailSection } from '@/components/shared/detail-section.tsx'
-import { EmptyState } from '@/components/shared/empty-state.tsx'
-import { usePermissionCheck } from '@/components/shared/permission-gate.tsx'
-import { StatusBadge } from '@/components/shared/status-badge.tsx'
+import {
+	AuditInfo,
+	AuditTrail,
+	CrudForm,
+	DetailBoundary,
+	DetailIcon,
+	DetailList,
+	DetailPage,
+	DetailSection,
+	EmptyState,
+	usePermissionCheck,
+	StatusBadge,
+} from '@/components/shared'
 
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'

@@ -18,6 +18,8 @@ import {
 	type LucideIcon,
 } from 'lucide-react'
 
+import { Logo } from '@/components/brand'
+
 import {
 	Sidebar,
 	SidebarContent,
@@ -148,9 +150,7 @@ export function SidebarNav() {
 			</div>
 			<SidebarHeader>
 				<div className="flex h-8 items-center gap-2 px-2">
-					<div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-						<StoreIcon className="size-3.5" />
-					</div>
+					<Logo showText={false} />
 					<span className="truncate text-sm font-semibold">Ikki ERP</span>
 				</div>
 			</SidebarHeader>

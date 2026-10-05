@@ -139,7 +139,7 @@ const allColumns = useMemo(
 	[actionsColumn],
 )
 
-const { table, globalFilter } = useServerTable({
+	const { table } = useServerTable({
 	data,
 	columns: allColumns,
 	totalCount,

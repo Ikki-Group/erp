@@ -1,4 +1,5 @@
 import { Elysia } from 'elysia'
+import { z } from 'zod'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
@@ -94,6 +95,15 @@ export function createIamRoute(
 				query: ComposedUserFilterDto,
 				response: zRes.paginated(LocationStaffListItemDto),
 				permission: 'location-staff.read',
+			},
+		)
+		.get(
+			'/user/by-location',
+			async ({ query }) => res.paginated(await composedService.handleLocationStaffList(query, query.locationId)),
+			{
+				query: ComposedUserFilterDto.extend({ locationId: z.coerce.number().int().positive() }),
+				response: zRes.paginated(LocationStaffListItemDto),
+				permission: 'iam.read',
 			},
 		)
 		.get(

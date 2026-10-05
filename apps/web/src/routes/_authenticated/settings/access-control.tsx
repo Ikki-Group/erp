@@ -46,17 +46,15 @@ function AccessControlPage() {
 	const handleTabChange = (tabId: string) => {
 		// Preserve common filters (search query) when switching tabs
 		// Reset only tab-specific filters
-		navigate(
-			{
-				search: {
-					tab: tabId as 'users' | 'roles',
-					page: 1,
-					pageSize: search.pageSize,
-					q: search.q, // Preserve search across tabs
-				},
+		navigate({
+			search: {
+				tab: tabId as 'users' | 'roles',
+				page: 1,
+				pageSize: search.pageSize,
+				q: search.q, // Preserve search across tabs
 			},
-			{ replace: true },
-			)
+			replace: true,
+		})
 	}
 
 	const stats = useMemo(

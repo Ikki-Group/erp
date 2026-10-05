@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { z } from 'zod'
 
+import { Logo } from '@/components/brand'
 import { getStoredToken } from '@/lib/api/client.ts'
 import { isApiError } from '@/lib/api/errors.ts'
 import { queryClient } from '@/lib/tanstack-query.ts'
@@ -91,9 +92,8 @@ function LoginPage() {
 				<div className="pointer-events-none absolute -bottom-48 -left-24 size-96 rounded-full bg-accent-warm/10 blur-3xl" />
 
 				<div className="relative w-full max-w-md">
-					<div className="mb-10 flex items-center gap-3 lg:hidden">
-						<BrandMark />
-						<span className="text-sm font-semibold tracking-tight">Ikki ERP</span>
+					<div className="mb-10 lg:hidden">
+						<Logo />
 					</div>
 
 					<div className="mb-9">
@@ -217,10 +217,7 @@ function LoginPage() {
 				<div className="absolute -right-32 -bottom-40 size-112 rounded-full bg-primary/30 blur-3xl" />
 
 				<div className="relative flex h-full min-h-136 flex-col justify-between p-12 xl:p-16">
-					<div className="flex items-center gap-3">
-						<BrandMark inverted />
-						<span className="text-sm font-semibold tracking-tight">Ikki ERP</span>
-					</div>
+					<Logo variant="transparent" showText={false} className="items-start" />
 
 					<div className="max-w-lg py-16">
 						<div className="mb-7 flex size-14 items-center justify-center rounded-xl border border-invert-foreground/15 bg-invert-foreground/10 backdrop-blur-sm">
@@ -245,12 +242,3 @@ function LoginPage() {
 	)
 }
 
-function BrandMark({ inverted = false }: { inverted?: boolean }) {
-	return (
-		<div
-			className={`flex size-9 items-center justify-center rounded-xl ${inverted ? 'bg-invert-foreground text-invert' : 'bg-primary text-primary-foreground'}`}
-		>
-			<StoreIcon aria-hidden="true" className="size-4" />
-		</div>
-	)
-}

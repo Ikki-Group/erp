@@ -5,6 +5,7 @@ import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
+	zp,
 } from '@/lib/validation/index.ts'
 
 import {
@@ -72,6 +73,14 @@ const locationStaffList = defineQuery({
 	queryKey: (query) => [userUrls.locationStaff, query ?? null],
 })
 
+const usersByLocation = defineQuery({
+	method: 'get',
+	url: userUrls.byLocation,
+	query: UserFilterDto.extend({ locationId: zp.id }),
+	result: createPaginatedResponseSchema(LocationStaffListItemDto),
+	queryKey: (query) => [userUrls.byLocation, query ?? null],
+})
+
 const userCreate = defineMutation({
 	method: 'post',
 	url: userUrls.create,
@@ -108,6 +117,7 @@ export const userResource = {
 	list: userList,
 	detail: userDetail,
 	locationStaff: locationStaffList,
+	byLocation: usersByLocation,
 	create: userCreate,
 	update: userUpdate,
 	deactivate: userDeactivate,
