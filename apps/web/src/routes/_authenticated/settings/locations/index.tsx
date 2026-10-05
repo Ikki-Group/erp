@@ -5,12 +5,12 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
 
-import { Building2Icon, MapPinIcon, PlusIcon, WarehouseIcon, EditIcon, TrashIcon } from 'lucide-react'
+import { Building2Icon, PlusIcon, WarehouseIcon, EditIcon, TrashIcon } from 'lucide-react'
 
 import { DataTable, listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { Button } from '@/components/ui/button'
-import { PageHeader, StatCard } from '@/components/shared'
+import { PageHeader } from '@/components/shared'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { createActionColumn } from '@/components/shared/action-column'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
@@ -147,56 +147,22 @@ const { table, globalFilter } = useServerTable({
 	onSearchChange: (next) => navigate({ search: next }),
 })
 
-	const stores = useMemo(() => data.filter((l) => l.type === 'store').length, [data])
-	const warehouses = useMemo(() => data.filter((l) => l.type === 'warehouse').length, [data])
+	return (
+		<div className="space-y-6">
+			<PageHeader
+				title="Locations"
+				description="Manage stores and warehouses."
+				actions={
+					canCreate && (
+						<Button size="sm" onClick={() => navigate({ to: '/settings/locations/new' })}>
+							<PlusIcon className="size-4" />
+							Add Location
+						</Button>
+					)
+				}
+			/>
 
-	const stats = useMemo(
-		() => (
-			<div className="grid gap-4 sm:grid-cols-3">
-				<StatCard
-					title="Total Locations"
-					value={totalCount}
-					icon={<MapPinIcon className="size-4" />}
-					description="All locations"
-					isLoading={listQuery.isLoading}
-				/>
-				<StatCard
-					title="Stores"
-					value={stores}
-					icon={<Building2Icon className="size-4" />}
-					description="Retail locations"
-					isLoading={listQuery.isLoading}
-				/>
-				<StatCard
-					title="Warehouses"
-					value={warehouses}
-					icon={<WarehouseIcon className="size-4" />}
-					description="Storage locations"
-					isLoading={listQuery.isLoading}
-				/>
-			</div>
-		),
-		[totalCount, stores, warehouses, listQuery.isLoading],
-	)
-
-return (
-	<div className="space-y-6">
-		<PageHeader
-			title="Locations"
-			description="Manage stores and warehouses."
-			actions={
-				canCreate && (
-					<Button size="sm" onClick={() => navigate({ to: '/settings/locations/new' })}>
-						<PlusIcon className="size-4" />
-						Add Location
-					</Button>
-				)
-			}
-		/>
-
-		{stats}
-
-		<DataTable
+			<DataTable
 			table={table}
 			recordCount={totalCount}
 			isLoading={listQuery.isLoading}
