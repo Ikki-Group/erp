@@ -10,7 +10,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export type StatCardTone = 'default' | 'success' | 'warning' | 'info' | 'destructive'
 
-/** Tints an `IconTile`'s `soft` variant to match a metric's meaning. Shared with `DataCard`'s `icon`/`tone` pair so stat cards and data cards read as one visual family. */
+/**
+ * Maps tone to semantic color classes for icons.
+ * Used by both StatCard and DataCard for consistent icon tinting.
+ */
 export const TONE_CLASS: Record<StatCardTone, string> = {
 	default: 'text-primary',
 	success: 'text-success',
@@ -42,6 +45,18 @@ interface StatCardProps {
 	className?: string
 }
 
+/**
+ * Dashboard-style metric card.
+ *
+ * Design: Dark surface with subtle border (Linear-inspired).
+ * - 12px border radius (cards standard)
+ * - Compact padding (24px)
+ * - Clear visual hierarchy with tight typography
+ * - Subtle hover states for actionable cards
+ * - IconTile with 'soft' variant for colored backgrounds
+ *
+ * Use for: Dashboard metrics, KPI displays, entity counts.
+ */
 export function StatCard({
 	title,
 	value,
@@ -70,50 +85,54 @@ export function StatCard({
 								onClick()
 							}
 						}
-					: undefined
-			}
+						: undefined
+				}
 			className={cn(
-				'rounded-lg border bg-card p-5 text-card-foreground transition-colors hover:border-foreground/15',
-				onClick && 'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/30',
+				'rounded-xl border border-border bg-card text-card-foreground',
+				'p-6 transition-colors',
+				'hover:border-border/80',
+				onClick && 'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/40 hover:bg-muted/30',
 				className,
 			)}
 		>
-			<div className="flex items-center justify-between">
-				<p className="text-xs font-medium text-muted-foreground">{title}</p>
+			<div className="flex items-start justify-between gap-3">
+				<div className="flex-1">
+					<p className="text-xs font-medium text-muted-foreground">{title}</p>
+				</div>
 				{icon && (
-					<IconTile variant="soft" size="default" className={TONE_CLASS[tone]}>
+					<IconTile variant="soft" size="sm" className={cn(TONE_CLASS[tone])}>
 						{icon}
 					</IconTile>
 				)}
 			</div>
 
 			{isLoading ? (
-				<div className="mt-4 space-y-2">
-					<Skeleton className="h-7 w-20" />
-					<Skeleton className="h-3 w-28" />
+				<div className="mt-6 space-y-3">
+					<Skeleton className="h-8 w-24" />
+					<Skeleton className="h-4 w-32" />
 				</div>
 			) : (
-				<>
-					<div className="mt-4 flex items-baseline gap-2">
+				<div className="mt-6 space-y-0.5">
+					<div className="flex items-baseline gap-3">
 						<p className="text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
 						{trend && (
 							<span
 								className={cn(
-									'inline-flex items-center gap-0.5 text-xs font-medium tabular-nums',
+									'inline-flex items-center gap-1 text-xs font-medium tabular-nums',
 									trendPositive ? 'text-success' : 'text-destructive',
 								)}
 							>
 								{trendDirection === 'up' ? (
-									<ArrowUpRightIcon className="size-3" />
+									<ArrowUpRightIcon className="size-3.5" />
 								) : (
-									<ArrowDownRightIcon className="size-3" />
+									<ArrowDownRightIcon className="size-3.5" />
 								)}
 								{trend.value}
 							</span>
 						)}
 					</div>
-					{description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
-				</>
+					{description && <p className="text-xs text-muted-foreground">{description}</p>}
+				</div>
 			)}
 		</div>
 	)
