@@ -14,7 +14,7 @@ import type { LocationService } from '@/modules/location/index.ts'
 import type { MaterialAssignmentService, MaterialService } from '@/modules/material/index.ts'
 import type { SupplierService } from '@/modules/supplier/index.ts'
 import { resolveConversion } from '@/modules/uom/index.ts'
-import type { UomConversionDto, UomService } from '@/modules/uom/index.ts'
+import type { UomService } from '@/modules/uom/index.ts'
 
 import type { StockService } from '../stock/stock.service.ts'
 import { toBaseUnits } from './receiving.calculator.ts'
@@ -28,6 +28,7 @@ import type {
 	ReceivingFilterDto,
 	ReceivingUpdateDto,
 } from '@ikki/contract/inventory/receiving'
+import type { UomConversionDto } from '@ikki/contract/uom'
 
 interface Deps extends Infra {
 	repo: ReceivingRepo

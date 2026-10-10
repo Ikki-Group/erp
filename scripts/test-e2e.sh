@@ -45,7 +45,7 @@ echo ""
 
 echo "🚀 Starting server on port $TEST_SERVER_PORT..."
 cd "$SERVER_DIR"
-NODE_ENV=test bun run --env-file .env.test src/server.ts &
+PORT="$TEST_SERVER_PORT" NODE_ENV=test bun run --env-file .env.test src/server.ts &
 SERVER_PID=$!
 
 # ─── Step 3: Start Web ───
@@ -62,10 +62,11 @@ echo "⏳ Waiting for services to be ready..."
 wait_for_port() {
 	local port=$1
 	local name=$2
+	local path=${3:-}
 	local max_attempts=30
 	local attempt=0
 
-	while ! curl -sf "http://localhost:$port" >/dev/null 2>&1; do
+	while ! curl -sf "http://localhost:$port$path" >/dev/null 2>&1; do
 		attempt=$((attempt + 1))
 		if [ "$attempt" -ge "$max_attempts" ]; then
 			echo "❌ $name (port $port) failed to start after ${max_attempts}s"
@@ -76,7 +77,7 @@ wait_for_port() {
 	echo "   ✓ $name ready (port $port)"
 }
 
-wait_for_port "$TEST_SERVER_PORT" "Server"
+wait_for_port "$TEST_SERVER_PORT" "Server" /health
 wait_for_port "$TEST_WEB_PORT" "Web"
 echo ""
 

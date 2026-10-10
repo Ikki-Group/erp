@@ -3,5 +3,3 @@ export interface EntityRef {
 }
 
 export type ActorId = number
-
-export type WithId<T> = T & { id: number }

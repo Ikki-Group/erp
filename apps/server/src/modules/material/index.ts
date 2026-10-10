@@ -35,13 +35,5 @@ export function createMaterialModule(
 	return { route, materialService, categoryService, assignmentService }
 }
 
-export type { MaterialService, CategoryService as MaterialCategoryService }
+export type { MaterialService }
 export type { AssignmentService as MaterialAssignmentService }
-export { MaterialDto, MaterialTypeEnum } from '@ikki/contract/material'
-export type {
-	MaterialCreateDto,
-	MaterialUpdateDto,
-	MaterialFilterDto,
-} from '@ikki/contract/material'
-export type { MaterialCategoryDto } from '@ikki/contract/material/category'
-export type { MaterialLocationDto, MaterialAssignDto } from '@ikki/contract/material/assignment'

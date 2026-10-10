@@ -1,8 +1,8 @@
 import { Qty } from '@/shared/domain/qty.ts'
 
 import { resolveConversion } from '@/modules/uom/index.ts'
-import type { UomConversionDto } from '@/modules/uom/index.ts'
 
+import type { UomConversionDto } from '@ikki/contract/uom'
 import { describe, expect, test } from 'bun:test'
 
 const conversion = (fromUomId: number, toUomId: number, factor: string): UomConversionDto => ({

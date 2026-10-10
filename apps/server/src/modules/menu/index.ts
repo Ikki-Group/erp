@@ -38,5 +38,3 @@ export function createMenuModule(infra: Infra) {
 }
 
 export type { ItemService, ComposedService }
-export type { MenuItemDto } from '@ikki/contract/menu/item'
-export type { MenuItemDetailDto } from '@ikki/contract/menu/composed'

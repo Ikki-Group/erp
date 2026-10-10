@@ -57,7 +57,8 @@ export const zq = {
 	id: z.coerce.number().int().positive(),
 	pagination: z.object({
 		page: z.coerce.number().int().positive().default(1),
-		limit: z.coerce.number().int().positive().max(100).default(20),
+		// ponytail: pickers load whole catalogs (≤500 rows); switch to searchable comboboxes past that.
+		limit: z.coerce.number().int().positive().max(500).default(20),
 	}),
 	/** Blank search is treated as no search. */
 	search: z

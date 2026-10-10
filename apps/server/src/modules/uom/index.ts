@@ -11,5 +11,3 @@ export function createUomModule(infra: Infra) {
 
 export type { UomService }
 export { resolveConversion } from './uom.calculator.ts'
-export { UomDto, UomCategoryEnum, UomConversionDto } from '@ikki/contract/uom'
-export type { UomCreateDto, UomUpdateDto, UomConversionCreateDto } from '@ikki/contract/uom'

@@ -3,7 +3,7 @@ export interface PaginationQuery {
 	limit: number
 }
 
-export interface PaginationMeta {
+interface PaginationMeta {
 	page: number
 	limit: number
 	total: number

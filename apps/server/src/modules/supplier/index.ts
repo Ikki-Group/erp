@@ -24,12 +24,3 @@ export function createSupplierModule(
 }
 
 export type { SupplierService }
-export { SupplierDto, SupplierMaterialDto } from '@ikki/contract/supplier'
-export type {
-	SupplierCreateDto,
-	SupplierUpdateDto,
-	SupplierFilterDto,
-	SupplierMaterialCreateDto,
-	SupplierMaterialUpdateDto,
-	SupplierMaterialFilterDto,
-} from '@ikki/contract/supplier'

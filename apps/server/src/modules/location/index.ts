@@ -10,4 +10,3 @@ export function createLocationModule(infra: Infra) {
 }
 
 export type { LocationService }
-export { LocationDto, LocationTypeEnum } from '@ikki/contract/location'

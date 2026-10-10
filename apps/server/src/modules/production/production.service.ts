@@ -14,7 +14,7 @@ import type { StockService } from '@/modules/inventory/index.ts'
 import type { LocationService } from '@/modules/location/index.ts'
 import type { MaterialService } from '@/modules/material/index.ts'
 import { resolveConversion } from '@/modules/uom/index.ts'
-import type { UomConversionDto, UomService } from '@/modules/uom/index.ts'
+import type { UomService } from '@/modules/uom/index.ts'
 
 import { inputRequirement, outputUnitCost, plannedOutputQty } from './production.calculator.ts'
 import { ProductionError } from './production.internal.ts'
@@ -31,6 +31,7 @@ import type {
 	ProductionRecipeFilterDto,
 	ProductionRecipeUpdateDto,
 } from '@ikki/contract/production'
+import type { UomConversionDto } from '@ikki/contract/uom'
 
 interface Deps extends Infra {
 	repo: ProductionRepo
