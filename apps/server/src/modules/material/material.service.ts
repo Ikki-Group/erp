@@ -14,14 +14,14 @@ import { resolveConversion } from '@/modules/uom/index.ts'
 import type { UomService } from '@/modules/uom/index.ts'
 
 import type { CategoryService } from './category/category.service.ts'
+import { MaterialError, uniqueFields } from './material.internal.ts'
+import type { MaterialRepo } from './material.repo.ts'
 import type {
 	MaterialCreateDto,
 	MaterialDto,
 	MaterialFilterDto,
 	MaterialUpdateDto,
 } from '@ikki/contract/material'
-import { MaterialError, uniqueFields } from './material.internal.ts'
-import type { MaterialRepo } from './material.repo.ts'
 
 interface Deps extends Infra {
 	repo: MaterialRepo

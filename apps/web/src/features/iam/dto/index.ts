@@ -1,18 +1,34 @@
-import { zc, zp, zq } from '@ikki/contract/schema'
-import { z } from 'zod'
+import type { Permission } from '@ikki/contract/permissions'
+
+export {
+	AssignmentCreateDto,
+	AssignmentDto,
+	AssignmentFilterDto,
+	AssignmentRemoveDto,
+} from '@ikki/contract/iam/assignment'
+export {
+	AssignmentWithRelationsDto,
+	ComposedUserFilterDto as UserFilterDto,
+	LocationStaffListItemDto,
+	UserDetailDto,
+	UserListItemDto,
+} from '@ikki/contract/iam/composed'
+export { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '@ikki/contract/iam/role'
+export {
+	UserCreateDto,
+	UserDto,
+	UserResetPasswordDto,
+	UserUpdateDto,
+} from '@ikki/contract/iam/user'
+export type { Permission } from '@ikki/contract/permissions'
 
 // ─── Permission Groups ───
 
 /**
- * Mirrors the server's actual RBAC permission strings exactly — see the
- * `permission: '...'` literals on each route in `apps/server/src/modules/**\/*.route.ts`
- * and the seeded role permission lists in `apps/server/scripts/seeds/iam.ts`
- * (the source of truth for the full permission universe). These are dot-notation,
- * per-verb strings (`location.create`, `material.update`, `iam.delete`, ...),
- * NOT the `module:action` shape used by earlier web-only permission checks —
- * that shape never matched anything the server actually checks, so any
- * `PermissionGate`/role assignment built against it was silently inert for
- * every non-owner user. Keep this list in sync with the server's routes.
+ * UI grouping of the server's permission vocabulary (`@ikki/contract/permissions`).
+ * `satisfies` keeps every entry a real server permission, so the role form can't
+ * offer a permission the server would reject. `auth.*` utility permissions are
+ * granted implicitly and deliberately not listed.
  */
 export const PERMISSION_GROUPS = [
 	{
@@ -137,163 +153,8 @@ export const PERMISSION_GROUPS = [
 		label: 'Audit Log',
 		permissions: ['audit.read'],
 	},
-] as const
-
-const permissionSet = new Set<string>(PERMISSION_GROUPS.flatMap((group) => group.permissions))
-const permissionValue = z.string().refine((value) => permissionSet.has(value), {
-	message: 'Unknown permission',
-})
-const rolePermissions = z.array(permissionValue).default([])
-
-// ─── Role ───
-
-export const RoleDto = z.object({
-	id: zp.id,
-	code: zp.str,
-	name: zp.str,
-	description: z.string().default(''),
-	isSystem: zp.bool,
-	permissions: z.array(zp.str),
-	...zc.AuditBasic.shape,
-})
-export type RoleDto = z.infer<typeof RoleDto>
-
-export const RoleFilterDto = z.object({
-	...zq.pagination.shape,
-	q: zq.search,
-	isSystem: z.coerce.number().int().min(0).max(1).optional(),
-})
-export type RoleFilterDto = z.infer<typeof RoleFilterDto>
-
-export const RoleCreateDto = z.object({
-	code: zc.strTrim.min(2).max(50),
-	name: zc.strTrim.min(2).max(255),
-	description: zc.strTrim.max(500).default(''),
-	permissions: rolePermissions,
-})
-export type RoleCreateDto = z.infer<typeof RoleCreateDto>
-
-export const RoleUpdateDto = z.object({
-	id: zp.id,
-	code: zc.strTrim.min(2).max(50),
-	name: zc.strTrim.min(2).max(255),
-	description: zc.strTrim.max(500).default(''),
-	permissions: rolePermissions,
-})
-export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
-
-// ─── User ───
-
-export const UserDto = z.object({
-	id: zp.id,
-	username: zp.str,
-	email: zp.str,
-	name: zp.str,
-	isActive: zp.bool,
-	...zc.AuditBasic.shape,
-})
-export type UserDto = z.infer<typeof UserDto>
-
-export const UserListItemDto = z.object({
-	...UserDto.shape,
-	roleNames: z.array(zp.str),
-})
-export type UserListItemDto = z.infer<typeof UserListItemDto>
-
-export const LocationStaffListItemDto = z.object({
-	id: zp.id,
-	username: zp.str,
-	email: zp.str,
-	name: zp.str,
-	isActive: zp.bool,
-	roleName: zp.str,
-})
-export type LocationStaffListItemDto = z.infer<typeof LocationStaffListItemDto>
-
-export const AssignmentWithRelationsDto = z.object({
-	id: zp.id,
-	roleId: zp.id,
-	locationId: zp.id.nullable(),
-	role: z.object({
-		id: zp.id,
-		code: zp.str,
-		name: zp.str,
-	}),
-	location: z
-		.object({
-			id: zp.id,
-			code: zp.str,
-			name: zp.str,
-		})
-		.nullable(),
-})
-export type AssignmentWithRelationsDto = z.infer<typeof AssignmentWithRelationsDto>
-
-export const UserDetailDto = z.object({
-	...UserDto.shape,
-	assignments: z.array(AssignmentWithRelationsDto),
-})
-export type UserDetailDto = z.infer<typeof UserDetailDto>
-
-export const UserFilterDto = z.object({
-	...zq.pagination.shape,
-	q: zq.search,
-	isActive: z.coerce.number().int().min(0).max(1).optional(),
-})
-export type UserFilterDto = z.infer<typeof UserFilterDto>
-
-export const UserCreateDto = z.object({
-	username: zc.strTrim.min(3).max(100),
-	email: z.string().email().max(255),
-	name: zc.strTrim.min(1).max(255),
-	password: z.string().min(8).max(100),
-	isActive: z.boolean().default(true),
-})
-export type UserCreateDto = z.infer<typeof UserCreateDto>
-
-export const UserUpdateDto = z.object({
-	id: zp.id,
-	username: zc.strTrim.min(3).max(100),
-	email: z.string().email().max(255),
-	name: zc.strTrim.min(1).max(255),
-	isActive: z.boolean().default(true),
-})
-export type UserUpdateDto = z.infer<typeof UserUpdateDto>
-
-// ─── Reset Password ───
-
-export const UserResetPasswordDto = z.object({
-	id: zp.id,
-	password: z.string().min(8).max(100),
-})
-export type UserResetPasswordDto = z.infer<typeof UserResetPasswordDto>
-
-// ─── Assignment ───
-
-export const AssignmentDto = z.object({
-	id: zp.id,
-	userId: zp.id,
-	roleId: zp.id,
-	locationId: zp.id.nullable(),
-})
-export type AssignmentDto = z.infer<typeof AssignmentDto>
-
-export const AssignmentFilterDto = z.object({
-	...zq.pagination.shape,
-	userId: z.coerce.number().int().positive(),
-})
-export type AssignmentFilterDto = z.infer<typeof AssignmentFilterDto>
-
-export const AssignmentCreateDto = z.object({
-	userId: zp.id,
-	roleId: zp.id,
-	locationId: zp.id.nullable(),
-})
-export type AssignmentCreateDto = z.infer<typeof AssignmentCreateDto>
-
-export const AssignmentRemoveDto = z.object({
-	userId: zp.id,
-	roleId: zp.id,
-	locationId: zp.id.nullable(),
-})
-export type AssignmentRemoveDto = z.infer<typeof AssignmentRemoveDto>
+] as const satisfies ReadonlyArray<{
+	module: string
+	label: string
+	permissions: readonly Permission[]
+}>

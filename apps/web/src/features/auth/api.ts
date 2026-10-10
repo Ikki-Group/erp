@@ -1,19 +1,19 @@
 import { zRes } from '@ikki/contract/http'
-import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
 
-import { defineMutation, defineQuery } from '@/lib/api/index.ts'
+import { createResourceKeys, defineMutation, defineQuery } from '@/lib/api/index.ts'
 
 import { LoginDto, LoginResponseDto, MeResponseDto } from './dto/index.ts'
 
-// ─── Query: /auth/me ───
+const keys = createResourceKeys('auth', 'me')
 
+// ─── Query: /auth/me ───
 export const authMeQuery = defineQuery({
 	method: 'get',
 	url: endpoint.auth.me,
 	result: zRes.ok(MeResponseDto),
-	queryKey: () => [endpoint.auth.me],
+	queryKey: () => keys.detail(),
 	// `session` tier (not `standard`): a session can now be revoked out-of-band
 	// (another device's /auth/sessions/revoke, or a future admin force-logout —
 	// see ADR-0018 on the server), so this query's staleness window directly
@@ -24,20 +24,18 @@ export const authMeQuery = defineQuery({
 })
 
 // ─── Mutation: /auth/login ───
-
 export const authLoginMutation = defineMutation({
 	method: 'post',
 	url: endpoint.auth.login,
 	body: LoginDto,
 	result: zRes.ok(LoginResponseDto),
-	invalidates: [[endpoint.auth.me]],
+	invalidates: [keys.root()],
 })
 
 // ─── Mutation: /auth/logout ───
-
 export const authLogoutMutation = defineMutation({
 	method: 'post',
 	url: endpoint.auth.logout,
-	result: zRes.ok(z.undefined()),
-	invalidates: [[endpoint.auth.me]],
+	result: zRes.noData,
+	invalidates: [keys.root()],
 })

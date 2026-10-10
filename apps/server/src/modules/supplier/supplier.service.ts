@@ -11,6 +11,8 @@ import { assertFound } from '@/shared/utils/index.ts'
 import type { MaterialService } from '@/modules/material/index.ts'
 import type { UomService } from '@/modules/uom/index.ts'
 
+import { SupplierError, uniqueFields } from './supplier.internal.ts'
+import type { SupplierRepo } from './supplier.repo.ts'
 import type {
 	SupplierCreateDto,
 	SupplierDto,
@@ -21,8 +23,6 @@ import type {
 	SupplierMaterialUpdateDto,
 	SupplierUpdateDto,
 } from '@ikki/contract/supplier'
-import { SupplierError, uniqueFields } from './supplier.internal.ts'
-import type { SupplierRepo } from './supplier.repo.ts'
 
 interface Deps extends Infra {
 	repo: SupplierRepo

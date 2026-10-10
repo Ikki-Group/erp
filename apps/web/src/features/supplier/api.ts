@@ -3,7 +3,7 @@ import { zc } from '@ikki/contract/schema'
 
 import { endpoint } from '@/config/endpoint.ts'
 
-import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
+import { createResourceKeys, defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
 
 import {
 	SupplierCreateDto,
@@ -32,10 +32,7 @@ export const supplierResource = defineResource({
 
 const pricingUrls = endpoint.supplier.material
 
-const pricingKeys = {
-	lists: () => [pricingUrls.list] as const,
-	list: (query?: unknown) => [pricingUrls.list, query ?? null] as const,
-}
+const pricingKeys = createResourceKeys('supplier', 'pricing')
 
 const pricingList = defineQuery({
 	method: 'get',
@@ -50,7 +47,7 @@ const pricingCreate = defineMutation({
 	url: pricingUrls.create,
 	body: SupplierMaterialCreateDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [pricingKeys.lists(), supplierResource.keys.lists()],
+	invalidates: [pricingKeys.root(), supplierResource.keys.root()],
 })
 
 const pricingUpdate = defineMutation({
@@ -58,7 +55,7 @@ const pricingUpdate = defineMutation({
 	url: pricingUrls.update,
 	body: SupplierMaterialUpdateDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [pricingKeys.lists(), supplierResource.keys.lists()],
+	invalidates: [pricingKeys.root(), supplierResource.keys.root()],
 })
 
 const pricingRemove = defineMutation({
@@ -66,7 +63,7 @@ const pricingRemove = defineMutation({
 	url: pricingUrls.remove,
 	query: zc.RecordId,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [pricingKeys.lists(), supplierResource.keys.lists()],
+	invalidates: [pricingKeys.root(), supplierResource.keys.root()],
 })
 
 export const pricingResource = {

@@ -126,7 +126,7 @@ export type OrderRemoveVoucherDto = z.infer<typeof OrderRemoveVoucherDto>
 export const OrderPaymentDto = z.object({
 	orderId: z.coerce.number().int().positive(),
 	paymentMethodId: z.coerce.number().int().positive(),
-	amount: z.coerce.number().positive(),
+	amount: zc.positiveDecimal,
 	reference: z.string().trim().max(255).nullable().optional(),
 })
 export type OrderPaymentDto = z.infer<typeof OrderPaymentDto>

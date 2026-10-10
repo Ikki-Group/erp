@@ -11,6 +11,8 @@ import type { EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
 import { evaluateVoucher } from './voucher.calculator.ts'
+import { VoucherError, uniqueFields } from './voucher.internal.ts'
+import type { VoucherRepo } from './voucher.repo.ts'
 import type {
 	VoucherCreateDto,
 	VoucherDto,
@@ -18,8 +20,6 @@ import type {
 	VoucherUpdateDto,
 	VoucherValidateResponseDto,
 } from '@ikki/contract/pos/voucher'
-import { VoucherError, uniqueFields } from './voucher.internal.ts'
-import type { VoucherRepo } from './voucher.repo.ts'
 
 interface Deps extends Infra {
 	repo: VoucherRepo
@@ -27,17 +27,14 @@ interface Deps extends Infra {
 
 const AUDIT = { module: 'pos-voucher', entity: 'voucher' } as const
 
-const optionalAmount = (v: number | null | undefined) =>
-	v === null || v === undefined ? null : String(v)
-
 function toRow(data: VoucherCreateDto) {
 	return {
 		code: data.code,
 		name: data.name,
 		type: data.type,
-		value: String(data.value),
-		minPurchase: optionalAmount(data.minPurchase),
-		maxDiscount: optionalAmount(data.maxDiscount),
+		value: data.value,
+		minPurchase: data.minPurchase ?? null,
+		maxDiscount: data.maxDiscount ?? null,
 		validFrom: data.validFrom,
 		validUntil: data.validUntil,
 		usageLimit: data.usageLimit ?? null,
@@ -130,7 +127,7 @@ export class VoucherService {
 		})
 	}
 
-	async handleValidate(code: string, orderTotal: number): Promise<VoucherValidateResponseDto> {
+	async handleValidate(code: string, orderTotal: string): Promise<VoucherValidateResponseDto> {
 		return evaluateVoucher(await this.getByCode(code), Money.of(orderTotal), new Date())
 	}
 

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 
+import { PERMISSIONS } from '@ikki/contract/permissions'
 import { SearchIcon, XIcon } from 'lucide-react'
 import { z } from 'zod'
 
@@ -12,20 +13,20 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 import { PERMISSION_GROUPS } from '../dto/index.ts'
-import type { RoleDto } from '../dto/index.ts'
+import type { Permission, RoleDto } from '../dto/index.ts'
 
 export interface RoleFormValues {
 	code: string
 	name: string
 	description: string
-	permissions: string[]
+	permissions: Permission[]
 }
 
 const RoleFormSchema = z.object({
 	code: z.string().trim().min(2, 'Code must be at least 2 characters').max(50),
 	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
 	description: z.string().trim().max(500, 'Description must be 500 characters or fewer'),
-	permissions: z.array(z.string()),
+	permissions: z.array(z.enum(PERMISSIONS)),
 })
 
 export const EMPTY_ROLE_FORM_VALUES: RoleFormValues = {
@@ -40,7 +41,8 @@ export function toRoleFormValues(role: RoleDto): RoleFormValues {
 		code: role.code,
 		name: role.name,
 		description: role.description,
-		permissions: role.permissions,
+		// The server stores plain strings; drop any it no longer accepts so saving can't fail.
+		permissions: role.permissions.filter(isPermission),
 	}
 }
 
@@ -59,6 +61,10 @@ export function useRoleForm({ defaultValues, onSubmit }: UseRoleFormOptions) {
 
 export type RoleForm = ReturnType<typeof useRoleForm>
 
+const permissionSet = new Set<string>(PERMISSIONS)
+function isPermission(value: string): value is Permission {
+	return permissionSet.has(value)
+}
 function permissionLabel(permission: string): string {
 	const action = permission.split('.').slice(1).join('.')
 	return action.replaceAll('-', ' ').replace(/\b\w/gu, (letter) => letter.toUpperCase())
@@ -69,8 +75,8 @@ function PermissionsPicker({
 	onChange,
 	readOnly = false,
 }: {
-	value: string[]
-	onChange: (next: string[]) => void
+	value: Permission[]
+	onChange: (next: Permission[]) => void
 	readOnly?: boolean
 }) {
 	const [query, setQuery] = useState('')
@@ -95,13 +101,13 @@ function PermissionsPicker({
 		[normalizedQuery],
 	)
 
-	const togglePermission = (permission: string) => {
+	const togglePermission = (permission: Permission) => {
 		if (readOnly) return
 		const has = value.includes(permission)
 		onChange(has ? value.filter((item) => item !== permission) : [...value, permission])
 	}
 
-	const toggleGroup = (permissions: readonly string[]) => {
+	const toggleGroup = (permissions: readonly Permission[]) => {
 		if (readOnly) return
 		const allChecked = permissions.every((permission) => value.includes(permission))
 		if (allChecked) {

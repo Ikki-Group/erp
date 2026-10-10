@@ -13,9 +13,9 @@ const VoucherMutationDto = z.object({
 	code: zc.strTrim.max(50),
 	name: zc.strTrim.min(3).max(255),
 	type: VoucherTypeEnum,
-	value: z.coerce.number().positive(),
-	minPurchase: z.coerce.number().nonnegative().nullable().optional(),
-	maxDiscount: z.coerce.number().positive().nullable().optional(),
+	value: zc.positiveDecimal,
+	minPurchase: zc.decimal.nullable().optional(),
+	maxDiscount: zc.positiveDecimal.nullable().optional(),
 	validFrom: z.coerce.date(),
 	validUntil: z.coerce.date(),
 	usageLimit: z.coerce.number().int().positive().nullable().optional(),
@@ -66,7 +66,7 @@ export type VoucherUpdateDto = z.infer<typeof VoucherUpdateDto>
 
 export const VoucherValidateDto = z.object({
 	code: zc.strTrim,
-	orderTotal: z.coerce.number().nonnegative(),
+	orderTotal: zc.decimal,
 })
 export type VoucherValidateDto = z.infer<typeof VoucherValidateDto>
 

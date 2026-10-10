@@ -1,27 +1,27 @@
-import { Elysia } from 'elysia'
-import { z } from 'zod'
-
-import { authGuard } from '@/server/auth/auth.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@ikki/contract/http'
-import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@ikki/contract/schema'
-
-import { MaterialAssignDto, MaterialLocationDto } from '@ikki/contract/material/assignment'
-import type { AssignmentService } from './assignment/assignment.service.ts'
-import {
-	MaterialCategoryCreateDto,
-	MaterialCategoryDto,
-	MaterialCategoryFilterDto,
-	MaterialCategoryUpdateDto,
-} from '@ikki/contract/material/category'
-import type { CategoryService } from './category/category.service.ts'
 import {
 	MaterialCreateDto,
 	MaterialDto,
 	MaterialFilterDto,
 	MaterialUpdateDto,
 } from '@ikki/contract/material'
+import { MaterialAssignDto, MaterialLocationDto } from '@ikki/contract/material/assignment'
+import {
+	MaterialCategoryCreateDto,
+	MaterialCategoryDto,
+	MaterialCategoryFilterDto,
+	MaterialCategoryUpdateDto,
+} from '@ikki/contract/material/category'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
+import { Elysia } from 'elysia'
+import { z } from 'zod'
+
+import { authGuard } from '@/server/auth/auth.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
+import { res } from '@/shared/http/response.ts'
+
+import type { AssignmentService } from './assignment/assignment.service.ts'
+import type { CategoryService } from './category/category.service.ts'
 import type { MaterialService } from './material.service.ts'
 
 export function createMaterialRoute(

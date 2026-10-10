@@ -9,13 +9,13 @@ import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type { LocationService } from '@/modules/location/index.ts'
 
+import type { AssignmentRepo } from './assignment.repo.ts'
 import type {
 	AssignmentCreateDto,
 	AssignmentDto,
 	AssignmentFilterDto,
 	AssignmentRemoveDto,
 } from '@ikki/contract/iam/assignment'
-import type { AssignmentRepo } from './assignment.repo.ts'
 
 interface Deps extends Infra {
 	repo: AssignmentRepo

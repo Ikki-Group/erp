@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
 
 import { confirm } from '@/components/shared/confirm'
+import { CurrencyDisplay } from '@/components/shared/currency-display'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 
@@ -158,19 +159,6 @@ function PricingFormBody({
 
 // ─── Pricing Table Component ───
 
-const currencyFmt = new Intl.NumberFormat('id-ID', {
-	style: 'currency',
-	currency: 'IDR',
-	minimumFractionDigits: 0,
-	maximumFractionDigits: 0,
-})
-
-function formatCurrency(value: string): string {
-	const num = Number.parseFloat(value)
-	if (Number.isNaN(num)) return value
-	return currencyFmt.format(num)
-}
-
 interface PricingTableProps {
 	supplierId: number
 }
@@ -293,7 +281,7 @@ export function PricingTable({ supplierId }: PricingTableProps) {
 						<div className="grid gap-0.5">
 							<span className="text-sm font-medium">{getMaterialName(item.materialId)}</span>
 							<span className="text-xs text-muted-foreground">
-								<span className="font-mono tabular-nums">{formatCurrency(item.unitPrice)}</span> /{' '}
+								<CurrencyDisplay value={item.unitPrice} className="font-mono" /> /{' '}
 								{getUomName(item.uomId)}
 								{item.minOrderQty && ` · Min: ${item.minOrderQty}`}
 							</span>

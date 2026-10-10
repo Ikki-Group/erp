@@ -7,7 +7,7 @@ import { FormPage } from '@/components/shared/form-page.tsx'
 
 import { toast } from '@/components/ui/toast'
 
-import { paymentMethodMutations } from '@/features/payment-method/api.ts'
+import { paymentMethodResource } from '@/features/payment-method/api.ts'
 import {
 	PaymentMethodFormFields,
 	usePaymentMethodForm,
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authenticated/master/payment-methods/new
 
 function NewPaymentMethodPage() {
 	const navigate = useNavigate()
-	const createMut = useMutation(paymentMethodMutations.create.mutationOptions())
+	const createMut = useMutation(paymentMethodResource.create.mutationOptions())
 
 	const form = usePaymentMethodForm({
 		onSubmit: async (values) => {

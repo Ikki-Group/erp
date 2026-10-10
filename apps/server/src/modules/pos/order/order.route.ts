@@ -1,11 +1,4 @@
-import { Elysia } from 'elysia'
-
-import { authGuard } from '@/server/auth/auth.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@ikki/contract/http'
-import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@ikki/contract/schema'
-
 import {
 	OrderApplyVoucherDto,
 	OrderCompleteDto,
@@ -19,6 +12,13 @@ import {
 	OrderVoidDto,
 	OrderVoucherApplyResultDto,
 } from '@ikki/contract/pos/order'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
+import { Elysia } from 'elysia'
+
+import { authGuard } from '@/server/auth/auth.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
+import { res } from '@/shared/http/response.ts'
+
 import type { OrderService } from './order.service.ts'
 
 // ─── Route Factory ───

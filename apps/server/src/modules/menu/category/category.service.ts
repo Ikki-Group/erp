@@ -8,14 +8,14 @@ import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
+import { CategoryError, categoryUniqueFields } from './category.internal.ts'
+import type { CategoryRepo } from './category.repo.ts'
 import type {
 	MenuCategoryCreateDto,
 	MenuCategoryDto,
 	MenuCategoryFilterDto,
 	MenuCategoryUpdateDto,
 } from '@ikki/contract/menu/category'
-import { CategoryError, categoryUniqueFields } from './category.internal.ts'
-import type { CategoryRepo } from './category.repo.ts'
 
 interface Deps extends Infra {
 	repo: CategoryRepo

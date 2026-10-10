@@ -11,6 +11,7 @@ import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { AuditTrail } from '@/components/shared/audit-trail'
 import { confirm } from '@/components/shared/confirm'
+import { CurrencyDisplay } from '@/components/shared/currency-display'
 import type { DateRange } from '@/components/shared/date-range-filter'
 import { DetailList } from '@/components/shared/detail-list'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -310,43 +311,22 @@ function ReceivingPage() {
 									<th className="px-3 py-2 text-right font-medium">Jumlah</th>
 									<th className="px-3 py-2 text-left font-medium">Satuan</th>
 									<th className="px-3 py-2 text-right font-medium">Harga Satuan</th>
-									<th className="px-3 py-2 text-right font-medium">Subtotal</th>
 								</tr>
 							</thead>
 							<tbody>
-								{detail.lines.map((line) => {
-									const subtotal = Number(line.quantity) * Number(line.unitCost)
-									return (
-										<tr key={line.id} className="border-t">
-											<td className="px-3 py-2">
-												{materialsMap.get(line.materialId) ?? `#${line.materialId}`}
-											</td>
-											<td className="px-3 py-2 text-right font-mono tabular-nums">
-												{line.quantity}
-											</td>
-											<td className="px-3 py-2">{uomsMap.get(line.uomId) ?? `#${line.uomId}`}</td>
-											<td className="px-3 py-2 text-right font-mono tabular-nums">
-												{Number(line.unitCost).toLocaleString('id-ID')}
-											</td>
-											<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
-												{subtotal.toLocaleString('id-ID')}
-											</td>
-										</tr>
-									)
-								})}
+								{detail.lines.map((line) => (
+									<tr key={line.id} className="border-t">
+										<td className="px-3 py-2">
+											{materialsMap.get(line.materialId) ?? `#${line.materialId}`}
+										</td>
+										<td className="px-3 py-2 text-right font-mono tabular-nums">{line.quantity}</td>
+										<td className="px-3 py-2">{uomsMap.get(line.uomId) ?? `#${line.uomId}`}</td>
+										<td className="px-3 py-2 text-right font-mono">
+											<CurrencyDisplay value={line.unitCost} />
+										</td>
+									</tr>
+								))}
 							</tbody>
-							<tfoot className="border-t bg-muted/30">
-								<tr>
-									<td colSpan={4} className="px-3 py-2 text-right font-medium">
-										Total
-									</td>
-									<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
-										{detail.lines
-											.reduce((sum, l) => sum + Number(l.quantity) * Number(l.unitCost), 0)
-											.toLocaleString('id-ID')}
-									</td>
-								</tr>
-							</tfoot>
 						</table>
 					</div>
 				</div>

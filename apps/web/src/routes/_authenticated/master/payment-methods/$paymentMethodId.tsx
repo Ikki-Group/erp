@@ -8,7 +8,7 @@ import { FormPage } from '@/components/shared/form-page.tsx'
 
 import { toast } from '@/components/ui/toast'
 
-import { paymentMethodMutations, paymentMethodResource } from '@/features/payment-method/api.ts'
+import { paymentMethodResource } from '@/features/payment-method/api.ts'
 import {
 	PaymentMethodFormFields,
 	toPaymentMethodFormValues,
@@ -45,7 +45,7 @@ interface EditPaymentMethodFormProps {
 }
 
 function EditPaymentMethodForm({ method, onDone }: EditPaymentMethodFormProps) {
-	const updateMut = useMutation(paymentMethodMutations.update.mutationOptions())
+	const updateMut = useMutation(paymentMethodResource.update.mutationOptions())
 	const form = usePaymentMethodForm({
 		defaultValues: toPaymentMethodFormValues(method),
 		onSubmit: async (values) => {

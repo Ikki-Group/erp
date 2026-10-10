@@ -1,5 +1,7 @@
 import { PrinterIcon } from 'lucide-react'
 
+import { CurrencyDisplay } from '@/components/shared/currency-display.tsx'
+
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -57,11 +59,11 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 								<div className="flex-1 min-w-0">
 									<p className="truncate">{line.menuItemName}</p>
 									<p className="text-muted-foreground">
-										{Number(line.quantity)} x Rp {Number(line.unitPrice).toLocaleString('id-ID')}
+										{Number(line.quantity)} x <CurrencyDisplay value={line.unitPrice} />
 									</p>
 								</div>
 								<span className="flex-shrink-0">
-									Rp {Number(line.lineTotal).toLocaleString('id-ID')}
+									<CurrencyDisplay value={line.lineTotal} />
 								</span>
 							</div>
 						))}
@@ -72,27 +74,35 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 					<div className="space-y-1">
 						<div className="flex justify-between">
 							<span className="text-muted-foreground">Subtotal</span>
-							<span>Rp {Number(order.subtotal).toLocaleString('id-ID')}</span>
+							<span>
+								<CurrencyDisplay value={order.subtotal} />
+							</span>
 						</div>
-						{Number(order.discountAmount) > 0 && (
+						{/[1-9]/u.test(order.discountAmount) && (
 							<div className="flex justify-between text-success">
 								<span>
 									Diskon
 									{order.voucherCode && ` (${order.voucherCode})`}
 								</span>
-								<span>-Rp {Number(order.discountAmount).toLocaleString('id-ID')}</span>
+								<span>
+									-<CurrencyDisplay value={order.discountAmount} />
+								</span>
 							</div>
 						)}
-						{Number(order.taxAmount) > 0 && (
+						{/[1-9]/u.test(order.taxAmount) && (
 							<div className="flex justify-between">
 								<span className="text-muted-foreground">Pajak</span>
-								<span>Rp {Number(order.taxAmount).toLocaleString('id-ID')}</span>
+								<span>
+									<CurrencyDisplay value={order.taxAmount} />
+								</span>
 							</div>
 						)}
 						<Separator />
 						<div className="flex justify-between font-semibold">
 							<span>Total</span>
-							<span>Rp {Number(order.total).toLocaleString('id-ID')}</span>
+							<span>
+								<CurrencyDisplay value={order.total} />
+							</span>
 						</div>
 					</div>
 
@@ -104,7 +114,9 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 								{order.payments.map((payment) => (
 									<div key={payment.id} className="flex justify-between">
 										<span className="text-muted-foreground">#{payment.paymentMethodId}</span>
-										<span>Rp {Number(payment.amount).toLocaleString('id-ID')}</span>
+										<span>
+											<CurrencyDisplay value={payment.amount} />
+										</span>
 									</div>
 								))}
 							</div>

@@ -1,12 +1,12 @@
+import { zRes } from '@ikki/contract/http'
+import { TableCreateDto, TableDto, TableFilterDto, TableUpdateDto } from '@ikki/contract/pos/table'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
 import { Elysia } from 'elysia'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
-import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@ikki/contract/schema'
 
-import { TableCreateDto, TableDto, TableFilterDto, TableUpdateDto } from '@ikki/contract/pos/table'
 import type { TableService } from './table.service.ts'
 
 // ─── Route Factory ───

@@ -9,6 +9,8 @@ import type { EntityRef } from '@/shared/types/utils.ts'
 import type { MaterialAssignmentService } from '@/modules/material/index.ts'
 
 import { applyMovement } from './stock.calculator.ts'
+import { StockError } from './stock.internal.ts'
+import type { StockRepo } from './stock.repo.ts'
 import type {
 	RecordMovementInput,
 	StockBalanceDto,
@@ -17,8 +19,6 @@ import type {
 	StockMovementDto,
 	StockMovementFilterDto,
 } from '@ikki/contract/inventory/stock'
-import { StockError } from './stock.internal.ts'
-import type { StockRepo } from './stock.repo.ts'
 
 interface Deps extends Infra {
 	repo: StockRepo

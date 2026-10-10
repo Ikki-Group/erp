@@ -145,7 +145,7 @@ function ShiftsPage() {
 					onCreate={(values) =>
 						openMut.mutateAsync({
 							locationId,
-							openingCash: Number(values.openingCash),
+							openingCash: values.openingCash,
 						})
 					}
 				/>
@@ -172,7 +172,7 @@ function ShiftsPage() {
 					onCreate={(values) =>
 						closeMut.mutateAsync({
 							shiftId: activeShift.id,
-							closingCash: Number(values.closingCash),
+							closingCash: values.closingCash,
 							notes: values.notes,
 						})
 					}

@@ -8,9 +8,9 @@ import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '@ikki/contract/iam/role'
 import { RoleError, uniqueFields } from './role.internal.ts'
 import type { RoleRepo } from './role.repo.ts'
+import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '@ikki/contract/iam/role'
 
 interface Deps extends Infra {
 	repo: RoleRepo

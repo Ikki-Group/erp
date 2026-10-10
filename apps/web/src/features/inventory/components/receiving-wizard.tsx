@@ -5,6 +5,8 @@ import { z } from 'zod'
 
 import { useEntityForm } from '@/lib/form/index.ts'
 
+import { CurrencyDisplay } from '@/components/shared/currency-display.tsx'
+
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 
@@ -267,11 +269,6 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 		(materialsQuery.data?.data ?? []).find((m) => m.id === id)
 	const getUom = (id: number | null) => (uomsQuery.data?.data ?? []).find((u) => u.id === id)
 
-	const total = values.lines.reduce(
-		(sum, l) => sum + Number(l.qty || 0) * Number(l.unitCost || 0),
-		0,
-	)
-
 	return (
 		<div className="space-y-4">
 			<div className="rounded-md border p-4">
@@ -297,14 +294,12 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 							<th className="px-3 py-2 text-right font-medium">Jumlah</th>
 							<th className="px-3 py-2 text-left font-medium">Satuan</th>
 							<th className="px-3 py-2 text-right font-medium">Harga Satuan</th>
-							<th className="px-3 py-2 text-right font-medium">Subtotal</th>
 						</tr>
 					</thead>
 					<tbody>
 						{values.lines.map((line, i) => {
 							const material = getMaterial(line.materialId)
 							const uom = getUom(line.uomId)
-							const subtotal = Number(line.qty || 0) * Number(line.unitCost || 0)
 							return (
 								<tr key={i} className="border-t">
 									<td className="px-3 py-2">
@@ -312,29 +307,17 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 									</td>
 									<td className="px-3 py-2 text-right font-mono tabular-nums">{line.qty}</td>
 									<td className="px-3 py-2">{uom?.code ?? `#${line.uomId}`}</td>
-									<td className="px-3 py-2 text-right font-mono tabular-nums">
-										{Number(line.unitCost || 0).toLocaleString('id-ID')}
-									</td>
-									<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
-										{subtotal.toLocaleString('id-ID')}
+									<td className="px-3 py-2 text-right">
+										<CurrencyDisplay value={line.unitCost || '0'} />
 									</td>
 								</tr>
 							)
 						})}
 					</tbody>
-					<tfoot className="border-t bg-muted/30">
-						<tr>
-							<td colSpan={4} className="px-3 py-2 text-right font-medium">
-								Total
-							</td>
-							<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
-								{total.toLocaleString('id-ID')}
-							</td>
-						</tr>
-					</tfoot>
 				</table>
 			</div>
 
+			{/* Totals are computed by the server on save (ADR-0017). */}
 			<form.FormError />
 		</div>
 	)

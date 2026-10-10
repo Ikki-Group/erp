@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { useEntityForm } from '@/lib/form/index.ts'
 
 import { menuCategoryResource } from '../api.ts'
-import { MenuItemStatusEnum } from '../dto/index.ts'
+import { MENU_ITEM_STATUS_OPTIONS, MenuItemStatusEnum } from '../dto/index.ts'
 import type { MenuItemDto } from '../dto/index.ts'
 
 export interface MenuItemFormValues {
@@ -26,11 +26,6 @@ const MenuItemFormSchema = z.object({
 		.regex(/^\d+(\.\d+)?$/u, 'Must be a valid price'),
 	status: MenuItemStatusEnum,
 })
-
-const STATUS_OPTIONS: { label: string; value: string }[] = [
-	{ label: 'Active', value: 'active' },
-	{ label: 'Inactive', value: 'inactive' },
-]
 
 export const EMPTY_MENU_ITEM_FORM_VALUES: MenuItemFormValues = {
 	sku: '',
@@ -87,7 +82,7 @@ export function MenuItemFormFields({
 					{(field) => <field.TextField label="SKU" placeholder="e.g. MNU-001" />}
 				</form.AppField>
 				<form.AppField name="status">
-					{(field) => <field.SelectField label="Status" options={STATUS_OPTIONS} />}
+					{(field) => <field.SelectField label="Status" options={[...MENU_ITEM_STATUS_OPTIONS]} />}
 				</form.AppField>
 			</div>
 

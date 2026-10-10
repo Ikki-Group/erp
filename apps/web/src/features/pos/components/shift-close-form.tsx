@@ -2,6 +2,8 @@ import { z } from 'zod'
 
 import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
 
+import { CurrencyDisplay } from '@/components/shared/currency-display.tsx'
+
 export interface ShiftCloseFormValues {
 	closingCash: string
 	notes: string
@@ -59,35 +61,12 @@ export function ShiftCloseFormBody({
 				{expectedCash && (
 					<div className="rounded-md border bg-muted/50 p-3 text-sm">
 						<span className="text-muted-foreground">Expected cash: </span>
-						<span className="font-medium">{Number(expectedCash).toLocaleString('id-ID')}</span>
+						<CurrencyDisplay value={expectedCash} className="font-medium" />
 					</div>
 				)}
 				<form.AppField name="closingCash">
 					{(field) => <field.CurrencyField label="Closing Cash" />}
 				</form.AppField>
-				<form.Subscribe selector={(state) => state.values.closingCash}>
-					{(closingCash) => {
-						if (!closingCash || !expectedCash) return null
-						const difference = Number(closingCash) - Number(expectedCash)
-						return (
-							<div className="rounded-md border p-3 text-sm">
-								<span className="text-muted-foreground">Difference: </span>
-								<span
-									className={
-										difference === 0
-											? 'font-medium text-success'
-											: difference < 0
-												? 'font-medium text-destructive'
-												: 'font-medium text-warning'
-									}
-								>
-									{difference > 0 ? '+' : ''}
-									{difference.toLocaleString('id-ID')}
-								</span>
-							</div>
-						)
-					}}
-				</form.Subscribe>
 				<form.AppField name="notes">
 					{(field) => <field.TextField label="Notes" placeholder="Optional notes" />}
 				</form.AppField>

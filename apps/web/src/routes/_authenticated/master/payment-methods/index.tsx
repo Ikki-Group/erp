@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 
-import { paymentMethodMutations, paymentMethodResource } from '@/features/payment-method/api.ts'
+import { paymentMethodResource } from '@/features/payment-method/api.ts'
 import {
 	PAYMENT_METHOD_TYPE_OPTIONS,
 	PaymentMethodTypeEnum,
@@ -85,7 +85,7 @@ function PaymentMethodsPage() {
 			type: search.type,
 		}),
 	)
-	const removeMut = useMutation(paymentMethodMutations.remove.mutationOptions())
+	const removeMut = useMutation(paymentMethodResource.remove.mutationOptions())
 
 	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0

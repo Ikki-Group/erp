@@ -8,6 +8,8 @@ import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
+import { ModifierError, modifierUniqueFields } from './modifier.internal.ts'
+import type { ModifierRepo } from './modifier.repo.ts'
 import type {
 	ModifierGroupCreateDto,
 	ModifierGroupDto,
@@ -15,8 +17,6 @@ import type {
 	ModifierGroupUpdateDto,
 	ModifierGroupWithOptionsDto,
 } from '@ikki/contract/menu/modifier'
-import { ModifierError, modifierUniqueFields } from './modifier.internal.ts'
-import type { ModifierRepo } from './modifier.repo.ts'
 
 interface Deps extends Infra {
 	repo: ModifierRepo

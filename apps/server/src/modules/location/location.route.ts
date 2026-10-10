@@ -1,17 +1,17 @@
-import { Elysia } from 'elysia'
-
-import { authGuard } from '@/server/auth/auth.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@ikki/contract/http'
-import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@ikki/contract/schema'
-
 import {
 	LocationCreateDto,
 	LocationDto,
 	LocationFilterDto,
 	LocationUpdateDto,
 } from '@ikki/contract/location'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
+import { Elysia } from 'elysia'
+
+import { authGuard } from '@/server/auth/auth.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
+import { res } from '@/shared/http/response.ts'
+
 import type { LocationService } from './location.service.ts'
 
 export function createLocationRoute(service: LocationService) {

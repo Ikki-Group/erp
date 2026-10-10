@@ -18,8 +18,8 @@ import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { LocationDto, LocationFilterDto } from '@ikki/contract/location'
 import { LocationError } from './location.internal.ts'
+import type { LocationDto, LocationFilterDto } from '@ikki/contract/location'
 
 // ─── Types ───
 

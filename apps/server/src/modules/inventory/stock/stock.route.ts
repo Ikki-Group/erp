@@ -1,9 +1,4 @@
-import { Elysia } from 'elysia'
-
-import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { zRes } from '@ikki/contract/http'
-import { res } from '@/shared/http/response.ts'
-
 import {
 	StockBalanceDto,
 	StockBalanceFilterDto,
@@ -11,6 +6,11 @@ import {
 	StockMovementDto,
 	StockMovementFilterDto,
 } from '@ikki/contract/inventory/stock'
+import { Elysia } from 'elysia'
+
+import { authGuard } from '@/server/auth/auth.plugin.ts'
+import { res } from '@/shared/http/response.ts'
+
 import type { StockService } from './stock.service.ts'
 
 // ─── Route Factory ───

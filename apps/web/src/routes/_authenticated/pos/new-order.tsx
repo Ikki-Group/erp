@@ -53,7 +53,7 @@ function NewOrderPage() {
 	// ─── Cart state ───
 	const [lines, setLines] = useState<CartLine[]>([])
 	const [voucherCode, setVoucherCode] = useState<string | null>(null)
-	const [discountAmount, setDiscountAmount] = useState(0)
+	const [discountAmount, setDiscountAmount] = useState<string | null>(null)
 
 	// ─── Dialog states ───
 	const [modifierItem, setModifierItem] = useState<MenuItemDto | null>(null)
@@ -99,10 +99,9 @@ function NewOrderPage() {
 				menuItemId: item.id,
 				menuItemName: item.name,
 				qty: 1,
-				unitPrice: Number(item.basePrice),
+				unitPrice: item.basePrice,
 				modifierOptionIds: selection.optionIds,
 				modifierNames: selection.optionNames,
-				modifierTotal: selection.priceTotal,
 				notes: null,
 			}
 			const key = getModifierKey(newLine)
@@ -169,7 +168,7 @@ function NewOrderPage() {
 			})
 			if (result.data.applied) {
 				setVoucherCode(voucherInput.trim())
-				setDiscountAmount(result.data.discountAmount ?? 0)
+				setDiscountAmount(result.data.discountAmount ?? null)
 				toast.add({ title: 'Voucher berhasil diterapkan', type: 'success' })
 			} else {
 				toast.add({ title: result.data.reason ?? 'Voucher tidak valid', type: 'error' })
@@ -186,7 +185,7 @@ function NewOrderPage() {
 		try {
 			await voucherRemoveMut.mutateAsync({ orderId: currentOrderId })
 			setVoucherCode(null)
-			setDiscountAmount(0)
+			setDiscountAmount(null)
 			toast.add({ title: 'Voucher dihapus', type: 'success' })
 		} catch {
 			toast.add({ title: 'Gagal menghapus voucher', type: 'error' })
@@ -238,7 +237,7 @@ function NewOrderPage() {
 					await paymentMut.mutateAsync({
 						orderId,
 						paymentMethodId: payment.paymentMethodId,
-						amount: payment.amount,
+						amount: String(payment.amount),
 						reference: payment.reference,
 					})
 				}
@@ -256,7 +255,7 @@ function NewOrderPage() {
 				// Reset state
 				setLines([])
 				setVoucherCode(null)
-				setDiscountAmount(0)
+				setDiscountAmount(null)
 				setCurrentOrderId(null)
 				setPaymentTotal(null)
 
@@ -302,10 +301,7 @@ function NewOrderPage() {
 					lines={lines}
 					onUpdateQty={handleUpdateQty}
 					onRemoveLine={handleRemoveLine}
-					subtotal={null}
 					discountAmount={discountAmount}
-					taxAmount={null}
-					total={null}
 					voucherCode={voucherCode}
 					onRemoveVoucher={handleRemoveVoucher}
 					onOpenPayment={handleOpenPayment}

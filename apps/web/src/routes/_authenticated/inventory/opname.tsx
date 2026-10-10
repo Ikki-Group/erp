@@ -120,7 +120,7 @@ function OpnamePage() {
 
 	const createMut = useMutation(opnameResource.create.mutationOptions())
 	const updateCountsMut = useMutation(opnameResource.updateCounts.mutationOptions())
-	const approveMut = useMutation(opnameResource.approve.mutationOptions())
+	const completeMut = useMutation(opnameResource.complete.mutationOptions())
 
 	// Server filters by createdAt range (OpnameFilterDto.dateFrom/dateTo), so
 	// page + total count both honor the range — no client-side slicing.
@@ -175,9 +175,9 @@ function OpnamePage() {
 		[updateCountsMut, selectedOpnameId],
 	)
 
-	// ─── Approve ───
+	// ─── Complete ───
 
-	const handleApprove = useCallback(async () => {
+	const handleComplete = useCallback(async () => {
 		if (!selectedOpnameId) return
 		await confirm({
 			title: 'Setujui opname?',
@@ -185,11 +185,11 @@ function OpnamePage() {
 				'Setelah disetujui, penyesuaian stok akan dibuat berdasarkan selisih hitungan. Tindakan ini tidak dapat dibatalkan.',
 			confirmLabel: 'Setujui',
 			onConfirm: async () => {
-				await approveMut.mutateAsync({ opnameId: selectedOpnameId })
+				await completeMut.mutateAsync({ opnameId: selectedOpnameId })
 				toast.add({ title: 'Opname disetujui. Penyesuaian stok telah dibuat.', type: 'success' })
 			},
 		})
-	}, [approveMut, selectedOpnameId])
+	}, [completeMut, selectedOpnameId])
 
 	// ─── Columns with row click ───
 
@@ -246,7 +246,7 @@ function OpnamePage() {
 
 	if (selectedOpnameId) {
 		const isEditable = canUpdate && (detail?.status === 'draft' || detail?.status === 'in_progress')
-		const canApprove = detail?.status === 'in_progress'
+		const canFinish = detail?.status === 'in_progress'
 
 		return (
 			<div className="space-y-6">
@@ -255,8 +255,8 @@ function OpnamePage() {
 					description={`Status: ${detail ? OPNAME_STATUS_LABELS[detail.status] : '...'}`}
 					actions={
 						<div className="flex gap-2">
-							{canApprove && canComplete && (
-								<Button size="sm" onClick={handleApprove}>
+							{canFinish && canComplete && (
+								<Button size="sm" onClick={handleComplete}>
 									<CheckCircleIcon className="size-4" />
 									Setujui
 								</Button>

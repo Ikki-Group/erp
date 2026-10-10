@@ -1,10 +1,10 @@
 import { zRes } from '@ikki/contract/http'
-import { zc } from '@ikki/contract/schema'
+import { zq } from '@ikki/contract/schema'
 import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
 
-import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
+import { defineQuery, defineResource } from '@/lib/api/index.ts'
 
 import {
 	PaymentMethodCreateDto,
@@ -13,17 +13,7 @@ import {
 	PaymentMethodUpdateDto,
 } from './dto/index.ts'
 
-// ─── By-Location Keys (defined first so mutations can reference them) ───
-
-const byLocationUrl = endpoint.paymentMethod.byLocation
-
-const byLocationKeys = {
-	all: () => [byLocationUrl] as const,
-	list: (locationId: number) => [byLocationUrl, { locationId }] as const,
-}
-
 // ─── Payment Method Resource (CRUD) ───
-
 export const paymentMethodResource = defineResource({
 	feature: 'payment-method',
 	resource: 'payment-method',
@@ -34,49 +24,15 @@ export const paymentMethodResource = defineResource({
 	update: PaymentMethodUpdateDto,
 })
 
-// ─── Mutations with byLocation invalidation ───
-
-const createMutation = defineMutation({
-	method: 'post',
-	url: endpoint.paymentMethod.create,
-	body: PaymentMethodCreateDto,
-	result: zRes.ok(zc.RecordId),
-	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
-})
-
-const updateMutation = defineMutation({
-	method: 'put',
-	url: endpoint.paymentMethod.update,
-	body: PaymentMethodUpdateDto,
-	result: zRes.ok(zc.RecordId),
-	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
-})
-
-const removeMutation = defineMutation({
-	method: 'delete',
-	url: endpoint.paymentMethod.remove,
-	query: zc.RecordId,
-	result: zRes.ok(zc.RecordId),
-	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
-})
-
-export const paymentMethodMutations = {
-	create: createMutation,
-	update: updateMutation,
-	remove: removeMutation,
-}
-
 // ─── By-Location Query ───
-
-const byLocationQuery = defineQuery({
-	method: 'get',
-	url: byLocationUrl,
-	query: z.object({ locationId: z.coerce.number().int().positive() }),
-	result: zRes.ok(z.array(PaymentMethodDto)),
-	queryKey: (query) => [byLocationUrl, query],
-})
-
+// Keyed under the resource root so CRUD mutations (`invalidates: keys.root()`) refresh it.
+// The location is an explicit arg (not the active location), so it is not `locationScoped`.
 export const paymentMethodByLocation = {
-	keys: byLocationKeys,
-	query: byLocationQuery,
+	query: defineQuery({
+		method: 'get',
+		url: endpoint.paymentMethod.byLocation,
+		query: z.object({ locationId: zq.id }),
+		result: zRes.ok(z.array(PaymentMethodDto)),
+		queryKey: (query) => paymentMethodResource.keys.list({ byLocation: query }),
+	}),
 }

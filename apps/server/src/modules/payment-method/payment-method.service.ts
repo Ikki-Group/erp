@@ -9,6 +9,12 @@ import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type { LocationService } from '@/modules/location/index.ts'
 
+import {
+	LocationAssignmentError,
+	PaymentMethodError,
+	uniqueFields,
+} from './payment-method.internal.ts'
+import type { PaymentMethodRepo } from './payment-method.repo.ts'
 import type {
 	PaymentMethodCreateDto,
 	PaymentMethodDto,
@@ -16,12 +22,6 @@ import type {
 	PaymentMethodLocationAssignDto,
 	PaymentMethodUpdateDto,
 } from '@ikki/contract/payment-method'
-import {
-	LocationAssignmentError,
-	PaymentMethodError,
-	uniqueFields,
-} from './payment-method.internal.ts'
-import type { PaymentMethodRepo } from './payment-method.repo.ts'
 
 interface Deps extends Infra {
 	repo: PaymentMethodRepo

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { PlusIcon, Trash2Icon } from 'lucide-react'
 
+import { CurrencyDisplay } from '@/components/shared/currency-display.tsx'
 import { CurrencyInput } from '@/components/shared/currency-input.tsx'
 
 import { Button } from '@/components/ui/button'
@@ -87,11 +88,19 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 	}, [])
 
 	const handleConfirm = useCallback(() => {
-		const validEntries = entries.filter((e) => e.amount > 0)
-		onConfirm(validEntries)
+		// The server records at most the open balance; cash over the bill is change
+		// handed back, so trim the tender to the total before recording it.
+		// ponytail: integer-rupiah JS math is exact for IDR (no subunit); server re-validates.
+		let due = orderTotal
+		const recorded = entries.flatMap((e) => {
+			const amount = Math.min(e.amount, due)
+			due -= amount
+			return amount > 0 ? [{ ...e, amount }] : []
+		})
+		onConfirm(recorded)
 		setEntries([])
 		onOpenChange(false)
-	}, [entries, onConfirm, onOpenChange])
+	}, [entries, orderTotal, onConfirm, onOpenChange])
 
 	const handleClose = useCallback(() => {
 		setEntries([])
@@ -108,7 +117,9 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 				<div className="space-y-4">
 					<div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
 						<span className="text-xs text-muted-foreground">Total Tagihan</span>
-						<span className="text-sm font-semibold">Rp {orderTotal.toLocaleString('id-ID')}</span>
+						<span className="text-sm font-semibold">
+							<CurrencyDisplay value={orderTotal} />
+						</span>
 					</div>
 
 					{entries.length > 0 && (
@@ -165,18 +176,24 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 					<div className="space-y-1 text-xs">
 						<div className="flex justify-between">
 							<span className="text-muted-foreground">Dibayar</span>
-							<span>Rp {totalPaid.toLocaleString('id-ID')}</span>
+							<span>
+								<CurrencyDisplay value={totalPaid} />
+							</span>
 						</div>
 						{remaining > 0 && (
 							<div className="flex justify-between text-destructive">
 								<span>Kurang</span>
-								<span>Rp {remaining.toLocaleString('id-ID')}</span>
+								<span>
+									<CurrencyDisplay value={remaining} />
+								</span>
 							</div>
 						)}
 						{change > 0 && (
 							<div className="flex justify-between font-medium text-success">
 								<span>Kembalian</span>
-								<span>Rp {change.toLocaleString('id-ID')}</span>
+								<span>
+									<CurrencyDisplay value={change} />
+								</span>
 							</div>
 						)}
 					</div>

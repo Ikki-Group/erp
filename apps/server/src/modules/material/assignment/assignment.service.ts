@@ -8,8 +8,8 @@ import type { EntityRef } from '@/shared/types/utils.ts'
 import type { LocationService } from '@/modules/location/index.ts'
 
 import type { MaterialService } from '../material.service.ts'
-import type { MaterialAssignDto, MaterialLocationDto } from '@ikki/contract/material/assignment'
 import type { AssignmentRepo } from './assignment.repo.ts'
+import type { MaterialAssignDto, MaterialLocationDto } from '@ikki/contract/material/assignment'
 
 // ─── Error Factories ───
 

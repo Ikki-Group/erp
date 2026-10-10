@@ -10,13 +10,13 @@ import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
+import type { CategoryRepo } from './category.repo.ts'
 import type {
 	MaterialCategoryCreateDto,
 	MaterialCategoryDto,
 	MaterialCategoryFilterDto,
 	MaterialCategoryUpdateDto,
 } from '@ikki/contract/material/category'
-import type { CategoryRepo } from './category.repo.ts'
 
 // ─── Error Factories ───
 

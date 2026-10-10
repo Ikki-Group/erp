@@ -8,10 +8,10 @@ import { hashPassword, verifyPassword } from '@/shared/utils/index.ts'
 import type { UserDetailDto, UserService } from '@/modules/iam/index.ts'
 import type { LocationDto, LocationService } from '@/modules/location/index.ts'
 
-import type { LoginDto, LoginResponseDto, MeResponseDto } from '@ikki/contract/auth'
 import { AuthError } from './auth.internal.ts'
-import type { RevokeSessionResultDto, SessionDto } from '@ikki/contract/auth/session'
 import type { SessionRepo } from './session/session.repo.ts'
+import type { LoginDto, LoginResponseDto, MeResponseDto } from '@ikki/contract/auth'
+import type { RevokeSessionResultDto, SessionDto } from '@ikki/contract/auth/session'
 
 export interface AuthServiceDeps {
 	users: Pick<UserService, 'findCredentials'> & {

@@ -1,5 +1,7 @@
 import { MinusIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 
+import { CurrencyDisplay } from '@/components/shared/currency-display.tsx'
+
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -8,10 +10,10 @@ export interface CartLine {
 	menuItemId: number
 	menuItemName: string
 	qty: number
-	unitPrice: number
+	/** Catalog base price from the menu item DTO — display only, never summed (ADR-0017). */
+	unitPrice: string
 	modifierOptionIds: number[]
 	modifierNames: string[]
-	modifierTotal: number
 	notes: string | null
 }
 
@@ -19,13 +21,8 @@ interface OrderCartProps {
 	lines: CartLine[]
 	onUpdateQty: (menuItemId: number, modifierKey: string, qty: number) => void
 	onRemoveLine: (menuItemId: number, modifierKey: string) => void
-	/** Server-authoritative subtotal; `null` while the cart is not yet synced (pending). */
-	subtotal: number | null
-	discountAmount: number
-	/** Server-authoritative tax; `null` while the cart is not yet synced (pending). */
-	taxAmount: number | null
-	/** Server-authoritative grand total; `null` while pending (computed at payment). */
-	total: number | null
+	/** Server-returned voucher discount; `null` when no voucher is applied. */
+	discountAmount: string | null
 	voucherCode: string | null
 	onRemoveVoucher: () => void
 	onOpenPayment: () => void
@@ -41,10 +38,7 @@ export function OrderCart({
 	lines,
 	onUpdateQty,
 	onRemoveLine,
-	subtotal,
 	discountAmount,
-	taxAmount,
-	total,
 	voucherCode,
 	onRemoveVoucher,
 	onOpenPayment,
@@ -66,7 +60,6 @@ export function OrderCart({
 					<div className="divide-y">
 						{lines.map((line) => {
 							const key = getModifierKey(line)
-							const lineTotal = (line.unitPrice + line.modifierTotal) * line.qty
 							return (
 								<div key={key} className="flex items-start gap-2 py-2.5">
 									<div className="flex-1 min-w-0">
@@ -79,10 +72,10 @@ export function OrderCart({
 										{line.notes && (
 											<p className="text-xs italic text-muted-foreground truncate">{line.notes}</p>
 										)}
-										<p className="mt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
-											Rp {line.unitPrice.toLocaleString('id-ID')}
-											{line.modifierTotal > 0 && ` + ${line.modifierTotal.toLocaleString('id-ID')}`}
-										</p>
+										<CurrencyDisplay
+											value={line.unitPrice}
+											className="mt-0.5 block font-mono text-xs text-muted-foreground"
+										/>
 									</div>
 									<div className="flex items-center gap-1">
 										<Button
@@ -113,9 +106,6 @@ export function OrderCart({
 											<Trash2Icon className="size-3 text-destructive" />
 										</Button>
 									</div>
-									<span className="w-20 text-right font-mono text-xs font-medium tabular-nums">
-										Rp {lineTotal.toLocaleString('id-ID')}
-									</span>
 								</div>
 							)
 						})}
@@ -124,36 +114,32 @@ export function OrderCart({
 			</ScrollArea>
 
 			<div className="border-t px-4 py-3">
+				{/* Order money is server-authoritative (ADR-0017): totals are computed
+				    by the server when the cart is synced at payment, never here. */}
 				<div className="space-y-1 font-mono text-xs tabular-nums">
 					<div className="flex justify-between">
 						<span className="font-sans text-muted-foreground">Subtotal</span>
-						<span className={subtotal === null ? 'text-muted-foreground' : undefined}>
-							{subtotal === null ? 'Dihitung saat bayar' : `Rp ${subtotal.toLocaleString('id-ID')}`}
-						</span>
+						<span className="text-muted-foreground">Dihitung saat bayar</span>
 					</div>
-					{discountAmount > 0 && (
+					{discountAmount !== null && (
 						<div className="flex justify-between text-success">
 							<span className="flex items-center gap-1 font-sans">
 								Diskon
 								{voucherCode && <span className="text-xs">({voucherCode})</span>}
 							</span>
-							<span>-Rp {discountAmount.toLocaleString('id-ID')}</span>
+							<span>
+								-<CurrencyDisplay value={discountAmount} />
+							</span>
 						</div>
 					)}
 					<div className="flex justify-between">
 						<span className="font-sans text-muted-foreground">Pajak</span>
-						<span className={taxAmount === null ? 'text-muted-foreground' : undefined}>
-							{taxAmount === null
-								? 'Dihitung saat bayar'
-								: `Rp ${taxAmount.toLocaleString('id-ID')}`}
-						</span>
+						<span className="text-muted-foreground">Dihitung saat bayar</span>
 					</div>
 					<Separator />
 					<div className="flex justify-between text-sm font-semibold">
 						<span className="font-sans">Total</span>
-						<span className={total === null ? 'text-muted-foreground' : undefined}>
-							{total === null ? 'Dihitung saat bayar' : `Rp ${total.toLocaleString('id-ID')}`}
-						</span>
+						<span className="text-muted-foreground">Dihitung saat bayar</span>
 					</div>
 				</div>
 

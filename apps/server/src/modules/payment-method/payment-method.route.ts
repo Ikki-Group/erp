@@ -1,12 +1,4 @@
-import { Elysia } from 'elysia'
-import { z } from 'zod'
-
-import { authGuard } from '@/server/auth/auth.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@ikki/contract/http'
-import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@ikki/contract/schema'
-
 import {
 	PaymentMethodCreateDto,
 	PaymentMethodDto,
@@ -14,6 +6,14 @@ import {
 	PaymentMethodLocationAssignDto,
 	PaymentMethodUpdateDto,
 } from '@ikki/contract/payment-method'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
+import { Elysia } from 'elysia'
+import { z } from 'zod'
+
+import { authGuard } from '@/server/auth/auth.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
+import { res } from '@/shared/http/response.ts'
+
 import type { PaymentMethodService } from './payment-method.service.ts'
 
 export function createPaymentMethodRoute(service: PaymentMethodService) {

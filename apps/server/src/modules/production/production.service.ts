@@ -17,6 +17,8 @@ import { resolveConversion } from '@/modules/uom/index.ts'
 import type { UomConversionDto, UomService } from '@/modules/uom/index.ts'
 
 import { inputRequirement, outputUnitCost, plannedOutputQty } from './production.calculator.ts'
+import { ProductionError } from './production.internal.ts'
+import type { ProductionRepo } from './production.repo.ts'
 import type {
 	ProductionOrderConfirmDto,
 	ProductionOrderCreateDto,
@@ -29,8 +31,6 @@ import type {
 	ProductionRecipeFilterDto,
 	ProductionRecipeUpdateDto,
 } from '@ikki/contract/production'
-import { ProductionError } from './production.internal.ts'
-import type { ProductionRepo } from './production.repo.ts'
 
 interface Deps extends Infra {
 	repo: ProductionRepo

@@ -37,6 +37,12 @@ export const zc = {
 		.string()
 		.trim()
 		.regex(/^\d+(\.\d+)?$/u, 'Must be a non-negative number'),
+	/** Like `decimal` but strictly greater than zero. */
+	positiveDecimal: z
+		.string()
+		.trim()
+		.regex(/^\d+(\.\d+)?$/u, 'Must be a number')
+		.refine((value) => /[1-9]/u.test(value), 'Must be greater than 0'),
 	AuditBasic: z.object({
 		createdAt: z.coerce.date(),
 		updatedAt: z.coerce.date(),

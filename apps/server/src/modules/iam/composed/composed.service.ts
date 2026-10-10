@@ -1,13 +1,13 @@
 import { NotFoundError } from '@/shared/errors/http-error.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 
+import type { ComposedRepo } from './composed.repo.ts'
 import type {
 	ComposedUserFilterDto,
 	LocationStaffListItemDto,
 	UserDetailDto,
 	UserListItemDto,
 } from '@ikki/contract/iam/composed'
-import type { ComposedRepo } from './composed.repo.ts'
 
 interface Deps {
 	repo: ComposedRepo

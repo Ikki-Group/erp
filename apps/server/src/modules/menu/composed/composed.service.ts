@@ -1,8 +1,8 @@
 import type { Db } from '@/infra/database/index.ts'
 
 import { ItemError } from '../item/item.internal.ts'
-import type { MenuItemDetailDto } from '@ikki/contract/menu/composed'
 import type { ComposedRepo } from './composed.repo.ts'
+import type { MenuItemDetailDto } from '@ikki/contract/menu/composed'
 
 interface Deps {
 	repo: ComposedRepo

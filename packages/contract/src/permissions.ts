@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 /** Canonical permission vocabulary accepted by IAM role mutations. */
-const PERMISSIONS = [
+export const PERMISSIONS = [
 	'auth.me',
 	'auth.logout',
 	'auth.session.list',
@@ -83,5 +83,6 @@ const PERMISSIONS = [
 	'audit.read',
 ] as const
 
+export type Permission = (typeof PERMISSIONS)[number]
 const permissionSchema = z.enum(PERMISSIONS)
 export const permissionsSchema = z.array(permissionSchema).default([])

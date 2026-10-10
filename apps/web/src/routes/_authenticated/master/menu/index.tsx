@@ -519,7 +519,7 @@ function MenuPage() {
 										<Badge variant="secondary" className="text-xs capitalize">
 											{group.selectionType}
 										</Badge>
-										{group.isRequired === 1 && (
+										{group.isRequired && (
 											<Badge variant="outline" className="text-xs">
 												Wajib
 											</Badge>

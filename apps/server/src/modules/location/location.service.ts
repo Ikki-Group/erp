@@ -3,14 +3,14 @@ import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
+import { LocationError } from './location.internal.ts'
+import type { LocationRepo } from './location.repo.ts'
 import type {
 	LocationCreateDto,
 	LocationDto,
 	LocationFilterDto,
 	LocationUpdateDto,
 } from '@ikki/contract/location'
-import { LocationError } from './location.internal.ts'
-import type { LocationRepo } from './location.repo.ts'
 
 interface Deps extends Infra {
 	repo: LocationRepo

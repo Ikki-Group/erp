@@ -34,7 +34,8 @@ const detailQuery = defineQuery({
 	url: endpoint.recipe.detail,
 	query: zc.RecordId,
 	result: zRes.ok(RecipeDetailDto),
-	queryKey: (query) => [endpoint.recipe.detail, query ?? null],
+	// Distinct from `recipeResource.detail` (no lines) so the two shapes never share a cache entry.
+	queryKey: (query) => [...recipeResource.keys.details(), 'withLines', query],
 })
 
 // ─── Recipe Detail by Menu Item ───
@@ -44,7 +45,7 @@ const byMenuItemQuery = defineQuery({
 	url: endpoint.recipe.byMenuItem,
 	query: z.object({ menuItemId: z.coerce.number().int().positive() }),
 	result: zRes.ok(RecipeDetailDto),
-	queryKey: (query) => [endpoint.recipe.byMenuItem, query?.menuItemId ?? null],
+	queryKey: (query) => [...recipeResource.keys.details(), 'byMenuItem', query],
 })
 
 // ─── HPP Calculation ───
@@ -56,7 +57,7 @@ const hppQuery = defineQuery({
 		menuItemId: z.coerce.number().int().positive(),
 		locationId: z.coerce.number().int().positive(),
 	}),
-	queryKey: (query) => [endpoint.recipe.hpp, query ?? null],
+	queryKey: (query) => [...recipeResource.keys.all(), 'hpp', query],
 	result: zRes.ok(HppResponseDto),
 })
 

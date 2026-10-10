@@ -1,12 +1,4 @@
-import { Elysia } from 'elysia'
-
-import { authGuard } from '@/server/auth/auth.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
-import { hasPermission } from '@/shared/auth/permission.ts'
 import { zRes } from '@ikki/contract/http'
-import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@ikki/contract/schema'
-
 import {
 	ShiftCloseDto,
 	ShiftDetailDto,
@@ -14,6 +6,14 @@ import {
 	ShiftFilterDto,
 	ShiftOpenDto,
 } from '@ikki/contract/pos/shift'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
+import { Elysia } from 'elysia'
+
+import { authGuard } from '@/server/auth/auth.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
+import { hasPermission } from '@/shared/auth/permission.ts'
+import { res } from '@/shared/http/response.ts'
+
 import type { ShiftService } from './shift.service.ts'
 
 // ─── Route Factory ───

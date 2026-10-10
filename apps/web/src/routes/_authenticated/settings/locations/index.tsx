@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
@@ -30,6 +30,10 @@ export const Route = createFileRoute('/_authenticated/settings/locations/')({
 	validateSearch: searchSchema,
 	component: LocationsPage,
 })
+
+// Hoisted so `getItems` returns no JSX literal (react/no-unstable-nested-components).
+const editIcon = <EditIcon className="size-4" />
+const trashIcon = <TrashIcon className="size-4" />
 
 const col = createColumnHelper<DataGridFeatures, LocationDto>()
 
@@ -95,21 +99,34 @@ function LocationsPage() {
 		}),
 	)
 
+	const removeMut = useMutation(locationResource.remove.mutationOptions())
 	const data = listQuery.data?.data ?? []
 	const totalCount = listQuery.data?.meta?.total ?? 0
 
-	const handleDelete = async (location: LocationDto) => {
-		await confirm({
-			title: 'Delete location?',
-			description: `This will permanently delete "${location.name}". This action cannot be undone.`,
-			confirmLabel: 'Delete',
-			variant: 'destructive',
-			onConfirm: async () => {
-				await locationResource.remove.fetch({ id: location.id })
-				toast.add({ title: 'Location deleted successfully.', type: 'success' })
-			},
-		})
-	}
+	const handleDelete = useCallback(
+		async (location: LocationDto) => {
+			await confirm({
+				title: 'Delete location?',
+				description: `This will permanently delete "${location.name}". This action cannot be undone.`,
+				confirmLabel: 'Delete',
+				variant: 'destructive',
+				onConfirm: async () => {
+					try {
+						await removeMut.mutateAsync({ id: location.id })
+					} catch (error) {
+						// e.g. 409 LOCATION_HOLDS_STOCK: show the server's reason.
+						toast.add({
+							title: error instanceof Error ? error.message : 'Failed to delete location.',
+							type: 'error',
+						})
+						throw error
+					}
+					toast.add({ title: 'Location deleted successfully.', type: 'success' })
+				},
+			})
+		},
+		[removeMut],
+	)
 
 	const actionsColumn = useMemo(
 		() =>
@@ -117,7 +134,7 @@ function LocationsPage() {
 				getItems: (location) => [
 					canEdit && {
 						label: 'Edit',
-						icon: <EditIcon className="size-4" />,
+						icon: editIcon,
 						onClick: () =>
 							navigate({
 								to: '/settings/locations/$locationId/edit',
@@ -126,7 +143,7 @@ function LocationsPage() {
 					},
 					canDelete && {
 						label: 'Delete',
-						icon: <TrashIcon className="size-4" />,
+						icon: trashIcon,
 						onClick: () => handleDelete(location),
 						variant: 'destructive' as const,
 					},

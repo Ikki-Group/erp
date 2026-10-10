@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 
-import { conversionResource, uomListAll, uomResource } from '@/features/uom/api.ts'
+import { conversionResource, uomResource } from '@/features/uom/api.ts'
 import { ConversionFormBody } from '@/features/uom/components/conversion-form.tsx'
 import { UOM_CATEGORY_OPTIONS, UomCategoryEnum } from '@/features/uom/dto/index.ts'
 import type { UomConversionDto, UomDto } from '@/features/uom/dto/index.ts'
@@ -73,7 +73,8 @@ function UomPage() {
 			category: search.category,
 		}),
 	)
-	const allUnitsQuery = useQuery(uomListAll.queryOptions({ page: 1, limit: 999 }))
+	// ponytail: server caps `limit` at 100; labels for units beyond the first 100 fall back to `#id`.
+	const allUnitsQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 100 }))
 	const conversionsQuery = useQuery(conversionResource.list.queryOptions(undefined))
 
 	const removeMut = useMutation(uomResource.remove.mutationOptions())

@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 
 import { SearchIcon } from 'lucide-react'
 
+import { CurrencyDisplay } from '@/components/shared/currency-display.tsx'
+
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -102,7 +104,7 @@ export function MenuGrid({ onSelectItem }: MenuGridProps) {
 							>
 								<span className="line-clamp-2 text-xs font-medium">{item.name}</span>
 								<span className="font-mono text-xs text-muted-foreground tabular-nums">
-									Rp {Number(item.basePrice).toLocaleString('id-ID')}
+									<CurrencyDisplay value={item.basePrice} />
 								</span>
 							</button>
 						))}

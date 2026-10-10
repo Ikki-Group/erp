@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
 
-import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
+import { createResourceKeys, defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
 
 import {
 	MaterialAssignDto,
@@ -47,17 +47,14 @@ export const categoryResource = defineResource({
 
 const assignmentUrls = endpoint.material.assignment
 
-const assignmentKeys = {
-	byLocation: (locationId?: number) => [assignmentUrls.byLocation, locationId ?? null] as const,
-	byMaterial: (materialId?: number) => [assignmentUrls.byMaterial, materialId ?? null] as const,
-}
+const assignmentKeys = createResourceKeys('material', 'assignment')
 
 const assignmentByLocation = defineQuery({
 	method: 'get',
 	url: assignmentUrls.byLocation,
 	query: z.object({ locationId: z.coerce.number().int().positive() }),
 	result: zRes.ok(z.array(MaterialLocationDto)),
-	queryKey: (args) => [assignmentUrls.byLocation, args?.locationId ?? null],
+	queryKey: (args) => assignmentKeys.list({ locationId: args.locationId }),
 })
 
 const assignmentByMaterial = defineQuery({
@@ -65,7 +62,7 @@ const assignmentByMaterial = defineQuery({
 	url: assignmentUrls.byMaterial,
 	query: z.object({ materialId: z.coerce.number().int().positive() }),
 	result: zRes.ok(z.array(MaterialLocationDto)),
-	queryKey: (args) => [assignmentUrls.byMaterial, args?.materialId ?? null],
+	queryKey: (args) => assignmentKeys.list({ materialId: args.materialId }),
 })
 
 const assignmentAssign = defineMutation({
@@ -73,11 +70,7 @@ const assignmentAssign = defineMutation({
 	url: assignmentUrls.assign,
 	body: MaterialAssignDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [
-		assignmentKeys.byLocation(),
-		assignmentKeys.byMaterial(),
-		materialResource.keys.lists(),
-	],
+	invalidates: [assignmentKeys.root(), materialResource.keys.root()],
 })
 
 const assignmentUnassign = defineMutation({
@@ -85,11 +78,7 @@ const assignmentUnassign = defineMutation({
 	url: assignmentUrls.unassign,
 	body: MaterialAssignDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [
-		assignmentKeys.byLocation(),
-		assignmentKeys.byMaterial(),
-		materialResource.keys.lists(),
-	],
+	invalidates: [assignmentKeys.root(), materialResource.keys.root()],
 })
 
 export const assignmentResource = {

@@ -22,7 +22,7 @@ describe('pos/order lifecycle', () => {
 			token,
 			locationId: SEED_LOCATION_ID,
 			headers: { 'x-location-id': String(SEED_LOCATION_ID) },
-			body: { locationId: SEED_LOCATION_ID, openingCash: 500000 },
+			body: { locationId: SEED_LOCATION_ID, openingCash: '500000' },
 		})
 	})
 
@@ -58,8 +58,8 @@ describe('pos/order lifecycle', () => {
 		const detail: Json = await detailRes.json()
 		expect(detail.data.lines.length).toBeGreaterThanOrEqual(1)
 		expect(Number(detail.data.lines[0].quantity)).toBe(2)
-		const total = Number(detail.data.total)
-		expect(total).toBeGreaterThan(0)
+		const total: string = detail.data.total
+		expect(Number(total)).toBeGreaterThan(0)
 
 		// 4. Record payment
 		const payRes = await POST('/pos/order/payment', {
@@ -127,7 +127,7 @@ describe('pos/order lifecycle', () => {
 			query: { id: String(createBody.data.id) },
 		})
 		const detail: Json = await detailRes.json()
-		const total = Number(detail.data.total)
+		const total: string = detail.data.total
 
 		await POST('/pos/order/payment', {
 			token,

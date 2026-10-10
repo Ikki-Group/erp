@@ -19,6 +19,10 @@ import type { TableService } from '../table/table.service.ts'
 import { evaluateVoucher } from '../voucher/voucher.calculator.ts'
 import type { VoucherService } from '../voucher/voucher.service.ts'
 import { calculateLineTotal, calculateOrderTotals, remainingBalance } from './order.calculator.ts'
+import { deductStockForOrder } from './order.deduction.ts'
+import type { DeductionDeps } from './order.deduction.ts'
+import { OrderError } from './order.internal.ts'
+import type { OrderRepo } from './order.repo.ts'
 import type {
 	OrderApplyVoucherDto,
 	OrderCompleteDto,
@@ -32,10 +36,6 @@ import type {
 	OrderVoidDto,
 	OrderVoucherApplyResultDto,
 } from '@ikki/contract/pos/order'
-import { deductStockForOrder } from './order.deduction.ts'
-import type { DeductionDeps } from './order.deduction.ts'
-import { OrderError } from './order.internal.ts'
-import type { OrderRepo } from './order.repo.ts'
 
 interface Deps extends Infra, DeductionDeps {
 	repo: OrderRepo

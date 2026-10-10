@@ -13,7 +13,7 @@ import {
 	OrderDto,
 	OrderFilterDto,
 	OrderLineSyncDto,
-	OrderPaymentInputDto,
+	OrderPaymentDto,
 	OrderRemoveVoucherDto,
 	OrderVoidDto,
 	OrderVoucherApplyResultDto,
@@ -38,6 +38,7 @@ export const tableResource = defineResource({
 	feature: 'pos',
 	resource: 'table',
 	urls: endpoint.pos.table,
+	locationScoped: true,
 	entitySchema: TableDto,
 	filter: TableFilterDto,
 	create: TableCreateDto,
@@ -50,8 +51,7 @@ export const tableResource = defineResource({
 // creates/deletes), so it composes canonical location-scoped keys from
 // `createResourceKeys` with hand-written endpoints instead of `defineResource`.
 // Shift data is always scoped to the active location, so the keys fold in the
-// active `locationId` — location 1's shifts and location 2's cache separately,
-// and a location switch invalidates only this location's entries.
+// active `locationId` — location 1's shifts and location 2's cache separately.
 
 const shiftUrls = endpoint.pos.shift
 
@@ -84,15 +84,14 @@ const shiftActive = defineQuery({
 	tier: 'volatile',
 })
 
-// Invalidation targets are resolver functions, not precomputed keys: a
-// location-scoped key folds in the active `locationId` via `getActiveLocationId()`,
-// which must be read at mutation time (post-switch), not at module-load time.
+// Mutations invalidate the unscoped `root()` prefix so every location's
+// cached shifts (including the active-shift entry) are refreshed.
 const shiftOpen = defineMutation({
 	method: 'post',
 	url: shiftUrls.open,
 	body: ShiftOpenDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [() => shiftKeys.lists(), () => shiftActiveKey()],
+	invalidates: [shiftKeys.root()],
 })
 
 const shiftClose = defineMutation({
@@ -100,7 +99,7 @@ const shiftClose = defineMutation({
 	url: shiftUrls.close,
 	body: ShiftCloseDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [() => shiftKeys.lists(), () => shiftActiveKey()],
+	invalidates: [shiftKeys.root()],
 })
 
 const shiftCloseOther = defineMutation({
@@ -108,7 +107,7 @@ const shiftCloseOther = defineMutation({
 	url: shiftUrls.closeOther,
 	body: ShiftCloseDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [() => shiftKeys.lists(), () => shiftActiveKey()],
+	invalidates: [shiftKeys.root()],
 })
 
 export const shiftResource = {
@@ -165,14 +164,13 @@ const orderDetail = defineQuery({
 	tier: 'volatile',
 })
 
-// Invalidation targets are resolvers so the location-scoped keys read the
-// active `locationId` at mutation time, not at module load.
+// Mutations invalidate the unscoped `root()` prefix (all locations).
 const orderCreate = defineMutation({
 	method: 'post',
 	url: orderUrls.create,
 	body: OrderCreateDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [() => orderKeys.lists()],
+	invalidates: [orderKeys.root()],
 })
 
 const orderComplete = defineMutation({
@@ -180,7 +178,7 @@ const orderComplete = defineMutation({
 	url: orderUrls.complete,
 	body: OrderCompleteDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [() => orderKeys.lists(), () => orderKeys.details()],
+	invalidates: [orderKeys.root()],
 })
 
 const orderVoid = defineMutation({
@@ -188,7 +186,7 @@ const orderVoid = defineMutation({
 	url: orderUrls.void,
 	body: OrderVoidDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [() => orderKeys.lists(), () => orderKeys.details()],
+	invalidates: [orderKeys.root()],
 })
 
 const orderLinesSync = defineMutation({
@@ -196,7 +194,7 @@ const orderLinesSync = defineMutation({
 	url: orderUrls.linesSync,
 	body: OrderLineSyncDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [() => orderKeys.details()],
+	invalidates: [orderKeys.root()],
 })
 
 const orderVoucherApply = defineMutation({
@@ -204,7 +202,7 @@ const orderVoucherApply = defineMutation({
 	url: orderUrls.voucherApply,
 	body: OrderApplyVoucherDto,
 	result: zRes.ok(OrderVoucherApplyResultDto),
-	invalidates: [() => orderKeys.details()],
+	invalidates: [orderKeys.root()],
 })
 
 const orderVoucherRemove = defineMutation({
@@ -212,15 +210,15 @@ const orderVoucherRemove = defineMutation({
 	url: orderUrls.voucherRemove,
 	body: OrderRemoveVoucherDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [() => orderKeys.details()],
+	invalidates: [orderKeys.root()],
 })
 
 const orderPayment = defineMutation({
 	method: 'post',
 	url: orderUrls.payment,
-	body: OrderPaymentInputDto,
+	body: OrderPaymentDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [() => orderKeys.details()],
+	invalidates: [orderKeys.root()],
 })
 
 export const orderResource = {

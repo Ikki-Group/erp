@@ -3,7 +3,7 @@ import { zc } from '@ikki/contract/schema'
 
 import { endpoint } from '@/config/endpoint.ts'
 
-import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
+import { createResourceKeys, defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
 
 import {
 	MenuCategoryCreateDto,
@@ -42,7 +42,8 @@ const itemDetailQuery = defineQuery({
 	url: endpoint.menu.item.detail,
 	query: zc.RecordId,
 	result: zRes.ok(MenuItemDetailDto),
-	queryKey: (query) => [endpoint.menu.item.detail, query ?? null],
+	// Distinct from `menuItemResource.detail` (plain MenuItemDto) so the two shapes never share a cache entry.
+	queryKey: (query) => [...menuItemResource.keys.details(), 'composed', query],
 })
 
 // ─── Menu Item Modifier Sync ───
@@ -52,7 +53,7 @@ const modifierSyncMutation = defineMutation({
 	url: endpoint.menu.item.modifiersSync,
 	body: MenuItemModifierSyncDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [menuItemResource.keys.lists(), menuItemResource.keys.details()],
+	invalidates: [menuItemResource.keys.root()],
 })
 
 export const menuItemExtras = {
@@ -64,10 +65,7 @@ export const menuItemExtras = {
 
 const categoryUrls = endpoint.menu.category
 
-const categoryKeys = {
-	lists: () => [categoryUrls.list] as const,
-	list: (query?: unknown) => [categoryUrls.list, query ?? null] as const,
-}
+const categoryKeys = createResourceKeys('menu', 'category')
 
 const categoryList = defineQuery({
 	method: 'get',
@@ -82,7 +80,7 @@ const categoryCreate = defineMutation({
 	url: categoryUrls.create,
 	body: MenuCategoryCreateDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [categoryKeys.lists(), menuItemResource.keys.lists()],
+	invalidates: [categoryKeys.root(), menuItemResource.keys.root()],
 })
 
 const categoryUpdate = defineMutation({
@@ -90,7 +88,7 @@ const categoryUpdate = defineMutation({
 	url: categoryUrls.update,
 	body: MenuCategoryUpdateDto,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [categoryKeys.lists(), menuItemResource.keys.lists()],
+	invalidates: [categoryKeys.root(), menuItemResource.keys.root()],
 })
 
 const categoryRemove = defineMutation({
@@ -98,7 +96,7 @@ const categoryRemove = defineMutation({
 	url: categoryUrls.remove,
 	query: zc.RecordId,
 	result: zRes.ok(zc.RecordId),
-	invalidates: [categoryKeys.lists(), menuItemResource.keys.lists()],
+	invalidates: [categoryKeys.root(), menuItemResource.keys.root()],
 })
 
 export const menuCategoryResource = {
@@ -128,7 +126,8 @@ const modifierDetailQuery = defineQuery({
 	url: endpoint.menu.modifier.detail,
 	query: zc.RecordId,
 	result: zRes.ok(ModifierGroupWithOptionsDto),
-	queryKey: (query) => [endpoint.menu.modifier.detail, query ?? null],
+	// Distinct from `modifierGroupResource.detail` (no options) so the two shapes never share a cache entry.
+	queryKey: (query) => [...modifierGroupResource.keys.details(), 'withOptions', query],
 })
 
 export const modifierGroupExtras = {

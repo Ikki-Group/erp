@@ -23,7 +23,11 @@ const location = crud('location')
 const iam = {
 	role: crud('iam/role'),
 	user: {
-		...crud('iam/user'),
+		list: p('iam/user', 'list'),
+		detail: p('iam/user', 'detail'),
+		create: p('iam/user', 'create'),
+		update: p('iam/user', 'update'),
+		// No `remove`: users are deactivated, never deleted.
 		deactivate: p('iam/user', 'deactivate'),
 		resetPassword: p('iam/user', 'reset-password'),
 		locationStaff: p('iam/user', 'location-staff', 'list'),
@@ -83,7 +87,7 @@ const inventory = {
 		detail: p('inventory/opname', 'detail'),
 		create: p('inventory/opname', 'create'),
 		counts: p('inventory/opname', 'counts'),
-		approve: p('inventory/opname', 'approve'),
+		complete: p('inventory/opname', 'complete'),
 	},
 	receiving: {
 		list: p('inventory/receiving', 'list'),

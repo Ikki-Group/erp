@@ -24,7 +24,7 @@ export interface ModifierGroupFormValues {
 }
 
 function emptyOption(sortOrder: number): ModifierOptionInputDto {
-	return { name: '', priceAdjustment: '0', isDefault: 0, sortOrder, isActive: 1 }
+	return { name: '', priceAdjustment: '0', isDefault: false, sortOrder, isActive: true }
 }
 
 const ModifierGroupFormSchema = z.object({
@@ -38,9 +38,9 @@ const ModifierGroupFormSchema = z.object({
 			z.object({
 				name: z.string().trim().min(1, 'Nama opsi wajib diisi').max(100),
 				priceAdjustment: z.string().regex(/^-?\d+(\.\d+)?$/u, 'Harus berupa angka'),
-				isDefault: z.number().int().min(0).max(1),
+				isDefault: z.boolean(),
 				sortOrder: z.number().int().min(0),
-				isActive: z.number().int().min(0).max(1),
+				isActive: z.boolean(),
 			}),
 		)
 		.min(1, 'Tambahkan minimal satu opsi'),
@@ -54,7 +54,7 @@ export interface ModifierGroupFormBodyProps {
 	onSubmitValues: (values: {
 		name: string
 		selectionType: SelectionTypeEnum
-		isRequired: number
+		isRequired: boolean
 		minSelect: number
 		maxSelect: number | null
 		options: ModifierOptionInputDto[]
@@ -78,7 +78,7 @@ export function ModifierGroupFormBody({
 		defaultValues: {
 			name: defaultValues?.name ?? '',
 			selectionType: defaultValues?.selectionType ?? 'single',
-			isRequired: defaultValues?.isRequired === 1,
+			isRequired: defaultValues?.isRequired ?? false,
 			minSelect: defaultValues?.minSelect ?? 0,
 			maxSelect: defaultValues?.maxSelect ?? null,
 			options: [emptyOption(0)],
@@ -88,7 +88,7 @@ export function ModifierGroupFormBody({
 			await onSubmitValues({
 				name: values.name,
 				selectionType: values.selectionType as SelectionTypeEnum,
-				isRequired: values.isRequired ? 1 : 0,
+				isRequired: values.isRequired,
 				minSelect: values.minSelect ?? 0,
 				maxSelect: values.maxSelect,
 				options: values.options,

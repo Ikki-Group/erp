@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zp, zq } from '../schema.ts'
+import { zc, zp, zq } from '../schema.ts'
 
 // ─── Enums ───
 
@@ -34,7 +34,7 @@ export type ShiftDetailDto = z.infer<typeof ShiftDetailDto>
 
 export const ShiftOpenDto = z.object({
 	locationId: z.coerce.number().int().positive(),
-	openingCash: z.coerce.number().nonnegative(),
+	openingCash: zc.decimal,
 })
 export type ShiftOpenDto = z.infer<typeof ShiftOpenDto>
 
@@ -42,7 +42,7 @@ export type ShiftOpenDto = z.infer<typeof ShiftOpenDto>
 
 export const ShiftCloseDto = z.object({
 	shiftId: z.coerce.number().int().positive(),
-	closingCash: z.coerce.number().nonnegative(),
+	closingCash: zc.decimal,
 	notes: z.string().trim().max(1000).optional(),
 })
 export type ShiftCloseDto = z.infer<typeof ShiftCloseDto>

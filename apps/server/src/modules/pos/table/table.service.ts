@@ -7,6 +7,8 @@ import { assertFound } from '@/shared/utils/index.ts'
 
 import type { LocationService } from '@/modules/location/index.ts'
 
+import { TableError } from './table.internal.ts'
+import type { TableRepo } from './table.repo.ts'
 import type {
 	TableCreateDto,
 	TableDto,
@@ -14,8 +16,6 @@ import type {
 	TableStatusEnum,
 	TableUpdateDto,
 } from '@ikki/contract/pos/table'
-import { TableError } from './table.internal.ts'
-import type { TableRepo } from './table.repo.ts'
 
 interface Deps extends Infra {
 	repo: TableRepo
