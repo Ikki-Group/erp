@@ -78,6 +78,10 @@ export class ApiError<TData = unknown> extends Error {
 
 	/** Localized, user-safe message — never throws, always has a sensible fallback. */
 	get friendlyMessage(): string {
+		// Business rule errors carry a specific, user-safe message from the server
+		// (e.g. "Location still holds stock"); auth, rate-limit and 5xx stay generic.
+		const businessError = [400, 404, 409, 422].includes(this.status ?? 0)
+		if (businessError && this.code && this.message) return this.message
 		switch (this.status) {
 			case 400:
 				return 'Permintaan tidak valid.'

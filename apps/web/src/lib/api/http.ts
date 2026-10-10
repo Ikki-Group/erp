@@ -31,6 +31,21 @@ export function buildSearchParams(query: Record<string, unknown> | undefined): U
 	return searchParams
 }
 
+/**
+ * The server's failure envelope is `{ success: false, error: { code, message, context } }`
+ * (see apps/server error.plugin). Returns undefined for anything else.
+ */
+function toPayload(body: unknown): ApiErrorPayload | undefined {
+	if (typeof body !== 'object' || body === null || !('error' in body)) return undefined
+	const { error } = body
+	if (typeof error !== 'object' || error === null) return undefined
+	const code = 'code' in error && typeof error.code === 'string' ? error.code : undefined
+	const message =
+		'message' in error && typeof error.message === 'string' ? error.message : undefined
+	if (!code || !message) return undefined
+	return { code, message, data: 'context' in error ? error.context : undefined }
+}
+
 /** Normalizes any thrown value into an `ApiError`, preserving abort semantics. */
 async function normalizeError(error: unknown, response?: Response): Promise<never> {
 	// HTTP error response
@@ -40,7 +55,7 @@ async function normalizeError(error: unknown, response?: Response): Promise<neve
 
 		if (contentType?.includes('application/json')) {
 			try {
-				payload = (await response.clone().json()) as ApiErrorPayload
+				payload = toPayload(await response.clone().json())
 			} catch {
 				// Body wasn't valid JSON despite the content-type header
 			}

@@ -2,28 +2,16 @@
 
 End-to-end tests for Ikki ERP using Playwright.
 
-## Prerequisites
-
-1. **API server must be running** — start it in a separate terminal:
-
-   ```bash
-   bun run dev:server
-   ```
-
-2. **Database must be seeded** — the server needs seed data (superadmin user):
-   - Email: `admin@ikki.com`
-   - Password: `admin12345`
-
 ## Running Tests
 
 ```bash
-# From monorepo root
-bun run test:e2e
-
-# Or from this directory
-cd apps/e2e
-bun run test
+# From monorepo root: resets + seeds the TEST db, starts server :4100 + web :3100, runs Playwright
+./scripts/test-e2e.sh --reporter=line
 ```
+
+Seed users (`apps/server/scripts/seeds/iam.ts`): `owner`, `manager`, `cashier`, `warehouse`,
+`multi-location`, all with password `password123`. Specs assume a freshly seeded DB; each test
+uses unique codes (`uid()`) so tests stay parallel-safe.
 
 ### Useful Commands
 

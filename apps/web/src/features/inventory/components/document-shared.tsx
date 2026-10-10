@@ -98,8 +98,10 @@ export function useLineLookups() {
 		return {
 			material: (id: number) => materials.get(id),
 			uomCode: (id: number) => uoms.get(id) ?? '',
+			/** False until both lookups have loaded; summaries built earlier show raw ids. */
+			isReady: materialsQuery.isSuccess && uomsQuery.isSuccess,
 		}
-	}, [materialsQuery.data, uomsQuery.data])
+	}, [materialsQuery.data, uomsQuery.data, materialsQuery.isSuccess, uomsQuery.isSuccess])
 }
 
 export function useLocationName() {

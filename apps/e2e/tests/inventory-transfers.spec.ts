@@ -1,88 +1,46 @@
 import { test, expect } from './fixtures/auth.fixture'
+import { SEED } from './helpers/test-data'
+import { pickOption, switchLocation } from './helpers/ui'
 
-test.describe('Inventory Transfers - Page Load', () => {
-	/** Transfers page loads and shows header */
-	test('displays transfer page with header', async ({ page, login }) => {
+test.describe('Inventory transfers', () => {
+	test('create → ship at origin → receive at destination', async ({ page, login }) => {
 		await login()
-		await page.goto('/inventory/transfers')
+		await switchLocation(page, SEED.store.name)
+		await page.goto('/inventory/transfers/new')
 
-		await expect(page.getByRole('heading', { name: /transfer inventori/iu })).toBeVisible()
-	})
+		await expect(page.getByRole('combobox', { name: 'Lokasi Asal' })).toHaveText(
+			new RegExp(SEED.store.name, 'u'),
+		)
+		await pickOption(page, 'Lokasi Tujuan', new RegExp(SEED.warehouse.name, 'u'))
+		await page.getByRole('button', { name: 'Lanjut' }).click()
+		await page.getByRole('button', { name: 'Tambah Baris' }).click()
+		await pickOption(page, 'Material', new RegExp(SEED.pcsMaterial, 'u'))
+		await page.getByRole('textbox', { name: 'Jumlah' }).fill('2')
+		await pickOption(page, 'Satuan', /\(pcs\)/u)
+		await page.getByRole('button', { name: 'Lanjut' }).click()
+		await page.getByRole('button', { name: 'Buat Transfer' }).click()
 
-	/** Shows location name in description when location is active */
-	test('shows active location context in description', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/transfers')
+		await expect(page).toHaveURL(/\/inventory\/transfers\/\d+$/u)
+		const heading = page.getByRole('heading', { level: 1, name: /^TRF-/u })
+		const number = (await heading.textContent()) ?? ''
+		await expect(page.getByText('Diajukan', { exact: true })).toBeVisible()
 
-		await expect(page.getByText(/transfer antar lokasi dari/iu)).toBeVisible()
-	})
+		await page.getByRole('button', { name: 'Kirim', exact: true }).click()
+		await page
+			.getByRole('dialog', { name: `Kirim ${number}?` })
+			.getByRole('button', { name: 'Kirim & kurangi stok' })
+			.click()
+		await expect(page.getByText('Dalam Perjalanan', { exact: true })).toBeVisible()
+		// Receiving happens at the destination.
+		await expect(page.getByRole('button', { name: 'Terima', exact: true })).toBeHidden()
 
-	/** Shows "Buat Transfer" button */
-	test('shows create transfer button', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/transfers')
-
-		await expect(page.getByRole('button', { name: /buat transfer/iu })).toBeVisible()
-	})
-})
-
-test.describe('Inventory Transfers - Empty State', () => {
-	/** Shows empty state when no transfers exist */
-	test('displays empty state or table', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/transfers')
-
-		const hasTable = page.locator('table')
-		const hasEmpty = page.getByText(/belum ada transfer/iu)
-
-		await expect(hasTable.or(hasEmpty)).toBeVisible()
-	})
-})
-
-test.describe('Inventory Transfers - Create Dialog', () => {
-	/** Opens create transfer dialog */
-	test('opens create transfer dialog on button click', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/transfers')
-
-		await page.getByRole('button', { name: /buat transfer/iu }).click()
-
-		await expect(page.getByRole('heading', { name: /buat transfer/iu })).toBeVisible()
-		await expect(page.getByText(/lokasi asal/iu)).toBeVisible()
-		await expect(page.getByText(/lokasi tujuan/iu)).toBeVisible()
-	})
-
-	/** Shows material line inputs in create dialog */
-	test('shows item transfer section with material inputs', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/transfers')
-
-		await page.getByRole('button', { name: /buat transfer/iu }).click()
-
-		await expect(page.getByText(/item transfer/iu)).toBeVisible()
-		await expect(page.getByRole('button', { name: /tambah baris/iu })).toBeVisible()
-	})
-
-	/** Can add and remove lines in create dialog */
-	test('can add additional material lines', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/transfers')
-
-		await page.getByRole('button', { name: /buat transfer/iu }).click()
-		await page.getByRole('button', { name: /tambah baris/iu }).click()
-
-		const materialInputs = page.getByPlaceholder('Pilih material')
-		await expect(materialInputs).toHaveCount(2)
-	})
-})
-
-test.describe('Inventory Transfers - Navigation', () => {
-	/** Transfers link is accessible from sidebar */
-	test('can navigate to transfers page from sidebar', async ({ page, login }) => {
-		await login()
-
-		await page.getByRole('link', { name: /transfers/iu }).click()
-
-		await expect(page).toHaveURL(/\/inventory\/transfers/u)
+		await switchLocation(page, SEED.warehouse.name)
+		await page.getByRole('button', { name: 'Terima', exact: true }).click()
+		await page
+			.getByRole('dialog', { name: `Terima ${number}?` })
+			.getByRole('button', { name: 'Terima & tambah stok' })
+			.click()
+		await expect(page.getByText('Dalam Perjalanan', { exact: true })).toBeHidden()
+		await expect(page.getByRole('heading', { level: 3, name: 'Received' })).toBeVisible()
 	})
 })

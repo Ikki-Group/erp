@@ -14,8 +14,12 @@ export default defineConfig({
 		// HTML reporter for better visualization
 		['html', { outputFolder: './playwright-report/html', open: 'never' }],
 	],
+	// The test DB is a remote (Neon) database: under parallel load single requests
+	// occasionally take several seconds, so the 5s default is too tight.
+	expect: { timeout: 10_000 },
 	use: {
-		baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
+		// Test web server started by scripts/test-e2e.sh (not the dev server on :3000).
+		baseURL: process.env.BASE_URL ?? 'http://localhost:3100',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 	},

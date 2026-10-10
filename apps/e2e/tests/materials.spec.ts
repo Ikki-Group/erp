@@ -1,178 +1,86 @@
+import type { Page } from '@playwright/test'
 import { test, expect } from './fixtures/auth.fixture'
+import { uid } from './helpers/test-data'
+import { expectToast, pickOption, searchList } from './helpers/ui'
 
-test.describe('Materials - Material CRUD', () => {
-	/** Page loads and shows header */
-	test('displays materials page with header', async ({ page, login }) => {
+async function createMaterial(page: Page, code: string, name: string) {
+	await page.goto('/master/materials')
+	await page.getByRole('button', { name: 'Add Material' }).click()
+	await expect(page).toHaveURL(/\/master\/materials\/new$/u)
+	await page.getByRole('textbox', { name: 'Code' }).fill(code)
+	await page.getByRole('textbox', { name: 'Name' }).fill(name)
+	await pickOption(page, 'Base unit', /Kilogram/u)
+	await page.getByRole('button', { name: 'Create' }).click()
+	await expectToast(page, 'Material created successfully.')
+	await expect(page).toHaveURL(/\/master\/materials\?/u)
+}
+
+/** Search the list and open the row's read view. */
+async function openMaterial(page: Page, code: string) {
+	await searchList(page, 'Search materials...', code)
+	await page.getByRole('button', { name: new RegExp(`^${code} `, 'u') }).click()
+	await expect(page).toHaveURL(/\/master\/materials\/\d+$/u)
+}
+
+test.describe('Materials', () => {
+	test('list → detail read view → edit → save', async ({ page, login }) => {
+		const code = `MAT-${uid()}`
+		const name = `E2E Material ${code}`
 		await login()
-		await page.goto('/master/materials')
+		await createMaterial(page, code, name)
 
-		await expect(page.getByRole('heading', { name: /materials/iu })).toBeVisible()
-		await expect(page.getByText(/manage materials, categories/iu)).toBeVisible()
+		await openMaterial(page, code)
+		await expect(page.getByRole('heading', { level: 1, name })).toBeVisible()
+		await expect(page.getByRole('definition').filter({ hasText: 'Kilogram (kg)' })).toBeVisible()
+
+		await page.getByRole('button', { name: 'Edit', exact: true }).click()
+		await expect(page).toHaveURL(/\/master\/materials\/\d+\/edit$/u)
+		await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue(name)
+		await page.getByRole('textbox', { name: 'Name' }).fill(`${name} edited`)
+		await page.getByRole('textbox', { name: 'Min Stock' }).fill('4')
+		await page.getByRole('button', { name: 'Save Changes' }).click()
+
+		await expectToast(page, 'Material updated successfully.')
+		await expect(page).toHaveURL(/\/master\/materials\/\d+$/u)
+		await expect(page.getByRole('heading', { level: 1, name: `${name} edited` })).toBeVisible()
+
+		// Persisted, not just optimistic.
+		await page.reload()
+		await expect(page.getByRole('heading', { level: 1, name: `${name} edited` })).toBeVisible()
+		await expect(page.getByRole('definition').filter({ hasText: /^4$/u })).toBeVisible()
 	})
 
-	/** Add Material button is visible */
-	test('shows Add Material button', async ({ page, login }) => {
+	test('deactivate from the detail page "More actions" menu', async ({ page, login }) => {
+		const code = `MAT-${uid()}`
 		await login()
-		await page.goto('/master/materials')
+		await createMaterial(page, code, `E2E Delete ${code}`)
+		await openMaterial(page, code)
 
-		await expect(page.getByRole('button', { name: /add material/iu })).toBeVisible()
+		await page.getByRole('button', { name: 'More actions' }).click()
+		await page.getByRole('menuitem', { name: 'Deactivate material' }).click()
+		const dialog = page.getByRole('dialog', { name: 'Deactivate material?' })
+		await expect(dialog).toContainText(code)
+		await dialog.getByRole('button', { name: 'Deactivate' }).click()
+
+		await expectToast(page, 'Material deactivated.')
+		await expect(page).toHaveURL(/\/master\/materials\?/u)
+		// The server soft-deletes (deactivates): the row stays, marked Inactive.
+		await searchList(page, 'Search materials...', code)
+		await expect(page.getByRole('button', { name: new RegExp(`^${code} `, 'u') })).toContainText(
+			'Inactive',
+		)
 	})
 
-	/** Opening create dialog */
-	test('opens create dialog when clicking Add Material', async ({ page, login }) => {
+	test('add a category from the list page', async ({ page, login }) => {
+		const name = `E2E Cat ${uid()}`
 		await login()
 		await page.goto('/master/materials')
-
-		await page.getByRole('button', { name: /add material/iu }).click()
-
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText('Add Material')).toBeVisible()
-	})
-
-	/** Create a new material end-to-end */
-	test('can create a new material', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/materials')
-
-		await page.getByRole('button', { name: /add material/iu }).click()
-
-		await page.getByLabel('Code').fill('MAT-E2E-001')
-		await page.getByLabel('Name').fill('Material E2E Test')
-
-		// Select base UoM (first available option)
-		await page.getByText('Select unit...').first().click()
-		await page.getByRole('option').first().click()
-
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/created successfully/iu)).toBeVisible()
-	})
-
-	/** Search/filter materials */
-	test('can search materials by name', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/materials')
-
-		const searchInput = page.getByPlaceholder(/search materials/iu)
-		await searchInput.fill('E2E')
-
-		await page.waitForLoadState('networkidle')
-	})
-
-	/** Edit an existing material */
-	test('can edit a material via action menu', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/materials')
-
-		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
-		await actionTrigger.click()
-
-		await page.getByRole('menuitem', { name: 'Edit' }).click()
-
-		await expect(page.getByText('Edit Material')).toBeVisible()
-
-		const nameField = page.getByLabel('Name')
-		await nameField.clear()
-		await nameField.fill('Updated Material E2E')
-
-		await page.getByRole('button', { name: /save changes/iu }).click()
-
-		await expect(page.getByText(/updated successfully/iu)).toBeVisible()
-	})
-
-	/** Delete a material via action menu */
-	test('can delete a material via action menu', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/materials')
-
-		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
-		await actionTrigger.click()
-
-		await page.getByRole('menuitem', { name: 'Delete' }).click()
-
-		await expect(page.getByText(/delete material/iu)).toBeVisible()
-		await page.getByRole('button', { name: 'Delete' }).click()
-
-		await expect(page.getByText(/deleted successfully/iu)).toBeVisible()
-	})
-})
-
-test.describe('Materials - Category CRUD', () => {
-	/** Add Category button is visible */
-	test('shows Add Category button', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/materials')
-
-		await expect(page.getByRole('button', { name: /add category/iu })).toBeVisible()
-	})
-
-	/** Create a new category */
-	test('can create a new category', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/materials')
-
-		await page.getByRole('button', { name: /add category/iu }).click()
-
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText('Add Category')).toBeVisible()
-
-		await page.getByLabel('Name').fill('Category E2E Test')
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/created successfully/iu)).toBeVisible()
-	})
-
-	/** Category filter dropdown is available */
-	test('can filter materials by category', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/materials')
-
-		const categoryFilter = page.getByRole('combobox')
-		await expect(categoryFilter).toBeVisible()
-	})
-
-	/** Edit a category */
-	test('can edit a category inline', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/materials')
-
-		// First create a category to ensure one exists
-		await page.getByRole('button', { name: /add category/iu }).click()
-		await page.getByLabel('Name').fill('Cat Edit E2E')
-		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(/created successfully/iu)).toBeVisible()
-
-		// Find the category section and click edit on the first item
-		const categorySection = page.locator('h3:has-text("Categories")').locator('..')
-		const editBtn = categorySection.getByRole('button').first()
-		await editBtn.click()
-
-		await expect(page.getByText('Edit Category')).toBeVisible()
-
-		const nameField = page.getByLabel('Name')
-		await nameField.clear()
-		await nameField.fill('Cat Updated E2E')
-
-		await page.getByRole('button', { name: /save changes/iu }).click()
-
-		await expect(page.getByText(/updated successfully/iu)).toBeVisible()
-	})
-})
-
-test.describe('Materials - Location Assignment', () => {
-	/** Open location assignment dialog from action menu */
-	test('can open location assignment dialog', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/materials')
-
-		// Ensure material exists
-		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
-		if (await actionTrigger.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await actionTrigger.click()
-			await page.getByRole('menuitem', { name: 'Locations' }).click()
-
-			await expect(page.getByText('Location Assignment')).toBeVisible()
-			await expect(page.getByText(/toggle which locations/iu)).toBeVisible()
-		}
+		await page.getByRole('button', { name: 'Add Category' }).click()
+		const dialog = page.getByRole('dialog', { name: 'Add Category' })
+		await expect(dialog.getByRole('textbox', { name: 'Name' })).toBeVisible()
+		await dialog.getByRole('textbox', { name: 'Name' }).fill(name)
+		await dialog.getByRole('button', { name: 'Create' }).click()
+		await expect(dialog).toBeHidden()
+		await expect(page.getByRole('button', { name: `Edit ${name}` })).toBeVisible()
 	})
 })

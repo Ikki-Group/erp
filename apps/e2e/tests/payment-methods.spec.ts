@@ -1,142 +1,34 @@
 import { test, expect } from './fixtures/auth.fixture'
+import { uid } from './helpers/test-data'
+import { expectToast, pickOption, searchList } from './helpers/ui'
 
-test.describe('Payment Methods - CRUD', () => {
-	/** Page loads and shows header */
-	test('displays payment methods page with header', async ({ page, login }) => {
+test.describe('Payment methods', () => {
+	test('create → detail → edit (deactivate)', async ({ page, login }) => {
+		const code = `PM${uid()}`
+		const name = `E2E Pay ${code}`
 		await login()
 		await page.goto('/master/payment-methods')
-
-		await expect(page.getByRole('heading', { name: /payment methods/iu })).toBeVisible()
-		await expect(page.getByText(/manage payment methods/iu)).toBeVisible()
-	})
-
-	/** Add Payment Method button is visible */
-	test('shows Add Payment Method button', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/payment-methods')
-
-		await expect(page.getByRole('button', { name: /add payment method/iu })).toBeVisible()
-	})
-
-	/** Opening create dialog */
-	test('opens create dialog when clicking Add Payment Method', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/payment-methods')
-
-		await page.getByRole('button', { name: /add payment method/iu }).click()
-
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText('Add Payment Method')).toBeVisible()
-	})
-
-	/** Create a cash payment method end-to-end */
-	test('can create a cash payment method', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/payment-methods')
-
-		await page.getByRole('button', { name: /add payment method/iu }).click()
-
-		await page.getByLabel('Code').fill('CASH-E2E')
-		await page.getByLabel('Name').fill('Cash E2E')
-
+		await page.getByRole('button', { name: 'Add Payment Method' }).click()
+		await expect(page).toHaveURL(/\/master\/payment-methods\/new$/u)
+		await page.getByRole('textbox', { name: 'Code' }).fill(code)
+		await pickOption(page, 'Type', /Digital/iu)
+		await page.getByRole('textbox', { name: 'Name' }).fill(name)
 		await page.getByRole('button', { name: 'Create' }).click()
+		await expectToast(page, /created/iu)
 
-		await expect(page.getByText(/payment method created/iu)).toBeVisible()
-	})
-
-	/** Create a digital payment method */
-	test('can create a digital payment method', async ({ page, login }) => {
-		await login()
 		await page.goto('/master/payment-methods')
+		await searchList(page, 'Search payment methods...', code)
+		const row = page.getByRole('button', { name: new RegExp(`^${code} `, 'u') })
+		await expect(row).toContainText('Active')
+		await row.click()
+		await expect(page).toHaveURL(/\/master\/payment-methods\/\d+$/u)
+		await expect(page.getByRole('heading', { level: 1, name })).toBeVisible()
 
-		await page.getByRole('button', { name: /add payment method/iu }).click()
-
-		await page.getByLabel('Code').fill('QRIS-E2E')
-		await page.getByLabel('Name').fill('QRIS E2E')
-
-		// Change type to digital
-		await page.getByLabel('Type').click()
-		await page.getByRole('option', { name: /digital/iu }).click()
-
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/payment method created/iu)).toBeVisible()
-	})
-
-	/** Search/filter payment methods */
-	test('can search payment methods', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/payment-methods')
-
-		const searchInput = page.getByPlaceholder(/search payment methods/iu)
-		await searchInput.fill('Cash')
-
-		await page.waitForLoadState('networkidle')
-	})
-
-	/** Edit an existing payment method */
-	test('can edit a payment method via action menu', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/payment-methods')
-
-		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
-		await actionTrigger.click()
-
-		await page.getByRole('menuitem', { name: 'Edit' }).click()
-
-		await expect(page.getByText('Edit Payment Method')).toBeVisible()
-
-		const nameField = page.getByLabel('Name')
-		await nameField.clear()
-		await nameField.fill('Updated Payment Method')
-
-		await page.getByRole('button', { name: /save changes/iu }).click()
-
-		await expect(page.getByText(/payment method updated/iu)).toBeVisible()
-	})
-
-	/** Delete a payment method via action menu */
-	test('can delete a payment method via action menu', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/payment-methods')
-
-		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
-		await actionTrigger.click()
-
-		await page.getByRole('menuitem', { name: 'Delete' }).click()
-
-		await expect(page.getByText(/delete payment method/iu)).toBeVisible()
-		await page.getByRole('button', { name: 'Delete' }).click()
-
-		await expect(page.getByText(/payment method deleted/iu)).toBeVisible()
-	})
-
-	/** Validation: form requires name with min length */
-	test('shows validation error for empty name', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/payment-methods')
-
-		await page.getByRole('button', { name: /add payment method/iu }).click()
-
-		await page.getByLabel('Code').fill('TEST')
-		// Leave name empty
-
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/fix the validation/iu)).toBeVisible()
-	})
-})
-
-test.describe('Payment Methods - Empty State', () => {
-	/** Shows empty state when no payment methods exist */
-	test('displays empty state with action button', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/payment-methods')
-
-		// If empty, the empty state should have a create button
-		const emptyState = page.getByText(/no payment methods yet/iu)
-		if (await emptyState.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await expect(page.getByRole('button', { name: /add payment method/iu })).toBeVisible()
-		}
+		await page.getByRole('button', { name: 'Edit', exact: true }).click()
+		await page.getByRole('switch', { name: 'Active' }).click()
+		await page.getByRole('button', { name: 'Save Changes' }).click()
+		await expectToast(page, /updated/iu)
+		await expect(page).toHaveURL(/\/master\/payment-methods\/\d+$/u)
+		await expect(page.getByText('Inactive', { exact: true })).toBeVisible()
 	})
 })

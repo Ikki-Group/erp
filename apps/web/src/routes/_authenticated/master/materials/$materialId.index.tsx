@@ -72,13 +72,13 @@ function MaterialDetail({ material }: { material: MaterialDto }) {
 
 	const handleDelete = async () => {
 		await confirm({
-			title: 'Delete material?',
-			description: `This will permanently delete "${material.name}" (${material.code}). This action cannot be undone.`,
-			confirmLabel: 'Delete',
+			title: 'Deactivate material?',
+			description: `"${material.name}" (${material.code}) will be hidden from pickers and new documents. Its stock history is kept.`,
+			confirmLabel: 'Deactivate',
 			variant: 'destructive',
 			onConfirm: async () => {
 				await removeMut.mutateAsync({ id: material.id })
-				toast.add({ title: 'Material deleted successfully.', type: 'success' })
+				toast.add({ title: 'Material deactivated.', type: 'success' })
 				backToList()
 			},
 		})
@@ -120,7 +120,7 @@ function MaterialDetail({ material }: { material: MaterialDto }) {
 							label="More actions"
 							items={[
 								{
-									label: 'Delete material',
+									label: 'Deactivate material',
 									icon: <TrashIcon />,
 									onClick: () => void handleDelete(),
 									variant: 'destructive',

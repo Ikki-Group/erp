@@ -109,19 +109,21 @@ function CategoryDialogBody({
 	})
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault()
-				e.stopPropagation()
-				void form.handleSubmit()
-			}}
-		>
-			<CategoryFormFields form={form} />
-			<FormDialogFooter
-				onCancel={() => close(false)}
-				submitLabel={defaultValues ? 'Save Changes' : 'Create'}
-			/>
-		</form>
+		<form.AppForm>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					void form.handleSubmit()
+				}}
+			>
+				<CategoryFormFields form={form} />
+				<FormDialogFooter
+					onCancel={() => close(false)}
+					submitLabel={defaultValues ? 'Save Changes' : 'Create'}
+				/>
+			</form>
+		</form.AppForm>
 	)
 }
 

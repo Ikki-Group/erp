@@ -1,29 +1,39 @@
 import { test, expect } from './fixtures/auth.fixture'
+import { SEED } from './helpers/test-data'
+import { activeLocationStatus, createDraftReceiving, switchLocation } from './helpers/ui'
 
 test.describe('Dashboard', () => {
-	/** Dashboard loads for authenticated user */
-	test('displays dashboard page after login', async ({ page, login }) => {
+	test('consolidated view shows one rollup row per accessible location', async ({
+		page,
+		login,
+	}) => {
 		await login()
-
-		await expect(page).toHaveURL('/')
-		// Dashboard should render within the AppShell layout
-		await expect(page.locator('body')).toBeVisible()
+		await expect(activeLocationStatus(page)).toHaveText('Lokasi aktif: Semua Lokasi')
+		const rollup = page.getByRole('table')
+		await expect(rollup.getByRole('columnheader', { name: 'Penerimaan draft' })).toBeVisible()
+		await expect(rollup.getByRole('row', { name: new RegExp(SEED.store.name, 'u') })).toBeVisible()
+		await expect(
+			rollup.getByRole('row', { name: new RegExp(SEED.warehouse.name, 'u') }),
+		).toBeVisible()
+		await expect(rollup.getByRole('row', { name: /^Total/u })).toBeVisible()
 	})
 
-	/** Dashboard shows navigation sidebar */
-	test('shows navigation sidebar', async ({ page, login }) => {
+	test('a non-zero count drills in: switches location and opens the filtered list', async ({
+		page,
+		login,
+	}) => {
 		await login()
+		await switchLocation(page, SEED.store.name)
+		const number = await createDraftReceiving(page)
 
-		// Verify sidebar contains navigation links
-		await expect(page.getByRole('navigation')).toBeVisible()
-	})
+		await switchLocation(page, 'Semua Lokasi')
+		await page.goto('/')
+		await page
+			.getByRole('link', { name: new RegExp(`^\\d+ penerimaan draft di ${SEED.store.name}$`, 'u') })
+			.click()
 
-	/** User can navigate to settings from sidebar */
-	test('can navigate to settings/users from sidebar', async ({ page, login }) => {
-		await login()
-
-		await page.getByRole('link', { name: /user/iu }).click()
-
-		await expect(page).toHaveURL(/\/settings\/users/u)
+		await expect(page).toHaveURL(/\/inventory\/receiving\?.*status=draft/u)
+		await expect(activeLocationStatus(page)).toHaveText(`Lokasi aktif: ${SEED.store.name}`)
+		await expect(page.getByRole('button', { name: new RegExp(number, 'u') })).toBeVisible()
 	})
 })

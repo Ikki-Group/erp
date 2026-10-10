@@ -28,11 +28,22 @@ cleanup() {
 	echo "🧹 Cleaning up..."
 	[ -n "$WEB_PID" ] && kill "$WEB_PID" 2>/dev/null && echo "   Stopped web (PID $WEB_PID)"
 	[ -n "$SERVER_PID" ] && kill "$SERVER_PID" 2>/dev/null && echo "   Stopped server (PID $SERVER_PID)"
-	wait "$WEB_PID" 2>/dev/null
-	wait "$SERVER_PID" 2>/dev/null
+	# A killed child's status (143) must not become the script's exit code under `set -e`.
+	wait "$WEB_PID" 2>/dev/null || true
+	wait "$SERVER_PID" 2>/dev/null || true
 	echo "✅ Cleanup done."
 }
 trap cleanup EXIT
+
+# ─── Step 0: Refuse to run against leftover processes ───
+# A stale server from a previous run would keep serving with its in-memory
+# auth cache (keyed by user id) after the DB is re-seeded with different ids.
+for port in "$TEST_SERVER_PORT" "$TEST_WEB_PORT"; do
+	if curl -s -o /dev/null --max-time 2 "http://localhost:$port"; then
+		echo "❌ Port $port is already in use — stop the leftover process first."
+		exit 1
+	fi
+done
 
 # ─── Step 1: Reset + Seed Database ───
 
@@ -45,7 +56,10 @@ echo ""
 
 echo "🚀 Starting server on port $TEST_SERVER_PORT..."
 cd "$SERVER_DIR"
-PORT="$TEST_SERVER_PORT" NODE_ENV=test bun run --env-file .env.test src/server.ts &
+# REDIS_URL is blanked on purpose: env.ts also loads the dev `.env`, which would
+# point the test server at the shared remote Redis. Its auth cache (access:<userId>)
+# then outlives the re-seed, whose user ids differ run to run → wrong permissions.
+REDIS_URL="" PORT="$TEST_SERVER_PORT" NODE_ENV=test bun run --env-file .env.test src/server.ts &
 SERVER_PID=$!
 
 # ─── Step 3: Start Web ───
@@ -86,8 +100,8 @@ echo ""
 echo "🎭 Running Playwright tests..."
 echo ""
 cd "$E2E_DIR"
-BASE_URL="http://localhost:$TEST_WEB_PORT" bunx playwright test "$@"
-TEST_EXIT=$?
+TEST_EXIT=0
+BASE_URL="http://localhost:$TEST_WEB_PORT" bunx playwright test "$@" || TEST_EXIT=$?
 
 echo ""
 if [ $TEST_EXIT -eq 0 ]; then

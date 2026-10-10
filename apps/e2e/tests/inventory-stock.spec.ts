@@ -1,74 +1,39 @@
 import { test, expect } from './fixtures/auth.fixture'
+import { SEED } from './helpers/test-data'
+import { searchList, switchLocation } from './helpers/ui'
 
-test.describe('Inventory Stock - Page Load', () => {
-	/** Stock page loads and shows header */
-	test('displays stock page with header', async ({ page, login }) => {
+test.describe('Inventory stock', () => {
+	test('consolidated view asks for a location', async ({ page, login }) => {
 		await login()
 		await page.goto('/inventory/stock')
-
-		await expect(page.getByRole('heading', { name: /stok inventori/iu })).toBeVisible()
+		await expect(page.getByText('Pilih lokasi aktif untuk melihat data stok.')).toBeVisible()
 	})
 
-	/** Shows location name in description when location is active */
-	test('shows active location name in description', async ({ page, login }) => {
+	test('balance list for a location can be searched and drills into movement history', async ({
+		page,
+		login,
+	}) => {
 		await login()
-		await page.goto('/inventory/stock')
+		await switchLocation(page, SEED.store.name)
+		await page.getByRole('link', { name: 'Stock', exact: true }).click()
 
-		await expect(page.getByText(/saldo stok di/iu)).toBeVisible()
-	})
+		await expect(page.getByText(`Saldo stok di ${SEED.store.name}`)).toBeVisible()
+		await expect(page.getByRole('tab', { name: 'Saldo Stok' })).toHaveAttribute(
+			'aria-selected',
+			'true',
+		)
+		const rows = page.getByRole('table').getByRole('button')
+		await expect(rows.filter({ hasText: 'Fresh Milk' })).toBeVisible()
 
-	/** Tab navigation is visible */
-	test('shows tab navigation with Saldo Stok and Riwayat', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/stock')
+		await searchList(page, 'Cari material...', 'Arabica')
+		await expect(rows).toHaveCount(1)
+		await rows.first().click()
 
-		await expect(page.getByRole('tab', { name: /saldo stok/iu })).toBeVisible()
-		await expect(page.getByRole('tab', { name: /riwayat pergerakan/iu })).toBeVisible()
-	})
-})
-
-test.describe('Inventory Stock - Balance Tab', () => {
-	/** Saldo Stok tab is active by default */
-	test('defaults to Saldo Stok tab', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/stock')
-
-		const tab = page.getByRole('tab', { name: /saldo stok/iu })
-		await expect(tab).toHaveAttribute('aria-selected', 'true')
-	})
-
-	/** Shows empty state or table depending on data */
-	test('shows stock data or empty state', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/stock')
-
-		// Either we see the table or an empty state
-		const hasTable = page.locator('table')
-		const hasEmpty = page.getByText(/belum ada data stok/iu)
-
-		await expect(hasTable.or(hasEmpty)).toBeVisible()
-	})
-})
-
-test.describe('Inventory Stock - Movement Tab', () => {
-	/** Switching to Riwayat tab shows material selection prompt */
-	test('shows material selection prompt on Riwayat tab', async ({ page, login }) => {
-		await login()
-		await page.goto('/inventory/stock')
-
-		await page.getByRole('tab', { name: /riwayat pergerakan/iu }).click()
-
-		await expect(page.getByText(/pilih material/iu)).toBeVisible()
-	})
-})
-
-test.describe('Inventory Stock - Navigation', () => {
-	/** Stock link is accessible from sidebar */
-	test('can navigate to stock page from sidebar', async ({ page, login }) => {
-		await login()
-
-		await page.getByRole('link', { name: /stock/iu }).click()
-
-		await expect(page).toHaveURL(/\/inventory\/stock/u)
+		await expect(page.getByRole('tab', { name: 'Riwayat Pergerakan' })).toHaveAttribute(
+			'aria-selected',
+			'true',
+		)
+		await expect(page.getByText('Riwayat pergerakan — Biji Kopi Arabica (MAT-001)')).toBeVisible()
+		await expect(page.getByRole('columnheader', { name: 'Arah' })).toBeVisible()
 	})
 })

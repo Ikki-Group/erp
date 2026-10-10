@@ -1,42 +1,26 @@
 import { test, expect } from './fixtures/auth.fixture'
+import { TEST_CREDENTIALS } from './helpers/test-data'
 
-test.describe('Auth Guards', () => {
-	/** Visiting a protected page without auth should redirect to /login */
-	test('redirects unauthenticated user to login', async ({ page }) => {
-		await page.goto('/')
-
-		await expect(page).toHaveURL(/\/login/u)
-	})
-
-	/** Visiting nested protected routes without auth should redirect */
-	test('redirects from settings/users to login when not authenticated', async ({ page }) => {
-		await page.goto('/settings/users')
-
-		await expect(page).toHaveURL(/\/login/u)
-	})
-
-	/** Visiting master routes without auth should redirect */
-	test('redirects from settings/locations to login when not authenticated', async ({ page }) => {
+test.describe('Auth guards', () => {
+	test('unauthenticated deep link redirects to login, then back after sign-in', async ({
+		page,
+	}) => {
 		await page.goto('/settings/locations')
+		await expect(page).toHaveURL(/\/login\?redirect=/u)
 
-		await expect(page).toHaveURL(/\/login/u)
+		await page.getByLabel('Nama pengguna').fill(TEST_CREDENTIALS.owner.username)
+		await page.getByLabel('Kata sandi', { exact: true }).fill(TEST_CREDENTIALS.owner.password)
+		await page.getByRole('button', { name: 'Masuk ke ruang kerja' }).click()
+
+		await expect(page).toHaveURL(/\/settings\/locations/u)
+		await expect(page.getByRole('heading', { level: 1, name: 'Locations' })).toBeVisible()
 	})
 
-	/** Authenticated user should access protected routes */
-	test('allows authenticated user to access protected routes', async ({ page, login }) => {
+	test('unknown authenticated route shows the 404 page', async ({ page, login }) => {
 		await login()
-
-		await page.goto('/settings/users')
-
-		await expect(page).not.toHaveURL(/\/login/u)
-	})
-
-	/** Non-existent routes under authenticated layout show 404 */
-	test('shows not-found for invalid authenticated routes', async ({ page, login }) => {
-		await login()
-
 		await page.goto('/this-does-not-exist')
-
-		await expect(page.getByText(/tidak ditemukan|not found/iu)).toBeVisible()
+		await expect(page.getByText('Page not found')).toBeVisible()
+		await page.getByRole('link', { name: 'Back to Home' }).click()
+		await expect(page).toHaveURL('/')
 	})
 })

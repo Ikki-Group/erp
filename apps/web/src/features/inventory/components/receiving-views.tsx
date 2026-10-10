@@ -220,7 +220,7 @@ function qtyByUom(lines: ReceivingDetailDto['lines'], uomCode: (id: number) => s
 
 function ReceivingDetailView({ detail }: { detail: ReceivingDetailDto }) {
 	const canConfirm = usePermissionCheck({ permission: 'receiving.confirm' })
-	const { material, uomCode } = useLineLookups()
+	const { material, uomCode, isReady: lookupsReady } = useLineLookups()
 	const locationName = useLocationName()
 	const supplierQuery = useQuery(supplierResource.detail.queryOptions({ id: detail.supplierId }))
 	const supplierName = supplierQuery.data?.data.name ?? `#${detail.supplierId}`
@@ -270,7 +270,12 @@ function ReceivingDetailView({ detail }: { detail: ReceivingDetailDto }) {
 			status={<ReceivingStatusBadge status={detail.status} />}
 			actions={
 				detail.status === 'draft' && canConfirm ? (
-					<Button size="sm" className="pointer-coarse:h-10" onClick={handleConfirm}>
+					<Button
+						size="sm"
+						className="pointer-coarse:h-10"
+						onClick={handleConfirm}
+						disabled={!lookupsReady || !supplierQuery.isSuccess}
+					>
 						<CheckCircleIcon className="size-4" />
 						Konfirmasi
 					</Button>
