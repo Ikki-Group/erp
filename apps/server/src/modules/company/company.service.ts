@@ -1,69 +1,47 @@
-import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import type { AuthContext } from '@/shared/auth/index.ts'
-import type { CachePort } from '@/shared/cache/cache.port.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import type { Infra } from '@/shared/module.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
-import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { CompanySettingsDto, CompanySettingsUpdateDto } from './company.contract.ts'
 import { CompanyError } from './company.internal.ts'
-import type { ICompanyRepo } from './company.repo.ts'
+import type { CompanyRepo } from './company.repo.ts'
 
-export interface CompanyServiceDeps {
-	repo: ICompanyRepo
-	uow: UnitOfWork
-	cache: CachePort
-	audit: AuditPort
+interface Deps extends Infra {
+	repo: CompanyRepo
 }
 
 export class CompanyService {
-	constructor(private readonly deps: CompanyServiceDeps) {}
-
-	async getSettings(): Promise<CompanySettingsDto | undefined> {
-		return this.deps.cache.getOrSetOptional('company', 'settings', () => this.deps.repo.findOne())
-	}
+	constructor(private readonly deps: Deps) {}
 
 	async handleGetSettings(): Promise<CompanySettingsDto> {
-		const settings = await this.getSettings()
+		const settings = await this.deps.repo.findOne()
 		if (!settings) throw CompanyError.notFound()
 		return settings
 	}
 
-	async handleUpdate(data: CompanySettingsUpdateDto, auth: AuthContext): Promise<EntityRef> {
-		const { id, ...updateData } = data
-		const result = await this.deps.uow.run(async (tx) => {
-			const existing = await this.deps.repo.findOne(tx)
-			if (!existing || existing.id !== id) throw CompanyError.notFound()
-
-			const written = await this.deps.repo.update(id, updateData, tx)
-			if (!written) throw CompanyError.updateFailed()
-
-			await this.deps.audit.record(
-				{
-					actorId: auth.userId,
-					actorName: auth.userName,
-					locationId: auth.locationId,
-					module: 'company',
-					entity: 'company_settings',
-					entityId: id,
-					action: 'update',
-					summary: `Updated company settings "${updateData.name}"`,
-					newValues: {
-						name: updateData.name,
-						currencyCode: updateData.currencyCode,
-						taxRate: updateData.taxRate,
-					},
-				},
-				tx,
-			)
-			return written
-		})
-
-		await this.deps.cache.invalidate('company', result.id)
-		return result
+	/** Company-wide tax rate as a percent string, e.g. "11". */
+	async getTaxRatePercent(): Promise<string> {
+		return (await this.handleGetSettings()).taxRate
 	}
 
-	async getTaxRatePercent(): Promise<string> {
-		const settings = await this.handleGetSettings()
-		return settings.taxRate
+	handleUpdate(data: CompanySettingsUpdateDto, actor: Actor): Promise<EntityRef> {
+		const { id, ...changes } = data
+		const { repo, uow, audit } = this.deps
+		return uow.run(async (tx) => {
+			const existing = await repo.findOne(tx)
+			if (!existing || existing.id !== id) throw CompanyError.notFound()
+			const written = await repo.update(id, { ...changes, updatedBy: actor.id }, tx)
+			if (!written) throw CompanyError.updateFailed()
+			await audit.record(tx, actor, {
+				module: 'company',
+				entity: 'company_settings',
+				entityId: id,
+				action: 'update',
+				summary: `Updated company settings "${changes.name}"`,
+				oldValues: { name: existing.name, taxRate: existing.taxRate },
+				newValues: { name: changes.name, taxRate: changes.taxRate },
+			})
+			return written
+		})
 	}
 }

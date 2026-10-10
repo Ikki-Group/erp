@@ -10,7 +10,7 @@ import {
 	buildPaginationMeta,
 	and,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -38,25 +38,12 @@ function toDto(row: ShiftRow): ShiftDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IShiftRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<ShiftDto | undefined>
-	findActive(userId: number, locationId: number, db?: DbContext): Promise<ShiftDto | undefined>
-	findPage(filter: ShiftFilterDto, db?: DbContext): Promise<WithPaginationResult<ShiftDto>>
-	findDetail(id: number, db?: DbContext): Promise<ShiftDetailDto | undefined>
-	sumCashPayments(shiftId: number, db?: DbContext): Promise<string>
-	insert(data: ShiftInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: ShiftUpdate, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class ShiftRepo implements IShiftRepo {
+export class ShiftRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<ShiftDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<ShiftDto | undefined> {
 		const row = await db
 			.select()
 			.from(cashierShifts)
@@ -69,7 +56,7 @@ export class ShiftRepo implements IShiftRepo {
 	async findActive(
 		userId: number,
 		locationId: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<ShiftDto | undefined> {
 		const row = await db
 			.select()
@@ -88,7 +75,7 @@ export class ShiftRepo implements IShiftRepo {
 
 	async findPage(
 		filter: ShiftFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<ShiftDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -120,7 +107,7 @@ export class ShiftRepo implements IShiftRepo {
 		}
 	}
 
-	async findDetail(id: number, db: DbContext = this.db): Promise<ShiftDetailDto | undefined> {
+	async findDetail(id: number, db: Db = this.db): Promise<ShiftDetailDto | undefined> {
 		const shift = await this.findById(id, db)
 		if (!shift) return undefined
 
@@ -140,7 +127,7 @@ export class ShiftRepo implements IShiftRepo {
 		}
 	}
 
-	async sumCashPayments(shiftId: number, db: DbContext = this.db): Promise<string> {
+	async sumCashPayments(shiftId: number, db: Db = this.db): Promise<string> {
 		const [result] = await db
 			.select({
 				total: sql<string>`coalesce(sum(${payments.amount}), '0')`,
@@ -153,20 +140,21 @@ export class ShiftRepo implements IShiftRepo {
 		return result?.total ?? '0'
 	}
 
-	async insert(data: ShiftInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: ShiftInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(cashierShifts).values(data).returning({ id: cashierShifts.id })
 		return result
 	}
 
-	async update(
+	/** Conditional update: only touches the shift while it is still open (no double close). */
+	async updateOpen(
 		id: number,
 		data: ShiftUpdate,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(cashierShifts)
 			.set(data)
-			.where(eq(cashierShifts.id, id))
+			.where(and(eq(cashierShifts.id, id), eq(cashierShifts.status, 'open')))
 			.returning({ id: cashierShifts.id })
 		return result
 	}

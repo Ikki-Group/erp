@@ -9,7 +9,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -35,27 +35,12 @@ function toDto(row: CategoryRow): MenuCategoryDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface ICategoryRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<MenuCategoryDto | undefined>
-	findByLocation(locationId: number, db?: DbContext): Promise<MenuCategoryDto[]>
-	findPage(
-		filter: MenuCategoryFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<MenuCategoryDto>>
-	insert(data: CategoryInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: CategoryUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class CategoryRepo implements ICategoryRepo {
+export class CategoryRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<MenuCategoryDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<MenuCategoryDto | undefined> {
 		const row = await db
 			.select()
 			.from(menuCategories)
@@ -65,18 +50,9 @@ export class CategoryRepo implements ICategoryRepo {
 		return row ? toDto(row) : undefined
 	}
 
-	async findByLocation(locationId: number, db: DbContext = this.db): Promise<MenuCategoryDto[]> {
-		const rows = await db
-			.select()
-			.from(menuCategories)
-			.where(eq(menuCategories.locationId, locationId))
-			.orderBy(sql`${menuCategories.sortOrder} asc, ${menuCategories.id} asc`)
-		return rows.map(toDto)
-	}
-
 	async findPage(
 		filter: MenuCategoryFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<MenuCategoryDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -107,7 +83,7 @@ export class CategoryRepo implements ICategoryRepo {
 		}
 	}
 
-	async insert(data: CategoryInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: CategoryInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(menuCategories)
 			.values(data)
@@ -115,11 +91,7 @@ export class CategoryRepo implements ICategoryRepo {
 		return result
 	}
 
-	async update(
-		id: number,
-		data: CategoryUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: CategoryUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(menuCategories)
 			.set(data)
@@ -128,7 +100,7 @@ export class CategoryRepo implements ICategoryRepo {
 		return result
 	}
 
-	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async remove(id: number, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.delete(menuCategories)
 			.where(eq(menuCategories.id, id))

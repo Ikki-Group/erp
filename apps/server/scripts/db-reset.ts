@@ -6,7 +6,7 @@ if (!url) {
 	process.exit(1)
 }
 
-const sql = postgres(url, { onnotice: () => {} })
+const sql = postgres(url, { prepare: false, onnotice: () => {} })
 
 // Managed Postgres (Neon) does not let app roles own `public`, so instead of
 // DROP SCHEMA we drop every object inside it.

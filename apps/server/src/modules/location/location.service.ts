@@ -1,9 +1,7 @@
-import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
-import type { CachePort } from '@/shared/cache/cache.port.ts'
+import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
-import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type {
 	LocationCreateDto,
@@ -12,43 +10,27 @@ import type {
 	LocationUpdateDto,
 } from './location.contract.ts'
 import { LocationError } from './location.internal.ts'
-import type { ILocationRepo } from './location.repo.ts'
+import type { LocationRepo } from './location.repo.ts'
 
-export interface LocationServiceDeps {
-	repo: ILocationRepo
-	uow: UnitOfWork
-	cache: CachePort
-	audit: AuditPort
+interface Deps extends Infra {
+	repo: LocationRepo
 }
 
-export type LocationApi = {
-	service: LocationService
-	getById: LocationService['getById']
-	getByIds: LocationService['getByIds']
-	getAll: LocationService['getAll']
-	handleGetById: LocationService['handleGetById']
-	handleList: LocationService['handleList']
-	handleCreate: LocationService['handleCreate']
-	handleUpdate: LocationService['handleUpdate']
-	handleDelete: LocationService['handleDelete']
-} & Record<string, unknown>
+const AUDIT = { module: 'location', entity: 'location' } as const
 
 export class LocationService {
-	constructor(private readonly deps: LocationServiceDeps) {}
+	constructor(private readonly deps: Deps) {}
 
-	async getById(id: number): Promise<LocationDto | undefined> {
-		return this.deps.cache.getOrSetOptional('location', `byId:${id}`, () =>
-			this.deps.repo.findById(id),
-		)
+	getById(id: number): Promise<LocationDto | undefined> {
+		return this.deps.repo.findById(id)
 	}
 
-	async getByIds(ids: number[]): Promise<LocationDto[]> {
-		if (ids.length === 0) return []
+	getByIds(ids: number[]): Promise<LocationDto[]> {
 		return this.deps.repo.findByIds(ids)
 	}
 
-	async getAll(): Promise<LocationDto[]> {
-		return this.deps.cache.getOrSet('location', 'list', () => this.deps.repo.findMany())
+	getAll(): Promise<LocationDto[]> {
+		return this.deps.repo.findMany()
 	}
 
 	async handleGetById(id: number): Promise<LocationDto> {
@@ -57,86 +39,64 @@ export class LocationService {
 		return location
 	}
 
-	async handleList(filter: LocationFilterDto): Promise<WithPaginationResult<LocationDto>> {
+	handleList(filter: LocationFilterDto): Promise<WithPaginationResult<LocationDto>> {
 		return this.deps.repo.findPage(filter)
 	}
 
-	async handleCreate(data: LocationCreateDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			await this.deps.repo.assertNoConflict(data, undefined, tx)
-			const written = await this.deps.repo.insert(data, tx)
+	handleCreate(data: LocationCreateDto, actor: Actor): Promise<EntityRef> {
+		const { repo, uow, audit } = this.deps
+		return uow.run(async (tx) => {
+			await repo.assertNoConflict(data, undefined, tx)
+			const written = await repo.insert(data, tx)
 			if (!written) throw LocationError.createFailed()
-			await this.deps.audit.record(
-				{
-					actorId: actor.id,
-					actorName: actor.name,
-					locationId: actor.locationId,
-					module: 'location',
-					entity: 'location',
-					entityId: written.id,
-					action: 'create',
-					summary: `Created location "${data.name}" (${data.code})`,
-					newValues: { code: data.code, name: data.name, type: data.type },
-				},
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: written.id,
+				action: 'create',
+				summary: `Created location "${data.name}" (${data.code})`,
+				newValues: { code: data.code, name: data.name, type: data.type },
+			})
 			return written
 		})
-		await this.deps.cache.invalidate('location', result.id)
-		return result
 	}
 
-	async handleUpdate(data: LocationUpdateDto, actor: Actor): Promise<EntityRef> {
-		const { id, ...updateData } = data
-		const result = await this.deps.uow.run(async (tx) => {
-			const existing = await this.deps.repo.findById(id, tx)
+	handleUpdate(data: LocationUpdateDto, actor: Actor): Promise<EntityRef> {
+		const { id, ...changes } = data
+		const { repo, uow, audit } = this.deps
+		return uow.run(async (tx) => {
+			const existing = await repo.findById(id, tx)
 			if (!existing) throw LocationError.notFound(id)
-			await this.deps.repo.assertNoConflict(updateData, id, tx)
-			const written = await this.deps.repo.update(id, updateData, tx)
+			if (changes.code !== existing.code) throw LocationError.codeImmutable()
+			await repo.assertNoConflict(changes, id, tx)
+			const written = await repo.update(id, { ...changes, updatedBy: actor.id }, tx)
 			if (!written) throw LocationError.updateFailed(id)
-			await this.deps.audit.record(
-				{
-					actorId: actor.id,
-					actorName: actor.name,
-					locationId: actor.locationId,
-					module: 'location',
-					entity: 'location',
-					entityId: id,
-					action: 'update',
-					summary: `Updated location "${data.name}" (${data.code})`,
-					oldValues: { code: existing.code, name: existing.name, type: existing.type },
-					newValues: { code: data.code, name: data.name, type: data.type },
-				},
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: id,
+				action: 'update',
+				summary: `Updated location "${changes.name}" (${changes.code})`,
+				oldValues: { name: existing.name, type: existing.type },
+				newValues: { name: changes.name, type: changes.type },
+			})
 			return written
 		})
-		await this.deps.cache.invalidate('location', result.id)
-		return result
 	}
 
-	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			const existing = await this.deps.repo.findById(id, tx)
+	handleDelete(id: number, actor: Actor): Promise<EntityRef> {
+		const { repo, uow, audit } = this.deps
+		return uow.run(async (tx) => {
+			const existing = await repo.findById(id, tx)
 			if (!existing) throw LocationError.notFound(id)
-			const written = await this.deps.repo.remove(id, { updatedBy: actor.id }, tx)
+			if (await repo.holdsStock(id, tx)) throw LocationError.holdsStock(id)
+			const written = await repo.remove(id, { updatedBy: actor.id }, tx)
 			if (!written) throw LocationError.deleteFailed(id)
-			await this.deps.audit.record(
-				{
-					actorId: actor.id,
-					actorName: actor.name,
-					locationId: actor.locationId,
-					module: 'location',
-					entity: 'location',
-					entityId: id,
-					action: 'delete',
-					summary: `Deleted location "${existing.name}" (${existing.code})`,
-				},
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: id,
+				action: 'delete',
+				summary: `Deleted location "${existing.name}" (${existing.code})`,
+			})
 			return written
 		})
-		await this.deps.cache.invalidate('location', result.id)
-		return result
 	}
 }

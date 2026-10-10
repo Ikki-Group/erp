@@ -145,7 +145,7 @@ describe('auth', () => {
 				isActive: true,
 			},
 		})
-		expect(createResponse.status).toBe(201)
+		expect(createResponse.status).toBe(200)
 		const token = await loginAs(`unassigned-${suffix}`)
 
 		const response = await GET('/location/list', { token, locationId: SEED_LOCATION_ID })

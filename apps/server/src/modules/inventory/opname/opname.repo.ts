@@ -12,7 +12,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -63,35 +63,12 @@ function toOpnameLineDto(
 	}
 }
 
-// ─── Interface ───
-
-export interface IOpnameRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<OpnameDto | undefined>
-	findDetailById(id: number, db?: DbContext): Promise<OpnameDetailDto | undefined>
-	findPage(filter: OpnameFilterDto, db?: DbContext): Promise<WithPaginationResult<OpnameDto>>
-	insert(data: OpnameInsert, db?: DbContext): Promise<EntityRef | undefined>
-	updateStatus(
-		id: number,
-		status: OpnameRow['status'],
-		updatedBy: number,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-	insertLines(lines: OpnameLineInsert[], db?: DbContext): Promise<void>
-	updateLineCounts(
-		opnameId: number,
-		lines: Array<{ materialId: number; actualQty: string; reason?: string | null }>,
-		db?: DbContext,
-	): Promise<void>
-	findLinesByOpnameId(opnameId: number, db?: DbContext): Promise<OpnameLineDto[]>
-}
-
 // ─── Implementation ───
 
-export class OpnameRepo implements IOpnameRepo {
+export class OpnameRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<OpnameDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<OpnameDto | undefined> {
 		const row = await db
 			.select()
 			.from(stockOpnames)
@@ -101,7 +78,7 @@ export class OpnameRepo implements IOpnameRepo {
 		return row ? toOpnameDto(row) : undefined
 	}
 
-	async findDetailById(id: number, db: DbContext = this.db): Promise<OpnameDetailDto | undefined> {
+	async findDetailById(id: number, db: Db = this.db): Promise<OpnameDetailDto | undefined> {
 		const opname = await this.findById(id, db)
 		if (!opname) return undefined
 
@@ -111,7 +88,7 @@ export class OpnameRepo implements IOpnameRepo {
 
 	async findPage(
 		filter: OpnameFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<OpnameDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -144,7 +121,7 @@ export class OpnameRepo implements IOpnameRepo {
 		}
 	}
 
-	async insert(data: OpnameInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: OpnameInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(stockOpnames).values(data).returning({ id: stockOpnames.id })
 		return result
 	}
@@ -153,7 +130,7 @@ export class OpnameRepo implements IOpnameRepo {
 		id: number,
 		status: OpnameRow['status'],
 		updatedBy: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(stockOpnames)
@@ -163,7 +140,7 @@ export class OpnameRepo implements IOpnameRepo {
 		return result
 	}
 
-	async insertLines(lines: OpnameLineInsert[], db: DbContext = this.db): Promise<void> {
+	async insertLines(lines: OpnameLineInsert[], db: Db = this.db): Promise<void> {
 		if (lines.length === 0) return
 		await db.insert(stockOpnameLines).values(lines)
 	}
@@ -171,7 +148,7 @@ export class OpnameRepo implements IOpnameRepo {
 	async updateLineCounts(
 		opnameId: number,
 		lines: Array<{ materialId: number; actualQty: string; reason?: string | null }>,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<void> {
 		for (const line of lines) {
 			await db
@@ -186,7 +163,7 @@ export class OpnameRepo implements IOpnameRepo {
 		}
 	}
 
-	async findLinesByOpnameId(opnameId: number, db: DbContext = this.db): Promise<OpnameLineDto[]> {
+	async findLinesByOpnameId(opnameId: number, db: Db = this.db): Promise<OpnameLineDto[]> {
 		const rows = await db
 			.select({
 				id: stockOpnameLines.id,

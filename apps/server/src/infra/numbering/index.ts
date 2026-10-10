@@ -74,34 +74,3 @@ export async function generateNumber(input: GenerateNumberInput): Promise<string
 
 	return `${prefix}-${locationCode}-${dateStr}-${padSeq(seq)}`
 }
-
-/**
- * Generate a monthly-format number (for payroll).
- *
- * Format: `{PREFIX}-{LOCATION_CODE}-{YYYYMM}-{SEQ}`
- * Example: `PAY-COFFEE-202608-001`
- */
-export async function generateMonthlyNumber(input: GenerateNumberInput): Promise<string> {
-	const { prefix, locationCode, locationId, date, database = db } = input
-	const dateStr = formatDateWIB(date ?? new Date()).slice(0, 6) // YYYYMM
-
-	const result = await database
-		.insert(documentSequences)
-		.values({
-			prefix,
-			locationId,
-			date: dateStr,
-			lastSeq: 1,
-		})
-		.onConflictDoUpdate({
-			target: [documentSequences.prefix, documentSequences.locationId, documentSequences.date],
-			set: {
-				lastSeq: sql`${documentSequences.lastSeq} + 1`,
-			},
-		})
-		.returning({ lastSeq: documentSequences.lastSeq })
-
-	const seq = result[0]?.lastSeq ?? 1
-
-	return `${prefix}-${locationCode}-${dateStr}-${padSeq(seq)}`
-}

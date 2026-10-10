@@ -7,15 +7,17 @@ import type {
 	UserDetailDto,
 	UserListItemDto,
 } from './composed.contract.ts'
-import type { IComposedRepo } from './composed.repo.ts'
+import type { ComposedRepo } from './composed.repo.ts'
 
-// ─── Service ───
+interface Deps {
+	repo: ComposedRepo
+}
 
 export class ComposedService {
-	constructor(private readonly repo: IComposedRepo) {}
+	constructor(private readonly deps: Deps) {}
 
 	async handleUserDetail(id: number): Promise<UserDetailDto> {
-		const result = await this.repo.findUserDetail(id)
+		const result = await this.deps.repo.findUserDetail(id)
 		if (!result) {
 			throw new NotFoundError('User not found', { code: 'USER_NOT_FOUND', context: { id } })
 		}
@@ -25,13 +27,13 @@ export class ComposedService {
 	async handleUserList(
 		filter: ComposedUserFilterDto,
 	): Promise<WithPaginationResult<UserListItemDto>> {
-		return this.repo.findUserList(filter)
+		return this.deps.repo.findUserList(filter)
 	}
 
 	async handleLocationStaffList(
 		filter: ComposedUserFilterDto,
 		locationId: number,
 	): Promise<WithPaginationResult<LocationStaffListItemDto>> {
-		return this.repo.findLocationStaffList(filter, locationId)
+		return this.deps.repo.findLocationStaffList(filter, locationId)
 	}
 }

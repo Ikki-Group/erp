@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -21,7 +21,7 @@ import type { UomService } from './uom.service.ts'
 
 export function createUomRoute(service: UomService) {
 	return new Elysia({ prefix: '/uom', tags: ['uom'] })
-		.use(rbac.as('scoped'))
+		.use(authGuard)
 		.get('/list', async ({ query }) => res.paginated(await service.handleList(query)), {
 			query: UomFilterDto,
 			response: zRes.paginated(UomDto),
@@ -34,10 +34,10 @@ export function createUomRoute(service: UomService) {
 		})
 		.post(
 			'/create',
-			async ({ body, auth }) => res.created(await service.handleCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await service.handleCreate(body, actorOf(auth))),
 			{
 				body: UomCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'uom.create',
 			},
 		)
@@ -65,11 +65,10 @@ export function createUomRoute(service: UomService) {
 		})
 		.post(
 			'/conversion/create',
-			async ({ body, auth }) =>
-				res.created(await service.handleConversionCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await service.handleConversionCreate(body, actorOf(auth))),
 			{
 				body: UomConversionCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'uom.create',
 			},
 		)

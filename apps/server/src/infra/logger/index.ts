@@ -10,26 +10,20 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 
 /**
  * Initialize LogTape. Call once at app startup (after OTel, before listen).
- * In test env, configures with no sinks (silent).
+ * Tests only see errors, so a 500 in an integration test explains itself.
  */
 export async function setupLogger(): Promise<void> {
 	const sinks: Record<string, Sink> = {}
 	let activeSinks: string[] = []
 
-	if (!isTest) {
-		if (isProd) {
-			sinks.otel = getOpenTelemetrySink({ serviceName: SERVICE_NAME })
-			activeSinks = ['otel']
-		} else {
-			sinks.console = getConsoleSink({
-				formatter: getPrettyFormatter({
-					icons: false,
-					properties: true,
-					align: true,
-				}),
-			})
-			activeSinks = ['console']
-		}
+	if (isProd) {
+		sinks.otel = getOpenTelemetrySink({ serviceName: SERVICE_NAME })
+		activeSinks = ['otel']
+	} else {
+		sinks.console = getConsoleSink({
+			formatter: getPrettyFormatter({ icons: false, properties: true, align: true }),
+		})
+		activeSinks = ['console']
 	}
 
 	await configure({
@@ -38,7 +32,7 @@ export async function setupLogger(): Promise<void> {
 			{
 				category: ['ikki'],
 				sinks: activeSinks,
-				lowestLevel: isProd ? 'info' : 'debug',
+				lowestLevel: isTest ? 'error' : isProd ? 'info' : 'debug',
 			},
 			// Silence LogTape meta logs
 			{ category: ['logtape', 'meta'], sinks: [], lowestLevel: 'warning' },

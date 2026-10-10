@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -16,7 +16,7 @@ import type { LocationService } from './location.service.ts'
 
 export function createLocationRoute(service: LocationService) {
 	return new Elysia({ prefix: '/location', tags: ['location'] })
-		.use(rbac.as('scoped'))
+		.use(authGuard)
 		.get('/list', async ({ query }) => res.paginated(await service.handleList(query)), {
 			query: LocationFilterDto,
 			response: zRes.paginated(LocationDto),
@@ -29,10 +29,10 @@ export function createLocationRoute(service: LocationService) {
 		})
 		.post(
 			'/create',
-			async ({ body, auth }) => res.created(await service.handleCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await service.handleCreate(body, actorOf(auth))),
 			{
 				body: LocationCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'location.create',
 			},
 		)

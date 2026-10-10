@@ -1,4 +1,12 @@
-export { companyModule } from './company.module.ts'
-export type { CompanyApi } from './company.module.ts'
-export { CompanySettingsDto } from './company.contract.ts'
-export type { CompanySettingsUpdateDto } from './company.contract.ts'
+import type { Infra } from '@/shared/module.ts'
+
+import { CompanyRepo } from './company.repo.ts'
+import { createCompanyRoute } from './company.route.ts'
+import { CompanyService } from './company.service.ts'
+
+export function createCompanyModule(infra: Infra) {
+	const service = new CompanyService({ ...infra, repo: new CompanyRepo(infra.db) })
+	return { service, route: createCompanyRoute(service) }
+}
+
+export type { CompanyService }

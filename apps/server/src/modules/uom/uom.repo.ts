@@ -5,13 +5,12 @@ import {
 	buildPaginationMeta,
 	eq,
 	eqIf,
-	inArray,
 	searchAcross,
 	sql,
 	takeFirst,
 	toLimitOffset,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -54,50 +53,19 @@ function toConversionDto(row: UomConversionRow): UomConversionDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IUomRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<UomDto | undefined>
-	findByIds(ids: number[], db?: DbContext): Promise<UomDto[]>
-	findMany(db?: DbContext): Promise<UomDto[]>
-	findPage(filter: UomFilterDto, db?: DbContext): Promise<WithPaginationResult<UomDto>>
-	insert(data: UomInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: UomUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
-	findAllConversions(db?: DbContext): Promise<UomConversionDto[]>
-	findConversionById(id: number, db?: DbContext): Promise<UomConversionDto | undefined>
-	insertConversion(data: UomConversionInsert, db?: DbContext): Promise<EntityRef | undefined>
-	removeConversion(id: number, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class UomRepo implements IUomRepo {
+export class UomRepo {
 	constructor(readonly db: DbContext) {}
 
 	// ─── UoM ───
 
-	async findById(id: number, db: DbContext = this.db): Promise<UomDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<UomDto | undefined> {
 		const row = await db.select().from(uoms).where(eq(uoms.id, id)).limit(1).then(takeFirst)
 		return row ? toDto(row) : undefined
 	}
 
-	async findByIds(ids: number[], db: DbContext = this.db): Promise<UomDto[]> {
-		if (ids.length === 0) return []
-		const rows = await db.select().from(uoms).where(inArray(uoms.id, ids))
-		return rows.map(toDto)
-	}
-
-	async findMany(db: DbContext = this.db): Promise<UomDto[]> {
-		const rows = await db.select().from(uoms)
-		return rows.map(toDto)
-	}
-
-	async findPage(
-		filter: UomFilterDto,
-		db: DbContext = this.db,
-	): Promise<WithPaginationResult<UomDto>> {
+	async findPage(filter: UomFilterDto, db: Db = this.db): Promise<WithPaginationResult<UomDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
 
@@ -126,16 +94,12 @@ export class UomRepo implements IUomRepo {
 		}
 	}
 
-	async insert(data: UomInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: UomInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(uoms).values(data).returning({ id: uoms.id })
 		return result
 	}
 
-	async update(
-		id: number,
-		data: UomUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: UomUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(uoms)
 			.set(data)
@@ -144,22 +108,19 @@ export class UomRepo implements IUomRepo {
 		return result
 	}
 
-	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async remove(id: number, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.delete(uoms).where(eq(uoms.id, id)).returning({ id: uoms.id })
 		return result
 	}
 
 	// ─── Conversions ───
 
-	async findAllConversions(db: DbContext = this.db): Promise<UomConversionDto[]> {
+	async findAllConversions(db: Db = this.db): Promise<UomConversionDto[]> {
 		const rows = await db.select().from(uomConversions)
 		return rows.map(toConversionDto)
 	}
 
-	async findConversionById(
-		id: number,
-		db: DbContext = this.db,
-	): Promise<UomConversionDto | undefined> {
+	async findConversionById(id: number, db: Db = this.db): Promise<UomConversionDto | undefined> {
 		const row = await db
 			.select()
 			.from(uomConversions)
@@ -171,7 +132,7 @@ export class UomRepo implements IUomRepo {
 
 	async insertConversion(
 		data: UomConversionInsert,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(uomConversions)
@@ -180,7 +141,7 @@ export class UomRepo implements IUomRepo {
 		return result
 	}
 
-	async removeConversion(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async removeConversion(id: number, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.delete(uomConversions)
 			.where(eq(uomConversions.id, id))

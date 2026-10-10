@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -20,7 +20,7 @@ import type { SupplierService } from './supplier.service.ts'
 
 export function createSupplierRoute(svc: SupplierService) {
 	return new Elysia({ prefix: '/supplier', tags: ['supplier'] })
-		.use(rbac.as('scoped'))
+		.use(authGuard)
 		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
 			query: SupplierFilterDto,
 			response: zRes.paginated(SupplierDto),
@@ -33,10 +33,10 @@ export function createSupplierRoute(svc: SupplierService) {
 		})
 		.post(
 			'/create',
-			async ({ body, auth }) => res.created(await svc.handleCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await svc.handleCreate(body, actorOf(auth))),
 			{
 				body: SupplierCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'supplier.create',
 			},
 		)
@@ -61,10 +61,10 @@ export function createSupplierRoute(svc: SupplierService) {
 		})
 		.post(
 			'/material/create',
-			async ({ body, auth }) => res.created(await svc.handlePricingCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await svc.handlePricingCreate(body, actorOf(auth))),
 			{
 				body: SupplierMaterialCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'supplier.create',
 			},
 		)

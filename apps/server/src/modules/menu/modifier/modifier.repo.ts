@@ -9,7 +9,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -57,31 +57,12 @@ function toOptionDto(row: OptionRow): ModifierOptionDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IModifierRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<ModifierGroupDto | undefined>
-	findByIdWithOptions(id: number, db?: DbContext): Promise<ModifierGroupWithOptionsDto | undefined>
-	findByLocation(locationId: number, db?: DbContext): Promise<ModifierGroupDto[]>
-	findPage(
-		filter: ModifierGroupFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<ModifierGroupDto>>
-	findOptionsByGroupId(groupId: number, db?: DbContext): Promise<ModifierOptionDto[]>
-	findOptionsByGroupIds(groupIds: number[], db?: DbContext): Promise<ModifierOptionDto[]>
-	insert(data: GroupInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: GroupUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
-	replaceOptions(groupId: number, options: ModifierOptionInputDto[], db?: DbContext): Promise<void>
-}
-
 // ─── Implementation ───
 
-export class ModifierRepo implements IModifierRepo {
+export class ModifierRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<ModifierGroupDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<ModifierGroupDto | undefined> {
 		const row = await db
 			.select()
 			.from(modifierGroups)
@@ -93,7 +74,7 @@ export class ModifierRepo implements IModifierRepo {
 
 	async findByIdWithOptions(
 		id: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<ModifierGroupWithOptionsDto | undefined> {
 		const group = await this.findById(id, db)
 		if (!group) return undefined
@@ -102,18 +83,9 @@ export class ModifierRepo implements IModifierRepo {
 		return { ...group, options }
 	}
 
-	async findByLocation(locationId: number, db: DbContext = this.db): Promise<ModifierGroupDto[]> {
-		const rows = await db
-			.select()
-			.from(modifierGroups)
-			.where(eq(modifierGroups.locationId, locationId))
-			.orderBy(sql`${modifierGroups.name} asc`)
-		return rows.map(toGroupDto)
-	}
-
 	async findPage(
 		filter: ModifierGroupFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<ModifierGroupDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -146,10 +118,7 @@ export class ModifierRepo implements IModifierRepo {
 		}
 	}
 
-	async findOptionsByGroupId(
-		groupId: number,
-		db: DbContext = this.db,
-	): Promise<ModifierOptionDto[]> {
+	async findOptionsByGroupId(groupId: number, db: Db = this.db): Promise<ModifierOptionDto[]> {
 		const rows = await db
 			.select()
 			.from(modifierOptions)
@@ -158,20 +127,7 @@ export class ModifierRepo implements IModifierRepo {
 		return rows.map(toOptionDto)
 	}
 
-	async findOptionsByGroupIds(
-		groupIds: number[],
-		db: DbContext = this.db,
-	): Promise<ModifierOptionDto[]> {
-		if (groupIds.length === 0) return []
-		const rows = await db
-			.select()
-			.from(modifierOptions)
-			.where(sql`${modifierOptions.groupId} in ${groupIds}`)
-			.orderBy(sql`${modifierOptions.sortOrder} asc, ${modifierOptions.id} asc`)
-		return rows.map(toOptionDto)
-	}
-
-	async insert(data: GroupInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: GroupInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(modifierGroups)
 			.values(data)
@@ -179,11 +135,7 @@ export class ModifierRepo implements IModifierRepo {
 		return result
 	}
 
-	async update(
-		id: number,
-		data: GroupUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: GroupUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(modifierGroups)
 			.set(data)
@@ -192,7 +144,7 @@ export class ModifierRepo implements IModifierRepo {
 		return result
 	}
 
-	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async remove(id: number, db: Db = this.db): Promise<EntityRef | undefined> {
 		// Options cascade-deleted via FK
 		const [result] = await db
 			.delete(modifierGroups)
@@ -204,7 +156,7 @@ export class ModifierRepo implements IModifierRepo {
 	async replaceOptions(
 		groupId: number,
 		options: ModifierOptionInputDto[],
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<void> {
 		// Delete existing options
 		await db.delete(modifierOptions).where(eq(modifierOptions.groupId, groupId))

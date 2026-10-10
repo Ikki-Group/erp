@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { authPlugin } from '@/server/plugins/auth.plugin.ts'
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -22,8 +21,7 @@ import type { ReceivingService } from './receiving.service.ts'
 
 export function createReceivingRoute(service: ReceivingService) {
 	return new Elysia({ prefix: '/receiving' })
-		.use(authPlugin)
-		.use(rbac)
+		.use(authGuard)
 
 		.get(
 			'/list',
@@ -53,13 +51,12 @@ export function createReceivingRoute(service: ReceivingService) {
 			'/create',
 			async ({ body, auth }) => {
 				const result = await service.handleCreate(body, actorOf(auth))
-				return res.created(result)
+				return res.ok(result)
 			},
 			{
 				body: ReceivingCreateDto,
-				auth: true,
 				permission: 'receiving.create',
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 			},
 		)
 		.put(
@@ -70,7 +67,6 @@ export function createReceivingRoute(service: ReceivingService) {
 			},
 			{
 				body: ReceivingUpdateDto,
-				auth: true,
 				permission: 'receiving.update',
 				response: zRes.ok(EntityRefDto),
 			},
@@ -83,7 +79,6 @@ export function createReceivingRoute(service: ReceivingService) {
 			},
 			{
 				body: ReceivingConfirmDto,
-				auth: true,
 				permission: 'receiving.confirm',
 				response: zRes.ok(EntityRefDto),
 			},

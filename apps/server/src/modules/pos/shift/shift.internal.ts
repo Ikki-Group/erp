@@ -1,4 +1,9 @@
-import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import {
+	BadRequestError,
+	ForbiddenError,
+	InternalServerError,
+	NotFoundError,
+} from '@/shared/errors/http-error.ts'
 
 // ─── Error Factories ───
 
@@ -23,10 +28,10 @@ export const ShiftError = {
 			code: 'SHIFT_NOT_STORE_LOCATION',
 			context: { locationId },
 		}),
-	closeFailed: (id: number) =>
-		new InternalServerError('Shift close failed', {
-			code: 'SHIFT_CLOSE_FAILED',
-			context: { id },
+	closeOtherDenied: () =>
+		new ForbiddenError('Insufficient permissions', {
+			code: 'PERMISSION_DENIED',
+			context: { required: 'shift.close-other' },
 		}),
 	openFailed: () =>
 		new InternalServerError('Shift open failed', {

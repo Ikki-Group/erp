@@ -10,7 +10,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -44,30 +44,17 @@ function toDto(row: VoucherRow): VoucherDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IVoucherRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<VoucherDto | undefined>
-	findByCode(code: string, db?: DbContext): Promise<VoucherDto | undefined>
-	findPage(filter: VoucherFilterDto, db?: DbContext): Promise<WithPaginationResult<VoucherDto>>
-	insert(data: VoucherInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: VoucherUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, data: VoucherUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	incrementUsage(id: number, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class VoucherRepo implements IVoucherRepo {
+export class VoucherRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<VoucherDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<VoucherDto | undefined> {
 		const row = await db.select().from(vouchers).where(eq(vouchers.id, id)).limit(1).then(takeFirst)
 		return row ? toDto(row) : undefined
 	}
 
-	async findByCode(code: string, db: DbContext = this.db): Promise<VoucherDto | undefined> {
+	async findByCode(code: string, db: Db = this.db): Promise<VoucherDto | undefined> {
 		const row = await db
 			.select()
 			.from(vouchers)
@@ -79,7 +66,7 @@ export class VoucherRepo implements IVoucherRepo {
 
 	async findPage(
 		filter: VoucherFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<VoucherDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -117,16 +104,12 @@ export class VoucherRepo implements IVoucherRepo {
 		}
 	}
 
-	async insert(data: VoucherInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: VoucherInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(vouchers).values(data).returning({ id: vouchers.id })
 		return result
 	}
 
-	async update(
-		id: number,
-		data: VoucherUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: VoucherUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(vouchers)
 			.set(data)
@@ -135,11 +118,7 @@ export class VoucherRepo implements IVoucherRepo {
 		return result
 	}
 
-	async remove(
-		id: number,
-		data: VoucherUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async remove(id: number, data: VoucherUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(vouchers)
 			.set({ ...data, isActive: false })
@@ -148,7 +127,7 @@ export class VoucherRepo implements IVoucherRepo {
 		return result
 	}
 
-	async incrementUsage(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async incrementUsage(id: number, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(vouchers)
 			.set({ usageCount: sql`${vouchers.usageCount} + 1` })

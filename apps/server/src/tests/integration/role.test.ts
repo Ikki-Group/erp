@@ -30,7 +30,7 @@ describe('iam roles', () => {
 				permissions: ['iam.read'],
 			},
 		})
-		expect(createResponse.status).toBe(201)
+		expect(createResponse.status).toBe(200)
 		const created = await json<{ data: { id: number } }>(createResponse)
 
 		const deleteResponse = await DELETE('/iam/role/remove', {

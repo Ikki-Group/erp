@@ -1,17 +1,14 @@
-import { CacheService } from '@/infra/cache/index.ts'
-import type { CacheClient } from '@/infra/cache/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db } from '@/infra/database/index.ts'
 import { record } from '@/infra/otel/otel.ts'
-import { weightedAvgCost } from '@/shared/domain/costing.ts'
 import { Money } from '@/shared/domain/money.ts'
 import { Qty } from '@/shared/domain/qty.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
-import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
+import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { AssignmentService } from '@/modules/material/assignment/assignment.service.ts'
+import type { MaterialAssignmentService } from '@/modules/material/index.ts'
 
+import { applyMovement } from './stock.calculator.ts'
 import type {
 	RecordMovementInput,
 	StockBalanceDto,
@@ -21,171 +18,97 @@ import type {
 	StockMovementFilterDto,
 } from './stock.contract.ts'
 import { StockError } from './stock.internal.ts'
-import type { IStockRepo } from './stock.repo.ts'
+import type { StockRepo } from './stock.repo.ts'
 
-// ─── Constants ───
-
-const BALANCE_TTL = 10_000 // 10 seconds (Tier 3)
-
-// ─── Service ───
+interface Deps extends Infra {
+	repo: StockRepo
+	assignment: Pick<MaterialAssignmentService, 'isAssigned'>
+}
 
 export interface RecordedMovement extends EntityRef {
-	event: StockMovementRecorded
+	/** Balance cost price after the movement (for outbound: the cost that left). */
+	costPrice: string
 }
 
 export class StockService {
-	private readonly cache: CacheService
-	private readonly trackedCacheKeys = new Set<string>()
+	constructor(private readonly deps: Deps) {}
 
-	constructor(
-		private readonly repo: IStockRepo,
-		cacheClient: CacheClient,
-		private readonly assignmentService: AssignmentService,
-		private readonly events: EventBusPort,
-	) {
-		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory-stock')
+	/** The only writer of `stock_balances` (ADR-0011 §1). Runs in `db` or its own transaction. */
+	recordMovement(input: RecordMovementInput, db?: Db): Promise<RecordedMovement> {
+		return record('stock.recordMovement', () =>
+			db ? this.#record(input, db) : this.deps.uow.run((tx) => this.#record(input, tx)),
+		)
 	}
 
-	// ─── Core Engine (called by other modules) ───
-
-	async recordMovement(input: RecordMovementInput, db?: DbContext): Promise<RecordedMovement> {
-		return record('stock.recordMovement', async () => {
-			const {
-				materialId,
-				locationId,
-				type,
-				direction,
-				qty,
-				unitCost,
-				referenceType,
-				referenceId,
-				notes,
-				actorId,
-			} = input
-			const dbCtx = db ?? this.repo.db
-
-			// Sales and production consumption are intentionally permissive. Every
-			// other movement requires the material to be assigned at the location.
-			if (type !== 'sales' && type !== 'production_out') {
-				const assigned = await this.assignmentService.isAssigned(materialId, locationId, dbCtx)
-				if (!assigned) throw StockError.materialNotAssigned(materialId, locationId)
-			}
-
-			const current = await this.repo.findBalance(materialId, locationId, dbCtx)
-			const oldQty = Qty.of(current?.quantity ?? '0')
-			const oldCost = Money.of(current?.costPrice ?? '0')
-			const moveQty = Qty.of(qty)
-
-			let newQty = oldQty
-			let newCost = oldCost
-
-			if (direction === 'in') {
-				newQty = oldQty.add(moveQty)
-				const costChanges =
-					type === 'purchase_receipt' || type === 'transfer_in' || type === 'production_in'
-				if (unitCost && costChanges) {
-					newCost = weightedAvgCost(oldQty, oldCost, moveQty, Money.of(unitCost))
-				}
-			} else {
-				if (type === 'transfer_out' && oldQty.lt(moveQty)) {
-					throw StockError.insufficientStock(materialId, locationId, oldQty.toNumeric(), qty)
-				}
-				newQty = oldQty.sub(moveQty)
-			}
-
-			await this.repo.upsertBalance(
-				materialId,
-				locationId,
-				newQty.toNumeric(),
-				newCost.toCost(),
-				dbCtx,
-			)
-
-			const movementResult = await this.repo.insertMovement(
-				{
-					materialId,
-					locationId,
-					type,
-					direction,
-					quantity: moveQty.toNumeric(),
-					costPrice: newCost.toCost(),
-					referenceType: referenceType ?? null,
-					referenceId: referenceId ?? null,
-					notes: notes ?? null,
-					createdBy: actorId,
-				},
-				dbCtx,
-			)
-			if (!movementResult) throw StockError.movementFailed()
-
-			const event: StockMovementRecorded = {
-				type: 'StockMovementRecorded',
-				movementId: movementResult.id,
-				materialId,
-				locationId,
-				movementType: type,
-				direction,
-				quantity: moveQty.toNumeric(),
-				costPrice: newCost.toCost(),
-				referenceType: referenceType ?? null,
-				referenceId: referenceId ?? null,
-				actorId,
-			}
-
-			if (!db) {
-				this.events.publish(event)
-				await this.invalidateCache()
-			}
-
-			return { ...movementResult, event }
-		})
-	}
-
-	async getBalance(
+	getBalance(
 		materialId: number,
 		locationId: number,
-		db?: DbContext,
+		db?: Db,
 	): Promise<StockBalanceDto | undefined> {
-		if (db) return this.repo.findBalance(materialId, locationId, db)
-		return this.repo.findBalance(materialId, locationId)
+		return this.deps.repo.findBalance(materialId, locationId, db)
 	}
+
+	getBalances(materialIds: number[], locationId: number, db?: Db): Promise<StockBalanceDto[]> {
+		return this.deps.repo.findBalances(materialIds, locationId, db)
+	}
+
 	async handleGetBalance(query: StockBalanceQueryDto): Promise<StockBalanceDto> {
-		const balance = await this.cache.getOrSetWithSkip({
-			key: this.#balanceCacheKey(query.materialId, query.locationId),
-			factory: () => this.repo.findBalance(query.materialId, query.locationId),
-		})
+		const balance = await this.getBalance(query.materialId, query.locationId)
 		if (!balance) throw StockError.balanceNotFound(query.materialId, query.locationId)
 		return balance
 	}
 
-	async invalidateCache(): Promise<void> {
-		const keys = [...this.trackedCacheKeys]
-		this.trackedCacheKeys.clear()
-		await this.cache.invalidateStandard()
-		if (keys.length > 0) await this.cache.deleteFromKeys(keys)
+	handleGetBalances(filter: StockBalanceFilterDto): Promise<WithPaginationResult<StockBalanceDto>> {
+		return this.deps.repo.findBalancesByLocation(filter)
 	}
 
-	async handleGetBalances(
-		filter: StockBalanceFilterDto,
-	): Promise<WithPaginationResult<StockBalanceDto>> {
-		const key = `${this.cache.namespace}:balances:loc:${filter.locationId}:p${filter.page}:l${filter.limit}:m${filter.materialId ?? 'all'}`
-		this.trackedCacheKeys.add(key)
-		return this.cache.getOrSet({
-			key,
-			factory: () => this.repo.findBalancesByLocation(filter),
-			ttl: BALANCE_TTL,
-		})
-	}
-
-	async handleGetMovements(
+	handleGetMovements(
 		filter: StockMovementFilterDto,
 	): Promise<WithPaginationResult<StockMovementDto>> {
-		return this.repo.findMovements(filter)
+		return this.deps.repo.findMovements(filter)
 	}
 
-	#balanceCacheKey(materialId: number, locationId: number): string {
-		const key = `${this.cache.namespace}:balance:${locationId}:${materialId}`
-		this.trackedCacheKeys.add(key)
-		return key
+	async #record(input: RecordMovementInput, db: Db): Promise<RecordedMovement> {
+		const { materialId, locationId, type, direction, qty } = input
+		const { repo, assignment } = this.deps
+
+		// Sales and production consumption are permissive about assignment (ADR-0009/0014).
+		if (type !== 'sales' && type !== 'production_out') {
+			const assigned = await assignment.isAssigned(materialId, locationId, db)
+			if (!assigned) throw StockError.materialNotAssigned(materialId, locationId)
+		}
+
+		const current = await repo.findBalance(materialId, locationId, db)
+		const oldQty = Qty.of(current?.quantity ?? '0')
+		const next = applyMovement(
+			{ qty: oldQty, cost: Money.of(current?.costPrice ?? '0') },
+			{
+				type,
+				direction,
+				qty: Qty.of(qty),
+				unitCost: input.unitCost === undefined ? undefined : Money.of(input.unitCost),
+			},
+		)
+		if (!next) throw StockError.insufficientStock(materialId, locationId, oldQty.toNumeric(), qty)
+
+		const costPrice = next.cost.toCost()
+		await repo.upsertBalance(materialId, locationId, next.qty.toNumeric(), costPrice, db)
+		const movement = await repo.insertMovement(
+			{
+				materialId,
+				locationId,
+				type,
+				direction,
+				quantity: Qty.of(qty).toNumeric(),
+				costPrice,
+				referenceType: input.referenceType ?? null,
+				referenceId: input.referenceId ?? null,
+				notes: input.notes ?? null,
+				createdBy: input.actorId,
+			},
+			db,
+		)
+		if (!movement) throw StockError.movementFailed()
+		return { id: movement.id, costPrice }
 	}
 }

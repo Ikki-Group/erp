@@ -11,8 +11,9 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 	and,
+	inArray,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -86,42 +87,15 @@ function toMovementDto(row: MovementRow): StockMovementDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IStockRepo {
-	readonly db: DbContext
-	findBalance(
-		materialId: number,
-		locationId: number,
-		db?: DbContext,
-	): Promise<StockBalanceDto | undefined>
-	findBalancesByLocation(
-		filter: StockBalanceFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<StockBalanceDto>>
-	upsertBalance(
-		materialId: number,
-		locationId: number,
-		quantity: string,
-		costPrice: string,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-	insertMovement(data: MovementInsert, db?: DbContext): Promise<EntityRef | undefined>
-	findMovements(
-		filter: StockMovementFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<StockMovementDto>>
-}
-
 // ─── Implementation ───
 
-export class StockRepo implements IStockRepo {
+export class StockRepo {
 	constructor(readonly db: DbContext) {}
 
 	async findBalance(
 		materialId: number,
 		locationId: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<StockBalanceDto | undefined> {
 		const row = await db
 			.select()
@@ -135,9 +109,28 @@ export class StockRepo implements IStockRepo {
 		return row ? toBalanceDto(row) : undefined
 	}
 
+	/** Unlocked batch read (no FOR UPDATE) for cost lookups. */
+	async findBalances(
+		materialIds: number[],
+		locationId: number,
+		db: Db = this.db,
+	): Promise<StockBalanceDto[]> {
+		if (materialIds.length === 0) return []
+		const rows = await db
+			.select()
+			.from(stockBalances)
+			.where(
+				and(
+					inArray(stockBalances.materialId, materialIds),
+					eq(stockBalances.locationId, locationId),
+				),
+			)
+		return rows.map(toBalanceDto)
+	}
+
 	async findBalancesByLocation(
 		filter: StockBalanceFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<StockBalanceDto>> {
 		const where = this.#buildBalanceWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -175,7 +168,7 @@ export class StockRepo implements IStockRepo {
 		locationId: number,
 		quantity: string,
 		costPrice: string,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(stockBalances)
@@ -188,10 +181,7 @@ export class StockRepo implements IStockRepo {
 		return result
 	}
 
-	async insertMovement(
-		data: MovementInsert,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async insertMovement(data: MovementInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(stockMovements)
 			.values(data)
@@ -201,7 +191,7 @@ export class StockRepo implements IStockRepo {
 
 	async findMovements(
 		filter: StockMovementFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<StockMovementDto>> {
 		const where = this.#buildMovementWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)

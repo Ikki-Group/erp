@@ -1,4 +1,8 @@
-import { calculateLineTotal, calculateOrderTotals } from '@/modules/pos/order/order.calculator.ts'
+import {
+	calculateLineTotal,
+	calculateOrderTotals,
+	remainingBalance,
+} from '@/modules/pos/order/order.calculator.ts'
 
 import { describe, expect, test } from 'bun:test'
 
@@ -51,5 +55,19 @@ describe('calculateOrderTotals', () => {
 			taxRate: '11',
 		})
 		expect(result.taxAmount).toBe('3667')
+	})
+})
+
+describe('remainingBalance', () => {
+	test('is the unpaid part of the total', () => {
+		expect(remainingBalance('99900', '50000').toAmount()).toBe('49900')
+	})
+
+	test('is negative when overpaid', () => {
+		expect(remainingBalance('99900', '100000').toAmount()).toBe('-100')
+	})
+
+	test('is zero when exactly paid', () => {
+		expect(remainingBalance('0', '0').isZero()).toBe(true)
 	})
 })

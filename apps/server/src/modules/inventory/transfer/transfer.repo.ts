@@ -11,7 +11,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -59,32 +59,12 @@ function toTransferLineDto(row: TransferLineRow): TransferLineDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface ITransferRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<TransferDto | undefined>
-	findDetailById(id: number, db?: DbContext): Promise<TransferDetailDto | undefined>
-	findPage(filter: TransferFilterDto, db?: DbContext): Promise<WithPaginationResult<TransferDto>>
-	insert(data: TransferInsert, db?: DbContext): Promise<EntityRef | undefined>
-	updateStatus(
-		id: number,
-		status: TransferStatusEnum,
-		updatedBy: number,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-	insertLines(lines: TransferLineInsert[], db?: DbContext): Promise<void>
-	findLinesByTransferId(transferId: number, db?: DbContext): Promise<TransferLineDto[]>
-	updateLineShipped(lineId: number, shippedCostPrice: string, db?: DbContext): Promise<void>
-	updateLineReceivedQty(lineId: number, receivedQty: string, db?: DbContext): Promise<void>
-}
-
 // ─── Implementation ───
 
-export class TransferRepo implements ITransferRepo {
+export class TransferRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<TransferDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<TransferDto | undefined> {
 		const row = await db
 			.select()
 			.from(transferRequests)
@@ -94,10 +74,7 @@ export class TransferRepo implements ITransferRepo {
 		return row ? toTransferDto(row) : undefined
 	}
 
-	async findDetailById(
-		id: number,
-		db: DbContext = this.db,
-	): Promise<TransferDetailDto | undefined> {
+	async findDetailById(id: number, db: Db = this.db): Promise<TransferDetailDto | undefined> {
 		const transfer = await this.findById(id, db)
 		if (!transfer) return undefined
 
@@ -107,7 +84,7 @@ export class TransferRepo implements ITransferRepo {
 
 	async findPage(
 		filter: TransferFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<TransferDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -140,7 +117,7 @@ export class TransferRepo implements ITransferRepo {
 		}
 	}
 
-	async insert(data: TransferInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: TransferInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(transferRequests)
 			.values(data)
@@ -152,7 +129,7 @@ export class TransferRepo implements ITransferRepo {
 		id: number,
 		status: TransferStatusEnum,
 		updatedBy: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(transferRequests)
@@ -162,15 +139,12 @@ export class TransferRepo implements ITransferRepo {
 		return result
 	}
 
-	async insertLines(lines: TransferLineInsert[], db: DbContext = this.db): Promise<void> {
+	async insertLines(lines: TransferLineInsert[], db: Db = this.db): Promise<void> {
 		if (lines.length === 0) return
 		await db.insert(transferLines).values(lines)
 	}
 
-	async findLinesByTransferId(
-		transferId: number,
-		db: DbContext = this.db,
-	): Promise<TransferLineDto[]> {
+	async findLinesByTransferId(transferId: number, db: Db = this.db): Promise<TransferLineDto[]> {
 		const rows = await db
 			.select()
 			.from(transferLines)
@@ -181,7 +155,7 @@ export class TransferRepo implements ITransferRepo {
 	async updateLineShipped(
 		lineId: number,
 		shippedCostPrice: string,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<void> {
 		await db
 			.update(transferLines)
@@ -192,7 +166,7 @@ export class TransferRepo implements ITransferRepo {
 	async updateLineReceivedQty(
 		lineId: number,
 		receivedQty: string,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<void> {
 		await db.update(transferLines).set({ receivedQty }).where(eq(transferLines.id, lineId))
 	}

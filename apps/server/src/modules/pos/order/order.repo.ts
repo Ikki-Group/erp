@@ -2,6 +2,7 @@ import { orderLines, orders, payments } from '@/db/schema/pos.ts'
 
 import {
 	allOf,
+	and,
 	eq,
 	eqIf,
 	gte,
@@ -12,7 +13,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -95,38 +96,35 @@ function toPaymentDto(row: PaymentRow): OrderPaymentRecordDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IOrderRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<OrderDto | undefined>
-	findDetailById(id: number, db?: DbContext): Promise<OrderDetailDto | undefined>
-	findPage(filter: OrderFilterDto, db?: DbContext): Promise<WithPaginationResult<OrderDto>>
-	insert(data: OrderInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: OrderUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	// Lines
-	findLinesByOrderId(orderId: number, db?: DbContext): Promise<OrderLineDto[]>
-	deleteLinesByOrderId(orderId: number, db?: DbContext): Promise<void>
-	insertLines(lines: OrderLineInsert[], db?: DbContext): Promise<void>
-	// Payments
-	findPaymentsByOrderId(orderId: number, db?: DbContext): Promise<OrderPaymentRecordDto[]>
-	insertPayment(data: PaymentInsert, db?: DbContext): Promise<EntityRef | undefined>
-	sumPaymentsByOrderId(orderId: number, db?: DbContext): Promise<string>
-}
-
 // ─── Implementation ───
 
-export class OrderRepo implements IOrderRepo {
+export class OrderRepo {
 	constructor(readonly db: DbContext) {}
 
 	// ─── Order ───
 
-	async findById(id: number, db: DbContext = this.db): Promise<OrderDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<OrderDto | undefined> {
 		const row = await db.select().from(orders).where(eq(orders.id, id)).limit(1).then(takeFirst)
 		return row ? toOrderDto(row) : undefined
 	}
 
-	async findDetailById(id: number, db: DbContext = this.db): Promise<OrderDetailDto | undefined> {
+	/**
+	 * Row-locks the order only while it is still open. Every mutation of an open
+	 * order starts here, so concurrent complete/void/sync serialize and the loser
+	 * sees the new status (Postgres re-checks the predicate after the lock wait).
+	 */
+	async lockOpen(id: number, db: Db): Promise<OrderDto | undefined> {
+		const row = await db
+			.select()
+			.from(orders)
+			.where(and(eq(orders.id, id), eq(orders.status, 'open')))
+			.for('update')
+			.limit(1)
+			.then(takeFirst)
+		return row ? toOrderDto(row) : undefined
+	}
+
+	async findDetailById(id: number, db: Db = this.db): Promise<OrderDetailDto | undefined> {
 		const order = await this.findById(id, db)
 		if (!order) return undefined
 
@@ -138,7 +136,7 @@ export class OrderRepo implements IOrderRepo {
 
 	async findPage(
 		filter: OrderFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<OrderDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -184,16 +182,12 @@ export class OrderRepo implements IOrderRepo {
 		}
 	}
 
-	async insert(data: OrderInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: OrderInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(orders).values(data).returning({ id: orders.id })
 		return result
 	}
 
-	async update(
-		id: number,
-		data: OrderUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: OrderUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(orders)
 			.set(data)
@@ -204,7 +198,7 @@ export class OrderRepo implements IOrderRepo {
 
 	// ─── Lines ───
 
-	async findLinesByOrderId(orderId: number, db: DbContext = this.db): Promise<OrderLineDto[]> {
+	async findLinesByOrderId(orderId: number, db: Db = this.db): Promise<OrderLineDto[]> {
 		const rows = await db
 			.select()
 			.from(orderLines)
@@ -213,21 +207,18 @@ export class OrderRepo implements IOrderRepo {
 		return rows.map(toLineDto)
 	}
 
-	async deleteLinesByOrderId(orderId: number, db: DbContext = this.db): Promise<void> {
+	async deleteLinesByOrderId(orderId: number, db: Db = this.db): Promise<void> {
 		await db.delete(orderLines).where(eq(orderLines.orderId, orderId))
 	}
 
-	async insertLines(lines: OrderLineInsert[], db: DbContext = this.db): Promise<void> {
+	async insertLines(lines: OrderLineInsert[], db: Db = this.db): Promise<void> {
 		if (lines.length === 0) return
 		await db.insert(orderLines).values(lines)
 	}
 
 	// ─── Payments ───
 
-	async findPaymentsByOrderId(
-		orderId: number,
-		db: DbContext = this.db,
-	): Promise<OrderPaymentRecordDto[]> {
+	async findPaymentsByOrderId(orderId: number, db: Db = this.db): Promise<OrderPaymentRecordDto[]> {
 		const rows = await db
 			.select()
 			.from(payments)
@@ -236,15 +227,12 @@ export class OrderRepo implements IOrderRepo {
 		return rows.map(toPaymentDto)
 	}
 
-	async insertPayment(
-		data: PaymentInsert,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async insertPayment(data: PaymentInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(payments).values(data).returning({ id: payments.id })
 		return result
 	}
 
-	async sumPaymentsByOrderId(orderId: number, db: DbContext = this.db): Promise<string> {
+	async sumPaymentsByOrderId(orderId: number, db: Db = this.db): Promise<string> {
 		const [result] = await db
 			.select({
 				total: sql<string>`coalesce(sum(${payments.amount}), '0')`,

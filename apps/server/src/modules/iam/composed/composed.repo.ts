@@ -5,12 +5,13 @@ import {
 	allOf,
 	eq,
 	eqIf,
+	inArray,
 	searchAcross,
 	sql,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 
 import type {
@@ -21,31 +22,12 @@ import type {
 	UserListItemDto,
 } from './composed.contract.ts'
 
-// ─── Interface ───
-
-export interface IComposedRepo {
-	readonly db: DbContext
-	findUserDetail(userId: number, db?: DbContext): Promise<UserDetailDto | undefined>
-	findUserList(
-		filter: ComposedUserFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<UserListItemDto>>
-	findLocationStaffList(
-		filter: ComposedUserFilterDto,
-		locationId: number,
-		db?: DbContext,
-	): Promise<WithPaginationResult<LocationStaffListItemDto>>
-}
-
 // ─── Implementation ───
 
-export class ComposedRepo implements IComposedRepo {
+export class ComposedRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findUserDetail(
-		userId: number,
-		db: DbContext = this.db,
-	): Promise<UserDetailDto | undefined> {
+	async findUserDetail(userId: number, db: Db = this.db): Promise<UserDetailDto | undefined> {
 		// 1. Load user
 		const [user] = await db
 			.select({
@@ -116,7 +98,7 @@ export class ComposedRepo implements IComposedRepo {
 	async findLocationStaffList(
 		filter: ComposedUserFilterDto,
 		locationId: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<LocationStaffListItemDto>> {
 		const where = allOf(
 			eq(userAssignments.locationId, locationId),
@@ -151,7 +133,7 @@ export class ComposedRepo implements IComposedRepo {
 
 	async findUserList(
 		filter: ComposedUserFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<UserListItemDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -191,7 +173,7 @@ export class ComposedRepo implements IComposedRepo {
 			})
 			.from(userAssignments)
 			.innerJoin(roles, eq(userAssignments.roleId, roles.id))
-			.where(sql`${userAssignments.userId} in ${userIds}`)
+			.where(inArray(userAssignments.userId, userIds))
 
 		// Group role names by userId
 		const roleNamesByUser = new Map<number, string[]>()

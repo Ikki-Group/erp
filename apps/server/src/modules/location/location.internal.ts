@@ -1,4 +1,9 @@
-import { ConflictError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import {
+	BadRequestError,
+	ConflictError,
+	InternalServerError,
+	NotFoundError,
+} from '@/shared/errors/http-error.ts'
 
 // ─── Error Factories ───
 
@@ -9,6 +14,13 @@ export const LocationError = {
 		new ConflictError('Location name already exists', { code: 'LOCATION_NAME_EXISTS' }),
 	codeExists: () =>
 		new ConflictError('Location code already exists', { code: 'LOCATION_CODE_EXISTS' }),
+	codeImmutable: () =>
+		new BadRequestError('Location code cannot be changed', { code: 'LOCATION_CODE_IMMUTABLE' }),
+	holdsStock: (id: number) =>
+		new ConflictError('Location still holds stock', {
+			code: 'LOCATION_HOLDS_STOCK',
+			context: { id },
+		}),
 	createFailed: () =>
 		new InternalServerError('Location creation failed', { code: 'LOCATION_CREATE_FAILED' }),
 	updateFailed: (id: number) =>

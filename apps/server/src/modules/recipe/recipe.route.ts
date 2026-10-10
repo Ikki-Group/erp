@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -22,7 +22,7 @@ import type { RecipeService } from './recipe.service.ts'
 export function createRecipeRoute(recipeService: RecipeService) {
 	return (
 		new Elysia({ prefix: '/recipe', tags: ['recipe'] })
-			.use(rbac.as('scoped'))
+			.use(authGuard)
 
 			// ─── Reads ───
 
@@ -76,11 +76,11 @@ export function createRecipeRoute(recipeService: RecipeService) {
 				'/create',
 				async ({ body, auth }) => {
 					const result = await recipeService.handleCreate(body, actorOf(auth))
-					return res.created(result)
+					return res.ok(result)
 				},
 				{
 					body: RecipeCreateDto,
-					response: zRes.created(EntityRefDto),
+					response: zRes.ok(EntityRefDto),
 					permission: 'recipe.create',
 				},
 			)

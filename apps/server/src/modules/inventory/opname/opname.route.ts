@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { authPlugin } from '@/server/plugins/auth.plugin.ts'
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -22,8 +21,7 @@ import type { OpnameService } from './opname.service.ts'
 
 export function createOpnameRoute(service: OpnameService) {
 	return new Elysia({ prefix: '/opname' })
-		.use(authPlugin)
-		.use(rbac)
+		.use(authGuard)
 
 		.get(
 			'/list',
@@ -49,13 +47,12 @@ export function createOpnameRoute(service: OpnameService) {
 			'/create',
 			async ({ body, auth }) => {
 				const result = await service.handleCreate(body, actorOf(auth))
-				return res.created(result)
+				return res.ok(result)
 			},
 			{
 				body: OpnameCreateDto,
-				auth: true,
 				permission: 'opname.create',
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 			},
 		)
 		.put(
@@ -66,7 +63,6 @@ export function createOpnameRoute(service: OpnameService) {
 			},
 			{
 				body: OpnameUpdateCountsDto,
-				auth: true,
 				permission: 'opname.update',
 				response: zRes.ok(EntityRefDto),
 			},
@@ -79,7 +75,6 @@ export function createOpnameRoute(service: OpnameService) {
 			},
 			{
 				body: OpnameCompleteDto,
-				auth: true,
 				permission: 'opname.complete',
 				response: zRes.ok(EntityRefDto),
 			},

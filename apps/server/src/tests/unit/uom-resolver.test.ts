@@ -1,7 +1,7 @@
 import { Qty } from '@/shared/domain/qty.ts'
 
-import { resolveConversion } from '@/modules/uom/domain/uom.resolver.ts'
-import type { UomConversionDto } from '@/modules/uom/uom.contract.ts'
+import { resolveConversion } from '@/modules/uom/index.ts'
+import type { UomConversionDto } from '@/modules/uom/index.ts'
 
 import { describe, expect, test } from 'bun:test'
 

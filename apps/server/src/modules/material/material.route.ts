@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -30,7 +30,7 @@ export function createMaterialRoute(
 	assignmentService: AssignmentService,
 ) {
 	return new Elysia({ prefix: '/material', tags: ['material'] })
-		.use(rbac.as('scoped'))
+		.use(authGuard)
 		.get('/list', async ({ query }) => res.paginated(await materialService.handleList(query)), {
 			query: MaterialFilterDto,
 			response: zRes.paginated(MaterialDto),
@@ -43,11 +43,10 @@ export function createMaterialRoute(
 		})
 		.post(
 			'/create',
-			async ({ body, auth }) =>
-				res.created(await materialService.handleCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await materialService.handleCreate(body, actorOf(auth))),
 			{
 				body: MaterialCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'material.create',
 			},
 		)
@@ -81,11 +80,10 @@ export function createMaterialRoute(
 		)
 		.post(
 			'/category/create',
-			async ({ body, auth }) =>
-				res.created(await categoryService.handleCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await categoryService.handleCreate(body, actorOf(auth))),
 			{
 				body: MaterialCategoryCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'material.create',
 			},
 		)
@@ -110,11 +108,10 @@ export function createMaterialRoute(
 		)
 		.post(
 			'/assignment/assign',
-			async ({ body, auth }) =>
-				res.created(await assignmentService.handleAssign(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await assignmentService.handleAssign(body, actorOf(auth))),
 			{
 				body: MaterialAssignDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'material.create',
 			},
 		)

@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { authPlugin } from '@/server/plugins/auth.plugin.ts'
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -14,8 +13,7 @@ import type { TableService } from './table.service.ts'
 
 export function createTableRoute(service: TableService) {
 	return new Elysia({ prefix: '/table' })
-		.use(authPlugin)
-		.use(rbac)
+		.use(authGuard)
 		.get(
 			'/list',
 			async ({ query }) => {
@@ -36,9 +34,9 @@ export function createTableRoute(service: TableService) {
 			'/create',
 			async ({ body, auth }) => {
 				const result = await service.handleCreate(body, actorOf(auth))
-				return res.created(result)
+				return res.ok(result)
 			},
-			{ body: TableCreateDto, permission: 'table.manage', response: zRes.created(EntityRefDto) },
+			{ body: TableCreateDto, permission: 'table.manage', response: zRes.ok(EntityRefDto) },
 		)
 		.put(
 			'/update',

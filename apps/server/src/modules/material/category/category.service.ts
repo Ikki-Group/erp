@@ -1,17 +1,13 @@
 import { materialCategories } from '@/db/schema/material.ts'
 
-import { CacheService } from '@/infra/cache/index.ts'
-import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
 import { defineConflictFields } from '@/infra/database/index.ts'
-import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
-import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
 import type {
@@ -20,7 +16,7 @@ import type {
 	MaterialCategoryFilterDto,
 	MaterialCategoryUpdateDto,
 } from './category.contract.ts'
-import type { ICategoryRepo } from './category.repo.ts'
+import type { CategoryRepo } from './category.repo.ts'
 
 // ─── Error Factories ───
 
@@ -59,53 +55,28 @@ const uniqueFields = defineConflictFields<MaterialCategoryCreateDto>()([
 
 // ─── Service ───
 
-export interface CategoryServiceDeps {
-	uow: UnitOfWork
-	audit: AuditPort
+interface Deps extends Infra {
+	repo: CategoryRepo
 }
 
+const AUDIT = { module: 'material', entity: 'material_category' } as const
+
 export class CategoryService {
-	private readonly cache: CacheService
-
-	constructor(
-		private readonly repo: ICategoryRepo,
-		cacheClient: CacheClient,
-		private readonly deps: CategoryServiceDeps,
-	) {
-		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'material-category')
-	}
-
-	// ─── Cached Reads ───
-
-	async getAll(): Promise<MaterialCategoryDto[]> {
-		return this.cache.getOrSet({
-			key: this.cache.keys.list,
-			factory: () => this.repo.findMany(),
-		})
-	}
-
-	async getById(id: number): Promise<MaterialCategoryDto | undefined> {
-		return this.cache.getOrSetWithSkip({
-			key: this.cache.keys.byId(id),
-			factory: () => this.repo.findById(id),
-		})
-	}
-
-	// ─── Handlers ───
+	constructor(private readonly deps: Deps) {}
 
 	async handleGetById(id: number): Promise<MaterialCategoryDto> {
-		return assertFound(await this.getById(id), () => CategoryError.notFound(id))
+		return assertFound(await this.deps.repo.findById(id), () => CategoryError.notFound(id))
 	}
 
-	async handleList(
+	handleList(
 		filter: MaterialCategoryFilterDto,
 	): Promise<WithPaginationResult<MaterialCategoryDto>> {
-		return this.repo.findPage(filter)
+		return this.deps.repo.findPage(filter)
 	}
 
-	async handleCreate(data: MaterialCategoryCreateDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			// 1. Check conflicts
+	handleCreate(data: MaterialCategoryCreateDto, actor: Actor): Promise<EntityRef> {
+		const { repo, uow, audit } = this.deps
+		return uow.run(async (tx) => {
 			await checkConflict({
 				db: tx,
 				table: materialCategories,
@@ -113,96 +84,62 @@ export class CategoryService {
 				fields: uniqueFields,
 				input: data,
 			})
-
-			// 2. Insert
-			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
+			const written = await repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
 			if (!written) throw CategoryError.createFailed()
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'material',
-					entity: 'material_category',
-					entityId: written.id,
-					action: 'create',
-					summary: `Created material category "${data.name}"`,
-					newValues: { name: data.name },
-				}),
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: written.id,
+				action: 'create',
+				summary: `Created material category "${data.name}"`,
+				newValues: { name: data.name },
+			})
 			return written
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard()
-		return result
 	}
 
-	async handleUpdate(data: MaterialCategoryUpdateDto, actor: Actor): Promise<EntityRef> {
-		const { id, ...updateData } = data
-		const result = await this.deps.uow.run(async (tx) => {
-			// 1. Verify exists
-			const existing = await this.repo.findById(id, tx)
+	handleUpdate(data: MaterialCategoryUpdateDto, actor: Actor): Promise<EntityRef> {
+		const { id, ...changes } = data
+		const { repo, uow, audit } = this.deps
+		return uow.run(async (tx) => {
+			const existing = await repo.findById(id, tx)
 			if (!existing) throw CategoryError.notFound(id)
-
-			// 2. Check conflicts (exclude self)
 			await checkConflict({
 				db: tx,
 				table: materialCategories,
 				pkColumn: materialCategories.id,
 				fields: uniqueFields,
-				input: updateData,
+				input: changes,
 				excludeId: id,
 			})
-
-			// 3. Update
-			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
+			const written = await repo.update(id, { ...changes, ...stampUpdate(actor.id) }, tx)
 			if (!written) throw CategoryError.updateFailed(id)
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'material',
-					entity: 'material_category',
-					entityId: id,
-					action: 'update',
-					summary: `Updated material category "${data.name}"`,
-					oldValues: { name: existing.name },
-					newValues: { name: data.name },
-				}),
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: id,
+				action: 'update',
+				summary: `Updated material category "${data.name}"`,
+				oldValues: { name: existing.name },
+				newValues: { name: data.name },
+			})
 			return written
 		})
-
-		// 4. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
-	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			// 1. Verify exists
-			const existing = await this.repo.findById(id, tx)
+	handleDelete(id: number, actor: Actor): Promise<EntityRef> {
+		const { repo, uow, audit } = this.deps
+		return uow.run(async (tx) => {
+			const existing = await repo.findById(id, tx)
 			if (!existing) throw CategoryError.notFound(id)
-
-			// 2. Delete (FK SET NULL on materials.category_id)
-			const written = await this.repo.remove(id, tx)
+			// FK SET NULL on materials.category_id
+			const written = await repo.remove(id, tx)
 			if (!written) throw CategoryError.deleteFailed(id)
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'material',
-					entity: 'material_category',
-					entityId: id,
-					action: 'delete',
-					summary: `Deleted material category "${existing.name}"`,
-				}),
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: id,
+				action: 'delete',
+				summary: `Deleted material category "${existing.name}"`,
+			})
 			return written
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 }

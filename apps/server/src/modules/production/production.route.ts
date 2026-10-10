@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { authPlugin } from '@/server/plugins/auth.plugin.ts'
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -27,8 +26,7 @@ import type { ProductionService } from './production.service.ts'
 export function createProductionRoute(service: ProductionService) {
 	return (
 		new Elysia({ prefix: '/production', tags: ['production'] })
-			.use(authPlugin)
-			.use(rbac)
+			.use(authGuard)
 
 			// ─── Recipe Routes ───
 
@@ -60,13 +58,12 @@ export function createProductionRoute(service: ProductionService) {
 				'/recipe/create',
 				async ({ body, auth }) => {
 					const result = await service.handleRecipeCreate(body, actorOf(auth))
-					return res.created(result)
+					return res.ok(result)
 				},
 				{
 					body: ProductionRecipeCreateDto,
-					auth: true,
 					permission: 'production.create',
-					response: zRes.created(EntityRefDto),
+					response: zRes.ok(EntityRefDto),
 				},
 			)
 			.put(
@@ -77,7 +74,6 @@ export function createProductionRoute(service: ProductionService) {
 				},
 				{
 					body: ProductionRecipeUpdateDto,
-					auth: true,
 					permission: 'production.update',
 					response: zRes.ok(EntityRefDto),
 				},
@@ -90,7 +86,6 @@ export function createProductionRoute(service: ProductionService) {
 				},
 				{
 					query: ProductionDetailQueryDto,
-					auth: true,
 					permission: 'production.delete',
 					response: zRes.ok(EntityRefDto),
 				},
@@ -126,13 +121,12 @@ export function createProductionRoute(service: ProductionService) {
 				'/order/create',
 				async ({ body, auth }) => {
 					const result = await service.handleOrderCreate(body, actorOf(auth))
-					return res.created(result)
+					return res.ok(result)
 				},
 				{
 					body: ProductionOrderCreateDto,
-					auth: true,
 					permission: 'production.create',
-					response: zRes.created(EntityRefDto),
+					response: zRes.ok(EntityRefDto),
 				},
 			)
 			.post(
@@ -143,7 +137,6 @@ export function createProductionRoute(service: ProductionService) {
 				},
 				{
 					body: ProductionOrderConfirmDto,
-					auth: true,
 					permission: 'production.confirm',
 					response: zRes.ok(EntityRefDto),
 				},

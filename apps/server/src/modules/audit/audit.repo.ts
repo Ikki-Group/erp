@@ -11,6 +11,7 @@ import {
 	buildPaginationMeta,
 	takeFirst,
 	desc,
+	eq,
 } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
@@ -47,25 +48,16 @@ function toDetailDto(row: AuditLogRow): AuditLogDetailDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IAuditRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<AuditLogDetailDto | undefined>
-	findPage(filter: AuditLogFilterDto, db?: DbContext): Promise<WithPaginationResult<AuditLogDto>>
-	findByEntity(entity: string, entityId: number, db?: DbContext): Promise<AuditLogDto[]>
-}
-
 // ─── Implementation ───
 
-export class AuditRepo implements IAuditRepo {
+export class AuditRepo {
 	constructor(readonly db: DbContext) {}
 
 	async findById(id: number, db: DbContext = this.db): Promise<AuditLogDetailDto | undefined> {
 		const row = await db
 			.select()
 			.from(auditLogs)
-			.where(sql`${auditLogs.id} = ${id}`)
+			.where(eq(auditLogs.id, id))
 			.limit(1)
 			.then(takeFirst)
 		return row ? toDetailDto(row) : undefined
@@ -100,18 +92,7 @@ export class AuditRepo implements IAuditRepo {
 
 		const total = rows[0]?.rowCount ?? 0
 		return {
-			data: rows.map((row) => ({
-				id: row.id,
-				timestamp: row.timestamp,
-				userId: row.userId,
-				userName: row.userName,
-				locationId: row.locationId,
-				module: row.module,
-				entity: row.entity,
-				entityId: row.entityId,
-				action: row.action,
-				summary: row.summary,
-			})),
+			data: rows.map(({ rowCount: _, ...row }) => row),
 			meta: buildPaginationMeta(filter.page, filter.limit, total),
 		}
 	}

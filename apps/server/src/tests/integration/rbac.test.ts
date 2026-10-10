@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia'
 
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { errorPlugin } from '@/server/plugins/error.plugin.ts'
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
 
@@ -10,8 +10,8 @@ import { SEED_USERS } from '../helpers/seed.ts'
 import { describe, expect, test } from 'bun:test'
 
 const guardedApp = new Elysia({ name: 'rbac-test-app' })
-	.use(errorPlugin())
-	.use(rbac)
+	.use(errorPlugin)
+	.use(authGuard)
 	.get('/guarded', () => ({ ok: true }), {
 		permission: 't007.self-check',
 	})
@@ -33,6 +33,8 @@ describe('rbac', () => {
 			locationId: 3,
 			permissions: [],
 			isOwner: false,
+			globalPermissions: [],
+			access: {},
 		}
 
 		expect(actorOf(auth)).toEqual({ id: 7, name: 'Resolved User', locationId: 3 })
@@ -45,6 +47,9 @@ describe('rbac', () => {
 
 		const cashierResponse = await requestWithToken(await loginAs(SEED_USERS.cashier.username))
 		expect(cashierResponse.status).toBe(403)
+
+		const anonymous = await guardedApp.handle(new Request('http://localhost/guarded'))
+		expect(anonymous.status).toBe(401)
 		expect(await cashierResponse.json()).toMatchObject({
 			success: false,
 			error: { code: 'PERMISSION_DENIED' },

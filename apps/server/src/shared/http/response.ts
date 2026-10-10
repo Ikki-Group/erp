@@ -5,10 +5,6 @@ export const res = {
 		return { success: true as const, data }
 	},
 
-	created<T>(data: T) {
-		return { success: true as const, data }
-	},
-
 	paginated<T>(result: WithPaginationResult<T>) {
 		return {
 			success: true as const,

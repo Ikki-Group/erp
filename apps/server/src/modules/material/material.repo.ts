@@ -11,7 +11,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext, SQL } from '@/infra/database/index.ts'
+import type { Db, DbContext, SQL } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -60,24 +60,12 @@ function toDto(row: MaterialRowLike): MaterialDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IMaterialRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<MaterialDto | undefined>
-	findByIds(ids: number[], db?: DbContext): Promise<MaterialDto[]>
-	findPage(filter: MaterialFilterDto, db?: DbContext): Promise<WithPaginationResult<MaterialDto>>
-	insert(data: MaterialInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: MaterialUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, data: MaterialUpdate, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class MaterialRepo implements IMaterialRepo {
+export class MaterialRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<MaterialDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<MaterialDto | undefined> {
 		const row = await db
 			.select()
 			.from(materials)
@@ -87,7 +75,7 @@ export class MaterialRepo implements IMaterialRepo {
 		return row ? toDto(row) : undefined
 	}
 
-	async findByIds(ids: number[], db: DbContext = this.db): Promise<MaterialDto[]> {
+	async findByIds(ids: number[], db: Db = this.db): Promise<MaterialDto[]> {
 		if (ids.length === 0) return []
 		const rows = await db.select().from(materials).where(inArray(materials.id, ids))
 		return rows.map(toDto)
@@ -95,7 +83,7 @@ export class MaterialRepo implements IMaterialRepo {
 
 	async findPage(
 		filter: MaterialFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<MaterialDto>> {
 		const { limit, offset } = toLimitOffset(filter)
 
@@ -178,16 +166,12 @@ export class MaterialRepo implements IMaterialRepo {
 		}
 	}
 
-	async insert(data: MaterialInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: MaterialInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(materials).values(data).returning({ id: materials.id })
 		return result
 	}
 
-	async update(
-		id: number,
-		data: MaterialUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: MaterialUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(materials)
 			.set(data)
@@ -196,11 +180,7 @@ export class MaterialRepo implements IMaterialRepo {
 		return result
 	}
 
-	async remove(
-		id: number,
-		data: MaterialUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async remove(id: number, data: MaterialUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(materials)
 			.set({ ...data, isActive: false })

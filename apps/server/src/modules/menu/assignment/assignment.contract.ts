@@ -2,16 +2,6 @@ import { z } from 'zod'
 
 import { zp } from '@/shared/schema/index.ts'
 
-// ─── Response ───
-
-export const MenuItemModifierDto = z.object({
-	id: zp.id,
-	menuItemId: zp.id,
-	modifierGroupId: zp.id,
-	sortOrder: z.number().int(),
-})
-export type MenuItemModifierDto = z.infer<typeof MenuItemModifierDto>
-
 // ─── Sync Input ───
 
 export const ModifierGroupAssignmentInput = z.object({

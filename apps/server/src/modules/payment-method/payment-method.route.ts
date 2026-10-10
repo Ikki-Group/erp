@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -18,7 +18,7 @@ import type { PaymentMethodService } from './payment-method.service.ts'
 
 export function createPaymentMethodRoute(service: PaymentMethodService) {
 	return new Elysia({ prefix: '/payment-method', tags: ['payment-method'] })
-		.use(rbac.as('scoped'))
+		.use(authGuard)
 		.get('/list', async ({ query }) => res.paginated(await service.handleList(query)), {
 			query: PaymentMethodFilterDto,
 			response: zRes.paginated(PaymentMethodDto),
@@ -40,10 +40,10 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.post(
 			'/create',
-			async ({ body, auth }) => res.created(await service.handleCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await service.handleCreate(body, actorOf(auth))),
 			{
 				body: PaymentMethodCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'payment-method.create',
 			},
 		)

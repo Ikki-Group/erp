@@ -28,7 +28,7 @@ if (!url) {
 	process.exit(1)
 }
 
-const sql = postgres(url)
+const sql = postgres(url, { prepare: false, onnotice: () => {} })
 
 // ─── Truncate in reverse dependency order ───
 

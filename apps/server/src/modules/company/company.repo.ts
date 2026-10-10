@@ -1,7 +1,7 @@
 import { companySettings } from '@/db/schema/core.ts'
 
-import { eq, sql, takeFirst } from '@/infra/database/index.ts'
-import type { DbContext, Tx } from '@/infra/database/index.ts'
+import { eq, takeFirst } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type { CompanySettingsDto } from './company.contract.ts'
@@ -33,39 +33,17 @@ function toDto(row: CompanySettingsRow): CompanySettingsDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface ICompanyRepo {
-	readonly db: DbContext
-	findOne(db?: DbContext | Tx): Promise<CompanySettingsDto | undefined>
-	count(db?: DbContext | Tx): Promise<number>
-	insert(data: CompanySettingsInsert, db?: DbContext | Tx): Promise<EntityRef | undefined>
-	update(
-		id: number,
-		data: CompanySettingsUpdate,
-		db?: DbContext | Tx,
-	): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class CompanyRepo implements ICompanyRepo {
+export class CompanyRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findOne(db: DbContext | Tx = this.db): Promise<CompanySettingsDto | undefined> {
+	async findOne(db: Db = this.db): Promise<CompanySettingsDto | undefined> {
 		const row = await db.select().from(companySettings).limit(1).then(takeFirst)
 		return row ? toDto(row) : undefined
 	}
 
-	async count(db: DbContext | Tx = this.db): Promise<number> {
-		const [result] = await db.select({ count: sql<number>`count(*)::int` }).from(companySettings)
-		return result?.count ?? 0
-	}
-
-	async insert(
-		data: CompanySettingsInsert,
-		db: DbContext | Tx = this.db,
-	): Promise<EntityRef | undefined> {
+	async insert(data: CompanySettingsInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(companySettings)
 			.values(data)
@@ -76,7 +54,7 @@ export class CompanyRepo implements ICompanyRepo {
 	async update(
 		id: number,
 		data: CompanySettingsUpdate,
-		db: DbContext | Tx = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(companySettings)

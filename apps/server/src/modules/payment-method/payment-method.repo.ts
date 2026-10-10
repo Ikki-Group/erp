@@ -5,22 +5,17 @@ import {
 	and,
 	eq,
 	eqIf,
-	inArray,
 	searchAcross,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type {
-	PaymentMethodDto,
-	PaymentMethodFilterDto,
-	PaymentMethodLocationDto,
-} from './payment-method.contract.ts'
+import type { PaymentMethodDto, PaymentMethodFilterDto } from './payment-method.contract.ts'
 
 // ─── Types ───
 
@@ -29,7 +24,6 @@ type PaymentMethodUpdate = Partial<Omit<PaymentMethodInsert, 'id'>>
 type PaymentMethodRow = typeof paymentMethods.$inferSelect
 
 type PaymentMethodLocationInsert = typeof paymentMethodLocations.$inferInsert
-type PaymentMethodLocationRow = typeof paymentMethodLocations.$inferSelect
 
 /** Maps a raw DB row to the DTO shape. */
 function toDto(row: PaymentMethodRow): PaymentMethodDto {
@@ -46,55 +40,12 @@ function toDto(row: PaymentMethodRow): PaymentMethodDto {
 	}
 }
 
-/** Maps a location assignment row to DTO. */
-function toLocationDto(row: PaymentMethodLocationRow): PaymentMethodLocationDto {
-	return {
-		id: row.id,
-		paymentMethodId: row.paymentMethodId,
-		locationId: row.locationId,
-		isEnabled: row.isEnabled,
-	}
-}
-
-// ─── Interface ───
-
-export interface IPaymentMethodRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<PaymentMethodDto | undefined>
-	findByIds(ids: number[], db?: DbContext): Promise<PaymentMethodDto[]>
-	findMany(db?: DbContext): Promise<PaymentMethodDto[]>
-	findPage(
-		filter: PaymentMethodFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<PaymentMethodDto>>
-	insert(data: PaymentMethodInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: PaymentMethodUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, data: PaymentMethodUpdate, db?: DbContext): Promise<EntityRef | undefined>
-
-	// Location assignment
-	findByLocation(locationId: number, db?: DbContext): Promise<PaymentMethodDto[]>
-	findLocationAssignment(
-		paymentMethodId: number,
-		locationId: number,
-		db?: DbContext,
-	): Promise<PaymentMethodLocationDto | undefined>
-	upsertLocationAssignment(
-		data: PaymentMethodLocationInsert,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-	removeLocationAssignment(
-		paymentMethodId: number,
-		locationId: number,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class PaymentMethodRepo implements IPaymentMethodRepo {
+export class PaymentMethodRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<PaymentMethodDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<PaymentMethodDto | undefined> {
 		const row = await db
 			.select()
 			.from(paymentMethods)
@@ -104,20 +55,9 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 		return row ? toDto(row) : undefined
 	}
 
-	async findByIds(ids: number[], db: DbContext = this.db): Promise<PaymentMethodDto[]> {
-		if (ids.length === 0) return []
-		const rows = await db.select().from(paymentMethods).where(inArray(paymentMethods.id, ids))
-		return rows.map(toDto)
-	}
-
-	async findMany(db: DbContext = this.db): Promise<PaymentMethodDto[]> {
-		const rows = await db.select().from(paymentMethods)
-		return rows.map(toDto)
-	}
-
 	async findPage(
 		filter: PaymentMethodFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<PaymentMethodDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -148,7 +88,7 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 		}
 	}
 
-	async insert(data: PaymentMethodInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: PaymentMethodInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(paymentMethods)
 			.values(data)
@@ -159,7 +99,7 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 	async update(
 		id: number,
 		data: PaymentMethodUpdate,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(paymentMethods)
@@ -172,7 +112,7 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 	async remove(
 		id: number,
 		data: PaymentMethodUpdate,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(paymentMethods)
@@ -184,7 +124,7 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 
 	// ─── Location Assignment ───
 
-	async findByLocation(locationId: number, db: DbContext = this.db): Promise<PaymentMethodDto[]> {
+	async findByLocation(locationId: number, db: Db = this.db): Promise<PaymentMethodDto[]> {
 		const rows = await db
 			.select({
 				id: paymentMethods.id,
@@ -214,28 +154,9 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 		return rows.map(toDto)
 	}
 
-	async findLocationAssignment(
-		paymentMethodId: number,
-		locationId: number,
-		db: DbContext = this.db,
-	): Promise<PaymentMethodLocationDto | undefined> {
-		const row = await db
-			.select()
-			.from(paymentMethodLocations)
-			.where(
-				and(
-					eq(paymentMethodLocations.paymentMethodId, paymentMethodId),
-					eq(paymentMethodLocations.locationId, locationId),
-				),
-			)
-			.limit(1)
-			.then(takeFirst)
-		return row ? toLocationDto(row) : undefined
-	}
-
 	async upsertLocationAssignment(
 		data: PaymentMethodLocationInsert,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(paymentMethodLocations)
@@ -251,7 +172,7 @@ export class PaymentMethodRepo implements IPaymentMethodRepo {
 	async removeLocationAssignment(
 		paymentMethodId: number,
 		locationId: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.delete(paymentMethodLocations)

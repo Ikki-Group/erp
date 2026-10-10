@@ -53,25 +53,3 @@ export const zq = {
 /** Most mutations return `{ id: number }`. Reusable across all modules. */
 export const EntityRefDto = z.object({ id: zp.id })
 export type EntityRefDto = z.infer<typeof EntityRefDto>
-
-// ─── Response wrappers ───
-
-export function createSuccessResponseDto<T extends z.ZodType>(dataSchema: T) {
-	return z.object({
-		success: z.literal(true),
-		data: dataSchema,
-	})
-}
-
-export function createPaginatedResponseDto<T extends z.ZodType>(itemSchema: T) {
-	return z.object({
-		success: z.literal(true),
-		data: z.array(itemSchema),
-		meta: z.object({
-			page: z.number(),
-			limit: z.number(),
-			total: z.number(),
-			totalPages: z.number(),
-		}),
-	})
-}

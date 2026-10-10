@@ -1,20 +1,13 @@
-import { sql } from 'drizzle-orm'
-
-import { roles, users } from '@/db/schema/iam.ts'
-
-import { eq } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
-import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
-import { invalidateAuthCache } from '@/shared/auth/access-cache.ts'
+import type { Tx } from '@/infra/database/index.ts'
+import { invalidateUserAccess } from '@/server/auth/access.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { OWNER_ROLE_CODE } from '@/shared/config/index.ts'
 import { BadRequestError, ConflictError, NotFoundError } from '@/shared/errors/http-error.ts'
+import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
-import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
-import type { LocationService } from '@/modules/location/location.service.ts'
+import type { LocationService } from '@/modules/location/index.ts'
 
 import type {
 	AssignmentCreateDto,
@@ -22,131 +15,84 @@ import type {
 	AssignmentFilterDto,
 	AssignmentRemoveDto,
 } from './assignment.contract.ts'
-import type { IAssignmentRepo } from './assignment.repo.ts'
+import type { AssignmentRepo } from './assignment.repo.ts'
 
-// ─── Dependencies ───
-
-export interface AssignmentDeps {
-	locationService: LocationService
-	uow: UnitOfWork
-	audit: AuditPort
+interface Deps extends Infra {
+	repo: AssignmentRepo
+	location: Pick<LocationService, 'getById'>
 }
 
-// ─── Service ───
+const AUDIT = { module: 'iam', entity: 'user_assignment' } as const
 
 export class AssignmentService {
-	constructor(
-		private readonly repo: IAssignmentRepo,
-		private readonly deps: AssignmentDeps,
-	) {}
+	constructor(private readonly deps: Deps) {}
 
-	// ─── Reads ───
-
-	async handleList(filter: AssignmentFilterDto): Promise<WithPaginationResult<AssignmentDto>> {
-		return this.repo.findPage(filter)
+	handleList(filter: AssignmentFilterDto): Promise<WithPaginationResult<AssignmentDto>> {
+		return this.deps.repo.findPage(filter)
 	}
-
-	async findByUserId(userId: number): Promise<AssignmentDto[]> {
-		return this.repo.findByUserId(userId)
-	}
-
-	// ─── Mutations ───
 
 	async handleAssign(data: AssignmentCreateDto, actor: Actor): Promise<EntityRef> {
-		// 1. Validate locationId exists (if not null)
-		if (data.locationId !== null) {
-			const location = await this.deps.locationService.getById(data.locationId)
-			if (!location) {
-				throw new NotFoundError('Location not found', {
-					code: 'LOCATION_NOT_FOUND',
-					context: { locationId: data.locationId },
-				})
-			}
+		const { repo, uow, audit, location } = this.deps
+		if (data.locationId !== null && !(await location.getById(data.locationId))) {
+			throw new NotFoundError('Location not found', {
+				code: 'LOCATION_NOT_FOUND',
+				context: { locationId: data.locationId },
+			})
 		}
 
-		const result = await this.deps.uow.run(async (tx) => {
-			// Serialize assignments for one user so the scope invariant also holds
-			// when two administrators submit changes concurrently.
-			await tx.execute(sql`select pg_advisory_xact_lock(${data.userId})`)
-
-			const [user] = await tx
-				.select({ id: users.id })
-				.from(users)
-				.where(eq(users.id, data.userId))
-				.limit(1)
-			if (!user) {
+		const result = await uow.run(async (tx) => {
+			// Serialize per user so the scope invariant holds under concurrent admins.
+			await repo.lockUser(data.userId, tx)
+			if (!(await repo.userExists(data.userId, tx))) {
 				throw new NotFoundError('User not found', {
 					code: 'USER_NOT_FOUND',
 					context: { userId: data.userId },
 				})
 			}
 
-			// 2. Owner access is global by definition.
-			const [role] = await tx
-				.select({ code: roles.code })
-				.from(roles)
-				.where(eq(roles.id, data.roleId))
-				.limit(1)
-			if (!role) {
+			// Owner access is global by definition.
+			const roleCode = await repo.findRoleCode(data.roleId, tx)
+			if (roleCode === undefined) {
 				throw new NotFoundError('Role not found', {
 					code: 'ROLE_NOT_FOUND',
 					context: { roleId: data.roleId },
 				})
 			}
-			if (role.code === OWNER_ROLE_CODE && data.locationId !== null) {
+			if (roleCode === OWNER_ROLE_CODE && data.locationId !== null) {
 				throw new BadRequestError('Owner assignment must be global', {
 					code: 'OWNER_ASSIGNMENT_MUST_BE_GLOBAL',
 					context: { roleId: data.roleId, locationId: data.locationId },
 				})
 			}
 
-			// 3. Enforce one assignment scope per user. A user is either global
-			// or location-scoped; mixing the two makes effective permissions ambiguous.
-			const userAssignments = await this.repo.findByUserId(data.userId, tx)
-			const hasGlobalAssignment = userAssignments.some(
-				(assignment) => assignment.locationId === null,
-			)
-			const hasLocationAssignment = userAssignments.some(
-				(assignment) => assignment.locationId !== null,
-			)
-
-			if (
-				(data.locationId === null && hasLocationAssignment) ||
-				(data.locationId !== null && hasGlobalAssignment)
-			) {
+			// A user is either global or location-scoped; mixing makes permissions ambiguous.
+			const current = await repo.findByUserId(data.userId, tx)
+			const hasGlobal = current.some((a) => a.locationId === null)
+			const hasLocation = current.some((a) => a.locationId !== null)
+			if ((data.locationId === null && hasLocation) || (data.locationId !== null && hasGlobal)) {
 				throw new ConflictError('Global and location-specific assignments cannot be mixed', {
 					code: 'ASSIGNMENT_SCOPE_CONFLICT',
 					context: { userId: data.userId, locationId: data.locationId },
 				})
 			}
 
-			// 4. A location may only appear once for a user, regardless of role.
-			if (
-				data.locationId !== null &&
-				userAssignments.some((assignment) => assignment.locationId === data.locationId)
-			) {
+			// A location may only appear once for a user, regardless of role.
+			if (data.locationId !== null && current.some((a) => a.locationId === data.locationId)) {
 				throw new ConflictError('Location is already assigned to this user', {
 					code: 'ASSIGNMENT_LOCATION_EXISTS',
 					context: { userId: data.userId, locationId: data.locationId },
 				})
 			}
 
-			// 5. Check duplicate global assignment (the database also protects this).
-			const existing = await this.repo.findExact(data.userId, data.roleId, data.locationId, tx)
-			if (existing) {
+			if (await repo.findExact(data.userId, data.roleId, data.locationId, tx)) {
 				throw new ConflictError('Assignment already exists', {
 					code: 'ASSIGNMENT_EXISTS',
 					context: { userId: data.userId, roleId: data.roleId, locationId: data.locationId },
 				})
 			}
 
-			// 6. Insert
-			const written = await this.repo.insert(
-				{
-					userId: data.userId,
-					roleId: data.roleId,
-					locationId: data.locationId,
-				},
+			const written = await repo.insert(
+				{ userId: data.userId, roleId: data.roleId, locationId: data.locationId },
 				tx,
 			)
 			if (!written) {
@@ -154,77 +100,50 @@ export class AssignmentService {
 					code: 'ASSIGNMENT_CREATE_FAILED',
 				})
 			}
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'iam',
-					entity: 'user_assignment',
-					entityId: written.id,
-					action: 'create',
-					summary: `Assigned user ${data.userId} to role ${data.roleId} at location ${data.locationId ?? 'global'}`,
-					newValues: { userId: data.userId, roleId: data.roleId, locationId: data.locationId },
-				}),
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: written.id,
+				action: 'create',
+				summary: `Assigned user ${data.userId} to role ${data.roleId} at location ${data.locationId ?? 'global'}`,
+				newValues: { userId: data.userId, roleId: data.roleId, locationId: data.locationId },
+			})
 			return written
 		})
-
-		await invalidateAuthCache(data.userId)
+		await invalidateUserAccess(data.userId)
 		return result
 	}
 
 	async handleRemove(data: AssignmentRemoveDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			// 1. Find the exact assignment
-			const existing = await this.repo.findExact(data.userId, data.roleId, data.locationId, tx)
+		const { repo, uow, audit } = this.deps
+		const result = await uow.run(async (tx) => {
+			const existing = await repo.findExact(data.userId, data.roleId, data.locationId, tx)
 			if (!existing) {
 				throw new NotFoundError('Assignment not found', {
 					code: 'ASSIGNMENT_NOT_FOUND',
 					context: { userId: data.userId, roleId: data.roleId, locationId: data.locationId },
 				})
 			}
-
-			// 2. Block removal of last owner assignment
 			await this.#guardLastOwner(data.roleId, tx)
-
-			// 3. Hard delete
-			const written = await this.repo.remove(existing.id, tx)
+			const written = await repo.remove(existing.id, tx)
 			if (!written) {
 				throw new BadRequestError('Assignment removal failed', { code: 'ASSIGNMENT_REMOVE_FAILED' })
 			}
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'iam',
-					entity: 'user_assignment',
-					entityId: existing.id,
-					action: 'delete',
-					summary: `Removed user ${data.userId} from role ${data.roleId} at location ${data.locationId ?? 'global'}`,
-				}),
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: existing.id,
+				action: 'delete',
+				summary: `Removed user ${data.userId} from role ${data.roleId} at location ${data.locationId ?? 'global'}`,
+			})
 			return written
 		})
-
-		await invalidateAuthCache(data.userId)
+		await invalidateUserAccess(data.userId)
 		return result
 	}
 
-	// ─── Private ───
-
-	async #guardLastOwner(roleId: number, tx: DbContext): Promise<void> {
-		// Look up the role code for this roleId
-		const [role] = await tx
-			.select({ code: roles.code })
-			.from(roles)
-			.where(eq(roles.id, roleId))
-			.limit(1)
-
-		if (!role || role.code !== OWNER_ROLE_CODE) return
-
-		// This is an owner role — check if it's the last one
-		const ownerCount = await this.repo.countOwnerAssignments(tx)
-		if (ownerCount <= 1) {
+	async #guardLastOwner(roleId: number, tx: Tx): Promise<void> {
+		const { repo } = this.deps
+		if ((await repo.findRoleCode(roleId, tx)) !== OWNER_ROLE_CODE) return
+		if ((await repo.countOwnerAssignments(tx)) <= 1) {
 			throw new BadRequestError('Cannot remove the last owner assignment', {
 				code: 'LAST_OWNER_ASSIGNMENT',
 			})

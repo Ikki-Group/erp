@@ -1,13 +1,17 @@
-import { sql, eq, and, or, ilike, inArray, asc, desc, gte, lte } from 'drizzle-orm'
+import { sql, eq, and, or, ilike, inArray, desc, gte, lte } from 'drizzle-orm'
 
-import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { PaginationQuery } from '@/shared/types/pagination.ts'
 
 import type { SQL } from 'drizzle-orm'
-import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
+import type { PgColumn } from 'drizzle-orm/pg-core'
 
 export { db } from './client.ts'
 export { uow } from './uow.drizzle.ts'
+export type { UnitOfWork } from './uow.drizzle.ts'
 export type { DbContext, Tx } from './client.ts'
+import type { DbContext, Tx } from './client.ts'
+/** Anything a repo can query through: the root client or an open transaction. */
+export type Db = DbContext | Tx
 
 // ─── Query Helpers ───
 
@@ -20,27 +24,6 @@ export function toLimitOffset(pq: PaginationQuery) {
 		limit: pq.limit,
 		offset: (pq.page - 1) * pq.limit,
 	}
-}
-
-export function paginateWindow<T extends { rowCount: number }>(
-	rows: T[],
-	pq: PaginationQuery,
-): WithPaginationResult<Omit<T, 'rowCount'>> {
-	const total = Number(rows[0]?.rowCount ?? 0)
-	const data = rows.map(({ rowCount: _, ...rest }) => rest)
-	return {
-		data,
-		meta: {
-			page: pq.page,
-			limit: pq.limit,
-			total,
-			totalPages: Math.ceil(total / pq.limit),
-		},
-	}
-}
-
-export function sortBy(column: PgColumn, dir: 'asc' | 'desc' = 'desc') {
-	return dir === 'asc' ? asc(column) : desc(column)
 }
 
 export function buildPaginationMeta(page: number, limit: number, total: number | string) {
@@ -57,13 +40,6 @@ export function allOf(...conditions: (SQL | undefined)[]): SQL | undefined {
 	return and(...valid)
 }
 
-export function anyOf(...conditions: (SQL | undefined)[]): SQL | undefined {
-	const valid = conditions.filter((c): c is SQL => Boolean(c))
-	if (valid.length === 0) return undefined
-	if (valid.length === 1) return valid[0]
-	return or(...valid)
-}
-
 export function eqIf<T>(column: PgColumn, value: T | undefined): SQL | undefined {
 	if (value === undefined || value === null) return undefined
 	return eq(column, value as Parameters<typeof eq>[1])
@@ -77,7 +53,7 @@ export function searchFilter(column: PgColumn, term: string | undefined): SQL | 
 
 export function searchAcross(term: string | undefined, columns: PgColumn[]): SQL | undefined {
 	if (!term || term.trim() === '') return undefined
-	return anyOf(...columns.map((col) => searchFilter(col, term)))
+	return or(...columns.map((col) => searchFilter(col, term)))
 }
 
 // ─── Conflict Check ───
@@ -93,5 +69,5 @@ export function defineConflictFields<T>() {
 	return <F extends ConflictField<T>[]>(fields: F) => fields
 }
 
-export { sql, eq, and, or, ilike, inArray, asc, desc, gte, lte }
-export type { PgTable, PgColumn, SQL }
+export { sql, eq, and, inArray, desc, gte, lte }
+export type { PgColumn, SQL }

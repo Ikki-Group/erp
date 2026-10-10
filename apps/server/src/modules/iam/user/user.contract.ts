@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/shared/schema/index.ts'
+import { zc, zp } from '@/shared/schema/index.ts'
 
 // ─── Response ───
 
@@ -13,15 +13,6 @@ export const UserDto = z.object({
 	...zc.AuditBasic.shape,
 })
 export type UserDto = z.infer<typeof UserDto>
-
-// ─── Filter ───
-
-export const UserFilterDto = z.object({
-	...zq.pagination.shape,
-	q: zq.search,
-	isActive: z.coerce.number().int().min(0).max(1).optional(),
-})
-export type UserFilterDto = z.infer<typeof UserFilterDto>
 
 // ─── Mutation Base ───
 

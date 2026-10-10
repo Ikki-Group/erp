@@ -12,6 +12,7 @@ const PERMISSIONS = [
 	'location.create',
 	'location.update',
 	'location.delete',
+	'location-staff.read',
 	'iam.read',
 	'iam.create',
 	'iam.update',

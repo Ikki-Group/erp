@@ -63,3 +63,8 @@ export function calculateOrderTotals(input: OrderTotalsInput): OrderTotalsResult
 		total: total.toAmount(),
 	}
 }
+
+/** Amount still owed on an order; negative when overpaid (cash change, ADR-0013 §2). */
+export function remainingBalance(total: string, paid: string): Money {
+	return Money.of(total).sub(Money.of(paid))
+}

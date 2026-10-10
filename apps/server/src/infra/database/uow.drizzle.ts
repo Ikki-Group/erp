@@ -1,9 +1,11 @@
-import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
-
 import { db } from './client.ts'
+import type { Tx } from './client.ts'
 
-export const uow: UnitOfWork = {
-	run(fn) {
+/** Runs `fn` inside one DB transaction; commits on return, rolls back on throw. */
+export const uow = {
+	run<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
 		return db.transaction((tx) => fn(tx))
 	},
 }
+
+export type UnitOfWork = typeof uow

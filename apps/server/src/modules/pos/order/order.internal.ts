@@ -28,9 +28,9 @@ export const OrderError = {
 			code: 'PAYMENT_EXCEEDS_TOTAL',
 			context: { orderId, excess },
 		}),
-	menuItemNotFound: (menuItemId: number) =>
-		new NotFoundError('Menu item not found', {
-			code: 'MENU_ITEM_NOT_FOUND',
+	menuItemInactive: (menuItemId: number) =>
+		new BadRequestError('Menu item is inactive', {
+			code: 'MENU_ITEM_INACTIVE',
 			context: { menuItemId },
 		}),
 	menuItemWrongLocation: (menuItemId: number, locationId: number) =>

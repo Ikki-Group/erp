@@ -7,26 +7,16 @@ import {
 } from '@/db/schema/menu.ts'
 
 import { eq, sql, takeFirst } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 
 import type { MenuCategoryRefDto, MenuItemDetailDto } from './composed.contract.ts'
 
-// ─── Interface ───
-
-export interface IComposedRepo {
-	readonly db: DbContext
-	findDetailById(id: number, db?: DbContext): Promise<MenuItemDetailDto | undefined>
-}
-
 // ─── Implementation ───
 
-export class ComposedRepo implements IComposedRepo {
+export class ComposedRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findDetailById(
-		id: number,
-		db: DbContext = this.db,
-	): Promise<MenuItemDetailDto | undefined> {
+	async findDetailById(id: number, db: Db = this.db): Promise<MenuItemDetailDto | undefined> {
 		// 1. Load menu item
 		const item = await db
 			.select()

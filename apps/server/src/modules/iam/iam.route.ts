@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { BadRequestError } from '@/shared/errors/http-error.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
@@ -34,7 +34,7 @@ export function createIamRoute(
 	composedService: ComposedService,
 ) {
 	return new Elysia({ prefix: '/iam', tags: ['iam'] })
-		.use(rbac.as('scoped'))
+		.use(authGuard)
 		.get('/role/list', async ({ query }) => res.paginated(await roleService.handleList(query)), {
 			query: RoleFilterDto,
 			response: zRes.paginated(RoleDto),
@@ -47,10 +47,10 @@ export function createIamRoute(
 		})
 		.post(
 			'/role/create',
-			async ({ body, auth }) => res.created(await roleService.handleCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await roleService.handleCreate(body, actorOf(auth))),
 			{
 				body: RoleCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'iam.create',
 			},
 		)
@@ -99,7 +99,8 @@ export function createIamRoute(
 		)
 		.get(
 			'/user/by-location',
-			async ({ query }) => res.paginated(await composedService.handleLocationStaffList(query, query.locationId)),
+			async ({ query }) =>
+				res.paginated(await composedService.handleLocationStaffList(query, query.locationId)),
 			{
 				query: ComposedUserFilterDto.extend({ locationId: z.coerce.number().int().positive() }),
 				response: zRes.paginated(LocationStaffListItemDto),
@@ -117,10 +118,10 @@ export function createIamRoute(
 		)
 		.post(
 			'/user/create',
-			async ({ body, auth }) => res.created(await userService.handleCreate(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await userService.handleCreate(body, actorOf(auth))),
 			{
 				body: UserCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'iam.create',
 			},
 		)
@@ -163,11 +164,10 @@ export function createIamRoute(
 		)
 		.post(
 			'/assignment/assign',
-			async ({ body, auth }) =>
-				res.created(await assignmentService.handleAssign(body, actorOf(auth))),
+			async ({ body, auth }) => res.ok(await assignmentService.handleAssign(body, actorOf(auth))),
 			{
 				body: AssignmentCreateDto,
-				response: zRes.created(EntityRefDto),
+				response: zRes.ok(EntityRefDto),
 				permission: 'iam.create',
 			},
 		)

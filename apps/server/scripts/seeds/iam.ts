@@ -313,8 +313,8 @@ export async function seedAssignments(
 			(${userIds.manager}, ${roleIds.manager}, ${locationIds.store}),
 			(${userIds.cashier}, ${roleIds.cashier}, ${locationIds.store}),
 			(${userIds.warehouseStaff}, ${roleIds.warehouseStaff}, ${locationIds.warehouse}),
-			-- Rina: manager at the store, warehouse staff at the warehouse
-			(${userIds.multiLocation}, ${roleIds.manager}, ${locationIds.store}),
+			-- Rina: cashier at the store, warehouse staff at the warehouse
+			(${userIds.multiLocation}, ${roleIds.cashier}, ${locationIds.store}),
 			(${userIds.multiLocation}, ${roleIds.warehouseStaff}, ${locationIds.warehouse})
 	`
 }

@@ -1,27 +1,23 @@
-import { CacheService } from '@/infra/cache/index.ts'
-import type { CacheClient } from '@/infra/cache/index.ts'
+import type { Db } from '@/infra/database/index.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { record } from '@/infra/otel/otel.ts'
-import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Money } from '@/shared/domain/money.ts'
 import { Qty } from '@/shared/domain/qty.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
-import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
+import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
-import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
-import type { StockService } from '@/modules/inventory/stock/stock.service.ts'
-import type { LocationService } from '@/modules/location/location.service.ts'
-import type { AssignmentService } from '@/modules/material/assignment/assignment.service.ts'
-import type { MaterialService } from '@/modules/material/material.service.ts'
-import type { SupplierService } from '@/modules/supplier/supplier.service.ts'
-import type { UomService } from '@/modules/uom/uom.service.ts'
+import type { LocationService } from '@/modules/location/index.ts'
+import type { MaterialAssignmentService, MaterialService } from '@/modules/material/index.ts'
+import type { SupplierService } from '@/modules/supplier/index.ts'
+import { resolveConversion } from '@/modules/uom/index.ts'
+import type { UomConversionDto, UomService } from '@/modules/uom/index.ts'
 
+import type { StockService } from '../stock/stock.service.ts'
+import { toBaseUnits } from './receiving.calculator.ts'
 import type {
 	ReceivingConfirmDto,
 	ReceivingCreateDto,
@@ -31,69 +27,50 @@ import type {
 	ReceivingUpdateDto,
 } from './receiving.contract.ts'
 import { ReceivingError } from './receiving.internal.ts'
-import type { IReceivingRepo } from './receiving.repo.ts'
+import type { ReceivingRepo } from './receiving.repo.ts'
 
-// ─── Dependencies ───
-
-export interface ReceivingServiceDeps {
-	uow: UnitOfWork
-	audit: AuditPort
-	events: EventBusPort
-	stockService: StockService
-	assignmentService: AssignmentService
-	locationService: LocationService
-	materialService: MaterialService
-	supplierService: SupplierService
-	uomService: UomService
+interface Deps extends Infra {
+	repo: ReceivingRepo
+	stock: Pick<StockService, 'recordMovement'>
+	assignment: Pick<MaterialAssignmentService, 'isAssigned'>
+	location: Pick<LocationService, 'handleGetById'>
+	material: Pick<MaterialService, 'handleGetById'>
+	supplier: Pick<SupplierService, 'handleGetById'>
+	uom: Pick<UomService, 'getAllConversions'>
 }
 
-// ─── Service ───
+interface LineInput {
+	materialId: number
+	uomId: number
+}
+
+const AUDIT = { module: 'inventory', entity: 'receiving' } as const
 
 export class ReceivingService {
-	private readonly cache: CacheService
+	constructor(private readonly deps: Deps) {}
 
-	constructor(
-		private readonly repo: IReceivingRepo,
-		cacheClient: CacheClient,
-		private readonly deps: ReceivingServiceDeps,
-	) {
-		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory-receiving')
+	handleList(filter: ReceivingFilterDto): Promise<WithPaginationResult<ReceivingDto>> {
+		return this.deps.repo.findPage(filter)
 	}
 
-	// ─── Handlers ───
+	async handleDetail(id: number): Promise<ReceivingDetailDto> {
+		return assertFound(await this.deps.repo.findDetailById(id), () => ReceivingError.notFound(id))
+	}
 
 	async handleCreate(data: ReceivingCreateDto, actor: Actor): Promise<EntityRef> {
-		// 1. Validate supplier exists
-		await this.deps.supplierService.handleGetById(data.supplierId)
+		const { repo, uow, audit, supplier, location } = this.deps
+		await supplier.handleGetById(data.supplierId)
+		const loc = await location.handleGetById(data.locationId)
+		await this.#validateLines(data.lines, data.locationId)
 
-		// 2. Validate location exists and get code for number generation
-		const location = await this.deps.locationService.handleGetById(data.locationId)
-
-		// 3. Validate each line
-		for (const line of data.lines) {
-			// Material must be assigned to this location
-			const assigned = await this.deps.assignmentService.isAssigned(
-				line.materialId,
-				data.locationId,
-			)
-			if (!assigned) {
-				throw ReceivingError.materialNotAssigned(line.materialId, data.locationId)
-			}
-
-			// UoM must be convertible to material's baseUomId
-			const material = await this.deps.materialService.handleGetById(line.materialId)
-			await this.#validateUomConversion(line.uomId, material.baseUomId, line.materialId)
-		}
-
-		// 5. Insert receiving + lines in transaction
-		const result = await this.deps.uow.run(async (tx) => {
+		return uow.run(async (tx) => {
 			const receivingNo = await generateNumber({
 				prefix: 'RCV',
-				locationCode: location.code,
+				locationCode: loc.code,
 				locationId: data.locationId,
 				database: tx,
 			})
-			const created = await this.repo.insert(
+			const created = await repo.insert(
 				{
 					receivingNo,
 					locationId: data.locationId,
@@ -106,8 +83,7 @@ export class ReceivingService {
 				tx,
 			)
 			if (!created) throw ReceivingError.createFailed()
-
-			await this.repo.insertLines(
+			await repo.insertLines(
 				data.lines.map((line) => ({
 					receivingId: created.id,
 					materialId: line.materialId,
@@ -117,67 +93,34 @@ export class ReceivingService {
 				})),
 				tx,
 			)
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'inventory',
-					entity: 'receiving',
-					entityId: created.id,
-					action: 'create',
-					summary: `Created receiving ${receivingNo} from supplier #${data.supplierId} at location #${data.locationId}`,
-					newValues: {
-						receivingNo,
-						locationId: data.locationId,
-						supplierId: data.supplierId,
-						lineCount: data.lines.length,
-					},
-				}),
-				tx,
-			)
-
-			return { created, receivingNo }
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: created.id,
+				action: 'create',
+				summary: `Created receiving ${receivingNo} from supplier #${data.supplierId} at location #${data.locationId}`,
+				newValues: {
+					receivingNo,
+					locationId: data.locationId,
+					supplierId: data.supplierId,
+					lineCount: data.lines.length,
+				},
+				locationId: data.locationId,
+			})
+			return created
 		})
-
-		// 6. Invalidate cache after commit
-		await this.cache.invalidateStandard()
-
-		return result.created
 	}
 
 	async handleUpdate(data: ReceivingUpdateDto, actor: Actor): Promise<EntityRef> {
-		// 1. Get receiving and validate draft status
-		const receiving = assertFound(await this.repo.findById(data.receivingId), () =>
-			ReceivingError.notFound(data.receivingId),
-		)
+		const { repo, uow, audit, supplier } = this.deps
+		return uow.run(async (tx) => {
+			const receiving = assertFound(await repo.findById(data.receivingId, tx), () =>
+				ReceivingError.notFound(data.receivingId),
+			)
+			if (receiving.status !== 'draft') throw ReceivingError.notDraft(data.receivingId)
+			if (data.supplierId) await supplier.handleGetById(data.supplierId)
+			if (data.lines) await this.#validateLines(data.lines, receiving.locationId, tx)
 
-		if (receiving.status !== 'draft') {
-			throw ReceivingError.notDraft(data.receivingId)
-		}
-
-		// 2. Validate supplier if changed
-		if (data.supplierId) {
-			await this.deps.supplierService.handleGetById(data.supplierId)
-		}
-
-		// 3. Validate lines if provided
-		if (data.lines) {
-			for (const line of data.lines) {
-				const assigned = await this.deps.assignmentService.isAssigned(
-					line.materialId,
-					receiving.locationId,
-				)
-				if (!assigned) {
-					throw ReceivingError.materialNotAssigned(line.materialId, receiving.locationId)
-				}
-
-				const material = await this.deps.materialService.handleGetById(line.materialId)
-				await this.#validateUomConversion(line.uomId, material.baseUomId, line.materialId)
-			}
-		}
-
-		// 4. Update receiving + lines in transaction
-		const result = await this.deps.uow.run(async (tx) => {
-			const updated = await this.repo.update(
+			const updated = await repo.update(
 				data.receivingId,
 				{
 					...(data.supplierId ? { supplierId: data.supplierId } : {}),
@@ -187,9 +130,8 @@ export class ReceivingService {
 				tx,
 			)
 			if (!updated) throw ReceivingError.notFound(data.receivingId)
-
 			if (data.lines) {
-				await this.repo.replaceLines(
+				await repo.replaceLines(
 					data.receivingId,
 					data.lines.map((line) => ({
 						receivingId: data.receivingId,
@@ -201,67 +143,45 @@ export class ReceivingService {
 					tx,
 				)
 			}
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'inventory',
-					entity: 'receiving',
-					entityId: data.receivingId,
-					action: 'update',
-					summary: `Updated receiving ${receiving.receivingNo}`,
-					newValues: { supplierId: data.supplierId, lineCount: data.lines?.length },
-				}),
-				tx,
-			)
-
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: data.receivingId,
+				action: 'update',
+				summary: `Updated receiving ${receiving.receivingNo}`,
+				newValues: { supplierId: data.supplierId, lineCount: data.lines?.length },
+				locationId: receiving.locationId,
+			})
 			return updated
 		})
-
-		// 5. Invalidate cache after commit
-		await this.cache.invalidateStandard()
-
-		return result
 	}
 
-	async handleConfirm(data: ReceivingConfirmDto, actor: Actor): Promise<EntityRef> {
-		return record('receiving.confirm', async () => {
-			// 1. Get receiving and validate status
-			const receiving = assertFound(await this.repo.findById(data.receivingId), () =>
-				ReceivingError.notFound(data.receivingId),
-			)
+	/** Confirm: every line becomes a `purchase_receipt` in base UoM, all in one transaction. */
+	handleConfirm(data: ReceivingConfirmDto, actor: Actor): Promise<EntityRef> {
+		const { repo, uow, audit, stock, material, uom } = this.deps
+		return record('receiving.confirm', () =>
+			uow.run(async (tx) => {
+				const receiving = assertFound(await repo.findById(data.receivingId, tx), () =>
+					ReceivingError.notFound(data.receivingId),
+				)
+				if (receiving.status === 'confirmed') {
+					throw ReceivingError.alreadyConfirmed(data.receivingId)
+				}
+				if (receiving.status !== 'draft') throw ReceivingError.notDraft(data.receivingId)
 
-			if (receiving.status === 'confirmed') {
-				throw ReceivingError.alreadyConfirmed(data.receivingId)
-			}
-			if (receiving.status !== 'draft') {
-				throw ReceivingError.notDraft(data.receivingId)
-			}
-
-			// 2. Get lines and apply the complete confirmation atomically.
-			const { result, events } = await this.deps.uow.run(async (tx) => {
-				const lines = await this.repo.findLinesByReceivingId(data.receivingId, tx)
-				const events: StockMovementRecorded[] = []
-
+				const lines = await repo.findLinesByReceivingId(data.receivingId, tx)
+				const conversions = await uom.getAllConversions(tx)
 				for (const line of lines) {
-					const material = await this.deps.materialService.handleGetById(line.materialId)
-					const conversion = await this.#resolveConversion(
-						line.uomId,
-						material.baseUomId,
-						Qty.of(line.quantity),
-					)
-
-					const baseQty = conversion.result
-					const conversionFactor = baseQty.div(Qty.of(line.quantity))
-					const baseUnitCost = Money.of(line.unitCost).div(conversionFactor).toCost()
-
-					const movement = await this.deps.stockService.recordMovement(
+					const { baseUomId } = await material.handleGetById(line.materialId, tx)
+					const factor = conversionFactor(line.uomId, baseUomId, line.materialId, conversions)
+					const base = toBaseUnits(Qty.of(line.quantity), Money.of(line.unitCost), factor)
+					await stock.recordMovement(
 						{
 							materialId: line.materialId,
 							locationId: receiving.locationId,
 							type: 'purchase_receipt',
 							direction: 'in',
-							qty: baseQty.toNumeric(),
-							unitCost: baseUnitCost,
+							qty: base.qty.toNumeric(),
+							unitCost: base.unitCost.toCost(),
 							referenceType: 'receiving',
 							referenceId: data.receivingId,
 							notes: `Receiving: ${receiving.receivingNo}`,
@@ -269,74 +189,45 @@ export class ReceivingService {
 						},
 						tx,
 					)
-					events.push(movement.event)
 				}
 
-				const result = await this.repo.updateStatus(data.receivingId, 'confirmed', actor.id, tx)
+				const result = await repo.updateStatus(data.receivingId, 'confirmed', actor.id, tx)
 				if (!result) throw ReceivingError.notFound(data.receivingId)
-				await this.deps.audit.record(
-					{
-						actorId: actor.id,
-						actorName: actor.name,
-						locationId: receiving.locationId,
-						module: 'inventory',
-						entity: 'receiving',
-						entityId: data.receivingId,
-						action: 'confirm',
-						summary: `Confirmed receiving ${receiving.receivingNo} (${lines.length} lines)`,
-						newValues: { status: 'confirmed', lineCount: lines.length },
-					},
-					tx,
-				)
-				return { result, lines, events }
-			})
-
-			for (const event of events) this.deps.events.publish(event)
-			await this.deps.stockService.invalidateCache()
-			await this.cache.invalidateStandard()
-
-			return result
-		})
+				await audit.record(tx, actor, {
+					...AUDIT,
+					entityId: data.receivingId,
+					action: 'confirm',
+					summary: `Confirmed receiving ${receiving.receivingNo} (${lines.length} lines)`,
+					newValues: { status: 'confirmed', lineCount: lines.length },
+					locationId: receiving.locationId,
+				})
+				return result
+			}),
+		)
 	}
 
-	async handleList(filter: ReceivingFilterDto): Promise<WithPaginationResult<ReceivingDto>> {
-		return this.repo.findPage(filter)
-	}
-
-	async handleDetail(id: number): Promise<ReceivingDetailDto> {
-		return assertFound(await this.repo.findDetailById(id), () => ReceivingError.notFound(id))
-	}
-
-	// ─── Private ───
-
-	async #validateUomConversion(
-		fromUomId: number,
-		toUomId: number,
-		materialId: number,
-	): Promise<void> {
-		if (fromUomId === toUomId) return // Same UoM, no conversion needed
-
-		const conversions = await this.deps.uomService.getAllConversions()
-		const { resolveConversion } = await import('@/modules/uom/domain/uom.resolver.ts')
-		const resolved = resolveConversion(fromUomId, toUomId, Qty.of('1'), conversions)
-		if (!resolved) {
-			throw ReceivingError.uomNotConvertible(materialId, fromUomId, toUomId)
+	/** Each line's material must be assigned here and its UoM convertible to base UoM. */
+	async #validateLines(lines: LineInput[], locationId: number, db?: Db): Promise<void> {
+		const { assignment, material, uom } = this.deps
+		const conversions = await uom.getAllConversions(db)
+		for (const line of lines) {
+			if (!(await assignment.isAssigned(line.materialId, locationId, db))) {
+				throw ReceivingError.materialNotAssigned(line.materialId, locationId)
+			}
+			const { baseUomId } = await material.handleGetById(line.materialId, db)
+			conversionFactor(line.uomId, baseUomId, line.materialId, conversions)
 		}
 	}
+}
 
-	async #resolveConversion(
-		fromUomId: number,
-		toUomId: number,
-		quantity: Qty,
-	): Promise<{ result: Qty }> {
-		if (fromUomId === toUomId) return { result: quantity } // Identity
-
-		const conversions = await this.deps.uomService.getAllConversions()
-		const { resolveConversion } = await import('@/modules/uom/domain/uom.resolver.ts')
-		const resolved = resolveConversion(fromUomId, toUomId, quantity, conversions)
-		if (!resolved) {
-			throw ReceivingError.uomNotConvertible(0, fromUomId, toUomId)
-		}
-		return { result: resolved.result }
-	}
+/** Base units per one `fromUomId` unit. */
+function conversionFactor(
+	fromUomId: number,
+	baseUomId: number,
+	materialId: number,
+	conversions: UomConversionDto[],
+): Qty {
+	const resolved = resolveConversion(fromUomId, baseUomId, Qty.of('1'), conversions)
+	if (!resolved) throw ReceivingError.uomNotConvertible(materialId, fromUomId, baseUomId)
+	return resolved.result
 }

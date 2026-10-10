@@ -3,14 +3,13 @@ import { materialCategories } from '@/db/schema/material.ts'
 import {
 	allOf,
 	eq,
-	inArray,
 	searchAcross,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -33,28 +32,12 @@ function toDto(row: CategoryRow): MaterialCategoryDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface ICategoryRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<MaterialCategoryDto | undefined>
-	findByIds(ids: number[], db?: DbContext): Promise<MaterialCategoryDto[]>
-	findMany(db?: DbContext): Promise<MaterialCategoryDto[]>
-	findPage(
-		filter: MaterialCategoryFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<MaterialCategoryDto>>
-	insert(data: CategoryInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: CategoryUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class CategoryRepo implements ICategoryRepo {
+export class CategoryRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<MaterialCategoryDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<MaterialCategoryDto | undefined> {
 		const row = await db
 			.select()
 			.from(materialCategories)
@@ -64,23 +47,9 @@ export class CategoryRepo implements ICategoryRepo {
 		return row ? toDto(row) : undefined
 	}
 
-	async findByIds(ids: number[], db: DbContext = this.db): Promise<MaterialCategoryDto[]> {
-		if (ids.length === 0) return []
-		const rows = await db
-			.select()
-			.from(materialCategories)
-			.where(inArray(materialCategories.id, ids))
-		return rows.map(toDto)
-	}
-
-	async findMany(db: DbContext = this.db): Promise<MaterialCategoryDto[]> {
-		const rows = await db.select().from(materialCategories)
-		return rows.map(toDto)
-	}
-
 	async findPage(
 		filter: MaterialCategoryFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<MaterialCategoryDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -108,7 +77,7 @@ export class CategoryRepo implements ICategoryRepo {
 		}
 	}
 
-	async insert(data: CategoryInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: CategoryInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(materialCategories)
 			.values(data)
@@ -116,11 +85,7 @@ export class CategoryRepo implements ICategoryRepo {
 		return result
 	}
 
-	async update(
-		id: number,
-		data: CategoryUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: CategoryUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(materialCategories)
 			.set(data)
@@ -129,7 +94,7 @@ export class CategoryRepo implements ICategoryRepo {
 		return result
 	}
 
-	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async remove(id: number, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.delete(materialCategories)
 			.where(eq(materialCategories.id, id))

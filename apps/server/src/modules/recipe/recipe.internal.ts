@@ -27,11 +27,6 @@ export const RecipeError = {
 			code: 'RECIPE_DEACTIVATE_FAILED',
 			context: { menuItemId },
 		}),
-	menuItemNotFound: (menuItemId: number) =>
-		new NotFoundError('Menu item not found', {
-			code: 'MENU_ITEM_NOT_FOUND',
-			context: { menuItemId },
-		}),
 	materialNotFound: (materialId: number) =>
 		new NotFoundError('Material not found', {
 			code: 'MATERIAL_NOT_FOUND',

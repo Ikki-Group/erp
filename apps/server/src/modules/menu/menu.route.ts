@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -33,18 +33,24 @@ import {
 } from './modifier/modifier.contract.ts'
 import type { ModifierService } from './modifier/modifier.service.ts'
 
-// ─── Route Factory ───
+interface MenuRouteDeps {
+	categoryService: CategoryService
+	itemService: ItemService
+	modifierService: ModifierService
+	assignmentService: AssignmentService
+	composedService: ComposedService
+}
 
-export function createMenuRoute(
-	categoryService: CategoryService,
-	itemService: ItemService,
-	modifierService: ModifierService,
-	assignmentService: AssignmentService,
-	composedService: ComposedService,
-) {
+export function createMenuRoute({
+	categoryService,
+	itemService,
+	modifierService,
+	assignmentService,
+	composedService,
+}: MenuRouteDeps) {
 	return (
 		new Elysia({ prefix: '/menu', tags: ['menu'] })
-			.use(rbac.as('scoped'))
+			.use(authGuard)
 
 			// ─── Category Routes ───
 
@@ -64,11 +70,11 @@ export function createMenuRoute(
 				'/category/create',
 				async ({ body, auth }) => {
 					const result = await categoryService.handleCreate(body, actorOf(auth))
-					return res.created(result)
+					return res.ok(result)
 				},
 				{
 					body: MenuCategoryCreateDto,
-					response: zRes.created(EntityRefDto),
+					response: zRes.ok(EntityRefDto),
 					permission: 'category.create',
 				},
 			)
@@ -119,11 +125,11 @@ export function createMenuRoute(
 				'/item/create',
 				async ({ body, auth }) => {
 					const result = await itemService.handleCreate(body, actorOf(auth))
-					return res.created(result)
+					return res.ok(result)
 				},
 				{
 					body: MenuItemCreateDto,
-					response: zRes.created(EntityRefDto),
+					response: zRes.ok(EntityRefDto),
 					permission: 'item.create',
 				},
 			)
@@ -189,11 +195,11 @@ export function createMenuRoute(
 				'/modifier/create',
 				async ({ body, auth }) => {
 					const result = await modifierService.handleCreate(body, actorOf(auth))
-					return res.created(result)
+					return res.ok(result)
 				},
 				{
 					body: ModifierGroupCreateDto,
-					response: zRes.created(EntityRefDto),
+					response: zRes.ok(EntityRefDto),
 					permission: 'modifier.create',
 				},
 			)

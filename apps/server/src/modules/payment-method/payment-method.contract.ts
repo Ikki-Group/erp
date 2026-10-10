@@ -50,14 +50,6 @@ export type PaymentMethodUpdateDto = z.infer<typeof PaymentMethodUpdateDto>
 
 // ─── Location Assignment ───
 
-export const PaymentMethodLocationDto = z.object({
-	id: zp.id,
-	paymentMethodId: zp.id,
-	locationId: zp.id,
-	isEnabled: zp.bool,
-})
-export type PaymentMethodLocationDto = z.infer<typeof PaymentMethodLocationDto>
-
 export const PaymentMethodLocationAssignDto = z.object({
 	paymentMethodId: zp.id,
 	locationId: zp.id,

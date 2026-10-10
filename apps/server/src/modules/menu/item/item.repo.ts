@@ -10,7 +10,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -39,28 +39,12 @@ function toDto(row: ItemRow): MenuItemDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IItemRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<MenuItemDto | undefined>
-	findPage(filter: MenuItemFilterDto, db?: DbContext): Promise<WithPaginationResult<MenuItemDto>>
-	findBySkuAndLocation(
-		sku: string,
-		locationId: number,
-		db?: DbContext,
-	): Promise<MenuItemDto | undefined>
-	insert(data: ItemInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: ItemUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class ItemRepo implements IItemRepo {
+export class ItemRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<MenuItemDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<MenuItemDto | undefined> {
 		const row = await db
 			.select()
 			.from(menuItems)
@@ -72,7 +56,7 @@ export class ItemRepo implements IItemRepo {
 
 	async findPage(
 		filter: MenuItemFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<MenuItemDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -109,7 +93,7 @@ export class ItemRepo implements IItemRepo {
 	async findBySkuAndLocation(
 		sku: string,
 		locationId: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<MenuItemDto | undefined> {
 		const row = await db
 			.select()
@@ -120,16 +104,12 @@ export class ItemRepo implements IItemRepo {
 		return row ? toDto(row) : undefined
 	}
 
-	async insert(data: ItemInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: ItemInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(menuItems).values(data).returning({ id: menuItems.id })
 		return result
 	}
 
-	async update(
-		id: number,
-		data: ItemUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: ItemUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(menuItems)
 			.set(data)
@@ -138,7 +118,7 @@ export class ItemRepo implements IItemRepo {
 		return result
 	}
 
-	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async remove(id: number, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.delete(menuItems)
 			.where(eq(menuItems.id, id))

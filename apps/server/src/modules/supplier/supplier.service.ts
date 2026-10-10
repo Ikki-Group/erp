@@ -1,19 +1,15 @@
 import { suppliers } from '@/db/schema/supplier.ts'
 
-import { CacheService } from '@/infra/cache/index.ts'
-import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
-import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
+import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
-import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
-import type { MaterialService } from '@/modules/material/material.service.ts'
-import type { UomService } from '@/modules/uom/uom.service.ts'
+import type { MaterialService } from '@/modules/material/index.ts'
+import type { UomService } from '@/modules/uom/index.ts'
 
 import type {
 	SupplierCreateDto,
@@ -26,53 +22,29 @@ import type {
 	SupplierUpdateDto,
 } from './supplier.contract.ts'
 import { SupplierError, uniqueFields } from './supplier.internal.ts'
-import type { ISupplierRepo } from './supplier.repo.ts'
+import type { SupplierRepo } from './supplier.repo.ts'
 
-// ─── Service ───
-
-export interface SupplierServiceDeps {
-	uow: UnitOfWork
-	audit: AuditPort
+interface Deps extends Infra {
+	repo: SupplierRepo
+	material: Pick<MaterialService, 'handleGetById'>
+	uom: Pick<UomService, 'handleGetById'>
 }
 
 export class SupplierService {
-	private readonly cache: CacheService
-
-	constructor(
-		private readonly repo: ISupplierRepo,
-		cacheClient: CacheClient,
-		private readonly materialService: MaterialService,
-		private readonly uomService: UomService,
-		private readonly deps: SupplierServiceDeps,
-	) {
-		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'supplier')
-	}
-
-	// ─── Cached Reads ───
-
-	async getById(id: number): Promise<SupplierDto | undefined> {
-		return this.cache.getOrSetWithSkip({
-			key: this.cache.keys.byId(id),
-			factory: () => this.repo.findById(id),
-		})
-	}
-
-	async getByIds(ids: number[]): Promise<SupplierDto[]> {
-		return this.repo.findByIds(ids)
-	}
+	constructor(private readonly deps: Deps) {}
 
 	// ─── Supplier Handlers ───
 
 	async handleGetById(id: number): Promise<SupplierDto> {
-		return assertFound(await this.getById(id), () => SupplierError.notFound(id))
+		return assertFound(await this.deps.repo.findById(id), () => SupplierError.notFound(id))
 	}
 
 	async handleList(filter: SupplierFilterDto): Promise<WithPaginationResult<SupplierDto>> {
-		return this.repo.findPage(filter)
+		return this.deps.repo.findPage(filter)
 	}
 
 	async handleCreate(data: SupplierCreateDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return this.deps.uow.run(async (tx) => {
 			// 1. Check conflicts (code unique)
 			await checkConflict({
 				db: tx,
@@ -83,7 +55,7 @@ export class SupplierService {
 			})
 
 			// 2. Insert
-			const written = await this.repo.insert(
+			const written = await this.deps.repo.insert(
 				{
 					...data,
 					isActive: data.isActive,
@@ -93,30 +65,23 @@ export class SupplierService {
 			)
 			if (!written) throw SupplierError.createFailed()
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'supplier',
-					entity: 'supplier',
-					entityId: written.id,
-					action: 'create',
-					summary: `Created supplier "${data.name}" (${data.code})`,
-					newValues: { code: data.code, name: data.name },
-				}),
-				tx,
-			)
+			await this.deps.audit.record(tx, actor, {
+				module: 'supplier',
+				entity: 'supplier',
+				entityId: written.id,
+				action: 'create',
+				summary: `Created supplier "${data.name}" (${data.code})`,
+				newValues: { code: data.code, name: data.name },
+			})
 			return written
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard()
-		return result
 	}
 
 	async handleUpdate(data: SupplierUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
-		const result = await this.deps.uow.run(async (tx) => {
+		return this.deps.uow.run(async (tx) => {
 			// 1. Verify exists
-			const existing = await this.repo.findById(id, tx)
+			const existing = await this.deps.repo.findById(id, tx)
 			if (!existing) throw SupplierError.notFound(id)
 
 			// 2. Check conflicts (exclude self)
@@ -130,7 +95,7 @@ export class SupplierService {
 			})
 
 			// 3. Update
-			const written = await this.repo.update(
+			const written = await this.deps.repo.update(
 				id,
 				{
 					...updateData,
@@ -141,52 +106,38 @@ export class SupplierService {
 			)
 			if (!written) throw SupplierError.updateFailed(id)
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'supplier',
-					entity: 'supplier',
-					entityId: id,
-					action: 'update',
-					summary: `Updated supplier "${data.name}" (${data.code})`,
-					oldValues: { code: existing.code, name: existing.name },
-					newValues: { code: data.code, name: data.name },
-				}),
-				tx,
-			)
+			await this.deps.audit.record(tx, actor, {
+				module: 'supplier',
+				entity: 'supplier',
+				entityId: id,
+				action: 'update',
+				summary: `Updated supplier "${data.name}" (${data.code})`,
+				oldValues: { code: existing.code, name: existing.name },
+				newValues: { code: data.code, name: data.name },
+			})
 			return written
 		})
-
-		// 4. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return this.deps.uow.run(async (tx) => {
 			// 1. Verify exists
-			const existing = await this.repo.findById(id, tx)
+			const existing = await this.deps.repo.findById(id, tx)
 			if (!existing) throw SupplierError.notFound(id)
 
 			// 2. Soft-delete
-			const written = await this.repo.remove(id, stampUpdate(actor.id), tx)
+			const written = await this.deps.repo.remove(id, stampUpdate(actor.id), tx)
 			if (!written) throw SupplierError.deleteFailed(id)
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'supplier',
-					entity: 'supplier',
-					entityId: id,
-					action: 'delete',
-					summary: `Deleted supplier "${existing.name}" (${existing.code})`,
-				}),
-				tx,
-			)
+			await this.deps.audit.record(tx, actor, {
+				module: 'supplier',
+				entity: 'supplier',
+				entityId: id,
+				action: 'delete',
+				summary: `Deleted supplier "${existing.name}" (${existing.code})`,
+			})
 			return written
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	// ─── Pricing Handlers ───
@@ -194,7 +145,7 @@ export class SupplierService {
 	async handlePricingList(
 		filter: SupplierMaterialFilterDto,
 	): Promise<WithPaginationResult<SupplierMaterialDto>> {
-		return this.repo.findPricingPage(filter)
+		return this.deps.repo.findPricingPage(filter)
 	}
 
 	async handlePricingCreate(data: SupplierMaterialCreateDto, actor: Actor): Promise<EntityRef> {
@@ -202,56 +153,51 @@ export class SupplierService {
 		await this.handleGetById(data.supplierId)
 
 		// 2. Validate material exists
-		await this.materialService.handleGetById(data.materialId)
+		await this.deps.material.handleGetById(data.materialId)
 
 		// 3. Validate UoM exists
-		await this.uomService.handleGetById(data.uomId)
+		await this.deps.uom.handleGetById(data.uomId)
 
-		const result = await this.deps.uow.run(async (tx) => {
+		return this.deps.uow.run(async (tx) => {
 			// 4. Check unique (supplier, material) pair
-			const existing = await this.repo.findPricingByPair(data.supplierId, data.materialId, tx)
+			const existing = await this.deps.repo.findPricingByPair(data.supplierId, data.materialId, tx)
 			if (existing) {
 				throw SupplierError.pricingExists(data.supplierId, data.materialId)
 			}
 
 			// 5. Insert
-			const written = await this.repo.insertPricing({ ...data, ...stampCreate(actor.id) }, tx)
+			const written = await this.deps.repo.insertPricing({ ...data, ...stampCreate(actor.id) }, tx)
 			if (!written) throw SupplierError.pricingCreateFailed()
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'supplier',
-					entity: 'supplier_material',
-					entityId: written.id,
-					action: 'create',
-					summary: `Created pricing for supplier #${data.supplierId} / material #${data.materialId}`,
-					newValues: {
-						supplierId: data.supplierId,
-						materialId: data.materialId,
-						unitPrice: data.unitPrice,
-					},
-				}),
-				tx,
-			)
+			await this.deps.audit.record(tx, actor, {
+				module: 'supplier',
+				entity: 'supplier_material',
+				entityId: written.id,
+				action: 'create',
+				summary: `Created pricing for supplier #${data.supplierId} / material #${data.materialId}`,
+				newValues: {
+					supplierId: data.supplierId,
+					materialId: data.materialId,
+					unitPrice: data.unitPrice,
+				},
+			})
 			return written
 		})
-
-		return result
 	}
 
 	async handlePricingUpdate(data: SupplierMaterialUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
 
 		// 1. Validate UoM exists
-		await this.uomService.handleGetById(updateData.uomId)
+		await this.deps.uom.handleGetById(updateData.uomId)
 
-		const result = await this.deps.uow.run(async (tx) => {
+		return this.deps.uow.run(async (tx) => {
 			// 2. Verify pricing exists
-			const existing = await this.repo.findPricingById(id, tx)
+			const existing = await this.deps.repo.findPricingById(id, tx)
 			if (!existing) throw SupplierError.pricingNotFound(id)
 
 			// 3. Update
-			const written = await this.repo.updatePricing(
+			const written = await this.deps.repo.updatePricing(
 				id,
 				{
 					...updateData,
@@ -261,47 +207,37 @@ export class SupplierService {
 			)
 			if (!written) throw SupplierError.pricingUpdateFailed(id)
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'supplier',
-					entity: 'supplier_material',
-					entityId: id,
-					action: 'update',
-					summary: `Updated pricing #${id} for supplier #${existing.supplierId} / material #${existing.materialId}`,
-					oldValues: { unitPrice: existing.unitPrice, uomId: existing.uomId },
-					newValues: { unitPrice: updateData.unitPrice, uomId: updateData.uomId },
-				}),
-				tx,
-			)
+			await this.deps.audit.record(tx, actor, {
+				module: 'supplier',
+				entity: 'supplier_material',
+				entityId: id,
+				action: 'update',
+				summary: `Updated pricing #${id} for supplier #${existing.supplierId} / material #${existing.materialId}`,
+				oldValues: { unitPrice: existing.unitPrice, uomId: existing.uomId },
+				newValues: { unitPrice: updateData.unitPrice, uomId: updateData.uomId },
+			})
 			return written
 		})
-
-		return result
 	}
 
 	async handlePricingDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return this.deps.uow.run(async (tx) => {
 			// 1. Verify pricing exists
-			const existing = await this.repo.findPricingById(id, tx)
+			const existing = await this.deps.repo.findPricingById(id, tx)
 			if (!existing) throw SupplierError.pricingNotFound(id)
 
 			// 2. Hard delete
-			const written = await this.repo.removePricing(id, tx)
+			const written = await this.deps.repo.removePricing(id, tx)
 			if (!written) throw SupplierError.pricingNotFound(id)
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'supplier',
-					entity: 'supplier_material',
-					entityId: id,
-					action: 'delete',
-					summary: `Deleted pricing for supplier #${existing.supplierId} / material #${existing.materialId}`,
-				}),
-				tx,
-			)
+			await this.deps.audit.record(tx, actor, {
+				module: 'supplier',
+				entity: 'supplier_material',
+				entityId: id,
+				action: 'delete',
+				summary: `Deleted pricing for supplier #${existing.supplierId} / material #${existing.materialId}`,
+			})
 			return written
 		})
-
-		return result
 	}
 }

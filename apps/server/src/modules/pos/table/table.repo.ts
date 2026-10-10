@@ -11,7 +11,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -35,46 +35,19 @@ function toDto(row: TableRow): TableDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface ITableRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<TableDto | undefined>
-	findByLocation(locationId: number, db?: DbContext): Promise<TableDto[]>
-	findPage(filter: TableFilterDto, db?: DbContext): Promise<WithPaginationResult<TableDto>>
-	findByLocationAndNumber(
-		locationId: number,
-		number: string,
-		db?: DbContext,
-	): Promise<TableDto | undefined>
-	insert(data: TableInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: TableUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
-	updateStatus(id: number, status: TableStatusEnum, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class TableRepo implements ITableRepo {
+export class TableRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<TableDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<TableDto | undefined> {
 		const row = await db.select().from(tables).where(eq(tables.id, id)).limit(1).then(takeFirst)
 		return row ? toDto(row) : undefined
 	}
 
-	async findByLocation(locationId: number, db: DbContext = this.db): Promise<TableDto[]> {
-		const rows = await db
-			.select()
-			.from(tables)
-			.where(and(eq(tables.locationId, locationId), eq(tables.isActive, true)))
-			.orderBy(sql`${tables.number} asc`)
-		return rows.map(toDto)
-	}
-
 	async findPage(
 		filter: TableFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<TableDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -105,7 +78,7 @@ export class TableRepo implements ITableRepo {
 	async findByLocationAndNumber(
 		locationId: number,
 		number: string,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<TableDto | undefined> {
 		const row = await db
 			.select()
@@ -116,16 +89,12 @@ export class TableRepo implements ITableRepo {
 		return row ? toDto(row) : undefined
 	}
 
-	async insert(data: TableInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: TableInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(tables).values(data).returning({ id: tables.id })
 		return result
 	}
 
-	async update(
-		id: number,
-		data: TableUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: TableUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(tables)
 			.set(data)
@@ -134,7 +103,7 @@ export class TableRepo implements ITableRepo {
 		return result
 	}
 
-	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async remove(id: number, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(tables)
 			.set({ isActive: false })
@@ -146,7 +115,7 @@ export class TableRepo implements ITableRepo {
 	async updateStatus(
 		id: number,
 		status: TableStatusEnum,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(tables)

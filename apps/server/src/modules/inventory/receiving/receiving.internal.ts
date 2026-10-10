@@ -27,11 +27,6 @@ export const ReceivingError = {
 			code: 'RECEIVING_MATERIAL_NOT_ASSIGNED',
 			context: { materialId, locationId },
 		}),
-	supplierNotFound: (supplierId: number) =>
-		new NotFoundError('Supplier not found', {
-			code: 'RECEIVING_SUPPLIER_NOT_FOUND',
-			context: { supplierId },
-		}),
 	uomNotConvertible: (materialId: number, fromUomId: number, toUomId: number) =>
 		new BadRequestError('UoM cannot be converted to material base UoM', {
 			code: 'RECEIVING_UOM_NOT_CONVERTIBLE',

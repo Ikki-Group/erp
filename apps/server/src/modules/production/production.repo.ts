@@ -13,7 +13,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -21,7 +21,6 @@ import type {
 	ProductionOrderDto,
 	ProductionOrderDetailDto,
 	ProductionOrderFilterDto,
-	ProductionOrderStatusEnum,
 	ProductionRecipeDetailDto,
 	ProductionRecipeDto,
 	ProductionRecipeFilterDto,
@@ -82,62 +81,14 @@ function toOrderDto(row: OrderRow): ProductionOrderDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IProductionRepo {
-	readonly db: DbContext
-
-	// Recipe
-	findRecipeById(id: number, db?: DbContext): Promise<ProductionRecipeDto | undefined>
-	findRecipeDetailById(id: number, db?: DbContext): Promise<ProductionRecipeDetailDto | undefined>
-	findRecipePage(
-		filter: ProductionRecipeFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<ProductionRecipeDto>>
-	insertRecipe(data: RecipeInsert, db?: DbContext): Promise<EntityRef | undefined>
-	updateRecipe(
-		id: number,
-		data: Partial<RecipeInsert>,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-	removeRecipe(id: number, db?: DbContext): Promise<boolean>
-
-	// Recipe Lines
-	replaceRecipeLines(recipeId: number, lines: RecipeLineInsert[], db?: DbContext): Promise<void>
-	findLinesByRecipeId(recipeId: number, db?: DbContext): Promise<ProductionRecipeLineDto[]>
-
-	// Order
-	findOrderById(id: number, db?: DbContext): Promise<ProductionOrderDto | undefined>
-	findOrderDetailById(id: number, db?: DbContext): Promise<ProductionOrderDetailDto | undefined>
-	findOrderPage(
-		filter: ProductionOrderFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<ProductionOrderDto>>
-	insertOrder(data: OrderInsert, db?: DbContext): Promise<EntityRef | undefined>
-	updateOrderStatus(
-		id: number,
-		status: ProductionOrderStatusEnum,
-		updatedBy: number,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-	updateOrder(
-		id: number,
-		data: Partial<OrderInsert>,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class ProductionRepo implements IProductionRepo {
+export class ProductionRepo {
 	constructor(readonly db: DbContext) {}
 
 	// ─── Recipe ───
 
-	async findRecipeById(
-		id: number,
-		db: DbContext = this.db,
-	): Promise<ProductionRecipeDto | undefined> {
+	async findRecipeById(id: number, db: Db = this.db): Promise<ProductionRecipeDto | undefined> {
 		const row = await db
 			.select()
 			.from(productionRecipes)
@@ -149,7 +100,7 @@ export class ProductionRepo implements IProductionRepo {
 
 	async findRecipeDetailById(
 		id: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<ProductionRecipeDetailDto | undefined> {
 		const recipe = await this.findRecipeById(id, db)
 		if (!recipe) return undefined
@@ -160,7 +111,7 @@ export class ProductionRepo implements IProductionRepo {
 
 	async findRecipePage(
 		filter: ProductionRecipeFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<ProductionRecipeDto>> {
 		const where = this.#buildRecipeWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -192,7 +143,7 @@ export class ProductionRepo implements IProductionRepo {
 		}
 	}
 
-	async insertRecipe(data: RecipeInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insertRecipe(data: RecipeInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(productionRecipes)
 			.values(data)
@@ -203,7 +154,7 @@ export class ProductionRepo implements IProductionRepo {
 	async updateRecipe(
 		id: number,
 		data: Partial<RecipeInsert>,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(productionRecipes)
@@ -213,7 +164,7 @@ export class ProductionRepo implements IProductionRepo {
 		return result
 	}
 
-	async removeRecipe(id: number, db: DbContext = this.db): Promise<boolean> {
+	async removeRecipe(id: number, db: Db = this.db): Promise<boolean> {
 		const result = await db
 			.delete(productionRecipes)
 			.where(eq(productionRecipes.id, id))
@@ -226,7 +177,7 @@ export class ProductionRepo implements IProductionRepo {
 	async replaceRecipeLines(
 		recipeId: number,
 		lines: RecipeLineInsert[],
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<void> {
 		await db.delete(productionRecipeLines).where(eq(productionRecipeLines.recipeId, recipeId))
 		if (lines.length > 0) {
@@ -236,7 +187,7 @@ export class ProductionRepo implements IProductionRepo {
 
 	async findLinesByRecipeId(
 		recipeId: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<ProductionRecipeLineDto[]> {
 		const rows = await db
 			.select()
@@ -247,10 +198,7 @@ export class ProductionRepo implements IProductionRepo {
 
 	// ─── Order ───
 
-	async findOrderById(
-		id: number,
-		db: DbContext = this.db,
-	): Promise<ProductionOrderDto | undefined> {
+	async findOrderById(id: number, db: Db = this.db): Promise<ProductionOrderDto | undefined> {
 		const row = await db
 			.select()
 			.from(productionOrders)
@@ -262,7 +210,7 @@ export class ProductionRepo implements IProductionRepo {
 
 	async findOrderDetailById(
 		id: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<ProductionOrderDetailDto | undefined> {
 		const order = await this.findOrderById(id, db)
 		if (!order) return undefined
@@ -275,7 +223,7 @@ export class ProductionRepo implements IProductionRepo {
 
 	async findOrderPage(
 		filter: ProductionOrderFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<ProductionOrderDto>> {
 		const where = this.#buildOrderWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -312,7 +260,7 @@ export class ProductionRepo implements IProductionRepo {
 		}
 	}
 
-	async insertOrder(data: OrderInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insertOrder(data: OrderInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(productionOrders)
 			.values(data)
@@ -320,24 +268,10 @@ export class ProductionRepo implements IProductionRepo {
 		return result
 	}
 
-	async updateOrderStatus(
-		id: number,
-		status: ProductionOrderStatusEnum,
-		updatedBy: number,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
-		const [result] = await db
-			.update(productionOrders)
-			.set({ status, updatedBy, updatedAt: new Date() })
-			.where(eq(productionOrders.id, id))
-			.returning({ id: productionOrders.id })
-		return result
-	}
-
 	async updateOrder(
 		id: number,
 		data: Partial<OrderInsert>,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(productionOrders)

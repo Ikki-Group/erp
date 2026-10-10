@@ -1,7 +1,7 @@
 import { materialLocations } from '@/db/schema/material.ts'
 
 import { eq, and, takeFirst } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type { MaterialLocationDto } from './assignment.contract.ts'
@@ -23,30 +23,15 @@ function toDto(row: AssignmentRow): MaterialLocationDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IAssignmentRepo {
-	readonly db: DbContext
-	findOne(
-		materialId: number,
-		locationId: number,
-		db?: DbContext,
-	): Promise<MaterialLocationDto | undefined>
-	findByMaterialId(materialId: number, db?: DbContext): Promise<MaterialLocationDto[]>
-	findByLocationId(locationId: number, db?: DbContext): Promise<MaterialLocationDto[]>
-	insert(data: AssignmentInsert, db?: DbContext): Promise<EntityRef | undefined>
-	remove(materialId: number, locationId: number, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class AssignmentRepo implements IAssignmentRepo {
+export class AssignmentRepo {
 	constructor(readonly db: DbContext) {}
 
 	async findOne(
 		materialId: number,
 		locationId: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<MaterialLocationDto | undefined> {
 		const row = await db
 			.select()
@@ -62,10 +47,7 @@ export class AssignmentRepo implements IAssignmentRepo {
 		return row ? toDto(row) : undefined
 	}
 
-	async findByMaterialId(
-		materialId: number,
-		db: DbContext = this.db,
-	): Promise<MaterialLocationDto[]> {
+	async findByMaterialId(materialId: number, db: Db = this.db): Promise<MaterialLocationDto[]> {
 		const rows = await db
 			.select()
 			.from(materialLocations)
@@ -73,10 +55,7 @@ export class AssignmentRepo implements IAssignmentRepo {
 		return rows.map(toDto)
 	}
 
-	async findByLocationId(
-		locationId: number,
-		db: DbContext = this.db,
-	): Promise<MaterialLocationDto[]> {
+	async findByLocationId(locationId: number, db: Db = this.db): Promise<MaterialLocationDto[]> {
 		const rows = await db
 			.select()
 			.from(materialLocations)
@@ -84,7 +63,7 @@ export class AssignmentRepo implements IAssignmentRepo {
 		return rows.map(toDto)
 	}
 
-	async insert(data: AssignmentInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: AssignmentInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(materialLocations)
 			.values(data)
@@ -95,7 +74,7 @@ export class AssignmentRepo implements IAssignmentRepo {
 	async remove(
 		materialId: number,
 		locationId: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.delete(materialLocations)

@@ -24,6 +24,11 @@ const envSchema = z.object({
 	// Database
 	DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
+	// Comma-separated browser origins allowed by CORS; `*` allows any (bearer auth, no cookies).
+	CORS_ORIGINS: z
+		.string()
+		.default('*')
+		.transform((v) => (v === '*' ? true : v.split(',').map((o) => o.trim()))),
 	// Redis (optional — session store and BentoCache L2 layer; memory-only when unset)
 	REDIS_URL: z.string().optional(),
 

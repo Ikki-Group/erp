@@ -1,15 +1,43 @@
-export { iamModule } from './iam.module.ts'
-export type { IamApi } from './iam.module.ts'
-export type { ComposedService } from './composed/composed.service.ts'
-export type { AssignmentService } from './assignment/assignment.service.ts'
+import type { Infra } from '@/shared/module.ts'
+
+import type { LocationService } from '@/modules/location/index.ts'
+
+import { AssignmentRepo } from './assignment/assignment.repo.ts'
+import { AssignmentService } from './assignment/assignment.service.ts'
+import { ComposedRepo } from './composed/composed.repo.ts'
+import { ComposedService } from './composed/composed.service.ts'
+import { createIamRoute } from './iam.route.ts'
+import { RoleRepo } from './role/role.repo.ts'
+import { RoleService } from './role/role.service.ts'
+import { UserRepo } from './user/user.repo.ts'
+import { UserService } from './user/user.service.ts'
+
+export function createIamModule(
+	infra: Infra,
+	deps: { location: Pick<LocationService, 'getById'> },
+) {
+	const roleService = new RoleService({ ...infra, repo: new RoleRepo(infra.db) })
+	const userService = new UserService({ ...infra, repo: new UserRepo(infra.db) })
+	const assignmentService = new AssignmentService({
+		...infra,
+		repo: new AssignmentRepo(infra.db),
+		location: deps.location,
+	})
+	const composedService = new ComposedService({ repo: new ComposedRepo(infra.db) })
+	const route = createIamRoute(roleService, userService, assignmentService, composedService)
+	return { route, userService, roleService, assignmentService, composedService }
+}
+
+export type { UserService, RoleService, AssignmentService, ComposedService }
+export type { UserCredentials } from './user/user.service.ts'
 export { RoleDto } from './role/role.contract.ts'
 export type { RoleCreateDto, RoleUpdateDto, RoleFilterDto } from './role/role.contract.ts'
 export { UserDto } from './user/user.contract.ts'
-export type { UserCreateDto, UserUpdateDto, UserFilterDto } from './user/user.contract.ts'
+export type { UserCreateDto, UserUpdateDto } from './user/user.contract.ts'
 export type {
 	AssignmentDto,
 	AssignmentCreateDto,
 	AssignmentRemoveDto,
 } from './assignment/assignment.contract.ts'
 export { UserDetailDto } from './composed/composed.contract.ts'
-export type { UserDetailDto as UserDetail, UserListItemDto } from './composed/composed.contract.ts'
+export type { UserListItemDto } from './composed/composed.contract.ts'

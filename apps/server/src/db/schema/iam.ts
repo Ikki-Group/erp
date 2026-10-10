@@ -23,7 +23,7 @@ export const roles = pgTable(
 		name: varchar('name', { length: 255 }).notNull(),
 		description: varchar('description', { length: 500 }).notNull().default(''),
 		isSystem: boolean('is_system').notNull().default(false),
-		permissions: jsonb('permissions').notNull().default([]),
+		permissions: jsonb('permissions').$type<string[]>().notNull().default([]),
 		...auditBasicColumns,
 	},
 	(t) => [uniqueIndex('roles_code_uniq').on(t.code)],

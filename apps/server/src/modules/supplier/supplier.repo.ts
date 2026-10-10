@@ -6,13 +6,12 @@ import {
 	buildPaginationMeta,
 	eq,
 	eqIf,
-	inArray,
 	searchAcross,
 	sql,
 	takeFirst,
 	toLimitOffset,
 } from '@/infra/database/index.ts'
-import type { DbContext, SQL } from '@/infra/database/index.ts'
+import type { Db, DbContext, SQL } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -69,47 +68,14 @@ function toPricingDto(row: SupplierMaterialRow): SupplierMaterialDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface ISupplierRepo {
-	readonly db: DbContext
-
-	// ─── Supplier ───
-	findById(id: number, db?: DbContext): Promise<SupplierDto | undefined>
-	findByIds(ids: number[], db?: DbContext): Promise<SupplierDto[]>
-	findPage(filter: SupplierFilterDto, db?: DbContext): Promise<WithPaginationResult<SupplierDto>>
-	insert(data: SupplierInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: SupplierUpdate, db?: DbContext): Promise<EntityRef | undefined>
-	remove(id: number, data: SupplierUpdate, db?: DbContext): Promise<EntityRef | undefined>
-
-	// ─── Supplier-Material Pricing ───
-	findPricingById(id: number, db?: DbContext): Promise<SupplierMaterialDto | undefined>
-	findPricingPage(
-		filter: SupplierMaterialFilterDto,
-		db?: DbContext,
-	): Promise<WithPaginationResult<SupplierMaterialDto>>
-	findPricingByPair(
-		supplierId: number,
-		materialId: number,
-		db?: DbContext,
-	): Promise<SupplierMaterialDto | undefined>
-	insertPricing(data: SupplierMaterialInsert, db?: DbContext): Promise<EntityRef | undefined>
-	updatePricing(
-		id: number,
-		data: SupplierMaterialUpdate,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-	removePricing(id: number, db?: DbContext): Promise<EntityRef | undefined>
-}
-
 // ─── Implementation ───
 
-export class SupplierRepo implements ISupplierRepo {
+export class SupplierRepo {
 	constructor(readonly db: DbContext) {}
 
 	// ─── Supplier ───
 
-	async findById(id: number, db: DbContext = this.db): Promise<SupplierDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<SupplierDto | undefined> {
 		const row = await db
 			.select()
 			.from(suppliers)
@@ -119,15 +85,9 @@ export class SupplierRepo implements ISupplierRepo {
 		return row ? toDto(row) : undefined
 	}
 
-	async findByIds(ids: number[], db: DbContext = this.db): Promise<SupplierDto[]> {
-		if (ids.length === 0) return []
-		const rows = await db.select().from(suppliers).where(inArray(suppliers.id, ids))
-		return rows.map(toDto)
-	}
-
 	async findPage(
 		filter: SupplierFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<SupplierDto>> {
 		const { limit, offset } = toLimitOffset(filter)
 
@@ -167,16 +127,12 @@ export class SupplierRepo implements ISupplierRepo {
 		}
 	}
 
-	async insert(data: SupplierInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: SupplierInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(suppliers).values(data).returning({ id: suppliers.id })
 		return result
 	}
 
-	async update(
-		id: number,
-		data: SupplierUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async update(id: number, data: SupplierUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(suppliers)
 			.set(data)
@@ -185,11 +141,7 @@ export class SupplierRepo implements ISupplierRepo {
 		return result
 	}
 
-	async remove(
-		id: number,
-		data: SupplierUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
+	async remove(id: number, data: SupplierUpdate, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(suppliers)
 			.set({ ...data, isActive: false })
@@ -200,10 +152,7 @@ export class SupplierRepo implements ISupplierRepo {
 
 	// ─── Supplier-Material Pricing ───
 
-	async findPricingById(
-		id: number,
-		db: DbContext = this.db,
-	): Promise<SupplierMaterialDto | undefined> {
+	async findPricingById(id: number, db: Db = this.db): Promise<SupplierMaterialDto | undefined> {
 		const row = await db
 			.select()
 			.from(supplierMaterials)
@@ -215,7 +164,7 @@ export class SupplierRepo implements ISupplierRepo {
 
 	async findPricingPage(
 		filter: SupplierMaterialFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<SupplierMaterialDto>> {
 		const { limit, offset } = toLimitOffset(filter)
 
@@ -255,7 +204,7 @@ export class SupplierRepo implements ISupplierRepo {
 	async findPricingByPair(
 		supplierId: number,
 		materialId: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<SupplierMaterialDto | undefined> {
 		const row = await db
 			.select()
@@ -273,7 +222,7 @@ export class SupplierRepo implements ISupplierRepo {
 
 	async insertPricing(
 		data: SupplierMaterialInsert,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.insert(supplierMaterials)
@@ -285,7 +234,7 @@ export class SupplierRepo implements ISupplierRepo {
 	async updatePricing(
 		id: number,
 		data: SupplierMaterialUpdate,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(supplierMaterials)
@@ -295,7 +244,7 @@ export class SupplierRepo implements ISupplierRepo {
 		return result
 	}
 
-	async removePricing(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async removePricing(id: number, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.delete(supplierMaterials)
 			.where(eq(supplierMaterials.id, id))

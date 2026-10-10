@@ -11,7 +11,7 @@ import {
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -57,32 +57,12 @@ function toReceivingLineDto(row: ReceivingLineRow): ReceivingLineDto {
 	}
 }
 
-// ─── Interface ───
-
-export interface IReceivingRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<ReceivingDto | undefined>
-	findDetailById(id: number, db?: DbContext): Promise<ReceivingDetailDto | undefined>
-	findPage(filter: ReceivingFilterDto, db?: DbContext): Promise<WithPaginationResult<ReceivingDto>>
-	insert(data: ReceivingInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: Partial<ReceivingInsert>, db?: DbContext): Promise<EntityRef | undefined>
-	updateStatus(
-		id: number,
-		status: ReceivingStatusEnum,
-		updatedBy: number,
-		db?: DbContext,
-	): Promise<EntityRef | undefined>
-	insertLines(lines: ReceivingLineInsert[], db?: DbContext): Promise<void>
-	replaceLines(receivingId: number, lines: ReceivingLineInsert[], db?: DbContext): Promise<void>
-	findLinesByReceivingId(receivingId: number, db?: DbContext): Promise<ReceivingLineDto[]>
-}
-
 // ─── Implementation ───
 
-export class ReceivingRepo implements IReceivingRepo {
+export class ReceivingRepo {
 	constructor(readonly db: DbContext) {}
 
-	async findById(id: number, db: DbContext = this.db): Promise<ReceivingDto | undefined> {
+	async findById(id: number, db: Db = this.db): Promise<ReceivingDto | undefined> {
 		const row = await db
 			.select()
 			.from(receivings)
@@ -92,10 +72,7 @@ export class ReceivingRepo implements IReceivingRepo {
 		return row ? toReceivingDto(row) : undefined
 	}
 
-	async findDetailById(
-		id: number,
-		db: DbContext = this.db,
-	): Promise<ReceivingDetailDto | undefined> {
+	async findDetailById(id: number, db: Db = this.db): Promise<ReceivingDetailDto | undefined> {
 		const receiving = await this.findById(id, db)
 		if (!receiving) return undefined
 
@@ -105,7 +82,7 @@ export class ReceivingRepo implements IReceivingRepo {
 
 	async findPage(
 		filter: ReceivingFilterDto,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<WithPaginationResult<ReceivingDto>> {
 		const where = this.#buildWhere(filter)
 		const { limit, offset } = toLimitOffset(filter)
@@ -138,7 +115,7 @@ export class ReceivingRepo implements IReceivingRepo {
 		}
 	}
 
-	async insert(data: ReceivingInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+	async insert(data: ReceivingInsert, db: Db = this.db): Promise<EntityRef | undefined> {
 		const [result] = await db.insert(receivings).values(data).returning({ id: receivings.id })
 		return result
 	}
@@ -146,7 +123,7 @@ export class ReceivingRepo implements IReceivingRepo {
 	async update(
 		id: number,
 		data: Partial<ReceivingInsert>,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(receivings)
@@ -160,7 +137,7 @@ export class ReceivingRepo implements IReceivingRepo {
 		id: number,
 		status: ReceivingStatusEnum,
 		updatedBy: number,
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(receivings)
@@ -170,7 +147,7 @@ export class ReceivingRepo implements IReceivingRepo {
 		return result
 	}
 
-	async insertLines(lines: ReceivingLineInsert[], db: DbContext = this.db): Promise<void> {
+	async insertLines(lines: ReceivingLineInsert[], db: Db = this.db): Promise<void> {
 		if (lines.length === 0) return
 		await db.insert(receivingLines).values(lines)
 	}
@@ -178,7 +155,7 @@ export class ReceivingRepo implements IReceivingRepo {
 	async replaceLines(
 		receivingId: number,
 		lines: ReceivingLineInsert[],
-		db: DbContext = this.db,
+		db: Db = this.db,
 	): Promise<void> {
 		await db.delete(receivingLines).where(eq(receivingLines.receivingId, receivingId))
 		if (lines.length > 0) {
@@ -186,10 +163,7 @@ export class ReceivingRepo implements IReceivingRepo {
 		}
 	}
 
-	async findLinesByReceivingId(
-		receivingId: number,
-		db: DbContext = this.db,
-	): Promise<ReceivingLineDto[]> {
+	async findLinesByReceivingId(receivingId: number, db: Db = this.db): Promise<ReceivingLineDto[]> {
 		const rows = await db
 			.select()
 			.from(receivingLines)

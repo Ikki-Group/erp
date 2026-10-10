@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { authPlugin } from '@/server/plugins/auth.plugin.ts'
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -27,8 +26,7 @@ import type { OrderService } from './order.service.ts'
 export function createOrderRoute(service: OrderService) {
 	return (
 		new Elysia({ prefix: '/order' })
-			.use(authPlugin)
-			.use(rbac)
+			.use(authGuard)
 
 			// ─── Queries ───
 
@@ -55,9 +53,9 @@ export function createOrderRoute(service: OrderService) {
 				'/create',
 				async ({ body, auth }) => {
 					const result = await service.handleCreate(body, actorOf(auth))
-					return res.created(result)
+					return res.ok(result)
 				},
-				{ body: OrderCreateDto, permission: 'order.create', response: zRes.created(EntityRefDto) },
+				{ body: OrderCreateDto, permission: 'order.create', response: zRes.ok(EntityRefDto) },
 			)
 			.post(
 				'/complete',
@@ -120,12 +118,12 @@ export function createOrderRoute(service: OrderService) {
 				'/payment',
 				async ({ body, auth }) => {
 					const result = await service.handleRecordPayment(body, actorOf(auth))
-					return res.created(result)
+					return res.ok(result)
 				},
 				{
 					body: OrderPaymentDto,
 					permission: 'payment.create',
-					response: zRes.created(EntityRefDto),
+					response: zRes.ok(EntityRefDto),
 				},
 			)
 	)

@@ -1,14 +1,11 @@
-import { CacheService } from '@/infra/cache/index.ts'
-import type { CacheClient } from '@/infra/cache/index.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
-import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import type { Db } from '@/infra/database/index.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
+import type { Infra } from '@/shared/module.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
-import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
-import type { LocationService } from '@/modules/location/location.service.ts'
+import type { LocationService } from '@/modules/location/index.ts'
 
 import type {
 	TableCreateDto,
@@ -18,70 +15,34 @@ import type {
 	TableUpdateDto,
 } from './table.contract.ts'
 import { TableError } from './table.internal.ts'
-import type { ITableRepo } from './table.repo.ts'
+import type { TableRepo } from './table.repo.ts'
 
-// ─── Cache Keys ───
-
-function locationCacheKey(locationId: number): string {
-	return `pos-table:location:${locationId}`
+interface Deps extends Infra {
+	repo: TableRepo
+	location: Pick<LocationService, 'handleGetById'>
 }
 
-// ─── Service ───
+const AUDIT = { module: 'pos-table', entity: 'table' } as const
 
 export class TableService {
-	private readonly cache: CacheService
+	constructor(private readonly deps: Deps) {}
 
-	constructor(
-		private readonly repo: ITableRepo,
-		cacheClient: CacheClient,
-		private readonly locationService: LocationService,
-		private readonly uow: UnitOfWork,
-		private readonly audit: AuditPort,
-	) {
-		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'pos-table')
+	async handleGetById(id: number, db?: Db): Promise<TableDto> {
+		return assertFound(await this.deps.repo.findById(id, db), () => TableError.notFound(id))
 	}
 
-	// ─── Cached Reads ───
-
-	async getById(id: number): Promise<TableDto | undefined> {
-		return this.cache.getOrSetWithSkip({
-			key: this.cache.keys.byId(id),
-			factory: () => this.repo.findById(id),
-		})
-	}
-
-	async getByLocation(locationId: number): Promise<TableDto[]> {
-		return this.cache.getOrSet({
-			key: locationCacheKey(locationId),
-			factory: () => this.repo.findByLocation(locationId),
-		})
-	}
-
-	// ─── Handlers ───
-
-	async handleGetById(id: number): Promise<TableDto> {
-		return assertFound(await this.getById(id), () => TableError.notFound(id))
-	}
-
-	async handleList(filter: TableFilterDto): Promise<WithPaginationResult<TableDto>> {
-		return this.repo.findPage(filter)
+	handleList(filter: TableFilterDto): Promise<WithPaginationResult<TableDto>> {
+		return this.deps.repo.findPage(filter)
 	}
 
 	async handleCreate(data: TableCreateDto, actor: Actor): Promise<EntityRef> {
-		// 1. Validate location exists and is store type
-		const location = await this.locationService.handleGetById(data.locationId)
-		if (location.type !== 'store') {
-			throw TableError.notStoreLocation(data.locationId)
-		}
-
-		// 2. Check uniqueness, insert, and audit atomically
-		const result = await this.uow.run(async (tx) => {
-			const existing = await this.repo.findByLocationAndNumber(data.locationId, data.number, tx)
-			if (existing) {
+		const { repo, uow, audit } = this.deps
+		await this.#assertStore(data.locationId)
+		return uow.run(async (tx) => {
+			if (await repo.findByLocationAndNumber(data.locationId, data.number, tx)) {
 				throw TableError.numberExists(data.locationId, data.number)
 			}
-
-			const written = await this.repo.insert(
+			const written = await repo.insert(
 				{
 					locationId: data.locationId,
 					number: data.number,
@@ -91,133 +52,82 @@ export class TableService {
 				tx,
 			)
 			if (!written) throw TableError.createFailed()
-
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'pos-table',
-					entity: 'table',
-					entityId: written.id,
-					action: 'create',
-					summary: `Created table "${data.number}" at location #${data.locationId}`,
-					newValues: { number: data.number, capacity: data.capacity, locationId: data.locationId },
-				}),
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: written.id,
+				action: 'create',
+				summary: `Created table "${data.number}" at location #${data.locationId}`,
+				newValues: { number: data.number, capacity: data.capacity, locationId: data.locationId },
+				locationId: data.locationId,
+			})
 			return written
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard()
-		await this.cache.deleteFromKeys([locationCacheKey(data.locationId)])
-		return result
 	}
 
-	async handleUpdate(data: TableUpdateDto, actor: Actor): Promise<EntityRef> {
-		const { id, ...updateData } = data
-
-		// 1. Verify exists
-		const current = await this.handleGetById(id)
-
-		// 2. Validate location if changed
-		if (updateData.locationId !== current.locationId) {
-			const location = await this.locationService.handleGetById(updateData.locationId)
-			if (location.type !== 'store') {
-				throw TableError.notStoreLocation(updateData.locationId)
-			}
-		}
-
-		// 3. Check uniqueness, update, and audit atomically
-		const result = await this.uow.run(async (tx) => {
-			if (updateData.number !== current.number || updateData.locationId !== current.locationId) {
-				const existing = await this.repo.findByLocationAndNumber(
-					updateData.locationId,
-					updateData.number,
-					tx,
-				)
-				if (existing && existing.id !== id) {
-					throw TableError.numberExists(updateData.locationId, updateData.number)
+	handleUpdate(data: TableUpdateDto, actor: Actor): Promise<EntityRef> {
+		const { id, ...changes } = data
+		const { repo, uow, audit } = this.deps
+		return uow.run(async (tx) => {
+			const current = await this.handleGetById(id, tx)
+			if (changes.locationId !== current.locationId) await this.#assertStore(changes.locationId)
+			if (changes.number !== current.number || changes.locationId !== current.locationId) {
+				const clash = await repo.findByLocationAndNumber(changes.locationId, changes.number, tx)
+				if (clash && clash.id !== id) {
+					throw TableError.numberExists(changes.locationId, changes.number)
 				}
 			}
-
-			const written = await this.repo.update(
+			const written = await repo.update(
 				id,
 				{
-					locationId: updateData.locationId,
-					number: updateData.number,
-					capacity: updateData.capacity,
-					isActive: updateData.isActive,
+					locationId: changes.locationId,
+					number: changes.number,
+					capacity: changes.capacity,
+					isActive: changes.isActive,
 				},
 				tx,
 			)
 			if (!written) throw TableError.updateFailed(id)
-
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'pos-table',
-					entity: 'table',
-					entityId: id,
-					action: 'update',
-					summary: `Updated table "${updateData.number}" at location #${updateData.locationId}`,
-					newValues: {
-						number: updateData.number,
-						capacity: updateData.capacity,
-						locationId: updateData.locationId,
-					},
-				}),
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: id,
+				action: 'update',
+				summary: `Updated table "${changes.number}" at location #${changes.locationId}`,
+				newValues: {
+					number: changes.number,
+					capacity: changes.capacity,
+					locationId: changes.locationId,
+				},
+				locationId: changes.locationId,
+			})
 			return written
 		})
-
-		// 4. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		await this.cache.deleteFromKeys([locationCacheKey(current.locationId)])
-		if (updateData.locationId !== current.locationId) {
-			await this.cache.deleteFromKeys([locationCacheKey(updateData.locationId)])
-		}
-		return result
 	}
 
-	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		// 1. Verify exists
-		const existing = await this.handleGetById(id)
-
-		// 2. Delete and audit atomically
-		const result = await this.uow.run(async (tx) => {
-			const written = await this.repo.remove(id, tx)
+	handleDelete(id: number, actor: Actor): Promise<EntityRef> {
+		const { repo, uow, audit } = this.deps
+		return uow.run(async (tx) => {
+			const existing = await this.handleGetById(id, tx)
+			const written = await repo.remove(id, tx)
 			if (!written) throw TableError.deleteFailed(id)
-
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'pos-table',
-					entity: 'table',
-					entityId: id,
-					action: 'delete',
-					summary: `Deleted table "${existing.number}" at location #${existing.locationId}`,
-				}),
-				tx,
-			)
+			await audit.record(tx, actor, {
+				...AUDIT,
+				entityId: id,
+				action: 'delete',
+				summary: `Deleted table "${existing.number}" at location #${existing.locationId}`,
+				locationId: existing.locationId,
+			})
 			return written
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		await this.cache.deleteFromKeys([locationCacheKey(existing.locationId)])
-		return result
 	}
 
-	// ─── Status Update (for POS/Order integration) ───
+	/** Order lifecycle side effect; runs inside the order's transaction. */
+	async updateStatus(id: number, status: TableStatusEnum, db: Db): Promise<void> {
+		const written = await this.deps.repo.updateStatus(id, status, db)
+		if (!written) throw TableError.notFound(id)
+	}
 
-	async updateStatus(id: number, status: TableStatusEnum): Promise<EntityRef> {
-		const existing = await this.handleGetById(id)
-
-		const result = await this.repo.updateStatus(id, status)
-		if (!result) throw TableError.updateFailed(id)
-
-		// Invalidate cache
-		await this.cache.invalidateStandard(id)
-		await this.cache.deleteFromKeys([locationCacheKey(existing.locationId)])
-
-		return result
+	async #assertStore(locationId: number): Promise<void> {
+		const location = await this.deps.location.handleGetById(locationId)
+		if (location.type !== 'store') throw TableError.notStoreLocation(locationId)
 	}
 }

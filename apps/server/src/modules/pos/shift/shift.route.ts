@@ -1,8 +1,8 @@
 import { Elysia } from 'elysia'
 
-import { authPlugin } from '@/server/plugins/auth.plugin.ts'
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
+import { hasPermission } from '@/shared/auth/permission.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -20,21 +20,21 @@ import type { ShiftService } from './shift.service.ts'
 
 export function createShiftRoute(service: ShiftService) {
 	return new Elysia({ prefix: '/shift' })
-		.use(authPlugin)
-		.use(rbac)
+		.use(authGuard)
 
 		.post(
 			'/open',
 			async ({ body, auth }) => {
 				const result = await service.handleOpen(body, actorOf(auth))
-				return res.created(result)
+				return res.ok(result)
 			},
-			{ body: ShiftOpenDto, permission: 'shift.open', response: zRes.created(EntityRefDto) },
+			{ body: ShiftOpenDto, permission: 'shift.open', response: zRes.ok(EntityRefDto) },
 		)
 		.post(
 			'/close',
 			async ({ body, auth }) => {
-				const result = await service.handleClose(body, auth)
+				const canCloseOther = hasPermission(auth, 'shift.close-other')
+				const result = await service.handleClose(body, actorOf(auth), canCloseOther)
 				return res.ok(result)
 			},
 			{ body: ShiftCloseDto, permission: 'shift.close', response: zRes.ok(EntityRefDto) },
@@ -42,7 +42,7 @@ export function createShiftRoute(service: ShiftService) {
 		.post(
 			'/close-other',
 			async ({ body, auth }) => {
-				const result = await service.handleClose(body, auth)
+				const result = await service.handleClose(body, actorOf(auth), true)
 				return res.ok(result)
 			},
 			{ body: ShiftCloseDto, permission: 'shift.close-other', response: zRes.ok(EntityRefDto) },
@@ -50,8 +50,11 @@ export function createShiftRoute(service: ShiftService) {
 		.get(
 			'/active',
 			async ({ auth }) => {
-				const result = await service.handleGetActive(auth.userId, auth.locationId!)
-				return res.ok(result)
+				const shift =
+					auth.locationId === null
+						? undefined
+						: await service.getActive(auth.userId, auth.locationId)
+				return res.ok(shift ?? null)
 			},
 			{ permission: 'shift.read', response: zRes.ok(ShiftDto.nullable()) },
 		)

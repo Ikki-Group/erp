@@ -13,6 +13,8 @@ const owner: AuthContext = {
 	locationId: 1,
 	permissions: [],
 	isOwner: true,
+	globalPermissions: [],
+	access: {},
 }
 
 const cashier: AuthContext = {
@@ -22,6 +24,8 @@ const cashier: AuthContext = {
 	locationId: 1,
 	permissions: ['order.create', 'order.update', 'shift.open'],
 	isOwner: false,
+	globalPermissions: [],
+	access: {},
 }
 
 const noPerms: AuthContext = {
@@ -31,6 +35,8 @@ const noPerms: AuthContext = {
 	locationId: 1,
 	permissions: [],
 	isOwner: false,
+	globalPermissions: [],
+	access: {},
 }
 
 // ─── hasPermission ───

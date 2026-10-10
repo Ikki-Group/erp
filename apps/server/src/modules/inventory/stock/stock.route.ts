@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { authPlugin } from '@/server/plugins/auth.plugin.ts'
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 
@@ -18,8 +17,7 @@ import type { StockService } from './stock.service.ts'
 
 export function createStockRoute(service: StockService) {
 	return new Elysia({ prefix: '/stock' })
-		.use(authPlugin)
-		.use(rbac)
+		.use(authGuard)
 
 		.get(
 			'/balance',
