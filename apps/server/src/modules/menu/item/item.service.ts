@@ -11,7 +11,7 @@ import type {
 	MenuItemDto,
 	MenuItemFilterDto,
 	MenuItemUpdateDto,
-} from './item.contract.ts'
+} from '@ikki/contract/menu/item'
 import { ItemError } from './item.internal.ts'
 import type { ItemRepo } from './item.repo.ts'
 

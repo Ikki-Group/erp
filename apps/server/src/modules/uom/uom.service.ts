@@ -20,7 +20,7 @@ import type {
 	UomDto,
 	UomFilterDto,
 	UomUpdateDto,
-} from './uom.contract.ts'
+} from '@ikki/contract/uom'
 import { SYSTEM_UOM_CODES, UomError, uniqueFields } from './uom.internal.ts'
 import type { UomRepo } from './uom.repo.ts'
 

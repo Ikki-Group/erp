@@ -3,7 +3,7 @@ import { materials } from '@/db/schema/material.ts'
 import { defineConflictFields } from '@/infra/database/index.ts'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
-import type { MaterialCreateDto } from './material.contract.ts'
+import type { MaterialCreateDto } from '@ikki/contract/material'
 
 // ─── Error Factories ───
 

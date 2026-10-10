@@ -2,7 +2,7 @@ import type { Actor } from '@/shared/auth/actor.ts'
 import type { Infra } from '@/shared/module.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { CompanySettingsDto, CompanySettingsUpdateDto } from './company.contract.ts'
+import type { CompanySettingsDto, CompanySettingsUpdateDto } from '@ikki/contract/company'
 import { CompanyError } from './company.internal.ts'
 import type { CompanyRepo } from './company.repo.ts'
 

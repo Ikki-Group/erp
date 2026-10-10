@@ -3,7 +3,7 @@ import { paymentMethods } from '@/db/schema/pos.ts'
 import { defineConflictFields } from '@/infra/database/index.ts'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
-import type { PaymentMethodCreateDto } from './payment-method.contract.ts'
+import type { PaymentMethodCreateDto } from '@ikki/contract/payment-method'
 
 // ─── Error Factories ───
 

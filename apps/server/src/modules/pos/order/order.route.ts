@@ -2,9 +2,9 @@ import { Elysia } from 'elysia'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
 
 import {
 	OrderApplyVoucherDto,
@@ -18,7 +18,7 @@ import {
 	OrderRemoveVoucherDto,
 	OrderVoidDto,
 	OrderVoucherApplyResultDto,
-} from './order.contract.ts'
+} from '@ikki/contract/pos/order'
 import type { OrderService } from './order.service.ts'
 
 // ─── Route Factory ───

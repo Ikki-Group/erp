@@ -4,7 +4,7 @@ import { eq, takeFirst } from '@/infra/database/index.ts'
 import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { CompanySettingsDto } from './company.contract.ts'
+import type { CompanySettingsDto } from '@ikki/contract/company'
 
 // ─── Types ───
 

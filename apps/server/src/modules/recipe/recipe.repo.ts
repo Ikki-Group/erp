@@ -12,7 +12,7 @@ import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { RecipeDto, RecipeFilterDto, RecipeLineDto } from './recipe.contract.ts'
+import type { RecipeDto, RecipeFilterDto, RecipeLineDto } from '@ikki/contract/recipe'
 
 // ─── Types ───
 

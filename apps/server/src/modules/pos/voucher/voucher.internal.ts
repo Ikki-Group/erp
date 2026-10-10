@@ -3,7 +3,7 @@ import { vouchers } from '@/db/schema/pos.ts'
 import { defineConflictFields } from '@/infra/database/index.ts'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
-import type { VoucherCreateDto } from './voucher.contract.ts'
+import type { VoucherCreateDto } from '@ikki/contract/pos/voucher'
 
 // ─── Error Factories ───
 

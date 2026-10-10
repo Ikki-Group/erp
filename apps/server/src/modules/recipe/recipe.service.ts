@@ -23,7 +23,7 @@ import type {
 	RecipeFilterDto,
 	RecipeLineDto,
 	RecipeUpdateDto,
-} from './recipe.contract.ts'
+} from '@ikki/contract/recipe'
 import { RecipeError } from './recipe.internal.ts'
 import type { RecipeRepo } from './recipe.repo.ts'
 

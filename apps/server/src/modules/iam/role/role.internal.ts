@@ -8,7 +8,7 @@ import {
 	NotFoundError,
 } from '@/shared/errors/http-error.ts'
 
-import type { RoleCreateDto } from './role.contract.ts'
+import type { RoleCreateDto } from '@ikki/contract/iam/role'
 
 // ─── Error Factories ───
 

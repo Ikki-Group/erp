@@ -15,7 +15,7 @@ import type { Db, DbContext, SQL } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { MaterialDto, MaterialFilterDto } from './material.contract.ts'
+import type { MaterialDto, MaterialFilterDto } from '@ikki/contract/material'
 
 // ─── Types ───
 

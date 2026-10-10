@@ -3,7 +3,7 @@ import { menuItemModifiers } from '@/db/schema/menu.ts'
 import { eq } from '@/infra/database/index.ts'
 import type { Db, DbContext } from '@/infra/database/index.ts'
 
-import type { ModifierGroupAssignmentInput } from './assignment.contract.ts'
+import type { ModifierGroupAssignmentInput } from '@ikki/contract/menu/assignment'
 
 export class AssignmentRepo {
 	constructor(readonly db: DbContext) {}

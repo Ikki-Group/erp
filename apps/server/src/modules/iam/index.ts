@@ -30,14 +30,14 @@ export function createIamModule(
 
 export type { UserService, RoleService, AssignmentService, ComposedService }
 export type { UserCredentials } from './user/user.service.ts'
-export { RoleDto } from './role/role.contract.ts'
-export type { RoleCreateDto, RoleUpdateDto, RoleFilterDto } from './role/role.contract.ts'
-export { UserDto } from './user/user.contract.ts'
-export type { UserCreateDto, UserUpdateDto } from './user/user.contract.ts'
+export { RoleDto } from '@ikki/contract/iam/role'
+export type { RoleCreateDto, RoleUpdateDto, RoleFilterDto } from '@ikki/contract/iam/role'
+export { UserDto } from '@ikki/contract/iam/user'
+export type { UserCreateDto, UserUpdateDto } from '@ikki/contract/iam/user'
 export type {
 	AssignmentDto,
 	AssignmentCreateDto,
 	AssignmentRemoveDto,
-} from './assignment/assignment.contract.ts'
-export { UserDetailDto } from './composed/composed.contract.ts'
-export type { UserListItemDto } from './composed/composed.contract.ts'
+} from '@ikki/contract/iam/assignment'
+export { UserDetailDto } from '@ikki/contract/iam/composed'
+export type { UserListItemDto } from '@ikki/contract/iam/composed'

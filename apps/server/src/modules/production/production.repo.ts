@@ -25,7 +25,7 @@ import type {
 	ProductionRecipeDto,
 	ProductionRecipeFilterDto,
 	ProductionRecipeLineDto,
-} from './production.contract.ts'
+} from '@ikki/contract/production'
 
 // ─── Types ───
 

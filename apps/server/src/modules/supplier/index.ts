@@ -24,7 +24,7 @@ export function createSupplierModule(
 }
 
 export type { SupplierService }
-export { SupplierDto, SupplierMaterialDto } from './supplier.contract.ts'
+export { SupplierDto, SupplierMaterialDto } from '@ikki/contract/supplier'
 export type {
 	SupplierCreateDto,
 	SupplierUpdateDto,
@@ -32,4 +32,4 @@ export type {
 	SupplierMaterialCreateDto,
 	SupplierMaterialUpdateDto,
 	SupplierMaterialFilterDto,
-} from './supplier.contract.ts'
+} from '@ikki/contract/supplier'

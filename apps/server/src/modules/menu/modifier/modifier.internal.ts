@@ -3,7 +3,7 @@ import { modifierGroups } from '@/db/schema/menu.ts'
 import { defineConflictFields } from '@/infra/database/index.ts'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
-import type { ModifierGroupCreateDto } from './modifier.contract.ts'
+import type { ModifierGroupCreateDto } from '@ikki/contract/menu/modifier'
 
 // ─── Error Factories ───
 

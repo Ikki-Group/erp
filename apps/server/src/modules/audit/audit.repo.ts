@@ -16,7 +16,7 @@ import {
 import type { DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 
-import type { AuditLogDetailDto, AuditLogDto, AuditLogFilterDto } from './audit.contract.ts'
+import type { AuditLogDetailDto, AuditLogDto, AuditLogFilterDto } from '@ikki/contract/audit'
 
 // ─── Types ───
 

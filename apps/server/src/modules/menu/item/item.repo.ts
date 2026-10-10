@@ -14,7 +14,7 @@ import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { MenuItemDto, MenuItemFilterDto } from './item.contract.ts'
+import type { MenuItemDto, MenuItemFilterDto } from '@ikki/contract/menu/item'
 
 // ─── Types ───
 

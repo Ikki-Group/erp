@@ -19,4 +19,4 @@ export function createPaymentMethodModule(
 }
 
 export type { PaymentMethodService }
-export type { PaymentMethodDto } from './payment-method.contract.ts'
+export type { PaymentMethodDto } from '@ikki/contract/payment-method'

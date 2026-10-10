@@ -22,7 +22,7 @@ import type {
 	StockBalanceFilterDto,
 	StockMovementDto,
 	StockMovementFilterDto,
-} from './stock.contract.ts'
+} from '@ikki/contract/inventory/stock'
 
 // ─── Types ───
 

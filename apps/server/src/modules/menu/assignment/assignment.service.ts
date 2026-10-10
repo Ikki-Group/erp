@@ -4,7 +4,7 @@ import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type { ItemService } from '../item/item.service.ts'
 import type { ModifierService } from '../modifier/modifier.service.ts'
-import type { MenuItemModifierSyncDto } from './assignment.contract.ts'
+import type { MenuItemModifierSyncDto } from '@ikki/contract/menu/assignment'
 import { AssignmentError } from './assignment.internal.ts'
 import type { AssignmentRepo } from './assignment.repo.ts'
 

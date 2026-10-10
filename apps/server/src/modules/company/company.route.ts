@@ -2,11 +2,11 @@ import { Elysia } from 'elysia'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto } from '@/shared/schema/index.ts'
+import { EntityRefDto } from '@ikki/contract/schema'
 
-import { CompanySettingsDto, CompanySettingsUpdateDto } from './company.contract.ts'
+import { CompanySettingsDto, CompanySettingsUpdateDto } from '@ikki/contract/company'
 import type { CompanyService } from './company.service.ts'
 
 export function createCompanyRoute(service: CompanyService) {

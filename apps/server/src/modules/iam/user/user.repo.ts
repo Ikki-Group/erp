@@ -6,7 +6,7 @@ import { and, eq, takeFirst } from '@/infra/database/index.ts'
 import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { UserDto } from './user.contract.ts'
+import type { UserDto } from '@ikki/contract/iam/user'
 
 type UserInsert = typeof users.$inferInsert
 type UserUpdate = Partial<Omit<UserInsert, 'id'>>

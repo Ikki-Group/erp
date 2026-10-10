@@ -3,25 +3,25 @@ import { z } from 'zod'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
 
-import { MaterialAssignDto, MaterialLocationDto } from './assignment/assignment.contract.ts'
+import { MaterialAssignDto, MaterialLocationDto } from '@ikki/contract/material/assignment'
 import type { AssignmentService } from './assignment/assignment.service.ts'
 import {
 	MaterialCategoryCreateDto,
 	MaterialCategoryDto,
 	MaterialCategoryFilterDto,
 	MaterialCategoryUpdateDto,
-} from './category/category.contract.ts'
+} from '@ikki/contract/material/category'
 import type { CategoryService } from './category/category.service.ts'
 import {
 	MaterialCreateDto,
 	MaterialDto,
 	MaterialFilterDto,
 	MaterialUpdateDto,
-} from './material.contract.ts'
+} from '@ikki/contract/material'
 import type { MaterialService } from './material.service.ts'
 
 export function createMaterialRoute(

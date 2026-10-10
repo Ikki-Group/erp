@@ -23,7 +23,7 @@ import type {
 	OrderFilterDto,
 	OrderLineDto,
 	OrderPaymentRecordDto,
-} from './order.contract.ts'
+} from '@ikki/contract/pos/order'
 
 // ─── Types ───
 

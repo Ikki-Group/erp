@@ -14,6 +14,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@ikki/contract": "workspace:*",
 		"@base-ui/react": "^1.7.0",
 		"@date-fns/tz": "^1.5.0",
 		"@dnd-kit/core": "^6.3.1",

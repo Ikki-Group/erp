@@ -31,7 +31,7 @@ import type {
 	OrderRemoveVoucherDto,
 	OrderVoidDto,
 	OrderVoucherApplyResultDto,
-} from './order.contract.ts'
+} from '@ikki/contract/pos/order'
 import { deductStockForOrder } from './order.deduction.ts'
 import type { DeductionDeps } from './order.deduction.ts'
 import { OrderError } from './order.internal.ts'

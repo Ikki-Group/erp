@@ -3,7 +3,7 @@ import { menuCategories } from '@/db/schema/menu.ts'
 import { defineConflictFields } from '@/infra/database/index.ts'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
-import type { MenuCategoryCreateDto } from './category.contract.ts'
+import type { MenuCategoryCreateDto } from '@ikki/contract/menu/category'
 
 // ─── Error Factories ───
 

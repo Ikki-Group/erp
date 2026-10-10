@@ -2,9 +2,9 @@ import { Elysia } from 'elysia'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto } from '@/shared/schema/index.ts'
+import { EntityRefDto } from '@ikki/contract/schema'
 
 import {
 	ProductionDetailQueryDto,
@@ -18,7 +18,7 @@ import {
 	ProductionRecipeDto,
 	ProductionRecipeFilterDto,
 	ProductionRecipeUpdateDto,
-} from './production.contract.ts'
+} from '@ikki/contract/production'
 import type { ProductionService } from './production.service.ts'
 
 // ─── Route Factory ───

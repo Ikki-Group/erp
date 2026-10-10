@@ -21,7 +21,7 @@ import type {
 	TransferFilterDto,
 	TransferLineDto,
 	TransferStatusEnum,
-} from './transfer.contract.ts'
+} from '@ikki/contract/inventory/transfer'
 
 // ─── Types ───
 

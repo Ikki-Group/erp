@@ -9,7 +9,7 @@ import {
 import { eq, sql, takeFirst } from '@/infra/database/index.ts'
 import type { Db, DbContext } from '@/infra/database/index.ts'
 
-import type { MenuCategoryRefDto, MenuItemDetailDto } from './composed.contract.ts'
+import type { MenuCategoryRefDto, MenuItemDetailDto } from '@ikki/contract/menu/composed'
 
 // ─── Implementation ───
 

@@ -15,7 +15,7 @@ import { OWNER_ROLE_CODE } from '@/shared/config/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { AssignmentDto, AssignmentFilterDto } from './assignment.contract.ts'
+import type { AssignmentDto, AssignmentFilterDto } from '@ikki/contract/iam/assignment'
 
 type AssignmentInsert = typeof userAssignments.$inferInsert
 

@@ -13,7 +13,7 @@ import type {
 	MenuCategoryDto,
 	MenuCategoryFilterDto,
 	MenuCategoryUpdateDto,
-} from './category.contract.ts'
+} from '@ikki/contract/menu/category'
 import { CategoryError, categoryUniqueFields } from './category.internal.ts'
 import type { CategoryRepo } from './category.repo.ts'
 

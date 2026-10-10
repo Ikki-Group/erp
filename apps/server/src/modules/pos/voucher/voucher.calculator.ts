@@ -1,6 +1,6 @@
 import { Money } from '@/shared/domain/money.ts'
 
-import type { VoucherDto, VoucherValidateResponseDto } from './voucher.contract.ts'
+import type { VoucherDto, VoucherValidateResponseDto } from '@ikki/contract/pos/voucher'
 import { VoucherValidationReason } from './voucher.internal.ts'
 
 type VoucherTerms = Pick<

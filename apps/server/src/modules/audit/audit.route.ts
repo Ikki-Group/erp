@@ -2,16 +2,16 @@ import { Elysia } from 'elysia'
 import { z } from 'zod'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { zq } from '@/shared/schema/index.ts'
+import { zq } from '@ikki/contract/schema'
 
 import {
 	AuditByEntityDto,
 	AuditLogDetailDto,
 	AuditLogDto,
 	AuditLogFilterDto,
-} from './audit.contract.ts'
+} from '@ikki/contract/audit'
 import { AuditError } from './audit.internal.ts'
 import type { AuditRepo } from './audit.repo.ts'
 

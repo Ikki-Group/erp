@@ -15,7 +15,7 @@ import type {
 	MaterialCategoryDto,
 	MaterialCategoryFilterDto,
 	MaterialCategoryUpdateDto,
-} from './category.contract.ts'
+} from '@ikki/contract/material/category'
 import type { CategoryRepo } from './category.repo.ts'
 
 // ─── Error Factories ───

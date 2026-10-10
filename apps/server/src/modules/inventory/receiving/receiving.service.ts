@@ -25,7 +25,7 @@ import type {
 	ReceivingDto,
 	ReceivingFilterDto,
 	ReceivingUpdateDto,
-} from './receiving.contract.ts'
+} from '@ikki/contract/inventory/receiving'
 import { ReceivingError } from './receiving.internal.ts'
 import type { ReceivingRepo } from './receiving.repo.ts'
 

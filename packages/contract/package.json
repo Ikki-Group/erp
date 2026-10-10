@@ -1,0 +1,19 @@
+{
+	"name": "@ikki/contract",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Zod request/response DTOs shared by @ikki/server and @ikki/web.",
+	"type": "module",
+	"exports": {
+		"./*": "./src/*.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"typescript": "catalog:"
+	}
+}

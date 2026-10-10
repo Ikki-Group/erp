@@ -21,7 +21,7 @@ import type {
 	ReceivingFilterDto,
 	ReceivingLineDto,
 	ReceivingStatusEnum,
-} from './receiving.contract.ts'
+} from '@ikki/contract/inventory/receiving'
 
 // ─── Types ───
 

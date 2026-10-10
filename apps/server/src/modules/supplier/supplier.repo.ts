@@ -20,7 +20,7 @@ import type {
 	SupplierFilterDto,
 	SupplierMaterialDto,
 	SupplierMaterialFilterDto,
-} from './supplier.contract.ts'
+} from '@ikki/contract/supplier'
 
 // ─── Types ───
 

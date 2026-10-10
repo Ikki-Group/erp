@@ -15,7 +15,7 @@ import type {
 	ShiftDto,
 	ShiftFilterDto,
 	ShiftOpenDto,
-} from './shift.contract.ts'
+} from '@ikki/contract/pos/shift'
 import { ShiftError } from './shift.internal.ts'
 import type { ShiftRepo } from './shift.repo.ts'
 

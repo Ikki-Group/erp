@@ -20,7 +20,7 @@ import type {
 	TransferFilterDto,
 	TransferReceiveDto,
 	TransferShipDto,
-} from './transfer.contract.ts'
+} from '@ikki/contract/inventory/transfer'
 import { TransferError } from './transfer.internal.ts'
 import type { TransferRepo } from './transfer.repo.ts'
 

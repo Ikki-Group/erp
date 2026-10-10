@@ -1,6 +1,6 @@
 import { Qty } from '@/shared/domain/qty.ts'
 
-import type { ConversionStepDto, UomConversionDto } from './uom.contract.ts'
+import type { ConversionStepDto, UomConversionDto } from '@ikki/contract/uom'
 import { MAX_CONVERSION_HOPS } from './uom.internal.ts'
 
 interface ConversionEdge {

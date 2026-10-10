@@ -1,7 +1,7 @@
 import { Money } from '@/shared/domain/money.ts'
 import { Qty } from '@/shared/domain/qty.ts'
 
-import type { MovementDirectionEnum, MovementTypeEnum } from './stock.contract.ts'
+import type { MovementDirectionEnum, MovementTypeEnum } from '@ikki/contract/inventory/stock'
 
 export interface Balance {
 	qty: Qty

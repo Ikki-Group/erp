@@ -15,7 +15,7 @@ import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { PaymentMethodDto, PaymentMethodFilterDto } from './payment-method.contract.ts'
+import type { PaymentMethodDto, PaymentMethodFilterDto } from '@ikki/contract/payment-method'
 
 // ─── Types ───
 

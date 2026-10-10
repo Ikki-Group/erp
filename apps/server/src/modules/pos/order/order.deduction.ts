@@ -10,7 +10,7 @@ import type { RecipeService } from '@/modules/recipe/index.ts'
 import { resolveConversion } from '@/modules/uom/index.ts'
 import type { UomService } from '@/modules/uom/index.ts'
 
-import type { OrderLineDto } from './order.contract.ts'
+import type { OrderLineDto } from '@ikki/contract/pos/order'
 
 const logger = getLogger(['pos', 'deduction'])
 

@@ -14,7 +14,7 @@ import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { VoucherDto, VoucherFilterDto } from './voucher.contract.ts'
+import type { VoucherDto, VoucherFilterDto } from '@ikki/contract/pos/voucher'
 
 // ─── Types ───
 

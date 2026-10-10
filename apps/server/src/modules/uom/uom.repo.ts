@@ -14,7 +14,7 @@ import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { UomConversionDto, UomDto, UomFilterDto } from './uom.contract.ts'
+import type { UomConversionDto, UomDto, UomFilterDto } from '@ikki/contract/uom'
 
 // ─── Types ───
 

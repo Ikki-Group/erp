@@ -1,0 +1,48 @@
+import { z } from 'zod'
+
+import { zc, zp } from './schema.ts'
+
+import { UserDetailDto } from './iam/composed.ts'
+
+// ─── Request DTOs ───
+
+export const LoginDto = z.object({
+	username: zc.strTrim,
+	password: zc.strTrim,
+})
+export type LoginDto = z.infer<typeof LoginDto>
+
+// ─── Response DTOs ───
+
+const LoginUserDto = z.object({
+	id: zp.id,
+	username: zp.str,
+	name: zp.str,
+	email: zp.str,
+})
+type LoginUserDto = z.infer<typeof LoginUserDto>
+
+const LoginLocationDto = z.object({
+	id: zp.id,
+	code: zp.str,
+	name: zp.str,
+	type: zp.str,
+})
+type LoginLocationDto = z.infer<typeof LoginLocationDto>
+
+export const LoginResponseDto = z.object({
+	token: zp.str,
+	user: LoginUserDto,
+	locations: z.array(LoginLocationDto),
+})
+export type LoginResponseDto = z.infer<typeof LoginResponseDto>
+
+export const MeResponseDto = z.object({
+	user: UserDetailDto,
+	locations: z.array(LoginLocationDto),
+	permissions: z.array(z.string()),
+	globalPermissions: z.array(z.string()),
+	access: z.record(z.string(), z.array(z.string())),
+	isOwner: zp.bool,
+})
+export type MeResponseDto = z.infer<typeof MeResponseDto>

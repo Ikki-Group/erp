@@ -66,5 +66,5 @@ export function createInventoryModule(
 }
 
 export type { StockService }
-export type { StockBalanceDto } from './stock/stock.contract.ts'
-export type { RecordMovementInput } from './stock/stock.contract.ts'
+export type { StockBalanceDto } from '@ikki/contract/inventory/stock'
+export type { RecordMovementInput } from '@ikki/contract/inventory/stock'

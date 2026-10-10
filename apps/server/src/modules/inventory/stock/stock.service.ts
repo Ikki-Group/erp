@@ -16,7 +16,7 @@ import type {
 	StockBalanceQueryDto,
 	StockMovementDto,
 	StockMovementFilterDto,
-} from './stock.contract.ts'
+} from '@ikki/contract/inventory/stock'
 import { StockError } from './stock.internal.ts'
 import type { StockRepo } from './stock.repo.ts'
 

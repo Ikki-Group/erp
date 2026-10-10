@@ -13,7 +13,7 @@ import type {
 	TableFilterDto,
 	TableStatusEnum,
 	TableUpdateDto,
-} from './table.contract.ts'
+} from '@ikki/contract/pos/table'
 import { TableError } from './table.internal.ts'
 import type { TableRepo } from './table.repo.ts'
 

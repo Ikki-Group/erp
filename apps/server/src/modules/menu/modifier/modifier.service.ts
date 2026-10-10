@@ -14,7 +14,7 @@ import type {
 	ModifierGroupFilterDto,
 	ModifierGroupUpdateDto,
 	ModifierGroupWithOptionsDto,
-} from './modifier.contract.ts'
+} from '@ikki/contract/menu/modifier'
 import { ModifierError, modifierUniqueFields } from './modifier.internal.ts'
 import type { ModifierRepo } from './modifier.repo.ts'
 

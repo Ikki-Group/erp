@@ -17,7 +17,7 @@ import type {
 	VoucherFilterDto,
 	VoucherUpdateDto,
 	VoucherValidateResponseDto,
-} from './voucher.contract.ts'
+} from '@ikki/contract/pos/voucher'
 import { VoucherError, uniqueFields } from './voucher.internal.ts'
 import type { VoucherRepo } from './voucher.repo.ts'
 

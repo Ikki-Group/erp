@@ -15,7 +15,7 @@ import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { TableDto, TableFilterDto, TableStatusEnum } from './table.contract.ts'
+import type { TableDto, TableFilterDto, TableStatusEnum } from '@ikki/contract/pos/table'
 
 // ─── Types ───
 

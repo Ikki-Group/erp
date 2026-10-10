@@ -26,8 +26,6 @@
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
 		"forceConsistentCasingInFileNames": true,
-		"outDir": "./dist",
-		"rootDir": "./",
 		"composite": false,
 		"types": ["bun"],
 		"paths": {

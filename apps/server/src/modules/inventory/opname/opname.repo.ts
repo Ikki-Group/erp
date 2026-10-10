@@ -21,7 +21,7 @@ import type {
 	OpnameDto,
 	OpnameFilterDto,
 	OpnameLineDto,
-} from './opname.contract.ts'
+} from '@ikki/contract/inventory/opname'
 
 // ─── Types ───
 

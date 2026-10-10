@@ -28,7 +28,7 @@ import type {
 	ProductionRecipeDto,
 	ProductionRecipeFilterDto,
 	ProductionRecipeUpdateDto,
-} from './production.contract.ts'
+} from '@ikki/contract/production'
 import { ProductionError } from './production.internal.ts'
 import type { ProductionRepo } from './production.repo.ts'
 

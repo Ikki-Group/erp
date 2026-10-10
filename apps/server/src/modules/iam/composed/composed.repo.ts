@@ -20,7 +20,7 @@ import type {
 	LocationStaffListItemDto,
 	UserDetailDto,
 	UserListItemDto,
-} from './composed.contract.ts'
+} from '@ikki/contract/iam/composed'
 
 // ─── Implementation ───
 

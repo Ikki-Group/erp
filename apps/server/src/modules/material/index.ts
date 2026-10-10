@@ -37,11 +37,11 @@ export function createMaterialModule(
 
 export type { MaterialService, CategoryService as MaterialCategoryService }
 export type { AssignmentService as MaterialAssignmentService }
-export { MaterialDto, MaterialTypeEnum } from './material.contract.ts'
+export { MaterialDto, MaterialTypeEnum } from '@ikki/contract/material'
 export type {
 	MaterialCreateDto,
 	MaterialUpdateDto,
 	MaterialFilterDto,
-} from './material.contract.ts'
-export type { MaterialCategoryDto } from './category/category.contract.ts'
-export type { MaterialLocationDto, MaterialAssignDto } from './assignment/assignment.contract.ts'
+} from '@ikki/contract/material'
+export type { MaterialCategoryDto } from '@ikki/contract/material/category'
+export type { MaterialLocationDto, MaterialAssignDto } from '@ikki/contract/material/assignment'

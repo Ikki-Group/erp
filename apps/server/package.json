@@ -29,6 +29,7 @@
 		"fly:deploy": "flyctl deploy"
 	},
 	"dependencies": {
+		"@ikki/contract": "workspace:*",
 		"@elysiajs/cors": "^1.4.2",
 		"@elysiajs/openapi": "^1.4.15",
 		"@elysiajs/opentelemetry": "^1.4.11",

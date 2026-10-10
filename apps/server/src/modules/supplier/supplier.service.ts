@@ -20,7 +20,7 @@ import type {
 	SupplierMaterialFilterDto,
 	SupplierMaterialUpdateDto,
 	SupplierUpdateDto,
-} from './supplier.contract.ts'
+} from '@ikki/contract/supplier'
 import { SupplierError, uniqueFields } from './supplier.internal.ts'
 import type { SupplierRepo } from './supplier.repo.ts'
 

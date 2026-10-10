@@ -3,7 +3,7 @@ import { suppliers } from '@/db/schema/supplier.ts'
 import { defineConflictFields } from '@/infra/database/index.ts'
 import { ConflictError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
-import type { SupplierCreateDto } from './supplier.contract.ts'
+import type { SupplierCreateDto } from '@ikki/contract/supplier'
 
 // ─── Error Factories ───
 

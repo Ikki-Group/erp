@@ -19,7 +19,7 @@ import type {
 	ModifierGroupWithOptionsDto,
 	ModifierOptionDto,
 	ModifierOptionInputDto,
-} from './modifier.contract.ts'
+} from '@ikki/contract/menu/modifier'
 
 // ─── Types ───
 

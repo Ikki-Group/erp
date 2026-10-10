@@ -2,9 +2,9 @@ import { Elysia } from 'elysia'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto } from '@/shared/schema/index.ts'
+import { EntityRefDto } from '@ikki/contract/schema'
 
 import {
 	TransferCreateDto,
@@ -14,7 +14,7 @@ import {
 	TransferFilterDto,
 	TransferReceiveDto,
 	TransferShipDto,
-} from './transfer.contract.ts'
+} from '@ikki/contract/inventory/transfer'
 import type { TransferService } from './transfer.service.ts'
 
 // ─── Route Factory ───

@@ -1,17 +1,17 @@
 import { Elysia } from 'elysia'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { z } from '@/shared/schema/index.ts'
+import { z } from '@ikki/contract/schema'
 
-import { LoginDto, LoginResponseDto, MeResponseDto } from './auth.contract.ts'
+import { LoginDto, LoginResponseDto, MeResponseDto } from '@ikki/contract/auth'
 import type { AuthService } from './auth.service.ts'
 import {
 	RevokeSessionResultDto,
 	SessionDto,
 	SessionIdQueryDto,
-} from './session/session.contract.ts'
+} from '@ikki/contract/auth/session'
 
 export function createAuthRoute(service: AuthService) {
 	return new Elysia({ prefix: '/auth', tags: ['auth'] })

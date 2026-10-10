@@ -3,7 +3,7 @@ import { uoms } from '@/db/schema/uom.ts'
 import { defineConflictFields } from '@/infra/database/index.ts'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
-import type { UomCreateDto } from './uom.contract.ts'
+import type { UomCreateDto } from '@ikki/contract/uom'
 
 // ─── Constants ───
 

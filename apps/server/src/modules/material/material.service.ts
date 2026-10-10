@@ -19,7 +19,7 @@ import type {
 	MaterialDto,
 	MaterialFilterDto,
 	MaterialUpdateDto,
-} from './material.contract.ts'
+} from '@ikki/contract/material'
 import { MaterialError, uniqueFields } from './material.internal.ts'
 import type { MaterialRepo } from './material.repo.ts'
 

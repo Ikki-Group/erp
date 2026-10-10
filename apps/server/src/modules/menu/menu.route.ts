@@ -2,27 +2,27 @@ import { Elysia } from 'elysia'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
 
-import { MenuItemModifierSyncDto } from './assignment/assignment.contract.ts'
+import { MenuItemModifierSyncDto } from '@ikki/contract/menu/assignment'
 import type { AssignmentService } from './assignment/assignment.service.ts'
 import {
 	MenuCategoryCreateDto,
 	MenuCategoryDto,
 	MenuCategoryFilterDto,
 	MenuCategoryUpdateDto,
-} from './category/category.contract.ts'
+} from '@ikki/contract/menu/category'
 import type { CategoryService } from './category/category.service.ts'
-import { MenuItemDetailDto } from './composed/composed.contract.ts'
+import { MenuItemDetailDto } from '@ikki/contract/menu/composed'
 import type { ComposedService } from './composed/composed.service.ts'
 import {
 	MenuItemCreateDto,
 	MenuItemDto,
 	MenuItemFilterDto,
 	MenuItemUpdateDto,
-} from './item/item.contract.ts'
+} from '@ikki/contract/menu/item'
 import type { ItemService } from './item/item.service.ts'
 import {
 	ModifierGroupCreateDto,
@@ -30,7 +30,7 @@ import {
 	ModifierGroupFilterDto,
 	ModifierGroupUpdateDto,
 	ModifierGroupWithOptionsDto,
-} from './modifier/modifier.contract.ts'
+} from '@ikki/contract/menu/modifier'
 import type { ModifierService } from './modifier/modifier.service.ts'
 
 interface MenuRouteDeps {

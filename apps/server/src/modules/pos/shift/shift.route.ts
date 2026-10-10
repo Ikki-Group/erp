@@ -3,9 +3,9 @@ import { Elysia } from 'elysia'
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { hasPermission } from '@/shared/auth/permission.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@/shared/schema/index.ts'
+import { EntityRefDto, zq } from '@ikki/contract/schema'
 
 import {
 	ShiftCloseDto,
@@ -13,7 +13,7 @@ import {
 	ShiftDto,
 	ShiftFilterDto,
 	ShiftOpenDto,
-} from './shift.contract.ts'
+} from '@ikki/contract/pos/shift'
 import type { ShiftService } from './shift.service.ts'
 
 // ─── Route Factory ───

@@ -8,7 +8,7 @@ import type {
 	LocationDto,
 	LocationFilterDto,
 	LocationUpdateDto,
-} from './location.contract.ts'
+} from '@ikki/contract/location'
 import { LocationError } from './location.internal.ts'
 import type { LocationRepo } from './location.repo.ts'
 

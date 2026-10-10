@@ -9,7 +9,7 @@ import type { Infra } from '@/shared/module.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import { hashPassword } from '@/shared/utils/index.ts'
 
-import type { UserCreateDto, UserResetPasswordDto, UserUpdateDto } from './user.contract.ts'
+import type { UserCreateDto, UserResetPasswordDto, UserUpdateDto } from '@ikki/contract/iam/user'
 import { UserError, uniqueFields } from './user.internal.ts'
 import type { UserRepo } from './user.repo.ts'
 

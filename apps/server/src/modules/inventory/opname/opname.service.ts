@@ -20,7 +20,7 @@ import type {
 	OpnameDto,
 	OpnameFilterDto,
 	OpnameUpdateCountsDto,
-} from './opname.contract.ts'
+} from '@ikki/contract/inventory/opname'
 import { OpnameError } from './opname.internal.ts'
 import type { OpnameRepo } from './opname.repo.ts'
 

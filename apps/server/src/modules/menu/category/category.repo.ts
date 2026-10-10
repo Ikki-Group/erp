@@ -13,7 +13,7 @@ import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
-import type { MenuCategoryDto, MenuCategoryFilterDto } from './category.contract.ts'
+import type { MenuCategoryDto, MenuCategoryFilterDto } from '@ikki/contract/menu/category'
 
 // ─── Types ───
 

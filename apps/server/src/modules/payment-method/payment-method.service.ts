@@ -15,7 +15,7 @@ import type {
 	PaymentMethodFilterDto,
 	PaymentMethodLocationAssignDto,
 	PaymentMethodUpdateDto,
-} from './payment-method.contract.ts'
+} from '@ikki/contract/payment-method'
 import {
 	LocationAssignmentError,
 	PaymentMethodError,

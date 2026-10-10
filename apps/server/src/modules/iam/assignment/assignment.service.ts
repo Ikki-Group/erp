@@ -14,7 +14,7 @@ import type {
 	AssignmentDto,
 	AssignmentFilterDto,
 	AssignmentRemoveDto,
-} from './assignment.contract.ts'
+} from '@ikki/contract/iam/assignment'
 import type { AssignmentRepo } from './assignment.repo.ts'
 
 interface Deps extends Infra {

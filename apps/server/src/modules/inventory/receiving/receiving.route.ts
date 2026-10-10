@@ -2,9 +2,9 @@ import { Elysia } from 'elysia'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
-import { zRes } from '@/shared/http/response.schema.ts'
+import { zRes } from '@ikki/contract/http'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto } from '@/shared/schema/index.ts'
+import { EntityRefDto } from '@ikki/contract/schema'
 
 import {
 	ReceivingConfirmDto,
@@ -14,7 +14,7 @@ import {
 	ReceivingDto,
 	ReceivingFilterDto,
 	ReceivingUpdateDto,
-} from './receiving.contract.ts'
+} from '@ikki/contract/inventory/receiving'
 import type { ReceivingService } from './receiving.service.ts'
 
 // ─── Route Factory ───
