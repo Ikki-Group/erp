@@ -13,18 +13,16 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
 import { Route as DesignSystemIndexRouteImport } from './routes/design-system/index'
 import { Route as DesignSystemButtonsRouteImport } from './routes/design-system/buttons'
 import { Route as DesignSystemCardsRouteImport } from './routes/design-system/cards'
-import { Route as DesignSystemChartsRouteImport } from './routes/design-system/charts'
 import { Route as DesignSystemDataDisplayRouteImport } from './routes/design-system/data-display'
 import { Route as DesignSystemFeedbackRouteImport } from './routes/design-system/feedback'
 import { Route as DesignSystemFormsRouteImport } from './routes/design-system/forms'
 import { Route as DesignSystemNavigationRouteImport } from './routes/design-system/navigation'
 import { Route as DesignSystemOverlaysRouteImport } from './routes/design-system/overlays'
+import { Route as DesignSystemScaffoldsRouteImport } from './routes/design-system/scaffolds'
 import { Route as DesignSystemTablesRouteImport } from './routes/design-system/tables'
-import { Route as AuthenticatedInventoryOpnameRouteImport } from './routes/_authenticated/inventory/opname'
 import { Route as AuthenticatedInventoryStockRouteImport } from './routes/_authenticated/inventory/stock'
 import { Route as AuthenticatedMasterRecipesRouteImport } from './routes/_authenticated/master/recipes'
 import { Route as AuthenticatedPosNewOrderRouteImport } from './routes/_authenticated/pos/new-order'
@@ -34,22 +32,22 @@ import { Route as AuthenticatedSettingsAccessControlRouteImport } from './routes
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings/audit'
 import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings/company'
 import { Route as AuthenticatedSettingsLocationStaffRouteImport } from './routes/_authenticated/settings/location-staff'
+import { Route as AuthenticatedInventoryOpnameIndexRouteImport } from './routes/_authenticated/inventory/opname/index'
+import { Route as AuthenticatedInventoryOpnameOpnameIdRouteImport } from './routes/_authenticated/inventory/opname/$opnameId'
 import { Route as AuthenticatedInventoryReceivingIndexRouteImport } from './routes/_authenticated/inventory/receiving/index'
+import { Route as AuthenticatedInventoryReceivingReceivingIdRouteImport } from './routes/_authenticated/inventory/receiving/$receivingId'
 import { Route as AuthenticatedInventoryReceivingNewRouteImport } from './routes/_authenticated/inventory/receiving/new'
 import { Route as AuthenticatedInventoryTransfersIndexRouteImport } from './routes/_authenticated/inventory/transfers/index'
+import { Route as AuthenticatedInventoryTransfersTransferIdRouteImport } from './routes/_authenticated/inventory/transfers/$transferId'
 import { Route as AuthenticatedInventoryTransfersNewRouteImport } from './routes/_authenticated/inventory/transfers/new'
 import { Route as AuthenticatedMasterMaterialsIndexRouteImport } from './routes/_authenticated/master/materials/index'
-import { Route as AuthenticatedMasterMaterialsMaterialIdRouteImport } from './routes/_authenticated/master/materials/$materialId'
 import { Route as AuthenticatedMasterMaterialsNewRouteImport } from './routes/_authenticated/master/materials/new'
 import { Route as AuthenticatedMasterMenuIndexRouteImport } from './routes/_authenticated/master/menu/index'
 import { Route as AuthenticatedMasterPaymentMethodsIndexRouteImport } from './routes/_authenticated/master/payment-methods/index'
-import { Route as AuthenticatedMasterPaymentMethodsPaymentMethodIdRouteImport } from './routes/_authenticated/master/payment-methods/$paymentMethodId'
 import { Route as AuthenticatedMasterPaymentMethodsNewRouteImport } from './routes/_authenticated/master/payment-methods/new'
 import { Route as AuthenticatedMasterSuppliersIndexRouteImport } from './routes/_authenticated/master/suppliers/index'
-import { Route as AuthenticatedMasterSuppliersSupplierIdRouteImport } from './routes/_authenticated/master/suppliers/$supplierId'
 import { Route as AuthenticatedMasterSuppliersNewRouteImport } from './routes/_authenticated/master/suppliers/new'
 import { Route as AuthenticatedMasterUomIndexRouteImport } from './routes/_authenticated/master/uom/index'
-import { Route as AuthenticatedMasterUomUomIdRouteImport } from './routes/_authenticated/master/uom/$uomId'
 import { Route as AuthenticatedMasterUomNewRouteImport } from './routes/_authenticated/master/uom/new'
 import { Route as AuthenticatedPosTablesIndexRouteImport } from './routes/_authenticated/pos/tables/index'
 import { Route as AuthenticatedPosTablesTableIdRouteImport } from './routes/_authenticated/pos/tables/$tableId'
@@ -59,14 +57,25 @@ import { Route as AuthenticatedPosVouchersVoucherIdRouteImport } from './routes/
 import { Route as AuthenticatedPosVouchersNewRouteImport } from './routes/_authenticated/pos/vouchers/new'
 import { Route as AuthenticatedSettingsLocationsIndexRouteImport } from './routes/_authenticated/settings/locations/index'
 import { Route as AuthenticatedSettingsLocationsNewRouteImport } from './routes/_authenticated/settings/locations/new'
-import { Route as AuthenticatedSettingsRolesRoleIdRouteImport } from './routes/_authenticated/settings/roles/$roleId'
 import { Route as AuthenticatedSettingsRolesNewRouteImport } from './routes/_authenticated/settings/roles/new'
-import { Route as AuthenticatedSettingsUsersUserIdRouteImport } from './routes/_authenticated/settings/users/$userId'
 import { Route as AuthenticatedSettingsUsersNewRouteImport } from './routes/_authenticated/settings/users/new'
-import { Route as AuthenticatedMasterMenuItemsItemIdRouteImport } from './routes/_authenticated/master/menu/items/$itemId'
+import { Route as AuthenticatedMasterMaterialsMaterialIdIndexRouteImport } from './routes/_authenticated/master/materials/$materialId.index'
+import { Route as AuthenticatedMasterMaterialsMaterialIdEditRouteImport } from './routes/_authenticated/master/materials/$materialId.edit'
 import { Route as AuthenticatedMasterMenuItemsNewRouteImport } from './routes/_authenticated/master/menu/items/new'
+import { Route as AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRouteImport } from './routes/_authenticated/master/payment-methods/$paymentMethodId.index'
+import { Route as AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRouteImport } from './routes/_authenticated/master/payment-methods/$paymentMethodId.edit'
+import { Route as AuthenticatedMasterSuppliersSupplierIdIndexRouteImport } from './routes/_authenticated/master/suppliers/$supplierId.index'
+import { Route as AuthenticatedMasterSuppliersSupplierIdEditRouteImport } from './routes/_authenticated/master/suppliers/$supplierId.edit'
+import { Route as AuthenticatedMasterUomUomIdIndexRouteImport } from './routes/_authenticated/master/uom/$uomId.index'
+import { Route as AuthenticatedMasterUomUomIdEditRouteImport } from './routes/_authenticated/master/uom/$uomId.edit'
 import { Route as AuthenticatedSettingsLocationsLocationIdIndexRouteImport } from './routes/_authenticated/settings/locations/$locationId.index'
 import { Route as AuthenticatedSettingsLocationsLocationIdEditRouteImport } from './routes/_authenticated/settings/locations/$locationId.edit'
+import { Route as AuthenticatedSettingsRolesRoleIdIndexRouteImport } from './routes/_authenticated/settings/roles/$roleId.index'
+import { Route as AuthenticatedSettingsRolesRoleIdEditRouteImport } from './routes/_authenticated/settings/roles/$roleId.edit'
+import { Route as AuthenticatedSettingsUsersUserIdIndexRouteImport } from './routes/_authenticated/settings/users/$userId.index'
+import { Route as AuthenticatedSettingsUsersUserIdEditRouteImport } from './routes/_authenticated/settings/users/$userId.edit'
+import { Route as AuthenticatedMasterMenuItemsItemIdIndexRouteImport } from './routes/_authenticated/master/menu/items/$itemId.index'
+import { Route as AuthenticatedMasterMenuItemsItemIdEditRouteImport } from './routes/_authenticated/master/menu/items/$itemId.edit'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -87,11 +96,6 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedDemoRoute = AuthenticatedDemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const DesignSystemIndexRoute = DesignSystemIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -105,11 +109,6 @@ const DesignSystemButtonsRoute = DesignSystemButtonsRouteImport.update({
 const DesignSystemCardsRoute = DesignSystemCardsRouteImport.update({
   id: '/cards',
   path: '/cards',
-  getParentRoute: () => DesignSystemRoute,
-} as any)
-const DesignSystemChartsRoute = DesignSystemChartsRouteImport.update({
-  id: '/charts',
-  path: '/charts',
   getParentRoute: () => DesignSystemRoute,
 } as any)
 const DesignSystemDataDisplayRoute = DesignSystemDataDisplayRouteImport.update({
@@ -137,17 +136,16 @@ const DesignSystemOverlaysRoute = DesignSystemOverlaysRouteImport.update({
   path: '/overlays',
   getParentRoute: () => DesignSystemRoute,
 } as any)
+const DesignSystemScaffoldsRoute = DesignSystemScaffoldsRouteImport.update({
+  id: '/scaffolds',
+  path: '/scaffolds',
+  getParentRoute: () => DesignSystemRoute,
+} as any)
 const DesignSystemTablesRoute = DesignSystemTablesRouteImport.update({
   id: '/tables',
   path: '/tables',
   getParentRoute: () => DesignSystemRoute,
 } as any)
-const AuthenticatedInventoryOpnameRoute =
-  AuthenticatedInventoryOpnameRouteImport.update({
-    id: '/inventory/opname',
-    path: '/inventory/opname',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedInventoryStockRoute =
   AuthenticatedInventoryStockRouteImport.update({
     id: '/inventory/stock',
@@ -200,10 +198,28 @@ const AuthenticatedSettingsLocationStaffRoute =
     path: '/settings/location-staff',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedInventoryOpnameIndexRoute =
+  AuthenticatedInventoryOpnameIndexRouteImport.update({
+    id: '/inventory/opname/',
+    path: '/inventory/opname/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedInventoryOpnameOpnameIdRoute =
+  AuthenticatedInventoryOpnameOpnameIdRouteImport.update({
+    id: '/inventory/opname/$opnameId',
+    path: '/inventory/opname/$opnameId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedInventoryReceivingIndexRoute =
   AuthenticatedInventoryReceivingIndexRouteImport.update({
     id: '/inventory/receiving/',
     path: '/inventory/receiving/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedInventoryReceivingReceivingIdRoute =
+  AuthenticatedInventoryReceivingReceivingIdRouteImport.update({
+    id: '/inventory/receiving/$receivingId',
+    path: '/inventory/receiving/$receivingId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedInventoryReceivingNewRoute =
@@ -218,6 +234,12 @@ const AuthenticatedInventoryTransfersIndexRoute =
     path: '/inventory/transfers/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedInventoryTransfersTransferIdRoute =
+  AuthenticatedInventoryTransfersTransferIdRouteImport.update({
+    id: '/inventory/transfers/$transferId',
+    path: '/inventory/transfers/$transferId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedInventoryTransfersNewRoute =
   AuthenticatedInventoryTransfersNewRouteImport.update({
     id: '/inventory/transfers/new',
@@ -228,12 +250,6 @@ const AuthenticatedMasterMaterialsIndexRoute =
   AuthenticatedMasterMaterialsIndexRouteImport.update({
     id: '/master/materials/',
     path: '/master/materials/',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedMasterMaterialsMaterialIdRoute =
-  AuthenticatedMasterMaterialsMaterialIdRouteImport.update({
-    id: '/master/materials/$materialId',
-    path: '/master/materials/$materialId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedMasterMaterialsNewRoute =
@@ -254,12 +270,6 @@ const AuthenticatedMasterPaymentMethodsIndexRoute =
     path: '/master/payment-methods/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute =
-  AuthenticatedMasterPaymentMethodsPaymentMethodIdRouteImport.update({
-    id: '/master/payment-methods/$paymentMethodId',
-    path: '/master/payment-methods/$paymentMethodId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedMasterPaymentMethodsNewRoute =
   AuthenticatedMasterPaymentMethodsNewRouteImport.update({
     id: '/master/payment-methods/new',
@@ -272,12 +282,6 @@ const AuthenticatedMasterSuppliersIndexRoute =
     path: '/master/suppliers/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedMasterSuppliersSupplierIdRoute =
-  AuthenticatedMasterSuppliersSupplierIdRouteImport.update({
-    id: '/master/suppliers/$supplierId',
-    path: '/master/suppliers/$supplierId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedMasterSuppliersNewRoute =
   AuthenticatedMasterSuppliersNewRouteImport.update({
     id: '/master/suppliers/new',
@@ -288,12 +292,6 @@ const AuthenticatedMasterUomIndexRoute =
   AuthenticatedMasterUomIndexRouteImport.update({
     id: '/master/uom/',
     path: '/master/uom/',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedMasterUomUomIdRoute =
-  AuthenticatedMasterUomUomIdRouteImport.update({
-    id: '/master/uom/$uomId',
-    path: '/master/uom/$uomId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedMasterUomNewRoute =
@@ -350,22 +348,10 @@ const AuthenticatedSettingsLocationsNewRoute =
     path: '/settings/locations/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedSettingsRolesRoleIdRoute =
-  AuthenticatedSettingsRolesRoleIdRouteImport.update({
-    id: '/settings/roles/$roleId',
-    path: '/settings/roles/$roleId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedSettingsRolesNewRoute =
   AuthenticatedSettingsRolesNewRouteImport.update({
     id: '/settings/roles/new',
     path: '/settings/roles/new',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedSettingsUsersUserIdRoute =
-  AuthenticatedSettingsUsersUserIdRouteImport.update({
-    id: '/settings/users/$userId',
-    path: '/settings/users/$userId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedSettingsUsersNewRoute =
@@ -374,16 +360,58 @@ const AuthenticatedSettingsUsersNewRoute =
     path: '/settings/users/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedMasterMenuItemsItemIdRoute =
-  AuthenticatedMasterMenuItemsItemIdRouteImport.update({
-    id: '/master/menu/items/$itemId',
-    path: '/master/menu/items/$itemId',
+const AuthenticatedMasterMaterialsMaterialIdIndexRoute =
+  AuthenticatedMasterMaterialsMaterialIdIndexRouteImport.update({
+    id: '/master/materials/$materialId/',
+    path: '/master/materials/$materialId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterMaterialsMaterialIdEditRoute =
+  AuthenticatedMasterMaterialsMaterialIdEditRouteImport.update({
+    id: '/master/materials/$materialId/edit',
+    path: '/master/materials/$materialId/edit',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedMasterMenuItemsNewRoute =
   AuthenticatedMasterMenuItemsNewRouteImport.update({
     id: '/master/menu/items/new',
     path: '/master/menu/items/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRoute =
+  AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRouteImport.update({
+    id: '/master/payment-methods/$paymentMethodId/',
+    path: '/master/payment-methods/$paymentMethodId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRoute =
+  AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRouteImport.update({
+    id: '/master/payment-methods/$paymentMethodId/edit',
+    path: '/master/payment-methods/$paymentMethodId/edit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterSuppliersSupplierIdIndexRoute =
+  AuthenticatedMasterSuppliersSupplierIdIndexRouteImport.update({
+    id: '/master/suppliers/$supplierId/',
+    path: '/master/suppliers/$supplierId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterSuppliersSupplierIdEditRoute =
+  AuthenticatedMasterSuppliersSupplierIdEditRouteImport.update({
+    id: '/master/suppliers/$supplierId/edit',
+    path: '/master/suppliers/$supplierId/edit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterUomUomIdIndexRoute =
+  AuthenticatedMasterUomUomIdIndexRouteImport.update({
+    id: '/master/uom/$uomId/',
+    path: '/master/uom/$uomId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterUomUomIdEditRoute =
+  AuthenticatedMasterUomUomIdEditRouteImport.update({
+    id: '/master/uom/$uomId/edit',
+    path: '/master/uom/$uomId/edit',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedSettingsLocationsLocationIdIndexRoute =
@@ -398,23 +426,57 @@ const AuthenticatedSettingsLocationsLocationIdEditRoute =
     path: '/settings/locations/$locationId/edit',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSettingsRolesRoleIdIndexRoute =
+  AuthenticatedSettingsRolesRoleIdIndexRouteImport.update({
+    id: '/settings/roles/$roleId/',
+    path: '/settings/roles/$roleId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsRolesRoleIdEditRoute =
+  AuthenticatedSettingsRolesRoleIdEditRouteImport.update({
+    id: '/settings/roles/$roleId/edit',
+    path: '/settings/roles/$roleId/edit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsUsersUserIdIndexRoute =
+  AuthenticatedSettingsUsersUserIdIndexRouteImport.update({
+    id: '/settings/users/$userId/',
+    path: '/settings/users/$userId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsUsersUserIdEditRoute =
+  AuthenticatedSettingsUsersUserIdEditRouteImport.update({
+    id: '/settings/users/$userId/edit',
+    path: '/settings/users/$userId/edit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterMenuItemsItemIdIndexRoute =
+  AuthenticatedMasterMenuItemsItemIdIndexRouteImport.update({
+    id: '/master/menu/items/$itemId/',
+    path: '/master/menu/items/$itemId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterMenuItemsItemIdEditRoute =
+  AuthenticatedMasterMenuItemsItemIdEditRouteImport.update({
+    id: '/master/menu/items/$itemId/edit',
+    path: '/master/menu/items/$itemId/edit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/design-system': typeof DesignSystemRouteWithChildren
   '/login': typeof LoginRoute
-  '/demo': typeof AuthenticatedDemoRoute
   '/design-system/buttons': typeof DesignSystemButtonsRoute
   '/design-system/cards': typeof DesignSystemCardsRoute
-  '/design-system/charts': typeof DesignSystemChartsRoute
   '/design-system/data-display': typeof DesignSystemDataDisplayRoute
   '/design-system/feedback': typeof DesignSystemFeedbackRoute
   '/design-system/forms': typeof DesignSystemFormsRoute
   '/design-system/navigation': typeof DesignSystemNavigationRoute
   '/design-system/overlays': typeof DesignSystemOverlaysRoute
+  '/design-system/scaffolds': typeof DesignSystemScaffoldsRoute
   '/design-system/tables': typeof DesignSystemTablesRoute
   '/design-system/': typeof DesignSystemIndexRoute
-  '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
@@ -424,25 +486,23 @@ export interface FileRoutesByFullPath {
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
+  '/inventory/opname/$opnameId': typeof AuthenticatedInventoryOpnameOpnameIdRoute
+  '/inventory/receiving/$receivingId': typeof AuthenticatedInventoryReceivingReceivingIdRoute
   '/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
+  '/inventory/transfers/$transferId': typeof AuthenticatedInventoryTransfersTransferIdRoute
   '/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
-  '/master/materials/$materialId': typeof AuthenticatedMasterMaterialsMaterialIdRoute
   '/master/materials/new': typeof AuthenticatedMasterMaterialsNewRoute
-  '/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
   '/master/payment-methods/new': typeof AuthenticatedMasterPaymentMethodsNewRoute
-  '/master/suppliers/$supplierId': typeof AuthenticatedMasterSuppliersSupplierIdRoute
   '/master/suppliers/new': typeof AuthenticatedMasterSuppliersNewRoute
-  '/master/uom/$uomId': typeof AuthenticatedMasterUomUomIdRoute
   '/master/uom/new': typeof AuthenticatedMasterUomNewRoute
   '/pos/tables/$tableId': typeof AuthenticatedPosTablesTableIdRoute
   '/pos/tables/new': typeof AuthenticatedPosTablesNewRoute
   '/pos/vouchers/$voucherId': typeof AuthenticatedPosVouchersVoucherIdRoute
   '/pos/vouchers/new': typeof AuthenticatedPosVouchersNewRoute
   '/settings/locations/new': typeof AuthenticatedSettingsLocationsNewRoute
-  '/settings/roles/$roleId': typeof AuthenticatedSettingsRolesRoleIdRoute
   '/settings/roles/new': typeof AuthenticatedSettingsRolesNewRoute
-  '/settings/users/$userId': typeof AuthenticatedSettingsUsersUserIdRoute
   '/settings/users/new': typeof AuthenticatedSettingsUsersNewRoute
+  '/inventory/opname/': typeof AuthenticatedInventoryOpnameIndexRoute
   '/inventory/receiving/': typeof AuthenticatedInventoryReceivingIndexRoute
   '/inventory/transfers/': typeof AuthenticatedInventoryTransfersIndexRoute
   '/master/materials/': typeof AuthenticatedMasterMaterialsIndexRoute
@@ -453,26 +513,37 @@ export interface FileRoutesByFullPath {
   '/pos/tables/': typeof AuthenticatedPosTablesIndexRoute
   '/pos/vouchers/': typeof AuthenticatedPosVouchersIndexRoute
   '/settings/locations/': typeof AuthenticatedSettingsLocationsIndexRoute
-  '/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
+  '/master/materials/$materialId/edit': typeof AuthenticatedMasterMaterialsMaterialIdEditRoute
   '/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
+  '/master/payment-methods/$paymentMethodId/edit': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRoute
+  '/master/suppliers/$supplierId/edit': typeof AuthenticatedMasterSuppliersSupplierIdEditRoute
+  '/master/uom/$uomId/edit': typeof AuthenticatedMasterUomUomIdEditRoute
   '/settings/locations/$locationId/edit': typeof AuthenticatedSettingsLocationsLocationIdEditRoute
+  '/settings/roles/$roleId/edit': typeof AuthenticatedSettingsRolesRoleIdEditRoute
+  '/settings/users/$userId/edit': typeof AuthenticatedSettingsUsersUserIdEditRoute
+  '/master/materials/$materialId/': typeof AuthenticatedMasterMaterialsMaterialIdIndexRoute
+  '/master/payment-methods/$paymentMethodId/': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRoute
+  '/master/suppliers/$supplierId/': typeof AuthenticatedMasterSuppliersSupplierIdIndexRoute
+  '/master/uom/$uomId/': typeof AuthenticatedMasterUomUomIdIndexRoute
   '/settings/locations/$locationId/': typeof AuthenticatedSettingsLocationsLocationIdIndexRoute
+  '/settings/roles/$roleId/': typeof AuthenticatedSettingsRolesRoleIdIndexRoute
+  '/settings/users/$userId/': typeof AuthenticatedSettingsUsersUserIdIndexRoute
+  '/master/menu/items/$itemId/edit': typeof AuthenticatedMasterMenuItemsItemIdEditRoute
+  '/master/menu/items/$itemId/': typeof AuthenticatedMasterMenuItemsItemIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/demo': typeof AuthenticatedDemoRoute
   '/design-system/buttons': typeof DesignSystemButtonsRoute
   '/design-system/cards': typeof DesignSystemCardsRoute
-  '/design-system/charts': typeof DesignSystemChartsRoute
   '/design-system/data-display': typeof DesignSystemDataDisplayRoute
   '/design-system/feedback': typeof DesignSystemFeedbackRoute
   '/design-system/forms': typeof DesignSystemFormsRoute
   '/design-system/navigation': typeof DesignSystemNavigationRoute
   '/design-system/overlays': typeof DesignSystemOverlaysRoute
+  '/design-system/scaffolds': typeof DesignSystemScaffoldsRoute
   '/design-system/tables': typeof DesignSystemTablesRoute
   '/': typeof AuthenticatedIndexRoute
   '/design-system': typeof DesignSystemIndexRoute
-  '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
@@ -482,25 +553,23 @@ export interface FileRoutesByTo {
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
+  '/inventory/opname/$opnameId': typeof AuthenticatedInventoryOpnameOpnameIdRoute
+  '/inventory/receiving/$receivingId': typeof AuthenticatedInventoryReceivingReceivingIdRoute
   '/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
+  '/inventory/transfers/$transferId': typeof AuthenticatedInventoryTransfersTransferIdRoute
   '/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
-  '/master/materials/$materialId': typeof AuthenticatedMasterMaterialsMaterialIdRoute
   '/master/materials/new': typeof AuthenticatedMasterMaterialsNewRoute
-  '/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
   '/master/payment-methods/new': typeof AuthenticatedMasterPaymentMethodsNewRoute
-  '/master/suppliers/$supplierId': typeof AuthenticatedMasterSuppliersSupplierIdRoute
   '/master/suppliers/new': typeof AuthenticatedMasterSuppliersNewRoute
-  '/master/uom/$uomId': typeof AuthenticatedMasterUomUomIdRoute
   '/master/uom/new': typeof AuthenticatedMasterUomNewRoute
   '/pos/tables/$tableId': typeof AuthenticatedPosTablesTableIdRoute
   '/pos/tables/new': typeof AuthenticatedPosTablesNewRoute
   '/pos/vouchers/$voucherId': typeof AuthenticatedPosVouchersVoucherIdRoute
   '/pos/vouchers/new': typeof AuthenticatedPosVouchersNewRoute
   '/settings/locations/new': typeof AuthenticatedSettingsLocationsNewRoute
-  '/settings/roles/$roleId': typeof AuthenticatedSettingsRolesRoleIdRoute
   '/settings/roles/new': typeof AuthenticatedSettingsRolesNewRoute
-  '/settings/users/$userId': typeof AuthenticatedSettingsUsersUserIdRoute
   '/settings/users/new': typeof AuthenticatedSettingsUsersNewRoute
+  '/inventory/opname': typeof AuthenticatedInventoryOpnameIndexRoute
   '/inventory/receiving': typeof AuthenticatedInventoryReceivingIndexRoute
   '/inventory/transfers': typeof AuthenticatedInventoryTransfersIndexRoute
   '/master/materials': typeof AuthenticatedMasterMaterialsIndexRoute
@@ -511,29 +580,40 @@ export interface FileRoutesByTo {
   '/pos/tables': typeof AuthenticatedPosTablesIndexRoute
   '/pos/vouchers': typeof AuthenticatedPosVouchersIndexRoute
   '/settings/locations': typeof AuthenticatedSettingsLocationsIndexRoute
-  '/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
+  '/master/materials/$materialId/edit': typeof AuthenticatedMasterMaterialsMaterialIdEditRoute
   '/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
+  '/master/payment-methods/$paymentMethodId/edit': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRoute
+  '/master/suppliers/$supplierId/edit': typeof AuthenticatedMasterSuppliersSupplierIdEditRoute
+  '/master/uom/$uomId/edit': typeof AuthenticatedMasterUomUomIdEditRoute
   '/settings/locations/$locationId/edit': typeof AuthenticatedSettingsLocationsLocationIdEditRoute
+  '/settings/roles/$roleId/edit': typeof AuthenticatedSettingsRolesRoleIdEditRoute
+  '/settings/users/$userId/edit': typeof AuthenticatedSettingsUsersUserIdEditRoute
+  '/master/materials/$materialId': typeof AuthenticatedMasterMaterialsMaterialIdIndexRoute
+  '/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRoute
+  '/master/suppliers/$supplierId': typeof AuthenticatedMasterSuppliersSupplierIdIndexRoute
+  '/master/uom/$uomId': typeof AuthenticatedMasterUomUomIdIndexRoute
   '/settings/locations/$locationId': typeof AuthenticatedSettingsLocationsLocationIdIndexRoute
+  '/settings/roles/$roleId': typeof AuthenticatedSettingsRolesRoleIdIndexRoute
+  '/settings/users/$userId': typeof AuthenticatedSettingsUsersUserIdIndexRoute
+  '/master/menu/items/$itemId/edit': typeof AuthenticatedMasterMenuItemsItemIdEditRoute
+  '/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/design-system': typeof DesignSystemRouteWithChildren
   '/login': typeof LoginRoute
-  '/_authenticated/demo': typeof AuthenticatedDemoRoute
   '/design-system/buttons': typeof DesignSystemButtonsRoute
   '/design-system/cards': typeof DesignSystemCardsRoute
-  '/design-system/charts': typeof DesignSystemChartsRoute
   '/design-system/data-display': typeof DesignSystemDataDisplayRoute
   '/design-system/feedback': typeof DesignSystemFeedbackRoute
   '/design-system/forms': typeof DesignSystemFormsRoute
   '/design-system/navigation': typeof DesignSystemNavigationRoute
   '/design-system/overlays': typeof DesignSystemOverlaysRoute
+  '/design-system/scaffolds': typeof DesignSystemScaffoldsRoute
   '/design-system/tables': typeof DesignSystemTablesRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/design-system/': typeof DesignSystemIndexRoute
-  '/_authenticated/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/_authenticated/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/_authenticated/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/_authenticated/pos/new-order': typeof AuthenticatedPosNewOrderRoute
@@ -543,25 +623,23 @@ export interface FileRoutesById {
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/_authenticated/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
+  '/_authenticated/inventory/opname/$opnameId': typeof AuthenticatedInventoryOpnameOpnameIdRoute
+  '/_authenticated/inventory/receiving/$receivingId': typeof AuthenticatedInventoryReceivingReceivingIdRoute
   '/_authenticated/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
+  '/_authenticated/inventory/transfers/$transferId': typeof AuthenticatedInventoryTransfersTransferIdRoute
   '/_authenticated/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
-  '/_authenticated/master/materials/$materialId': typeof AuthenticatedMasterMaterialsMaterialIdRoute
   '/_authenticated/master/materials/new': typeof AuthenticatedMasterMaterialsNewRoute
-  '/_authenticated/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
   '/_authenticated/master/payment-methods/new': typeof AuthenticatedMasterPaymentMethodsNewRoute
-  '/_authenticated/master/suppliers/$supplierId': typeof AuthenticatedMasterSuppliersSupplierIdRoute
   '/_authenticated/master/suppliers/new': typeof AuthenticatedMasterSuppliersNewRoute
-  '/_authenticated/master/uom/$uomId': typeof AuthenticatedMasterUomUomIdRoute
   '/_authenticated/master/uom/new': typeof AuthenticatedMasterUomNewRoute
   '/_authenticated/pos/tables/$tableId': typeof AuthenticatedPosTablesTableIdRoute
   '/_authenticated/pos/tables/new': typeof AuthenticatedPosTablesNewRoute
   '/_authenticated/pos/vouchers/$voucherId': typeof AuthenticatedPosVouchersVoucherIdRoute
   '/_authenticated/pos/vouchers/new': typeof AuthenticatedPosVouchersNewRoute
   '/_authenticated/settings/locations/new': typeof AuthenticatedSettingsLocationsNewRoute
-  '/_authenticated/settings/roles/$roleId': typeof AuthenticatedSettingsRolesRoleIdRoute
   '/_authenticated/settings/roles/new': typeof AuthenticatedSettingsRolesNewRoute
-  '/_authenticated/settings/users/$userId': typeof AuthenticatedSettingsUsersUserIdRoute
   '/_authenticated/settings/users/new': typeof AuthenticatedSettingsUsersNewRoute
+  '/_authenticated/inventory/opname/': typeof AuthenticatedInventoryOpnameIndexRoute
   '/_authenticated/inventory/receiving/': typeof AuthenticatedInventoryReceivingIndexRoute
   '/_authenticated/inventory/transfers/': typeof AuthenticatedInventoryTransfersIndexRoute
   '/_authenticated/master/materials/': typeof AuthenticatedMasterMaterialsIndexRoute
@@ -572,10 +650,23 @@ export interface FileRoutesById {
   '/_authenticated/pos/tables/': typeof AuthenticatedPosTablesIndexRoute
   '/_authenticated/pos/vouchers/': typeof AuthenticatedPosVouchersIndexRoute
   '/_authenticated/settings/locations/': typeof AuthenticatedSettingsLocationsIndexRoute
-  '/_authenticated/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
+  '/_authenticated/master/materials/$materialId/edit': typeof AuthenticatedMasterMaterialsMaterialIdEditRoute
   '/_authenticated/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
+  '/_authenticated/master/payment-methods/$paymentMethodId/edit': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRoute
+  '/_authenticated/master/suppliers/$supplierId/edit': typeof AuthenticatedMasterSuppliersSupplierIdEditRoute
+  '/_authenticated/master/uom/$uomId/edit': typeof AuthenticatedMasterUomUomIdEditRoute
   '/_authenticated/settings/locations/$locationId/edit': typeof AuthenticatedSettingsLocationsLocationIdEditRoute
+  '/_authenticated/settings/roles/$roleId/edit': typeof AuthenticatedSettingsRolesRoleIdEditRoute
+  '/_authenticated/settings/users/$userId/edit': typeof AuthenticatedSettingsUsersUserIdEditRoute
+  '/_authenticated/master/materials/$materialId/': typeof AuthenticatedMasterMaterialsMaterialIdIndexRoute
+  '/_authenticated/master/payment-methods/$paymentMethodId/': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRoute
+  '/_authenticated/master/suppliers/$supplierId/': typeof AuthenticatedMasterSuppliersSupplierIdIndexRoute
+  '/_authenticated/master/uom/$uomId/': typeof AuthenticatedMasterUomUomIdIndexRoute
   '/_authenticated/settings/locations/$locationId/': typeof AuthenticatedSettingsLocationsLocationIdIndexRoute
+  '/_authenticated/settings/roles/$roleId/': typeof AuthenticatedSettingsRolesRoleIdIndexRoute
+  '/_authenticated/settings/users/$userId/': typeof AuthenticatedSettingsUsersUserIdIndexRoute
+  '/_authenticated/master/menu/items/$itemId/edit': typeof AuthenticatedMasterMenuItemsItemIdEditRoute
+  '/_authenticated/master/menu/items/$itemId/': typeof AuthenticatedMasterMenuItemsItemIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -583,18 +674,16 @@ export interface FileRouteTypes {
     | '/'
     | '/design-system'
     | '/login'
-    | '/demo'
     | '/design-system/buttons'
     | '/design-system/cards'
-    | '/design-system/charts'
     | '/design-system/data-display'
     | '/design-system/feedback'
     | '/design-system/forms'
     | '/design-system/navigation'
     | '/design-system/overlays'
+    | '/design-system/scaffolds'
     | '/design-system/tables'
     | '/design-system/'
-    | '/inventory/opname'
     | '/inventory/stock'
     | '/master/recipes'
     | '/pos/new-order'
@@ -604,25 +693,23 @@ export interface FileRouteTypes {
     | '/settings/audit'
     | '/settings/company'
     | '/settings/location-staff'
+    | '/inventory/opname/$opnameId'
+    | '/inventory/receiving/$receivingId'
     | '/inventory/receiving/new'
+    | '/inventory/transfers/$transferId'
     | '/inventory/transfers/new'
-    | '/master/materials/$materialId'
     | '/master/materials/new'
-    | '/master/payment-methods/$paymentMethodId'
     | '/master/payment-methods/new'
-    | '/master/suppliers/$supplierId'
     | '/master/suppliers/new'
-    | '/master/uom/$uomId'
     | '/master/uom/new'
     | '/pos/tables/$tableId'
     | '/pos/tables/new'
     | '/pos/vouchers/$voucherId'
     | '/pos/vouchers/new'
     | '/settings/locations/new'
-    | '/settings/roles/$roleId'
     | '/settings/roles/new'
-    | '/settings/users/$userId'
     | '/settings/users/new'
+    | '/inventory/opname/'
     | '/inventory/receiving/'
     | '/inventory/transfers/'
     | '/master/materials/'
@@ -633,26 +720,37 @@ export interface FileRouteTypes {
     | '/pos/tables/'
     | '/pos/vouchers/'
     | '/settings/locations/'
-    | '/master/menu/items/$itemId'
+    | '/master/materials/$materialId/edit'
     | '/master/menu/items/new'
+    | '/master/payment-methods/$paymentMethodId/edit'
+    | '/master/suppliers/$supplierId/edit'
+    | '/master/uom/$uomId/edit'
     | '/settings/locations/$locationId/edit'
+    | '/settings/roles/$roleId/edit'
+    | '/settings/users/$userId/edit'
+    | '/master/materials/$materialId/'
+    | '/master/payment-methods/$paymentMethodId/'
+    | '/master/suppliers/$supplierId/'
+    | '/master/uom/$uomId/'
     | '/settings/locations/$locationId/'
+    | '/settings/roles/$roleId/'
+    | '/settings/users/$userId/'
+    | '/master/menu/items/$itemId/edit'
+    | '/master/menu/items/$itemId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
-    | '/demo'
     | '/design-system/buttons'
     | '/design-system/cards'
-    | '/design-system/charts'
     | '/design-system/data-display'
     | '/design-system/feedback'
     | '/design-system/forms'
     | '/design-system/navigation'
     | '/design-system/overlays'
+    | '/design-system/scaffolds'
     | '/design-system/tables'
     | '/'
     | '/design-system'
-    | '/inventory/opname'
     | '/inventory/stock'
     | '/master/recipes'
     | '/pos/new-order'
@@ -662,25 +760,23 @@ export interface FileRouteTypes {
     | '/settings/audit'
     | '/settings/company'
     | '/settings/location-staff'
+    | '/inventory/opname/$opnameId'
+    | '/inventory/receiving/$receivingId'
     | '/inventory/receiving/new'
+    | '/inventory/transfers/$transferId'
     | '/inventory/transfers/new'
-    | '/master/materials/$materialId'
     | '/master/materials/new'
-    | '/master/payment-methods/$paymentMethodId'
     | '/master/payment-methods/new'
-    | '/master/suppliers/$supplierId'
     | '/master/suppliers/new'
-    | '/master/uom/$uomId'
     | '/master/uom/new'
     | '/pos/tables/$tableId'
     | '/pos/tables/new'
     | '/pos/vouchers/$voucherId'
     | '/pos/vouchers/new'
     | '/settings/locations/new'
-    | '/settings/roles/$roleId'
     | '/settings/roles/new'
-    | '/settings/users/$userId'
     | '/settings/users/new'
+    | '/inventory/opname'
     | '/inventory/receiving'
     | '/inventory/transfers'
     | '/master/materials'
@@ -691,28 +787,39 @@ export interface FileRouteTypes {
     | '/pos/tables'
     | '/pos/vouchers'
     | '/settings/locations'
-    | '/master/menu/items/$itemId'
+    | '/master/materials/$materialId/edit'
     | '/master/menu/items/new'
+    | '/master/payment-methods/$paymentMethodId/edit'
+    | '/master/suppliers/$supplierId/edit'
+    | '/master/uom/$uomId/edit'
     | '/settings/locations/$locationId/edit'
+    | '/settings/roles/$roleId/edit'
+    | '/settings/users/$userId/edit'
+    | '/master/materials/$materialId'
+    | '/master/payment-methods/$paymentMethodId'
+    | '/master/suppliers/$supplierId'
+    | '/master/uom/$uomId'
     | '/settings/locations/$locationId'
+    | '/settings/roles/$roleId'
+    | '/settings/users/$userId'
+    | '/master/menu/items/$itemId/edit'
+    | '/master/menu/items/$itemId'
   id:
     | '__root__'
     | '/_authenticated'
     | '/design-system'
     | '/login'
-    | '/_authenticated/demo'
     | '/design-system/buttons'
     | '/design-system/cards'
-    | '/design-system/charts'
     | '/design-system/data-display'
     | '/design-system/feedback'
     | '/design-system/forms'
     | '/design-system/navigation'
     | '/design-system/overlays'
+    | '/design-system/scaffolds'
     | '/design-system/tables'
     | '/_authenticated/'
     | '/design-system/'
-    | '/_authenticated/inventory/opname'
     | '/_authenticated/inventory/stock'
     | '/_authenticated/master/recipes'
     | '/_authenticated/pos/new-order'
@@ -722,25 +829,23 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/company'
     | '/_authenticated/settings/location-staff'
+    | '/_authenticated/inventory/opname/$opnameId'
+    | '/_authenticated/inventory/receiving/$receivingId'
     | '/_authenticated/inventory/receiving/new'
+    | '/_authenticated/inventory/transfers/$transferId'
     | '/_authenticated/inventory/transfers/new'
-    | '/_authenticated/master/materials/$materialId'
     | '/_authenticated/master/materials/new'
-    | '/_authenticated/master/payment-methods/$paymentMethodId'
     | '/_authenticated/master/payment-methods/new'
-    | '/_authenticated/master/suppliers/$supplierId'
     | '/_authenticated/master/suppliers/new'
-    | '/_authenticated/master/uom/$uomId'
     | '/_authenticated/master/uom/new'
     | '/_authenticated/pos/tables/$tableId'
     | '/_authenticated/pos/tables/new'
     | '/_authenticated/pos/vouchers/$voucherId'
     | '/_authenticated/pos/vouchers/new'
     | '/_authenticated/settings/locations/new'
-    | '/_authenticated/settings/roles/$roleId'
     | '/_authenticated/settings/roles/new'
-    | '/_authenticated/settings/users/$userId'
     | '/_authenticated/settings/users/new'
+    | '/_authenticated/inventory/opname/'
     | '/_authenticated/inventory/receiving/'
     | '/_authenticated/inventory/transfers/'
     | '/_authenticated/master/materials/'
@@ -751,10 +856,23 @@ export interface FileRouteTypes {
     | '/_authenticated/pos/tables/'
     | '/_authenticated/pos/vouchers/'
     | '/_authenticated/settings/locations/'
-    | '/_authenticated/master/menu/items/$itemId'
+    | '/_authenticated/master/materials/$materialId/edit'
     | '/_authenticated/master/menu/items/new'
+    | '/_authenticated/master/payment-methods/$paymentMethodId/edit'
+    | '/_authenticated/master/suppliers/$supplierId/edit'
+    | '/_authenticated/master/uom/$uomId/edit'
     | '/_authenticated/settings/locations/$locationId/edit'
+    | '/_authenticated/settings/roles/$roleId/edit'
+    | '/_authenticated/settings/users/$userId/edit'
+    | '/_authenticated/master/materials/$materialId/'
+    | '/_authenticated/master/payment-methods/$paymentMethodId/'
+    | '/_authenticated/master/suppliers/$supplierId/'
+    | '/_authenticated/master/uom/$uomId/'
     | '/_authenticated/settings/locations/$locationId/'
+    | '/_authenticated/settings/roles/$roleId/'
+    | '/_authenticated/settings/users/$userId/'
+    | '/_authenticated/master/menu/items/$itemId/edit'
+    | '/_authenticated/master/menu/items/$itemId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -793,13 +911,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/demo': {
-      id: '/_authenticated/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof AuthenticatedDemoRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/design-system/': {
       id: '/design-system/'
       path: '/'
@@ -819,13 +930,6 @@ declare module '@tanstack/react-router' {
       path: '/cards'
       fullPath: '/design-system/cards'
       preLoaderRoute: typeof DesignSystemCardsRouteImport
-      parentRoute: typeof DesignSystemRoute
-    }
-    '/design-system/charts': {
-      id: '/design-system/charts'
-      path: '/charts'
-      fullPath: '/design-system/charts'
-      preLoaderRoute: typeof DesignSystemChartsRouteImport
       parentRoute: typeof DesignSystemRoute
     }
     '/design-system/data-display': {
@@ -863,19 +967,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignSystemOverlaysRouteImport
       parentRoute: typeof DesignSystemRoute
     }
+    '/design-system/scaffolds': {
+      id: '/design-system/scaffolds'
+      path: '/scaffolds'
+      fullPath: '/design-system/scaffolds'
+      preLoaderRoute: typeof DesignSystemScaffoldsRouteImport
+      parentRoute: typeof DesignSystemRoute
+    }
     '/design-system/tables': {
       id: '/design-system/tables'
       path: '/tables'
       fullPath: '/design-system/tables'
       preLoaderRoute: typeof DesignSystemTablesRouteImport
       parentRoute: typeof DesignSystemRoute
-    }
-    '/_authenticated/inventory/opname': {
-      id: '/_authenticated/inventory/opname'
-      path: '/inventory/opname'
-      fullPath: '/inventory/opname'
-      preLoaderRoute: typeof AuthenticatedInventoryOpnameRouteImport
-      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/inventory/stock': {
       id: '/_authenticated/inventory/stock'
@@ -940,11 +1044,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsLocationStaffRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/inventory/opname/': {
+      id: '/_authenticated/inventory/opname/'
+      path: '/inventory/opname'
+      fullPath: '/inventory/opname/'
+      preLoaderRoute: typeof AuthenticatedInventoryOpnameIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inventory/opname/$opnameId': {
+      id: '/_authenticated/inventory/opname/$opnameId'
+      path: '/inventory/opname/$opnameId'
+      fullPath: '/inventory/opname/$opnameId'
+      preLoaderRoute: typeof AuthenticatedInventoryOpnameOpnameIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/inventory/receiving/': {
       id: '/_authenticated/inventory/receiving/'
       path: '/inventory/receiving'
       fullPath: '/inventory/receiving/'
       preLoaderRoute: typeof AuthenticatedInventoryReceivingIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inventory/receiving/$receivingId': {
+      id: '/_authenticated/inventory/receiving/$receivingId'
+      path: '/inventory/receiving/$receivingId'
+      fullPath: '/inventory/receiving/$receivingId'
+      preLoaderRoute: typeof AuthenticatedInventoryReceivingReceivingIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/inventory/receiving/new': {
@@ -961,6 +1086,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInventoryTransfersIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/inventory/transfers/$transferId': {
+      id: '/_authenticated/inventory/transfers/$transferId'
+      path: '/inventory/transfers/$transferId'
+      fullPath: '/inventory/transfers/$transferId'
+      preLoaderRoute: typeof AuthenticatedInventoryTransfersTransferIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/inventory/transfers/new': {
       id: '/_authenticated/inventory/transfers/new'
       path: '/inventory/transfers/new'
@@ -973,13 +1105,6 @@ declare module '@tanstack/react-router' {
       path: '/master/materials'
       fullPath: '/master/materials/'
       preLoaderRoute: typeof AuthenticatedMasterMaterialsIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/master/materials/$materialId': {
-      id: '/_authenticated/master/materials/$materialId'
-      path: '/master/materials/$materialId'
-      fullPath: '/master/materials/$materialId'
-      preLoaderRoute: typeof AuthenticatedMasterMaterialsMaterialIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/master/materials/new': {
@@ -1003,13 +1128,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMasterPaymentMethodsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/master/payment-methods/$paymentMethodId': {
-      id: '/_authenticated/master/payment-methods/$paymentMethodId'
-      path: '/master/payment-methods/$paymentMethodId'
-      fullPath: '/master/payment-methods/$paymentMethodId'
-      preLoaderRoute: typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/master/payment-methods/new': {
       id: '/_authenticated/master/payment-methods/new'
       path: '/master/payment-methods/new'
@@ -1024,13 +1142,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMasterSuppliersIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/master/suppliers/$supplierId': {
-      id: '/_authenticated/master/suppliers/$supplierId'
-      path: '/master/suppliers/$supplierId'
-      fullPath: '/master/suppliers/$supplierId'
-      preLoaderRoute: typeof AuthenticatedMasterSuppliersSupplierIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/master/suppliers/new': {
       id: '/_authenticated/master/suppliers/new'
       path: '/master/suppliers/new'
@@ -1043,13 +1154,6 @@ declare module '@tanstack/react-router' {
       path: '/master/uom'
       fullPath: '/master/uom/'
       preLoaderRoute: typeof AuthenticatedMasterUomIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/master/uom/$uomId': {
-      id: '/_authenticated/master/uom/$uomId'
-      path: '/master/uom/$uomId'
-      fullPath: '/master/uom/$uomId'
-      preLoaderRoute: typeof AuthenticatedMasterUomUomIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/master/uom/new': {
@@ -1115,25 +1219,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsLocationsNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/settings/roles/$roleId': {
-      id: '/_authenticated/settings/roles/$roleId'
-      path: '/settings/roles/$roleId'
-      fullPath: '/settings/roles/$roleId'
-      preLoaderRoute: typeof AuthenticatedSettingsRolesRoleIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/settings/roles/new': {
       id: '/_authenticated/settings/roles/new'
       path: '/settings/roles/new'
       fullPath: '/settings/roles/new'
       preLoaderRoute: typeof AuthenticatedSettingsRolesNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/settings/users/$userId': {
-      id: '/_authenticated/settings/users/$userId'
-      path: '/settings/users/$userId'
-      fullPath: '/settings/users/$userId'
-      preLoaderRoute: typeof AuthenticatedSettingsUsersUserIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings/users/new': {
@@ -1143,11 +1233,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsUsersNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/master/menu/items/$itemId': {
-      id: '/_authenticated/master/menu/items/$itemId'
-      path: '/master/menu/items/$itemId'
-      fullPath: '/master/menu/items/$itemId'
-      preLoaderRoute: typeof AuthenticatedMasterMenuItemsItemIdRouteImport
+    '/_authenticated/master/materials/$materialId/': {
+      id: '/_authenticated/master/materials/$materialId/'
+      path: '/master/materials/$materialId'
+      fullPath: '/master/materials/$materialId/'
+      preLoaderRoute: typeof AuthenticatedMasterMaterialsMaterialIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/materials/$materialId/edit': {
+      id: '/_authenticated/master/materials/$materialId/edit'
+      path: '/master/materials/$materialId/edit'
+      fullPath: '/master/materials/$materialId/edit'
+      preLoaderRoute: typeof AuthenticatedMasterMaterialsMaterialIdEditRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/master/menu/items/new': {
@@ -1155,6 +1252,48 @@ declare module '@tanstack/react-router' {
       path: '/master/menu/items/new'
       fullPath: '/master/menu/items/new'
       preLoaderRoute: typeof AuthenticatedMasterMenuItemsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/payment-methods/$paymentMethodId/': {
+      id: '/_authenticated/master/payment-methods/$paymentMethodId/'
+      path: '/master/payment-methods/$paymentMethodId'
+      fullPath: '/master/payment-methods/$paymentMethodId/'
+      preLoaderRoute: typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/payment-methods/$paymentMethodId/edit': {
+      id: '/_authenticated/master/payment-methods/$paymentMethodId/edit'
+      path: '/master/payment-methods/$paymentMethodId/edit'
+      fullPath: '/master/payment-methods/$paymentMethodId/edit'
+      preLoaderRoute: typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/suppliers/$supplierId/': {
+      id: '/_authenticated/master/suppliers/$supplierId/'
+      path: '/master/suppliers/$supplierId'
+      fullPath: '/master/suppliers/$supplierId/'
+      preLoaderRoute: typeof AuthenticatedMasterSuppliersSupplierIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/suppliers/$supplierId/edit': {
+      id: '/_authenticated/master/suppliers/$supplierId/edit'
+      path: '/master/suppliers/$supplierId/edit'
+      fullPath: '/master/suppliers/$supplierId/edit'
+      preLoaderRoute: typeof AuthenticatedMasterSuppliersSupplierIdEditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/uom/$uomId/': {
+      id: '/_authenticated/master/uom/$uomId/'
+      path: '/master/uom/$uomId'
+      fullPath: '/master/uom/$uomId/'
+      preLoaderRoute: typeof AuthenticatedMasterUomUomIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/uom/$uomId/edit': {
+      id: '/_authenticated/master/uom/$uomId/edit'
+      path: '/master/uom/$uomId/edit'
+      fullPath: '/master/uom/$uomId/edit'
+      preLoaderRoute: typeof AuthenticatedMasterUomUomIdEditRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings/locations/$locationId/': {
@@ -1171,13 +1310,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsLocationsLocationIdEditRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/settings/roles/$roleId/': {
+      id: '/_authenticated/settings/roles/$roleId/'
+      path: '/settings/roles/$roleId'
+      fullPath: '/settings/roles/$roleId/'
+      preLoaderRoute: typeof AuthenticatedSettingsRolesRoleIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/roles/$roleId/edit': {
+      id: '/_authenticated/settings/roles/$roleId/edit'
+      path: '/settings/roles/$roleId/edit'
+      fullPath: '/settings/roles/$roleId/edit'
+      preLoaderRoute: typeof AuthenticatedSettingsRolesRoleIdEditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/users/$userId/': {
+      id: '/_authenticated/settings/users/$userId/'
+      path: '/settings/users/$userId'
+      fullPath: '/settings/users/$userId/'
+      preLoaderRoute: typeof AuthenticatedSettingsUsersUserIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/users/$userId/edit': {
+      id: '/_authenticated/settings/users/$userId/edit'
+      path: '/settings/users/$userId/edit'
+      fullPath: '/settings/users/$userId/edit'
+      preLoaderRoute: typeof AuthenticatedSettingsUsersUserIdEditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/menu/items/$itemId/': {
+      id: '/_authenticated/master/menu/items/$itemId/'
+      path: '/master/menu/items/$itemId'
+      fullPath: '/master/menu/items/$itemId/'
+      preLoaderRoute: typeof AuthenticatedMasterMenuItemsItemIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/menu/items/$itemId/edit': {
+      id: '/_authenticated/master/menu/items/$itemId/edit'
+      path: '/master/menu/items/$itemId/edit'
+      fullPath: '/master/menu/items/$itemId/edit'
+      preLoaderRoute: typeof AuthenticatedMasterMenuItemsItemIdEditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedDemoRoute: typeof AuthenticatedDemoRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedInventoryOpnameRoute: typeof AuthenticatedInventoryOpnameRoute
   AuthenticatedInventoryStockRoute: typeof AuthenticatedInventoryStockRoute
   AuthenticatedMasterRecipesRoute: typeof AuthenticatedMasterRecipesRoute
   AuthenticatedPosNewOrderRoute: typeof AuthenticatedPosNewOrderRoute
@@ -1187,25 +1366,23 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsCompanyRoute: typeof AuthenticatedSettingsCompanyRoute
   AuthenticatedSettingsLocationStaffRoute: typeof AuthenticatedSettingsLocationStaffRoute
+  AuthenticatedInventoryOpnameOpnameIdRoute: typeof AuthenticatedInventoryOpnameOpnameIdRoute
+  AuthenticatedInventoryReceivingReceivingIdRoute: typeof AuthenticatedInventoryReceivingReceivingIdRoute
   AuthenticatedInventoryReceivingNewRoute: typeof AuthenticatedInventoryReceivingNewRoute
+  AuthenticatedInventoryTransfersTransferIdRoute: typeof AuthenticatedInventoryTransfersTransferIdRoute
   AuthenticatedInventoryTransfersNewRoute: typeof AuthenticatedInventoryTransfersNewRoute
-  AuthenticatedMasterMaterialsMaterialIdRoute: typeof AuthenticatedMasterMaterialsMaterialIdRoute
   AuthenticatedMasterMaterialsNewRoute: typeof AuthenticatedMasterMaterialsNewRoute
-  AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute: typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
   AuthenticatedMasterPaymentMethodsNewRoute: typeof AuthenticatedMasterPaymentMethodsNewRoute
-  AuthenticatedMasterSuppliersSupplierIdRoute: typeof AuthenticatedMasterSuppliersSupplierIdRoute
   AuthenticatedMasterSuppliersNewRoute: typeof AuthenticatedMasterSuppliersNewRoute
-  AuthenticatedMasterUomUomIdRoute: typeof AuthenticatedMasterUomUomIdRoute
   AuthenticatedMasterUomNewRoute: typeof AuthenticatedMasterUomNewRoute
   AuthenticatedPosTablesTableIdRoute: typeof AuthenticatedPosTablesTableIdRoute
   AuthenticatedPosTablesNewRoute: typeof AuthenticatedPosTablesNewRoute
   AuthenticatedPosVouchersVoucherIdRoute: typeof AuthenticatedPosVouchersVoucherIdRoute
   AuthenticatedPosVouchersNewRoute: typeof AuthenticatedPosVouchersNewRoute
   AuthenticatedSettingsLocationsNewRoute: typeof AuthenticatedSettingsLocationsNewRoute
-  AuthenticatedSettingsRolesRoleIdRoute: typeof AuthenticatedSettingsRolesRoleIdRoute
   AuthenticatedSettingsRolesNewRoute: typeof AuthenticatedSettingsRolesNewRoute
-  AuthenticatedSettingsUsersUserIdRoute: typeof AuthenticatedSettingsUsersUserIdRoute
   AuthenticatedSettingsUsersNewRoute: typeof AuthenticatedSettingsUsersNewRoute
+  AuthenticatedInventoryOpnameIndexRoute: typeof AuthenticatedInventoryOpnameIndexRoute
   AuthenticatedInventoryReceivingIndexRoute: typeof AuthenticatedInventoryReceivingIndexRoute
   AuthenticatedInventoryTransfersIndexRoute: typeof AuthenticatedInventoryTransfersIndexRoute
   AuthenticatedMasterMaterialsIndexRoute: typeof AuthenticatedMasterMaterialsIndexRoute
@@ -1216,16 +1393,27 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPosTablesIndexRoute: typeof AuthenticatedPosTablesIndexRoute
   AuthenticatedPosVouchersIndexRoute: typeof AuthenticatedPosVouchersIndexRoute
   AuthenticatedSettingsLocationsIndexRoute: typeof AuthenticatedSettingsLocationsIndexRoute
-  AuthenticatedMasterMenuItemsItemIdRoute: typeof AuthenticatedMasterMenuItemsItemIdRoute
+  AuthenticatedMasterMaterialsMaterialIdEditRoute: typeof AuthenticatedMasterMaterialsMaterialIdEditRoute
   AuthenticatedMasterMenuItemsNewRoute: typeof AuthenticatedMasterMenuItemsNewRoute
+  AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRoute: typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRoute
+  AuthenticatedMasterSuppliersSupplierIdEditRoute: typeof AuthenticatedMasterSuppliersSupplierIdEditRoute
+  AuthenticatedMasterUomUomIdEditRoute: typeof AuthenticatedMasterUomUomIdEditRoute
   AuthenticatedSettingsLocationsLocationIdEditRoute: typeof AuthenticatedSettingsLocationsLocationIdEditRoute
+  AuthenticatedSettingsRolesRoleIdEditRoute: typeof AuthenticatedSettingsRolesRoleIdEditRoute
+  AuthenticatedSettingsUsersUserIdEditRoute: typeof AuthenticatedSettingsUsersUserIdEditRoute
+  AuthenticatedMasterMaterialsMaterialIdIndexRoute: typeof AuthenticatedMasterMaterialsMaterialIdIndexRoute
+  AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRoute: typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRoute
+  AuthenticatedMasterSuppliersSupplierIdIndexRoute: typeof AuthenticatedMasterSuppliersSupplierIdIndexRoute
+  AuthenticatedMasterUomUomIdIndexRoute: typeof AuthenticatedMasterUomUomIdIndexRoute
   AuthenticatedSettingsLocationsLocationIdIndexRoute: typeof AuthenticatedSettingsLocationsLocationIdIndexRoute
+  AuthenticatedSettingsRolesRoleIdIndexRoute: typeof AuthenticatedSettingsRolesRoleIdIndexRoute
+  AuthenticatedSettingsUsersUserIdIndexRoute: typeof AuthenticatedSettingsUsersUserIdIndexRoute
+  AuthenticatedMasterMenuItemsItemIdEditRoute: typeof AuthenticatedMasterMenuItemsItemIdEditRoute
+  AuthenticatedMasterMenuItemsItemIdIndexRoute: typeof AuthenticatedMasterMenuItemsItemIdIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedDemoRoute: AuthenticatedDemoRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedInventoryOpnameRoute: AuthenticatedInventoryOpnameRoute,
   AuthenticatedInventoryStockRoute: AuthenticatedInventoryStockRoute,
   AuthenticatedMasterRecipesRoute: AuthenticatedMasterRecipesRoute,
   AuthenticatedPosNewOrderRoute: AuthenticatedPosNewOrderRoute,
@@ -1237,21 +1425,20 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSettingsCompanyRoute: AuthenticatedSettingsCompanyRoute,
   AuthenticatedSettingsLocationStaffRoute:
     AuthenticatedSettingsLocationStaffRoute,
+  AuthenticatedInventoryOpnameOpnameIdRoute:
+    AuthenticatedInventoryOpnameOpnameIdRoute,
+  AuthenticatedInventoryReceivingReceivingIdRoute:
+    AuthenticatedInventoryReceivingReceivingIdRoute,
   AuthenticatedInventoryReceivingNewRoute:
     AuthenticatedInventoryReceivingNewRoute,
+  AuthenticatedInventoryTransfersTransferIdRoute:
+    AuthenticatedInventoryTransfersTransferIdRoute,
   AuthenticatedInventoryTransfersNewRoute:
     AuthenticatedInventoryTransfersNewRoute,
-  AuthenticatedMasterMaterialsMaterialIdRoute:
-    AuthenticatedMasterMaterialsMaterialIdRoute,
   AuthenticatedMasterMaterialsNewRoute: AuthenticatedMasterMaterialsNewRoute,
-  AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute:
-    AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute,
   AuthenticatedMasterPaymentMethodsNewRoute:
     AuthenticatedMasterPaymentMethodsNewRoute,
-  AuthenticatedMasterSuppliersSupplierIdRoute:
-    AuthenticatedMasterSuppliersSupplierIdRoute,
   AuthenticatedMasterSuppliersNewRoute: AuthenticatedMasterSuppliersNewRoute,
-  AuthenticatedMasterUomUomIdRoute: AuthenticatedMasterUomUomIdRoute,
   AuthenticatedMasterUomNewRoute: AuthenticatedMasterUomNewRoute,
   AuthenticatedPosTablesTableIdRoute: AuthenticatedPosTablesTableIdRoute,
   AuthenticatedPosTablesNewRoute: AuthenticatedPosTablesNewRoute,
@@ -1260,10 +1447,10 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPosVouchersNewRoute: AuthenticatedPosVouchersNewRoute,
   AuthenticatedSettingsLocationsNewRoute:
     AuthenticatedSettingsLocationsNewRoute,
-  AuthenticatedSettingsRolesRoleIdRoute: AuthenticatedSettingsRolesRoleIdRoute,
   AuthenticatedSettingsRolesNewRoute: AuthenticatedSettingsRolesNewRoute,
-  AuthenticatedSettingsUsersUserIdRoute: AuthenticatedSettingsUsersUserIdRoute,
   AuthenticatedSettingsUsersNewRoute: AuthenticatedSettingsUsersNewRoute,
+  AuthenticatedInventoryOpnameIndexRoute:
+    AuthenticatedInventoryOpnameIndexRoute,
   AuthenticatedInventoryReceivingIndexRoute:
     AuthenticatedInventoryReceivingIndexRoute,
   AuthenticatedInventoryTransfersIndexRoute:
@@ -1280,13 +1467,37 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPosVouchersIndexRoute: AuthenticatedPosVouchersIndexRoute,
   AuthenticatedSettingsLocationsIndexRoute:
     AuthenticatedSettingsLocationsIndexRoute,
-  AuthenticatedMasterMenuItemsItemIdRoute:
-    AuthenticatedMasterMenuItemsItemIdRoute,
+  AuthenticatedMasterMaterialsMaterialIdEditRoute:
+    AuthenticatedMasterMaterialsMaterialIdEditRoute,
   AuthenticatedMasterMenuItemsNewRoute: AuthenticatedMasterMenuItemsNewRoute,
+  AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRoute:
+    AuthenticatedMasterPaymentMethodsPaymentMethodIdEditRoute,
+  AuthenticatedMasterSuppliersSupplierIdEditRoute:
+    AuthenticatedMasterSuppliersSupplierIdEditRoute,
+  AuthenticatedMasterUomUomIdEditRoute: AuthenticatedMasterUomUomIdEditRoute,
   AuthenticatedSettingsLocationsLocationIdEditRoute:
     AuthenticatedSettingsLocationsLocationIdEditRoute,
+  AuthenticatedSettingsRolesRoleIdEditRoute:
+    AuthenticatedSettingsRolesRoleIdEditRoute,
+  AuthenticatedSettingsUsersUserIdEditRoute:
+    AuthenticatedSettingsUsersUserIdEditRoute,
+  AuthenticatedMasterMaterialsMaterialIdIndexRoute:
+    AuthenticatedMasterMaterialsMaterialIdIndexRoute,
+  AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRoute:
+    AuthenticatedMasterPaymentMethodsPaymentMethodIdIndexRoute,
+  AuthenticatedMasterSuppliersSupplierIdIndexRoute:
+    AuthenticatedMasterSuppliersSupplierIdIndexRoute,
+  AuthenticatedMasterUomUomIdIndexRoute: AuthenticatedMasterUomUomIdIndexRoute,
   AuthenticatedSettingsLocationsLocationIdIndexRoute:
     AuthenticatedSettingsLocationsLocationIdIndexRoute,
+  AuthenticatedSettingsRolesRoleIdIndexRoute:
+    AuthenticatedSettingsRolesRoleIdIndexRoute,
+  AuthenticatedSettingsUsersUserIdIndexRoute:
+    AuthenticatedSettingsUsersUserIdIndexRoute,
+  AuthenticatedMasterMenuItemsItemIdEditRoute:
+    AuthenticatedMasterMenuItemsItemIdEditRoute,
+  AuthenticatedMasterMenuItemsItemIdIndexRoute:
+    AuthenticatedMasterMenuItemsItemIdIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -1296,12 +1507,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 interface DesignSystemRouteChildren {
   DesignSystemButtonsRoute: typeof DesignSystemButtonsRoute
   DesignSystemCardsRoute: typeof DesignSystemCardsRoute
-  DesignSystemChartsRoute: typeof DesignSystemChartsRoute
   DesignSystemDataDisplayRoute: typeof DesignSystemDataDisplayRoute
   DesignSystemFeedbackRoute: typeof DesignSystemFeedbackRoute
   DesignSystemFormsRoute: typeof DesignSystemFormsRoute
   DesignSystemNavigationRoute: typeof DesignSystemNavigationRoute
   DesignSystemOverlaysRoute: typeof DesignSystemOverlaysRoute
+  DesignSystemScaffoldsRoute: typeof DesignSystemScaffoldsRoute
   DesignSystemTablesRoute: typeof DesignSystemTablesRoute
   DesignSystemIndexRoute: typeof DesignSystemIndexRoute
 }
@@ -1309,12 +1520,12 @@ interface DesignSystemRouteChildren {
 const DesignSystemRouteChildren: DesignSystemRouteChildren = {
   DesignSystemButtonsRoute: DesignSystemButtonsRoute,
   DesignSystemCardsRoute: DesignSystemCardsRoute,
-  DesignSystemChartsRoute: DesignSystemChartsRoute,
   DesignSystemDataDisplayRoute: DesignSystemDataDisplayRoute,
   DesignSystemFeedbackRoute: DesignSystemFeedbackRoute,
   DesignSystemFormsRoute: DesignSystemFormsRoute,
   DesignSystemNavigationRoute: DesignSystemNavigationRoute,
   DesignSystemOverlaysRoute: DesignSystemOverlaysRoute,
+  DesignSystemScaffoldsRoute: DesignSystemScaffoldsRoute,
   DesignSystemTablesRoute: DesignSystemTablesRoute,
   DesignSystemIndexRoute: DesignSystemIndexRoute,
 }

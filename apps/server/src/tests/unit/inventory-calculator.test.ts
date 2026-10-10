@@ -2,7 +2,7 @@ import { Money } from '@/shared/domain/money.ts'
 import { Qty } from '@/shared/domain/qty.ts'
 
 import { opnameAdjustment } from '@/modules/inventory/opname/opname.calculator.ts'
-import { toBaseUnits } from '@/modules/inventory/receiving/receiving.calculator.ts'
+import { receivingTotal, toBaseUnits } from '@/modules/inventory/receiving/receiving.calculator.ts'
 import {
 	isFullyReceived,
 	nextReceivedQty,
@@ -39,6 +39,18 @@ describe('toBaseUnits', () => {
 		const base = toBaseUnits(Qty.of('2'), Money.of('120000'), Qty.of('12'))
 		expect(base.qty.toNumeric()).toBe('24.000000')
 		expect(base.unitCost.toCost()).toBe('10000.0000')
+	})
+})
+
+describe('receivingTotal', () => {
+	test('sums quantity × unit cost across lines', () => {
+		expect(
+			receivingTotal([
+				{ quantity: '2.500000', unitCost: '3000.0000' },
+				{ quantity: '4', unitCost: '1250.5' },
+			]),
+		).toBe('12502')
+		expect(receivingTotal([])).toBe('0')
 	})
 })
 

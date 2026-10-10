@@ -72,7 +72,10 @@ export class ReceivingRepo {
 		return row ? toReceivingDto(row) : undefined
 	}
 
-	async findDetailById(id: number, db: Db = this.db): Promise<ReceivingDetailDto | undefined> {
+	async findDetailById(
+		id: number,
+		db: Db = this.db,
+	): Promise<Omit<ReceivingDetailDto, 'totalValue'> | undefined> {
 		const receiving = await this.findById(id, db)
 		if (!receiving) return undefined
 

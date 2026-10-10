@@ -7,6 +7,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
 import {
+	CurrencyCell,
 	listSearchSchema,
 	NumericCell,
 	rightAlignedHeader,
@@ -16,20 +17,19 @@ import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { ActionMenu } from '@/components/shared/action-menu'
 import { confirm } from '@/components/shared/confirm'
-import { CurrencyDisplay } from '@/components/shared/currency-display'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PageHeader } from '@/components/shared/page-header'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
+import { StatusBadge } from '@/components/shared/status-badge'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 
 import { menuItemResource } from '@/features/menu/api.ts'
 import { recipeExtras, recipeResource } from '@/features/recipe/api.ts'
 import { RecipeFormBody } from '@/features/recipe/components/recipe-form.tsx'
-import type { RecipeDto } from '@/features/recipe/dto/index.ts'
+import type { RecipeDto, RecipeListItemDto } from '@/features/recipe/dto/index.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
@@ -42,27 +42,9 @@ export const Route = createFileRoute('/_authenticated/master/recipes')({
 	component: RecipesPage,
 })
 
-// ─── HPP Cell ───
-
-function HppCell({ menuItemId, locationId }: { menuItemId: number; locationId: number }) {
-	const hppQuery = useQuery({
-		...recipeExtras.hpp.queryOptions({ menuItemId, locationId }),
-		enabled: !!menuItemId && !!locationId,
-	})
-
-	if (hppQuery.isLoading) return <span className="text-right text-muted-foreground">...</span>
-	if (!hppQuery.data?.data) return <span className="text-right text-muted-foreground">—</span>
-
-	return (
-		<div className="text-right">
-			<CurrencyDisplay value={hppQuery.data.data.hpp} className="font-mono text-sm" />
-		</div>
-	)
-}
-
 // ─── Table Columns ───
 
-const col = createColumnHelper<DataGridFeatures, RecipeDto>()
+const col = createColumnHelper<DataGridFeatures, RecipeListItemDto>()
 
 const baseColumns = [
 	col.accessor('name', { header: 'Nama Resep', size: 200 }),
@@ -76,12 +58,19 @@ const baseColumns = [
 		header: 'Status',
 		size: 100,
 		cell: ({ getValue }) => (
-			<Badge variant={getValue() ? 'default' : 'outline'}>
+			<StatusBadge variant={getValue() ? 'success' : 'outline'}>
 				{getValue() ? 'Active' : 'Inactive'}
-			</Badge>
+			</StatusBadge>
 		),
 	}),
 ]
+
+const hppColumn = col.accessor('hpp', {
+	header: rightAlignedHeader('HPP'),
+	size: 140,
+	// oxlint-disable-next-line react/no-unstable-nested-components
+	cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
+})
 
 // ─── Page Component ───
 
@@ -96,10 +85,12 @@ function RecipesPage() {
 
 	// ─── Queries ───
 
+	// HPP comes back on each row (costed at the active location) — one request, no per-row fetch.
 	const listQuery = useQuery({
-		...recipeResource.list.queryOptions({
+		...recipeExtras.list.queryOptions({
 			page: search.page,
 			limit: search.pageSize,
+			locationId: locationId!,
 		}),
 		enabled: !!locationId,
 	})
@@ -220,17 +211,6 @@ function RecipesPage() {
 		})
 	}, [menuItemMap])
 
-	const hppColumn = useMemo(() => {
-		return col.display({
-			id: 'hpp',
-			header: rightAlignedHeader('HPP'),
-			size: 140,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) =>
-				locationId ? <HppCell menuItemId={row.original.menuItemId} locationId={locationId} /> : '—',
-		})
-	}, [locationId])
-
 	const actionsColumn = useMemo(() => {
 		return col.display({
 			id: 'actions',
@@ -263,9 +243,9 @@ function RecipesPage() {
 		() =>
 			[...baseColumns, menuItemColumn, hppColumn, actionsColumn] as ColumnDef<
 				DataGridFeatures,
-				RecipeDto
+				RecipeListItemDto
 			>[],
-		[menuItemColumn, hppColumn, actionsColumn],
+		[menuItemColumn, actionsColumn],
 	)
 
 	const { table } = useServerTable({
@@ -290,7 +270,7 @@ function RecipesPage() {
 		)
 	}
 
-	const isEmpty = !listQuery.isLoading && recipes.length === 0
+	const isEmpty = !listQuery.isLoading && !listQuery.isError && recipes.length === 0
 
 	return (
 		<div className="space-y-6">
@@ -325,6 +305,8 @@ function RecipesPage() {
 					table={table}
 					recordCount={totalCount}
 					isLoading={listQuery.isFetching}
+					isError={listQuery.isError}
+					onRetry={() => void listQuery.refetch()}
 					emptyMessage="Tidak ada resep yang cocok."
 				/>
 			)}

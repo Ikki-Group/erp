@@ -31,18 +31,26 @@ export const userColumns = [
 			const roles = getValue()
 			if (!roles.length) return <span className="text-muted-foreground">No roles</span>
 			return (
-				<div className="flex flex-wrap gap-1">
-					{roles.slice(0, 3).map((role) => (
-						<Badge key={role} variant="outline" className="font-normal">
-							{role}
-						</Badge>
+				// A list with visually-hidden separators so text/copy/screen readers get
+				// "Cashier, Warehouse Staff" instead of the badges run together.
+				<ul className="flex flex-wrap gap-1">
+					{roles.slice(0, 3).map((role, i) => (
+						<li key={role}>
+							<Badge variant="outline" className="font-normal">
+								{role}
+							</Badge>
+							{i < Math.min(roles.length, 3) - 1 && <span className="sr-only">, </span>}
+						</li>
 					))}
 					{roles.length > 3 && (
-						<Badge variant="secondary" className="font-normal">
-							+{roles.length - 3}
-						</Badge>
+						<li>
+							<span className="sr-only">, </span>
+							<Badge variant="secondary" className="font-normal" title={roles.slice(3).join(', ')}>
+								+{roles.length - 3}
+							</Badge>
+						</li>
 					)}
-				</div>
+				</ul>
 			)
 		},
 	}),

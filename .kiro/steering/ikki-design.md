@@ -5,64 +5,50 @@ fileMatchPattern: 'apps/web/**/*.{tsx,css}'
 
 # Ikki Web — Design & UI Conventions
 
-Applies to `apps/web`. This is an **ERP application UI** (dashboards, data tables, forms, POS
-screens) — not a marketing/landing site. Optimize for clarity, density, and consistency, not
-for hero animations or editorial layout. The landing-page design skills
-(`design-taste-frontend`, `frontend-design`) are **out of scope here** — do not apply their
-kinetic-hero / anti-3-card / scroll-hijack rules to app screens.
+Applies to `apps/web`, an operate-mode ERP UI (dashboards, tables, forms) for staff running
+shifts — not a marketing site. POS screens are out of product scope; don't use them as a reference.
 
-For deeper how-to, the installed skills apply: `shadcn-theming` (tokens/OKLCH/dark mode),
-`shadcn-components` (Radix vs Base UI, composition), `shadcn-registries` (CLI/components.json).
+**Visual authority: `apps/web/DESIGN.md` ("Warm Precision").** It wins over this file and every
+other doc. Live catalog: `/design-system`. Usage recipes: `apps/web/COMPONENT_GUIDE.md`.
 
-## Stack (authoritative — match it, don't reinvent)
+## Stack (match it, don't reinvent)
 
-- **shadcn/ui**, style `base-mira`, built on **Base UI** (`@base-ui/react/*`), NOT Radix. New
-  components compose with Base UI's `render={<... />}` prop, not Radix's `asChild`.
-- **Tailwind v4** (`@tailwindcss/vite`), CSS-first config in `src/styles.css`. No
-  `tailwind.config.*`.
-- Owned primitives in `src/components/ui/` (~50). shadcn-adjacent extras in
-  `src/components/reui/` (from the `@reui` registry / ReUI MCP).
-- Data tables: **TanStack Table** (`@tanstack/react-table`) + `reui/data-grid`. Forms:
-  **TanStack Form** (`@tanstack/react-form`). Icons: **lucide-react** (`iconLibrary: lucide`).
-- Class merging: `cn()` from `@/lib/utils`. Variants: `class-variance-authority` (`cva`).
+- shadcn/ui style `base-mira` on **Base UI** (`@base-ui/react/*`), not Radix. Compose with
+  `render={<... />}`, not `asChild`.
+- Tailwind v4, CSS-first config in `src/styles.css`. No `tailwind.config.*`.
+- Primitives in `src/components/ui/`; composites in `src/components/shared/`; registry extras in
+  `src/components/reui/` (data-grid, stepper, timeline, number-field).
+- TanStack Table + `reui/data-grid`, TanStack Form, lucide-react icons, `cn()` + `cva`.
 
-## Tokens & color (hard rules)
+## Tokens (summary — details in DESIGN.md)
 
-- Colors live as **OKLCH** CSS variables in `src/styles.css` under `:root` and `.dark`, surfaced
-  to Tailwind via `@theme inline`. Dark mode is the `.dark` class (`@custom-variant dark`).
-- **Never hard-code a hex/rgb/oklch literal in a component.** Use the semantic token utility
-  (`bg-background`, `text-muted-foreground`, `border-input`, `bg-primary`, `ring-ring`, etc.).
-- Every new token defined in `:root` **must** have a `.dark` counterpart. Base color is `zinc`;
-  the brand primary is the teal `--primary: oklch(0.42 0.11 195)`. Keep the accent consistent —
-  do not introduce a second accent hue.
-- Charts use `--chart-1..5`; sidebar uses the `--sidebar-*` tokens. Reuse them, don't invent.
+- OKLCH CSS variables in `src/styles.css` (`:root` + `.dark`), exposed via `@theme inline`.
+  Every token has a light and a dark value. Never hard-code a color literal in a component.
+- Warm-neutral paper base (~85 hue), not zinc/gray. **Forest green** (`--primary`, ~148 hue) is the
+  one accent: primary action, active state, focus. No second accent; `accent-warm` is never
+  interactive or a status.
+- Status: `success` / `warning` / `info` / `destructive`, as soft washes (`bg-X/10 text-X`).
+- Placeholders use `text-placeholder` (≥4.5:1), never a faded `muted-foreground`.
+- Radius `sm`/`md`/`lg`/`xl`/`full` only. Weight caps at `font-semibold`.
+- Inline surfaces: one hairline border, no shadow. Shadow only on floating surfaces. No ambient
+  glows, no glass, no card-in-card.
 
-## Component conventions
+## Components
 
-- Before adding a new primitive, check `src/components/ui/` first — reuse or extend the existing
-  one. Only pull from a registry (`bunx shadcn@latest add ...` or the ReUI MCP) when it's genuinely
-  missing. Match the existing file's structure (`cva` variants object, `VariantProps`, `cn`).
-- One radius system: components use `rounded-md`/`rounded-lg` off the `--radius` token. Don't mix
-  ad-hoc radii.
-- Keep the primitive boundary clean: `components/ui` = base primitives; `components/reui` =
-  richer composites (data-grid, filters, stepper, timeline). Don't fork a `ui` primitive into a
-  route file — extend it in place.
+- Reuse `components/ui` and `components/shared` before adding anything; check `/design-system`.
+- Dashboard cards: `MetricCard` (metric or panel mode). `StatCard`/`DataCard`/`CrudForm` are
+  deprecated aliases.
+- Tables: `useServerTable` + URL state (`listSearchSchema`, default page size 25); cell
+  components (`TextCell mono` for codes, `NumericCell`/`CurrencyCell` right-aligned
+  `font-mono tabular-nums`).
+- Every query-backed view: skeleton loading, `PageError` + retry (checked first), `EmptyState`.
+- Forms: label above input, hint/error below, verb-named actions, success toast echoes the verb.
+- Money is formatted from server values (`CurrencyDisplay` / `toDisplayCurrency`); no client
+  money math.
 
-## App-UI patterns (what "modern" means here)
+## Quality floor
 
-- **Tables**: server-driven via the existing `useServerTable` + URL state. Provide skeleton
-  loading rows (`ui/skeleton`), a composed `ui/empty` state, and inline error, not a bare spinner.
-- **Forms**: label above input; helper/error text below (`ui/field`). Never placeholder-as-label.
-  Action buttons state the verb ("Save changes", "Create supplier"), and the success toast echoes
-  it ("Supplier created").
-- **Density**: ERP screens are information-dense. Group with `border`/`divide-y`/spacing before
-  reaching for nested cards. Reserve elevation/shadow for real hierarchy (dialogs, popovers).
-- **Motion**: only in response to user action (open/expand/confirm) and via the primitive's
-  built-in transitions or `tw-animate-css`. No decorative scroll animations, no GSAP.
-
-## Quality floor (not optional)
-
-- Dark + light parity: verify both. Hierarchy that reads in light must read in dark.
-- WCAG AA contrast on text, buttons, inputs, focus rings. Visible keyboard focus
-  (`focus-visible:ring-*`). Respect `prefers-reduced-motion`.
-- Run `bun run lint` / `bun run typecheck` (from `apps/web`) before finishing UI work.
+- Light + dark parity; 390px and 1440px both work.
+- WCAG AA contrast; visible `focus-visible` rings; respect `prefers-reduced-motion`.
+- Touch: primitives grow to ≥40px on `pointer-coarse:`; don't override per route.
+- From `apps/web`: `bunx tsc --noEmit`, `bunx oxlint src`, `bunx vitest run`.

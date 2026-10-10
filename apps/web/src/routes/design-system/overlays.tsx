@@ -2,26 +2,14 @@ import { useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
-import { ArrowLeftRightIcon, BoxesIcon, PackageIcon, SearchIcon, UsersIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
 
-import {
-	confirm,
-	ConfirmDialog,
-	confirmInput,
-	CommandPalette,
-	formDialog,
-	PageHeader,
-	PageSection,
-	useCommandPaletteShortcut,
-} from '@/components/shared'
-import type { CommandAction } from '@/components/shared'
+import { confirm, formDialog, PageHeader, PageSection } from '@/components/shared'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import {
 	Popover,
 	PopoverContent,
@@ -45,38 +33,9 @@ function OverlaysPage() {
 				description="Dialogs, confirmations, tooltips, and popovers — floating UI layered above the page."
 			/>
 
-			{/* ─── CONFIRM DIALOG ─── */}
-			<PageSection title="Confirm Dialog" description="Confirmation before destructive actions.">
-				<div className="flex gap-3">
-					<ConfirmDialog
-						title="Delete material?"
-						description="This action cannot be undone. The material will be permanently removed."
-						confirmLabel="Delete"
-						variant="destructive"
-						onConfirm={() => {}}
-					>
-						<Button variant="destructive" size="sm">
-							Delete (destructive)
-						</Button>
-					</ConfirmDialog>
-					<ConfirmDialog
-						title="Approve transfer?"
-						description="Once approved, stock will be deducted from the source location."
-						confirmLabel="Approve"
-						onConfirm={() => {}}
-					>
-						<Button variant="outline" size="sm">
-							Approve (default)
-						</Button>
-					</ConfirmDialog>
-				</div>
-			</PageSection>
-
-			<Separator />
-
 			{/* ─── CONFIRM (react-call) ─── */}
 			<PageSection
-				title="Confirm (react-call)"
+				title="Confirm"
 				description="Imperative awaitable confirm dialog. No state management needed."
 			>
 				<div className="flex flex-wrap gap-3">
@@ -141,7 +100,7 @@ function OverlaysPage() {
 
 			{/* ─── CONFIRM INPUT (react-call) ─── */}
 			<PageSection
-				title="Confirm Input (react-call)"
+				title="Confirm Input"
 				description="Requires typing a confirmation word before the action can proceed."
 			>
 				<div className="flex flex-wrap gap-3">
@@ -149,11 +108,11 @@ function OverlaysPage() {
 						variant="destructive"
 						size="sm"
 						onClick={async () => {
-							const accepted = await confirmInput({
+							const accepted = await confirm({
 								title: 'Delete "Coffee Beans"?',
 								description:
 									'This action is permanent and cannot be undone. All stock records will be removed.',
-								confirmWord: 'Coffee Beans',
+								requireText: 'Coffee Beans',
 								confirmLabel: 'Delete permanently',
 							})
 							if (accepted) alert('Deleted!')
@@ -165,10 +124,10 @@ function OverlaysPage() {
 						variant="destructive"
 						size="sm"
 						onClick={async () => {
-							const accepted = await confirmInput({
+							const accepted = await confirm({
 								title: 'Delete "Coffee Beans"?',
 								description: 'This will simulate an async deletion with loading state.',
-								confirmWord: 'Coffee Beans',
+								requireText: 'Coffee Beans',
 								confirmLabel: 'Delete permanently',
 								onConfirm: async () => {
 									// oxlint-disable-next-line no-promise-executor-return
@@ -187,7 +146,7 @@ function OverlaysPage() {
 
 			{/* ─── FORM DIALOG (react-call) ─── */}
 			<PageSection
-				title="Form Dialog (react-call)"
+				title="Form Dialog"
 				description="Imperative form modal with async submit. Header/footer are tinted bands separated from the body by a divider — see components/ui/dialog.tsx."
 			>
 				<Button
@@ -249,16 +208,6 @@ function OverlaysPage() {
 						</PopoverHeader>
 					</PopoverContent>
 				</Popover>
-			</PageSection>
-
-			<Separator />
-
-			{/* ─── COMMAND PALETTE ─── */}
-			<PageSection
-				title="Command Palette"
-				description="Global quick-action search — ⌘K / Ctrl+K opens it, type to filter, arrow keys + Enter to run an action. The app shell owns the action list (navigation, “New order”, etc.); this owns the search/filter/keyboard-nav UI."
-			>
-				<CommandPaletteDemo />
 			</PageSection>
 		</div>
 	)
@@ -337,63 +286,6 @@ function UnsavedChangesDemo() {
 			>
 				Simulate leaving the page
 			</Button>
-		</div>
-	)
-}
-
-// -- Command Palette demo (⌘K / Ctrl+K, mock navigation + quick-create actions) --
-function CommandPaletteDemo() {
-	const [open, setOpen] = useState(false)
-	useCommandPaletteShortcut(() => setOpen(true))
-
-	const actions: CommandAction[] = [
-		{
-			id: 'new-transfer',
-			label: 'New Transfer',
-			description: 'Move stock between locations',
-			icon: <ArrowLeftRightIcon />,
-			group: 'Create',
-			shortcut: ['⌘', 'N'],
-			onSelect: () => alert('Would navigate to /inventory/transfers/new'),
-		},
-		{
-			id: 'new-material',
-			label: 'New Material',
-			description: 'Add to inventory',
-			icon: <BoxesIcon />,
-			group: 'Create',
-			onSelect: () => alert('Would navigate to /master/materials/new'),
-		},
-		{
-			id: 'go-stock',
-			label: 'Stock',
-			description: 'Inventory levels by location',
-			icon: <PackageIcon />,
-			group: 'Navigate',
-			keywords: ['inventory', 'warehouse'],
-			onSelect: () => alert('Would navigate to /inventory/stock'),
-		},
-		{
-			id: 'go-suppliers',
-			label: 'Suppliers',
-			icon: <UsersIcon />,
-			group: 'Navigate',
-			onSelect: () => alert('Would navigate to /master/suppliers'),
-		},
-	]
-
-	return (
-		<div className="flex items-center gap-3">
-			<Button variant="outline" size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
-				<SearchIcon className="size-3.5" />
-				Quick actions
-				<KbdGroup className="ml-1">
-					<Kbd>⌘</Kbd>
-					<Kbd>K</Kbd>
-				</KbdGroup>
-			</Button>
-			<p className="text-xs text-muted-foreground">Or press ⌘K / Ctrl+K anywhere on this page.</p>
-			<CommandPalette open={open} onOpenChange={setOpen} actions={actions} />
 		</div>
 	)
 }

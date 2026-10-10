@@ -33,7 +33,7 @@ interface TableFilterComboboxProps {
  * docs). Reach for `TableFilterSelect` (`multiple`) instead for short fixed
  * lists (a handful of statuses/categories), where a plain checklist is
  * faster to scan than typing. Wired in via `TableFilterDef`'s
- * `searchable: true` — see `docs/web/07-design-system.md`.
+ * `searchable: true` — see `apps/web/DESIGN.md`.
  *
  * Deliberately does *not* show its own chips for the current selection —
  * `TableToolbar` already renders one merged, removable chip per active

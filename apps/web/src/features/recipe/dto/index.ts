@@ -4,5 +4,6 @@ export {
 	RecipeDetailDto,
 	RecipeDto,
 	RecipeFilterDto,
+	RecipeListItemDto,
 	RecipeUpdateDto,
 } from '@ikki/contract/recipe'

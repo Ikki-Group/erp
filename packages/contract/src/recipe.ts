@@ -14,6 +14,13 @@ export const RecipeDto = z.object({
 })
 export type RecipeDto = z.infer<typeof RecipeDto>
 
+/** List row: the recipe plus its own HPP at `locationId` (null when no location was given). */
+export const RecipeListItemDto = z.object({
+	...RecipeDto.shape,
+	hpp: zp.str.nullable(),
+})
+export type RecipeListItemDto = z.infer<typeof RecipeListItemDto>
+
 export const RecipeLineDto = z.object({
 	id: zp.id,
 	recipeId: zp.id,
@@ -41,6 +48,8 @@ export type RecipeDetailDto = z.infer<typeof RecipeDetailDto>
 export const RecipeFilterDto = z.object({
 	...zq.pagination.shape,
 	menuItemId: z.coerce.number().int().positive().optional(),
+	/** When set, each list row carries its HPP costed at this location. */
+	locationId: z.coerce.number().int().positive().optional(),
 })
 export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
 

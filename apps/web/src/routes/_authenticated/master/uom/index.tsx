@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
-import { ArrowRightIcon, EditIcon, LoaderIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import { ArrowRightIcon, EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
 import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
@@ -12,11 +12,13 @@ import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
 import { EntityListPage } from '@/components/shared/entity-list-page'
 import { formDialog } from '@/components/shared/form-dialog'
+import { PageError } from '@/components/shared/page-error'
+import { PageSection } from '@/components/shared/page-section'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/toast'
 
 import { conversionResource, uomResource } from '@/features/uom/api.ts'
@@ -171,7 +173,7 @@ function UomPage() {
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
-								to: '/master/uom/$uomId',
+								to: '/master/uom/$uomId/edit',
 								params: { uomId: String(unit.id) },
 							}),
 					},
@@ -199,37 +201,34 @@ function UomPage() {
 		onSearchChange: (next) => navigate({ search: next }),
 	})
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !search.category
+	const isEmpty =
+		!listQuery.isLoading &&
+		!listQuery.isError &&
+		data.length === 0 &&
+		!globalFilter &&
+		!search.category
 
 	return (
-		<>
+		<div className="space-y-8">
 			<EntityListPage
 				title="Units of Measure"
 				description="Manage units and conversion factors."
 				actions={
-					<div className="flex gap-2">
-						<PermissionGate permission="uom.create">
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={handleAddConversion}
-								disabled={allUnits.length < 2}
-							>
-								<ArrowRightIcon className="size-4" />
-								Add Conversion
-							</Button>
-						</PermissionGate>
-						<PermissionGate permission="uom.create">
-							<Button size="sm" onClick={() => navigate({ to: '/master/uom/new' })}>
-								<PlusIcon className="size-4" />
-								Add Unit
-							</Button>
-						</PermissionGate>
-					</div>
+					<PermissionGate permission="uom.create">
+						<Button size="sm" onClick={() => navigate({ to: '/master/uom/new' })}>
+							<PlusIcon className="size-4" />
+							Add Unit
+						</Button>
+					</PermissionGate>
 				}
 				table={table}
 				recordCount={totalCount}
-				isLoading={listQuery.isLoading}
+				isLoading={listQuery.isFetching}
+				isError={listQuery.isError}
+				onRetry={() => void listQuery.refetch()}
+				onRowClick={(unit) =>
+					navigate({ to: '/master/uom/$uomId', params: { uomId: String(unit.id) } })
+				}
 				isEmpty={isEmpty}
 				emptyState={{
 					title: 'No units yet',
@@ -270,40 +269,64 @@ function UomPage() {
 				}
 			/>
 
-			<div className="mt-6 space-y-3">
-				<h3 className="text-sm font-medium">Conversions</h3>
-				{conversionsQuery.isLoading ? (
-					<div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-						<LoaderIcon className="size-4 animate-spin" />
-						Loading conversions...
-					</div>
+			<PageSection
+				title="Conversions"
+				description="Factors used to convert between units."
+				actions={
+					<PermissionGate permission="uom.create">
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={handleAddConversion}
+							disabled={allUnits.length < 2}
+						>
+							<ArrowRightIcon className="size-4" />
+							Add Conversion
+						</Button>
+					</PermissionGate>
+				}
+			>
+				{conversionsQuery.isError ? (
+					<PageError
+						message="Could not load conversions."
+						onRetry={() => void conversionsQuery.refetch()}
+					/>
+				) : conversionsQuery.isLoading ? (
+					<Skeleton className="h-24 w-full" />
 				) : conversions.length === 0 ? (
-					<p className="py-4 text-sm text-muted-foreground">
+					<p className="text-xs text-muted-foreground">
 						No conversions defined yet. Add at least two units, then create a conversion.
 					</p>
 				) : (
-					<div className="divide-y rounded-md border">
+					<ul className="divide-y rounded-lg border">
 						{conversions.map((conv) => (
-							<div key={conv.id} className="flex items-center justify-between px-4 py-3">
-								<div className="flex items-center gap-2 text-sm">
-									<Badge variant="secondary">{getUnitLabel(conv.fromUomId)}</Badge>
-									<ArrowRightIcon className="size-3.5 text-muted-foreground" />
-									<Badge variant="secondary">{getUnitLabel(conv.toUomId)}</Badge>
-									<span className="text-muted-foreground">× {conv.factor}</span>
+							<li
+								key={conv.id}
+								className="flex min-h-10 items-center justify-between gap-2 px-4 py-1.5"
+							>
+								<div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
+									<span>{getUnitLabel(conv.fromUomId)}</span>
+									<ArrowRightIcon className="size-3.5 text-muted-foreground" aria-label="to" />
+									<span>{getUnitLabel(conv.toUomId)}</span>
+									<span className="font-mono text-xs tabular-nums text-muted-foreground">
+										× {conv.factor}
+									</span>
 								</div>
-								<Button
-									size="icon"
-									variant="ghost"
-									className="size-7"
-									onClick={() => handleDeleteConversion(conv)}
-								>
-									<TrashIcon className="size-3.5" />
-								</Button>
-							</div>
+								{canDelete && (
+									<Button
+										size="icon-sm"
+										variant="ghost"
+										aria-label="Delete conversion"
+										onClick={() => handleDeleteConversion(conv)}
+									>
+										<TrashIcon className="size-3.5" />
+									</Button>
+								)}
+							</li>
 						))}
-					</div>
+					</ul>
 				)}
-			</div>
-		</>
+			</PageSection>
+		</div>
 	)
 }

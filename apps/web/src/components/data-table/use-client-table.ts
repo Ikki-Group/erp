@@ -21,7 +21,7 @@ interface UseClientTableOptions<TData extends object> {
 export function useClientTable<TData extends object>({
 	data,
 	columns,
-	pageSize = 10,
+	pageSize = 25,
 	enableGlobalFilter = true,
 }: UseClientTableOptions<TData>) {
 	const [globalFilter, setGlobalFilter] = useState('')

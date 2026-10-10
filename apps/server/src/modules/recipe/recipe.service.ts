@@ -24,6 +24,7 @@ import type {
 	RecipeDto,
 	RecipeFilterDto,
 	RecipeLineDto,
+	RecipeListItemDto,
 	RecipeUpdateDto,
 } from '@ikki/contract/recipe'
 
@@ -36,6 +37,12 @@ interface Deps extends Infra {
 }
 
 type LineInput = RecipeCreateDto['lines'][number]
+
+interface CostContext {
+	conversions: Awaited<ReturnType<UomService['getAllConversions']>>
+	materialById: Map<number, Awaited<ReturnType<MaterialService['getByIds']>>[number]>
+	costByMaterial: Map<number, string>
+}
 
 const AUDIT = { module: 'recipe', entity: 'recipe' } as const
 
@@ -64,8 +71,24 @@ export class RecipeService {
 		return this.#withLines(recipe)
 	}
 
-	handleList(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeDto>> {
-		return this.deps.repo.findPage(filter)
+	/** Page of recipes; with `locationId`, each row's own HPP is costed in one batched pass (no N+1). */
+	async handleList(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeListItemDto>> {
+		const page = await this.deps.repo.findPage(filter)
+		const { locationId } = filter
+		if (!locationId || page.data.length === 0) {
+			return { ...page, data: page.data.map((r) => ({ ...r, hpp: null })) }
+		}
+
+		const lines = await this.deps.repo.findLinesByRecipeIds(page.data.map((r) => r.id))
+		const ctx = await this.#costContext(lines, locationId)
+		const linesByRecipe = Map.groupBy(lines, (l) => l.recipeId)
+		return {
+			...page,
+			data: page.data.map((r) => ({
+				...r,
+				hpp: this.#cost(linesByRecipe.get(r.id) ?? [], r.yieldQty, ctx).hpp.toCost(),
+			})),
+		}
 	}
 
 	handleCreate(data: RecipeCreateDto, actor: Actor): Promise<EntityRef> {
@@ -147,35 +170,15 @@ export class RecipeService {
 	}
 
 	async handleCalculateHpp(menuItemId: number, locationId: number): Promise<HppResponseDto> {
-		const { repo, material, uom, stock } = this.deps
 		const recipe = await this.getActiveByMenuItemId(menuItemId)
 		if (!recipe) throw RecipeError.activeNotFound(menuItemId)
 
-		const lines = await repo.findLinesByRecipeId(recipe.id)
-		const materialIds = [...new Set(lines.map((l) => l.materialId))]
-		const [conversions, materials, balances, uomCodes] = await Promise.all([
-			uom.getAllConversions(),
-			material.getByIds(materialIds),
-			stock.getBalances(materialIds, locationId),
+		const lines = await this.deps.repo.findLinesByRecipeId(recipe.id)
+		const [ctx, uomCodes] = await Promise.all([
+			this.#costContext(lines, locationId),
 			this.#uomCodes(lines),
 		])
-		const materialById = new Map(materials.map((m) => [m.id, m]))
-		const costByMaterial = new Map(balances.map((b) => [b.materialId, b.costPrice]))
-
-		// Unknown materials cost zero; a missing conversion path falls back to the raw qty.
-		const costed = lines.map((line) => {
-			const mat = materialById.get(line.materialId)
-			const unitCost = mat ? (costByMaterial.get(line.materialId) ?? '0') : '0'
-			const qty = Qty.of(line.quantity)
-			const baseQty = mat
-				? (resolveConversion(line.uomId, mat.baseUomId, qty, conversions)?.result ?? qty)
-				: Qty.zero()
-			return { line, mat, unitCost, baseQty }
-		})
-		const { lineCosts, hpp } = calculateHpp(
-			costed.map((c) => ({ baseQty: c.baseQty, unitCost: Money.of(c.unitCost) })),
-			Qty.of(recipe.yieldQty),
-		)
+		const { costed, lineCosts, hpp } = this.#cost(lines, recipe.yieldQty, ctx)
 
 		return {
 			menuItemId,
@@ -193,6 +196,40 @@ export class RecipeService {
 	}
 
 	// ─── Private ───
+
+	/** One round of lookups (conversions, materials, location costs) shared by every recipe costed. */
+	async #costContext(lines: RecipeLineDto[], locationId: number): Promise<CostContext> {
+		const { material, uom, stock } = this.deps
+		const materialIds = [...new Set(lines.map((l) => l.materialId))]
+		const [conversions, materials, balances] = await Promise.all([
+			uom.getAllConversions(),
+			material.getByIds(materialIds),
+			stock.getBalances(materialIds, locationId),
+		])
+		return {
+			conversions,
+			materialById: new Map(materials.map((m) => [m.id, m])),
+			costByMaterial: new Map(balances.map((b) => [b.materialId, b.costPrice])),
+		}
+	}
+
+	#cost(lines: RecipeLineDto[], yieldQty: string, ctx: CostContext) {
+		// Unknown materials cost zero; a missing conversion path falls back to the raw qty.
+		const costed = lines.map((line) => {
+			const mat = ctx.materialById.get(line.materialId)
+			const unitCost = mat ? (ctx.costByMaterial.get(line.materialId) ?? '0') : '0'
+			const qty = Qty.of(line.quantity)
+			const baseQty = mat
+				? (resolveConversion(line.uomId, mat.baseUomId, qty, ctx.conversions)?.result ?? qty)
+				: Qty.zero()
+			return { line, mat, unitCost, baseQty }
+		})
+		const { lineCosts, hpp } = calculateHpp(
+			costed.map((c) => ({ baseQty: c.baseQty, unitCost: Money.of(c.unitCost) })),
+			Qty.of(yieldQty),
+		)
+		return { costed, lineCosts, hpp }
+	}
 
 	async #validateLines(lines: LineInput[], tx: Db): Promise<void> {
 		const { material, uom } = this.deps

@@ -15,12 +15,15 @@ import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
 import { EntityListPage } from '@/components/shared/entity-list-page'
 import { formDialog } from '@/components/shared/form-dialog'
+import { PageError } from '@/components/shared/page-error'
+import { PageSection } from '@/components/shared/page-section'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/toast'
 
 import { categoryResource, materialResource } from '@/features/material/api.ts'
@@ -80,8 +83,8 @@ const baseColumns = [
 
 // ─── Category Quick-Add Dialog ───
 // Categories stay a dialog: one field, no reason to leave the list page.
-// Materials themselves are full-page forms — see `materials.new.tsx` and
-// `materials.$materialId.tsx`.
+// Materials themselves have a read view (`$materialId.index.tsx`) and a
+// full-page form (`new.tsx`, `$materialId.edit.tsx`).
 
 function CategoryDialogBody({
 	close,
@@ -149,8 +152,7 @@ function MaterialsPage() {
 	const categories = categoriesQuery.data?.data ?? []
 
 	// ─── Material Handlers ───
-	// Create/edit navigate to the full-page form routes — no dialog, no ref
-	// plumbing. See materials.new.tsx / materials.$materialId.tsx.
+	// Row click opens the read view; Edit goes straight to the full-page form.
 
 	const handleDelete = useCallback(
 		async (material: MaterialDto) => {
@@ -236,7 +238,7 @@ function MaterialsPage() {
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
-								to: '/master/materials/$materialId',
+								to: '/master/materials/$materialId/edit',
 								params: { materialId: String(material.id) },
 							}),
 					},
@@ -269,25 +271,24 @@ function MaterialsPage() {
 		onSearchChange: (next) => navigate({ search: next }),
 	})
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !search.categoryId
+	const isEmpty =
+		!listQuery.isLoading &&
+		!listQuery.isError &&
+		data.length === 0 &&
+		!globalFilter &&
+		!search.categoryId
 
 	return (
-		<>
+		<div className="space-y-8">
 			<EntityListPage
 				title="Materials"
 				description="Manage materials, categories, and location assignments."
 				actions={
 					<PermissionGate permission="material.create">
-						<div className="flex gap-2">
-							<Button size="sm" variant="outline" onClick={handleCreateCategory}>
-								<TagIcon className="size-4" />
-								Add Category
-							</Button>
-							<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
-								<PlusIcon className="size-4" />
-								Add Material
-							</Button>
-						</div>
+						<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
+							<PlusIcon className="size-4" />
+							Add Material
+						</Button>
 					</PermissionGate>
 				}
 				table={table}
@@ -344,20 +345,42 @@ function MaterialsPage() {
 				}
 			/>
 
-			{categories.length > 0 && (
-				<div className="space-y-3">
-					<h3 className="font-heading text-sm font-semibold tracking-tight">Categories</h3>
-					<div className="divide-y rounded-md border">
+			<PageSection
+				title="Categories"
+				description="Group materials for filtering."
+				actions={
+					<PermissionGate permission="material.create">
+						<Button size="sm" variant="outline" onClick={handleCreateCategory}>
+							<TagIcon className="size-4" />
+							Add Category
+						</Button>
+					</PermissionGate>
+				}
+			>
+				{categoriesQuery.isError ? (
+					<PageError
+						message="Could not load categories."
+						onRetry={() => void categoriesQuery.refetch()}
+					/>
+				) : categoriesQuery.isLoading ? (
+					<Skeleton className="h-24 w-full" />
+				) : categories.length === 0 ? (
+					<p className="text-xs text-muted-foreground">No categories yet.</p>
+				) : (
+					<ul className="divide-y rounded-lg border">
 						{categories.map((cat) => (
-							<div key={cat.id} className="flex items-center justify-between px-4 py-3">
-								<span className="text-sm font-medium">{cat.name}</span>
+							<li
+								key={cat.id}
+								className="flex min-h-10 items-center justify-between gap-2 px-4 py-1.5"
+							>
+								<span className="text-sm">{cat.name}</span>
 								{(canEdit || canDelete) && (
 									<div className="flex gap-1">
 										{canEdit && (
 											<Button
-												size="icon"
+												size="icon-sm"
 												variant="ghost"
-												className="size-7"
+												aria-label={`Edit ${cat.name}`}
 												onClick={() => handleEditCategory(cat)}
 											>
 												<EditIcon className="size-3.5" />
@@ -365,9 +388,9 @@ function MaterialsPage() {
 										)}
 										{canDelete && (
 											<Button
-												size="icon"
+												size="icon-sm"
 												variant="ghost"
-												className="size-7"
+												aria-label={`Delete ${cat.name}`}
 												onClick={() => handleDeleteCategory(cat)}
 											>
 												<TrashIcon className="size-3.5" />
@@ -375,11 +398,11 @@ function MaterialsPage() {
 										)}
 									</div>
 								)}
-							</div>
+							</li>
 						))}
-					</div>
-				</div>
-			)}
-		</>
+					</ul>
+				)}
+			</PageSection>
+		</div>
 	)
 }

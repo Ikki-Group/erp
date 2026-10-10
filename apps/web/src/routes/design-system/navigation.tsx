@@ -6,14 +6,6 @@ import { BoxesIcon, LayoutDashboardIcon, SettingsIcon, StoreIcon, TruckIcon } fr
 
 import { PageHeader, PageSection, PageTabs } from '@/components/shared'
 
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbPage,
-	BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import {
 	Sidebar,
@@ -38,40 +30,12 @@ function NavigationPage() {
 		<div className="space-y-10">
 			<PageHeader
 				title="Navigation"
-				description="Wayfinding components — the app shell's sidebar, tabs within a page, and breadcrumbs for nested detail routes."
+				description="Wayfinding components — the app shell's sidebar, and tabs within a page."
 			/>
 
 			{/* ─── PAGE TABS ─── */}
 			<PageSection title="Page Tabs" description="Horizontal tab navigation for detail pages.">
 				<PageTabsDemo />
-			</PageSection>
-
-			<Separator />
-
-			{/* ─── BREADCRUMB ─── */}
-			<PageSection
-				title="Breadcrumb"
-				description="Hierarchical location indicator for nested detail pages (e.g. Materials → Coffee Beans → Edit)."
-			>
-				<Breadcrumb>
-					<BreadcrumbList>
-						<BreadcrumbItem>
-							<BreadcrumbLink render={<span className="cursor-default" />}>
-								Materials
-							</BreadcrumbLink>
-						</BreadcrumbItem>
-						<BreadcrumbSeparator />
-						<BreadcrumbItem>
-							<BreadcrumbLink render={<span className="cursor-default" />}>
-								Coffee Beans
-							</BreadcrumbLink>
-						</BreadcrumbItem>
-						<BreadcrumbSeparator />
-						<BreadcrumbItem>
-							<BreadcrumbPage>Edit</BreadcrumbPage>
-						</BreadcrumbItem>
-					</BreadcrumbList>
-				</Breadcrumb>
 			</PageSection>
 
 			<Separator />

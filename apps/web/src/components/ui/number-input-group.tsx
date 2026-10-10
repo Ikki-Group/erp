@@ -35,7 +35,7 @@ export const NumberInputGroupAddon = React.forwardRef<HTMLInputElement, NumberIn
 				data-slot="number-input-group-addon"
 				data-disabled={disabled}
 				className={cn(
-					'group/input-group relative flex h-7 w-full min-w-0 items-center rounded-md border border-input bg-input/20 transition-colors outline-none has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/30 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-2 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
+					'group/input-group relative flex h-7 w-full pointer-coarse:min-h-10 min-w-0 items-center rounded-md border border-input bg-input/20 transition-colors outline-none has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/30 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-2 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
 					disabled && 'cursor-not-allowed opacity-50',
 					className,
 				)}
@@ -120,7 +120,7 @@ export const NumberInputGroup = React.forwardRef<HTMLInputElement, NumberInputGr
 				data-slot="number-input-group"
 				data-disabled={disabled}
 				className={cn(
-					'group/input-group relative flex h-7 w-full min-w-0 items-center rounded-md border border-input bg-input/20 transition-colors outline-none has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/30 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-2 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
+					'group/input-group relative flex h-7 w-full pointer-coarse:min-h-10 min-w-0 items-center rounded-md border border-input bg-input/20 transition-colors outline-none has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/30 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-2 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
 					disabled && 'cursor-not-allowed opacity-50',
 					className,
 				)}
@@ -145,7 +145,7 @@ export const NumberInputGroup = React.forwardRef<HTMLInputElement, NumberInputGr
 						size="sm"
 						className={cn(
 							'order-last h-6 rounded-none rounded-r-md border-0 bg-transparent px-2 shadow-none ring-0 focus-visible:ring-0 dark:bg-transparent',
-							'data-placeholder:text-muted-foreground',
+							'data-placeholder:text-placeholder',
 						)}
 					>
 						<SelectValue placeholder="UOM" />

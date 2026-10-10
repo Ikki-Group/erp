@@ -11,14 +11,13 @@ import { useAppForm } from '@/lib/form/index.ts'
 
 import {
 	AsyncCombobox,
-	CrudForm,
 	CurrencyInput,
 	DateRangeFilter,
-	FileUpload,
+	FormPage,
 	PageHeader,
 	PageSection,
 } from '@/components/shared'
-import type { AsyncComboboxOption, FileUploadItem } from '@/components/shared'
+import type { AsyncComboboxOption } from '@/components/shared'
 
 import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -137,22 +136,12 @@ function FormsPage() {
 
 			<Separator />
 
-			{/* ─── FILE UPLOAD ─── */}
+			{/* ─── FORM PAGE ─── */}
 			<PageSection
-				title="File Upload"
-				description="Drag-and-drop + click-to-browse dropzone, with picked files listed below as Attachment rows (uploading/error/done). Presentation only — the caller owns the actual upload request."
+				title="Form Page"
+				description="The standard full-page create/edit layout: back button, title, body, and a sticky footer with cancel/submit. Boxed and scrollable here only so the sticky footer stays inside the demo."
 			>
-				<FileUploadDemo />
-			</PageSection>
-
-			<Separator />
-
-			{/* ─── CRUD FORM ─── */}
-			<PageSection
-				title="Crud Form"
-				description="CrudForm is a semantic alias for FormPage — the standard full-page create/edit layout: back button, title, body, and a sticky footer with cancel/submit. Boxed and scrollable here only so the sticky footer stays within this demo instead of the whole catalog page."
-			>
-				<CrudFormDemo />
+				<FormPageDemo />
 			</PageSection>
 		</div>
 	)
@@ -339,44 +328,8 @@ function CurrencyInputDemo() {
 	)
 }
 
-// -- File Upload demo (simulated upload progress) --
-function FileUploadDemo() {
-	const [items, setItems] = useState<FileUploadItem[]>([])
-
-	const simulateUpload = (files: File[]) => {
-		for (const file of files) {
-			const id = `${file.name}-${Date.now()}-${Math.random()}`
-			setItems((prev) => [...prev, { id, name: file.name, size: file.size, progress: 0 }])
-
-			const interval = window.setInterval(() => {
-				setItems((prev) =>
-					prev.map((item) => {
-						if (item.id !== id || item.progress === undefined) return item
-						const next = Math.min(item.progress + 20, 100)
-						return { ...item, progress: next === 100 ? undefined : next }
-					}),
-				)
-			}, 300)
-
-			window.setTimeout(() => window.clearInterval(interval), 2000)
-		}
-	}
-
-	return (
-		<div className="max-w-md">
-			<FileUpload
-				items={items}
-				onFilesSelected={simulateUpload}
-				onRemove={(id) => setItems((prev) => prev.filter((item) => item.id !== id))}
-				accept="image/*,.pdf"
-				description="PDF, PNG, JPG up to 10MB"
-			/>
-		</div>
-	)
-}
-
-// -- Crud Form demo (FormPage via its CrudForm alias) --
-function CrudFormDemo() {
+// -- Form Page demo --
+function FormPageDemo() {
 	const form = useAppForm({
 		defaultValues: { code: '', name: '', category: '' },
 	})
@@ -384,7 +337,7 @@ function CrudFormDemo() {
 	return (
 		<div className="max-h-105 overflow-y-auto rounded-lg border">
 			<form.AppForm>
-				<CrudForm
+				<FormPage
 					className="p-6"
 					title="Add Material"
 					description="Create a new material in your inventory."
@@ -411,7 +364,7 @@ function CrudFormDemo() {
 							)}
 						</form.AppField>
 					</div>
-				</CrudForm>
+				</FormPage>
 			</form.AppForm>
 		</div>
 	)

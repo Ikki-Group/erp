@@ -50,7 +50,11 @@ function EditLocationPage() {
 	const location = detailQuery.data.data
 
 	const updateMut = useMutation(locationResource.update.mutationOptions())
-	const onDone = () => navigate({ to: '/settings/locations' })
+	const onDone = () =>
+		navigate({
+			to: '/settings/locations/$locationId',
+			params: { locationId: String(location.id) },
+		})
 
 	const form = useLocationForm({
 		defaultValues: toFormValues(location),

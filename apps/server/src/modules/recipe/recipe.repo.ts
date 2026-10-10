@@ -3,6 +3,7 @@ import { recipes, recipeLines } from '@/db/schema/recipe.ts'
 import {
 	and,
 	eq,
+	inArray,
 	sql,
 	takeFirst,
 	toLimitOffset,
@@ -123,6 +124,12 @@ export class RecipeRepo {
 
 	async findLinesByRecipeId(recipeId: number, db: Db = this.db): Promise<RecipeLineDto[]> {
 		const rows = await db.select().from(recipeLines).where(eq(recipeLines.recipeId, recipeId))
+		return rows.map(toLineDto)
+	}
+
+	async findLinesByRecipeIds(recipeIds: number[], db: Db = this.db): Promise<RecipeLineDto[]> {
+		if (recipeIds.length === 0) return []
+		const rows = await db.select().from(recipeLines).where(inArray(recipeLines.recipeId, recipeIds))
 		return rows.map(toLineDto)
 	}
 

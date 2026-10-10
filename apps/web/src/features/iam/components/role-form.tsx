@@ -85,7 +85,12 @@ function PermissionsPicker({
 		(total, group) => total + group.permissions.length,
 		0,
 	)
-	const selectedCount = value.length
+	// Count only permissions the catalog lists; a role can carry grants (e.g. "*" or retired
+	// codes) that aren't shown as checkboxes, which made this read "77/75".
+	const selectedCount = PERMISSION_GROUPS.reduce(
+		(total, group) => total + group.permissions.filter((p) => value.includes(p)).length,
+		0,
+	)
 
 	const visibleGroups = useMemo(
 		() =>
@@ -174,7 +179,7 @@ function PermissionsPicker({
 				)}
 			</div>
 
-			<div className="max-h-96 space-y-2 overflow-y-auto rounded-md border p-2">
+			<div className="max-h-96 divide-y overflow-y-auto rounded-md border">
 				{visibleGroups.length === 0 ? (
 					<p className="p-4 text-center text-sm text-muted-foreground">
 						No permissions match your search.
@@ -188,7 +193,7 @@ function PermissionsPicker({
 						const someChecked = selectedInGroup > 0 && !allChecked
 
 						return (
-							<div key={group.module} className="rounded-md border bg-muted/30 p-3">
+							<div key={group.module} className="p-3">
 								<div className="flex items-center justify-between gap-2">
 									<label className="flex items-center gap-2">
 										<Checkbox

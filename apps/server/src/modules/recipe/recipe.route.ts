@@ -3,8 +3,8 @@ import {
 	HppResponseDto,
 	RecipeCreateDto,
 	RecipeDetailDto,
-	RecipeDto,
 	RecipeFilterDto,
+	RecipeListItemDto,
 	RecipeUpdateDto,
 } from '@ikki/contract/recipe'
 import { EntityRefDto, zq } from '@ikki/contract/schema'
@@ -32,7 +32,11 @@ export function createRecipeRoute(recipeService: RecipeService) {
 					const result = await recipeService.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: RecipeFilterDto, response: zRes.paginated(RecipeDto), permission: 'recipe.read' },
+				{
+					query: RecipeFilterDto,
+					response: zRes.paginated(RecipeListItemDto),
+					permission: 'recipe.read',
+				},
 			)
 			.get(
 				'/detail',

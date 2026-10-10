@@ -53,6 +53,7 @@
 	--color-accent-foreground: var(--accent-foreground);
 	--color-accent: var(--accent);
 	--color-muted-foreground: var(--muted-foreground);
+	--color-placeholder: var(--placeholder);
 	--color-muted: var(--muted);
 	--color-secondary-foreground: var(--secondary-foreground);
 	--color-secondary: var(--secondary);
@@ -95,7 +96,7 @@
  *   ~258  blue-violet    info — deliberately cool, so it reads as neutral/informational
  *                        against the warm operational palette instead of competing with success
  *   ~25   warm red       destructive
- *   ~50   clay/terracotta accent-warm — decorative highlight, not a status color
+ *   ~50   clay/terracotta accent-warm — incidental warmth, never a status or action color
  *
  * Sidebar in DARK mode intentionally switches to the ~85 warm-neutral hue
  * (not ~155 green) — once the page background is itself dark, a differently
@@ -109,7 +110,7 @@
  * they are the text/icon color for when the *base* token is the solid
  * background. Soft 5–10%-opacity treatments (badges, inline tips, alerts)
  * use the base color directly as text (e.g. `text-success`), not
- * `-foreground` — see status-badge.tsx / inline-tip.tsx / inline-alert.tsx.
+ * `-foreground` — see status-badge.tsx / inline-alert.tsx.
  */
 
 :root {
@@ -131,6 +132,8 @@
 	--secondary-foreground: oklch(0.28 0.016 85);
 	--muted: oklch(0.945 0.008 85);
 	--muted-foreground: oklch(0.5 0.014 85);
+	/* Input placeholder: ≥4.5:1 on card and on the input tint. Never an opacity of muted-foreground. */
+	--placeholder: oklch(0.5 0.014 85);
 	--accent: oklch(0.93 0.016 148);
 	--accent-foreground: oklch(0.26 0.03 148);
 	--destructive: oklch(0.5 0.19 25);
@@ -183,6 +186,7 @@
 	--secondary-foreground: oklch(0.92 0.01 85);
 	--muted: oklch(0.27 0.013 85);
 	--muted-foreground: oklch(0.68 0.014 85);
+	--placeholder: oklch(0.68 0.014 85);
 	--accent: oklch(0.3 0.02 150);
 	--accent-foreground: oklch(0.92 0.015 150);
 	--destructive: oklch(0.68 0.19 25);
@@ -229,8 +233,7 @@
 	 * See DESIGN.md "Elevation & Depth" for usage rules.
 	 */
 	[data-slot='card'],
-	[data-slot='stat-card'],
-	[data-slot='data-card'] {
+	[data-slot='metric-card'] {
 		@apply shadow-none;
 	}
 	button:not(:disabled),

@@ -7,11 +7,12 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { EditIcon, EyeIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
 import type { ListSearch } from '@/components/data-table'
-import { useServerTable } from '@/components/data-table'
+import { DataTable, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EntityListPage } from '@/components/shared/entity-list-page'
+import { EmptyState } from '@/components/shared/empty-state'
+import { PageError } from '@/components/shared/page-error'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -88,7 +89,7 @@ export function RolesList({ searchParams }: RolesListProps) {
 	const handleEdit = useCallback(
 		(roleId: number) => {
 			navigate({
-				to: '/settings/roles/$roleId',
+				to: '/settings/roles/$roleId/edit',
 				params: { roleId: String(roleId) },
 			})
 		},
@@ -118,7 +119,7 @@ export function RolesList({ searchParams }: RolesListProps) {
 			createActionColumn<RoleDto>({
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (role) => [
-					role.isSystem && {
+					{
 						label: 'View',
 						icon: <EyeIcon className="size-4" />,
 						onClick: () => handleView(role.id),
@@ -156,30 +157,33 @@ export function RolesList({ searchParams }: RolesListProps) {
 
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
 
-	const addRoleAction = (
-		<PermissionGate permission="iam.create">
-			<Button size="sm" onClick={handleAdd}>
-				<PlusIcon className="size-4" />
-				Add Role
-			</Button>
-		</PermissionGate>
-	)
+	if (listQuery.isError) {
+		return <PageError message="Could not load roles." onRetry={() => void listQuery.refetch()} />
+	}
+	if (isEmpty) {
+		return (
+			<EmptyState
+				title="No roles yet"
+				description="Get started by creating your first role."
+				action={
+					<PermissionGate permission="iam.create">
+						<Button size="sm" onClick={handleAdd}>
+							<PlusIcon className="size-4" />
+							Add Role
+						</Button>
+					</PermissionGate>
+				}
+			/>
+		)
+	}
 
 	return (
-		<EntityListPage
-			title="Roles"
-			description="Manage roles and their permission sets."
-			actions={addRoleAction}
+		<DataTable
 			table={table}
 			recordCount={totalCount}
 			isLoading={listQuery.isFetching}
-			isEmpty={isEmpty}
-			emptyState={{
-				title: 'No roles yet',
-				description: 'Get started by creating your first role.',
-				action: addRoleAction,
-			}}
 			emptyMessage="No roles match your search."
+			onRowClick={(role) => handleView(role.id)}
 			toolbar={
 				<TableToolbar
 					searchValue={globalFilter}

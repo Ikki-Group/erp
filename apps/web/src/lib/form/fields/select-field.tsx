@@ -51,6 +51,8 @@ export function SelectField({
 				value={field.state.value || undefined}
 				onValueChange={(v) => field.handleChange(v ?? '')}
 				disabled={disabled}
+				// Lets the closed trigger show the option label instead of the raw value.
+				items={options}
 			>
 				<SelectTrigger id={fieldId} className="w-full" aria-invalid={!!error}>
 					<SelectValue placeholder={placeholder} />

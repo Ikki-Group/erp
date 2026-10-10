@@ -118,7 +118,7 @@ function PaymentMethodsPage() {
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
-								to: '/master/payment-methods/$paymentMethodId',
+								to: '/master/payment-methods/$paymentMethodId/edit',
 								params: { paymentMethodId: String(item.id) },
 							}),
 					},
@@ -146,7 +146,8 @@ function PaymentMethodsPage() {
 		onSearchChange: (next) => navigate({ search: next }),
 	})
 
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !search.type
+	const isEmpty =
+		!listQuery.isLoading && !listQuery.isError && data.length === 0 && !globalFilter && !search.type
 
 	return (
 		<EntityListPage
@@ -163,6 +164,14 @@ function PaymentMethodsPage() {
 			table={table}
 			recordCount={totalCount}
 			isLoading={listQuery.isFetching}
+			isError={listQuery.isError}
+			onRetry={() => void listQuery.refetch()}
+			onRowClick={(row) =>
+				navigate({
+					to: '/master/payment-methods/$paymentMethodId',
+					params: { paymentMethodId: String(row.id) },
+				})
+			}
 			isEmpty={isEmpty}
 			emptyState={{
 				title: 'No payment methods yet',

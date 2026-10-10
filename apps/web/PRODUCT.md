@@ -54,7 +54,7 @@ Real-time, location-scoped stock visibility and recipe-driven costing (HPP), uni
 
 - Real brand asset: `apps/web/public/logo.png`, `logo-light.png`, `logo-dark.png` — use these rather than a placeholder mark.
 - No real customer/sales data, loyalty data, or financial reports exist yet. Do not fabricate metrics, testimonials, or sample data for future work; use genuinely empty/placeholder states instead.
-- `docs/web/07-design-system.md` documents an existing "Warm Precision" design system in code. Visual maturity exists, but per the docs-mismatch caveat above, its accuracy against current code should be verified (e.g., via `$impeccable document`) before being treated as settled DESIGN.md-equivalent authority.
+- `apps/web/DESIGN.md` ("Warm Precision") is the sole visual authority; `/design-system` renders it live. Other docs point to it rather than restating tokens.
 
 ## Product Principles
 

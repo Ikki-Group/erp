@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
-import { EditIcon, LayersIcon, PlusIcon, TagIcon, TrashIcon } from 'lucide-react'
+import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import {
@@ -20,12 +20,16 @@ import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
+import { PageError } from '@/components/shared/page-error'
 import { PageHeader } from '@/components/shared/page-header'
+import { PageTabs } from '@/components/shared/page-tabs'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/toast'
 
 import {
@@ -41,6 +45,7 @@ import { useLocationContext } from '@/providers/location-provider.tsx'
 
 const menuSearchSchema = listSearchSchema.extend({
 	categoryId: z.coerce.number().int().positive().optional(),
+	tab: z.enum(['items', 'categories', 'modifiers']).optional().default('items'),
 })
 
 export const Route = createFileRoute('/_authenticated/master/menu/')({
@@ -70,9 +75,9 @@ const baseColumns = [
 		header: 'Status',
 		size: 100,
 		cell: ({ getValue }) => (
-			<Badge variant={getValue() === 'active' ? 'default' : 'outline'}>
+			<StatusBadge variant={getValue() === 'active' ? 'success' : 'outline'}>
 				{getValue() === 'active' ? 'Active' : 'Inactive'}
-			</Badge>
+			</StatusBadge>
 		),
 	}),
 ]
@@ -94,7 +99,7 @@ function MenuPage() {
 	const canEditModifier = usePermissionCheck({ permission: 'modifier.update' })
 	const canDeleteModifier = usePermissionCheck({ permission: 'modifier.delete' })
 
-	const [activeTab, setActiveTab] = useState<'items' | 'modifiers'>('items')
+	const activeTab = search.tab
 
 	// ─── Queries ───
 
@@ -303,7 +308,7 @@ function MenuPage() {
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
-								to: '/master/menu/items/$itemId',
+								to: '/master/menu/items/$itemId/edit',
 								params: { itemId: String(item.id) },
 							}),
 					},
@@ -348,212 +353,216 @@ function MenuPage() {
 	const isItemsEmpty =
 		!itemListQuery.isLoading && items.length === 0 && !globalFilter && !search.categoryId
 
+	// One primary action per tab: the tab's own entity.
+	const createItemButton = canCreateItem ? (
+		<Button size="sm" onClick={() => navigate({ to: '/master/menu/items/new' })}>
+			<PlusIcon className="size-4" />
+			Tambah Menu Item
+		</Button>
+	) : undefined
+	const createCategoryButton = canCreateCategory ? (
+		<Button size="sm" onClick={handleCreateCategory}>
+			<PlusIcon className="size-4" />
+			Tambah Kategori
+		</Button>
+	) : undefined
+	const createModifierButton = canCreateModifier ? (
+		<Button size="sm" onClick={handleCreateModifier}>
+			<PlusIcon className="size-4" />
+			Tambah Modifier Group
+		</Button>
+	) : undefined
+	const headerAction = {
+		items: createItemButton,
+		categories: createCategoryButton,
+		modifiers: createModifierButton,
+	}[activeTab]
+
 	return (
 		<div className="space-y-6">
 			<PageHeader
 				title="Menu"
 				description={`Kelola menu item di ${activeLocation?.name ?? 'lokasi ini'}.`}
-				actions={
-					<div className="flex gap-2">
-						{canCreateCategory && (
-							<Button size="sm" variant="outline" onClick={handleCreateCategory}>
-								<TagIcon className="size-4" />
-								Kategori
-							</Button>
-						)}
-						{canCreateModifier && (
-							<Button size="sm" variant="outline" onClick={handleCreateModifier}>
-								<LayersIcon className="size-4" />
-								Modifier
-							</Button>
-						)}
-						{canCreateItem && (
-							<Button size="sm" onClick={() => navigate({ to: '/master/menu/items/new' })}>
-								<PlusIcon className="size-4" />
-								Menu Item
-							</Button>
-						)}
-					</div>
+				actions={headerAction}
+			/>
+
+			<PageTabs
+				tabs={[
+					{ id: 'items', label: 'Menu Items', count: itemListQuery.data?.meta?.total },
+					{ id: 'categories', label: 'Kategori', count: categoriesQuery.data?.data.length },
+					{ id: 'modifiers', label: 'Modifier Groups', count: modifiersQuery.data?.data.length },
+				]}
+				activeTab={activeTab}
+				onTabChange={(tab) =>
+					navigate({ search: { tab: tab as typeof activeTab, page: 1, pageSize: search.pageSize } })
 				}
 			/>
 
-			{/* Tab Switcher */}
-			<div className="flex gap-1 rounded-lg border p-1">
-				<button
-					type="button"
-					className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${activeTab === 'items' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-					onClick={() => setActiveTab('items')}
-				>
-					Menu Items
-				</button>
-				<button
-					type="button"
-					className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${activeTab === 'modifiers' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-					onClick={() => setActiveTab('modifiers')}
-				>
-					Modifier Groups
-				</button>
-			</div>
+			{activeTab === 'items' &&
+				(itemListQuery.isError ? (
+					<PageError
+						message="Gagal memuat menu item."
+						onRetry={() => void itemListQuery.refetch()}
+					/>
+				) : isItemsEmpty ? (
+					<EmptyState
+						title="Belum ada menu item"
+						description="Mulai dengan menambahkan menu item pertama."
+						action={createItemButton}
+					/>
+				) : (
+					<DataTable
+						table={table}
+						recordCount={totalCount}
+						isLoading={itemListQuery.isFetching}
+						emptyMessage="Tidak ada menu item yang cocok."
+						onRowClick={(item) =>
+							navigate({ to: '/master/menu/items/$itemId', params: { itemId: String(item.id) } })
+						}
+						toolbar={
+							<TableToolbar
+								searchValue={globalFilter}
+								onSearchChange={(value) => table.setGlobalFilter(value)}
+								searchPlaceholder="Cari menu item..."
+								filters={[
+									{
+										key: 'categoryId',
+										label: 'Kategori',
+										value: search.categoryId?.toString(),
+										onChange: (v) =>
+											navigate({
+												search: {
+													...search,
+													page: 1,
+													categoryId: v ? Number(v) : undefined,
+												},
+											}),
+										options: categories.map((cat) => ({
+											label: cat.name,
+											value: cat.id.toString(),
+										})),
+										allLabel: 'Semua kategori',
+									},
+								]}
+							/>
+						}
+					/>
+				))}
 
-			{/* Items Tab */}
-			{activeTab === 'items' && (
-				<>
-					{isItemsEmpty ? (
-						<EmptyState
-							title="Belum ada menu item"
-							description="Mulai dengan menambahkan menu item pertama."
-							action={
-								canCreateItem ? (
-									<Button size="sm" onClick={() => navigate({ to: '/master/menu/items/new' })}>
-										<PlusIcon className="size-4" />
-										Tambah Menu Item
-									</Button>
-								) : undefined
-							}
-						/>
-					) : (
-						<DataTable
-							table={table}
-							recordCount={totalCount}
-							isLoading={itemListQuery.isFetching}
-							emptyMessage="Tidak ada menu item yang cocok."
-							toolbar={
-								<TableToolbar
-									searchValue={globalFilter}
-									onSearchChange={(value) => table.setGlobalFilter(value)}
-									searchPlaceholder="Cari menu item..."
-									filters={[
-										{
-											key: 'categoryId',
-											label: 'Kategori',
-											value: search.categoryId?.toString(),
-											onChange: (v) =>
-												navigate({
-													search: {
-														...search,
-														page: 1,
-														categoryId: v ? Number(v) : undefined,
-													},
-												}),
-											options: categories.map((cat) => ({
-												label: cat.name,
-												value: cat.id.toString(),
-											})),
-											allLabel: 'Semua kategori',
-										},
-									]}
+			{activeTab === 'categories' &&
+				(categoriesQuery.isError ? (
+					<PageError
+						message="Gagal memuat kategori."
+						onRetry={() => void categoriesQuery.refetch()}
+					/>
+				) : categoriesQuery.isLoading ? (
+					<ListSkeleton />
+				) : categories.length === 0 ? (
+					<EmptyState
+						title="Belum ada kategori"
+						description="Kategori mengelompokkan menu item di POS."
+						action={createCategoryButton}
+					/>
+				) : (
+					<ul className="divide-y rounded-lg border">
+						{categories.map((cat) => (
+							<li
+								key={cat.id}
+								className="flex min-h-11 items-center justify-between gap-2 px-4 py-1.5"
+							>
+								<div className="flex items-center gap-2">
+									<span className="text-sm">{cat.name}</span>
+									{cat.sortOrder > 0 && (
+										<span className="font-mono text-xs tabular-nums text-muted-foreground">
+											#{cat.sortOrder}
+										</span>
+									)}
+								</div>
+								<RowActions
+									name={cat.name}
+									onEdit={canEditCategory ? () => handleEditCategory(cat) : undefined}
+									onDelete={canDeleteCategory ? () => handleDeleteCategory(cat) : undefined}
 								/>
-							}
-						/>
-					)}
+							</li>
+						))}
+					</ul>
+				))}
 
-					{/* Categories Section */}
-					{categories.length > 0 && (
-						<div className="space-y-3">
-							<h3 className="text-sm font-medium">Kategori</h3>
-							<div className="divide-y rounded-md border">
-								{categories.map((cat) => (
-									<div key={cat.id} className="flex items-center justify-between px-4 py-3">
-										<div className="flex items-center gap-2">
-											<span className="text-sm font-medium">{cat.name}</span>
-											{cat.sortOrder > 0 && (
-												<Badge variant="outline" className="text-xs">
-													#{cat.sortOrder}
-												</Badge>
-											)}
-										</div>
-										{(canEditCategory || canDeleteCategory) && (
-											<div className="flex gap-1">
-												{canEditCategory && (
-													<Button
-														size="icon"
-														variant="ghost"
-														className="size-7"
-														onClick={() => handleEditCategory(cat)}
-													>
-														<EditIcon className="size-3.5" />
-													</Button>
-												)}
-												{canDeleteCategory && (
-													<Button
-														size="icon"
-														variant="ghost"
-														className="size-7"
-														onClick={() => handleDeleteCategory(cat)}
-													>
-														<TrashIcon className="size-3.5" />
-													</Button>
-												)}
-											</div>
-										)}
-									</div>
-								))}
-							</div>
-						</div>
-					)}
-				</>
-			)}
-
-			{/* Modifiers Tab */}
 			{activeTab === 'modifiers' &&
-				(modifiers.length === 0 ? (
+				(modifiersQuery.isError ? (
+					<PageError
+						message="Gagal memuat modifier group."
+						onRetry={() => void modifiersQuery.refetch()}
+					/>
+				) : modifiersQuery.isLoading ? (
+					<ListSkeleton />
+				) : modifiers.length === 0 ? (
 					<EmptyState
 						title="Belum ada modifier group"
 						description="Modifier group digunakan untuk opsi tambahan (mis. Level Gula, Ukuran)."
-						action={
-							canCreateModifier ? (
-								<Button size="sm" onClick={handleCreateModifier}>
-									<PlusIcon className="size-4" />
-									Tambah Modifier Group
-								</Button>
-							) : undefined
-						}
+						action={createModifierButton}
 					/>
 				) : (
-					<div className="divide-y rounded-md border">
+					<ul className="divide-y rounded-lg border">
 						{modifiers.map((group) => (
-							<div key={group.id} className="flex items-center justify-between px-4 py-3">
-								<div className="space-y-0.5">
+							<li
+								key={group.id}
+								className="flex min-h-11 items-center justify-between gap-2 px-4 py-2"
+							>
+								<div className="flex flex-wrap items-center gap-2">
 									<span className="text-sm font-medium">{group.name}</span>
-									<div className="flex items-center gap-2">
-										<Badge variant="secondary" className="text-xs capitalize">
-											{group.selectionType}
-										</Badge>
-										{group.isRequired && (
-											<Badge variant="outline" className="text-xs">
-												Wajib
-											</Badge>
-										)}
-									</div>
+									<Badge variant="secondary" className="capitalize">
+										{group.selectionType}
+									</Badge>
+									{group.isRequired && <Badge variant="outline">Wajib</Badge>}
 								</div>
-								{(canEditModifier || canDeleteModifier) && (
-									<div className="flex gap-1">
-										{canEditModifier && (
-											<Button
-												size="icon"
-												variant="ghost"
-												className="size-7"
-												onClick={() => handleEditModifier(group)}
-											>
-												<EditIcon className="size-3.5" />
-											</Button>
-										)}
-										{canDeleteModifier && (
-											<Button
-												size="icon"
-												variant="ghost"
-												className="size-7"
-												onClick={() => handleDeleteModifier(group)}
-											>
-												<TrashIcon className="size-3.5" />
-											</Button>
-										)}
-									</div>
-								)}
-							</div>
+								<RowActions
+									name={group.name}
+									onEdit={canEditModifier ? () => handleEditModifier(group) : undefined}
+									onDelete={canDeleteModifier ? () => handleDeleteModifier(group) : undefined}
+								/>
+							</li>
 						))}
-					</div>
+					</ul>
 				))}
+		</div>
+	)
+}
+
+function ListSkeleton() {
+	return (
+		<div className="divide-y rounded-lg border">
+			{[0, 1, 2].map((i) => (
+				<div key={i} className="px-4 py-3.5">
+					<Skeleton className="h-4 w-48" />
+				</div>
+			))}
+		</div>
+	)
+}
+
+function RowActions({
+	name,
+	onEdit,
+	onDelete,
+}: {
+	name: string
+	onEdit?: () => void
+	onDelete?: () => void
+}) {
+	if (!onEdit && !onDelete) return null
+	return (
+		<div className="flex shrink-0 gap-1">
+			{onEdit && (
+				<Button size="icon-sm" variant="ghost" aria-label={`Edit ${name}`} onClick={onEdit}>
+					<EditIcon className="size-3.5" />
+				</Button>
+			)}
+			{onDelete && (
+				<Button size="icon-sm" variant="ghost" aria-label={`Hapus ${name}`} onClick={onDelete}>
+					<TrashIcon className="size-3.5" />
+				</Button>
+			)}
 		</div>
 	)
 }

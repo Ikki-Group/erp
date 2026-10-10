@@ -12,6 +12,7 @@ import {
 	RecipeDetailDto,
 	RecipeDto,
 	RecipeFilterDto,
+	RecipeListItemDto,
 	RecipeUpdateDto,
 } from './dto/index.ts'
 
@@ -25,6 +26,18 @@ export const recipeResource = defineResource({
 	filter: RecipeFilterDto,
 	create: RecipeCreateDto,
 	update: RecipeUpdateDto,
+})
+
+// ─── Recipe List (with per-row HPP at `locationId`) ───
+
+const listWithHppQuery = defineQuery({
+	method: 'get',
+	url: endpoint.recipe.list,
+	query: RecipeFilterDto,
+	result: zRes.paginated(RecipeListItemDto),
+	// Under `recipeResource.keys.lists()`, so CRUD invalidation refreshes it;
+	// `withHpp` keeps it from sharing a cache entry with the plain RecipeDto list.
+	queryKey: (query) => recipeResource.keys.list({ ...query, withHpp: true }),
 })
 
 // ─── Recipe Detail (with lines) ───
@@ -62,6 +75,7 @@ const hppQuery = defineQuery({
 })
 
 export const recipeExtras = {
+	list: listWithHppQuery,
 	detail: detailQuery,
 	byMenuItem: byMenuItemQuery,
 	hpp: hppQuery,

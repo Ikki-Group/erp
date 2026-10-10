@@ -38,6 +38,8 @@ export type ReceivingLineDto = z.infer<typeof ReceivingLineDto>
 export const ReceivingDetailDto = z.object({
 	...ReceivingDto.shape,
 	lines: z.array(ReceivingLineDto),
+	/** Σ quantity × unitCost over all lines, computed server-side (ADR-0017). */
+	totalValue: zp.str,
 })
 export type ReceivingDetailDto = z.infer<typeof ReceivingDetailDto>
 

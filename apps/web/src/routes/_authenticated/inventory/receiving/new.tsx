@@ -18,6 +18,7 @@ import {
 	isReceivingStepValid,
 	useReceivingWizard,
 } from '@/features/inventory/components/receiving-wizard.tsx'
+import type { ReceivingDestination } from '@/features/inventory/components/receiving-wizard.tsx'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
@@ -40,16 +41,27 @@ function NewReceivingPage() {
 		)
 	}
 
-	return <NewReceivingWizard locationId={activeLocation.id} />
+	return (
+		<NewReceivingWizard
+			locationId={activeLocation.id}
+			destination={{ name: activeLocation.name, code: activeLocation.code }}
+		/>
+	)
 }
 
-function NewReceivingWizard({ locationId }: { locationId: number }) {
+function NewReceivingWizard({
+	locationId,
+	destination,
+}: {
+	locationId: number
+	destination: ReceivingDestination
+}) {
 	const navigate = useNavigate()
 	const createMut = useMutation(receivingResource.create.mutationOptions())
 
 	const form = useReceivingWizard({
 		onSubmit: async (values) => {
-			await createMut.mutateAsync({
+			const res = await createMut.mutateAsync({
 				locationId,
 				supplierId: values.supplierId!,
 				notes: values.notes || null,
@@ -60,8 +72,11 @@ function NewReceivingWizard({ locationId }: { locationId: number }) {
 					uomId: l.uomId!,
 				})),
 			})
-			toast.add({ title: 'Penerimaan berhasil dibuat.', type: 'success' })
-			navigate({ to: '/inventory/receiving' })
+			toast.add({ title: 'Penerimaan dibuat sebagai draft.', type: 'success' })
+			navigate({
+				to: '/inventory/receiving/$receivingId',
+				params: { receivingId: String(res.data.id) },
+			})
 		},
 	})
 
@@ -73,14 +88,14 @@ function NewReceivingWizard({ locationId }: { locationId: number }) {
 		<form.AppForm>
 			<WizardPage
 				title="Buat Penerimaan"
-				description="Catat penerimaan barang dari supplier."
+				description={`Catat barang masuk dari supplier ke ${destination.name}.`}
 				form={form}
 				onCancel={() => navigate({ to: '/inventory/receiving' })}
 				submitLabel="Simpan Penerimaan"
 				steps={[
 					{
 						title: 'Supplier',
-						content: <ReceivingStepSupplier form={form} />,
+						content: <ReceivingStepSupplier form={form} destination={destination} />,
 						isValid: isReceivingStepValid(1, values),
 					},
 					{
@@ -90,7 +105,7 @@ function NewReceivingWizard({ locationId }: { locationId: number }) {
 					},
 					{
 						title: 'Review',
-						content: <ReceivingStepReview form={form} />,
+						content: <ReceivingStepReview form={form} destination={destination} />,
 						isValid: true,
 					},
 				]}

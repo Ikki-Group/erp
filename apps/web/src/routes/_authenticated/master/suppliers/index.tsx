@@ -136,7 +136,7 @@ function SuppliersPage() {
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
-								to: '/master/suppliers/$supplierId',
+								to: '/master/suppliers/$supplierId/edit',
 								params: { supplierId: String(supplier.id) },
 							}),
 					},
@@ -170,7 +170,11 @@ function SuppliersPage() {
 	})
 
 	const isEmpty =
-		!listQuery.isLoading && data.length === 0 && !globalFilter && search.isActive === undefined
+		!listQuery.isLoading &&
+		!listQuery.isError &&
+		data.length === 0 &&
+		!globalFilter &&
+		search.isActive === undefined
 
 	return (
 		<EntityListPage
@@ -187,6 +191,11 @@ function SuppliersPage() {
 			table={table}
 			recordCount={totalCount}
 			isLoading={listQuery.isFetching}
+			isError={listQuery.isError}
+			onRetry={() => void listQuery.refetch()}
+			onRowClick={(row) =>
+				navigate({ to: '/master/suppliers/$supplierId', params: { supplierId: String(row.id) } })
+			}
 			isEmpty={isEmpty}
 			emptyState={{
 				title: 'No suppliers yet',

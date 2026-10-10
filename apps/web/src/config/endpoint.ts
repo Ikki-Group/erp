@@ -70,6 +70,7 @@ const paymentMethod = {
 }
 
 const inventory = {
+	summary: 'inventory/summary',
 	stock: {
 		balance: p('inventory/stock', 'balance'),
 		list: p('inventory/stock', 'list'),

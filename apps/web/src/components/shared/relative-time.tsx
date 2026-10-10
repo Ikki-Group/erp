@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { format, formatDistanceToNow } from 'date-fns'
-import { enUS } from 'date-fns/locale'
+import { id as idLocale } from 'date-fns/locale'
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
@@ -46,8 +46,8 @@ export function RelativeTime({
 		return <span className={className}>—</span>
 	}
 
-	const relative = formatDistanceToNow(date, { addSuffix, locale: enUS })
-	const absolute = format(date, 'dd MMM yyyy, HH:mm', { locale: enUS })
+	const relative = formatDistanceToNow(date, { addSuffix, locale: idLocale })
+	const absolute = format(date, 'dd MMM yyyy, HH:mm', { locale: idLocale })
 
 	return (
 		<Tooltip>

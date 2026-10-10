@@ -16,6 +16,9 @@ import { ReceivingService } from './receiving/receiving.service.ts'
 import { StockRepo } from './stock/stock.repo.ts'
 import { createStockRoute } from './stock/stock.route.ts'
 import { StockService } from './stock/stock.service.ts'
+import { SummaryRepo } from './summary/summary.repo.ts'
+import { createSummaryRoute } from './summary/summary.route.ts'
+import { SummaryService } from './summary/summary.service.ts'
 import { TransferRepo } from './transfer/transfer.repo.ts'
 import { createTransferRoute } from './transfer/transfer.route.ts'
 import { TransferService } from './transfer/transfer.service.ts'
@@ -57,7 +60,9 @@ export function createInventoryModule(
 		location,
 	})
 
+	const summaryService = new SummaryService({ ...infra, repo: new SummaryRepo(infra.db) })
 	const route = new Elysia({ prefix: '/inventory', tags: ['inventory'] })
+		.use(createSummaryRoute(summaryService))
 		.use(createStockRoute(stockService))
 		.use(createTransferRoute(transferService))
 		.use(createReceivingRoute(receivingService))

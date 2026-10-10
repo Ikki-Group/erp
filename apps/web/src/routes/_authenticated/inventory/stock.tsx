@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react'
 
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { ArrowLeftIcon, BoxesIcon, HistoryIcon, PackageIcon } from 'lucide-react'
 
+import { listSearchSchema } from '@/components/data-table'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { PageTabs } from '@/components/shared/page-tabs'
@@ -13,11 +14,16 @@ import { Button } from '@/components/ui/button'
 
 import { MovementHistory } from '@/features/inventory/components/movement-history.tsx'
 import { StockTable } from '@/features/inventory/components/stock-table.tsx'
+import { StockBalanceStatusEnum } from '@/features/inventory/dto/index.ts'
 import type { StockBalanceDto } from '@/features/inventory/dto/index.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
+// `?status=low` is the dashboard's low-stock deep link.
 export const Route = createFileRoute('/_authenticated/inventory/stock')({
+	validateSearch: listSearchSchema.extend({
+		status: StockBalanceStatusEnum.optional().catch(undefined),
+	}),
 	component: StockPage,
 })
 
@@ -32,6 +38,8 @@ const TABS: PageTab[] = [
 
 function StockPage() {
 	const { activeLocation } = useLocationContext()
+	const search = Route.useSearch()
+	const navigate = useNavigate({ from: Route.fullPath })
 	const [activeTab, setActiveTab] = useState('balances')
 	const [selectedMaterial, setSelectedMaterial] = useState<StockBalanceDto | null>(null)
 
@@ -70,7 +78,12 @@ function StockPage() {
 			<PageTabs tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
 			{activeTab === 'balances' && (
-				<StockTable locationId={activeLocation.id} onRowClick={handleRowClick} />
+				<StockTable
+					locationId={activeLocation.id}
+					search={search}
+					onSearchChange={(next) => navigate({ search: next })}
+					onRowClick={handleRowClick}
+				/>
 			)}
 
 			{activeTab === 'movements' && selectedMaterial && (

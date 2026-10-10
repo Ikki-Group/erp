@@ -3,10 +3,10 @@ import { useState } from 'react'
 import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
 
 import {
-	BarChart3Icon,
 	BoxesIcon,
 	CompassIcon,
 	LayoutGridIcon,
+	LayoutTemplateIcon,
 	MenuIcon,
 	MessageSquareWarningIcon,
 	MousePointerClickIcon,
@@ -60,7 +60,7 @@ const NAV_GROUPS: readonly NavGroup[] = [
 			{ title: 'Feedback', href: '/design-system/feedback', icon: MessageSquareWarningIcon },
 			{ title: 'Overlays', href: '/design-system/overlays', icon: SquareStackIcon },
 			{ title: 'Navigation', href: '/design-system/navigation', icon: CompassIcon },
-			{ title: 'Charts', href: '/design-system/charts', icon: BarChart3Icon },
+			{ title: 'Page Scaffolds', href: '/design-system/scaffolds', icon: LayoutTemplateIcon },
 		],
 	},
 ]
@@ -100,7 +100,7 @@ function DesignSystemLayout() {
 			))}
 
 			<div className="mt-auto px-2 text-xs text-muted-foreground">
-				Internal catalog, not part of the product.
+				Catalog of what the app uses. DESIGN.md is the authority.
 			</div>
 		</>
 	)

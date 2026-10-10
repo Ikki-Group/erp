@@ -9,7 +9,7 @@ import {
 
 describe('listSearchSchema', () => {
 	it('defaults an empty search to page 1 with the default page size', () => {
-		expect(listSearchSchema.parse({})).toEqual({ page: 1, pageSize: 10 })
+		expect(listSearchSchema.parse({})).toEqual({ page: 1, pageSize: 25 })
 	})
 
 	it('coerces numeric strings from the URL', () => {

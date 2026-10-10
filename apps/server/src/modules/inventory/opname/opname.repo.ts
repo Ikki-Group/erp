@@ -134,7 +134,12 @@ export class OpnameRepo {
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(stockOpnames)
-			.set({ status, updatedBy, updatedAt: new Date() })
+			.set({
+				status,
+				updatedBy,
+				updatedAt: new Date(),
+				...(status === 'completed' && { completedAt: new Date() }),
+			})
 			.where(eq(stockOpnames.id, id))
 			.returning({ id: stockOpnames.id })
 		return result

@@ -15,8 +15,6 @@ import {
 	TextCell,
 	useClientTable,
 } from '@/components/data-table'
-import { createFilter, Filters } from '@/components/reui/filters'
-import type { Filter } from '@/components/reui/filters'
 import { PageHeader, PageSection, TableToolbar } from '@/components/shared'
 import type { DateRange } from '@/components/shared'
 
@@ -280,16 +278,6 @@ function TablesPage() {
 
 			<Separator />
 
-			{/* ─── ADVANCED FILTERS (chip builder) ─── */}
-			<PageSection
-				title="Advanced Filters"
-				description="Linear/Notion-style filter chip builder for pages with several independent, non-mutually-exclusive dimensions (e.g. status + date + cashier). Prefer the simpler Table Toolbar filter dropdown above for a single dimension; reach for this only when a page genuinely needs to combine multiple filters at once — see Orders in POS."
-			>
-				<AdvancedFiltersDemo />
-			</PageSection>
-
-			<Separator />
-
 			{/* ─── SIMPLE TABLE ─── */}
 			<PageSection
 				title="Simple Table"
@@ -435,48 +423,6 @@ function TableToolbarDemo() {
 				placeholder: 'Filter by date',
 			}}
 			actions={<Button size="sm">Add Material</Button>}
-		/>
-	)
-}
-
-function AdvancedFiltersDemo() {
-	const [filters, setFilters] = useState<Filter[]>([createFilter('status', 'is', ['completed'])])
-
-	return (
-		<Filters
-			filters={filters}
-			onChange={setFilters}
-			fields={[
-				{
-					key: 'status',
-					label: 'Status',
-					type: 'select',
-					options: [
-						{ label: 'Open', value: 'open' },
-						{ label: 'Completed', value: 'completed' },
-						{ label: 'Voided', value: 'voided' },
-					],
-				},
-				{
-					key: 'cashier',
-					label: 'Cashier',
-					type: 'select',
-					options: [
-						{ label: 'Andi', value: '1' },
-						{ label: 'Budi', value: '2' },
-						{ label: 'Citra', value: '3' },
-					],
-				},
-				{
-					key: 'type',
-					label: 'Type',
-					type: 'select',
-					options: [
-						{ label: 'Dine In', value: 'dine_in' },
-						{ label: 'Takeaway', value: 'takeaway' },
-					],
-				},
-			]}
 		/>
 	)
 }

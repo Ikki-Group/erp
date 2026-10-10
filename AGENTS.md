@@ -88,10 +88,10 @@ Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agent
 
 ### UI Components & Design System
 
-Use the `ui-components` skill when building UI features, forms, tables, or ensuring design consistency. It provides component discovery, usage patterns, and critical design rules (e.g., numbers are right-aligned, use cell components in tables).
+`apps/web/DESIGN.md` is the sole visual authority (tokens, type, radius, elevation, touch targets). Use the `ui-components` skill when building UI features, forms, tables, or checking consistency (e.g. numbers are right-aligned, use cell components in tables).
 
 **Quick links:**
 
-- Live examples: http://localhost:3000/design-system
-- Full guide: apps/web/COMPONENT_GUIDE.md
+- Live catalog: `/design-system` on the web dev server (`bun run dev:web`)
+- Usage recipes: apps/web/COMPONENT_GUIDE.md
 - Skill: .agents/skills/ui-components/SKILL.md

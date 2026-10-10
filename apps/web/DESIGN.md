@@ -14,6 +14,7 @@ colors:
   clay-terracotta: "oklch(0.68 0.14 50)"
   card-surface: "oklch(1 0 0)"
   hairline-border: "oklch(0.885 0.009 85)"
+  placeholder: "oklch(0.5 0.014 85)"
 typography:
   display:
     fontFamily: "Geist Variable, sans-serif"
@@ -67,7 +68,7 @@ components:
 
 Ikki ERP reads as a quiet, confident operations tool, not a dashboard trying to impress. Its personality comes from a warm-neutral paper tone standing in for the usual cold grays, a single restrained forest-green accent that marks what matters (primary actions, active state, focus), and a deliberate refusal of consumer-app signals: no glassmorphism, no oversized stat tiles, no soft rounded-pill everything. Density and legibility are the point — this is for staff running shifts and counting stock, often for hours at a stretch, not for a marketing screenshot.
 
-Depth is nearly flat by construction: working surfaces (cards, panels) carry a single hairline border and no shadow. Shadow is spent only where something genuinely floats above the page — dialogs, menus, toasts — so its appearance always means "this is temporarily on top," never "this is a nicer card." The one deliberate softness is a very low-opacity ambient glow fixed to the app shell's corners, present once, globally, never re-earned per page.
+Depth is nearly flat by construction: working surfaces (cards, panels) carry a single hairline border and no shadow. Shadow is spent only where something genuinely floats above the page — dialogs, menus, toasts — so its appearance always means "this is temporarily on top," never "this is a nicer card." There is no ambient glow, orb, or decorative backdrop anywhere: the shell, sidebar, and login are flat token surfaces.
 
 **Structural influence (color untouched):** the system's precision vocabulary — hairline-border elevation over shadow stacks, a tight derived radius scale, weight capped at semibold, monospace for exact identifiers — is deliberately aligned with the "midnight precision instrument" school (Linear/Vercel/Raycast-style systems). The brief is explicit: adopt and improve on that structural discipline, never its dark/acid-lime color world. Every token in this file's frontmatter stays Warm Precision's own.
 
@@ -91,13 +92,14 @@ Built in OKLCH for perceptually-even lightness control across both themes. The p
 - **Charcoal-Green** (`oklch(0.22 0.025 155)`): same hue family as primary, pushed dark and desaturated. Base fill for the sidebar and the login page's hero panel (`invert`/`invert-foreground`) — ties the two unauthenticated/authenticated brand surfaces together.
 
 ### Tertiary
-- **Clay/Terracotta** (`oklch(0.68 0.14 50)`): a decorative warm highlight (`accent-warm`) — used only for ambient glows and incidental warmth (e.g. the login hero's second orb). Never used as a status color.
+- **Clay/Terracotta** (`oklch(0.68 0.14 50)`): incidental warmth (`accent-warm`), currently unused in product UI. Never a status color and never on an interactive element.
 
 ### Neutral
 - **Warm Paper** (`oklch(0.975 0.006 85)`): app background — a warm off-white, not a cold gray.
 - **Warm Charcoal** (`oklch(0.24 0.016 85)`): body text — warm near-black, not pure black.
 - **Card White** (`oklch(1 0 0)`): working surfaces (`card`, `popover`) sit on pure white, one step lighter than the paper background behind them.
 - **Hairline Border** (`oklch(0.885 0.009 85)`): the only edge treatment on inline surfaces — see Elevation.
+- **Placeholder** (`--placeholder`, light `oklch(0.5 0.014 85)`, dark `oklch(0.68 0.014 85)`): input/select placeholder text via `placeholder:text-placeholder` / `data-placeholder:text-placeholder`. Held at ≥4.5:1 on the input tint in both themes; never a faded `muted-foreground/60`.
 
 ### Status colors
 - **Amber** (`~70°`, `warning`), **Blue-Violet** (`~258°`, `info`), **Warm Red** (`~25°`, `destructive`), and a `success` green from the same family as primary (`~150°`). `info`'s hue is deliberately cool so it reads as neutral/informational rather than competing visually with `success`.
@@ -129,11 +131,11 @@ Built in OKLCH for perceptually-even lightness control across both themes. The p
 
 ## Layout
 
-Density-first: controls default to a compact height (buttons/inputs at 28px, `h-7`), and cards use a `--card-spacing` custom property (16px default, 12px in the `sm` card variant) that every card-adjacent part (header/content/footer) shares, so tightening a card's density is one variable change. Numeric table columns are right-aligned with `font-mono tabular-nums`; text columns stay left-aligned. The sidebar is a fixed 16rem (18rem on mobile, as an overlay sheet), collapsible to a 3rem icon rail. Dialogs cap at `sm` max-width (desktop) and go full-width minus a 2rem gutter below that — there is no wide/full-screen dialog variant in the current system.
+Density-first: controls default to a compact height (buttons/inputs at 28px, `h-7`) on fine pointers; on coarse pointers (`pointer-coarse:`) buttons, inputs, selects, comboboxes, input groups, pagination controls, and sidebar items grow to a 40px minimum (`min-h-10`, icon buttons also `min-w-10`). The rule lives in the `components/ui` primitives, never per route. Tables default to 25 rows per page (`listSearchSchema`, `useClientTable`). and cards use a `--card-spacing` custom property (16px default, 12px in the `sm` card variant) that every card-adjacent part (header/content/footer) shares, so tightening a card's density is one variable change. Numeric table columns are right-aligned with `font-mono tabular-nums`; text columns stay left-aligned. The sidebar is a fixed 16rem (18rem on mobile, as an overlay sheet), collapsible to a 3rem icon rail. Dialogs cap at `sm` max-width (desktop) and go full-width minus a 2rem gutter below that — there is no wide/full-screen dialog variant in the current system.
 
 ## Elevation & Depth
 
-Flat by default. Inline, in-flow surfaces (`Card`, `StatCard`, `DataCard`) carry exactly one edge treatment — a hairline `border`, no shadow — because stacking a shadow on a bordered surface reads as a muddy double edge. Shadow is spent only on things that actually float above page content: dialogs, sheets, popovers, dropdowns, menus, comboboxes, hover cards, and toasts. Every one of those pairs its shadow with a 1px `ring-foreground/10` — the shadow carries the lift, the ring carries the crisp edge the shadow alone would blur.
+Flat by default. Inline, in-flow surfaces (`Card`, `MetricCard`) carry exactly one edge treatment — a hairline `border`, no shadow — because stacking a shadow on a bordered surface reads as a muddy double edge. Shadow is spent only on things that actually float above page content: dialogs, sheets, popovers, dropdowns, menus, comboboxes, hover cards, and toasts. Every one of those pairs its shadow with a 1px `ring-foreground/10` — the shadow carries the lift, the ring carries the crisp edge the shadow alone would blur.
 
 ### Shadow Vocabulary
 Explicit tokens for elevation hierarchy (defined in `styles.css`):
@@ -169,12 +171,14 @@ One base radius (`--radius: 0.5rem` / 8px) drives the whole scale via `calc()` �
 - **States:** a 2px `ring-ring/30` focus ring; a 1px downward nudge (`translate-y-px`) on `:active` for solid tactile feedback, suppressed on menu-trigger buttons.
 
 ### Chips / Badges
+- **Type size:** badges use `text-xs` from the ramp, never an arbitrary `text-[11px]`.
 - **Status Badge:** fully rounded pill, soft-wash background (`bg-success/10 text-success`, etc.) with a small solid dot in the same hue — never a solid-fill badge. The color carries status; the background stays recessive.
 - **Combobox Chip:** a muted rounded-rectangle tag (`bg-muted-foreground/10 text-foreground`, `rounded-md`) with an inline remove button (X icon) that fades in on hover. Distinct from a status badge: chips represent selected values, not state. Use `rounded-md`, not `rounded-full` — chips are functional, not decorative.
 - **Chip vs Badge distinction:** If it's a removable filter/selection → Chip (rounded-rectangle). If it's a status indicator → Badge (pill shape).
 
 ### Cards / Containers
 - **Corner Style:** `rounded-lg` (8px).
+- **MetricCard:** the one dashboard card (`components/shared/metric-card.tsx`). Metric mode (`value`): muted `text-xs` label with an optional plain inline glyph, `text-2xl font-semibold tabular-nums` value (tinted by `tone` only when the number carries meaning, e.g. low stock → `warning`), optional trend and caption. Panel mode (`children`): section-title header over a hairline divider, body padded or flush (`noPadding`) for `divide-y` rows. No icon tiles, no nested cards. `StatCard`/`DataCard` are deprecated aliases.
 - **Background:** `bg-card` (pure white in light mode) on the warm-paper page background.
 - **Shadow Strategy:** none — see Elevation. A single `border` is the only edge treatment.
 - **Internal Padding:** one shared `--card-spacing` token (16px default, 12px for the `sm` size variant) driving header/content/footer alike.
@@ -195,12 +199,14 @@ Extensions beyond 30% should generally become solid fills instead (`bg-X text-X-
 ### Navigation (Sidebar)
 - **Style:** charcoal-green fill in light mode, warm-neutral (matching the page background, just darker) in dark mode — see Named Rules under Colors.
 - **Default / Hover:** `sidebar-foreground` text; hover fills `sidebar-accent`.
-- **Active:** `bg-sidebar-primary` + `font-medium` + `text-sidebar-primary-foreground` — the one-accent rule's "selected" case, visually distinct from hover's `sidebar-accent`. (Fixed in `components/ui/sidebar.tsx`'s `sidebarMenuButtonVariants` — it previously fell back to `sidebar-accent`, the same token as hover; `sidebar-primary` was defined but unused outside a decorative blur and a catalog swatch.)
+- **Active:** `bg-sidebar-primary` + `font-medium` + `text-sidebar-primary-foreground` — the one-accent rule's "selected" case, visually distinct from hover's `sidebar-accent`. (Fixed in `components/ui/sidebar.tsx`'s `sidebarMenuButtonVariants` — it previously fell back to `sidebar-accent`, the same token as hover; `sidebar-primary` was previously unused outside a catalog swatch.)
 - **Active sub-item:** stays on the lighter `sidebar-accent` treatment, one tier below the top-level active state — a deliberate hierarchy, not an oversight.
 - **Mobile:** collapses into an off-canvas `Sheet` rather than an icon rail.
+- **Theme:** the header's theme menu offers Light / Dark / System (next-themes; System is the default).
+- **Logo:** rendered only through `components/brand/logo.tsx` (assets in `apps/web/public`), so a brand mark swap is one file.
 
 ### Dialog (signature anatomy)
-Three horizontal bands rather than one undifferentiated padded box: a `bg-muted/40` header and footer, each separated from the plain body by a hairline divider, with the dialog's own `rounded-xl` corners clipped onto the header/footer bands via `overflow-hidden`. Deliberately **not** applied to `AlertDialog`, whose compact icon-led confirm card stays bandless so it still reads as a quick yes/no rather than a form surface.
+Three horizontal bands rather than one undifferentiated padded box: a `bg-muted/40` header and footer, each separated from the plain body by a hairline divider, with the dialog's own `rounded-xl` corners clipped onto the header/footer bands via `overflow-hidden`. `confirm()` / `confirmInput()` (`components/shared/confirm*.tsx`) are the yes/no and type-to-confirm dialogs.
 
 ## Do's and Don'ts
 
@@ -219,9 +225,11 @@ Three horizontal bands rather than one undifferentiated padded box: a `bg-muted/
 ### Don't:
 - **Don't** raise the base radius for a "softer" feel — the brief is a precise, understated operations tool, not a rounded consumer app.
 - **Don't** use `rounded-2xl`, `rounded-3xl`, or `rounded-4xl` — these are explicitly forbidden; stay within the four-step scale or use `rounded-full` for true pills.
-- **Don't** stack a shadow on top of a border for inline surfaces (`Card`, `StatCard`, `DataCard`) — one edge treatment per surface; reach for a stronger border before a shadow.
+- **Don't** stack a shadow on top of a border for inline surfaces (`Card`, `MetricCard`) — one edge treatment per surface; reach for a stronger border before a shadow.
 - **Don't** use `font-medium` on anything meant to read as a title — that weight is reserved for labels, legends, and emphasized data, a different tier.
 - **Don't** reach for `font-bold` (700+) anywhere — the system caps at `font-semibold` (600). Precision reads through tracking and size steps, not heavier weight; this product has never used a bolder weight and should stay that way.
-- **Don't** reach for the ambient shell-backdrop glow per-page — it's shell-level chrome, set once; a page wanting its own accent should still prefer a flat card.
+- **Don't** add ambient glows, blurred orbs, grid overlays, or glass anywhere — the shell-level glow was removed; surfaces are flat tokens.
+- **Don't** fade `muted-foreground` for placeholders — use `text-placeholder`.
+- **Don't** shrink touch targets per route; the `pointer-coarse:` minimums live in the primitives.
 - **Don't** treat the POS module's existing screens as a styling reference — per `PRODUCT.md`, POS is currently out of scope for product direction, not just incomplete.
 - **Don't** apply shadow to inline/content surfaces — shadow is reserved for things that float above the page (dialogs, menus, tooltips), never for cards or containers in flow.

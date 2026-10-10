@@ -7,11 +7,12 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { EditIcon, EyeIcon, KeyRoundIcon, PlusIcon, UserXIcon } from 'lucide-react'
 
 import type { ListSearch } from '@/components/data-table'
-import { useServerTable } from '@/components/data-table'
+import { DataTable, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
-import { EntityListPage } from '@/components/shared/entity-list-page'
+import { EmptyState } from '@/components/shared/empty-state'
+import { PageError } from '@/components/shared/page-error'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
@@ -94,9 +95,8 @@ export function UsersList({ searchParams }: UsersListProps) {
 	const handleEdit = useCallback(
 		(userId: number) => {
 			navigate({
-				to: '/settings/users/$userId',
+				to: '/settings/users/$userId/edit',
 				params: { userId: String(userId) },
-				search: { mode: 'edit' },
 			})
 		},
 		[navigate],
@@ -166,35 +166,33 @@ export function UsersList({ searchParams }: UsersListProps) {
 
 	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
 
-	return (
-		<EntityListPage
-			title="Users"
-			description="Manage user accounts and their role assignments."
-			actions={
-				<PermissionGate permission="iam.create">
-					<Button size="sm" onClick={handleAdd}>
-						<PlusIcon className="size-4" />
-						Add User
-					</Button>
-				</PermissionGate>
-			}
-			table={table}
-			recordCount={totalCount}
-			isLoading={listQuery.isFetching}
-			isEmpty={isEmpty}
-			emptyState={{
-				title: 'No users yet',
-				description: 'Get started by creating the first user account.',
-				action: (
+	if (listQuery.isError) {
+		return <PageError message="Could not load users." onRetry={() => void listQuery.refetch()} />
+	}
+	if (isEmpty) {
+		return (
+			<EmptyState
+				title="No users yet"
+				description="Get started by creating the first user account."
+				action={
 					<PermissionGate permission="iam.create">
 						<Button size="sm" onClick={handleAdd}>
 							<PlusIcon className="size-4" />
 							Add User
 						</Button>
 					</PermissionGate>
-				),
-			}}
+				}
+			/>
+		)
+	}
+
+	return (
+		<DataTable
+			table={table}
+			recordCount={totalCount}
+			isLoading={listQuery.isFetching}
 			emptyMessage="No users match your search."
+			onRowClick={(user) => handleView(user.id)}
 			toolbar={
 				<TableToolbar
 					searchValue={globalFilter}

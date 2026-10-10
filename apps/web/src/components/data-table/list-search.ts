@@ -13,7 +13,7 @@ import { z } from 'zod'
  * round-trips through the URL cleanly.
  */
 
-const DEFAULT_PAGE_SIZE = 10
+const DEFAULT_PAGE_SIZE = 25
 
 export const listSearchSchema = z.object({
 	/** 1-based page number as seen in the URL. */

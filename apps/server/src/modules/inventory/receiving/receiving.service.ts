@@ -17,7 +17,7 @@ import { resolveConversion } from '@/modules/uom/index.ts'
 import type { UomService } from '@/modules/uom/index.ts'
 
 import type { StockService } from '../stock/stock.service.ts'
-import { toBaseUnits } from './receiving.calculator.ts'
+import { receivingTotal, toBaseUnits } from './receiving.calculator.ts'
 import { ReceivingError } from './receiving.internal.ts'
 import type { ReceivingRepo } from './receiving.repo.ts'
 import type {
@@ -55,7 +55,10 @@ export class ReceivingService {
 	}
 
 	async handleDetail(id: number): Promise<ReceivingDetailDto> {
-		return assertFound(await this.deps.repo.findDetailById(id), () => ReceivingError.notFound(id))
+		const detail = assertFound(await this.deps.repo.findDetailById(id), () =>
+			ReceivingError.notFound(id),
+		)
+		return { ...detail, totalValue: receivingTotal(detail.lines) }
 	}
 
 	async handleCreate(data: ReceivingCreateDto, actor: Actor): Promise<EntityRef> {

@@ -51,7 +51,7 @@ function NewTransferWizard({ fromLocationId }: { fromLocationId: number }) {
 	const form = useTransferWizard({
 		defaultValues: makeEmptyTransferWizardValues(fromLocationId),
 		onSubmit: async (values) => {
-			await createMut.mutateAsync({
+			const res = await createMut.mutateAsync({
 				fromLocationId: values.fromLocationId!,
 				toLocationId: values.toLocationId!,
 				notes: values.notes || null,
@@ -62,7 +62,10 @@ function NewTransferWizard({ fromLocationId }: { fromLocationId: number }) {
 				})),
 			})
 			toast.add({ title: 'Transfer berhasil dibuat.', type: 'success' })
-			navigate({ to: '/inventory/transfers' })
+			navigate({
+				to: '/inventory/transfers/$transferId',
+				params: { transferId: String(res.data.id) },
+			})
 		},
 	})
 

@@ -220,6 +220,52 @@ describe('inventory/stock', () => {
 		expect(body.meta).toBeDefined()
 	})
 
+	test('balance list filters by search term and status', async () => {
+		const list = async (extra: Record<string, string>) => {
+			const res = await GET('/inventory/stock/list', {
+				token,
+				query: { locationId: String(SEED_LOCATION_ID), page: '1', limit: '100', ...extra },
+			})
+			expect(res.status).toBe(200)
+			return ((await res.json()) as Json).data as {
+				materialCode: string
+				materialName: string
+				quantity: string
+				minStock: string | null
+			}[]
+		}
+
+		const all = await list({})
+		const sample = all[0]
+		if (!sample) throw new Error('Expected seeded balances')
+		const byCode = await list({ q: sample.materialCode.toLowerCase() })
+		expect(byCode.some((b) => b.materialCode === sample.materialCode)).toBe(true)
+		expect((await list({ q: 'no-such-material-zzz' })).length).toBe(0)
+
+		for (const b of await list({ status: 'low' })) {
+			expect(b.minStock).not.toBeNull()
+			expect(Number(b.quantity)).toBeLessThan(Number(b.minStock))
+		}
+		for (const b of await list({ status: 'negative' })) {
+			expect(Number(b.quantity)).toBeLessThan(0)
+		}
+	})
+
+	test('receiving detail carries the server-computed total value', async () => {
+		const createRes = await POST('/inventory/receiving/create', {
+			token,
+			body: {
+				locationId: SEED_LOCATION_ID,
+				supplierId: SEED_SUPPLIER_ID,
+				lines: [{ materialId: SEED_MATERIAL_ID, qty: '2.5', unitCost: '3000', uomId: SEED_UOM_ID }],
+			},
+		})
+		const id = ((await createRes.json()) as Json).data.id
+		const res = await GET('/inventory/receiving/detail', { token, query: { id: String(id) } })
+		expect(res.status).toBe(200)
+		expect(((await res.json()) as Json).data.totalValue).toBe('7500')
+	})
+
 	test('balance for non-existent material returns error', async () => {
 		const res = await GET('/inventory/stock/balance', {
 			token,

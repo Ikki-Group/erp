@@ -9,7 +9,6 @@ import {
 	LoaderIcon,
 	LockKeyholeIcon,
 	ShieldCheckIcon,
-	StoreIcon,
 	UserRoundIcon,
 } from 'lucide-react'
 import { z } from 'zod'
@@ -88,18 +87,14 @@ function LoginPage() {
 
 	return (
 		<main className="min-h-svh bg-background text-foreground lg:grid lg:grid-cols-2">
-			<section className="relative flex min-h-svh min-w-0 items-center justify-center overflow-hidden bg-background px-6 py-10 text-foreground sm:px-10 lg:order-2 lg:px-16">
-				<div className="pointer-events-none absolute -top-36 -right-36 size-96 rounded-full bg-primary/10 blur-3xl" />
-				<div className="pointer-events-none absolute -bottom-48 -left-24 size-96 rounded-full bg-accent-warm/10 blur-3xl" />
-
-				<div className="relative w-full max-w-md">
+			<section className="flex min-h-svh min-w-0 items-center justify-center bg-background px-6 py-10 text-foreground sm:px-10 lg:order-2 lg:px-16">
+				<div className="w-full max-w-md">
 					<div className="mb-10 lg:hidden">
 						<Logo />
 					</div>
 
 					<div className="mb-9">
-						<p className="mb-3 text-sm font-medium text-primary">Selamat datang kembali</p>
-						<h1 className="text-foreground text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+						<h1 className="text-foreground text-3xl font-semibold tracking-tight sm:text-4xl">
 							Masuk untuk mengelola bisnis Anda.
 						</h1>
 						<p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
@@ -211,20 +206,12 @@ function LoginPage() {
 				</div>
 			</section>
 
-			<section className="relative hidden min-w-0 overflow-hidden bg-invert text-invert-foreground lg:order-1 lg:block">
-				<div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px)] bg-size-[44px_44px] opacity-20" />
-				<div className="absolute -top-40 -left-40 size-136 rounded-full border border-invert-foreground/10" />
-				<div className="absolute -top-24 -left-24 size-88 rounded-full border border-accent-warm/25" />
-				<div className="absolute -right-32 -bottom-40 size-112 rounded-full bg-primary/30 blur-3xl" />
-
-				<div className="relative flex h-full min-h-136 flex-col justify-between p-12 xl:p-16">
+			<section className="hidden min-w-0 bg-invert text-invert-foreground lg:order-1 lg:block">
+				<div className="flex h-full min-h-136 flex-col justify-between p-12 xl:p-16">
 					<Logo variant="transparent" showText={false} className="items-start" />
 
 					<div className="max-w-lg py-16">
-						<div className="mb-7 flex size-14 items-center justify-center rounded-xl border border-invert-foreground/15 bg-invert-foreground/10 backdrop-blur-sm">
-							<StoreIcon aria-hidden="true" className="size-6 text-accent-warm" />
-						</div>
-						<h2 className="max-w-md text-4xl font-semibold leading-[1.08] tracking-tighter xl:text-5xl">
+						<h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight xl:text-5xl">
 							Buat setiap hari operasional terasa lebih ringan.
 						</h2>
 						<p className="mt-6 max-w-sm text-sm leading-6 text-invert-foreground/65">
@@ -233,7 +220,7 @@ function LoginPage() {
 						</p>
 					</div>
 
-					<div className="flex items-center justify-between border-t border-invert-foreground/15 pt-5 text-xs text-invert-foreground/45">
+					<div className="flex items-center justify-between border-t border-invert-foreground/15 pt-5 text-xs text-invert-foreground/70">
 						<span>Ruang kerja Anda, satu sumber kebenaran.</span>
 						<span className="hidden sm:inline">© Ikki</span>
 					</div>

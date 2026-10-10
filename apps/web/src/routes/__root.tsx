@@ -6,7 +6,6 @@ import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { Confirm } from '@/components/shared/confirm'
-import { ConfirmInput } from '@/components/shared/confirm-input'
 import { FormDialog } from '@/components/shared/form-dialog'
 import { NotFound } from '@/components/shared/not-found'
 
@@ -58,7 +57,6 @@ function RootComponent() {
 							<Outlet />
 						</AuthProvider>
 						<Confirm />
-						<ConfirmInput />
 						<FormDialog />
 						<TanStackDevtools
 							config={{

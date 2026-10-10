@@ -150,7 +150,7 @@ export function WizardPage({
 			>
 				{currentStep?.content}
 
-				<div className="sticky bottom-0 -mx-2 flex items-center justify-end gap-2 border-t bg-background/95 px-2 py-4 backdrop-blur">
+				<div className="sticky -bottom-4 -mx-4 flex items-center justify-end gap-2 border-t bg-background px-4 py-3 sm:-bottom-6 sm:-mx-6 sm:px-6">
 					<Button type="button" variant="outline" onClick={handleBack} disabled={isSubmitting}>
 						{activeStep === 1 ? cancelLabel : 'Kembali'}
 					</Button>

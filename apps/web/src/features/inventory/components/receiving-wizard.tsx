@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { PlusIcon, Trash2Icon } from 'lucide-react'
+import { MapPinIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { z } from 'zod'
 
 import { useEntityForm } from '@/lib/form/index.ts'
@@ -104,9 +104,43 @@ export function isReceivingStepValid(step: number, values: ReceivingWizardValues
 	return true
 }
 
+// ─── Destination ───
+
+export interface ReceivingDestination {
+	name: string
+	code: string
+}
+
+/** Where the goods land: always the active location (switch it in the header to change). */
+function DestinationCallout({ destination }: { destination: ReceivingDestination }) {
+	return (
+		<div className="flex items-start gap-3 rounded-lg border bg-card p-3">
+			<div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+				<MapPinIcon className="size-4" />
+			</div>
+			<div className="min-w-0 space-y-0.5">
+				<p className="text-xs text-muted-foreground">Barang masuk ke</p>
+				<p className="text-sm font-medium">
+					{destination.name}{' '}
+					<span className="font-mono text-xs text-muted-foreground">{destination.code}</span>
+				</p>
+				<p className="text-xs text-muted-foreground">
+					Lokasi aktif. Ganti lokasi di pemilih lokasi bila tujuan berbeda.
+				</p>
+			</div>
+		</div>
+	)
+}
+
 // ─── Step 1: Supplier & Notes ───
 
-export function ReceivingStepSupplier({ form }: { form: ReceivingWizardForm }) {
+export function ReceivingStepSupplier({
+	form,
+	destination,
+}: {
+	form: ReceivingWizardForm
+	destination: ReceivingDestination
+}) {
 	const suppliersQuery = useQuery(supplierResource.list.queryOptions({ page: 1, limit: 100 }))
 	const supplierOptions = (suppliersQuery.data?.data ?? [])
 		.filter((s) => s.isActive)
@@ -114,6 +148,7 @@ export function ReceivingStepSupplier({ form }: { form: ReceivingWizardForm }) {
 
 	return (
 		<div className="grid gap-4">
+			<DestinationCallout destination={destination} />
 			<form.AppField name="supplierId">
 				{(field) => (
 					<field.IdSelectField
@@ -159,9 +194,9 @@ export function ReceivingStepLines({ form }: { form: ReceivingWizardForm }) {
 		<form.AppField name="lines" mode="array">
 			{(linesField) => (
 				<div className="space-y-3">
-					<div className="flex items-center justify-between">
+					<div className="flex flex-wrap items-center justify-between gap-2">
 						<Label>Item Penerimaan</Label>
-						<div className="flex gap-2">
+						<div className="flex flex-wrap gap-2">
 							{supplierId && (
 								<Button
 									type="button"
@@ -201,53 +236,63 @@ export function ReceivingStepLines({ form }: { form: ReceivingWizardForm }) {
 					)}
 
 					<div className="space-y-2">
-						{linesField.state.value.map((_, i) => (
-							<div key={i} className="flex items-start gap-2 rounded-md border p-3">
-								<div className="flex-1">
-									<form.AppField name={`lines[${i}].materialId`}>
+						{linesField.state.value.map((_, i) => {
+							// Labels stay in the accessibility tree; on desktop only the first row shows them.
+							const label = i === 0 ? '' : 'md:[&>label]:sr-only'
+							return (
+								<div
+									key={i}
+									className="grid grid-cols-2 items-start gap-2 rounded-md border p-3 md:grid-cols-[minmax(0,1fr)_6rem_8rem_9rem_auto] max-md:[&_[data-slot=input-group]]:h-10 max-md:[&_[data-slot=select-trigger]]:h-10 max-md:[&_input]:h-10 max-md:[&_input]:text-base"
+								>
+									<div className="col-span-2 md:col-span-1">
+										<form.AppField name={`lines[${i}].materialId`}>
+											{(field) => (
+												<field.IdSelectField
+													label="Material"
+													options={materialOptions}
+													placeholder="Pilih material"
+													className={label}
+												/>
+											)}
+										</form.AppField>
+									</div>
+									<form.AppField name={`lines[${i}].qty`}>
 										{(field) => (
-											<field.IdSelectField
-												label={i === 0 ? 'Material' : '\u00A0'}
-												options={materialOptions}
-												placeholder="Pilih material"
+											<field.TextField
+												label="Jumlah"
+												placeholder="0"
+												inputMode="decimal"
+												wrapperClassName={label}
+												className="text-right font-mono tabular-nums"
 											/>
 										)}
 									</form.AppField>
-								</div>
-								<div className="w-28">
-									<form.AppField name={`lines[${i}].qty`}>
-										{(field) => (
-											<field.TextField label={i === 0 ? 'Jumlah' : '\u00A0'} placeholder="0" />
-										)}
-									</form.AppField>
-								</div>
-								<div className="w-36">
-									<form.AppField name={`lines[${i}].unitCost`}>
-										{(field) => <field.CurrencyField label={i === 0 ? 'Harga Satuan' : '\u00A0'} />}
-									</form.AppField>
-								</div>
-								<div className="w-32">
 									<form.AppField name={`lines[${i}].uomId`}>
 										{(field) => (
 											<field.IdSelectField
-												label={i === 0 ? 'Satuan' : '\u00A0'}
+												label="Satuan"
 												options={uomOptions}
 												placeholder="UoM"
+												className={label}
 											/>
 										)}
 									</form.AppField>
+									<form.AppField name={`lines[${i}].unitCost`}>
+										{(field) => <field.CurrencyField label="Harga satuan" className={label} />}
+									</form.AppField>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										aria-label={`Hapus baris ${i + 1}`}
+										className="self-end justify-self-end max-md:size-10"
+										onClick={() => linesField.removeValue(i)}
+									>
+										<Trash2Icon className="size-4" />
+									</Button>
 								</div>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									className={i === 0 ? 'mt-6' : ''}
-									onClick={() => linesField.removeValue(i)}
-								>
-									<Trash2Icon className="size-4" />
-								</Button>
-							</div>
-						))}
+							)
+						})}
 					</div>
 				</div>
 			)}
@@ -257,7 +302,13 @@ export function ReceivingStepLines({ form }: { form: ReceivingWizardForm }) {
 
 // ─── Step 3: Review ───
 
-export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
+export function ReceivingStepReview({
+	form,
+	destination,
+}: {
+	form: ReceivingWizardForm
+	destination: ReceivingDestination
+}) {
 	const values = form.store.state.values
 
 	const suppliersQuery = useQuery(supplierResource.list.queryOptions({ page: 1, limit: 100 }))
@@ -272,7 +323,14 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 	return (
 		<div className="space-y-4">
 			<div className="rounded-md border p-4">
-				<dl className="grid grid-cols-2 gap-3 text-sm">
+				<dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+					<div>
+						<dt className="text-muted-foreground">Lokasi tujuan</dt>
+						<dd className="font-medium">
+							{destination.name}{' '}
+							<span className="font-mono text-xs text-muted-foreground">{destination.code}</span>
+						</dd>
+					</div>
 					<div>
 						<dt className="text-muted-foreground">Supplier</dt>
 						<dd className="font-medium">

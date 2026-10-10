@@ -2,32 +2,18 @@ import { useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
-import { AlertTriangleIcon, BoxesIcon, ShoppingCartIcon, WalletIcon } from 'lucide-react'
-
-import { IconTile } from '@/components/reui/icon-tile'
 import {
 	AuditTrail,
 	CurrencyDisplay,
-	DataCard,
 	DetailList,
 	PageHeader,
 	PageSection,
 	RelativeTime,
-	SegmentedBar,
-	StatCard,
 	StatusBadge,
 } from '@/components/shared'
 
 import { Avatar, AvatarFallback, AvatarGroup } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
 import type { AuditLogDto } from '@/features/audit/dto/index.ts'
@@ -41,152 +27,8 @@ function DataDisplayPage() {
 		<div className="space-y-10">
 			<PageHeader
 				title="Data Display"
-				description="Metrics, cards, badges, and other components for presenting read-only data."
+				description="Badges, detail lists, money, time, and activity for presenting read-only data. Cards live on the Cards page."
 			/>
-
-			{/* ─── STAT CARDS ─── */}
-			<PageSection
-				title="Stat Cards"
-				description="Dashboard-style metric display. tone tints the icon to match the metric's meaning; isLoading shows a skeleton; onClick makes the whole card an actionable, keyboard-operable button."
-			>
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-					<StatCard
-						title="Total Orders"
-						value="1,284"
-						icon={<ShoppingCartIcon className="size-4" />}
-						trend={{ value: '+12.5%', positive: true }}
-					/>
-					<StatCard
-						title="Revenue"
-						value="Rp 42.8M"
-						icon={<WalletIcon className="size-4" />}
-						trend={{ value: '+8.2%', positive: true }}
-						description="This month"
-						tone="success"
-					/>
-					<StatCard
-						title="Low Stock"
-						value="7"
-						icon={<AlertTriangleIcon className="size-4" />}
-						trend={{ value: '+3', positive: false }}
-						tone="warning"
-						onClick={() => alert('Would navigate to /inventory/stock')}
-					/>
-					<StatCard title="Materials" value="" icon={<BoxesIcon className="size-4" />} isLoading />
-				</div>
-			</PageSection>
-
-			<Separator />
-
-			{/* ─── ICON TILES ─── */}
-			<PageSection
-				title="Icon Tiles"
-				description="Bordered icon chips used inside StatCard, EmptyState, and PageError instead of a plain icon. Recolor with a text-* class — soft/solid derive their fill from currentColor."
-			>
-				<div className="space-y-4">
-					<div className="flex flex-wrap items-end gap-4">
-						<IconTile variant="outline">
-							<BoxesIcon />
-						</IconTile>
-						<IconTile variant="elevated">
-							<BoxesIcon />
-						</IconTile>
-						<IconTile variant="soft">
-							<BoxesIcon />
-						</IconTile>
-						<IconTile variant="solid">
-							<BoxesIcon />
-						</IconTile>
-						<IconTile variant="frame">
-							<BoxesIcon />
-						</IconTile>
-					</div>
-					<div className="flex flex-wrap items-end gap-4">
-						<IconTile variant="soft" className="text-success">
-							<BoxesIcon />
-						</IconTile>
-						<IconTile variant="soft" className="text-warning">
-							<AlertTriangleIcon />
-						</IconTile>
-						<IconTile variant="soft" className="text-destructive">
-							<AlertTriangleIcon />
-						</IconTile>
-						<IconTile variant="soft" size="sm">
-							<ShoppingCartIcon />
-						</IconTile>
-						<IconTile variant="soft" size="lg">
-							<ShoppingCartIcon />
-						</IconTile>
-						<IconTile variant="soft" radius="full">
-							<ShoppingCartIcon />
-						</IconTile>
-					</div>
-				</div>
-			</PageSection>
-
-			<Separator />
-
-			{/* ─── CARD ─── */}
-			<PageSection
-				title="Card"
-				description="Base primitive — Header/Title/Description/Content/Footer slots. DataCard (below) is a themed convenience wrapper for the common title+content shape."
-			>
-				<Card className="max-w-sm">
-					<CardHeader>
-						<CardTitle>Coffee Beans (Arabica)</CardTitle>
-						<CardDescription>MAT-001 · Raw Material</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<p className="text-sm text-muted-foreground">24.5 kg on hand across 3 locations.</p>
-					</CardContent>
-					<CardFooter className="gap-2">
-						<Button size="sm" variant="outline">
-							View
-						</Button>
-						<Button size="sm">Edit</Button>
-					</CardFooter>
-				</Card>
-			</PageSection>
-
-			<Separator />
-
-			{/* ─── DATA CARD ─── */}
-			<PageSection
-				title="Data Card"
-				description="Titled card section for grouped content. icon/tone pair with StatCard's tone tints — same visual family."
-			>
-				<div className="grid gap-4 lg:grid-cols-2">
-					<DataCard
-						title="Material Info"
-						description="Basic information about the material."
-						actions={
-							<Button variant="outline" size="sm">
-								Edit
-							</Button>
-						}
-					>
-						<DetailList
-							items={[
-								{ label: 'Supplier', value: 'PT Sumber Jaya' },
-								{ label: 'Last Price', value: 'Rp 85,000 / kg' },
-								{ label: 'Stock', value: '24.5 kg' },
-								{ label: 'Avg Cost', value: 'Rp 82,340 / kg' },
-							]}
-						/>
-					</DataCard>
-
-					<DataCard
-						title="Low Stock"
-						description="Needs attention soon."
-						icon={<AlertTriangleIcon className="size-4" />}
-						tone="warning"
-					>
-						<p className="text-sm text-muted-foreground">7 materials below minimum stock.</p>
-					</DataCard>
-				</div>
-			</PageSection>
-
-			<Separator />
 
 			{/* ─── DETAIL LIST ─── */}
 			<PageSection title="Detail List" description="Key-value pairs for detail pages.">
@@ -217,34 +59,6 @@ function DataDisplayPage() {
 					<StatusBadge variant="success" dot={false}>
 						No Dot
 					</StatusBadge>
-				</div>
-			</PageSection>
-
-			<Separator />
-
-			{/* ─── SEGMENTED BAR ─── */}
-			<PageSection title="Segmented Bar" description="Proportional breakdown visualization.">
-				<div className="max-w-md space-y-6">
-					<div className="space-y-1.5">
-						<p className="text-xs font-medium text-muted-foreground uppercase">Opname Accuracy</p>
-						<SegmentedBar
-							items={[
-								{ label: 'Matched', value: 188, className: 'bg-success' },
-								{ label: 'Variance', value: 22, className: 'bg-destructive' },
-								{ label: 'Not counted', value: 144, className: 'bg-muted' },
-							]}
-						/>
-					</div>
-					<div className="space-y-1.5">
-						<p className="text-xs font-medium text-muted-foreground uppercase">Order Status</p>
-						<SegmentedBar
-							items={[
-								{ label: 'Completed', value: 84, className: 'bg-success' },
-								{ label: 'Open', value: 12, className: 'bg-info' },
-								{ label: 'Voided', value: 4, className: 'bg-destructive' },
-							]}
-						/>
-					</div>
 				</div>
 			</PageSection>
 

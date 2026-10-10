@@ -63,10 +63,17 @@ export type StockBalanceQueryDto = z.infer<typeof StockBalanceQueryDto>
 
 // ─── Filter: Balance List ───
 
+/** `low`: below the material's min stock; `negative`: on-hand below zero. */
+export const StockBalanceStatusEnum = z.enum(['low', 'negative'])
+export type StockBalanceStatusEnum = z.infer<typeof StockBalanceStatusEnum>
+
 export const StockBalanceFilterDto = z.object({
 	...zq.pagination.shape,
 	locationId: z.coerce.number().int().positive(),
 	materialId: z.coerce.number().int().positive().optional(),
+	/** Matches material code or name. */
+	q: zq.search,
+	status: StockBalanceStatusEnum.optional(),
 })
 export type StockBalanceFilterDto = z.infer<typeof StockBalanceFilterDto>
 

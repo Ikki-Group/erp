@@ -205,57 +205,64 @@ export function TransferStepLines({ form }: { form: TransferWizardForm }) {
 					)}
 
 					<div className="space-y-2">
-						{linesField.state.value.map((_, i) => (
-							<div key={i} className="flex items-start gap-2 rounded-md border p-3">
-								<div className="flex-1">
-									<form.AppField name={`lines[${i}].materialId`}>
-										{(field) => (
-											<field.IdSelectField
-												label={i === 0 ? 'Material' : '\u00A0'}
-												options={materialOptions}
-												placeholder="Pilih material"
-												onValueChange={(v) => {
-													field.handleChange(v)
-													if (v !== null) {
+						{linesField.state.value.map((_, i) => {
+							const label = i === 0 ? '' : 'md:[&>label]:sr-only'
+							return (
+								<div
+									key={i}
+									className="grid grid-cols-2 items-start gap-2 rounded-md border p-3 md:grid-cols-[minmax(0,1fr)_7rem_8rem_auto] max-md:[&_[data-slot=input-group]]:h-10 max-md:[&_[data-slot=select-trigger]]:h-10 max-md:[&_input]:h-10 max-md:[&_input]:text-base"
+								>
+									<div className="col-span-2 md:col-span-1">
+										<form.AppField name={`lines[${i}].materialId`}>
+											{(field) => (
+												<field.IdSelectField
+													label="Material"
+													options={materialOptions}
+													placeholder="Pilih material"
+													className={label}
+													onValueChange={(v) => {
+														if (v === null) return
 														const defaultUom = materialUomMap.get(v)
-														if (defaultUom) {
-															form.setFieldValue(`lines[${i}].uomId`, defaultUom)
-														}
-													}
-												}}
+														if (defaultUom) form.setFieldValue(`lines[${i}].uomId`, defaultUom)
+													}}
+												/>
+											)}
+										</form.AppField>
+									</div>
+									<form.AppField name={`lines[${i}].qty`}>
+										{(field) => (
+											<field.TextField
+												label="Jumlah"
+												placeholder="0"
+												inputMode="decimal"
+												wrapperClassName={label}
+												className="text-right font-mono tabular-nums"
 											/>
 										)}
 									</form.AppField>
-								</div>
-								<div className="w-28">
-									<form.AppField name={`lines[${i}].qty`}>
-										{(field) => (
-											<field.TextField label={i === 0 ? 'Jumlah' : '\u00A0'} placeholder="0" />
-										)}
-									</form.AppField>
-								</div>
-								<div className="w-32">
 									<form.AppField name={`lines[${i}].uomId`}>
 										{(field) => (
 											<field.IdSelectField
-												label={i === 0 ? 'Satuan' : '\u00A0'}
+												label="Satuan"
 												options={uomOptions}
 												placeholder="UoM"
+												className={label}
 											/>
 										)}
 									</form.AppField>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										aria-label={`Hapus baris ${i + 1}`}
+										className="col-span-2 justify-self-end max-md:size-10 md:col-span-1 md:self-end"
+										onClick={() => linesField.removeValue(i)}
+									>
+										<Trash2Icon className="size-4" />
+									</Button>
 								</div>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									className={i === 0 ? 'mt-6' : ''}
-									onClick={() => linesField.removeValue(i)}
-								>
-									<Trash2Icon className="size-4" />
-								</Button>
-							</div>
-						))}
+							)
+						})}
 					</div>
 				</div>
 			)}

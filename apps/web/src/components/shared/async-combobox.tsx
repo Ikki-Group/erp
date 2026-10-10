@@ -44,7 +44,7 @@ interface AsyncComboboxProps {
  *
  * `filteredItems` is passed through unchanged from `options` \u2014 the server
  * already filtered, so Base UI's own client-side filtering is disabled (see
- * `docs/web/07-design-system.md`).
+ * `apps/web/DESIGN.md`).
  */
 export function AsyncCombobox({
 	value,

@@ -145,16 +145,8 @@ export function SidebarNav() {
 
 	return (
 		<Sidebar>
-			{/* Ambient glow — same no-z-index technique as AppShell's ShellBackdrop (see docs/web/07-design-system.md, "Shell backdrop"); first child so it paints behind the nav items that follow. */}
-			<div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-				<div className="absolute -top-16 left-1/2 size-56 -translate-x-1/2 rounded-full bg-sidebar-primary/25 blur-3xl" />
-				<div className="absolute -bottom-24 -left-12 size-64 rounded-full bg-accent-warm/15 blur-3xl" />
-			</div>
 			<SidebarHeader>
-				<div className="flex h-8 items-center gap-2 px-2">
-					<Logo showText={false} />
-					<span className="truncate text-sm font-semibold">Ikki ERP</span>
-				</div>
+				<Logo className="h-8 px-2" />
 			</SidebarHeader>
 			<SidebarContent>
 				{visibleGroups.map((group) => (

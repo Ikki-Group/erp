@@ -3,12 +3,14 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { ShieldCheckIcon, UserIcon } from 'lucide-react'
+import { PlusIcon, ShieldCheckIcon, UserIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { PageHeader, StatCard } from '@/components/shared'
+import { PageHeader, PermissionGate } from '@/components/shared'
 import { PageTabs } from '@/components/shared/page-tabs'
 import type { PageTab } from '@/components/shared/page-tabs'
+
+import { Button } from '@/components/ui/button'
 
 import { roleResource, userResource } from '@/features/iam/api.ts'
 import { RolesList } from '@/features/iam/components/roles-list.tsx'
@@ -36,12 +38,12 @@ function AccessControlPage() {
 	const search = Route.useSearch()
 	const { tab } = search
 
-	// Stats for both tabs
+	// Counts for the tab labels
 	const usersQuery = useQuery(userResource.list.queryOptions({ page: 1, limit: 1 }))
 	const rolesQuery = useQuery(roleResource.list.queryOptions({ page: 1, limit: 1 }))
 
-	const totalUsers = usersQuery.data?.meta?.total ?? 0
-	const totalRoles = rolesQuery.data?.meta?.total ?? 0
+	const totalUsers = usersQuery.data?.meta?.total
+	const totalRoles = rolesQuery.data?.meta?.total
 
 	const handleTabChange = (tabId: string) => {
 		// Preserve common filters (search query) when switching tabs
@@ -56,28 +58,6 @@ function AccessControlPage() {
 			replace: true,
 		})
 	}
-
-	const stats = useMemo(
-		() => (
-			<div className="grid gap-4 sm:grid-cols-2">
-				<StatCard
-					title="Users"
-					value={totalUsers}
-					icon={<UserIcon className="size-4" />}
-					description="Total registered"
-					isLoading={usersQuery.isLoading}
-				/>
-				<StatCard
-					title="Roles"
-					value={totalRoles}
-					icon={<ShieldCheckIcon className="size-4" />}
-					description="Access control"
-					isLoading={rolesQuery.isLoading}
-				/>
-			</div>
-		),
-		[totalUsers, totalRoles, usersQuery.isLoading, rolesQuery.isLoading],
-	)
 
 	const tabs: PageTab[] = useMemo(
 		() => [
@@ -99,9 +79,25 @@ function AccessControlPage() {
 
 	return (
 		<div className="space-y-6">
-			<PageHeader title="Access Control" description="Manage users and roles for access control." />
-
-			{stats}
+			<PageHeader
+				title="Access Control"
+				description="Manage users and roles for access control."
+				actions={
+					<PermissionGate permission="iam.create">
+						{tab === 'users' ? (
+							<Button size="sm" onClick={() => navigate({ to: '/settings/users/new' })}>
+								<PlusIcon className="size-4" />
+								Add User
+							</Button>
+						) : (
+							<Button size="sm" onClick={() => navigate({ to: '/settings/roles/new' })}>
+								<PlusIcon className="size-4" />
+								Add Role
+							</Button>
+						)}
+					</PermissionGate>
+				}
+			/>
 
 			<PageTabs tabs={tabs} activeTab={tab} onTabChange={handleTabChange} />
 

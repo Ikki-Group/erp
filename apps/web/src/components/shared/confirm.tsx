@@ -1,9 +1,8 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 
 import { AlertTriangleIcon, CheckCircle2Icon } from 'lucide-react'
 import { createCallable } from 'react-call'
-
-import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -14,14 +13,29 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 
-interface ConfirmProps {
+export interface ConfirmSummaryRow {
+	label: string
+	/** Numbers/money should already be formatted (e.g. `<CurrencyDisplay />`). */
+	value: ReactNode
+}
+
+export interface ConfirmProps {
 	title: string
-	description: string
+	description: ReactNode
 	confirmLabel?: string
 	cancelLabel?: string
+	/** `destructive` = irreversible / data-changing: warning icon + destructive confirm button. */
+	tone?: 'default' | 'destructive'
+	/** @deprecated use `tone`. */
 	variant?: 'default' | 'destructive'
+	/** What the action will touch, shown as a small label/value list above the buttons. */
+	summary?: ConfirmSummaryRow[]
+	/** Typed confirmation: the confirm button stays disabled until the user types this exactly. */
+	requireText?: string
 	/**
 	 * Optional async action. When provided, the dialog stays open with a loading
 	 * spinner until the promise resolves. If it throws, the dialog remains open
@@ -34,7 +48,6 @@ type ConfirmResponse = boolean
 
 /** Must cover the dialog's own close animation (150ms) so it finishes before unmount. */
 const UNMOUNTING_DELAY = 300
-
 /** How long the success state is shown before the dialog auto-closes. */
 const SUCCESS_DISPLAY_DURATION = 600
 
@@ -45,13 +58,20 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 		description,
 		confirmLabel = 'Confirm',
 		cancelLabel = 'Cancel',
-		variant = 'default',
+		tone,
+		variant,
+		summary,
+		requireText,
 		onConfirm,
 	}) => {
 		const [loading, setLoading] = useState(false)
 		const [error, setError] = useState<string | null>(null)
 		const [success, setSuccess] = useState(false)
+		const [typed, setTyped] = useState('')
 		const isClosingRef = useRef(false)
+		const inputId = useId()
+		const destructive = (tone ?? variant) === 'destructive'
+		const textMatches = requireText === undefined || typed === requireText
 
 		const close = useCallback(
 			(result: boolean) => {
@@ -62,11 +82,11 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 		)
 
 		const handleConfirm = useCallback(async () => {
+			if (!textMatches) return
 			if (!onConfirm) {
 				close(true)
 				return
 			}
-
 			setLoading(true)
 			setError(null)
 			try {
@@ -78,17 +98,10 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 				setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
 				setLoading(false)
 			}
-		}, [onConfirm, close])
-
-		const handleRetry = () => {
-			setError(null)
-			void handleConfirm()
-		}
+		}, [onConfirm, close, textMatches])
 
 		const handleCancel = useCallback(() => {
-			if (!loading && !isClosingRef.current && !success) {
-				close(false)
-			}
+			if (!loading && !isClosingRef.current && !success) close(false)
 		}, [loading, success, close])
 
 		const handleOpenChange = useCallback(
@@ -100,45 +113,95 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 			[loading, success, call.ended, close],
 		)
 
-		const showFooter = !error && !success
-
 		return (
 			<Dialog open={!call.ended} onOpenChange={handleOpenChange}>
 				<DialogContent showCloseButton={false}>
-					<DialogHeader className={variant === 'destructive' ? 'bg-destructive/5' : ''}>
-						{!success && variant === 'destructive' && (
-							<div className="mb-1 flex size-10 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/8 text-destructive">
-								<AlertTriangleIcon className="size-5 stroke-[2.5]" />
+					<DialogHeader>
+						{!success && destructive && (
+							<div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+								<AlertTriangleIcon className="size-4.5" />
 							</div>
 						)}
 						{success && (
-							<div className="mb-1 flex size-10 items-center justify-center rounded-lg border border-success/20 bg-success/8 text-success animate-pulse">
-								<CheckCircle2Icon className="size-5" />
+							<div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-success/10 text-success">
+								<CheckCircle2Icon className="size-4.5" />
 							</div>
 						)}
 						<DialogTitle>{title}</DialogTitle>
 						<DialogDescription>{description}</DialogDescription>
 					</DialogHeader>
 
-					{error && (
-						<div className="animate-in slide-in-from-top-2 duration-200 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs font-medium text-destructive">
-							<div className="mb-2">{error}</div>
-							<Button size="sm" variant="outline" onClick={handleRetry} className="text-xs">
-								Try Again
-							</Button>
+					{((summary && summary.length > 0) ||
+						(requireText !== undefined && !success) ||
+						error) && (
+						<div className="space-y-3 py-4">
+							{summary && summary.length > 0 && (
+								<dl className="divide-y rounded-md border text-sm">
+									{summary.map((row) => (
+										<div
+											key={row.label}
+											className="flex items-baseline justify-between gap-4 px-3 py-2"
+										>
+											<dt className="shrink-0 text-xs text-muted-foreground">{row.label}</dt>
+											<dd className="min-w-0 text-right font-medium">{row.value}</dd>
+										</div>
+									))}
+								</dl>
+							)}
+
+							{requireText !== undefined && !success && (
+								<div className="space-y-1.5">
+									<Label htmlFor={inputId}>
+										<span>
+											Type{' '}
+											<span className="font-mono font-semibold text-foreground">{requireText}</span>{' '}
+											to confirm
+										</span>
+									</Label>
+									<Input
+										id={inputId}
+										value={typed}
+										onChange={(e) => setTyped(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === 'Enter') void handleConfirm()
+										}}
+										placeholder={requireText}
+										autoComplete="off"
+										autoFocus
+										disabled={loading}
+									/>
+								</div>
+							)}
+
+							{error && (
+								<div
+									role="alert"
+									className="animate-in slide-in-from-top-2 duration-200 rounded-md bg-destructive/10 px-4 py-3 text-xs font-medium text-destructive"
+								>
+									<div className="mb-2">{error}</div>
+									<Button size="sm" variant="outline" onClick={() => void handleConfirm()}>
+										Try Again
+									</Button>
+								</div>
+							)}
 						</div>
 					)}
 
-					{showFooter && (
+					{!error && !success && (
 						<DialogFooter>
-							<Button variant="outline" onClick={handleCancel} disabled={loading}>
+							<Button
+								variant="outline"
+								onClick={handleCancel}
+								disabled={loading}
+								className="pointer-coarse:h-10"
+							>
 								{cancelLabel}
 							</Button>
 							<Button
-								variant={variant === 'destructive' ? 'destructive' : 'default'}
-								disabled={loading}
-								onClick={handleConfirm}
-								className={cn(variant === 'destructive' && 'shadow-sm hover:shadow-md')}
+								variant={destructive ? 'destructive' : 'default'}
+								disabled={loading || !textMatches}
+								onClick={() => void handleConfirm()}
+								className="pointer-coarse:h-10"
 							>
 								{loading && <Spinner className="mr-1.5 size-3.5" />}
 								{confirmLabel}
@@ -148,10 +211,7 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 
 					{success && (
 						<DialogFooter>
-							<Button
-								onClick={() => close(true)}
-								className="w-full animate-in fade-in-0 zoom-in-95 duration-200 sm:w-auto"
-							>
+							<Button onClick={() => close(true)} className="w-full sm:w-auto pointer-coarse:h-10">
 								Done
 							</Button>
 						</DialogFooter>
@@ -166,24 +226,24 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 /**
  * Imperative confirm dialog. Returns `true` if confirmed, `false` if cancelled.
  *
- * Supports async actions — pass `onConfirm` to keep the dialog open with a
- * loading spinner until the promise resolves. If the promise rejects, an error
- * message is shown and the user can retry or cancel.
+ * - `onConfirm` (async) keeps the dialog open with a spinner; a rejection shows
+ *   the error with a retry.
+ * - `summary` lists what the action touches (label/value rows; values may be
+ *   nodes like `<CurrencyDisplay />`). Use it for every stock- or money-moving action.
+ * - `tone: 'destructive'` marks irreversible actions.
+ * - `requireText` gates the confirm button behind typing a word (e.g. a name).
  *
  * @example
  * ```tsx
- * // Simple (no async)
- * const accepted = await confirm({ title: 'Delete?', description: '...' })
- *
- * // With async action
- * const accepted = await confirm({
- *   title: 'Delete material?',
- *   description: 'This cannot be undone.',
- *   confirmLabel: 'Delete',
- *   variant: 'destructive',
- *   onConfirm: async () => {
- *     await api.deleteMaterial(id)
- *   },
+ * await confirm({
+ *   title: 'Konfirmasi penerimaan?',
+ *   description: 'Stok akan bertambah. Tindakan ini tidak dapat dibatalkan.',
+ *   tone: 'destructive',
+ *   summary: [
+ *     { label: 'Lokasi', value: location.name },
+ *     { label: 'Total', value: <CurrencyDisplay value={detail.totalValue} /> },
+ *   ],
+ *   onConfirm: () => api.confirm(id),
  * })
  * ```
  */

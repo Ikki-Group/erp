@@ -12,6 +12,7 @@ import {
 	buildPaginationMeta,
 	and,
 	inArray,
+	searchAcross,
 } from '@/infra/database/index.ts'
 import type { Db, DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
@@ -231,6 +232,13 @@ export class StockRepo {
 		return allOf(
 			eq(stockBalances.locationId, filter.locationId),
 			eqIf(stockBalances.materialId, filter.materialId),
+			searchAcross(filter.q, [materials.code, materials.name]),
+			// Same predicates as the inventory summary counts, so a dashboard count
+			// and the filtered list agree.
+			filter.status === 'low'
+				? sql`${materials.isActive} and ${materials.minStock} is not null and ${stockBalances.quantity} < ${materials.minStock}`
+				: undefined,
+			filter.status === 'negative' ? sql`${stockBalances.quantity} < 0` : undefined,
 		)
 	}
 

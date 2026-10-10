@@ -8,6 +8,7 @@ export {
 	MovementTypeEnum,
 	StockBalanceDto,
 	StockBalanceFilterDto,
+	StockBalanceStatusEnum,
 	StockMovementDto,
 	StockMovementFilterDto,
 } from '@ikki/contract/inventory/stock'

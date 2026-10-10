@@ -3,7 +3,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import {
 	EmptyState,
 	InlineAlert,
-	InlineTip,
 	PageError,
 	PageHeader,
 	PageSection,
@@ -23,7 +22,7 @@ function FeedbackPage() {
 		<div className="space-y-10">
 			<PageHeader
 				title="Feedback"
-				description="Loading, empty, and error states, plus inline and transient (toast) messaging. Every query-backed table needs the first three — see docs/web/07-design-system.md."
+				description="Loading, empty, and error states, plus inline and transient (toast) messaging. Every query-backed table needs the first three — see apps/web/DESIGN.md."
 			/>
 
 			{/* ─── INLINE ALERTS ─── */}
@@ -41,21 +40,6 @@ function FeedbackPage() {
 					<InlineAlert variant="error" title="Error">
 						Failed to save. Please check your connection and try again.
 					</InlineAlert>
-				</div>
-			</PageSection>
-
-			<Separator />
-
-			{/* ─── INLINE TIP ─── */}
-			<PageSection
-				title="Inline Tip"
-				description="Compact one-line field/section guidance — lighter-weight than Inline Alert (no separate title/body split), for a note that doesn't need its own block."
-			>
-				<div className="max-w-lg space-y-2">
-					<InlineTip>Stock is calculated per-location. Transfer to move between stores.</InlineTip>
-					<InlineTip variant="success">Auto-saved 2 minutes ago.</InlineTip>
-					<InlineTip variant="warning">This action cannot be undone.</InlineTip>
-					<InlineTip variant="error">This code is already used by another material.</InlineTip>
 				</div>
 			</PageSection>
 

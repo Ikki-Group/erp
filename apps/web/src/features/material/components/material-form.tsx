@@ -1,8 +1,18 @@
+import { useState } from 'react'
+
+import { useStore } from '@tanstack/react-form'
 import { useQuery } from '@tanstack/react-query'
 
+import { ChevronDownIcon } from 'lucide-react'
 import { z } from 'zod'
 
+import type { IdSelectFieldOption } from '@/lib/form/fields/id-select-field.tsx'
 import { useEntityForm } from '@/lib/form/index.ts'
+import { cn } from '@/lib/utils'
+
+import { PageSection } from '@/components/shared/page-section'
+
+import { Button } from '@/components/ui/button'
 
 import { uomResource } from '@/features/uom/api.ts'
 
@@ -117,7 +127,7 @@ export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
 
 	return (
 		<div className="grid gap-4">
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
 					{(field) => <field.TextField label="Code" placeholder="e.g. MAT-001" />}
 				</form.AppField>
@@ -141,53 +151,15 @@ export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
 				)}
 			</form.AppField>
 
-			<div className="grid grid-cols-2 gap-4">
-				<form.AppField name="baseUomId">
-					{(field) => (
-						<field.IdSelectField
-							label="Base UoM"
-							options={uomOptions}
-							placeholder="Select unit..."
-						/>
-					)}
-				</form.AppField>
-				<form.AppField name="defaultPurchaseUomId">
-					{(field) => (
-						<field.IdSelectField
-							label="Purchase UoM"
-							options={uomOptions}
-							nullableLabel="— Same as base —"
-							placeholder="Select unit..."
-						/>
-					)}
-				</form.AppField>
-			</div>
-
-			<div className="grid grid-cols-2 gap-4">
-				<form.AppField name="defaultStockUomId">
-					{(field) => (
-						<field.IdSelectField
-							label="Stock UoM"
-							options={uomOptions}
-							nullableLabel="— Same as base —"
-							placeholder="Select unit..."
-						/>
-					)}
-				</form.AppField>
-				<form.AppField name="defaultRecipeUomId">
-					{(field) => (
-						<field.IdSelectField
-							label="Recipe UoM"
-							options={uomOptions}
-							nullableLabel="— Same as base —"
-							placeholder="Select unit..."
-						/>
-					)}
-				</form.AppField>
-			</div>
-
 			<form.AppField name="minStock">
-				{(field) => <field.TextField label="Min Stock" placeholder="e.g. 10.5 (optional)" />}
+				{(field) => (
+					<field.TextField
+						label="Min Stock"
+						placeholder="e.g. 10.5"
+						description="Optional low-stock threshold, in the base unit."
+						wrapperClassName="sm:max-w-[calc(50%-0.5rem)]"
+					/>
+				)}
 			</form.AppField>
 
 			<form.AppField name="isActive">
@@ -199,7 +171,99 @@ export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
 				)}
 			</form.AppField>
 
+			<UnitsSection form={form} uomOptions={uomOptions} />
+
 			<form.FormError />
 		</div>
+	)
+}
+
+const DEFAULT_UNIT_FIELDS = [
+	{
+		name: 'defaultPurchaseUomId',
+		label: 'Purchase unit',
+		description: 'Pre-filled on goods receipts and supplier pricing.',
+	},
+	{
+		name: 'defaultStockUomId',
+		label: 'Stock unit',
+		description: 'Shown when counting and viewing stock.',
+	},
+	{
+		name: 'defaultRecipeUomId',
+		label: 'Recipe unit',
+		description: 'Pre-filled on recipe lines.',
+	},
+] as const
+
+/**
+ * Base unit first; the three per-context defaults sit behind a disclosure and
+ * stay collapsed while they all fall back to the base unit (null or equal).
+ */
+function UnitsSection({
+	form,
+	uomOptions,
+}: {
+	form: MaterialForm
+	uomOptions: IdSelectFieldOption[]
+}) {
+	const customised = useStore(form.store, (state) => {
+		const { baseUomId, defaultPurchaseUomId, defaultStockUomId, defaultRecipeUomId } = state.values
+		return [defaultPurchaseUomId, defaultStockUomId, defaultRecipeUomId].some(
+			(id) => id !== null && id !== baseUomId,
+		)
+	})
+	// Seeded once: opening an edit form with custom defaults shows them; the user decides after.
+	const [open, setOpen] = useState(customised)
+
+	return (
+		<PageSection
+			title="Units"
+			description="Stock is stored in the base unit. Other units convert to it."
+			className="border-t pt-6"
+		>
+			<form.AppField name="baseUomId">
+				{(field) => (
+					<field.IdSelectField
+						label="Base unit"
+						options={uomOptions}
+						placeholder="Select unit..."
+						className="sm:max-w-[calc(50%-0.5rem)]"
+					/>
+				)}
+			</form.AppField>
+			<div className="space-y-4">
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="-ml-2 gap-1.5 text-muted-foreground"
+					aria-expanded={open}
+					aria-controls="material-default-units"
+					onClick={() => setOpen((v) => !v)}
+				>
+					<ChevronDownIcon className={cn('size-3.5 transition-transform', !open && '-rotate-90')} />
+					Default units
+					<span className="font-normal">{customised ? '· customised' : '· same as base'}</span>
+				</Button>
+				{open && (
+					<div id="material-default-units" className="grid gap-4 sm:grid-cols-3">
+						{DEFAULT_UNIT_FIELDS.map(({ name, label, description }) => (
+							<form.AppField key={name} name={name}>
+								{(field) => (
+									<field.IdSelectField
+										label={label}
+										description={description}
+										options={uomOptions}
+										nullableLabel="Same as base"
+										placeholder="Same as base"
+									/>
+								)}
+							</form.AppField>
+						))}
+					</div>
+				)}
+			</div>
+		</PageSection>
 	)
 }
