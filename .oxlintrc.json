@@ -99,5 +99,5 @@
 			}
 		}
 	],
-	"ignorePatterns": ["dist/**", "node_modules/**", "drizzle/**", "**/*.lock", ".agents/**"]
+	"ignorePatterns": ["**/dist/**", "node_modules/**", "**/*.lock", ".agents/**", ".kiro/**", ".claude/**", "**/routeTree.gen.ts"]
 }

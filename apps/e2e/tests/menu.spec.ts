@@ -14,8 +14,8 @@ test.describe('Menu - Page Load & Location Guard', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await expect(page.getByRole('button', { name: /menu items/i })).toBeVisible()
-		await expect(page.getByRole('button', { name: /modifier groups/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /menu items/iu })).toBeVisible()
+		await expect(page.getByRole('button', { name: /modifier groups/iu })).toBeVisible()
 	})
 
 	/** Action buttons are visible in header */
@@ -23,9 +23,9 @@ test.describe('Menu - Page Load & Location Guard', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await expect(page.getByRole('button', { name: /kategori/i })).toBeVisible()
-		await expect(page.getByRole('button', { name: /modifier/i })).toBeVisible()
-		await expect(page.getByRole('button', { name: /menu item/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /kategori/iu })).toBeVisible()
+		await expect(page.getByRole('button', { name: /modifier/iu })).toBeVisible()
+		await expect(page.getByRole('button', { name: /menu item/iu })).toBeVisible()
 	})
 })
 
@@ -35,15 +35,15 @@ test.describe('Menu - Category CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /kategori/i }).click()
+		await page.getByRole('button', { name: /kategori/iu }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText(/tambah kategori/i)).toBeVisible()
+		await expect(page.getByText(/tambah kategori/iu)).toBeVisible()
 
-		await page.getByLabel(/nama kategori/i).fill('Minuman E2E')
-		await page.getByRole('button', { name: /simpan/i }).click()
+		await page.getByLabel(/nama kategori/iu).fill('Minuman E2E')
+		await page.getByRole('button', { name: /simpan/iu }).click()
 
-		await expect(page.getByText(/berhasil dibuat/i)).toBeVisible()
+		await expect(page.getByText(/berhasil dibuat/iu)).toBeVisible()
 	})
 
 	/** Edit an existing category */
@@ -59,15 +59,15 @@ test.describe('Menu - Category CRUD', () => {
 			.click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText(/edit kategori/i)).toBeVisible()
+		await expect(page.getByText(/edit kategori/iu)).toBeVisible()
 
-		const nameField = page.getByLabel(/nama kategori/i)
+		const nameField = page.getByLabel(/nama kategori/iu)
 		await nameField.clear()
 		await nameField.fill('Minuman Updated')
 
-		await page.getByRole('button', { name: /simpan/i }).click()
+		await page.getByRole('button', { name: /simpan/iu }).click()
 
-		await expect(page.getByText(/berhasil diperbarui/i)).toBeVisible()
+		await expect(page.getByText(/berhasil diperbarui/iu)).toBeVisible()
 	})
 
 	/** Delete a category */
@@ -82,10 +82,10 @@ test.describe('Menu - Category CRUD', () => {
 			.last()
 		await deleteBtn.click()
 
-		await expect(page.getByText(/hapus kategori/i)).toBeVisible()
-		await page.getByRole('button', { name: /hapus/i }).click()
+		await expect(page.getByText(/hapus kategori/iu)).toBeVisible()
+		await page.getByRole('button', { name: /hapus/iu }).click()
 
-		await expect(page.getByText(/berhasil dihapus/i)).toBeVisible()
+		await expect(page.getByText(/berhasil dihapus/iu)).toBeVisible()
 	})
 })
 
@@ -95,10 +95,10 @@ test.describe('Menu - Item CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /menu item/i }).click()
+		await page.getByRole('button', { name: /menu item/iu }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText(/tambah menu item/i)).toBeVisible()
+		await expect(page.getByText(/tambah menu item/iu)).toBeVisible()
 	})
 
 	/** Create a new menu item */
@@ -106,15 +106,15 @@ test.describe('Menu - Item CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /menu item/i }).click()
+		await page.getByRole('button', { name: /menu item/iu }).click()
 
-		await page.getByLabel(/sku/i).fill('MNU-E2E-001')
-		await page.getByLabel(/nama/i).fill('Es Kopi E2E')
-		await page.getByLabel(/harga dasar/i).fill('25000')
+		await page.getByLabel(/sku/iu).fill('MNU-E2E-001')
+		await page.getByLabel(/nama/iu).fill('Es Kopi E2E')
+		await page.getByLabel(/harga dasar/iu).fill('25000')
 
-		await page.getByRole('button', { name: /simpan/i }).click()
+		await page.getByRole('button', { name: /simpan/iu }).click()
 
-		await expect(page.getByText(/berhasil dibuat/i)).toBeVisible()
+		await expect(page.getByText(/berhasil dibuat/iu)).toBeVisible()
 	})
 
 	/** Validation error shown for empty required fields */
@@ -122,10 +122,10 @@ test.describe('Menu - Item CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /menu item/i }).click()
-		await page.getByRole('button', { name: /simpan/i }).click()
+		await page.getByRole('button', { name: /menu item/iu }).click()
+		await page.getByRole('button', { name: /simpan/iu }).click()
 
-		await expect(page.getByText(/mohon perbaiki/i)).toBeVisible()
+		await expect(page.getByText(/mohon perbaiki/iu)).toBeVisible()
 	})
 
 	/** Edit a menu item via action menu */
@@ -133,20 +133,20 @@ test.describe('Menu - Item CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
 
-		await expect(page.getByText(/edit menu item/i)).toBeVisible()
+		await expect(page.getByText(/edit menu item/iu)).toBeVisible()
 
-		const nameField = page.getByLabel(/nama/i)
+		const nameField = page.getByLabel(/nama/iu)
 		await nameField.clear()
 		await nameField.fill('Es Kopi Updated')
 
-		await page.getByRole('button', { name: /simpan/i }).click()
+		await page.getByRole('button', { name: /simpan/iu }).click()
 
-		await expect(page.getByText(/berhasil diperbarui/i)).toBeVisible()
+		await expect(page.getByText(/berhasil diperbarui/iu)).toBeVisible()
 	})
 
 	/** Delete a menu item via action menu */
@@ -154,15 +154,15 @@ test.describe('Menu - Item CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
-		await page.getByRole('menuitem', { name: /hapus/i }).click()
+		await page.getByRole('menuitem', { name: /hapus/iu }).click()
 
-		await expect(page.getByText(/hapus menu item/i)).toBeVisible()
-		await page.getByRole('button', { name: /hapus/i }).click()
+		await expect(page.getByText(/hapus menu item/iu)).toBeVisible()
+		await page.getByRole('button', { name: /hapus/iu }).click()
 
-		await expect(page.getByText(/berhasil dihapus/i)).toBeVisible()
+		await expect(page.getByText(/berhasil dihapus/iu)).toBeVisible()
 	})
 })
 
@@ -172,9 +172,9 @@ test.describe('Menu - Modifier Group CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /modifier groups/i }).click()
+		await page.getByRole('button', { name: /modifier groups/iu }).click()
 
-		await expect(page.getByText(/belum ada modifier group|modifier group/i)).toBeVisible()
+		await expect(page.getByText(/belum ada modifier group|modifier group/iu)).toBeVisible()
 	})
 
 	/** Create a modifier group with options */
@@ -182,24 +182,24 @@ test.describe('Menu - Modifier Group CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /^modifier$/i }).click()
+		await page.getByRole('button', { name: /^modifier$/iu }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText(/tambah modifier group/i)).toBeVisible()
+		await expect(page.getByText(/tambah modifier group/iu)).toBeVisible()
 
-		await page.getByLabel(/nama group/i).fill('Level Gula E2E')
+		await page.getByLabel(/nama group/iu).fill('Level Gula E2E')
 
 		// Fill first option
-		const optionInputs = page.getByPlaceholder(/e\.g\. reguler/i)
+		const optionInputs = page.getByPlaceholder(/e\.g\. reguler/iu)
 		await optionInputs.first().fill('Normal')
 
 		// Add second option
-		await page.getByRole('button', { name: /tambah opsi/i }).click()
+		await page.getByRole('button', { name: /tambah opsi/iu }).click()
 		await optionInputs.nth(1).fill('Less Sugar')
 
-		await page.getByRole('button', { name: /simpan/i }).click()
+		await page.getByRole('button', { name: /simpan/iu }).click()
 
-		await expect(page.getByText(/berhasil dibuat/i)).toBeVisible()
+		await expect(page.getByText(/berhasil dibuat/iu)).toBeVisible()
 	})
 
 	/** Edit a modifier group */
@@ -207,7 +207,7 @@ test.describe('Menu - Modifier Group CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /modifier groups/i }).click()
+		await page.getByRole('button', { name: /modifier groups/iu }).click()
 
 		const groupRow = page.locator('div').filter({ hasText: 'Level Gula E2E' }).first()
 		await groupRow
@@ -218,13 +218,13 @@ test.describe('Menu - Modifier Group CRUD', () => {
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 
-		const nameField = page.getByLabel(/nama group/i)
+		const nameField = page.getByLabel(/nama group/iu)
 		await nameField.clear()
 		await nameField.fill('Level Gula Updated')
 
-		await page.getByRole('button', { name: /simpan/i }).click()
+		await page.getByRole('button', { name: /simpan/iu }).click()
 
-		await expect(page.getByText(/berhasil diperbarui/i)).toBeVisible()
+		await expect(page.getByText(/berhasil diperbarui/iu)).toBeVisible()
 	})
 
 	/** Delete a modifier group */
@@ -232,7 +232,7 @@ test.describe('Menu - Modifier Group CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /modifier groups/i }).click()
+		await page.getByRole('button', { name: /modifier groups/iu }).click()
 
 		const groupRow = page.locator('div').filter({ hasText: 'Level Gula Updated' }).first()
 		const deleteBtn = groupRow
@@ -241,9 +241,9 @@ test.describe('Menu - Modifier Group CRUD', () => {
 			.last()
 		await deleteBtn.click()
 
-		await expect(page.getByText(/hapus modifier group/i)).toBeVisible()
-		await page.getByRole('button', { name: /hapus/i }).click()
+		await expect(page.getByText(/hapus modifier group/iu)).toBeVisible()
+		await page.getByRole('button', { name: /hapus/iu }).click()
 
-		await expect(page.getByText(/berhasil dihapus/i)).toBeVisible()
+		await expect(page.getByText(/berhasil dihapus/iu)).toBeVisible()
 	})
 })

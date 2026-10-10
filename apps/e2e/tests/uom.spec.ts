@@ -6,8 +6,8 @@ test.describe('UoM - Unit CRUD', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		await expect(page.getByRole('heading', { name: /units of measure/i })).toBeVisible()
-		await expect(page.getByText(/manage units and conversion/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: /units of measure/iu })).toBeVisible()
+		await expect(page.getByText(/manage units and conversion/iu)).toBeVisible()
 	})
 
 	/** Add Unit button is visible for authorized users */
@@ -15,7 +15,7 @@ test.describe('UoM - Unit CRUD', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		await expect(page.getByRole('button', { name: /add unit/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /add unit/iu })).toBeVisible()
 	})
 
 	/** Opening create dialog */
@@ -23,7 +23,7 @@ test.describe('UoM - Unit CRUD', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		await page.getByRole('button', { name: /add unit/i }).click()
+		await page.getByRole('button', { name: /add unit/iu }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 		await expect(page.getByText('Add Unit')).toBeVisible()
@@ -34,14 +34,14 @@ test.describe('UoM - Unit CRUD', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		await page.getByRole('button', { name: /add unit/i }).click()
+		await page.getByRole('button', { name: /add unit/iu }).click()
 
 		await page.getByLabel('Code').fill('kg-e2e')
 		await page.getByLabel('Name').fill('Kilogram E2E')
 
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page.getByText(/created successfully/iu)).toBeVisible()
 	})
 
 	/** Search/filter units */
@@ -49,7 +49,7 @@ test.describe('UoM - Unit CRUD', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		const searchInput = page.getByPlaceholder(/search units/i)
+		const searchInput = page.getByPlaceholder(/search units/iu)
 		await searchInput.fill('Kilogram')
 
 		await page.waitForLoadState('networkidle')
@@ -60,7 +60,7 @@ test.describe('UoM - Unit CRUD', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
@@ -71,9 +71,9 @@ test.describe('UoM - Unit CRUD', () => {
 		await nameField.clear()
 		await nameField.fill('Updated Unit')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: /save changes/iu }).click()
 
-		await expect(page.getByText(/updated successfully/i)).toBeVisible()
+		await expect(page.getByText(/updated successfully/iu)).toBeVisible()
 	})
 
 	/** Delete a unit via action menu */
@@ -81,15 +81,15 @@ test.describe('UoM - Unit CRUD', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Delete' }).click()
 
-		await expect(page.getByText(/delete unit/i)).toBeVisible()
+		await expect(page.getByText(/delete unit/iu)).toBeVisible()
 		await page.getByRole('button', { name: 'Delete' }).click()
 
-		await expect(page.getByText(/deleted successfully/i)).toBeVisible()
+		await expect(page.getByText(/deleted successfully/iu)).toBeVisible()
 	})
 })
 
@@ -99,7 +99,7 @@ test.describe('UoM - Conversions', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		const addConvBtn = page.getByRole('button', { name: /add conversion/i })
+		const addConvBtn = page.getByRole('button', { name: /add conversion/iu })
 		await expect(addConvBtn).toBeVisible()
 	})
 
@@ -109,20 +109,20 @@ test.describe('UoM - Conversions', () => {
 		await page.goto('/master/uom')
 
 		// Ensure at least 2 units exist — create them first
-		await page.getByRole('button', { name: /add unit/i }).click()
+		await page.getByRole('button', { name: /add unit/iu }).click()
 		await page.getByLabel('Code').fill('g-e2e')
 		await page.getByLabel('Name').fill('Gram E2E')
 		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page.getByText(/created successfully/iu)).toBeVisible()
 
-		await page.getByRole('button', { name: /add unit/i }).click()
+		await page.getByRole('button', { name: /add unit/iu }).click()
 		await page.getByLabel('Code').fill('kg-e2e2')
 		await page.getByLabel('Name').fill('Kilogram E2E 2')
 		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page.getByText(/created successfully/iu)).toBeVisible()
 
 		// Now add conversion
-		await page.getByRole('button', { name: /add conversion/i }).click()
+		await page.getByRole('button', { name: /add conversion/iu }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 		await expect(page.getByText('Add Conversion')).toBeVisible()
@@ -130,7 +130,7 @@ test.describe('UoM - Conversions', () => {
 		await page.getByLabel('Factor').fill('1000')
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page.getByText(/created successfully/iu)).toBeVisible()
 	})
 
 	/** Delete a conversion */
@@ -143,10 +143,10 @@ test.describe('UoM - Conversions', () => {
 		if (await deleteBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
 			await deleteBtn.click()
 
-			await expect(page.getByText(/delete conversion/i)).toBeVisible()
+			await expect(page.getByText(/delete conversion/iu)).toBeVisible()
 			await page.getByRole('button', { name: 'Delete' }).click()
 
-			await expect(page.getByText(/deleted successfully/i)).toBeVisible()
+			await expect(page.getByText(/deleted successfully/iu)).toBeVisible()
 		}
 	})
 })

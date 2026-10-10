@@ -21,7 +21,7 @@ const test = base.extend<AuthFixture>({
 			await page.getByRole('button', { name: 'Masuk' }).click()
 
 			// Wait until redirected away from login
-			await baseExpect(page).not.toHaveURL(/\/login/)
+			await baseExpect(page).not.toHaveURL(/\/login/u)
 		}
 
 		await use(loginFn)

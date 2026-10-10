@@ -14,7 +14,7 @@ test.describe('Users - CRUD', () => {
 		await login()
 		await page.goto('/settings/users')
 
-		await expect(page.getByRole('button', { name: /add user/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /add user/iu })).toBeVisible()
 	})
 
 	/** Opening the full-page create form */
@@ -22,9 +22,9 @@ test.describe('Users - CRUD', () => {
 		await login()
 		await page.goto('/settings/users')
 
-		await page.getByRole('button', { name: /add user/i }).click()
+		await page.getByRole('button', { name: /add user/iu }).click()
 
-		await expect(page).toHaveURL(/\/settings\/users\/new$/)
+		await expect(page).toHaveURL(/\/settings\/users\/new$/u)
 		await expect(page.getByRole('heading', { name: 'Add User' })).toBeVisible()
 	})
 
@@ -33,7 +33,7 @@ test.describe('Users - CRUD', () => {
 		await login()
 		await page.goto('/settings/users')
 
-		await page.getByRole('button', { name: /add user/i }).click()
+		await page.getByRole('button', { name: /add user/iu }).click()
 
 		// Fill required fields
 		await page.getByLabel('Username').fill('e2e-user')
@@ -41,9 +41,9 @@ test.describe('Users - CRUD', () => {
 		await page.getByLabel('Password').fill('testpass123')
 
 		// Submit
-		await page.getByRole('button', { name: /create/i }).click()
+		await page.getByRole('button', { name: /create/iu }).click()
 
-		await expect(page.getByText(/created successfully|berhasil/i)).toBeVisible()
+		await expect(page.getByText(/created successfully|berhasil/iu)).toBeVisible()
 	})
 
 	/** Search/filter users */
@@ -51,7 +51,7 @@ test.describe('Users - CRUD', () => {
 		await login()
 		await page.goto('/settings/users')
 
-		const searchInput = page.getByPlaceholder(/search/i)
+		const searchInput = page.getByPlaceholder(/search/iu)
 		await searchInput.fill('owner')
 
 		await page.waitForLoadState('networkidle')
@@ -62,14 +62,14 @@ test.describe('Users - CRUD', () => {
 		await login()
 		await page.goto('/settings/users')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'View' }).click()
 
-		await expect(page).toHaveURL(/\/settings\/users\/\d+$/)
+		await expect(page).toHaveURL(/\/settings\/users\/\d+$/u)
 		await expect(page.getByRole('heading', { name: 'User Details' })).toBeVisible()
-		await expect(page.getByRole('button', { name: /edit user/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /edit user/iu })).toBeVisible()
 	})
 
 	/** Edit an existing user */
@@ -78,12 +78,12 @@ test.describe('Users - CRUD', () => {
 		await page.goto('/settings/users')
 
 		// Open action menu on first row
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
 
-		await expect(page).toHaveURL(/\/settings\/users\/\d+\?mode=edit$/)
+		await expect(page).toHaveURL(/\/settings\/users\/\d+\?mode=edit$/u)
 		await expect(page.getByRole('heading', { name: 'Edit User' })).toBeVisible()
 
 		// Modify display name
@@ -91,9 +91,9 @@ test.describe('Users - CRUD', () => {
 		await nameField.clear()
 		await nameField.fill('Updated User Name')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: /save changes/iu }).click()
 
-		await expect(page.getByText(/updated successfully|berhasil/i)).toBeVisible()
+		await expect(page.getByText(/updated successfully|berhasil/iu)).toBeVisible()
 	})
 
 	/** Reset a user's password via action menu */
@@ -101,16 +101,16 @@ test.describe('Users - CRUD', () => {
 		await login()
 		await page.goto('/settings/users')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Reset Password' }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 		await page.getByLabel('New password').fill('newpassword123')
-		await page.getByRole('button', { name: /reset password/i }).click()
+		await page.getByRole('button', { name: /reset password/iu }).click()
 
-		await expect(page.getByText(/reset successfully/i)).toBeVisible()
+		await expect(page.getByText(/reset successfully/iu)).toBeVisible()
 	})
 
 	/** Deactivate a user via action menu */
@@ -119,15 +119,15 @@ test.describe('Users - CRUD', () => {
 		await page.goto('/settings/users')
 
 		// Open action menu on first row
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
-		await page.getByRole('menuitem', { name: /deactivate/i }).click()
+		await page.getByRole('menuitem', { name: /deactivate/iu }).click()
 
 		// Confirm dialog
 		await expect(page.getByRole('dialog')).toBeVisible()
-		await page.getByRole('button', { name: /deactivate|confirm/i }).click()
+		await page.getByRole('button', { name: /deactivate|confirm/iu }).click()
 
-		await expect(page.getByText(/deactivated|berhasil/i)).toBeVisible()
+		await expect(page.getByText(/deactivated|berhasil/iu)).toBeVisible()
 	})
 })

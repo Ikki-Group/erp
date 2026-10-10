@@ -6,7 +6,7 @@ test.describe('Inventory Receiving - Page Load', () => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		await expect(page.getByRole('heading', { name: /penerimaan barang/i })).toBeVisible()
+		await expect(page.getByRole('heading', { name: /penerimaan barang/iu })).toBeVisible()
 	})
 
 	/** Shows active location context in description */
@@ -14,7 +14,7 @@ test.describe('Inventory Receiving - Page Load', () => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		await expect(page.getByText(/penerimaan dari supplier ke/i)).toBeVisible()
+		await expect(page.getByText(/penerimaan dari supplier ke/iu)).toBeVisible()
 	})
 
 	/** Shows "Buat Penerimaan" button */
@@ -22,7 +22,7 @@ test.describe('Inventory Receiving - Page Load', () => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		await expect(page.getByRole('button', { name: /buat penerimaan/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /buat penerimaan/iu })).toBeVisible()
 	})
 })
 
@@ -33,7 +33,7 @@ test.describe('Inventory Receiving - Empty State', () => {
 		await page.goto('/inventory/receiving')
 
 		const hasTable = page.locator('table')
-		const hasEmpty = page.getByText(/belum ada penerimaan/i)
+		const hasEmpty = page.getByText(/belum ada penerimaan/iu)
 
 		await expect(hasTable.or(hasEmpty)).toBeVisible()
 	})
@@ -45,10 +45,10 @@ test.describe('Inventory Receiving - Create Dialog', () => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		await page.getByRole('button', { name: /buat penerimaan/i }).click()
+		await page.getByRole('button', { name: /buat penerimaan/iu }).click()
 
-		await expect(page.getByRole('heading', { name: /buat penerimaan/i })).toBeVisible()
-		await expect(page.getByText(/supplier/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: /buat penerimaan/iu })).toBeVisible()
+		await expect(page.getByText(/supplier/iu)).toBeVisible()
 	})
 
 	/** Shows line item section in create dialog */
@@ -56,10 +56,10 @@ test.describe('Inventory Receiving - Create Dialog', () => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		await page.getByRole('button', { name: /buat penerimaan/i }).click()
+		await page.getByRole('button', { name: /buat penerimaan/iu }).click()
 
-		await expect(page.getByText(/item penerimaan/i)).toBeVisible()
-		await expect(page.getByRole('button', { name: /tambah baris/i })).toBeVisible()
+		await expect(page.getByText(/item penerimaan/iu)).toBeVisible()
+		await expect(page.getByRole('button', { name: /tambah baris/iu })).toBeVisible()
 	})
 
 	/** Can add additional material lines */
@@ -67,8 +67,8 @@ test.describe('Inventory Receiving - Create Dialog', () => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		await page.getByRole('button', { name: /buat penerimaan/i }).click()
-		await page.getByRole('button', { name: /tambah baris/i }).click()
+		await page.getByRole('button', { name: /buat penerimaan/iu }).click()
+		await page.getByRole('button', { name: /tambah baris/iu }).click()
 
 		const materialInputs = page.getByPlaceholder('Pilih material')
 		await expect(materialInputs).toHaveCount(2)
@@ -82,11 +82,11 @@ test.describe('Inventory Receiving - Detail View', () => {
 		await page.goto('/inventory/receiving')
 
 		const hasTable = page.locator('table')
-		const hasEmpty = page.getByText(/belum ada penerimaan/i)
+		const hasEmpty = page.getByText(/belum ada penerimaan/iu)
 
 		const tableVisible = await hasTable.isVisible().catch(() => false)
 		if (tableVisible) {
-			const detailBtn = page.getByRole('button', { name: /detail/i }).first()
+			const detailBtn = page.getByRole('button', { name: /detail/iu }).first()
 			await expect(detailBtn).toBeVisible()
 		} else {
 			await expect(hasEmpty).toBeVisible()
@@ -99,8 +99,8 @@ test.describe('Inventory Receiving - Navigation', () => {
 	test('can navigate to receiving page from sidebar', async ({ page, login }) => {
 		await login()
 
-		await page.getByRole('link', { name: /penerimaan/i }).click()
+		await page.getByRole('link', { name: /penerimaan/iu }).click()
 
-		await expect(page).toHaveURL(/\/inventory\/receiving/)
+		await expect(page).toHaveURL(/\/inventory\/receiving/u)
 	})
 })

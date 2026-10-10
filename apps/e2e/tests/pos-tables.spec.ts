@@ -7,7 +7,7 @@ test.describe('POS Tables - CRUD', () => {
 		await page.goto('/pos/tables')
 
 		await expect(page.getByRole('heading', { name: 'Tables' })).toBeVisible()
-		await expect(page.getByText(/manage dine-in tables/i)).toBeVisible()
+		await expect(page.getByText(/manage dine-in tables/iu)).toBeVisible()
 	})
 
 	/** Add Table button is visible */
@@ -15,7 +15,7 @@ test.describe('POS Tables - CRUD', () => {
 		await login()
 		await page.goto('/pos/tables')
 
-		await expect(page.getByRole('button', { name: /add table/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /add table/iu })).toBeVisible()
 	})
 
 	/** Opening create dialog */
@@ -23,7 +23,7 @@ test.describe('POS Tables - CRUD', () => {
 		await login()
 		await page.goto('/pos/tables')
 
-		await page.getByRole('button', { name: /add table/i }).click()
+		await page.getByRole('button', { name: /add table/iu }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 		await expect(page.getByText('Add Table')).toBeVisible()
@@ -34,15 +34,15 @@ test.describe('POS Tables - CRUD', () => {
 		await login()
 		await page.goto('/pos/tables')
 
-		await page.getByRole('button', { name: /add table/i }).click()
+		await page.getByRole('button', { name: /add table/iu }).click()
 
-		await page.getByLabel(/number/i).fill('T-E2E')
-		await page.getByLabel(/capacity/i).clear()
-		await page.getByLabel(/capacity/i).fill('6')
+		await page.getByLabel(/number/iu).fill('T-E2E')
+		await page.getByLabel(/capacity/iu).clear()
+		await page.getByLabel(/capacity/iu).fill('6')
 
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page.getByText(/created successfully/iu)).toBeVisible()
 	})
 
 	/** Edit a table via action menu */
@@ -50,20 +50,20 @@ test.describe('POS Tables - CRUD', () => {
 		await login()
 		await page.goto('/pos/tables')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
 
 		await expect(page.getByText('Edit Table')).toBeVisible()
 
-		const numberField = page.getByLabel(/number/i)
+		const numberField = page.getByLabel(/number/iu)
 		await numberField.clear()
 		await numberField.fill('T-UPDATED')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: /save changes/iu }).click()
 
-		await expect(page.getByText(/updated successfully/i)).toBeVisible()
+		await expect(page.getByText(/updated successfully/iu)).toBeVisible()
 	})
 
 	/** Delete a table via action menu */
@@ -71,14 +71,14 @@ test.describe('POS Tables - CRUD', () => {
 		await login()
 		await page.goto('/pos/tables')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Delete' }).click()
 
-		await expect(page.getByText(/delete table/i)).toBeVisible()
+		await expect(page.getByText(/delete table/iu)).toBeVisible()
 		await page.getByRole('button', { name: 'Delete' }).click()
 
-		await expect(page.getByText(/deleted successfully/i)).toBeVisible()
+		await expect(page.getByText(/deleted successfully/iu)).toBeVisible()
 	})
 })

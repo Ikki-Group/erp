@@ -24,8 +24,8 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await expect(page.getByRole('heading', { name: /vouchers/i })).toBeVisible()
-		await expect(page.getByText(/manage discount vouchers/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: /vouchers/iu })).toBeVisible()
+		await expect(page.getByText(/manage discount vouchers/iu)).toBeVisible()
 	})
 
 	/** Add Voucher button is visible */
@@ -33,7 +33,7 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await expect(page.getByRole('button', { name: /add voucher/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /add voucher/iu })).toBeVisible()
 	})
 
 	/** Opening create dialog */
@@ -41,7 +41,7 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByRole('button', { name: /add voucher/iu }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 		await expect(page.getByText('Add Voucher')).toBeVisible()
@@ -52,31 +52,31 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByRole('button', { name: /add voucher/iu }).click()
 
 		await page.getByLabel('Code').fill('DISKON20-E2E')
 		await page.getByLabel('Name').fill('Diskon 20% E2E Test')
 
 		// Type defaults to percentage — fill value
-		await page.getByLabel(/value/i).fill('20')
+		await page.getByLabel(/value/iu).fill('20')
 
 		// Pick Valid From = today
 		await page
-			.getByRole('button', { name: /pick a date/i })
+			.getByRole('button', { name: /pick a date/iu })
 			.first()
 			.click()
 		await pickToday(page)
 
 		// Pick Valid Until = next month last day
 		await page
-			.getByRole('button', { name: /pick a date/i })
+			.getByRole('button', { name: /pick a date/iu })
 			.first()
 			.click()
 		await pickNextMonthLastDay(page)
 
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/voucher created/i)).toBeVisible()
+		await expect(page.getByText(/voucher created/iu)).toBeVisible()
 	})
 
 	/** Create a fixed voucher */
@@ -84,34 +84,34 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByRole('button', { name: /add voucher/iu }).click()
 
 		await page.getByLabel('Code').fill('HEMAT10K-E2E')
 		await page.getByLabel('Name').fill('Hemat 10rb E2E Test')
 
 		// Change type to fixed
 		await page.getByLabel('Type').click()
-		await page.getByRole('option', { name: /fixed/i }).click()
+		await page.getByRole('option', { name: /fixed/iu }).click()
 
-		await page.getByLabel(/value/i).fill('10000')
+		await page.getByLabel(/value/iu).fill('10000')
 
 		// Pick Valid From = today
 		await page
-			.getByRole('button', { name: /pick a date/i })
+			.getByRole('button', { name: /pick a date/iu })
 			.first()
 			.click()
 		await pickToday(page)
 
 		// Pick Valid Until = next month last day
 		await page
-			.getByRole('button', { name: /pick a date/i })
+			.getByRole('button', { name: /pick a date/iu })
 			.first()
 			.click()
 		await pickNextMonthLastDay(page)
 
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/voucher created/i)).toBeVisible()
+		await expect(page.getByText(/voucher created/iu)).toBeVisible()
 	})
 
 	/** Search/filter vouchers */
@@ -119,7 +119,7 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		const searchInput = page.getByPlaceholder(/search vouchers/i)
+		const searchInput = page.getByPlaceholder(/search vouchers/iu)
 		await searchInput.fill('DISKON')
 
 		await page.waitForLoadState('networkidle')
@@ -135,7 +135,7 @@ test.describe('Vouchers - CRUD', () => {
 		await statusFilter.click()
 
 		// Select "Inactive"
-		await page.getByRole('option', { name: /inactive/i }).click()
+		await page.getByRole('option', { name: /inactive/iu }).click()
 
 		await page.waitForLoadState('networkidle')
 	})
@@ -145,7 +145,7 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
@@ -156,9 +156,9 @@ test.describe('Vouchers - CRUD', () => {
 		await nameField.clear()
 		await nameField.fill('Updated Voucher Name')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: /save changes/iu }).click()
 
-		await expect(page.getByText(/voucher updated/i)).toBeVisible()
+		await expect(page.getByText(/voucher updated/iu)).toBeVisible()
 	})
 
 	/** Delete a voucher via action menu */
@@ -166,15 +166,15 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Delete' }).click()
 
-		await expect(page.getByText(/delete voucher/i)).toBeVisible()
+		await expect(page.getByText(/delete voucher/iu)).toBeVisible()
 		await page.getByRole('button', { name: 'Delete' }).click()
 
-		await expect(page.getByText(/voucher deleted/i)).toBeVisible()
+		await expect(page.getByText(/voucher deleted/iu)).toBeVisible()
 	})
 
 	/** Validation: cross-field — validUntil must be after validFrom */
@@ -182,15 +182,15 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByRole('button', { name: /add voucher/iu }).click()
 
 		await page.getByLabel('Code').fill('INVALID-DATE')
 		await page.getByLabel('Name').fill('Invalid Date Test')
-		await page.getByLabel(/value/i).fill('10')
+		await page.getByLabel(/value/iu).fill('10')
 
 		// Pick Valid From = today
 		await page
-			.getByRole('button', { name: /pick a date/i })
+			.getByRole('button', { name: /pick a date/iu })
 			.first()
 			.click()
 		await pickToday(page)
@@ -198,7 +198,7 @@ test.describe('Vouchers - CRUD', () => {
 		// Leave Valid Until empty (before Valid From) — submit should fail
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/fix the validation/i)).toBeVisible()
+		await expect(page.getByText(/fix the validation/iu)).toBeVisible()
 	})
 
 	/** Validation: percentage value cannot exceed 100 */
@@ -206,27 +206,27 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByRole('button', { name: /add voucher/iu }).click()
 
 		await page.getByLabel('Code').fill('OVER100')
 		await page.getByLabel('Name').fill('Over 100 Test')
-		await page.getByLabel(/value/i).fill('150')
+		await page.getByLabel(/value/iu).fill('150')
 
 		// Pick dates
 		await page
-			.getByRole('button', { name: /pick a date/i })
+			.getByRole('button', { name: /pick a date/iu })
 			.first()
 			.click()
 		await pickToday(page)
 		await page
-			.getByRole('button', { name: /pick a date/i })
+			.getByRole('button', { name: /pick a date/iu })
 			.first()
 			.click()
 		await pickNextMonthLastDay(page)
 
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/fix the validation|cannot exceed 100/i)).toBeVisible()
+		await expect(page.getByText(/fix the validation|cannot exceed 100/iu)).toBeVisible()
 	})
 
 	/** Validation: form requires name with min length */
@@ -234,12 +234,12 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByRole('button', { name: /add voucher/iu }).click()
 
 		// Submit without filling anything
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/fix the validation/i)).toBeVisible()
+		await expect(page.getByText(/fix the validation/iu)).toBeVisible()
 	})
 })
 
@@ -256,7 +256,7 @@ test.describe('Vouchers - Status Display', () => {
 			.catch(() => false)
 
 		if (hasBadges) {
-			const validStatuses = /active|inactive|expired|exhausted/i
+			const validStatuses = /active|inactive|expired|exhausted/iu
 			await expect(badges.first()).toHaveText(validStatuses)
 		}
 	})
@@ -266,7 +266,7 @@ test.describe('Vouchers - Status Display', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		const usagePattern = page.getByText(/\d+\s*\/\s*(\d+|unlimited)/i)
+		const usagePattern = page.getByText(/\d+\s*\/\s*(\d+|unlimited)/iu)
 		const hasUsage = await usagePattern
 			.first()
 			.isVisible({ timeout: 5000 })
@@ -284,9 +284,9 @@ test.describe('Vouchers - Empty State', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		const emptyState = page.getByText(/no vouchers yet/i)
+		const emptyState = page.getByText(/no vouchers yet/iu)
 		if (await emptyState.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await expect(page.getByRole('button', { name: /add voucher/i })).toBeVisible()
+			await expect(page.getByRole('button', { name: /add voucher/iu })).toBeVisible()
 		}
 	})
 })

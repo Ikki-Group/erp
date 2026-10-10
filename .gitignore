@@ -55,3 +55,7 @@ docs/draft
 .playwright-mcp
 .gortex
 .playwright-cli
+
+# tool runtime state
+.impeccable/
+.git-commit-msg.txt

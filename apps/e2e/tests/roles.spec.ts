@@ -15,7 +15,7 @@ test.describe('Roles - CRUD', () => {
 		await login()
 		await page.goto('/settings/roles')
 
-		await expect(page.getByRole('button', { name: /add role/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /add role/iu })).toBeVisible()
 	})
 
 	/** Opening the full-page create form */
@@ -23,9 +23,9 @@ test.describe('Roles - CRUD', () => {
 		await login()
 		await page.goto('/settings/roles')
 
-		await page.getByRole('button', { name: /add role/i }).click()
+		await page.getByRole('button', { name: /add role/iu }).click()
 
-		await expect(page).toHaveURL(/\/settings\/roles\/new$/)
+		await expect(page).toHaveURL(/\/settings\/roles\/new$/u)
 		await expect(page.getByRole('heading', { name: 'Add Role' })).toBeVisible()
 	})
 
@@ -34,7 +34,7 @@ test.describe('Roles - CRUD', () => {
 		await login()
 		await page.goto('/settings/roles')
 
-		await page.getByRole('button', { name: /add role/i }).click()
+		await page.getByRole('button', { name: /add role/iu }).click()
 
 		// Fill required fields
 		await page.getByLabel('Code').fill('e2e-role')
@@ -43,7 +43,7 @@ test.describe('Roles - CRUD', () => {
 		// Submit
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page.getByText(/created successfully/iu)).toBeVisible()
 	})
 
 	/** Search/filter roles */
@@ -51,7 +51,7 @@ test.describe('Roles - CRUD', () => {
 		await login()
 		await page.goto('/settings/roles')
 
-		const searchInput = page.getByPlaceholder(/search roles/i)
+		const searchInput = page.getByPlaceholder(/search roles/iu)
 		await searchInput.fill('owner')
 
 		await page.waitForLoadState('networkidle')
@@ -63,7 +63,7 @@ test.describe('Roles - CRUD', () => {
 		await page.goto('/settings/roles')
 
 		// Open action menu on a non-system role row
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
@@ -75,9 +75,9 @@ test.describe('Roles - CRUD', () => {
 		await nameField.clear()
 		await nameField.fill('Updated Role')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: /save changes/iu }).click()
 
-		await expect(page.getByText(/updated successfully/i)).toBeVisible()
+		await expect(page.getByText(/updated successfully/iu)).toBeVisible()
 	})
 
 	/** Delete a role via action menu */
@@ -86,16 +86,16 @@ test.describe('Roles - CRUD', () => {
 		await page.goto('/settings/roles')
 
 		// Open action menu
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Delete' }).click()
 
 		// Confirm dialog
-		await expect(page.getByText(/delete role/i)).toBeVisible()
+		await expect(page.getByText(/delete role/iu)).toBeVisible()
 		await page.getByRole('button', { name: 'Delete' }).click()
 
-		await expect(page.getByText(/deleted/i)).toBeVisible()
+		await expect(page.getByText(/deleted/iu)).toBeVisible()
 	})
 
 	/** System roles are viewable but remain immutable */
@@ -104,17 +104,17 @@ test.describe('Roles - CRUD', () => {
 		await page.goto('/settings/roles')
 
 		// System roles (e.g., Owner, Cashier) should exist in the table.
-		const ownerRow = page.getByRole('row').filter({ hasText: /owner/i })
+		const ownerRow = page.getByRole('row').filter({ hasText: /owner/iu })
 		await expect(ownerRow).toBeVisible()
 
-		const actionsInRow = ownerRow.getByRole('button', { name: /actions/i })
+		const actionsInRow = ownerRow.getByRole('button', { name: /actions/iu })
 		await actionsInRow.click()
 		await expect(page.getByRole('menuitem', { name: 'View' })).toBeVisible()
 		await expect(page.getByRole('menuitem', { name: 'Edit' })).toHaveCount(0)
 		await expect(page.getByRole('menuitem', { name: 'Delete' })).toHaveCount(0)
 		await page.getByRole('menuitem', { name: 'View' }).click()
 
-		await expect(page).toHaveURL(/\/settings\/roles\/\d+$/)
+		await expect(page).toHaveURL(/\/settings\/roles\/\d+$/u)
 		await expect(page.getByRole('heading', { name: 'System Role Details' })).toBeVisible()
 		await expect(page.getByRole('button', { name: 'Save' })).toHaveCount(0)
 	})

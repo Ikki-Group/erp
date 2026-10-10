@@ -6,8 +6,8 @@ test.describe('Payment Methods - CRUD', () => {
 		await login()
 		await page.goto('/master/payment-methods')
 
-		await expect(page.getByRole('heading', { name: /payment methods/i })).toBeVisible()
-		await expect(page.getByText(/manage payment methods/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: /payment methods/iu })).toBeVisible()
+		await expect(page.getByText(/manage payment methods/iu)).toBeVisible()
 	})
 
 	/** Add Payment Method button is visible */
@@ -15,7 +15,7 @@ test.describe('Payment Methods - CRUD', () => {
 		await login()
 		await page.goto('/master/payment-methods')
 
-		await expect(page.getByRole('button', { name: /add payment method/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /add payment method/iu })).toBeVisible()
 	})
 
 	/** Opening create dialog */
@@ -23,7 +23,7 @@ test.describe('Payment Methods - CRUD', () => {
 		await login()
 		await page.goto('/master/payment-methods')
 
-		await page.getByRole('button', { name: /add payment method/i }).click()
+		await page.getByRole('button', { name: /add payment method/iu }).click()
 
 		await expect(page.getByRole('dialog')).toBeVisible()
 		await expect(page.getByText('Add Payment Method')).toBeVisible()
@@ -34,14 +34,14 @@ test.describe('Payment Methods - CRUD', () => {
 		await login()
 		await page.goto('/master/payment-methods')
 
-		await page.getByRole('button', { name: /add payment method/i }).click()
+		await page.getByRole('button', { name: /add payment method/iu }).click()
 
 		await page.getByLabel('Code').fill('CASH-E2E')
 		await page.getByLabel('Name').fill('Cash E2E')
 
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/payment method created/i)).toBeVisible()
+		await expect(page.getByText(/payment method created/iu)).toBeVisible()
 	})
 
 	/** Create a digital payment method */
@@ -49,18 +49,18 @@ test.describe('Payment Methods - CRUD', () => {
 		await login()
 		await page.goto('/master/payment-methods')
 
-		await page.getByRole('button', { name: /add payment method/i }).click()
+		await page.getByRole('button', { name: /add payment method/iu }).click()
 
 		await page.getByLabel('Code').fill('QRIS-E2E')
 		await page.getByLabel('Name').fill('QRIS E2E')
 
 		// Change type to digital
 		await page.getByLabel('Type').click()
-		await page.getByRole('option', { name: /digital/i }).click()
+		await page.getByRole('option', { name: /digital/iu }).click()
 
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/payment method created/i)).toBeVisible()
+		await expect(page.getByText(/payment method created/iu)).toBeVisible()
 	})
 
 	/** Search/filter payment methods */
@@ -68,7 +68,7 @@ test.describe('Payment Methods - CRUD', () => {
 		await login()
 		await page.goto('/master/payment-methods')
 
-		const searchInput = page.getByPlaceholder(/search payment methods/i)
+		const searchInput = page.getByPlaceholder(/search payment methods/iu)
 		await searchInput.fill('Cash')
 
 		await page.waitForLoadState('networkidle')
@@ -79,7 +79,7 @@ test.describe('Payment Methods - CRUD', () => {
 		await login()
 		await page.goto('/master/payment-methods')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
@@ -90,9 +90,9 @@ test.describe('Payment Methods - CRUD', () => {
 		await nameField.clear()
 		await nameField.fill('Updated Payment Method')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: /save changes/iu }).click()
 
-		await expect(page.getByText(/payment method updated/i)).toBeVisible()
+		await expect(page.getByText(/payment method updated/iu)).toBeVisible()
 	})
 
 	/** Delete a payment method via action menu */
@@ -100,15 +100,15 @@ test.describe('Payment Methods - CRUD', () => {
 		await login()
 		await page.goto('/master/payment-methods')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
+		const actionTrigger = page.getByRole('button', { name: /actions/iu }).first()
 		await actionTrigger.click()
 
 		await page.getByRole('menuitem', { name: 'Delete' }).click()
 
-		await expect(page.getByText(/delete payment method/i)).toBeVisible()
+		await expect(page.getByText(/delete payment method/iu)).toBeVisible()
 		await page.getByRole('button', { name: 'Delete' }).click()
 
-		await expect(page.getByText(/payment method deleted/i)).toBeVisible()
+		await expect(page.getByText(/payment method deleted/iu)).toBeVisible()
 	})
 
 	/** Validation: form requires name with min length */
@@ -116,14 +116,14 @@ test.describe('Payment Methods - CRUD', () => {
 		await login()
 		await page.goto('/master/payment-methods')
 
-		await page.getByRole('button', { name: /add payment method/i }).click()
+		await page.getByRole('button', { name: /add payment method/iu }).click()
 
 		await page.getByLabel('Code').fill('TEST')
 		// Leave name empty
 
 		await page.getByRole('button', { name: 'Create' }).click()
 
-		await expect(page.getByText(/fix the validation/i)).toBeVisible()
+		await expect(page.getByText(/fix the validation/iu)).toBeVisible()
 	})
 })
 
@@ -134,9 +134,9 @@ test.describe('Payment Methods - Empty State', () => {
 		await page.goto('/master/payment-methods')
 
 		// If empty, the empty state should have a create button
-		const emptyState = page.getByText(/no payment methods yet/i)
+		const emptyState = page.getByText(/no payment methods yet/iu)
 		if (await emptyState.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await expect(page.getByRole('button', { name: /add payment method/i })).toBeVisible()
+			await expect(page.getByRole('button', { name: /add payment method/iu })).toBeVisible()
 		}
 	})
 })

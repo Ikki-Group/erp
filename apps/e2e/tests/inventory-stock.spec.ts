@@ -6,7 +6,7 @@ test.describe('Inventory Stock - Page Load', () => {
 		await login()
 		await page.goto('/inventory/stock')
 
-		await expect(page.getByRole('heading', { name: /stok inventori/i })).toBeVisible()
+		await expect(page.getByRole('heading', { name: /stok inventori/iu })).toBeVisible()
 	})
 
 	/** Shows location name in description when location is active */
@@ -14,7 +14,7 @@ test.describe('Inventory Stock - Page Load', () => {
 		await login()
 		await page.goto('/inventory/stock')
 
-		await expect(page.getByText(/saldo stok di/i)).toBeVisible()
+		await expect(page.getByText(/saldo stok di/iu)).toBeVisible()
 	})
 
 	/** Tab navigation is visible */
@@ -22,8 +22,8 @@ test.describe('Inventory Stock - Page Load', () => {
 		await login()
 		await page.goto('/inventory/stock')
 
-		await expect(page.getByRole('tab', { name: /saldo stok/i })).toBeVisible()
-		await expect(page.getByRole('tab', { name: /riwayat pergerakan/i })).toBeVisible()
+		await expect(page.getByRole('tab', { name: /saldo stok/iu })).toBeVisible()
+		await expect(page.getByRole('tab', { name: /riwayat pergerakan/iu })).toBeVisible()
 	})
 })
 
@@ -33,7 +33,7 @@ test.describe('Inventory Stock - Balance Tab', () => {
 		await login()
 		await page.goto('/inventory/stock')
 
-		const tab = page.getByRole('tab', { name: /saldo stok/i })
+		const tab = page.getByRole('tab', { name: /saldo stok/iu })
 		await expect(tab).toHaveAttribute('aria-selected', 'true')
 	})
 
@@ -44,7 +44,7 @@ test.describe('Inventory Stock - Balance Tab', () => {
 
 		// Either we see the table or an empty state
 		const hasTable = page.locator('table')
-		const hasEmpty = page.getByText(/belum ada data stok/i)
+		const hasEmpty = page.getByText(/belum ada data stok/iu)
 
 		await expect(hasTable.or(hasEmpty)).toBeVisible()
 	})
@@ -56,9 +56,9 @@ test.describe('Inventory Stock - Movement Tab', () => {
 		await login()
 		await page.goto('/inventory/stock')
 
-		await page.getByRole('tab', { name: /riwayat pergerakan/i }).click()
+		await page.getByRole('tab', { name: /riwayat pergerakan/iu }).click()
 
-		await expect(page.getByText(/pilih material/i)).toBeVisible()
+		await expect(page.getByText(/pilih material/iu)).toBeVisible()
 	})
 })
 
@@ -67,8 +67,8 @@ test.describe('Inventory Stock - Navigation', () => {
 	test('can navigate to stock page from sidebar', async ({ page, login }) => {
 		await login()
 
-		await page.getByRole('link', { name: /stock/i }).click()
+		await page.getByRole('link', { name: /stock/iu }).click()
 
-		await expect(page).toHaveURL(/\/inventory\/stock/)
+		await expect(page).toHaveURL(/\/inventory\/stock/u)
 	})
 })

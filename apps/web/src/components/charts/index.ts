@@ -1,5 +1,0 @@
-export { AreaChart } from './area-chart'
-export { BarChart } from './bar-chart'
-export { ChartSwitch } from './chart-switch'
-export type { ChartSwitchOption, ChartSwitchProps } from './chart-switch'
-export { LineChart } from './line-chart'

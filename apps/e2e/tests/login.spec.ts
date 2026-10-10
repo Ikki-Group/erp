@@ -16,7 +16,7 @@ test.describe('Login', () => {
 	test('logs in successfully with valid credentials', async ({ page, login }) => {
 		await login()
 
-		await expect(page).not.toHaveURL(/\/login/)
+		await expect(page).not.toHaveURL(/\/login/u)
 		await expect(page).toHaveURL('/')
 	})
 
@@ -30,7 +30,7 @@ test.describe('Login', () => {
 
 		// Should show a destructive alert with error text
 		await expect(page.getByRole('alert')).toBeVisible()
-		await expect(page).toHaveURL(/\/login/)
+		await expect(page).toHaveURL(/\/login/u)
 	})
 
 	/** Empty form should not submit (HTML required attribute) */
@@ -40,7 +40,7 @@ test.describe('Login', () => {
 		await page.getByRole('button', { name: 'Masuk' }).click()
 
 		// Should remain on login page
-		await expect(page).toHaveURL(/\/login/)
+		await expect(page).toHaveURL(/\/login/u)
 	})
 
 	/** Already-authenticated user visiting /login should be redirected */
@@ -50,13 +50,13 @@ test.describe('Login', () => {
 		// Try navigating back to login
 		await page.goto('/login')
 
-		await expect(page).not.toHaveURL(/\/login/)
+		await expect(page).not.toHaveURL(/\/login/u)
 	})
 
 	/** Login as cashier role to verify non-owner login */
 	test('logs in successfully as cashier', async ({ page, login }) => {
 		await login(TEST_CREDENTIALS.cashier.username, TEST_CREDENTIALS.cashier.password)
 
-		await expect(page).not.toHaveURL(/\/login/)
+		await expect(page).not.toHaveURL(/\/login/u)
 	})
 })

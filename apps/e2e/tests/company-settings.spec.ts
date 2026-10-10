@@ -6,8 +6,8 @@ test.describe('Company Settings - View & Edit', () => {
 		await login()
 		await page.goto('/settings/company')
 
-		await expect(page.getByRole('heading', { name: /company settings/i })).toBeVisible()
-		await expect(page.getByText(/manage your company profile/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: /company settings/iu })).toBeVisible()
+		await expect(page.getByText(/manage your company profile/iu)).toBeVisible()
 	})
 
 	/** Save button is visible for authorized user */
@@ -15,7 +15,7 @@ test.describe('Company Settings - View & Edit', () => {
 		await login()
 		await page.goto('/settings/company')
 
-		await expect(page.getByRole('button', { name: /save changes/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /save changes/iu })).toBeVisible()
 	})
 
 	/** Form sections are rendered */
@@ -44,13 +44,13 @@ test.describe('Company Settings - View & Edit', () => {
 		await emailField.clear()
 		await emailField.fill('test@ikki.id')
 
-		const taxRateField = page.getByLabel(/tax rate/i)
+		const taxRateField = page.getByLabel(/tax rate/iu)
 		await taxRateField.clear()
 		await taxRateField.fill('11')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: /save changes/iu }).click()
 
-		await expect(page.getByText(/settings (created|updated)/i)).toBeVisible()
+		await expect(page.getByText(/settings (created|updated)/iu)).toBeVisible()
 	})
 
 	/** Values persist after page reload */
@@ -64,8 +64,8 @@ test.describe('Company Settings - View & Edit', () => {
 		await nameField.clear()
 		await nameField.fill('PT. Persist Test')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
-		await expect(page.getByText(/settings (created|updated)/i)).toBeVisible()
+		await page.getByRole('button', { name: /save changes/iu }).click()
+		await expect(page.getByText(/settings (created|updated)/iu)).toBeVisible()
 
 		await page.reload()
 
@@ -83,12 +83,12 @@ test.describe('Company Settings - View & Edit', () => {
 		await nameField.clear()
 		await nameField.fill('PT. Valid Name')
 
-		const taxRateField = page.getByLabel(/tax rate/i)
+		const taxRateField = page.getByLabel(/tax rate/iu)
 		await taxRateField.clear()
 		await taxRateField.fill('-5')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: /save changes/iu }).click()
 
-		await expect(page.getByText(/invalid/i)).toBeVisible()
+		await expect(page.getByText(/invalid/iu)).toBeVisible()
 	})
 })

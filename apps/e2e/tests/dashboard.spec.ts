@@ -22,8 +22,8 @@ test.describe('Dashboard', () => {
 	test('can navigate to settings/users from sidebar', async ({ page, login }) => {
 		await login()
 
-		await page.getByRole('link', { name: /user/i }).click()
+		await page.getByRole('link', { name: /user/iu }).click()
 
-		await expect(page).toHaveURL(/\/settings\/users/)
+		await expect(page).toHaveURL(/\/settings\/users/u)
 	})
 })

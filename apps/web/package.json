@@ -14,14 +14,10 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@ikki/contract": "workspace:*",
 		"@base-ui/react": "^1.7.0",
 		"@date-fns/tz": "^1.5.0",
-		"@dnd-kit/core": "^6.3.1",
-		"@dnd-kit/modifiers": "^9.0.0",
-		"@dnd-kit/sortable": "^10.0.0",
-		"@dnd-kit/utilities": "^3.2.2",
 		"@fontsource-variable/geist": "^5.3.0",
+		"@ikki/contract": "workspace:*",
 		"@tailwindcss/vite": "^4.3.3",
 		"@tanstack/react-devtools": "^0.10.9",
 		"@tanstack/react-form": "^1.33.4",
@@ -30,7 +26,6 @@
 		"@tanstack/react-router": "^1.170.23",
 		"@tanstack/react-router-devtools": "^1.167.1",
 		"@tanstack/react-table": "^9.1.2",
-		"@tanstack/react-virtual": "^3.14.9",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"date-fns": "^4.4.0",
@@ -49,7 +44,6 @@
 	},
 	"devDependencies": {
 		"@tanstack/devtools-vite": "^0.8.3",
-		"@tanstack/router-cli": "^1.167.25",
 		"@tanstack/router-plugin": "^1.168.27",
 		"@testing-library/dom": "^10.4.1",
 		"@testing-library/react": "^16.3.2",

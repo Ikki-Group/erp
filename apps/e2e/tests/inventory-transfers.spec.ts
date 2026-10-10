@@ -6,7 +6,7 @@ test.describe('Inventory Transfers - Page Load', () => {
 		await login()
 		await page.goto('/inventory/transfers')
 
-		await expect(page.getByRole('heading', { name: /transfer inventori/i })).toBeVisible()
+		await expect(page.getByRole('heading', { name: /transfer inventori/iu })).toBeVisible()
 	})
 
 	/** Shows location name in description when location is active */
@@ -14,7 +14,7 @@ test.describe('Inventory Transfers - Page Load', () => {
 		await login()
 		await page.goto('/inventory/transfers')
 
-		await expect(page.getByText(/transfer antar lokasi dari/i)).toBeVisible()
+		await expect(page.getByText(/transfer antar lokasi dari/iu)).toBeVisible()
 	})
 
 	/** Shows "Buat Transfer" button */
@@ -22,7 +22,7 @@ test.describe('Inventory Transfers - Page Load', () => {
 		await login()
 		await page.goto('/inventory/transfers')
 
-		await expect(page.getByRole('button', { name: /buat transfer/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /buat transfer/iu })).toBeVisible()
 	})
 })
 
@@ -33,7 +33,7 @@ test.describe('Inventory Transfers - Empty State', () => {
 		await page.goto('/inventory/transfers')
 
 		const hasTable = page.locator('table')
-		const hasEmpty = page.getByText(/belum ada transfer/i)
+		const hasEmpty = page.getByText(/belum ada transfer/iu)
 
 		await expect(hasTable.or(hasEmpty)).toBeVisible()
 	})
@@ -45,11 +45,11 @@ test.describe('Inventory Transfers - Create Dialog', () => {
 		await login()
 		await page.goto('/inventory/transfers')
 
-		await page.getByRole('button', { name: /buat transfer/i }).click()
+		await page.getByRole('button', { name: /buat transfer/iu }).click()
 
-		await expect(page.getByRole('heading', { name: /buat transfer/i })).toBeVisible()
-		await expect(page.getByText(/lokasi asal/i)).toBeVisible()
-		await expect(page.getByText(/lokasi tujuan/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: /buat transfer/iu })).toBeVisible()
+		await expect(page.getByText(/lokasi asal/iu)).toBeVisible()
+		await expect(page.getByText(/lokasi tujuan/iu)).toBeVisible()
 	})
 
 	/** Shows material line inputs in create dialog */
@@ -57,10 +57,10 @@ test.describe('Inventory Transfers - Create Dialog', () => {
 		await login()
 		await page.goto('/inventory/transfers')
 
-		await page.getByRole('button', { name: /buat transfer/i }).click()
+		await page.getByRole('button', { name: /buat transfer/iu }).click()
 
-		await expect(page.getByText(/item transfer/i)).toBeVisible()
-		await expect(page.getByRole('button', { name: /tambah baris/i })).toBeVisible()
+		await expect(page.getByText(/item transfer/iu)).toBeVisible()
+		await expect(page.getByRole('button', { name: /tambah baris/iu })).toBeVisible()
 	})
 
 	/** Can add and remove lines in create dialog */
@@ -68,8 +68,8 @@ test.describe('Inventory Transfers - Create Dialog', () => {
 		await login()
 		await page.goto('/inventory/transfers')
 
-		await page.getByRole('button', { name: /buat transfer/i }).click()
-		await page.getByRole('button', { name: /tambah baris/i }).click()
+		await page.getByRole('button', { name: /buat transfer/iu }).click()
+		await page.getByRole('button', { name: /tambah baris/iu }).click()
 
 		const materialInputs = page.getByPlaceholder('Pilih material')
 		await expect(materialInputs).toHaveCount(2)
@@ -81,8 +81,8 @@ test.describe('Inventory Transfers - Navigation', () => {
 	test('can navigate to transfers page from sidebar', async ({ page, login }) => {
 		await login()
 
-		await page.getByRole('link', { name: /transfers/i }).click()
+		await page.getByRole('link', { name: /transfers/iu }).click()
 
-		await expect(page).toHaveURL(/\/inventory\/transfers/)
+		await expect(page).toHaveURL(/\/inventory\/transfers/u)
 	})
 })
