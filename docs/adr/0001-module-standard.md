@@ -1,6 +1,6 @@
 # ADR-0001: Backend Module Standard (Flat-Hybrid with Pure-Domain Separation)
 
-**Status:** Accepted
+**Status:** Accepted — amended by [ADR-0019](./0019-explicit-wiring-no-cache-shared-contract.md)
 **Date:** 2026-09-13
 **Supersedes:** the archived `docs/_archive/server-redesign/adr/ADR-0001-layered-vertical-slices.md` (five-folder layout), which was never followed by the code that was actually built.
 

@@ -1,6 +1,6 @@
 # ADR-0018: Session storage — cache-first with Postgres as source of truth
 
-**Status:** Accepted
+**Status:** Accepted — amended by [ADR-0019](./0019-explicit-wiring-no-cache-shared-contract.md)
 **Revises:** ADR-0007 §1 (session behind a port, memory/Redis adapter — that stands; this ADR adds a durable backing store behind it)
 
 **Context:** ADR-0007 put sessions behind a `SessionStore` port with an in-memory (now optionally Redis, per the Redis infra work) adapter as the *only* place a session lives. That's fine for pure request validation, but it rules out two things the product now needs: (1) surviving a cache eviction/restart without silently logging everyone out, and (2) per-user session management — listing active sessions and revoking a specific device ("log out from another device"), which requires an enumerable, queryable record with device metadata that a cache alone can't hold.

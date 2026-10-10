@@ -8,12 +8,13 @@ Scope: **foundation + core operations** (Core, Master Data, Costing, Menu, POS, 
 
 | ADR                                            | Decision                                                                |
 | ---------------------------------------------- | ----------------------------------------------------------------------- |
-| [0001](./0001-module-standard.md)              | Module standard — flat-hybrid with pure-domain separation               |
+| [0001](./0001-module-standard.md)              | Module standard — flat-hybrid with pure-domain separation (wiring amended by 0019) |
 | [0002](./0002-transaction-atomic-effects.md)   | Transaction boundary & atomic-effect model (UoW + hybrid effects)       |
 | [0003](./0003-money-precision.md)              | Money & quantity precision (Money/Qty, amount 0dp / cost 4dp / qty 6dp) |
 | [0004](./0004-rbac-permissions.md)             | RBAC & permissions (`<slice>.<action>`, enforced per route)             |
 | [0005](./0005-audit-trail.md)                  | Audit trail (atomic, actorName mandatory)                               |
 | [0006](./0006-concurrency-permissive-stock.md) | Concurrency & permissive stock (non-blocking for a small UMKM)          |
+| [0019](./0019-explicit-wiring-no-cache-shared-contract.md) | Explicit module wiring, no business cache/event bus, shared `@ikki/contract` (amends 0001, 0015, 0018) |
 
 ## Domain
 

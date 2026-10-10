@@ -1,6 +1,6 @@
 # ADR-0015: Web Query-Key Convention & Location-Scoped Cache Partitioning
 
-**Status:** Accepted
+**Status:** Accepted — amended by [ADR-0019](./0019-explicit-wiring-no-cache-shared-contract.md)
 **Date:** 2026-09-17
 **Depends on:** ADR-0007 (auth/iam — client-side location switching), ADR-0008 (Location as the operational unit).
 **Scope:** `apps/web` data-fetching layer (TanStack Query + Router).
