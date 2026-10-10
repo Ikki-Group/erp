@@ -5,7 +5,7 @@
  *
  * Safety: Only runs if:
  *   - NODE_ENV=development + DATABASE_URL contains "dev-user"
- *   - NODE_ENV=test + DATABASE_URL contains "test-user"
+ *   - NODE_ENV=test + DATABASE_URL database name contains "test"
  */
 
 // ─── Safety Guard ───
@@ -15,7 +15,7 @@ function assertDevOrTest(): void {
 	const dbUrl = process.env['DATABASE_URL'] ?? ''
 
 	const isDev = nodeEnv === 'development' && dbUrl.includes('dev-user')
-	const isTest = nodeEnv === 'test' && dbUrl.includes('test-user')
+	const isTest = nodeEnv === 'test' && new URL(dbUrl).pathname.includes('test')
 
 	if (!isDev && !isTest) {
 		console.log(

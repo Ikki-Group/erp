@@ -6,25 +6,26 @@ if (!url) {
 	process.exit(1)
 }
 
-const sql = postgres(url)
+const sql = postgres(url, { onnotice: () => {} })
 
-const tables = await sql`SELECT tablename FROM pg_tables WHERE schemaname = 'public'`
-console.log(
-	'Existing tables:',
-	// oxlint-disable-next-line typescript/no-unsafe-return
-	tables.map((t) => t.tablename),
-)
+// Managed Postgres (Neon) does not let app roles own `public`, so instead of
+// DROP SCHEMA we drop every object inside it.
+const tables = await sql<{ name: string }[]>`
+	SELECT tablename AS name FROM pg_tables WHERE schemaname = 'public'`
+for (const { name } of tables) await sql.unsafe(`DROP TABLE IF EXISTS public."${name}" CASCADE`)
 
-if (tables.length > 0) {
-	await sql.unsafe('DROP SCHEMA public CASCADE')
-	await sql.unsafe('CREATE SCHEMA public')
-	console.log('Dropped and recreated public schema')
-} else {
-	console.log('No tables to drop')
-}
+const types = await sql<{ name: string }[]>`
+	SELECT t.typname AS name FROM pg_type t
+	JOIN pg_namespace n ON n.oid = t.typnamespace
+	WHERE n.nspname = 'public' AND t.typtype = 'e'`
+for (const { name } of types) await sql.unsafe(`DROP TYPE IF EXISTS public."${name}" CASCADE`)
+
+const sequences = await sql<{ name: string }[]>`
+	SELECT sequencename AS name FROM pg_sequences WHERE schemaname = 'public'`
+for (const { name } of sequences)
+	await sql.unsafe(`DROP SEQUENCE IF EXISTS public."${name}" CASCADE`)
 
 await sql.unsafe('DROP SCHEMA IF EXISTS drizzle CASCADE')
-console.log('Dropped drizzle schema (migration tracking reset)')
-
 await sql.end()
-console.log('Done - DB is clean')
+
+console.log(`Dropped ${tables.length} tables, ${types.length} enums, ${sequences.length} sequences`)
