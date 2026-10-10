@@ -1,12 +1,9 @@
+import { zRes } from '@ikki/contract/http'
+import { zc, zp } from '@ikki/contract/schema'
+
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-	zp,
-} from '@/lib/validation/index.ts'
 
 import {
 	AssignmentCreateDto,
@@ -53,7 +50,7 @@ const userList = defineQuery({
 	method: 'get',
 	url: userUrls.list,
 	query: UserFilterDto,
-	result: createPaginatedResponseSchema(UserListItemDto),
+	result: zRes.paginated(UserListItemDto),
 	queryKey: (query) => [userUrls.list, query ?? null],
 })
 
@@ -61,7 +58,7 @@ const userDetail = defineQuery({
 	method: 'get',
 	url: userUrls.detail,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(UserDetailDto),
+	result: zRes.ok(UserDetailDto),
 	queryKey: (query) => [userUrls.detail, query ?? null],
 })
 
@@ -69,7 +66,7 @@ const locationStaffList = defineQuery({
 	method: 'get',
 	url: userUrls.locationStaff,
 	query: UserFilterDto,
-	result: createPaginatedResponseSchema(LocationStaffListItemDto),
+	result: zRes.paginated(LocationStaffListItemDto),
 	queryKey: (query) => [userUrls.locationStaff, query ?? null],
 })
 
@@ -77,7 +74,7 @@ const usersByLocation = defineQuery({
 	method: 'get',
 	url: userUrls.byLocation,
 	query: UserFilterDto.extend({ locationId: zp.id }),
-	result: createPaginatedResponseSchema(LocationStaffListItemDto),
+	result: zRes.paginated(LocationStaffListItemDto),
 	queryKey: (query) => [userUrls.byLocation, query ?? null],
 })
 
@@ -85,7 +82,7 @@ const userCreate = defineMutation({
 	method: 'post',
 	url: userUrls.create,
 	body: UserCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [userKeys.lists()],
 })
 
@@ -93,7 +90,7 @@ const userUpdate = defineMutation({
 	method: 'put',
 	url: userUrls.update,
 	body: UserUpdateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [userKeys.lists(), (args) => userKeys.detail({ id: (args as { id: number }).id })],
 })
 
@@ -101,7 +98,7 @@ const userDeactivate = defineMutation({
 	method: 'delete',
 	url: userUrls.deactivate,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [userKeys.lists()],
 })
 
@@ -109,7 +106,7 @@ const userResetPassword = defineMutation({
 	method: 'put',
 	url: userUrls.resetPassword,
 	body: UserResetPasswordDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 })
 
 export const userResource = {
@@ -137,7 +134,7 @@ const assignmentList = defineQuery({
 	method: 'get',
 	url: assignmentUrls.list,
 	query: AssignmentFilterDto,
-	result: createPaginatedResponseSchema(AssignmentDto),
+	result: zRes.paginated(AssignmentDto),
 	queryKey: (query) => [assignmentUrls.list, query ?? null],
 })
 
@@ -145,7 +142,7 @@ const assignmentAssign = defineMutation({
 	method: 'post',
 	url: assignmentUrls.assign,
 	body: AssignmentCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [assignmentKeys.lists(), userKeys.lists(), userKeys.details()],
 })
 
@@ -153,7 +150,7 @@ const assignmentRemove = defineMutation({
 	method: 'delete',
 	url: assignmentUrls.remove,
 	body: AssignmentRemoveDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [assignmentKeys.lists(), userKeys.lists(), userKeys.details()],
 })
 

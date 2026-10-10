@@ -1,7 +1,9 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
+
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineMutation, defineQuery } from '@/lib/api/index.ts'
-import { createSuccessResponseSchema, zc } from '@/lib/validation/index.ts'
 
 import { CompanySettingsDto, CompanySettingsUpdateDto } from './dto/index.ts'
 
@@ -14,7 +16,7 @@ const keys = {
 export const companyDetail = defineQuery({
 	method: 'get',
 	url: endpoint.company.settings,
-	result: createSuccessResponseSchema(CompanySettingsDto),
+	result: zRes.ok(CompanySettingsDto),
 	queryKey: () => [...keys.detail()],
 })
 
@@ -22,6 +24,6 @@ export const companyUpdate = defineMutation({
 	method: 'put',
 	url: endpoint.company.settings,
 	body: CompanySettingsUpdateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [keys.detail()],
 })

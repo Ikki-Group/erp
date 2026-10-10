@@ -1,11 +1,9 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
+
 import { endpoint } from '@/config/endpoint.ts'
 
 import { createQueryKeys, defineMutation, defineQuery } from '@/lib/api/index.ts'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@/lib/validation/index.ts'
 
 import {
 	StockBalanceDto,
@@ -42,7 +40,7 @@ export const stockBalanceList = defineQuery({
 	method: 'get',
 	url: endpoint.inventory.stock.list,
 	query: StockBalanceFilterDto,
-	result: createPaginatedResponseSchema(StockBalanceDto),
+	result: zRes.paginated(StockBalanceDto),
 	queryKey: (query) => stockKeys.list(query),
 })
 
@@ -52,7 +50,7 @@ export const stockMovementList = defineQuery({
 	method: 'get',
 	url: endpoint.inventory.stock.movements,
 	query: StockMovementFilterDto,
-	result: createPaginatedResponseSchema(StockMovementDto),
+	result: zRes.paginated(StockMovementDto),
 	queryKey: (query) => movementKeys.list(query),
 })
 
@@ -73,7 +71,7 @@ const transferList = defineQuery({
 	method: 'get',
 	url: transferUrls.list,
 	query: TransferFilterDto,
-	result: createPaginatedResponseSchema(TransferDto),
+	result: zRes.paginated(TransferDto),
 	queryKey: (query) => transferKeys.list(query),
 })
 
@@ -83,7 +81,7 @@ const transferDetail = defineQuery({
 	method: 'get',
 	url: transferUrls.detail,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(TransferDetailDto),
+	result: zRes.ok(TransferDetailDto),
 	queryKey: (query) => transferKeys.detail(query),
 })
 
@@ -93,7 +91,7 @@ const transferCreate = defineMutation({
 	method: 'post',
 	url: transferUrls.create,
 	body: TransferCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [transferKeys.lists()],
 })
 
@@ -103,7 +101,7 @@ const transferShip = defineMutation({
 	method: 'post',
 	url: transferUrls.ship,
 	body: TransferShipDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [transferKeys.lists(), transferKeys.details()],
 })
 
@@ -113,7 +111,7 @@ const transferReceive = defineMutation({
 	method: 'post',
 	url: transferUrls.receive,
 	body: TransferReceiveDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [transferKeys.lists(), transferKeys.details(), stockKeys.lists()],
 })
 
@@ -145,7 +143,7 @@ const opnameList = defineQuery({
 	method: 'get',
 	url: opnameUrls.list,
 	query: OpnameFilterDto,
-	result: createPaginatedResponseSchema(OpnameDto),
+	result: zRes.paginated(OpnameDto),
 	queryKey: (query) => opnameKeys.list(query),
 })
 
@@ -155,7 +153,7 @@ const opnameDetail = defineQuery({
 	method: 'get',
 	url: opnameUrls.detail,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(OpnameDetailDto),
+	result: zRes.ok(OpnameDetailDto),
 	queryKey: (query) => opnameKeys.detail(query),
 })
 
@@ -165,7 +163,7 @@ const opnameCreate = defineMutation({
 	method: 'post',
 	url: opnameUrls.create,
 	body: OpnameCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [opnameKeys.lists()],
 })
 
@@ -175,7 +173,7 @@ const opnameUpdateCounts = defineMutation({
 	method: 'put',
 	url: opnameUrls.counts,
 	body: OpnameUpdateCountsDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [opnameKeys.lists(), opnameKeys.details()],
 })
 
@@ -185,7 +183,7 @@ const opnameApprove = defineMutation({
 	method: 'post',
 	url: opnameUrls.approve,
 	body: OpnameApproveDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [opnameKeys.lists(), opnameKeys.details()],
 })
 
@@ -217,7 +215,7 @@ const receivingList = defineQuery({
 	method: 'get',
 	url: receivingUrls.list,
 	query: ReceivingFilterDto,
-	result: createPaginatedResponseSchema(ReceivingDto),
+	result: zRes.paginated(ReceivingDto),
 	queryKey: (query) => receivingKeys.list(query),
 })
 
@@ -227,7 +225,7 @@ const receivingDetail = defineQuery({
 	method: 'get',
 	url: receivingUrls.detail,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(ReceivingDetailDto),
+	result: zRes.ok(ReceivingDetailDto),
 	queryKey: (query) => receivingKeys.detail(query),
 })
 
@@ -237,7 +235,7 @@ const receivingCreate = defineMutation({
 	method: 'post',
 	url: receivingUrls.create,
 	body: ReceivingCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [receivingKeys.lists(), stockKeys.lists()],
 })
 
@@ -247,7 +245,7 @@ const receivingConfirm = defineMutation({
 	method: 'post',
 	url: receivingUrls.confirm,
 	body: ReceivingConfirmDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [receivingKeys.lists(), receivingKeys.details(), stockKeys.lists()],
 })
 

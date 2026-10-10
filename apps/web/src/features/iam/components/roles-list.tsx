@@ -205,7 +205,7 @@ export function RolesList({ searchParams }: RolesListProps) {
 										tab: 'roles' as const,
 									},
 								})
-								},
+							},
 						},
 					]}
 				/>

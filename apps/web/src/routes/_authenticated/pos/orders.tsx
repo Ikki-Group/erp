@@ -7,7 +7,12 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { BanIcon, EyeIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { CurrencyCell, listSearchSchema, rightAlignedHeader, useServerTable } from '@/components/data-table'
+import {
+	CurrencyCell,
+	listSearchSchema,
+	rightAlignedHeader,
+	useServerTable,
+} from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import type { DateRange } from '@/components/shared/date-range-filter'

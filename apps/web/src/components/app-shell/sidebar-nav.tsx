@@ -32,8 +32,7 @@ import {
 	SidebarMenuItem,
 } from '@/components/ui/sidebar'
 
-import { useAuth } from '@/providers/auth-provider.tsx'
-import { useLocationContext } from '@/providers/location-provider.tsx'
+import { usePermissions } from '@/providers/auth-provider.tsx'
 
 type NavItem = {
 	title: string
@@ -111,8 +110,18 @@ const navGroups: readonly NavGroup[] = [
 		label: 'Administration',
 		items: [
 			{ title: 'Company', icon: StoreIcon, href: '/settings/company', anyOf: ['company.read'] },
-			{ title: 'Locations', icon: MapPinIcon, href: '/settings/locations', anyOf: ['location.read'] },
-			{ title: 'Access Control', icon: ShieldCheckIcon, href: '/settings/access-control', anyOf: ['iam.read'] },
+			{
+				title: 'Locations',
+				icon: MapPinIcon,
+				href: '/settings/locations',
+				anyOf: ['location.read'],
+			},
+			{
+				title: 'Access Control',
+				icon: ShieldCheckIcon,
+				href: '/settings/access-control',
+				anyOf: ['iam.read'],
+			},
 			{ title: 'Audit Log', icon: HistoryIcon, href: '/settings/audit', anyOf: ['audit.read'] },
 		],
 	},
@@ -120,14 +129,7 @@ const navGroups: readonly NavGroup[] = [
 
 export function SidebarNav() {
 	const location = useLocation()
-	const { access, globalPermissions, isOwner, permissions } = useAuth()
-	const { activeLocation } = useLocationContext()
-
-	const effectivePermissions = new Set([
-		...globalPermissions,
-		...permissions,
-		...(activeLocation ? (access[String(activeLocation.id)] ?? []) : []),
-	])
+	const { isOwner, permissions: effectivePermissions } = usePermissions()
 
 	const visibleGroups = navGroups
 		.map((group) => ({

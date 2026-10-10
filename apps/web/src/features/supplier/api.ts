@@ -1,11 +1,9 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
+
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@/lib/validation/index.ts'
 
 import {
 	SupplierCreateDto,
@@ -43,7 +41,7 @@ const pricingList = defineQuery({
 	method: 'get',
 	url: pricingUrls.list,
 	query: SupplierMaterialFilterDto,
-	result: createPaginatedResponseSchema(SupplierMaterialDto),
+	result: zRes.paginated(SupplierMaterialDto),
 	queryKey: (query) => pricingKeys.list(query),
 })
 
@@ -51,7 +49,7 @@ const pricingCreate = defineMutation({
 	method: 'post',
 	url: pricingUrls.create,
 	body: SupplierMaterialCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [pricingKeys.lists(), supplierResource.keys.lists()],
 })
 
@@ -59,7 +57,7 @@ const pricingUpdate = defineMutation({
 	method: 'put',
 	url: pricingUrls.update,
 	body: SupplierMaterialUpdateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [pricingKeys.lists(), supplierResource.keys.lists()],
 })
 
@@ -67,7 +65,7 @@ const pricingRemove = defineMutation({
 	method: 'delete',
 	url: pricingUrls.remove,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [pricingKeys.lists(), supplierResource.keys.lists()],
 })
 

@@ -7,13 +7,11 @@ import { useUnsavedChangesGuard } from '@/lib/form'
 import { FormPage } from '@/components/shared/form-page'
 import { PageError } from '@/components/shared/page-error'
 import { PageSkeleton } from '@/components/shared/page-skeleton'
+
 import { toast } from '@/components/ui/toast'
 
 import { locationResource } from '@/features/location/api'
-import {
-	LocationFormFields,
-	useLocationForm,
-} from '@/features/location/components/location-form'
+import { LocationFormFields, useLocationForm } from '@/features/location/components/location-form'
 import type { LocationDto } from '@/features/location/dto'
 
 function detailQueryOptions(id: number) {

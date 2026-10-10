@@ -1,9 +1,10 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
 import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
-import { createSuccessResponseSchema, zc } from '@/lib/validation/index.ts'
 
 import {
 	PaymentMethodCreateDto,
@@ -39,7 +40,7 @@ const createMutation = defineMutation({
 	method: 'post',
 	url: endpoint.paymentMethod.create,
 	body: PaymentMethodCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
 })
 
@@ -47,7 +48,7 @@ const updateMutation = defineMutation({
 	method: 'put',
 	url: endpoint.paymentMethod.update,
 	body: PaymentMethodUpdateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
 })
 
@@ -55,7 +56,7 @@ const removeMutation = defineMutation({
 	method: 'delete',
 	url: endpoint.paymentMethod.remove,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
 })
 
@@ -71,7 +72,7 @@ const byLocationQuery = defineQuery({
 	method: 'get',
 	url: byLocationUrl,
 	query: z.object({ locationId: z.coerce.number().int().positive() }),
-	result: createSuccessResponseSchema(z.array(PaymentMethodDto)),
+	result: zRes.ok(z.array(PaymentMethodDto)),
 	queryKey: (query) => [byLocationUrl, query],
 })
 

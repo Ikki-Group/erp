@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { setActiveLocationAccessor } from './active-location.ts'
+import { setActiveLocationId } from './active-location.ts'
 import { createResourceKeys } from './resource-keys.ts'
 
 afterEach(() => {
-	setActiveLocationAccessor(() => null)
+	setActiveLocationId(null)
 })
 
 describe('createResourceKeys — plain (not location-scoped)', () => {
@@ -27,7 +27,7 @@ describe('createResourceKeys — plain (not location-scoped)', () => {
 	})
 
 	it('does not fold in location for a plain resource even when one is active', () => {
-		setActiveLocationAccessor(() => 3)
+		setActiveLocationId(3)
 		expect(keys.list({ page: 1 })).toEqual(['location', 'location', 'list', { page: 1 }])
 	})
 })
@@ -36,7 +36,7 @@ describe('createResourceKeys — location-scoped', () => {
 	const keys = createResourceKeys('inventory', 'stock', { locationScoped: true })
 
 	it('folds the active locationId into the key after the resource segment', () => {
-		setActiveLocationAccessor(() => 1)
+		setActiveLocationId(1)
 		expect(keys.list({ materialId: 9 })).toEqual([
 			'inventory',
 			'stock',
@@ -47,21 +47,21 @@ describe('createResourceKeys — location-scoped', () => {
 	})
 
 	it('partitions cache per location — same params, different location, different key', () => {
-		setActiveLocationAccessor(() => 1)
+		setActiveLocationId(1)
 		const atLoc1 = keys.list({ materialId: 9 })
-		setActiveLocationAccessor(() => 2)
+		setActiveLocationId(2)
 		const atLoc2 = keys.list({ materialId: 9 })
 
 		expect(atLoc1).not.toEqual(atLoc2)
 	})
 
 	it('represents the consolidated view with loc null', () => {
-		setActiveLocationAccessor(() => null)
+		setActiveLocationId(null)
 		expect(keys.list()).toEqual(['inventory', 'stock', { loc: null }, 'list', null])
 	})
 
 	it('scopes the lists() prefix by location too, so invalidation targets one location', () => {
-		setActiveLocationAccessor(() => 4)
+		setActiveLocationId(4)
 		expect(keys.lists()).toEqual(['inventory', 'stock', { loc: 4 }, 'list'])
 	})
 })

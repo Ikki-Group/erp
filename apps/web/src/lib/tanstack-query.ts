@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
 
 import { IS_DEV } from '@/config/constant.ts'
 
@@ -26,7 +26,7 @@ export function setOnAuthError(handler: () => void): void {
 /**
  * In dev: no retries (instant feedback).
  * In prod: retry up to 3× for transient failures only.
- *   - Never retry auth errors (401/403) — they won't self-heal.
+ *   - Never retry 401/403 — they won't self-heal.
  *   - Never retry client errors (4xx) — request is malformed.
  *   - Retry network errors and server errors (5xx) — transient.
  */
@@ -65,9 +65,8 @@ function shouldThrowOnError(error: unknown): boolean {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Fires on every failed mutation (and on queries if they exhaust retries).
- * Primary job: detect expired sessions and redirect to login once, not N
- * times per parallel request.
+ * Fires on every failed query/mutation. Detects an expired session (401) and
+ * redirects to login once, not once per parallel request.
  */
 let authErrorFired = false
 
@@ -91,6 +90,9 @@ function handleGlobalError(error: unknown): void {
 /* -------------------------------------------------------------------------- */
 
 export const queryClient = new QueryClient({
+	// Both caches: an expired session is detected by whichever request fails first.
+	queryCache: new QueryCache({ onError: handleGlobalError }),
+	mutationCache: new MutationCache({ onError: handleGlobalError }),
 	defaultOptions: {
 		queries: {
 			retry: shouldRetry,
@@ -102,7 +104,6 @@ export const queryClient = new QueryClient({
 		},
 		mutations: {
 			retry: shouldRetry,
-			onError: handleGlobalError,
 		},
 	},
 })

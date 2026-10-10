@@ -1,32 +1,26 @@
+import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { getActiveLocationId, setActiveLocationAccessor } from './active-location.ts'
+import { getActiveLocationId, setActiveLocationId, useActiveLocationId } from './active-location.ts'
 
-afterEach(() => {
-	// Reset the module-level accessor between tests so cases don't leak.
-	setActiveLocationAccessor(() => null)
-})
+afterEach(() => setActiveLocationId(null))
 
-describe('active-location accessor', () => {
-	it('returns null when no accessor has been wired', () => {
-		// A fresh app before the location provider boots: no accessor set yet.
-		expect(getActiveLocationId()).toBeNull()
-	})
-
-	it('reads the current value through the wired accessor', () => {
-		let current: number | null = 7
-		setActiveLocationAccessor(() => current)
-
+describe('active location store', () => {
+	it('stores the selection', () => {
+		setActiveLocationId(7)
 		expect(getActiveLocationId()).toBe(7)
-
-		// The getter reflects live changes — it calls the accessor each time,
-		// it does not snapshot the value at wiring time.
-		current = 12
-		expect(getActiveLocationId()).toBe(12)
 	})
 
-	it('supports the consolidated (all-locations) view as null', () => {
-		setActiveLocationAccessor(() => null)
+	it('null is the consolidated view', () => {
+		setActiveLocationId(3)
+		setActiveLocationId(null)
 		expect(getActiveLocationId()).toBeNull()
+	})
+
+	it('re-renders subscribers on change', () => {
+		const { result } = renderHook(() => useActiveLocationId())
+		expect(result.current).toBeNull()
+		act(() => setActiveLocationId(12))
+		expect(result.current).toBe(12)
 	})
 })

@@ -7,7 +7,13 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { EditIcon, LayersIcon, PlusIcon, TagIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { CurrencyCell, listSearchSchema, rightAlignedHeader, TextCell, useServerTable } from '@/components/data-table'
+import {
+	CurrencyCell,
+	listSearchSchema,
+	rightAlignedHeader,
+	TextCell,
+	useServerTable,
+} from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'

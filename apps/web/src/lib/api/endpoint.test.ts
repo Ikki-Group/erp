@@ -1,9 +1,8 @@
+import { zRes } from '@ikki/contract/http'
 import { afterEach, describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 
-import { createSuccessResponseSchema } from '@/lib/validation/index.ts'
-
-import { setActiveLocationAccessor } from './active-location.ts'
+import { setActiveLocationId } from './active-location.ts'
 import { defineMutation, defineQuery } from './endpoint.ts'
 
 /**
@@ -15,20 +14,20 @@ describe('endpoint no-arg ergonomics (type-level)', () => {
 	const noArgQuery = defineQuery({
 		method: 'get',
 		url: 'auth/me',
-		result: createSuccessResponseSchema(z.object({ id: z.number() })),
+		result: zRes.ok(z.object({ id: z.number() })),
 	})
 
 	const noArgMutation = defineMutation({
 		method: 'post',
 		url: 'auth/logout',
-		result: createSuccessResponseSchema(z.undefined()),
+		result: zRes.ok(z.undefined()),
 	})
 
 	const withQuery = defineQuery({
 		method: 'get',
 		url: 'location/detail',
 		query: z.object({ id: z.number() }),
-		result: createSuccessResponseSchema(z.object({ id: z.number() })),
+		result: zRes.ok(z.object({ id: z.number() })),
 	})
 
 	it('lets a no-arg query build its key / options / fetch with zero arguments', () => {
@@ -52,14 +51,14 @@ describe('endpoint no-arg ergonomics (type-level)', () => {
 
 describe('locationScoped query key folding (runtime)', () => {
 	afterEach(() => {
-		setActiveLocationAccessor(() => null)
+		setActiveLocationId(null)
 	})
 
 	const scoped = defineQuery({
 		method: 'get',
 		url: 'inventory/stock/list',
 		query: z.object({ materialId: z.number() }),
-		result: createSuccessResponseSchema(z.array(z.object({ id: z.number() }))),
+		result: zRes.ok(z.array(z.object({ id: z.number() }))),
 		locationScoped: true,
 	})
 
@@ -67,11 +66,11 @@ describe('locationScoped query key folding (runtime)', () => {
 		method: 'get',
 		url: 'inventory/stock/list',
 		query: z.object({ materialId: z.number() }),
-		result: createSuccessResponseSchema(z.array(z.object({ id: z.number() }))),
+		result: zRes.ok(z.array(z.object({ id: z.number() }))),
 	})
 
 	it('folds the active locationId into the key', () => {
-		setActiveLocationAccessor(() => 3)
+		setActiveLocationId(3)
 		expect(scoped.queryKey({ materialId: 9 })).toEqual([
 			'inventory/stock/list',
 			{ loc: 3 },
@@ -80,15 +79,15 @@ describe('locationScoped query key folding (runtime)', () => {
 	})
 
 	it('partitions the key per location — same params, different location, different key', () => {
-		setActiveLocationAccessor(() => 1)
+		setActiveLocationId(1)
 		const atLoc1 = scoped.queryKey({ materialId: 9 })
-		setActiveLocationAccessor(() => 2)
+		setActiveLocationId(2)
 		const atLoc2 = scoped.queryKey({ materialId: 9 })
 		expect(atLoc1).not.toEqual(atLoc2)
 	})
 
 	it('does not fold location into an unscoped endpoint even when one is active', () => {
-		setActiveLocationAccessor(() => 3)
+		setActiveLocationId(3)
 		expect(unscoped.queryKey({ materialId: 9 })).toEqual([
 			'inventory/stock/list',
 			{ materialId: 9 },
@@ -100,7 +99,7 @@ describe('locationScoped query key folding (runtime)', () => {
 			defineQuery({
 				method: 'get',
 				url: 'inventory/stock/list',
-				result: createSuccessResponseSchema(z.array(z.object({ id: z.number() }))),
+				result: zRes.ok(z.array(z.object({ id: z.number() }))),
 				locationScoped: true,
 				queryKey: () => ['custom'],
 			}),
@@ -114,7 +113,7 @@ describe('two-schema endpoint (query + body)', () => {
 		url: 'search/things',
 		query: z.object({ page: z.number() }),
 		body: z.object({ term: z.string() }),
-		result: createSuccessResponseSchema(z.array(z.object({ id: z.number() }))),
+		result: zRes.ok(z.array(z.object({ id: z.number() }))),
 	})
 
 	it('takes a single wrapped { query, body } arg and keys off it', () => {

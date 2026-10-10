@@ -29,7 +29,12 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { auditResource } from '@/features/audit/api.ts'
-import { opnameResource, receivingResource, stockBalanceList, transferResource } from '@/features/inventory/api.ts'
+import {
+	opnameResource,
+	receivingResource,
+	stockBalanceList,
+	transferResource,
+} from '@/features/inventory/api.ts'
 import { RECEIVING_STATUS_LABELS, TRANSFER_STATUS_LABELS } from '@/features/inventory/dto/index.ts'
 
 import { useAuth } from '@/providers/auth-provider.tsx'
@@ -122,9 +127,9 @@ function DashboardPage() {
 			{/* Screen reader announcement for location and alerts */}
 			<div className="sr-only" aria-live="polite" aria-atomic="true">
 				{scopeLabel}
-				{!isConsolidated && lowStockItems.length > 0 && 
-					`: ${lowStockItems.length} item membutuhkan perhatian`
-				}
+				{!isConsolidated &&
+					lowStockItems.length > 0 &&
+					`: ${lowStockItems.length} item membutuhkan perhatian`}
 			</div>
 
 			<PageHeader
@@ -217,9 +222,7 @@ function DashboardPage() {
 												{locationNameById.get(t.toLocationId) ?? '—'}
 											</p>
 										</div>
-										<StatusBadge variant="warning">
-											{TRANSFER_STATUS_LABELS[t.status]}
-										</StatusBadge>
+										<StatusBadge variant="warning">{TRANSFER_STATUS_LABELS[t.status]}</StatusBadge>
 									</div>
 								))}
 							</div>
@@ -348,9 +351,7 @@ function DashboardPage() {
 												{locationNameById.get(r.locationId) ?? '—'}
 											</p>
 										</div>
-										<StatusBadge variant="warning">
-											{RECEIVING_STATUS_LABELS[r.status]}
-										</StatusBadge>
+										<StatusBadge variant="warning">{RECEIVING_STATUS_LABELS[r.status]}</StatusBadge>
 									</div>
 								))}
 							</div>

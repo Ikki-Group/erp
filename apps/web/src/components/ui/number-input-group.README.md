@@ -5,11 +5,13 @@ Reusable numeric input components with UOM (Unit of Measure) integration.
 ## Components
 
 ### `NumberInputGroupAddon`
+
 Numeric input with a **static** UOM label at the end.
 
 Use when the unit of measure is fixed/known in advance (e.g., weight in kg, quantity in pieces).
 
 ### `NumberInputGroup`
+
 Numeric input with an **editable** UOM dropdown at the end.
 
 Use when both the quantity and unit need to be user-selected (e.g., inventory adjustments, recipe ingredients).
@@ -105,25 +107,25 @@ const form = useAppForm({
 
 ### NumberInputGroupAddonProps
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `uomLabel` | `string` | Static label displayed at the end |
-| `value` | `number \| null \| undefined` | Current numeric value |
-| `onChange` | `(value: number \| null) => void` | Called when value changes |
-| `disabled` | `boolean` | Disabled state |
-| All standard input props | | `placeholder`, `min`, `max`, `step`, etc. |
+| Prop                     | Type                              | Description                               |
+| ------------------------ | --------------------------------- | ----------------------------------------- |
+| `uomLabel`               | `string`                          | Static label displayed at the end         |
+| `value`                  | `number \| null \| undefined`     | Current numeric value                     |
+| `onChange`               | `(value: number \| null) => void` | Called when value changes                 |
+| `disabled`               | `boolean`                         | Disabled state                            |
+| All standard input props |                                   | `placeholder`, `min`, `max`, `step`, etc. |
 
 ### NumberInputGroupProps
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `value` | `number \| null \| undefined` | Current numeric value |
-| `uomId` | `number \| null \| undefined` | Current UOM ID |
-| `uomOptions` | `Array<{ id: number; code: string }>` | Available UOM options |
-| `onChange` | `(value: number \| null) => void` | Called when value changes |
-| `onUomChange` | `(uomId: number) => void` | Called when UOM changes |
-| `disabled` | `boolean` | Disabled state |
-| All standard input props | | `placeholder`, `min`, `max`, `step`, etc. |
+| Prop                     | Type                                  | Description                               |
+| ------------------------ | ------------------------------------- | ----------------------------------------- |
+| `value`                  | `number \| null \| undefined`         | Current numeric value                     |
+| `uomId`                  | `number \| null \| undefined`         | Current UOM ID                            |
+| `uomOptions`             | `Array<{ id: number; code: string }>` | Available UOM options                     |
+| `onChange`               | `(value: number \| null) => void`     | Called when value changes                 |
+| `onUomChange`            | `(uomId: number) => void`             | Called when UOM changes                   |
+| `disabled`               | `boolean`                             | Disabled state                            |
+| All standard input props |                                       | `placeholder`, `min`, `max`, `step`, etc. |
 
 ## Integration Tips
 

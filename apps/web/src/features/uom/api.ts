@@ -1,13 +1,10 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
 import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@/lib/validation/index.ts'
 
 import {
 	UomConversionCreateDto,
@@ -36,7 +33,7 @@ export const uomListAll = defineQuery({
 	method: 'get',
 	url: endpoint.uom.list,
 	query: UomFilterDto,
-	result: createPaginatedResponseSchema(UomDto),
+	result: zRes.paginated(UomDto),
 	queryKey: (query) => [endpoint.uom.list, 'all', query ?? null],
 })
 
@@ -52,7 +49,7 @@ const conversionKeys = {
 const conversionList = defineQuery({
 	method: 'get',
 	url: conversionUrls.list,
-	result: createSuccessResponseSchema(z.array(UomConversionDto)),
+	result: zRes.ok(z.array(UomConversionDto)),
 	queryKey: () => [conversionUrls.list],
 })
 
@@ -60,7 +57,7 @@ const conversionCreate = defineMutation({
 	method: 'post',
 	url: conversionUrls.create,
 	body: UomConversionCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [conversionKeys.lists(), uomResource.keys.lists()],
 })
 
@@ -68,7 +65,7 @@ const conversionRemove = defineMutation({
 	method: 'delete',
 	url: conversionUrls.remove,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [conversionKeys.lists(), uomResource.keys.lists()],
 })
 

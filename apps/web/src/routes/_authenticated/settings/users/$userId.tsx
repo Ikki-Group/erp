@@ -51,7 +51,10 @@ function UserPage() {
 		<DetailBoundary query={detailQuery}>
 			{(response) =>
 				search.mode === 'edit' ? (
-					<EditUserForm user={response.data} onDone={() => navigate({ to: '/settings/access-control', search: { tab: 'users' } })} />
+					<EditUserForm
+						user={response.data}
+						onDone={() => navigate({ to: '/settings/access-control', search: { tab: 'users' } })}
+					/>
 				) : (
 					<UserDetailView
 						user={response.data}
@@ -89,8 +92,14 @@ function AssignmentGroups({ assignments }: AssignmentGroupsProps) {
 			acc[key].assignments.push(assignment)
 			return acc
 		},
-		{} as Record<number, { location: NonNullable<UserDetailDto['assignments'][0]['location']>; assignments: typeof assignments }>
-)
+		{} as Record<
+			number,
+			{
+				location: NonNullable<UserDetailDto['assignments'][0]['location']>
+				assignments: typeof assignments
+			}
+		>,
+	)
 
 	return (
 		<div className="space-y-4">
@@ -139,9 +148,7 @@ function AssignmentCard({ assignment }: AssignmentCardProps) {
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex-1">
 					<p className="font-medium">{assignment.role.name}</p>
-					<p className="font-mono text-xs text-muted-foreground">
-						{assignment.role.code}
-					</p>
+					<p className="font-mono text-xs text-muted-foreground">{assignment.role.code}</p>
 				</div>
 			</div>
 		</div>
@@ -199,30 +206,30 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 			}
 		>
 			<DetailSection title="Profile" description="Basic account information and sign-in status.">
-			<DetailList
-				items={[
-					{ label: 'Full name', value: user.name },
-					{
-						label: 'Username',
-						value: <code className="font-mono text-sm">{user.username}</code>,
-					},
-					{ label: 'Email', value: user.email },
-					{
-						label: 'Status',
-						value: (
-							<StatusBadge variant={user.isActive ? 'success' : 'default'}>
-								{user.isActive ? 'Active' : 'Inactive'}
-							</StatusBadge>
-						),
-					},
-				]}
-			/>
-			<AuditInfo
-				createdAt={user.createdAt}
-				createdBy={user.createdBy}
-				updatedAt={user.updatedAt}
-				updatedBy={user.updatedBy}
-			/>
+				<DetailList
+					items={[
+						{ label: 'Full name', value: user.name },
+						{
+							label: 'Username',
+							value: <code className="font-mono text-sm">{user.username}</code>,
+						},
+						{ label: 'Email', value: user.email },
+						{
+							label: 'Status',
+							value: (
+								<StatusBadge variant={user.isActive ? 'success' : 'default'}>
+									{user.isActive ? 'Active' : 'Inactive'}
+								</StatusBadge>
+							),
+						},
+					]}
+				/>
+				<AuditInfo
+					createdAt={user.createdAt}
+					createdBy={user.createdBy}
+					updatedAt={user.updatedAt}
+					updatedBy={user.updatedBy}
+				/>
 			</DetailSection>
 
 			<DetailSection

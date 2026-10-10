@@ -18,7 +18,7 @@ export type { QueryKeys } from './query-keys.ts'
 export { createResourceKeys } from './resource-keys.ts'
 export type { CreateResourceKeysOptions, ResourceKeys } from './resource-keys.ts'
 
-export { getActiveLocationId, setActiveLocationAccessor } from './active-location.ts'
+export { getActiveLocationId, setActiveLocationId, useActiveLocationId } from './active-location.ts'
 
 export { FRESHNESS_TIERS, resolveFreshness } from './freshness.ts'
 export type { FreshnessOptions, FreshnessTier } from './freshness.ts'

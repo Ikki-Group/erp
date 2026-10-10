@@ -1,11 +1,9 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
+
 import { endpoint } from '@/config/endpoint.ts'
 
 import { createResourceKeys, defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@/lib/validation/index.ts'
 
 import {
 	OrderApplyVoucherDto,
@@ -65,7 +63,7 @@ const shiftList = defineQuery({
 	method: 'get',
 	url: shiftUrls.list,
 	query: ShiftFilterDto,
-	result: createPaginatedResponseSchema(ShiftDto),
+	result: zRes.paginated(ShiftDto),
 	queryKey: (query) => shiftKeys.list(query),
 	tier: 'volatile',
 })
@@ -74,14 +72,14 @@ const shiftDetail = defineQuery({
 	method: 'get',
 	url: shiftUrls.detail,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(ShiftDetailDto),
+	result: zRes.ok(ShiftDetailDto),
 	queryKey: (query) => shiftKeys.detail(query),
 })
 
 const shiftActive = defineQuery({
 	method: 'get',
 	url: shiftUrls.active,
-	result: createSuccessResponseSchema(ShiftDto.nullable()),
+	result: zRes.ok(ShiftDto.nullable()),
 	queryKey: shiftActiveKey,
 	tier: 'volatile',
 })
@@ -93,7 +91,7 @@ const shiftOpen = defineMutation({
 	method: 'post',
 	url: shiftUrls.open,
 	body: ShiftOpenDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [() => shiftKeys.lists(), () => shiftActiveKey()],
 })
 
@@ -101,7 +99,7 @@ const shiftClose = defineMutation({
 	method: 'post',
 	url: shiftUrls.close,
 	body: ShiftCloseDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [() => shiftKeys.lists(), () => shiftActiveKey()],
 })
 
@@ -109,7 +107,7 @@ const shiftCloseOther = defineMutation({
 	method: 'post',
 	url: shiftUrls.closeOther,
 	body: ShiftCloseDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [() => shiftKeys.lists(), () => shiftActiveKey()],
 })
 
@@ -153,7 +151,7 @@ const orderList = defineQuery({
 	method: 'get',
 	url: orderUrls.list,
 	query: OrderFilterDto,
-	result: createPaginatedResponseSchema(OrderDto),
+	result: zRes.paginated(OrderDto),
 	queryKey: (query) => orderKeys.list(query),
 	tier: 'volatile',
 })
@@ -162,7 +160,7 @@ const orderDetail = defineQuery({
 	method: 'get',
 	url: orderUrls.detail,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(OrderDetailDto),
+	result: zRes.ok(OrderDetailDto),
 	queryKey: (query) => orderKeys.detail(query),
 	tier: 'volatile',
 })
@@ -173,7 +171,7 @@ const orderCreate = defineMutation({
 	method: 'post',
 	url: orderUrls.create,
 	body: OrderCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [() => orderKeys.lists()],
 })
 
@@ -181,7 +179,7 @@ const orderComplete = defineMutation({
 	method: 'post',
 	url: orderUrls.complete,
 	body: OrderCompleteDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [() => orderKeys.lists(), () => orderKeys.details()],
 })
 
@@ -189,7 +187,7 @@ const orderVoid = defineMutation({
 	method: 'post',
 	url: orderUrls.void,
 	body: OrderVoidDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [() => orderKeys.lists(), () => orderKeys.details()],
 })
 
@@ -197,7 +195,7 @@ const orderLinesSync = defineMutation({
 	method: 'post',
 	url: orderUrls.linesSync,
 	body: OrderLineSyncDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [() => orderKeys.details()],
 })
 
@@ -205,7 +203,7 @@ const orderVoucherApply = defineMutation({
 	method: 'post',
 	url: orderUrls.voucherApply,
 	body: OrderApplyVoucherDto,
-	result: createSuccessResponseSchema(OrderVoucherApplyResultDto),
+	result: zRes.ok(OrderVoucherApplyResultDto),
 	invalidates: [() => orderKeys.details()],
 })
 
@@ -213,7 +211,7 @@ const orderVoucherRemove = defineMutation({
 	method: 'post',
 	url: orderUrls.voucherRemove,
 	body: OrderRemoveVoucherDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [() => orderKeys.details()],
 })
 
@@ -221,7 +219,7 @@ const orderPayment = defineMutation({
 	method: 'post',
 	url: orderUrls.payment,
 	body: OrderPaymentInputDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [() => orderKeys.details()],
 })
 

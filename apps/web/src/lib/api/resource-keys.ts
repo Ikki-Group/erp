@@ -32,6 +32,11 @@ export interface CreateResourceKeysOptions {
 }
 
 export interface ResourceKeys {
+	/**
+	 * `[feature, resource]` with no location segment — prefixes every key of the
+	 * resource in every location. The invalidation target after a mutation.
+	 */
+	root: () => QueryKey
 	/** `[feature, resource]` (+ `{ loc }` when scoped) — the broadest prefix. */
 	all: () => QueryKey
 	/** List prefix — a prefix of every `list(params)`, for invalidating all lists. */
@@ -59,6 +64,7 @@ export function createResourceKeys(
 	}
 
 	return {
+		root: () => [feature, resource] as QueryKey,
 		all: () => base() as QueryKey,
 		lists: () => [...base(), 'list'] as QueryKey,
 		list: (params?: unknown) => [...base(), 'list', params ?? null] as QueryKey,

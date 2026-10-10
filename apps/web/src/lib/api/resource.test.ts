@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 
-import { setActiveLocationAccessor } from './active-location.ts'
+import { setActiveLocationId } from './active-location.ts'
 import { defineResource } from './resource.ts'
 
 const entity = z.object({ id: z.number(), name: z.string() })
@@ -18,7 +18,7 @@ const urls = {
 }
 
 afterEach(() => {
-	setActiveLocationAccessor(() => null)
+	setActiveLocationId(null)
 })
 
 describe('defineResource — CRUD-only surface', () => {
@@ -89,7 +89,7 @@ describe('defineResource — locationScoped', () => {
 	})
 
 	it('folds the active locationId into list/detail keys', () => {
-		setActiveLocationAccessor(() => 4)
+		setActiveLocationId(4)
 		expect(resource.list.queryKey({ page: 1 })).toEqual([
 			'inventory',
 			'stock',
@@ -100,9 +100,9 @@ describe('defineResource — locationScoped', () => {
 	})
 
 	it('partitions per location so switch-back is a distinct cache entry', () => {
-		setActiveLocationAccessor(() => 1)
+		setActiveLocationId(1)
 		const a = resource.list.queryKey({ page: 1 })
-		setActiveLocationAccessor(() => 2)
+		setActiveLocationId(2)
 		const b = resource.list.queryKey({ page: 1 })
 		expect(a).not.toEqual(b)
 	})

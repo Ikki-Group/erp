@@ -34,7 +34,10 @@ function RoleDetailPage() {
 						onDone={() => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })}
 					/>
 				) : (
-					<EditRoleForm role={response.data} onDone={() => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })} />
+					<EditRoleForm
+						role={response.data}
+						onDone={() => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })}
+					/>
 				)
 			}
 		</DetailBoundary>

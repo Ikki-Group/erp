@@ -2,17 +2,17 @@ import { useMemo } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { z } from 'zod'
 
 import { ShieldCheckIcon, UserIcon } from 'lucide-react'
+import { z } from 'zod'
 
 import { PageHeader, StatCard } from '@/components/shared'
 import { PageTabs } from '@/components/shared/page-tabs'
 import type { PageTab } from '@/components/shared/page-tabs'
 
 import { roleResource, userResource } from '@/features/iam/api.ts'
-import { UsersList } from '@/features/iam/components/users-list.tsx'
 import { RolesList } from '@/features/iam/components/roles-list.tsx'
+import { UsersList } from '@/features/iam/components/users-list.tsx'
 
 // Combine all search params for both tabs
 const searchSchema = z.object({
@@ -99,27 +99,32 @@ function AccessControlPage() {
 
 	return (
 		<div className="space-y-6">
-			<PageHeader
-				title="Access Control"
-				description="Manage users and roles for access control."
-			/>
+			<PageHeader title="Access Control" description="Manage users and roles for access control." />
 
 			{stats}
 
 			<PageTabs tabs={tabs} activeTab={tab} onTabChange={handleTabChange} />
 
-			{tab === 'users' && <UsersList searchParams={{
-				page: search.page,
-				pageSize: search.pageSize,
-				q: search.q,
-				isActive: search.isActive,
-			}} />}
-			{tab === 'roles' && <RolesList searchParams={{
-				page: search.page,
-				pageSize: search.pageSize,
-				q: search.q,
-				isSystem: search.isSystem,
-			}} />}
+			{tab === 'users' && (
+				<UsersList
+					searchParams={{
+						page: search.page,
+						pageSize: search.pageSize,
+						q: search.q,
+						isActive: search.isActive,
+					}}
+				/>
+			)}
+			{tab === 'roles' && (
+				<RolesList
+					searchParams={{
+						page: search.page,
+						pageSize: search.pageSize,
+						q: search.q,
+						isSystem: search.isSystem,
+					}}
+				/>
+			)}
 		</div>
 	)
 }

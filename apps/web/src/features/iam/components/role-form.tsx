@@ -203,15 +203,15 @@ function PermissionsPicker({
 											key={permission}
 											className="flex items-center gap-2 rounded px-1.5 py-1 text-xs hover:bg-muted/50"
 										>
-										<Checkbox
-											checked={value.includes(permission)}
-											disabled={readOnly}
-											onCheckedChange={() => togglePermission(permission)}
-											className="size-3.5"
-										/>
-										<span className="truncate" title={permission}>
-											{permissionLabel(permission)}
-										</span>
+											<Checkbox
+												checked={value.includes(permission)}
+												disabled={readOnly}
+												onCheckedChange={() => togglePermission(permission)}
+												className="size-3.5"
+											/>
+											<span className="truncate" title={permission}>
+												{permissionLabel(permission)}
+											</span>
 										</label>
 									))}
 								</div>

@@ -1,9 +1,9 @@
+import { zRes } from '@ikki/contract/http'
 import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineMutation, defineQuery } from '@/lib/api/index.ts'
-import { createSuccessResponseSchema } from '@/lib/validation/index.ts'
 
 import { LoginDto, LoginResponseDto, MeResponseDto } from './dto/index.ts'
 
@@ -12,7 +12,7 @@ import { LoginDto, LoginResponseDto, MeResponseDto } from './dto/index.ts'
 export const authMeQuery = defineQuery({
 	method: 'get',
 	url: endpoint.auth.me,
-	result: createSuccessResponseSchema(MeResponseDto),
+	result: zRes.ok(MeResponseDto),
 	queryKey: () => [endpoint.auth.me],
 	// `session` tier (not `standard`): a session can now be revoked out-of-band
 	// (another device's /auth/sessions/revoke, or a future admin force-logout —
@@ -29,7 +29,7 @@ export const authLoginMutation = defineMutation({
 	method: 'post',
 	url: endpoint.auth.login,
 	body: LoginDto,
-	result: createSuccessResponseSchema(LoginResponseDto),
+	result: zRes.ok(LoginResponseDto),
 	invalidates: [[endpoint.auth.me]],
 })
 
@@ -38,6 +38,6 @@ export const authLoginMutation = defineMutation({
 export const authLogoutMutation = defineMutation({
 	method: 'post',
 	url: endpoint.auth.logout,
-	result: createSuccessResponseSchema(z.undefined()),
+	result: zRes.ok(z.undefined()),
 	invalidates: [[endpoint.auth.me]],
 })

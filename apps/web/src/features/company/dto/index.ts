@@ -1,6 +1,5 @@
+import { zc, zp } from '@ikki/contract/schema'
 import { z } from 'zod'
-
-import { zc, zp } from '@/lib/validation/index.ts'
 
 // ─── Response ───
 

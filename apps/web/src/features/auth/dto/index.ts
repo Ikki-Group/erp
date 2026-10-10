@@ -1,6 +1,5 @@
+import { zp } from '@ikki/contract/schema'
 import { z } from 'zod'
-
-import { zp } from '@/lib/validation/index.ts'
 
 import { UserDetailDto } from '@/features/iam/dto/index.ts'
 

@@ -214,9 +214,7 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 												<ShieldCheckIcon className="size-4" />
 											</div>
 											<div>
-											<h3 className="font-medium tracking-tight">
-												Access and roles
-											</h3>
+												<h3 className="font-medium tracking-tight">Access and roles</h3>
 												<p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
 													Choose how this user receives access, then add the roles they need.
 												</p>
@@ -280,7 +278,7 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 											</div>
 
 											{assignments.length === 0 ? (
-											<div className="mt-3 rounded-lg border border-dashed bg-muted/30 px-4 py-7 text-center">
+												<div className="mt-3 rounded-lg border border-dashed bg-muted/30 px-4 py-7 text-center">
 													<p className="text-sm font-medium">No access assigned</p>
 													<p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
 														Add a {isGlobal ? 'role' : 'location'} to let this user access protected
@@ -347,7 +345,7 @@ export function UserFormFields({ form, mode, roleOptions, locationOptions }: Use
 											)}
 										</div>
 
-									<aside className="h-fit rounded-lg bg-muted/40 p-4 lg:mt-6">
+										<aside className="h-fit rounded-lg bg-muted/40 p-4 lg:mt-6">
 											<p className="text-xs font-medium text-muted-foreground">Access summary</p>
 											<div className="mt-3 flex items-center gap-2">
 												{isGlobal ? (

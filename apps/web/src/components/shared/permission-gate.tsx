@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { useAuth } from '@/providers/auth-provider.tsx'
-import { useLocationContext } from '@/providers/location-provider.tsx'
+import { usePermissions } from '@/providers/auth-provider.tsx'
 
 export interface PermissionGateProps {
 	/** Render children if the user has this single permission. */
@@ -61,20 +60,10 @@ export function usePermissionCheck({
 	anyOf,
 	allOf,
 }: UsePermissionCheckOptions): boolean {
-	const { permissions, globalPermissions, access, isOwner } = useAuth()
-	const { activeLocation } = useLocationContext()
+	const { isOwner, permissions: granted } = usePermissions()
 	if (isOwner) return true
-
-	const locationPermissions = activeLocation ? (access[String(activeLocation.id)] ?? []) : []
-	const effectivePermissions = [
-		...new Set([...globalPermissions, ...locationPermissions, ...permissions]),
-	]
-
-	if (permission && !effectivePermissions.includes(permission)) return false
-	if (anyOf && anyOf.length > 0 && !anyOf.some((p) => effectivePermissions.includes(p)))
-		return false
-	if (allOf && allOf.length > 0 && !allOf.every((p) => effectivePermissions.includes(p)))
-		return false
-
+	if (permission && !granted.has(permission)) return false
+	if (anyOf?.length && !anyOf.some((p) => granted.has(p))) return false
+	if (allOf?.length && !allOf.every((p) => granted.has(p))) return false
 	return true
 }

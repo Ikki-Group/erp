@@ -1,6 +1,5 @@
+import { zc, zp, zq } from '@ikki/contract/schema'
 import { z } from 'zod'
-
-import { zc, zp, zq } from '@/lib/validation/index.ts'
 
 // ─── Enums ───
 
@@ -212,8 +211,8 @@ export const OpnameDto = z.object({
 	opnameNo: zp.str,
 	locationId: zp.id,
 	status: OpnameStatusEnum,
-	startedAt: zp.dateNullable,
-	completedAt: zp.dateNullable,
+	startedAt: zp.date.nullable(),
+	completedAt: zp.date.nullable(),
 	conductedBy: zp.num.nullable(),
 	...zc.AuditBasic.shape,
 })

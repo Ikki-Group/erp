@@ -1,11 +1,9 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
+
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@/lib/validation/index.ts'
 
 import {
 	MenuCategoryCreateDto,
@@ -43,7 +41,7 @@ const itemDetailQuery = defineQuery({
 	method: 'get',
 	url: endpoint.menu.item.detail,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(MenuItemDetailDto),
+	result: zRes.ok(MenuItemDetailDto),
 	queryKey: (query) => [endpoint.menu.item.detail, query ?? null],
 })
 
@@ -53,7 +51,7 @@ const modifierSyncMutation = defineMutation({
 	method: 'post',
 	url: endpoint.menu.item.modifiersSync,
 	body: MenuItemModifierSyncDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [menuItemResource.keys.lists(), menuItemResource.keys.details()],
 })
 
@@ -75,7 +73,7 @@ const categoryList = defineQuery({
 	method: 'get',
 	url: categoryUrls.list,
 	query: MenuCategoryFilterDto,
-	result: createPaginatedResponseSchema(MenuCategoryDto),
+	result: zRes.paginated(MenuCategoryDto),
 	queryKey: (query) => categoryKeys.list(query),
 })
 
@@ -83,7 +81,7 @@ const categoryCreate = defineMutation({
 	method: 'post',
 	url: categoryUrls.create,
 	body: MenuCategoryCreateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [categoryKeys.lists(), menuItemResource.keys.lists()],
 })
 
@@ -91,7 +89,7 @@ const categoryUpdate = defineMutation({
 	method: 'put',
 	url: categoryUrls.update,
 	body: MenuCategoryUpdateDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [categoryKeys.lists(), menuItemResource.keys.lists()],
 })
 
@@ -99,7 +97,7 @@ const categoryRemove = defineMutation({
 	method: 'delete',
 	url: categoryUrls.remove,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [categoryKeys.lists(), menuItemResource.keys.lists()],
 })
 
@@ -129,7 +127,7 @@ const modifierDetailQuery = defineQuery({
 	method: 'get',
 	url: endpoint.menu.modifier.detail,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(ModifierGroupWithOptionsDto),
+	result: zRes.ok(ModifierGroupWithOptionsDto),
 	queryKey: (query) => [endpoint.menu.modifier.detail, query ?? null],
 })
 

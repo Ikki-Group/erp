@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
-import { z } from 'zod'
 
 import {
 	ArrowLeftIcon,
@@ -12,13 +11,10 @@ import {
 	UserIcon,
 	WarehouseIcon,
 } from 'lucide-react'
+import { z } from 'zod'
 
 import { DataTable, listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Spinner } from '@/components/ui/spinner'
 import {
 	AuditInfo,
 	DetailIcon,
@@ -29,8 +25,13 @@ import {
 } from '@/components/shared'
 import { confirm } from '@/components/shared/confirm'
 
-import { locationResource } from '@/features/location/api'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Spinner } from '@/components/ui/spinner'
+
 import { userResource } from '@/features/iam/api'
+import { locationResource } from '@/features/location/api'
 
 const searchSchema = listSearchSchema.extend({
 	tab: z.enum(['users', 'details']).optional().default('users'),
@@ -157,22 +158,33 @@ function LocationDetailPage() {
 			}
 			actions={
 				<div className="flex gap-2">
-					<Button variant="outline" size="sm" onClick={() => navigate({ to: '/settings/locations' })}>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => navigate({ to: '/settings/locations' })}
+					>
 						<ArrowLeftIcon className="size-4" />
 						Back
 					</Button>
 					<Button variant="outline" size="sm" onClick={handleDelete}>
-							<TrashIcon className="size-4" />
+						<TrashIcon className="size-4" />
 						Delete
 					</Button>
-					<Button size="sm" onClick={() => navigate({ to: '/settings/locations/$locationId/edit', params: { locationId: String(locationId) } })}>
+					<Button
+						size="sm"
+						onClick={() =>
+							navigate({
+								to: '/settings/locations/$locationId/edit',
+								params: { locationId: String(locationId) },
+							})
+						}
+					>
 						<PencilIcon className="size-4" />
 						Edit
 					</Button>
 				</div>
 			}
 		>
-
 			{/* Location Info Card */}
 			<DetailSection title="Location Details">
 				<Card>
@@ -193,10 +205,7 @@ function LocationDetailPage() {
 							]}
 							columns={2}
 						/>
-						<AuditInfo
-							createdAt={location.createdAt}
-							createdBy={location.createdBy}
-						/>
+						<AuditInfo createdAt={location.createdAt} createdBy={location.createdBy} />
 					</CardContent>
 				</Card>
 			</DetailSection>

@@ -1,7 +1,7 @@
 /**
  * Response builders matching the server's real envelope shapes
  * (`createSuccessResponseSchema` / `createPaginatedResponseSchema` /
- * `ApiErrorPayload` in `@/lib/validation` and `@/lib/api/errors.ts`), so the
+ * `ApiErrorPayload` in `@/lib/api/errors.ts`), so the
  * existing Zod-validated API layer accepts mock responses without change.
  */
 

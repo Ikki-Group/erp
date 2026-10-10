@@ -1,9 +1,10 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
 import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineQuery, defineResource } from '@/lib/api/index.ts'
-import { createSuccessResponseSchema, zc } from '@/lib/validation/index.ts'
 
 import {
 	HppResponseDto,
@@ -32,7 +33,7 @@ const detailQuery = defineQuery({
 	method: 'get',
 	url: endpoint.recipe.detail,
 	query: zc.RecordId,
-	result: createSuccessResponseSchema(RecipeDetailDto),
+	result: zRes.ok(RecipeDetailDto),
 	queryKey: (query) => [endpoint.recipe.detail, query ?? null],
 })
 
@@ -42,7 +43,7 @@ const byMenuItemQuery = defineQuery({
 	method: 'get',
 	url: endpoint.recipe.byMenuItem,
 	query: z.object({ menuItemId: z.coerce.number().int().positive() }),
-	result: createSuccessResponseSchema(RecipeDetailDto),
+	result: zRes.ok(RecipeDetailDto),
 	queryKey: (query) => [endpoint.recipe.byMenuItem, query?.menuItemId ?? null],
 })
 
@@ -56,7 +57,7 @@ const hppQuery = defineQuery({
 		locationId: z.coerce.number().int().positive(),
 	}),
 	queryKey: (query) => [endpoint.recipe.hpp, query ?? null],
-	result: createSuccessResponseSchema(HppResponseDto),
+	result: zRes.ok(HppResponseDto),
 })
 
 export const recipeExtras = {

@@ -1,6 +1,5 @@
+import { zc, zp, zq } from '@ikki/contract/schema'
 import { z } from 'zod'
-
-import { zc, zp, zq } from '@/lib/validation/index.ts'
 
 // ─── Enums ───
 

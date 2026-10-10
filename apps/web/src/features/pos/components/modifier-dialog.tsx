@@ -127,9 +127,7 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 										<span className="text-xs text-destructive">Wajib</span>
 									)}
 									{group.selectionType === 'multiple' && group.maxSelect && (
-										<span className="text-xs text-muted-foreground">
-											(maks. {group.maxSelect})
-										</span>
+										<span className="text-xs text-muted-foreground">(maks. {group.maxSelect})</span>
 									)}
 								</div>
 
@@ -167,8 +165,8 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 													)}
 												</label>
 											))}
-										</RadioGroup>
-									) : (
+									</RadioGroup>
+								) : (
 									<div className="space-y-1">
 										{group.options
 											.filter((o) => o.isActive === 1)

@@ -85,13 +85,14 @@ export function StatCard({
 								onClick()
 							}
 						}
-						: undefined
-				}
+					: undefined
+			}
 			className={cn(
 				'rounded-xl border border-border bg-card text-card-foreground',
 				'p-6 transition-colors',
 				'hover:border-border/80',
-				onClick && 'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/40 hover:bg-muted/30',
+				onClick &&
+					'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/40 hover:bg-muted/30',
 				className,
 			)}
 		>

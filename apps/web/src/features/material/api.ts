@@ -1,9 +1,10 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
 import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
-import { createSuccessResponseSchema, zc } from '@/lib/validation/index.ts'
 
 import {
 	MaterialAssignDto,
@@ -55,7 +56,7 @@ const assignmentByLocation = defineQuery({
 	method: 'get',
 	url: assignmentUrls.byLocation,
 	query: z.object({ locationId: z.coerce.number().int().positive() }),
-	result: createSuccessResponseSchema(z.array(MaterialLocationDto)),
+	result: zRes.ok(z.array(MaterialLocationDto)),
 	queryKey: (args) => [assignmentUrls.byLocation, args?.locationId ?? null],
 })
 
@@ -63,7 +64,7 @@ const assignmentByMaterial = defineQuery({
 	method: 'get',
 	url: assignmentUrls.byMaterial,
 	query: z.object({ materialId: z.coerce.number().int().positive() }),
-	result: createSuccessResponseSchema(z.array(MaterialLocationDto)),
+	result: zRes.ok(z.array(MaterialLocationDto)),
 	queryKey: (args) => [assignmentUrls.byMaterial, args?.materialId ?? null],
 })
 
@@ -71,7 +72,7 @@ const assignmentAssign = defineMutation({
 	method: 'post',
 	url: assignmentUrls.assign,
 	body: MaterialAssignDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [
 		assignmentKeys.byLocation(),
 		assignmentKeys.byMaterial(),
@@ -83,7 +84,7 @@ const assignmentUnassign = defineMutation({
 	method: 'post',
 	url: assignmentUrls.unassign,
 	body: MaterialAssignDto,
-	result: createSuccessResponseSchema(zc.RecordId),
+	result: zRes.ok(zc.RecordId),
 	invalidates: [
 		assignmentKeys.byLocation(),
 		assignmentKeys.byMaterial(),

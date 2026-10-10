@@ -360,10 +360,7 @@ function FilterInput<T = unknown>({
 				}
 				onBlur={handleBlur}
 				onKeyDown={handleKeyDown}
-				className={cn(
-					context.size == 'sm' && 'h-7! text-xs',
-					context.size == 'lg' && 'h-8!',
-				)}
+				className={cn(context.size == 'sm' && 'h-7! text-xs', context.size == 'lg' && 'h-8!')}
 				{...props}
 			/>
 			{!isValid && validationMessage && (

@@ -54,8 +54,9 @@ export class ApiError<TData = unknown> extends Error {
 		return this.status === undefined
 	}
 
+	/** The session is missing/expired/revoked. A 403 is a permission problem, not a logout. */
 	get isAuthError(): boolean {
-		return this.status === 401 || this.status === 403
+		return this.status === 401
 	}
 
 	get isNotFound(): boolean {

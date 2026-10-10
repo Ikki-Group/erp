@@ -1,10 +1,6 @@
+import { zRes } from '@ikki/contract/http'
+import { zc } from '@ikki/contract/schema'
 import { z } from 'zod'
-
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@/lib/validation/index.ts'
 
 import type { ApiClient } from './client.ts'
 import { defineMutation, defineQuery } from './endpoint.ts'
@@ -12,16 +8,6 @@ import type { FreshnessTier } from './freshness.ts'
 import { createResourceKeys } from './resource-keys.ts'
 import type { HttpMethod } from './types.ts'
 import type { ZodType } from 'zod'
-
-type IdLike = string | number | boolean | null | undefined
-
-/** Reads `.id` off an object arg, or `null` when the arg isn't an object with an `id`. */
-function extractId(value: unknown): IdLike {
-	if (value && typeof value === 'object' && 'id' in value) {
-		return (value as { id: IdLike }).id
-	}
-	return null
-}
 
 export interface ResourceUrls {
 	list: string
@@ -99,7 +85,7 @@ export function defineResource<
 		method: 'get',
 		url: urls.list,
 		query: filter,
-		result: createPaginatedResponseSchema(entitySchema),
+		result: zRes.paginated(entitySchema),
 		queryKey: (query) => keys.list(query),
 		tier,
 		client,
@@ -109,7 +95,7 @@ export function defineResource<
 		method: 'get',
 		url: urls.detail,
 		query: id,
-		result: createSuccessResponseSchema(entitySchema),
+		result: zRes.ok(entitySchema),
 		queryKey: (query) => keys.detail(query),
 		tier,
 		client,
@@ -119,8 +105,8 @@ export function defineResource<
 		method: 'post',
 		url: urls.create,
 		body: create,
-		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [keys.lists()],
+		result: zRes.ok(zc.RecordId),
+		invalidates: [keys.root()],
 		client,
 	})
 
@@ -128,8 +114,8 @@ export function defineResource<
 		method: 'put',
 		url: urls.update,
 		body: update,
-		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [keys.lists(), (args) => keys.detail({ id: extractId(args) })],
+		result: zRes.ok(zc.RecordId),
+		invalidates: [keys.root()],
 		client,
 	})
 
@@ -137,8 +123,8 @@ export function defineResource<
 		method: removeMethod,
 		url: urls.remove,
 		query: id,
-		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [keys.lists()],
+		result: zRes.ok(zc.RecordId),
+		invalidates: [keys.root()],
 		client,
 	})
 
