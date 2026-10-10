@@ -1,0 +1,1 @@
+ALTER TABLE "stock_opname_lines" ADD COLUMN "counted_at" timestamp with time zone;

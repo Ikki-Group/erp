@@ -5,7 +5,13 @@ import { db, eq, uow } from '@/infra/database/index.ts'
 
 import { describe, expect, test } from 'bun:test'
 
-const actor = { id: 1, name: 'Audit test actor', locationId: null }
+const actor = {
+	id: 1,
+	name: 'Audit test actor',
+	locationId: null,
+	assertCan: () => {},
+	allowedLocations: () => null,
+}
 const entry = { module: 'test', entity: 'audit-check', entityId: 1, action: 'create' }
 
 describe('audit log', () => {

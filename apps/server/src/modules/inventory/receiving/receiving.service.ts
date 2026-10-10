@@ -50,14 +50,18 @@ const AUDIT = { module: 'inventory', entity: 'receiving' } as const
 export class ReceivingService {
 	constructor(private readonly deps: Deps) {}
 
-	handleList(filter: ReceivingFilterDto): Promise<WithPaginationResult<ReceivingDto>> {
-		return this.deps.repo.findPage(filter)
+	handleList(
+		filter: ReceivingFilterDto,
+		actor: Actor,
+	): Promise<WithPaginationResult<ReceivingDto>> {
+		return this.deps.repo.findPage({ ...filter, locationIds: actor.allowedLocations() })
 	}
 
-	async handleDetail(id: number): Promise<ReceivingDetailDto> {
+	async handleDetail(id: number, actor: Actor): Promise<ReceivingDetailDto> {
 		const detail = assertFound(await this.deps.repo.findDetailById(id), () =>
 			ReceivingError.notFound(id),
 		)
+		actor.assertCan(detail.locationId)
 		return { ...detail, totalValue: receivingTotal(detail.lines) }
 	}
 
@@ -120,6 +124,7 @@ export class ReceivingService {
 			const receiving = assertFound(await repo.findById(data.receivingId, tx), () =>
 				ReceivingError.notFound(data.receivingId),
 			)
+			actor.assertCan(receiving.locationId)
 			if (receiving.status !== 'draft') throw ReceivingError.notDraft(data.receivingId)
 			if (data.supplierId) await supplier.handleGetById(data.supplierId)
 			if (data.lines) await this.#validateLines(data.lines, receiving.locationId, tx)
@@ -167,6 +172,7 @@ export class ReceivingService {
 				const receiving = assertFound(await repo.findById(data.receivingId, tx), () =>
 					ReceivingError.notFound(data.receivingId),
 				)
+				actor.assertCan(receiving.locationId)
 				if (receiving.status === 'confirmed') {
 					throw ReceivingError.alreadyConfirmed(data.receivingId)
 				}

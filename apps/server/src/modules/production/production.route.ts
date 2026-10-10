@@ -95,8 +95,8 @@ export function createProductionRoute(service: ProductionService) {
 
 			.get(
 				'/order/list',
-				async ({ query }) => {
-					const result = await service.handleOrderList(query)
+				async ({ query, auth }) => {
+					const result = await service.handleOrderList(query, actorOf(auth))
 					return res.paginated(result)
 				},
 				{
@@ -107,8 +107,8 @@ export function createProductionRoute(service: ProductionService) {
 			)
 			.get(
 				'/order/detail',
-				async ({ query }) => {
-					const result = await service.handleOrderDetail(query.id)
+				async ({ query, auth }) => {
+					const result = await service.handleOrderDetail(query.id, actorOf(auth))
 					return res.ok(result)
 				},
 				{

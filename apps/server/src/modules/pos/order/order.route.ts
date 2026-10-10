@@ -40,8 +40,8 @@ export function createOrderRoute(service: OrderService) {
 			)
 			.get(
 				'/detail',
-				async ({ query }) => {
-					const result = await service.handleDetail(query.id)
+				async ({ query, auth }) => {
+					const result = await service.handleDetail(query.id, actorOf(auth))
 					return res.ok(result)
 				},
 				{ query: zq.recordId, permission: 'order.read', response: zRes.ok(OrderDetailDto) },

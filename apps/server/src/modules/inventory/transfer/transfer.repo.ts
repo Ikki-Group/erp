@@ -5,13 +5,15 @@ import {
 	eq,
 	eqIf,
 	gte,
+	inIf,
 	lte,
+	or,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { Db, DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -83,7 +85,7 @@ export class TransferRepo {
 	}
 
 	async findPage(
-		filter: TransferFilterDto,
+		filter: TransferFilterDto & LocationScope,
 		db: Db = this.db,
 	): Promise<WithPaginationResult<TransferDto>> {
 		const where = this.#buildWhere(filter)
@@ -173,11 +175,17 @@ export class TransferRepo {
 
 	// ─── Private ───
 
-	#buildWhere(filter: TransferFilterDto) {
+	#buildWhere(filter: TransferFilterDto & LocationScope) {
 		return allOf(
 			eqIf(transferRequests.status, filter.status),
 			filter.locationId
 				? sql`(${transferRequests.fromLocationId} = ${filter.locationId} OR ${transferRequests.toLocationId} = ${filter.locationId})`
+				: undefined,
+			filter.locationIds
+				? or(
+						inIf(transferRequests.fromLocationId, filter.locationIds),
+						inIf(transferRequests.toLocationId, filter.locationIds),
+					)
 				: undefined,
 			filter.dateFrom ? gte(transferRequests.createdAt, filter.dateFrom) : undefined,
 			filter.dateTo ? lte(transferRequests.createdAt, filter.dateTo) : undefined,

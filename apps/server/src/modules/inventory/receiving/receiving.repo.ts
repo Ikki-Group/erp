@@ -5,13 +5,14 @@ import {
 	eq,
 	eqIf,
 	gte,
+	inIf,
 	lte,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { Db, DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -84,7 +85,7 @@ export class ReceivingRepo {
 	}
 
 	async findPage(
-		filter: ReceivingFilterDto,
+		filter: ReceivingFilterDto & LocationScope,
 		db: Db = this.db,
 	): Promise<WithPaginationResult<ReceivingDto>> {
 		const where = this.#buildWhere(filter)
@@ -176,9 +177,10 @@ export class ReceivingRepo {
 
 	// ─── Private ───
 
-	#buildWhere(filter: ReceivingFilterDto) {
+	#buildWhere(filter: ReceivingFilterDto & LocationScope) {
 		return allOf(
 			eqIf(receivings.locationId, filter.locationId),
+			inIf(receivings.locationId, filter.locationIds),
 			eqIf(receivings.supplierId, filter.supplierId),
 			eqIf(receivings.status, filter.status),
 			filter.dateFrom ? gte(receivings.createdAt, filter.dateFrom) : undefined,

@@ -115,8 +115,8 @@ export function createMenuRoute({
 			)
 			.get(
 				'/item/detail',
-				async ({ query }) => {
-					const result = await composedService.handleDetail(query.id)
+				async ({ query, auth }) => {
+					const result = await composedService.handleItemDetail(query.id, actorOf(auth))
 					return res.ok(result)
 				},
 				{ query: zq.recordId, response: zRes.ok(MenuItemDetailDto), permission: 'item.read' },
@@ -181,8 +181,8 @@ export function createMenuRoute({
 			)
 			.get(
 				'/modifier/detail',
-				async ({ query }) => {
-					const result = await modifierService.handleDetail(query.id)
+				async ({ query, auth }) => {
+					const result = await modifierService.handleDetail(query.id, actorOf(auth))
 					return res.ok(result)
 				},
 				{

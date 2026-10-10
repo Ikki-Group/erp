@@ -8,12 +8,13 @@ import {
 	allOf,
 	eq,
 	eqIf,
+	inIf,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { Db, DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -222,7 +223,7 @@ export class ProductionRepo {
 	}
 
 	async findOrderPage(
-		filter: ProductionOrderFilterDto,
+		filter: ProductionOrderFilterDto & LocationScope,
 		db: Db = this.db,
 	): Promise<WithPaginationResult<ProductionOrderDto>> {
 		const where = this.#buildOrderWhere(filter)
@@ -290,9 +291,10 @@ export class ProductionRepo {
 		)
 	}
 
-	#buildOrderWhere(filter: ProductionOrderFilterDto) {
+	#buildOrderWhere(filter: ProductionOrderFilterDto & LocationScope) {
 		return allOf(
 			eqIf(productionOrders.locationId, filter.locationId),
+			inIf(productionOrders.locationId, filter.locationIds),
 			eqIf(productionOrders.status, filter.status),
 			eqIf(productionOrders.materialId, filter.materialId),
 		)

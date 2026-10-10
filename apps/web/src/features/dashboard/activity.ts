@@ -40,10 +40,6 @@ const ENTITIES: Record<string, string> = {
 /** Production reuses the generic `order` entity name. */
 const MODULE_ENTITIES: Record<string, string> = { 'production.order': 'order produksi' }
 
-/** POS activity is out of the dashboard's scope (and noisy: one row per payment). */
-export const isOperationalActivity = (entry: Pick<AuditLogDto, 'module'>) =>
-	!entry.module.startsWith('pos')
-
 export interface ActivityLine {
 	actor: string
 	verb: string

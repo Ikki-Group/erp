@@ -166,14 +166,17 @@ export class ProductionService {
 
 	handleOrderList(
 		filter: ProductionOrderFilterDto,
+		actor: Actor,
 	): Promise<WithPaginationResult<ProductionOrderDto>> {
-		return this.deps.repo.findOrderPage(filter)
+		return this.deps.repo.findOrderPage({ ...filter, locationIds: actor.allowedLocations() })
 	}
 
-	async handleOrderDetail(id: number): Promise<ProductionOrderDetailDto> {
-		return assertFound(await this.deps.repo.findOrderDetailById(id), () =>
+	async handleOrderDetail(id: number, actor: Actor): Promise<ProductionOrderDetailDto> {
+		const detail = assertFound(await this.deps.repo.findOrderDetailById(id), () =>
 			ProductionError.orderNotFound(id),
 		)
+		actor.assertCan(detail.locationId)
+		return detail
 	}
 
 	async handleOrderCreate(data: ProductionOrderCreateDto, actor: Actor): Promise<EntityRef> {
@@ -238,6 +241,7 @@ export class ProductionService {
 				const order = assertFound(await repo.findOrderById(data.orderId, tx), () =>
 					ProductionError.orderNotFound(data.orderId),
 				)
+				actor.assertCan(order.locationId)
 				if (order.status === 'completed') throw ProductionError.alreadyConfirmed(data.orderId)
 				if (order.status !== 'draft') throw ProductionError.notDraft(data.orderId)
 				const recipe = assertFound(await repo.findRecipeDetailById(order.recipeId, tx), () =>

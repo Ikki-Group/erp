@@ -186,6 +186,8 @@ export const stockOpnameLines = pgTable(
 		systemQty: numeric('system_qty', { precision: 18, scale: 6 }).notNull(),
 		actualQty: numeric('actual_qty', { precision: 18, scale: 6 }).notNull(),
 		reason: varchar('reason', { length: 500 }),
+		/** Set when a count is saved for the line; null = untouched (actualQty is still systemQty). */
+		countedAt: timestamp('counted_at', { withTimezone: true }),
 	},
 	(t) => [
 		index('stock_opname_lines_opname_id_idx').on(t.opnameId),

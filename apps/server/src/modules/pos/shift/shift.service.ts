@@ -64,15 +64,20 @@ export class ShiftService {
 		})
 	}
 
-	/** `canCloseOther` = caller holds `shift.close-other` (ADR-0004). */
-	handleClose(data: ShiftCloseDto, actor: Actor, canCloseOther: boolean): Promise<EntityRef> {
+	/** `canCloseOther(locationId)` = caller holds `shift.close-other` there (ADR-0004). */
+	handleClose(
+		data: ShiftCloseDto,
+		actor: Actor,
+		canCloseOther: (locationId: number) => boolean,
+	): Promise<EntityRef> {
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
 			const shift = assertFound(await repo.findById(data.shiftId, tx), () =>
 				ShiftError.notFound(data.shiftId),
 			)
+			actor.assertCan(shift.locationId)
 			if (shift.status !== 'open') throw ShiftError.notOpen(data.shiftId)
-			if (shift.userId !== actor.id && !canCloseOther) {
+			if (shift.userId !== actor.id && !canCloseOther(shift.locationId)) {
 				throw ShiftError.closeOtherDenied()
 			}
 			const closingCash = Money.of(data.closingCash)
@@ -115,7 +120,9 @@ export class ShiftService {
 		return this.deps.repo.findPage(filter)
 	}
 
-	async handleDetail(id: number): Promise<ShiftDetailDto> {
-		return assertFound(await this.deps.repo.findDetail(id), () => ShiftError.notFound(id))
+	async handleDetail(id: number, actor: Actor): Promise<ShiftDetailDto> {
+		const detail = assertFound(await this.deps.repo.findDetail(id), () => ShiftError.notFound(id))
+		actor.assertCan(detail.locationId)
+		return detail
 	}
 }

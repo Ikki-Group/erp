@@ -25,16 +25,16 @@ export function createOpnameRoute(service: OpnameService) {
 
 		.get(
 			'/list',
-			async ({ query }) => {
-				const result = await service.handleList(query)
+			async ({ query, auth }) => {
+				const result = await service.handleList(query, actorOf(auth))
 				return res.paginated(result)
 			},
 			{ query: OpnameFilterDto, response: zRes.paginated(OpnameDto), permission: 'opname.read' },
 		)
 		.get(
 			'/detail',
-			async ({ query }) => {
-				const result = await service.handleDetail(query.id)
+			async ({ query, auth }) => {
+				const result = await service.handleDetail(query.id, actorOf(auth))
 				return res.ok(result)
 			},
 			{

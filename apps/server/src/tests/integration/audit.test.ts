@@ -1,4 +1,5 @@
 import { loginAs } from '../helpers/auth.ts'
+import { createLocation } from '../helpers/fixtures.ts'
 import { GET, json } from '../helpers/request.ts'
 import { SEED_USERS } from '../helpers/seed.ts'
 import { describe, expect, test } from 'bun:test'
@@ -60,5 +61,20 @@ describe('audit', () => {
 		expect(body.data).toBeInstanceOf(Array)
 		expect(body.data.length).toBe(0)
 		expect(body.meta.total).toBe(0)
+	})
+})
+
+describe('audit list module exclusion', () => {
+	test('excludeModulePrefix hides every module with that prefix', async () => {
+		const token = await loginAs('owner')
+		await createLocation(token, 'store') // guarantees at least one non-POS entry
+		const res = await GET('/audit/list', {
+			token,
+			query: { page: '1', limit: '100', excludeModulePrefix: 'pos' },
+		})
+		expect(res.status).toBe(200)
+		const rows = (await json<{ data: { module: string }[] }>(res)).data
+		expect(rows.length).toBeGreaterThan(0)
+		for (const row of rows) expect(row.module.startsWith('pos')).toBe(false)
 	})
 })

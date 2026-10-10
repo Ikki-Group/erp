@@ -36,12 +36,16 @@ const AUDIT = { module: 'inventory', entity: 'stock_opname' } as const
 export class OpnameService {
 	constructor(private readonly deps: Deps) {}
 
-	handleList(filter: OpnameFilterDto): Promise<WithPaginationResult<OpnameDto>> {
-		return this.deps.repo.findPage(filter)
+	handleList(filter: OpnameFilterDto, actor: Actor): Promise<WithPaginationResult<OpnameDto>> {
+		return this.deps.repo.findPage({ ...filter, locationIds: actor.allowedLocations() })
 	}
 
-	async handleDetail(id: number): Promise<OpnameDetailDto> {
-		return assertFound(await this.deps.repo.findDetailById(id), () => OpnameError.notFound(id))
+	async handleDetail(id: number, actor: Actor): Promise<OpnameDetailDto> {
+		const detail = assertFound(await this.deps.repo.findDetailById(id), () =>
+			OpnameError.notFound(id),
+		)
+		actor.assertCan(detail.locationId)
+		return detail
 	}
 
 	/** Snapshot opname (ADR-0006 §4): records system qty now; sales keep running. */
@@ -102,7 +106,7 @@ export class OpnameService {
 	handleUpdateCounts(data: OpnameUpdateCountsDto, actor: Actor): Promise<EntityRef> {
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
-			const opname = await this.#findDraft(data.opnameId, tx)
+			const opname = await this.#findDraft(data.opnameId, actor, tx)
 			const lines = await repo.findLinesByOpnameId(data.opnameId, tx)
 			const materialIds = new Set(lines.map((l) => l.materialId))
 			for (const line of data.lines) {
@@ -135,7 +139,7 @@ export class OpnameService {
 	handleComplete(data: OpnameCompleteDto, actor: Actor): Promise<EntityRef> {
 		const { repo, uow, audit, stock } = this.deps
 		return uow.run(async (tx) => {
-			const opname = await this.#findDraft(data.opnameId, tx)
+			const opname = await this.#findDraft(data.opnameId, actor, tx)
 			let adjustmentCount = 0
 			for (const line of await repo.findLinesByOpnameId(data.opnameId, tx)) {
 				const adjustment = opnameAdjustment(Qty.of(line.systemQty), Qty.of(line.actualQty))
@@ -171,10 +175,11 @@ export class OpnameService {
 		})
 	}
 
-	async #findDraft(id: number, tx: Db): Promise<OpnameDto> {
+	async #findDraft(id: number, actor: Actor, tx: Db): Promise<OpnameDto> {
 		const opname = assertFound(await this.deps.repo.findById(id, tx), () =>
 			OpnameError.notFound(id),
 		)
+		actor.assertCan(opname.locationId)
 		if (opname.status === 'completed') throw OpnameError.alreadyCompleted(id)
 		if (opname.status !== 'draft') throw OpnameError.notDraft(id)
 		return opname

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { humanizeActivity, isOperationalActivity } from './activity.ts'
+import { humanizeActivity } from './activity.ts'
 
 const base = { userName: 'Budi', module: 'material', entity: 'material', action: 'create' }
 
@@ -38,13 +38,5 @@ describe('humanizeActivity', () => {
 		expect(
 			humanizeActivity({ ...base, entity: 'new_thing', action: 'archive', summary: 'Archived #4' }),
 		).toMatchObject({ verb: 'archive', entity: 'new thing', subject: null })
-	})
-})
-
-describe('isOperationalActivity', () => {
-	it('excludes every pos-* module', () => {
-		expect(isOperationalActivity({ module: 'pos-order' })).toBe(false)
-		expect(isOperationalActivity({ module: 'pos-shift' })).toBe(false)
-		expect(isOperationalActivity({ module: 'inventory' })).toBe(true)
 	})
 })

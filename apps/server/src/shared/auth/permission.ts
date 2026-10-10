@@ -17,6 +17,12 @@ export interface AuthContext extends AccessMap {
 	locationId: number | null
 	/** Effective permissions for the active location (global + location). */
 	permissions: string[]
+	/** Whether the user holds `permission` at `locationId` (null = global only). */
+	can(permission: string, locationId: number | null): boolean
+	/** Throws 403 unless the route's permission holds at `locationId`. */
+	assertCan(locationId: number | null): void
+	/** Locations where the route's permission holds; null = everywhere (global grant). */
+	allowedLocations(): number[] | null
 }
 
 export function effectivePermissions(map: AccessMap, locationId: number | null): string[] {
@@ -25,7 +31,7 @@ export function effectivePermissions(map: AccessMap, locationId: number | null):
 }
 
 /** Available to every authenticated session, independent of the active location. */
-const AUTH_UTILITY_PERMISSIONS = new Set([
+export const AUTH_UTILITY_PERMISSIONS = new Set([
 	'auth.me',
 	'auth.logout',
 	'auth.session.list',

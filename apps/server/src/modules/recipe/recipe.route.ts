@@ -28,8 +28,8 @@ export function createRecipeRoute(recipeService: RecipeService) {
 
 			.get(
 				'/list',
-				async ({ query }) => {
-					const result = await recipeService.handleList(query)
+				async ({ query, auth }) => {
+					const result = await recipeService.handleList(query, actorOf(auth))
 					return res.paginated(result)
 				},
 				{
@@ -40,16 +40,16 @@ export function createRecipeRoute(recipeService: RecipeService) {
 			)
 			.get(
 				'/detail',
-				async ({ query }) => {
-					const result = await recipeService.handleDetail(query.id)
+				async ({ query, auth }) => {
+					const result = await recipeService.handleDetail(query.id, actorOf(auth))
 					return res.ok(result)
 				},
 				{ query: zq.recordId, response: zRes.ok(RecipeDetailDto), permission: 'recipe.read' },
 			)
 			.get(
 				'/by-menu-item',
-				async ({ query }) => {
-					const result = await recipeService.handleDetailByMenuItem(query.menuItemId)
+				async ({ query, auth }) => {
+					const result = await recipeService.handleDetailByMenuItem(query.menuItemId, actorOf(auth))
 					return res.ok(result)
 				},
 				{
@@ -60,8 +60,12 @@ export function createRecipeRoute(recipeService: RecipeService) {
 			)
 			.get(
 				'/hpp',
-				async ({ query }) => {
-					const result = await recipeService.handleCalculateHpp(query.menuItemId, query.locationId)
+				async ({ query, auth }) => {
+					const result = await recipeService.handleCalculateHpp(
+						query.menuItemId,
+						query.locationId,
+						actorOf(auth),
+					)
 					return res.ok(result)
 				},
 				{

@@ -35,9 +35,12 @@ describe('rbac', () => {
 			isOwner: false,
 			globalPermissions: [],
 			access: {},
+			can: () => false,
+			assertCan: () => {},
+			allowedLocations: () => null,
 		}
 
-		expect(actorOf(auth)).toEqual({ id: 7, name: 'Resolved User', locationId: 3 })
+		expect(actorOf(auth)).toMatchObject({ id: 7, name: 'Resolved User', locationId: 3 })
 	})
 
 	test('guarded route allows owner and rejects a user without permission', async () => {

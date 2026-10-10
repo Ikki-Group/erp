@@ -8,19 +8,11 @@ interface Deps extends Infra {
 	repo: SummaryRepo
 }
 
-const READ_PERMISSION = 'stock.read'
-
 export class SummaryService {
 	constructor(private readonly deps: Deps) {}
 
-	/** Owner / global stock readers see every active location; others only the locations they can read stock at. */
-	async handleSummary(auth: AuthContext): Promise<InventoryLocationSummaryDto[]> {
-		const global = auth.isOwner || auth.globalPermissions.includes(READ_PERMISSION)
-		const ids = global
-			? null
-			: Object.entries(auth.access)
-					.filter(([, permissions]) => permissions.includes(READ_PERMISSION))
-					.map(([id]) => Number(id))
-		return this.deps.repo.findByLocations(ids)
+	/** Global stock readers see every active location; others only where they can read stock. */
+	handleSummary(auth: AuthContext): Promise<InventoryLocationSummaryDto[]> {
+		return this.deps.repo.findByLocations(auth.allowedLocations())
 	}
 }

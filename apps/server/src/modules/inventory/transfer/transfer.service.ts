@@ -36,12 +36,22 @@ const AUDIT = { module: 'inventory', entity: 'transfer_request' } as const
 export class TransferService {
 	constructor(private readonly deps: Deps) {}
 
-	handleList(filter: TransferFilterDto): Promise<WithPaginationResult<TransferDto>> {
-		return this.deps.repo.findPage(filter)
+	/** Transfers touching a location the actor can read (either end). */
+	handleList(filter: TransferFilterDto, actor: Actor): Promise<WithPaginationResult<TransferDto>> {
+		return this.deps.repo.findPage({ ...filter, locationIds: actor.allowedLocations() })
 	}
 
-	async handleDetail(id: number): Promise<TransferDetailDto> {
-		return assertFound(await this.deps.repo.findDetailById(id), () => TransferError.notFound(id))
+	/** Readable from either end of the transfer. */
+	async handleDetail(id: number, actor: Actor): Promise<TransferDetailDto> {
+		const detail = assertFound(await this.deps.repo.findDetailById(id), () =>
+			TransferError.notFound(id),
+		)
+		const { fromLocationId, toLocationId } = detail
+		// Passes if the destination is allowed; otherwise the source decides (and names it in the 403).
+		actor.assertCan(
+			actor.allowedLocations()?.includes(toLocationId) ? toLocationId : fromLocationId,
+		)
+		return detail
 	}
 
 	async handleCreate(data: TransferCreateDto, actor: Actor): Promise<EntityRef> {
@@ -111,6 +121,7 @@ export class TransferService {
 				const transfer = assertFound(await repo.findById(data.transferId, tx), () =>
 					TransferError.notFound(data.transferId),
 				)
+				actor.assertCan(transfer.fromLocationId)
 				if (transfer.status !== 'requested') throw TransferError.notRequested(data.transferId)
 
 				for (const line of await repo.findLinesByTransferId(data.transferId, tx)) {
@@ -154,6 +165,7 @@ export class TransferService {
 				const transfer = assertFound(await repo.findById(data.transferId, tx), () =>
 					TransferError.notFound(data.transferId),
 				)
+				actor.assertCan(transfer.toLocationId)
 				if (transfer.status === 'received') throw TransferError.alreadyReceived(data.transferId)
 				if (transfer.status !== 'in_transit') throw TransferError.notInTransit(data.transferId)
 

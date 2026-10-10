@@ -9,23 +9,19 @@ import { Button } from '@/components/ui/button'
 
 import { auditResource } from '@/features/audit/api.ts'
 
-import { humanizeActivity, isOperationalActivity } from '../activity.ts'
+import { humanizeActivity } from '../activity.ts'
 import { Panel } from './panel.tsx'
 
 const SHOWN = 6
-// ponytail: the audit list can't exclude a module prefix server-side, so we
-// over-fetch and drop POS rows here. A burst of >25 POS events hides older
-// operational rows; a `excludeModulePrefix` filter on /audit/list is the fix.
-const FETCHED = 25
 
 /** Latest non-POS audit entries as readable sentences. */
 export function RecentActivity({ className }: { className?: string }) {
 	const query = useQuery({
-		...auditResource.list.queryOptions({ page: 1, limit: FETCHED }),
+		...auditResource.list.queryOptions({ page: 1, limit: SHOWN, excludeModulePrefix: 'pos' }),
 		refetchInterval: 30_000,
 		staleTime: 20_000,
 	})
-	const entries = (query.data?.data ?? []).filter(isOperationalActivity).slice(0, SHOWN)
+	const entries = query.data?.data ?? []
 
 	return (
 		<Panel

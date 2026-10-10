@@ -17,11 +17,13 @@ export interface CountLine {
 
 const QTY_PATTERN = /^\d+(\.\d+)?$/u
 
-/** Lines whose saved count differs from the snapshot; an empty input means "matches system". */
+/** Saved counts (counted, or differing from the snapshot); an empty input means "matches system". */
 function savedCounts(lines: OpnameLineDto[]): Record<number, string> {
 	const out: Record<number, string> = {}
 	for (const l of lines) {
-		if (Number(l.actualQty) !== Number(l.systemQty)) out[l.materialId] = String(Number(l.actualQty))
+		if (l.countedAt || Number(l.actualQty) !== Number(l.systemQty)) {
+			out[l.materialId] = String(Number(l.actualQty))
+		}
 	}
 	return out
 }
@@ -93,7 +95,12 @@ export function OpnameCountForm({
 							</span>
 							<span className="flex min-w-0 flex-col">
 								<span className="truncate text-sm font-medium">{line.materialName}</span>
-								<span className="font-mono text-xs text-muted-foreground">{line.materialCode}</span>
+								<span className="font-mono text-xs text-muted-foreground">
+									{line.materialCode}
+									{!line.countedAt && raw === '' && (
+										<span className="font-sans"> · belum dihitung</span>
+									)}
+								</span>
 							</span>
 							<span className="hidden text-right font-mono text-sm tabular-nums md:block">
 								{formatQty(line.systemQty)}

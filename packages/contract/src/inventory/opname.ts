@@ -18,6 +18,8 @@ export const OpnameLineDto = z.object({
 	systemQty: zp.str,
 	actualQty: zp.str,
 	reason: zp.str.nullable(),
+	/** When a count was saved; null = not counted yet (actualQty is the system qty). */
+	countedAt: zp.date.nullable(),
 })
 export type OpnameLineDto = z.infer<typeof OpnameLineDto>
 

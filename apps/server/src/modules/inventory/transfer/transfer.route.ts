@@ -25,8 +25,8 @@ export function createTransferRoute(service: TransferService) {
 
 		.get(
 			'/list',
-			async ({ query }) => {
-				const result = await service.handleList(query)
+			async ({ query, auth }) => {
+				const result = await service.handleList(query, actorOf(auth))
 				return res.paginated(result)
 			},
 			{
@@ -37,8 +37,8 @@ export function createTransferRoute(service: TransferService) {
 		)
 		.get(
 			'/detail',
-			async ({ query }) => {
-				const result = await service.handleDetail(query.id)
+			async ({ query, auth }) => {
+				const result = await service.handleDetail(query.id, actorOf(auth))
 				return res.ok(result)
 			},
 			{

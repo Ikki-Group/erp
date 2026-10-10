@@ -36,6 +36,12 @@ export const AuditLogFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	module: z.string().trim().optional(),
+	/** Hide modules whose name starts with this prefix (e.g. `pos`). */
+	excludeModulePrefix: z
+		.string()
+		.trim()
+		.regex(/^[a-z-]+$/u)
+		.optional(),
 	entity: z.string().trim().optional(),
 	entityId: z.coerce.number().int().positive().optional(),
 	userId: z.coerce.number().int().positive().optional(),

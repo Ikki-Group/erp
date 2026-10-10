@@ -17,6 +17,9 @@ export function createSummaryRoute(service: SummaryService) {
 			const result = await service.handleSummary(auth)
 			return res.ok(result)
 		},
-		{ response: zRes.ok(z.array(InventoryLocationSummaryDto)), permission: 'stock.read' },
+		{
+			response: zRes.ok(z.array(InventoryLocationSummaryDto)),
+			anyLocationPermission: 'stock.read',
+		},
 	)
 }

@@ -27,8 +27,10 @@ const AUDIT = { module: 'pos-table', entity: 'table' } as const
 export class TableService {
 	constructor(private readonly deps: Deps) {}
 
-	async handleGetById(id: number, db?: Db): Promise<TableDto> {
-		return assertFound(await this.deps.repo.findById(id, db), () => TableError.notFound(id))
+	async handleGetById(id: number, actor: Actor, db?: Db): Promise<TableDto> {
+		const table = assertFound(await this.deps.repo.findById(id, db), () => TableError.notFound(id))
+		actor.assertCan(table.locationId)
+		return table
 	}
 
 	handleList(filter: TableFilterDto): Promise<WithPaginationResult<TableDto>> {
@@ -68,7 +70,7 @@ export class TableService {
 		const { id, ...changes } = data
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
-			const current = await this.handleGetById(id, tx)
+			const current = await this.handleGetById(id, actor, tx)
 			if (changes.locationId !== current.locationId) await this.#assertStore(changes.locationId)
 			if (changes.number !== current.number || changes.locationId !== current.locationId) {
 				const clash = await repo.findByLocationAndNumber(changes.locationId, changes.number, tx)
@@ -106,7 +108,7 @@ export class TableService {
 	handleDelete(id: number, actor: Actor): Promise<EntityRef> {
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
-			const existing = await this.handleGetById(id, tx)
+			const existing = await this.handleGetById(id, actor, tx)
 			const written = await repo.remove(id, tx)
 			if (!written) throw TableError.deleteFailed(id)
 			await audit.record(tx, actor, {
@@ -120,9 +122,14 @@ export class TableService {
 		})
 	}
 
-	/** Order lifecycle side effect; runs inside the order's transaction. */
-	async updateStatus(id: number, status: TableStatusEnum, db: Db): Promise<void> {
-		const written = await this.deps.repo.updateStatus(id, status, db)
+	/** Order lifecycle side effect; runs inside the order's transaction. The table must be at `locationId`. */
+	async updateStatus(
+		id: number,
+		locationId: number,
+		status: TableStatusEnum,
+		db: Db,
+	): Promise<void> {
+		const written = await this.deps.repo.updateStatus(id, locationId, status, db)
 		if (!written) throw TableError.notFound(id)
 	}
 

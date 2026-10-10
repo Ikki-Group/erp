@@ -27,15 +27,17 @@ const AUDIT = { module: 'menu', entity: 'modifier_group' } as const
 export class ModifierService {
 	constructor(private readonly deps: Deps) {}
 
-	async handleGetById(id: number, db?: Db): Promise<ModifierGroupDto> {
+	async handleGetById(id: number, actor: Actor, db?: Db): Promise<ModifierGroupDto> {
 		const group = await this.deps.repo.findById(id, db)
 		if (!group) throw ModifierError.notFound(id)
+		actor.assertCan(group.locationId)
 		return group
 	}
 
-	async handleDetail(id: number): Promise<ModifierGroupWithOptionsDto> {
+	async handleDetail(id: number, actor: Actor): Promise<ModifierGroupWithOptionsDto> {
 		const group = await this.deps.repo.findByIdWithOptions(id)
 		if (!group) throw ModifierError.notFound(id)
+		actor.assertCan(group.locationId)
 		return group
 	}
 
@@ -73,7 +75,7 @@ export class ModifierService {
 		const { id, options, ...changes } = data
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
-			const existing = await this.handleGetById(id, tx)
+			const existing = await this.handleGetById(id, actor, tx)
 			await checkConflict({
 				db: tx,
 				table: modifierGroups,
@@ -100,7 +102,7 @@ export class ModifierService {
 	handleDelete(id: number, actor: Actor): Promise<EntityRef> {
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
-			const existing = await this.handleGetById(id, tx)
+			const existing = await this.handleGetById(id, actor, tx)
 			const written = await repo.remove(id, tx)
 			if (!written) throw ModifierError.deleteFailed(id)
 			await audit.record(tx, actor, {

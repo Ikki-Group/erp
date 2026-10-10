@@ -45,6 +45,16 @@ export function eqIf<T>(column: PgColumn, value: T | undefined): SQL | undefined
 	return eq(column, value as Parameters<typeof eq>[1])
 }
 
+/** `column IN values`; null/undefined = no restriction, [] = matches nothing. */
+export function inIf(column: PgColumn, values: number[] | null | undefined): SQL | undefined {
+	return values ? inArray(column, values) : undefined
+}
+
+/** List filter narrowing to the actor's permitted locations (`Actor.allowedLocations()`). */
+export interface LocationScope {
+	locationIds?: number[] | null
+}
+
 export function searchFilter(column: PgColumn, term: string | undefined): SQL | undefined {
 	if (!term || term.trim() === '') return undefined
 	const escaped = term.replace(/%/gu, '\\%').replace(/_/gu, '\\_')
@@ -69,5 +79,5 @@ export function defineConflictFields<T>() {
 	return <F extends ConflictField<T>[]>(fields: F) => fields
 }
 
-export { sql, eq, and, inArray, desc, gte, lte }
+export { sql, eq, and, or, inArray, desc, gte, lte }
 export type { PgColumn, SQL }

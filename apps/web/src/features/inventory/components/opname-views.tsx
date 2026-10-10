@@ -256,13 +256,20 @@ function OpnameDetailView({ detail }: { detail: OpnameDetailDto }) {
 		await confirm({
 			title: `Selesaikan ${fresh.opnameNo}?`,
 			description:
-				'Penyesuaian stok dibuat untuk setiap material yang selisih. Material tanpa hitungan dianggap sesuai stok sistem. Tindakan ini tidak dapat dibatalkan.',
+				'Penyesuaian stok dibuat untuk setiap material yang selisih. Material yang belum dihitung tetap memakai stok sistem. Tindakan ini tidak dapat dibatalkan.',
 			confirmLabel: 'Selesaikan & sesuaikan stok',
 			cancelLabel: 'Batal',
 			tone: 'destructive',
 			summary: [
 				{ label: 'Lokasi', value: location(fresh.locationId) },
-				{ label: 'Material', value: num(fresh.lines.length) },
+				{
+					label: 'Dihitung',
+					value: (
+						<span className="font-mono tabular-nums">
+							{fresh.lines.filter((l) => l.countedAt).length} / {fresh.lines.length}
+						</span>
+					),
+				},
 				{ label: 'Dengan selisih', value: num(over + under) },
 				{
 					label: 'Lebih / kurang',
@@ -302,7 +309,7 @@ function OpnameDetailView({ detail }: { detail: OpnameDetailDto }) {
 				title={`Hitungan (${detail.lines.length})`}
 				description={
 					isOpen && canUpdate
-						? 'Isi stok aktual hasil hitung. Kosongkan bila sama dengan stok sistem.'
+						? 'Isi stok aktual hasil hitung. Baris yang belum dihitung tetap memakai stok sistem.'
 						: undefined
 				}
 			>

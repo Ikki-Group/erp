@@ -6,13 +6,14 @@ import {
 	eq,
 	eqIf,
 	gte,
+	inIf,
 	lte,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { Db, DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -60,6 +61,7 @@ function toOpnameLineDto(
 		systemQty: row.systemQty,
 		actualQty: row.actualQty,
 		reason: row.reason,
+		countedAt: row.countedAt,
 	}
 }
 
@@ -87,7 +89,7 @@ export class OpnameRepo {
 	}
 
 	async findPage(
-		filter: OpnameFilterDto,
+		filter: OpnameFilterDto & LocationScope,
 		db: Db = this.db,
 	): Promise<WithPaginationResult<OpnameDto>> {
 		const where = this.#buildWhere(filter)
@@ -155,10 +157,11 @@ export class OpnameRepo {
 		lines: Array<{ materialId: number; actualQty: string; reason?: string | null }>,
 		db: Db = this.db,
 	): Promise<void> {
+		const countedAt = new Date()
 		for (const line of lines) {
 			await db
 				.update(stockOpnameLines)
-				.set({ actualQty: line.actualQty, reason: line.reason ?? null })
+				.set({ actualQty: line.actualQty, reason: line.reason ?? null, countedAt })
 				.where(
 					allOf(
 						eq(stockOpnameLines.opnameId, opnameId),
@@ -179,6 +182,7 @@ export class OpnameRepo {
 				systemQty: stockOpnameLines.systemQty,
 				actualQty: stockOpnameLines.actualQty,
 				reason: stockOpnameLines.reason,
+				countedAt: stockOpnameLines.countedAt,
 			})
 			.from(stockOpnameLines)
 			.innerJoin(materials, eq(stockOpnameLines.materialId, materials.id))
@@ -188,9 +192,10 @@ export class OpnameRepo {
 
 	// ─── Private ───
 
-	#buildWhere(filter: OpnameFilterDto) {
+	#buildWhere(filter: OpnameFilterDto & LocationScope) {
 		return allOf(
 			eqIf(stockOpnames.locationId, filter.locationId),
+			inIf(stockOpnames.locationId, filter.locationIds),
 			eqIf(stockOpnames.status, filter.status),
 			filter.dateFrom ? gte(stockOpnames.createdAt, filter.dateFrom) : undefined,
 			filter.dateTo ? lte(stockOpnames.createdAt, filter.dateTo) : undefined,

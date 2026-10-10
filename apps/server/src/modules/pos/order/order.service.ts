@@ -55,8 +55,12 @@ const AUDIT = { module: 'pos-order', entity: 'order' } as const
 export class OrderService {
 	constructor(private readonly deps: Deps) {}
 
-	async handleDetail(id: number): Promise<OrderDetailDto> {
-		return assertFound(await this.deps.repo.findDetailById(id), () => OrderError.notFound(id))
+	async handleDetail(id: number, actor: Actor): Promise<OrderDetailDto> {
+		const detail = assertFound(await this.deps.repo.findDetailById(id), () =>
+			OrderError.notFound(id),
+		)
+		actor.assertCan(detail.locationId)
+		return detail
 	}
 
 	handleList(filter: OrderFilterDto): Promise<WithPaginationResult<OrderDto>> {
@@ -94,7 +98,7 @@ export class OrderService {
 				tx,
 			)
 			if (!written) throw OrderError.createFailed()
-			if (tableId) await table.updateStatus(tableId, 'occupied', tx)
+			if (tableId) await table.updateStatus(tableId, locationId, 'occupied', tx)
 			await audit.record(tx, actor, {
 				...AUDIT,
 				entityId: written.id,
@@ -114,7 +118,7 @@ export class OrderService {
 		return record('order.syncLines', async () => {
 			const taxRate = await company.getTaxRatePercent()
 			await uow.run(async (tx) => {
-				const order = await this.#lockOpen(orderId, tx)
+				const order = await this.#lockOpen(orderId, actor, tx)
 				const inserts: LineInsert[] = []
 				for (const line of lines) {
 					const item = await menu.handleDetail(line.menuItemId, tx)
@@ -177,7 +181,7 @@ export class OrderService {
 					locationId: order.locationId,
 				})
 			})
-			return this.handleDetail(orderId)
+			return this.handleDetail(orderId, actor)
 		})
 	}
 
@@ -189,7 +193,7 @@ export class OrderService {
 		const { repo, uow, audit, voucher, company } = this.deps
 		const taxRate = await company.getTaxRatePercent()
 		return uow.run(async (tx) => {
-			const order = await this.#lockOpen(orderId, tx)
+			const order = await this.#lockOpen(orderId, actor, tx)
 			if (order.voucherId) throw OrderError.voucherAlreadyApplied(orderId)
 			const found = await voucher.getByCode(voucherCode, tx)
 			const validation = evaluateVoucher(found, Money.of(order.subtotal), new Date())
@@ -230,7 +234,7 @@ export class OrderService {
 		const { repo, uow, audit, company } = this.deps
 		const taxRate = await company.getTaxRatePercent()
 		return uow.run(async (tx) => {
-			const order = await this.#lockOpen(orderId, tx)
+			const order = await this.#lockOpen(orderId, actor, tx)
 			if (!order.voucherId) throw OrderError.noVoucherApplied(orderId)
 			const totals = calculateOrderTotals({
 				lineTotals: (await repo.findLinesByOrderId(orderId, tx)).map((l) => l.lineTotal),
@@ -267,7 +271,7 @@ export class OrderService {
 		const { repo, uow, audit, paymentMethod } = this.deps
 		const amount = Money.of(data.amount)
 		return uow.run(async (tx) => {
-			const order = await this.#lockOpen(orderId, tx)
+			const order = await this.#lockOpen(orderId, actor, tx)
 			const methods = await paymentMethod.handleByLocation(order.locationId)
 			if (!methods.some((m) => m.id === paymentMethodId)) {
 				throw OrderError.paymentMethodNotAvailable(paymentMethodId, order.locationId)
@@ -300,7 +304,7 @@ export class OrderService {
 		const { repo, uow, audit, voucher, table } = this.deps
 		return record('order.complete', () =>
 			uow.run(async (tx) => {
-				const order = await this.#lockOpen(orderId, tx)
+				const order = await this.#lockOpen(orderId, actor, tx)
 				const remaining = remainingBalance(
 					order.total,
 					await repo.sumPaymentsByOrderId(orderId, tx),
@@ -317,7 +321,8 @@ export class OrderService {
 				if (order.voucherId) await voucher.incrementUsage(order.voucherId, tx)
 				const lines = await repo.findLinesByOrderId(orderId, tx)
 				await deductStockForOrder(order, lines, actor.id, this.deps, tx)
-				if (order.tableId) await table.updateStatus(order.tableId, 'available', tx)
+				if (order.tableId)
+					await table.updateStatus(order.tableId, order.locationId, 'available', tx)
 				await audit.record(tx, actor, {
 					...AUDIT,
 					entityId: orderId,
@@ -337,14 +342,14 @@ export class OrderService {
 		const { orderId, reason } = data
 		const { repo, uow, audit, table } = this.deps
 		return uow.run(async (tx) => {
-			const order = await this.#lockOpen(orderId, tx)
+			const order = await this.#lockOpen(orderId, actor, tx)
 			const written = await repo.update(
 				orderId,
 				{ status: 'voided', notes: reason, ...stampUpdate(actor.id) },
 				tx,
 			)
 			if (!written) throw OrderError.updateFailed(orderId)
-			if (order.tableId) await table.updateStatus(order.tableId, 'available', tx)
+			if (order.tableId) await table.updateStatus(order.tableId, order.locationId, 'available', tx)
 			await audit.record(tx, actor, {
 				...AUDIT,
 				entityId: orderId,
@@ -358,10 +363,17 @@ export class OrderService {
 		})
 	}
 
-	async #lockOpen(id: number, tx: Db): Promise<OrderDto> {
+	/** The open order, locked; 403 if it belongs to a location the actor can't act on. */
+	async #lockOpen(id: number, actor: Actor, tx: Db): Promise<OrderDto> {
 		const order = await this.deps.repo.lockOpen(id, tx)
-		if (order) return order
-		if (await this.deps.repo.findById(id, tx)) throw OrderError.notOpen(id)
-		throw OrderError.notFound(id)
+		if (order) {
+			actor.assertCan(order.locationId)
+			return order
+		}
+		const existing = assertFound(await this.deps.repo.findById(id, tx), () =>
+			OrderError.notFound(id),
+		)
+		actor.assertCan(existing.locationId)
+		throw OrderError.notOpen(id)
 	}
 }

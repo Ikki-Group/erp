@@ -24,8 +24,8 @@ export function createTableRoute(service: TableService) {
 		)
 		.get(
 			'/detail',
-			async ({ query }) => {
-				const result = await service.handleGetById(query.id)
+			async ({ query, auth }) => {
+				const result = await service.handleGetById(query.id, actorOf(auth))
 				return res.ok(result)
 			},
 			{ query: zq.recordId, permission: 'table.manage', response: zRes.ok(TableDto) },

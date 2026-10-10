@@ -65,6 +65,7 @@ export class CategoryService {
 		return uow.run(async (tx) => {
 			const existing = await repo.findById(id, tx)
 			if (!existing) throw CategoryError.notFound(id)
+			actor.assertCan(existing.locationId)
 			if (changes.parentId) {
 				await this.#assertParentLocation(changes.parentId, existing.locationId, tx)
 			}
@@ -95,6 +96,7 @@ export class CategoryService {
 		return uow.run(async (tx) => {
 			const existing = await repo.findById(id, tx)
 			if (!existing) throw CategoryError.notFound(id)
+			actor.assertCan(existing.locationId)
 			const written = await repo.remove(id, tx)
 			if (!written) throw CategoryError.deleteFailed(id)
 			await audit.record(tx, actor, {

@@ -8,6 +8,13 @@
       "when": 1791624639110,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791658904820,
+      "tag": "0001_opname_counted_at",
+      "breakpoints": true
     }
   ]
 }

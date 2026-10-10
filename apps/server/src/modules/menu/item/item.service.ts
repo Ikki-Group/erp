@@ -59,6 +59,7 @@ export class ItemService {
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
 			const existing = await this.handleGetById(id, tx)
+			actor.assertCan(existing.locationId)
 			if (changes.categoryId) {
 				await this.#assertCategoryLocation(changes.categoryId, existing.locationId, tx)
 			}
@@ -83,6 +84,7 @@ export class ItemService {
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
 			const existing = await this.handleGetById(id, tx)
+			actor.assertCan(existing.locationId)
 			const written = await repo.remove(id, tx)
 			if (!written) throw ItemError.deleteFailed(id)
 			await audit.record(tx, actor, {

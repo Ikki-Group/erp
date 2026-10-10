@@ -1,4 +1,4 @@
-import { gte, lte } from 'drizzle-orm'
+import { gte, lte, notLike } from 'drizzle-orm'
 
 import { auditLogs } from '@/db/schema/audit.ts'
 
@@ -116,6 +116,9 @@ export class AuditRepo {
 	#buildWhere(filter: AuditLogFilterDto) {
 		return allOf(
 			eqIf(auditLogs.module, filter.module),
+			filter.excludeModulePrefix
+				? notLike(auditLogs.module, `${filter.excludeModulePrefix}%`)
+				: undefined,
 			eqIf(auditLogs.entity, filter.entity),
 			eqIf(auditLogs.entityId, filter.entityId),
 			eqIf(auditLogs.userId, filter.userId),

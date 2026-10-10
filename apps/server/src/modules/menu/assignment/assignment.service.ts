@@ -22,8 +22,9 @@ export class AssignmentService {
 		const { repo, uow, audit, item: items, modifier } = this.deps
 		return uow.run(async (tx) => {
 			const item = await items.handleGetById(menuItemId, tx)
+			actor.assertCan(item.locationId)
 			for (const { groupId } of groups) {
-				const group = await modifier.handleGetById(groupId, tx)
+				const group = await modifier.handleGetById(groupId, actor, tx)
 				if (group.locationId !== item.locationId) throw AssignmentError.locationMismatch(groupId)
 			}
 			await repo.replaceForItem(menuItemId, groups, tx)

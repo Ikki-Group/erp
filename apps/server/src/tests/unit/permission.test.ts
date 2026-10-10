@@ -15,6 +15,9 @@ const owner: AuthContext = {
 	isOwner: true,
 	globalPermissions: [],
 	access: {},
+	can: () => false,
+	assertCan: () => {},
+	allowedLocations: () => null,
 }
 
 const cashier: AuthContext = {
@@ -26,6 +29,9 @@ const cashier: AuthContext = {
 	isOwner: false,
 	globalPermissions: [],
 	access: {},
+	can: () => false,
+	assertCan: () => {},
+	allowedLocations: () => null,
 }
 
 const noPerms: AuthContext = {
@@ -37,6 +43,9 @@ const noPerms: AuthContext = {
 	isOwner: false,
 	globalPermissions: [],
 	access: {},
+	can: () => false,
+	assertCan: () => {},
+	allowedLocations: () => null,
 }
 
 // ─── hasPermission ───

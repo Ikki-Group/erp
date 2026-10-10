@@ -112,15 +112,17 @@ export class TableRepo {
 		return result
 	}
 
+	/** Only matches a table at `locationId`, so an order can't occupy another store's table. */
 	async updateStatus(
 		id: number,
+		locationId: number,
 		status: TableStatusEnum,
 		db: Db = this.db,
 	): Promise<EntityRef | undefined> {
 		const [result] = await db
 			.update(tables)
 			.set({ status })
-			.where(eq(tables.id, id))
+			.where(and(eq(tables.id, id), eq(tables.locationId, locationId)))
 			.returning({ id: tables.id })
 		return result
 	}

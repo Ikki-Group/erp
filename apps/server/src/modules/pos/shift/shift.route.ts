@@ -11,7 +11,6 @@ import { Elysia } from 'elysia'
 
 import { authGuard } from '@/server/auth/auth.plugin.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
-import { hasPermission } from '@/shared/auth/permission.ts'
 import { res } from '@/shared/http/response.ts'
 
 import type { ShiftService } from './shift.service.ts'
@@ -33,8 +32,9 @@ export function createShiftRoute(service: ShiftService) {
 		.post(
 			'/close',
 			async ({ body, auth }) => {
-				const canCloseOther = hasPermission(auth, 'shift.close-other')
-				const result = await service.handleClose(body, actorOf(auth), canCloseOther)
+				const result = await service.handleClose(body, actorOf(auth), (at) =>
+					auth.can('shift.close-other', at),
+				)
 				return res.ok(result)
 			},
 			{ body: ShiftCloseDto, permission: 'shift.close', response: zRes.ok(EntityRefDto) },
@@ -42,7 +42,7 @@ export function createShiftRoute(service: ShiftService) {
 		.post(
 			'/close-other',
 			async ({ body, auth }) => {
-				const result = await service.handleClose(body, actorOf(auth), true)
+				const result = await service.handleClose(body, actorOf(auth), () => true)
 				return res.ok(result)
 			},
 			{ body: ShiftCloseDto, permission: 'shift.close-other', response: zRes.ok(EntityRefDto) },
@@ -68,8 +68,8 @@ export function createShiftRoute(service: ShiftService) {
 		)
 		.get(
 			'/detail',
-			async ({ query }) => {
-				const result = await service.handleDetail(query.id)
+			async ({ query, auth }) => {
+				const result = await service.handleDetail(query.id, actorOf(auth))
 				return res.ok(result)
 			},
 			{ query: zq.recordId, permission: 'shift.read', response: zRes.ok(ShiftDetailDto) },

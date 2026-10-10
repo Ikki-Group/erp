@@ -61,19 +61,25 @@ export class RecipeService {
 		return assertFound(await this.deps.repo.findById(id, db), () => RecipeError.notFound(id))
 	}
 
-	async handleDetail(id: number): Promise<RecipeDetailDto> {
-		return this.#withLines(await this.handleGetById(id))
+	async handleDetail(id: number, actor: Actor): Promise<RecipeDetailDto> {
+		const recipe = await this.handleGetById(id)
+		await this.#assertItemLocation(recipe.menuItemId, actor)
+		return this.#withLines(recipe)
 	}
 
-	async handleDetailByMenuItem(menuItemId: number): Promise<RecipeDetailDto> {
+	async handleDetailByMenuItem(menuItemId: number, actor: Actor): Promise<RecipeDetailDto> {
 		const recipe = await this.getActiveByMenuItemId(menuItemId)
 		if (!recipe) throw RecipeError.activeNotFound(menuItemId)
+		await this.#assertItemLocation(menuItemId, actor)
 		return this.#withLines(recipe)
 	}
 
 	/** Page of recipes; with `locationId`, each row's own HPP is costed in one batched pass (no N+1). */
-	async handleList(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeListItemDto>> {
-		const page = await this.deps.repo.findPage(filter)
+	async handleList(
+		filter: RecipeFilterDto,
+		actor: Actor,
+	): Promise<WithPaginationResult<RecipeListItemDto>> {
+		const page = await this.deps.repo.findPage({ ...filter, locationIds: actor.allowedLocations() })
 		const { locationId } = filter
 		if (!locationId || page.data.length === 0) {
 			return { ...page, data: page.data.map((r) => ({ ...r, hpp: null })) }
@@ -92,9 +98,9 @@ export class RecipeService {
 	}
 
 	handleCreate(data: RecipeCreateDto, actor: Actor): Promise<EntityRef> {
-		const { repo, uow, audit, menu } = this.deps
+		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
-			await menu.handleGetById(data.menuItemId, tx)
+			await this.#assertItemLocation(data.menuItemId, actor, tx)
 			await this.#validateLines(data.lines, tx)
 			await repo.deactivateByMenuItemId(data.menuItemId, tx)
 			const written = await repo.insert(
@@ -129,7 +135,8 @@ export class RecipeService {
 		const { id, ...changes } = data
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
-			await this.handleGetById(id, tx)
+			const existing = await this.handleGetById(id, tx)
+			await this.#assertItemLocation(existing.menuItemId, actor, tx)
 			await this.#validateLines(changes.lines, tx)
 			const written = await repo.update(
 				id,
@@ -157,6 +164,7 @@ export class RecipeService {
 		const { repo, uow, audit } = this.deps
 		return uow.run(async (tx) => {
 			const existing = await this.handleGetById(id, tx)
+			await this.#assertItemLocation(existing.menuItemId, actor, tx)
 			const written = await repo.remove(id, tx)
 			if (!written) throw RecipeError.deleteFailed(id)
 			await audit.record(tx, actor, {
@@ -169,9 +177,14 @@ export class RecipeService {
 		})
 	}
 
-	async handleCalculateHpp(menuItemId: number, locationId: number): Promise<HppResponseDto> {
+	async handleCalculateHpp(
+		menuItemId: number,
+		locationId: number,
+		actor: Actor,
+	): Promise<HppResponseDto> {
 		const recipe = await this.getActiveByMenuItemId(menuItemId)
 		if (!recipe) throw RecipeError.activeNotFound(menuItemId)
+		await this.#assertItemLocation(menuItemId, actor)
 
 		const lines = await this.deps.repo.findLinesByRecipeId(recipe.id)
 		const [ctx, uomCodes] = await Promise.all([
@@ -196,6 +209,12 @@ export class RecipeService {
 	}
 
 	// ─── Private ───
+
+	/** A recipe lives at its menu item's location. */
+	async #assertItemLocation(menuItemId: number, actor: Actor, db?: Db): Promise<void> {
+		const item = await this.deps.menu.handleGetById(menuItemId, db)
+		actor.assertCan(item.locationId)
+	}
 
 	/** One round of lookups (conversions, materials, location costs) shared by every recipe costed. */
 	async #costContext(lines: RecipeLineDto[], locationId: number): Promise<CostContext> {

@@ -1,15 +1,19 @@
+import { menuItems } from '@/db/schema/menu.ts'
 import { recipes, recipeLines } from '@/db/schema/recipe.ts'
 
 import {
+	allOf,
 	and,
 	eq,
+	eqIf,
 	inArray,
+	inIf,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { Db, DbContext } from '@/infra/database/index.ts'
+import type { Db, DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -89,12 +93,24 @@ export class RecipeRepo {
 	}
 
 	async findPage(
-		filter: RecipeFilterDto,
+		filter: RecipeFilterDto & LocationScope,
 		db: Db = this.db,
 	): Promise<WithPaginationResult<RecipeDto>> {
 		const { limit, offset } = toLimitOffset(filter)
 
-		const conditions = filter.menuItemId ? eq(recipes.menuItemId, filter.menuItemId) : undefined
+		const conditions = allOf(
+			eqIf(recipes.menuItemId, filter.menuItemId),
+			// A recipe lives at its menu item's location.
+			filter.locationIds
+				? inArray(
+						recipes.menuItemId,
+						db
+							.select({ id: menuItems.id })
+							.from(menuItems)
+							.where(inIf(menuItems.locationId, filter.locationIds)),
+					)
+				: undefined,
+		)
 
 		const rows = await db
 			.select({
