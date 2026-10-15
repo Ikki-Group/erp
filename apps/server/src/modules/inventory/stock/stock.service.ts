@@ -1,4 +1,3 @@
-import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import { record } from '@/infra/otel/otel.ts'
@@ -25,6 +24,9 @@ import type { IStockRepo } from './stock.repo.ts'
 // ─── Constants ───
 
 const BALANCE_TTL = 10_000 // 10 seconds (Tier 3)
+const CACHE_NS = 'inventory-stock'
+/** Tag on every cached balance read; movements invalidate by tag, not by tracked keys. */
+const BALANCE_TAG = 'stock:balance'
 
 // ─── Service ───
 
@@ -34,16 +36,11 @@ export interface RecordedMovement extends EntityRef {
 }
 
 export class StockService {
-	private readonly cache: CacheService
-	private readonly trackedCacheKeys = new Set<string>()
-
 	constructor(
 		private readonly repo: IStockRepo,
-		cacheClient: CacheClient,
+		private readonly cache: CacheClient,
 		private readonly assignmentService: AssignmentService,
-	) {
-		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory-stock')
-	}
+	) {}
 
 	// ─── Core Engine (called by other modules) ───
 
@@ -153,30 +150,29 @@ export class StockService {
 		return this.repo.findBalance(materialId, locationId)
 	}
 	async handleGetBalance(query: StockBalanceQueryDto): Promise<StockBalanceDto> {
-		const balance = await this.cache.getOrSetWithSkip({
-			key: this.#balanceCacheKey(query.materialId, query.locationId),
-			factory: () => this.repo.findBalance(query.materialId, query.locationId),
+		const balance = await this.cache.getOrSet({
+			key: `${CACHE_NS}:balance:${query.locationId}:${query.materialId}`,
+			// Missing balances are not cached: the first movement creates the row.
+			factory: async (ctx) =>
+				(await this.repo.findBalance(query.materialId, query.locationId)) ?? ctx.skip(),
+			tags: [BALANCE_TAG],
 		})
 		if (!balance) throw StockError.balanceNotFound(query.materialId, query.locationId)
 		return balance
 	}
 
 	async invalidateCache(): Promise<void> {
-		const keys = [...this.trackedCacheKeys]
-		this.trackedCacheKeys.clear()
-		await this.cache.invalidateStandard()
-		if (keys.length > 0) await this.cache.deleteFromKeys(keys)
+		await this.cache.deleteByTag({ tags: [BALANCE_TAG] })
 	}
 
 	async handleGetBalances(
 		filter: StockBalanceFilterDto,
 	): Promise<WithPaginationResult<StockBalanceDto>> {
-		const key = `${this.cache.namespace}:balances:loc:${filter.locationId}:p${filter.page}:l${filter.limit}:m${filter.materialId ?? 'all'}`
-		this.trackedCacheKeys.add(key)
 		return this.cache.getOrSet({
-			key,
+			key: `${CACHE_NS}:balances:loc:${filter.locationId}:p${filter.page}:l${filter.limit}:m${filter.materialId ?? 'all'}`,
 			factory: () => this.repo.findBalancesByLocation(filter),
 			ttl: BALANCE_TTL,
+			tags: [BALANCE_TAG],
 		})
 	}
 
@@ -184,11 +180,5 @@ export class StockService {
 		filter: StockMovementFilterDto,
 	): Promise<WithPaginationResult<StockMovementDto>> {
 		return this.repo.findMovements(filter)
-	}
-
-	#balanceCacheKey(materialId: number, locationId: number): string {
-		const key = `${this.cache.namespace}:balance:${locationId}:${materialId}`
-		this.trackedCacheKeys.add(key)
-		return key
 	}
 }
