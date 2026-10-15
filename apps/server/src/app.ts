@@ -3,6 +3,7 @@ import { Elysia } from 'elysia'
 
 import { auditPort } from './infra/audit/audit.drizzle.ts'
 import { cache as cacheClient, cachePort } from './infra/cache/index.ts'
+import { pool } from './infra/database/client.ts'
 import { db, uow } from './infra/database/index.ts'
 import { createMemoryEventBus } from './infra/events/event-bus.memory.ts'
 import { otelPlugin } from './infra/otel/otel.ts'
@@ -51,6 +52,26 @@ const ALL_MODULE_DESCRIPTORS: ModuleDescriptor[] = [
 ]
 const modules = composeModules(ALL_MODULE_DESCRIPTORS, ctx)
 
+// ─── Readiness ───
+
+const READY_TIMEOUT_MS = 2000
+
+async function isDatabaseReady(): Promise<boolean> {
+	let timer: ReturnType<typeof setTimeout> | undefined
+	const timeout = new Promise<false>((resolve) => {
+		timer = setTimeout(() => resolve(false), READY_TIMEOUT_MS)
+	})
+	try {
+		const ping = pool.query('select 1').then(
+			() => true,
+			() => false,
+		)
+		return await Promise.race([ping, timeout])
+	} finally {
+		clearTimeout(timer)
+	}
+}
+
 // ─── App ───
 
 const base = new Elysia({ normalize: true, encodeSchema: true })
@@ -63,6 +84,15 @@ let composedApp: AnyElysia = base
 	.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }), {
 		detail: { hide: true },
 	})
+	.get(
+		'/ready',
+		async ({ set }) => {
+			if (await isDatabaseReady()) return { status: 'ready' }
+			set.status = 503
+			return { status: 'unavailable' }
+		},
+		{ detail: { hide: true } },
+	)
 
 for (const module of modules.values()) {
 	if (module.route) composedApp = composedApp.use(module.route)
