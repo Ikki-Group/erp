@@ -1,6 +1,8 @@
 import { Elysia } from 'elysia'
 
+import { toHttpError } from '@/infra/database/pg-errors.ts'
 import { getLogger } from '@/infra/logger/index.ts'
+import { isProd } from '@/shared/config/env.ts'
 import { HttpError } from '@/shared/errors/http-error.ts'
 
 const logger = getLogger(['server', 'error'])
@@ -8,11 +10,13 @@ const logger = getLogger(['server', 'error'])
 export function errorPlugin() {
 	return new Elysia({ name: 'error-plugin' })
 		.onError((ctx) => {
-			const { code, error, set, path } = ctx
+			const { code, set, path } = ctx
+			// Driver errors (unique/FK/check violations, exhausted retries) → typed HttpError.
+			const error = toHttpError(ctx.error) ?? ctx.error
 			// Elysia validation error (body/query/params schema failed)
 			if (code === 'VALIDATION') {
 				set.status = 422
-				const validationError = error
+				const validationError = ctx.error
 				const issues =
 					'all' in validationError && Array.isArray(validationError.all)
 						? validationError.all.map((e: { path: string; summary?: string }) => ({
@@ -21,14 +25,14 @@ export function errorPlugin() {
 							}))
 						: []
 
-				logger.warn('Validation failed', { path, issues, value: error.value })
+				logger.warn('Validation failed', { path, issues, value: ctx.error.value })
 
 				return {
 					success: false,
 					error: {
 						code: 'VALIDATION_ERROR',
 						message: 'Request validation failed',
-						context: { issues, value: error.value },
+						context: { issues, value: ctx.error.value },
 					},
 				}
 			}
@@ -79,7 +83,8 @@ export function errorPlugin() {
 			set.status = 500
 			const message = error instanceof Error ? error.message : 'Unknown error'
 			const stack = error instanceof Error ? error.stack : undefined
-			logger.error('Unhandled error', { path, message, stack })
+			// Driver errors carry SQL text/params in `message`; keep them out of prod logs.
+			logger.error('Unhandled error', isProd ? { path } : { path, message, stack })
 			return {
 				success: false,
 				error: {
