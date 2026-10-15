@@ -1,41 +1,38 @@
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
-import { BadRequestError } from '@/shared/errors/http-error.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { ItemService } from '../item/item.service.ts'
 import type { ModifierService } from '../modifier/modifier.service.ts'
 import type { MenuItemModifierSyncDto } from './assignment.contract.ts'
+import { AssignmentError } from './assignment.internal.ts'
 import type { IAssignmentRepo } from './assignment.repo.ts'
-
-// ─── Error Factories ───
-
-const AssignmentError = {
-	locationMismatch: (groupId: number) =>
-		new BadRequestError('Modifier group does not belong to the same location as the menu item', {
-			code: 'MENU_ITEM_MODIFIER_LOCATION_MISMATCH',
-			context: { groupId },
-		}),
-}
 
 // ─── Service ───
 
 export class AssignmentService {
-	private readonly cache: CacheService
+	private readonly mutation: MutationScope
 
 	constructor(
 		private readonly repo: IAssignmentRepo,
 		cacheClient: CacheClient,
 		private readonly itemService: ItemService,
 		private readonly modifierService: ModifierService,
-		private readonly uow: UnitOfWork,
-		private readonly audit: AuditPort,
+		uow: UnitOfWork,
+		audit: AuditPort,
 	) {
-		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'menu-item-modifier')
+		this.mutation = {
+			uow,
+			audit,
+			module: 'menu',
+			entity: 'menu_item_modifier',
+			invalidate: CacheService.createWithDefaultKeys(cacheClient, 'menu-item-modifier'),
+		}
 	}
 
 	// ─── Handlers ───
@@ -54,24 +51,17 @@ export class AssignmentService {
 			}
 		}
 
-		// 3. Replace assignments and audit in one transaction
-		await this.uow.run(async (tx) => {
+		// 3. Replace assignments and audit in one transaction, invalidate after commit
+		return mutate(this.mutation, actor, async (tx) => {
 			await this.repo.replaceForItem(menuItemId, groups, tx)
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'menu',
-					entity: 'menu_item_modifier',
-					entityId: menuItemId,
+			return {
+				result: { id: menuItemId },
+				audit: {
 					action: 'update',
 					summary: `Synced ${groups.length} modifier group(s) to menu item "${item.name}"`,
 					newValues: { menuItemId, groupIds: groups.map((g) => g.groupId) },
-				}),
-				tx,
-			)
+				},
+			}
 		})
-
-		// 4. Invalidate cache after commit
-		await this.cache.invalidateStandard(menuItemId)
-		return { id: menuItemId }
 	}
 }

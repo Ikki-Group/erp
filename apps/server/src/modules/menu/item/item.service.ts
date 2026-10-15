@@ -1,16 +1,11 @@
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
-import {
-	BadRequestError,
-	ConflictError,
-	InternalServerError,
-	NotFoundError,
-} from '@/shared/errors/http-error.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -23,54 +18,24 @@ import type {
 	MenuItemFilterDto,
 	MenuItemUpdateDto,
 } from './item.contract.ts'
+import { ItemError } from './item.internal.ts'
 import type { IItemRepo } from './item.repo.ts'
-
-// ─── Error Factories ───
-
-const ItemError = {
-	notFound: (id: number) =>
-		new NotFoundError('Menu item not found', {
-			code: 'MENU_ITEM_NOT_FOUND',
-			context: { id },
-		}),
-	createFailed: () =>
-		new InternalServerError('Menu item creation failed', {
-			code: 'MENU_ITEM_CREATE_FAILED',
-		}),
-	updateFailed: (id: number) =>
-		new InternalServerError('Menu item update failed', {
-			code: 'MENU_ITEM_UPDATE_FAILED',
-			context: { id },
-		}),
-	deleteFailed: (id: number) =>
-		new InternalServerError('Menu item deletion failed', {
-			code: 'MENU_ITEM_DELETE_FAILED',
-			context: { id },
-		}),
-	skuExists: (sku: string) =>
-		new ConflictError('SKU already exists at this location', {
-			code: 'MENU_ITEM_SKU_EXISTS',
-			context: { sku },
-		}),
-	invalidCategory: () =>
-		new BadRequestError('Category must belong to the same location', {
-			code: 'MENU_ITEM_INVALID_CATEGORY',
-		}),
-}
 
 // ─── Service ───
 
 export class ItemService {
 	private readonly cache: CacheService
+	private readonly mutation: MutationScope
 
 	constructor(
 		private readonly repo: IItemRepo,
 		cacheClient: CacheClient,
 		private readonly categoryService: CategoryService,
-		private readonly uow: UnitOfWork,
-		private readonly audit: AuditPort,
+		uow: UnitOfWork,
+		audit: AuditPort,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'menu-item')
+		this.mutation = { uow, audit, module: 'menu', entity: 'menu_item', invalidate: this.cache }
 	}
 
 	// ─── Cached Reads ───
@@ -99,28 +64,21 @@ export class ItemService {
 		}
 
 		// 2. Create and audit in one transaction
-		const result = await this.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			await this.#checkSkuConflict(data.sku, data.locationId, undefined, tx)
 
 			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
 			if (!written) throw ItemError.createFailed()
 
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'menu',
-					entity: 'menu_item',
-					entityId: written.id,
+			return {
+				result: written,
+				audit: {
 					action: 'create',
 					summary: `Created menu item "${data.name}" (SKU: ${data.sku})`,
 					newValues: { sku: data.sku, name: data.name, locationId: data.locationId },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.cache.invalidateStandard()
-		return result
 	}
 
 	async handleUpdate(data: MenuItemUpdateDto, actor: Actor): Promise<EntityRef> {
@@ -135,7 +93,7 @@ export class ItemService {
 		}
 
 		// 3. Update and audit in one transaction
-		const result = await this.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			if (updateData.sku && updateData.sku !== existing.sku) {
 				await this.#checkSkuConflict(updateData.sku, existing.locationId, id, tx)
 			}
@@ -143,22 +101,15 @@ export class ItemService {
 			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
 			if (!written) throw ItemError.updateFailed(id)
 
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'menu',
-					entity: 'menu_item',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'update',
 					summary: `Updated menu item "${updateData.name ?? existing.name}"`,
 					newValues: updateData,
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
@@ -166,25 +117,18 @@ export class ItemService {
 		const existing = await this.handleGetById(id)
 
 		// 2. Delete and audit in one transaction
-		const result = await this.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			const written = await this.repo.remove(id, tx)
 			if (!written) throw ItemError.deleteFailed(id)
 
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'menu',
-					entity: 'menu_item',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'delete',
 					summary: `Deleted menu item "${existing.name}" (SKU: ${existing.sku})`,
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	// ─── Private ───

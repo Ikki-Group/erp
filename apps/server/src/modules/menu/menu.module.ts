@@ -6,14 +6,14 @@ import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import { AssignmentRepo } from './assignment/assignment.repo.ts'
 import { AssignmentService } from './assignment/assignment.service.ts'
-import { CategoryRepo } from './category/category.repo.ts'
+import { createCategoryRepo } from './category/category.repo.ts'
 import { CategoryService } from './category/category.service.ts'
 import { ComposedRepo } from './composed/composed.repo.ts'
 import { ComposedService } from './composed/composed.service.ts'
-import { ItemRepo } from './item/item.repo.ts'
+import { createItemRepo } from './item/item.repo.ts'
 import { ItemService } from './item/item.service.ts'
 import { createMenuRoute } from './menu.route.ts'
-import { ModifierRepo } from './modifier/modifier.repo.ts'
+import { createModifierRepo } from './modifier/modifier.repo.ts'
 import { ModifierService } from './modifier/modifier.service.ts'
 
 function createMenuModule(
@@ -22,9 +22,9 @@ function createMenuModule(
 	uow: UnitOfWork,
 	audit: AuditPort,
 ) {
-	const categoryService = new CategoryService(new CategoryRepo(db), cacheClient, uow, audit)
-	const modifierService = new ModifierService(new ModifierRepo(db), cacheClient, uow, audit)
-	const itemService = new ItemService(new ItemRepo(db), cacheClient, categoryService, uow, audit)
+	const categoryService = new CategoryService(createCategoryRepo(db), cacheClient, uow, audit)
+	const modifierService = new ModifierService(createModifierRepo(db), cacheClient, uow, audit)
+	const itemService = new ItemService(createItemRepo(db), cacheClient, categoryService, uow, audit)
 	const assignmentService = new AssignmentService(
 		new AssignmentRepo(db),
 		cacheClient,

@@ -3,12 +3,11 @@ import { menuCategories } from '@/db/schema/menu.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
-import { defineConflictFields } from '@/infra/database/index.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
-import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -20,59 +19,23 @@ import type {
 	MenuCategoryFilterDto,
 	MenuCategoryUpdateDto,
 } from './category.contract.ts'
+import { CategoryError, uniqueFields } from './category.internal.ts'
 import type { ICategoryRepo } from './category.repo.ts'
-
-// ─── Error Factories ───
-
-const CategoryError = {
-	notFound: (id: number) =>
-		new NotFoundError('Menu category not found', {
-			code: 'MENU_CATEGORY_NOT_FOUND',
-			context: { id },
-		}),
-	createFailed: () =>
-		new InternalServerError('Menu category creation failed', {
-			code: 'MENU_CATEGORY_CREATE_FAILED',
-		}),
-	updateFailed: (id: number) =>
-		new InternalServerError('Menu category update failed', {
-			code: 'MENU_CATEGORY_UPDATE_FAILED',
-			context: { id },
-		}),
-	deleteFailed: (id: number) =>
-		new InternalServerError('Menu category deletion failed', {
-			code: 'MENU_CATEGORY_DELETE_FAILED',
-			context: { id },
-		}),
-	invalidParent: () =>
-		new BadRequestError('Parent category must belong to the same location', {
-			code: 'MENU_CATEGORY_INVALID_PARENT',
-		}),
-}
-
-// ─── Unique Constraint Fields ───
-
-const uniqueFields = defineConflictFields<MenuCategoryCreateDto>()([
-	{
-		field: 'name',
-		column: menuCategories.name,
-		message: 'Menu category name already exists at this location',
-		code: 'MENU_CATEGORY_NAME_EXISTS',
-	},
-])
 
 // ─── Service ───
 
 export class CategoryService {
 	private readonly cache: CacheService
+	private readonly mutation: MutationScope
 
 	constructor(
 		private readonly repo: ICategoryRepo,
 		cacheClient: CacheClient,
-		private readonly uow: UnitOfWork,
-		private readonly audit: AuditPort,
+		uow: UnitOfWork,
+		audit: AuditPort,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'menu-category')
+		this.mutation = { uow, audit, module: 'menu', entity: 'menu_category', invalidate: this.cache }
 	}
 
 	// ─── Cached Reads ───
@@ -108,7 +71,7 @@ export class CategoryService {
 		}
 
 		// 2. Create and audit in one transaction
-		const result = await this.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			await checkConflict({
 				db: tx,
 				table: menuCategories,
@@ -120,22 +83,15 @@ export class CategoryService {
 			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
 			if (!written) throw CategoryError.createFailed()
 
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'menu',
-					entity: 'menu_category',
-					entityId: written.id,
+			return {
+				result: written,
+				audit: {
 					action: 'create',
 					summary: `Created menu category "${data.name}"`,
 					newValues: { name: data.name, locationId: data.locationId },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.cache.invalidateStandard()
-		return result
 	}
 
 	async handleUpdate(data: MenuCategoryUpdateDto, actor: Actor): Promise<EntityRef> {
@@ -150,7 +106,7 @@ export class CategoryService {
 		}
 
 		// 3. Update and audit in one transaction
-		const result = await this.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			await checkConflict({
 				db: tx,
 				table: menuCategories,
@@ -163,22 +119,15 @@ export class CategoryService {
 			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
 			if (!written) throw CategoryError.updateFailed(id)
 
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'menu',
-					entity: 'menu_category',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'update',
 					summary: `Updated menu category "${updateData.name ?? existing.name}"`,
 					newValues: updateData,
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
@@ -186,25 +135,15 @@ export class CategoryService {
 		const existing = await this.handleGetById(id)
 
 		// 2. Delete and audit in one transaction
-		const result = await this.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			const written = await this.repo.remove(id, tx)
 			if (!written) throw CategoryError.deleteFailed(id)
 
-			await this.audit.record(
-				auditEntryOf(actor, {
-					module: 'menu',
-					entity: 'menu_category',
-					entityId: id,
-					action: 'delete',
-					summary: `Deleted menu category "${existing.name}"`,
-				}),
-				tx,
-			)
-			return written
+			return {
+				result: written,
+				audit: { action: 'delete', summary: `Deleted menu category "${existing.name}"` },
+			}
 		})
-
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	// ─── Private ───
