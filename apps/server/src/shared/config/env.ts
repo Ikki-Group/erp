@@ -23,6 +23,7 @@ const envSchema = z.object({
 
 	// Database
 	DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+	DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 
 	// Redis (optional — session store and BentoCache L2 layer; memory-only when unset)
 	REDIS_URL: z.string().optional(),
