@@ -25,8 +25,14 @@ import type { IStockRepo } from './stock.repo.ts'
 
 const BALANCE_TTL = 10_000 // 10 seconds (Tier 3)
 const CACHE_NS = 'inventory-stock'
-/** Tag on every cached balance read; movements invalidate by tag, not by tracked keys. */
+/** Tag on every cached balance read; lets invalidation free entries of old generations. */
 const BALANCE_TAG = 'stock:balance'
+/**
+ * Balance cache keys embed a generation that every invalidation replaces. A read reads the
+ * generation BEFORE querying the DB, so a read that races a commit writes under the old
+ * generation, which no later read looks up — closing the stale-after-invalidate window.
+ */
+const BALANCE_GEN_KEY = `${CACHE_NS}:balance:gen`
 
 // ─── Service ───
 
@@ -150,8 +156,9 @@ export class StockService {
 		return this.repo.findBalance(materialId, locationId)
 	}
 	async handleGetBalance(query: StockBalanceQueryDto): Promise<StockBalanceDto> {
+		const gen = await this.#balanceGeneration()
 		const balance = await this.cache.getOrSet({
-			key: `${CACHE_NS}:balance:${query.locationId}:${query.materialId}`,
+			key: `${CACHE_NS}:balance:${gen}:${query.locationId}:${query.materialId}`,
 			// Missing balances are not cached: the first movement creates the row.
 			factory: async (ctx) =>
 				(await this.repo.findBalance(query.materialId, query.locationId)) ?? ctx.skip(),
@@ -162,14 +169,20 @@ export class StockService {
 	}
 
 	async invalidateCache(): Promise<void> {
+		await this.cache.set({ key: BALANCE_GEN_KEY, value: crypto.randomUUID() })
 		await this.cache.deleteByTag({ tags: [BALANCE_TAG] })
+	}
+
+	#balanceGeneration(): Promise<string> {
+		return this.cache.getOrSet({ key: BALANCE_GEN_KEY, factory: () => crypto.randomUUID() })
 	}
 
 	async handleGetBalances(
 		filter: StockBalanceFilterDto,
 	): Promise<WithPaginationResult<StockBalanceDto>> {
+		const gen = await this.#balanceGeneration()
 		return this.cache.getOrSet({
-			key: `${CACHE_NS}:balances:loc:${filter.locationId}:p${filter.page}:l${filter.limit}:m${filter.materialId ?? 'all'}`,
+			key: `${CACHE_NS}:balances:${gen}:loc:${filter.locationId}:p${filter.page}:l${filter.limit}:m${filter.materialId ?? 'all'}`,
 			factory: () => this.repo.findBalancesByLocation(filter),
 			ttl: BALANCE_TTL,
 			tags: [BALANCE_TAG],
