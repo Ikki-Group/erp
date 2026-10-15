@@ -1,6 +1,6 @@
 import type { CreateSessionInput, SessionData, SessionStore } from '@/shared/auth/session.port.ts'
 
-import type { RedisClient } from 'bun'
+import type Redis from 'ioredis'
 
 function isSessionData(value: unknown): value is SessionData {
 	if (typeof value !== 'object' || value === null) return false
@@ -14,17 +14,8 @@ function parseSessionData(raw: string): SessionData {
 	return value
 }
 
-function isStringArray(value: unknown): value is string[] {
-	return Array.isArray(value) && value.every((item) => typeof item === 'string')
-}
-
-async function readMembers(client: RedisClient, key: string): Promise<string[]> {
-	const result: unknown = await client.send('SMEMBERS', [key])
-	return isStringArray(result) ? result : []
-}
-
 export interface RedisSessionStoreOptions {
-	client: RedisClient
+	client: Redis
 	ttlSeconds: number
 }
 
@@ -35,7 +26,7 @@ export interface RedisSessionStoreOptions {
  * `deleteAllForUser` doesn't require a scan.
  */
 export class RedisSessionStore implements SessionStore {
-	private readonly client: RedisClient
+	private readonly client: Redis
 	private readonly ttlSeconds: number
 
 	constructor(options: RedisSessionStoreOptions) {
@@ -60,9 +51,13 @@ export class RedisSessionStore implements SessionStore {
 	}
 
 	async create(data: CreateSessionInput): Promise<void> {
-		await this.client.set(this.#key(data.id), JSON.stringify(data), 'EX', this.ttlSeconds)
-		await this.client.send('SADD', [this.#userKey(data.userId), data.id])
-		await this.client.expire(this.#userKey(data.userId), this.ttlSeconds)
+		const userKey = this.#userKey(data.userId)
+		await this.client
+			.multi()
+			.set(this.#key(data.id), JSON.stringify(data), 'EX', this.ttlSeconds)
+			.sadd(userKey, data.id)
+			.expire(userKey, this.ttlSeconds)
+			.exec()
 	}
 
 	async delete(sessionId: string): Promise<void> {
@@ -71,12 +66,12 @@ export class RedisSessionStore implements SessionStore {
 		if (!raw) return
 
 		const { userId } = parseSessionData(raw)
-		await this.client.send('SREM', [this.#userKey(userId), sessionId])
+		await this.client.srem(this.#userKey(userId), sessionId)
 	}
 
 	async deleteAllForUser(userId: number): Promise<void> {
 		const userKey = this.#userKey(userId)
-		const ids = await readMembers(this.client, userKey)
+		const ids = await this.client.smembers(userKey)
 		if (ids.length > 0) {
 			await this.client.del(...ids.map((id) => this.#key(id)))
 		}
