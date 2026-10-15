@@ -170,6 +170,12 @@ export const OrderFilterDto = z.object({
 })
 export type OrderFilterDto = z.infer<typeof OrderFilterDto>
 
+/** Same filters as `OrderFilterDto`, keyset-paginated by `(orderedAt desc, id desc)`. */
+export const OrderCursorFilterDto = OrderFilterDto.omit({ page: true }).extend(
+	zq.cursorPagination.shape,
+)
+export type OrderCursorFilterDto = z.infer<typeof OrderCursorFilterDto>
+
 // ─── Response: Voucher Apply Result ───
 
 export const OrderVoucherApplyResultDto = z.object({

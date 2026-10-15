@@ -1,3 +1,5 @@
+import { getTableColumns } from 'drizzle-orm'
+
 import { orderLines, orders, payments } from '@/db/schema/pos.ts'
 
 import {
@@ -13,16 +15,21 @@ import {
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
-import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import { keyset, keysetOrderBy } from '@/infra/database/keyset.ts'
+import type { WithCursorResult, WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type {
+	OrderCursorFilterDto,
 	OrderDetailDto,
 	OrderDto,
 	OrderFilterDto,
 	OrderLineDto,
 	OrderPaymentRecordDto,
 } from './order.contract.ts'
+
+/** Order list order (keyset and offset lists agree row-for-row). */
+const orderSortKey = { timestamp: orders.orderedAt, id: orders.id }
 
 // ─── Types ───
 
@@ -105,6 +112,7 @@ export interface IOrderRepo {
 	findByExternalRef(externalRef: string, db?: DbContext): Promise<OrderDto | undefined>
 	findDetailById(id: number, db?: DbContext): Promise<OrderDetailDto | undefined>
 	findPage(filter: OrderFilterDto, db?: DbContext): Promise<WithPaginationResult<OrderDto>>
+	findCursorPage(filter: OrderCursorFilterDto, db?: DbContext): Promise<WithCursorResult<OrderDto>>
 	insert(data: OrderInsert, db?: DbContext): Promise<EntityRef | undefined>
 	update(id: number, data: OrderUpdate, db?: DbContext): Promise<EntityRef | undefined>
 	// Lines
@@ -200,7 +208,7 @@ export class OrderRepo implements IOrderRepo {
 			})
 			.from(orders)
 			.where(where)
-			.orderBy(sql`${orders.orderedAt} desc`)
+			.orderBy(...keysetOrderBy(orderSortKey))
 			.limit(limit)
 			.offset(offset)
 
@@ -209,6 +217,20 @@ export class OrderRepo implements IOrderRepo {
 			data: rows.map((row) => toOrderDto(row)),
 			meta: buildPaginationMeta(filter.page, filter.limit, total),
 		}
+	}
+
+	async findCursorPage(
+		filter: OrderCursorFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithCursorResult<OrderDto>> {
+		const page = keyset(filter, orderSortKey)
+		const rows = await db
+			.select({ ...getTableColumns(orders), cursorKey: page.sortKey })
+			.from(orders)
+			.where(allOf(this.#buildWhere(filter), page.where))
+			.orderBy(...page.orderBy)
+			.limit(page.limit)
+		return page.page(rows, toOrderDto)
 	}
 
 	async insert(data: OrderInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
@@ -284,7 +306,7 @@ export class OrderRepo implements IOrderRepo {
 
 	// ─── Private ───
 
-	#buildWhere(filter: OrderFilterDto) {
+	#buildWhere(filter: OrderFilterDto | OrderCursorFilterDto) {
 		return allOf(
 			eq(orders.locationId, filter.locationId),
 			eqIf(orders.status, filter.status),

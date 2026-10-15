@@ -8,7 +8,7 @@ import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Money } from '@/shared/domain/money.ts'
-import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { WithCursorResult, WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import { assertFound } from '@/shared/utils/index.ts'
@@ -30,6 +30,7 @@ import type {
 	OrderApplyVoucherDto,
 	OrderCompleteDto,
 	OrderCreateDto,
+	OrderCursorFilterDto,
 	OrderDetailDto,
 	OrderDto,
 	OrderFilterDto,
@@ -98,6 +99,10 @@ export class OrderService {
 
 	async handleList(filter: OrderFilterDto): Promise<WithPaginationResult<OrderDto>> {
 		return this.repo.findPage(filter)
+	}
+
+	async handleCursorList(filter: OrderCursorFilterDto): Promise<WithCursorResult<OrderDto>> {
+		return this.repo.findCursorPage(filter)
 	}
 
 	// ─── Create ───

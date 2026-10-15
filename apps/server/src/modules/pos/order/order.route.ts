@@ -11,6 +11,7 @@ import {
 	OrderApplyVoucherDto,
 	OrderCompleteDto,
 	OrderCreateDto,
+	OrderCursorFilterDto,
 	OrderDetailDto,
 	OrderDto,
 	OrderFilterDto,
@@ -39,6 +40,18 @@ export function createOrderRoute(service: OrderService) {
 					return res.paginated(result)
 				},
 				{ query: OrderFilterDto, permission: 'order.read', response: zRes.paginated(OrderDto) },
+			)
+			.get(
+				'/list/cursor',
+				async ({ query }) => {
+					const result = await service.handleCursorList(query)
+					return res.cursorPaginated(result)
+				},
+				{
+					query: OrderCursorFilterDto,
+					permission: 'order.read',
+					response: zRes.cursorPaginated(OrderDto),
+				},
 			)
 			.get(
 				'/detail',
