@@ -1,6 +1,8 @@
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import type { AuthContext } from '@/shared/auth/index.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
 import type { CachePort } from '@/shared/cache/cache.port.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
@@ -16,7 +18,17 @@ export interface CompanyServiceDeps {
 }
 
 export class CompanyService {
-	constructor(private readonly deps: CompanyServiceDeps) {}
+	private readonly mutation: MutationScope
+
+	constructor(private readonly deps: CompanyServiceDeps) {
+		this.mutation = {
+			uow: deps.uow,
+			audit: deps.audit,
+			module: 'company',
+			entity: 'company_settings',
+			invalidate: (ref) => deps.cache.invalidate('company', ref.id),
+		}
+	}
 
 	async getSettings(): Promise<CompanySettingsDto | undefined> {
 		return this.deps.cache.getOrSetOptional('company', 'settings', () => this.deps.repo.findOne())
@@ -28,23 +40,17 @@ export class CompanyService {
 		return settings
 	}
 
-	async handleUpdate(data: CompanySettingsUpdateDto, auth: AuthContext): Promise<EntityRef> {
+	async handleUpdate(data: CompanySettingsUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			const existing = await this.deps.repo.findOne(tx)
 			if (!existing || existing.id !== id) throw CompanyError.notFound()
 
 			const written = await this.deps.repo.update(id, updateData, tx)
 			if (!written) throw CompanyError.updateFailed()
-
-			await this.deps.audit.record(
-				{
-					actorId: auth.userId,
-					actorName: auth.userName,
-					locationId: auth.locationId,
-					module: 'company',
-					entity: 'company_settings',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'update',
 					summary: `Updated company settings "${updateData.name}"`,
 					newValues: {
@@ -53,13 +59,8 @@ export class CompanyService {
 						taxRate: updateData.taxRate,
 					},
 				},
-				tx,
-			)
-			return written
+			}
 		})
-
-		await this.deps.cache.invalidate('company', result.id)
-		return result
 	}
 
 	async getTaxRatePercent(): Promise<string> {

@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto } from '@/shared/schema/index.ts'
@@ -15,9 +16,13 @@ export function createCompanyRoute(service: CompanyService) {
 			response: zRes.ok(CompanySettingsDto),
 			permission: 'company.read',
 		})
-		.put('/settings', async ({ body, auth }) => res.ok(await service.handleUpdate(body, auth)), {
-			body: CompanySettingsUpdateDto,
-			response: zRes.ok(EntityRefDto),
-			permission: 'company.update',
-		})
+		.put(
+			'/settings',
+			async ({ body, auth }) => res.ok(await service.handleUpdate(body, actorOf(auth))),
+			{
+				body: CompanySettingsUpdateDto,
+				response: zRes.ok(EntityRefDto),
+				permission: 'company.update',
+			},
+		)
 }

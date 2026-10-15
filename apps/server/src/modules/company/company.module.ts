@@ -1,6 +1,6 @@
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 
-import { CompanyRepo } from './company.repo.ts'
+import { createCompanyRepo } from './company.repo.ts'
 import { createCompanyRoute } from './company.route.ts'
 import { CompanyService } from './company.service.ts'
 
@@ -16,7 +16,7 @@ export const companyModule: ModuleDescriptor = {
 	dependsOn: [],
 	create(ctx) {
 		const service = new CompanyService({
-			repo: new CompanyRepo(ctx.db),
+			repo: createCompanyRepo(ctx.db),
 			uow: ctx.uow,
 			cache: ctx.cache,
 			audit: ctx.auditPort,
