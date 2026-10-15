@@ -1,4 +1,6 @@
 name: Deploy server to Fly.io
+permissions:
+  contents: read
 
 # Runs only after CI succeeds on a push to main (or manually).
 on:
