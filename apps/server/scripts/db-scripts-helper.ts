@@ -34,8 +34,8 @@ async function runReset(): Promise<void> {
 	const { execSync } = await import('node:child_process')
 	// Drop schema and recreate
 	execSync('bun run scripts/db-reset.ts', { stdio: 'inherit', cwd: import.meta.dir + '/..' })
-	// Run migrations
-	execSync('bunx --bun drizzle-kit migrate', { stdio: 'inherit', cwd: import.meta.dir + '/..' })
+	// Run migrations with the same runner production uses (scripts/migrate.ts)
+	execSync('bun run scripts/migrate.ts', { stdio: 'inherit', cwd: import.meta.dir + '/..' })
 	console.log('[db-scripts-helper] Reset complete.')
 }
 
