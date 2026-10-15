@@ -13,7 +13,7 @@ import { AssignmentService } from './assignment/assignment.service.ts'
 import { ComposedRepo } from './composed/composed.repo.ts'
 import { ComposedService } from './composed/composed.service.ts'
 import { createIamRoute } from './iam.route.ts'
-import { RoleRepo } from './role/role.repo.ts'
+import { createRoleRepo } from './role/role.repo.ts'
 import { RoleService } from './role/role.service.ts'
 import { UserRepo } from './user/user.repo.ts'
 import { UserService } from './user/user.service.ts'
@@ -36,7 +36,7 @@ interface IamModuleDeps {
 
 function createIamModule(db: DbContext, cacheClient: CacheClient, deps: IamModuleDeps) {
 	// Repos
-	const roleRepo = new RoleRepo(db)
+	const roleRepo = createRoleRepo(db)
 	const userRepo = new UserRepo(db)
 	const assignmentRepo = new AssignmentRepo(db)
 	const composedRepo = new ComposedRepo(db)

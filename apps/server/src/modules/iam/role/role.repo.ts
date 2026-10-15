@@ -1,26 +1,16 @@
 import { roles, userAssignments } from '@/db/schema/iam.ts'
 
-import {
-	allOf,
-	eq,
-	eqIf,
-	inArray,
-	searchAcross,
-	sql,
-	takeFirst,
-	toLimitOffset,
-	buildPaginationMeta,
-} from '@/infra/database/index.ts'
+import { createCrudRepo } from '@/infra/database/crud.repo.ts'
+import type { CrudRepo } from '@/infra/database/crud.repo.ts'
+import { allOf, eq, eqIf, searchAcross } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
-import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type { RoleDto, RoleFilterDto } from './role.contract.ts'
 
 // ─── Types ───
 
 type RoleInsert = typeof roles.$inferInsert
-type RoleUpdate = Partial<Omit<RoleInsert, 'id'>>
 type RoleRow = typeof roles.$inferSelect
 
 /** Maps a raw DB row to the DTO shape. */
@@ -43,110 +33,37 @@ function toDto(row: RoleRow): RoleDto {
 
 // ─── Interface ───
 
-export interface IRoleRepo {
-	readonly db: DbContext
-	findById(id: number, db?: DbContext): Promise<RoleDto | undefined>
-	findByIds(ids: number[], db?: DbContext): Promise<RoleDto[]>
-	findMany(db?: DbContext): Promise<RoleDto[]>
+export interface IRoleRepo extends CrudRepo<RoleDto, RoleInsert> {
 	findPage(filter: RoleFilterDto, db?: DbContext): Promise<WithPaginationResult<RoleDto>>
-	insert(data: RoleInsert, db?: DbContext): Promise<EntityRef | undefined>
-	update(id: number, data: RoleUpdate, db?: DbContext): Promise<EntityRef | undefined>
 	countAssignments(roleId: number, db?: DbContext): Promise<number>
-	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
 }
 
 // ─── Implementation ───
 
-export class RoleRepo implements IRoleRepo {
-	constructor(readonly db: DbContext) {}
+export function createRoleRepo(baseDb: DbContext): IRoleRepo {
+	const crud = createCrudRepo({ db: baseDb, table: roles, toDto })
 
-	async findById(id: number, db: DbContext = this.db): Promise<RoleDto | undefined> {
-		const row = await db.select().from(roles).where(eq(roles.id, id)).limit(1).then(takeFirst)
-		return row ? toDto(row) : undefined
-	}
+	return {
+		...crud,
 
-	async findByIds(ids: number[], db: DbContext = this.db): Promise<RoleDto[]> {
-		if (ids.length === 0) return []
-		const rows = await db.select().from(roles).where(inArray(roles.id, ids))
-		return rows.map(toDto)
-	}
+		findPage: (filter, db) =>
+			crud.paginate(
+				filter,
+				{
+					where: allOf(
+						searchAcross(filter.q, [roles.code, roles.name]),
+						eqIf(roles.isSystem, filter.isSystem === undefined ? undefined : filter.isSystem === 1),
+					),
+				},
+				db,
+			),
 
-	async findMany(db: DbContext = this.db): Promise<RoleDto[]> {
-		const rows = await db.select().from(roles)
-		return rows.map(toDto)
-	}
-
-	async findPage(
-		filter: RoleFilterDto,
-		db: DbContext = this.db,
-	): Promise<WithPaginationResult<RoleDto>> {
-		const where = this.#buildWhere(filter)
-		const { limit, offset } = toLimitOffset(filter)
-
-		const rows = await db
-			.select({
-				id: roles.id,
-				code: roles.code,
-				name: roles.name,
-				description: roles.description,
-				isSystem: roles.isSystem,
-				permissions: roles.permissions,
-				createdAt: roles.createdAt,
-				updatedAt: roles.updatedAt,
-				createdBy: roles.createdBy,
-				updatedBy: roles.updatedBy,
-				rowCount: sql<number>`count(*) over()`.as('row_count'),
-			})
-			.from(roles)
-			.where(where)
-			.orderBy(sql`${roles.id} desc`)
-			.limit(limit)
-			.offset(offset)
-
-		const total = rows[0]?.rowCount ?? 0
-		return {
-			data: rows.map((row) => toDto(row)),
-			meta: buildPaginationMeta(filter.page, filter.limit, total),
-		}
-	}
-
-	async insert(data: RoleInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
-		const [result] = await db.insert(roles).values(data).returning({ id: roles.id })
-		return result
-	}
-
-	async update(
-		id: number,
-		data: RoleUpdate,
-		db: DbContext = this.db,
-	): Promise<EntityRef | undefined> {
-		const [result] = await db
-			.update(roles)
-			.set(data)
-			.where(eq(roles.id, id))
-			.returning({ id: roles.id })
-		return result
-	}
-
-	async countAssignments(roleId: number, db: DbContext = this.db): Promise<number> {
-		const rows = await db
-			.select({ id: userAssignments.id })
-			.from(userAssignments)
-			.where(eq(userAssignments.roleId, roleId))
-		return rows.length
-	}
-
-	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
-		const [result] = await db.delete(roles).where(eq(roles.id, id)).returning({ id: roles.id })
-		return result
-	}
-
-	// ─── Private ───
-
-	#buildWhere(filter: RoleFilterDto) {
-		return allOf(
-			searchAcross(filter.q, [roles.code, roles.name]),
-			eqIf(roles.isSystem, filter.isSystem === undefined ? undefined : filter.isSystem === 1),
-		)
+		async countAssignments(roleId, db = baseDb) {
+			const rows = await db
+				.select({ id: userAssignments.id })
+				.from(userAssignments)
+				.where(eq(userAssignments.roleId, roleId))
+			return rows.length
+		},
 	}
 }

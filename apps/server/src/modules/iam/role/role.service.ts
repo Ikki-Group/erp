@@ -4,10 +4,11 @@ import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import { invalidateAuthCacheForRole } from '@/shared/auth/access-cache.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { Invalidation, MutationScope } from '@/shared/service/mutate.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -28,13 +29,24 @@ export interface RoleServiceDeps {
 
 export class RoleService {
 	private readonly cache: CacheService
+	private readonly mutation: MutationScope
+	/** Changing an existing role also drops cached permissions of every session holding it. */
+	private readonly existingRoleInvalidation: readonly Invalidation[]
 
 	constructor(
 		private readonly repo: IRoleRepo,
 		cacheClient: CacheClient,
-		private readonly deps: RoleServiceDeps,
+		deps: RoleServiceDeps,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'role')
+		this.mutation = {
+			uow: deps.uow,
+			audit: deps.audit,
+			module: 'iam',
+			entity: 'role',
+			invalidate: this.cache,
+		}
+		this.existingRoleInvalidation = [(ref) => invalidateAuthCacheForRole(ref.id), this.cache]
 	}
 
 	// ─── Cached Reads ───
@@ -64,7 +76,7 @@ export class RoleService {
 	}
 
 	async handleCreate(data: RoleCreateDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			await checkConflict({
 				db: tx,
 				table: roles,
@@ -74,20 +86,13 @@ export class RoleService {
 			})
 
 			const written = await this.repo.insert(
-				{
-					...data,
-					isSystem: false,
-					...stampCreate(actor.id),
-				},
+				{ ...data, isSystem: false, ...stampCreate(actor.id) },
 				tx,
 			)
 			if (!written) throw RoleError.createFailed()
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'iam',
-					entity: 'role',
-					entityId: written.id,
+			return {
+				result: written,
+				audit: {
 					action: 'create',
 					summary: `Created role "${data.name}" (${data.code})`,
 					newValues: {
@@ -96,82 +101,71 @@ export class RoleService {
 						description: data.description,
 						permissions: data.permissions,
 					},
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.cache.invalidateStandard()
-		return result
 	}
 
 	async handleUpdate(data: RoleUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
-		const result = await this.deps.uow.run(async (tx) => {
-			const existing = await this.repo.findById(id, tx)
-			if (!existing) throw RoleError.notFound(id)
-			if (existing.isSystem) throw RoleError.systemRoleImmutable()
+		return mutate(
+			this.mutation,
+			actor,
+			async (tx) => {
+				const existing = await this.repo.findById(id, tx)
+				if (!existing) throw RoleError.notFound(id)
+				if (existing.isSystem) throw RoleError.systemRoleImmutable()
 
-			await checkConflict({
-				db: tx,
-				table: roles,
-				pkColumn: roles.id,
-				fields: uniqueFields,
-				input: updateData,
-				excludeId: id,
-			})
+				await checkConflict({
+					db: tx,
+					table: roles,
+					pkColumn: roles.id,
+					fields: uniqueFields,
+					input: updateData,
+					excludeId: id,
+				})
 
-			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
-			if (!written) throw RoleError.updateFailed(id)
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'iam',
-					entity: 'role',
-					entityId: id,
-					action: 'update',
-					summary: `Updated role "${data.name}" (${data.code})`,
-					newValues: {
-						code: data.code,
-						name: data.name,
-						description: data.description,
-						permissions: data.permissions,
+				const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
+				if (!written) throw RoleError.updateFailed(id)
+				return {
+					result: written,
+					audit: {
+						action: 'update',
+						summary: `Updated role "${data.name}" (${data.code})`,
+						newValues: {
+							code: data.code,
+							name: data.name,
+							description: data.description,
+							permissions: data.permissions,
+						},
 					},
-				}),
-				tx,
-			)
-			return written
-		})
-
-		await invalidateAuthCacheForRole(id)
-		await this.cache.invalidateStandard(id)
-		return result
+				}
+			},
+			{ invalidate: this.existingRoleInvalidation },
+		)
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			const existing = await this.repo.findById(id, tx)
-			if (!existing) throw RoleError.notFound(id)
-			if (existing.isSystem) throw RoleError.systemRoleImmutable()
-			if ((await this.repo.countAssignments(id, tx)) > 0) throw RoleError.assignedRole(id)
+		return mutate(
+			this.mutation,
+			actor,
+			async (tx) => {
+				const existing = await this.repo.findById(id, tx)
+				if (!existing) throw RoleError.notFound(id)
+				if (existing.isSystem) throw RoleError.systemRoleImmutable()
+				if ((await this.repo.countAssignments(id, tx)) > 0) throw RoleError.assignedRole(id)
 
-			const written = await this.repo.remove(id, tx)
-			if (!written) throw RoleError.deleteFailed(id)
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'iam',
-					entity: 'role',
-					entityId: id,
-					action: 'delete',
-					summary: `Deleted role "${existing.name}" (${existing.code})`,
-				}),
-				tx,
-			)
-			return written
-		})
-
-		await invalidateAuthCacheForRole(id)
-		await this.cache.invalidateStandard(id)
-		return result
+				const written = await this.repo.remove(id, tx)
+				if (!written) throw RoleError.deleteFailed(id)
+				return {
+					result: written,
+					audit: {
+						action: 'delete',
+						summary: `Deleted role "${existing.name}" (${existing.code})`,
+					},
+				}
+			},
+			{ invalidate: this.existingRoleInvalidation },
+		)
 	}
 }

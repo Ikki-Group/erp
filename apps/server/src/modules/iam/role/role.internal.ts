@@ -1,29 +1,15 @@
 import { roles } from '@/db/schema/iam.ts'
 
 import { defineConflictFields } from '@/infra/database/index.ts'
-import {
-	ConflictError,
-	ForbiddenError,
-	InternalServerError,
-	NotFoundError,
-} from '@/shared/errors/http-error.ts'
+import { defineEntityErrors } from '@/shared/errors/entity-errors.ts'
+import { ConflictError, ForbiddenError } from '@/shared/errors/http-error.ts'
 
 import type { RoleCreateDto } from './role.contract.ts'
 
 // ─── Error Factories ───
 
 export const RoleError = {
-	notFound: (id: number) =>
-		new NotFoundError('Role not found', { code: 'ROLE_NOT_FOUND', context: { id } }),
-	createFailed: () =>
-		new InternalServerError('Role creation failed', { code: 'ROLE_CREATE_FAILED' }),
-	updateFailed: (id: number) =>
-		new InternalServerError('Role update failed', { code: 'ROLE_UPDATE_FAILED', context: { id } }),
-	deleteFailed: (id: number) =>
-		new InternalServerError('Role deletion failed', {
-			code: 'ROLE_DELETE_FAILED',
-			context: { id },
-		}),
+	...defineEntityErrors('Role', 'ROLE'),
 	systemRoleImmutable: () =>
 		new ForbiddenError('System role cannot be modified', { code: 'SYSTEM_ROLE_IMMUTABLE' }),
 	assignedRole: (id: number) =>
