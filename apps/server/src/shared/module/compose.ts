@@ -8,6 +8,15 @@ export function composeModules(
 	const built = new Map<string, BuiltModule>()
 	const visiting = new Set<string>()
 
+	for (const descriptor of descriptors) {
+		for (const dependency of descriptor.dependsOn) {
+			if (!byName.has(dependency))
+				throw new Error(
+					`Unknown module dependency "${dependency}" (required by "${descriptor.name}")`,
+				)
+		}
+	}
+
 	function build(name: string): BuiltModule {
 		const existing = built.get(name)
 		if (existing) return existing

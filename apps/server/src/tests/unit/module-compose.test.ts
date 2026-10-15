@@ -62,4 +62,17 @@ describe('composeModules', () => {
 			'Upward dependency: "core" (L0) → "operations" (L2)',
 		)
 	})
+
+	test('rejects unknown dependencies before building any module', () => {
+		const created: string[] = []
+		const descriptors = [
+			descriptor('core', 0, [], () => created.push('core')),
+			descriptor('feature', 1, ['missing'], () => created.push('feature')),
+		]
+
+		expect(() => composeModules(descriptors, ctx)).toThrow(
+			'Unknown module dependency "missing" (required by "feature")',
+		)
+		expect(created).toEqual([])
+	})
 })
