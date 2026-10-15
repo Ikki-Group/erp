@@ -1,4 +1,9 @@
-import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import {
+	BadRequestError,
+	ConflictError,
+	InternalServerError,
+	NotFoundError,
+} from '@/shared/errors/http-error.ts'
 
 // ─── Error Factories ───
 
@@ -12,6 +17,11 @@ export const OrderError = {
 		new BadRequestError('Order is not in open status', {
 			code: 'ORDER_NOT_OPEN',
 			context: { id },
+		}),
+	externalRefLocationMismatch: (externalRef: string, orderId: number, locationId: number) =>
+		new ConflictError('External reference already used by an order at another location', {
+			code: 'ORDER_EXTERNAL_REF_CONFLICT',
+			context: { externalRef, orderId, locationId },
 		}),
 	noActiveShift: (userId: number, locationId: number) =>
 		new BadRequestError('No active shift found at this location', {

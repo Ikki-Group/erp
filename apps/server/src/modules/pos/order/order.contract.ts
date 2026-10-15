@@ -84,11 +84,24 @@ export type OrderDetailDto = z.infer<typeof OrderDetailDto>
 
 // ─── Input: Create Order ───
 
+/**
+ * Create is idempotent per `externalRef`: retrying with the same reference
+ * returns the original order's id instead of creating a duplicate.
+ */
 export const OrderCreateDto = z.object({
 	locationId: z.coerce.number().int().positive(),
 	tableId: z.coerce.number().int().positive().nullable().optional(),
 	type: OrderTypeEnum,
 	notes: z.string().trim().max(1000).nullable().optional(),
+	externalRef: z
+		.string()
+		.trim()
+		.min(1)
+		.max(255)
+		.optional()
+		.describe(
+			'Client idempotency key. Retries with the same value return the existing order id (same location only).',
+		),
 })
 export type OrderCreateDto = z.infer<typeof OrderCreateDto>
 

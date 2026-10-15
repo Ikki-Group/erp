@@ -1,5 +1,6 @@
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
+import { PG_UNIQUE_VIOLATION, findPgError } from '@/infra/database/pg-errors.ts'
 import { generateNumber } from '@/infra/numbering/index.ts'
 import { record } from '@/infra/otel/otel.ts'
 import { auditEntryOf } from '@/shared/audit/audit.port.ts'
@@ -40,6 +41,9 @@ import type {
 import { deductStockForOrder } from './order.deduction.ts'
 import { OrderError } from './order.internal.ts'
 import type { IOrderRepo } from './order.repo.ts'
+
+/** Partial unique index on orders.external_ref (see db/schema/pos.ts). */
+const EXTERNAL_REF_CONSTRAINT = 'orders_external_ref_uniq'
 
 // ─── Dependencies ───
 
@@ -98,8 +102,12 @@ export class OrderService {
 
 	// ─── Create ───
 
+	/**
+	 * Creates an open order. Idempotent per `externalRef`: a retry (sequential or
+	 * concurrent) returns the existing order's ref without creating a second order.
+	 */
 	async handleCreate(data: OrderCreateDto, actor: Actor): Promise<EntityRef> {
-		const { locationId, tableId, type, notes } = data
+		const { locationId, tableId, type, notes, externalRef } = data
 
 		// 1. Validate active shift at location
 		const shift = await this.deps.shiftService.handleGetActive(actor.id, locationId)
@@ -109,53 +117,77 @@ export class OrderService {
 		const location = await this.deps.locationService.handleGetById(locationId)
 
 		// 3. Generate number, insert order, and audit atomically
-		const transactionResult = await this.deps.uow.run(async (tx) => {
-			const orderNo = await generateNumber({
-				prefix: 'ORD',
-				locationCode: location.code,
-				locationId,
-				database: tx,
-			})
-			const result = await this.repo.insert(
-				{
-					orderNo,
-					locationId,
-					tableId: tableId ?? null,
-					shiftId: shift.id,
-					type,
-					status: 'open',
-					subtotal: '0',
-					discountAmount: '0',
-					taxAmount: '0',
-					total: '0',
-					notes: notes ?? null,
-					...stampCreate(actor.id),
-				},
-				tx,
-			)
-			if (!result) throw OrderError.createFailed()
+		let created: { result: EntityRef; replayed: boolean }
+		try {
+			created = await this.deps.uow.run(async (tx) => {
+				if (externalRef) {
+					const existing = await this.repo.findByExternalRef(externalRef, tx)
+					if (existing) {
+						return { result: this.#replayExternalRef(existing, locationId), replayed: true }
+					}
+				}
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'pos-order',
-					entity: 'order',
-					entityId: result.id,
-					action: 'create',
-					summary: `Created order ${orderNo} (${type}) at location #${locationId}`,
-					newValues: { orderNo, type, tableId, shiftId: shift.id },
-				}),
-				tx,
-			)
-			return { result, orderNo }
-		})
-		const { result } = transactionResult
+				const orderNo = await generateNumber({
+					prefix: 'ORD',
+					locationCode: location.code,
+					locationId,
+					database: tx,
+				})
+				const result = await this.repo.insert(
+					{
+						orderNo,
+						locationId,
+						tableId: tableId ?? null,
+						shiftId: shift.id,
+						type,
+						status: 'open',
+						subtotal: '0',
+						discountAmount: '0',
+						taxAmount: '0',
+						total: '0',
+						externalRef: externalRef ?? null,
+						notes: notes ?? null,
+						...stampCreate(actor.id),
+					},
+					tx,
+				)
+				if (!result) throw OrderError.createFailed()
+
+				await this.deps.audit.record(
+					auditEntryOf(actor, {
+						module: 'pos-order',
+						entity: 'order',
+						entityId: result.id,
+						action: 'create',
+						summary: `Created order ${orderNo} (${type}) at location #${locationId}`,
+						newValues: { orderNo, type, tableId, shiftId: shift.id, externalRef },
+					}),
+					tx,
+				)
+				return { result, replayed: false }
+			})
+		} catch (error) {
+			// A concurrent retry committed the same externalRef first: return its order.
+			const pg = findPgError(error)
+			if (
+				!externalRef ||
+				pg?.code !== PG_UNIQUE_VIOLATION ||
+				pg.constraint !== EXTERNAL_REF_CONSTRAINT
+			) {
+				throw error
+			}
+			const existing = await this.repo.findByExternalRef(externalRef)
+			if (!existing) throw error
+			return this.#replayExternalRef(existing, locationId)
+		}
+		if (created.replayed) return created.result
 
 		// 4. Update table status and invalidate cache after commit
 		if (tableId) {
 			await this.deps.tableService.updateStatus(tableId, 'occupied')
 		}
 		await this.cache.invalidateStandard()
-		return result
+		return created.result
 	}
 
 	// ─── Sync Lines ───
@@ -565,6 +597,17 @@ export class OrderService {
 	}
 
 	// ─── Private ───
+
+	#replayExternalRef(existing: OrderDto, locationId: number): EntityRef {
+		if (existing.locationId !== locationId) {
+			throw OrderError.externalRefLocationMismatch(
+				existing.externalRef ?? '',
+				existing.id,
+				locationId,
+			)
+		}
+		return { id: existing.id }
+	}
 
 	async #getTaxRate(): Promise<string> {
 		return this.deps.companyApi.taxRate.getPercent()

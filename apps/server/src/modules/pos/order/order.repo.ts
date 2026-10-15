@@ -102,6 +102,7 @@ export interface IOrderRepo {
 	findById(id: number, db?: DbContext): Promise<OrderDto | undefined>
 	/** Row-locks the order for the rest of the transaction (status transitions). */
 	findByIdForUpdate(id: number, db: DbContext): Promise<OrderDto | undefined>
+	findByExternalRef(externalRef: string, db?: DbContext): Promise<OrderDto | undefined>
 	findDetailById(id: number, db?: DbContext): Promise<OrderDetailDto | undefined>
 	findPage(filter: OrderFilterDto, db?: DbContext): Promise<WithPaginationResult<OrderDto>>
 	insert(data: OrderInsert, db?: DbContext): Promise<EntityRef | undefined>
@@ -134,6 +135,19 @@ export class OrderRepo implements IOrderRepo {
 			.from(orders)
 			.where(eq(orders.id, id))
 			.for('update')
+			.limit(1)
+			.then(takeFirst)
+		return row ? toOrderDto(row) : undefined
+	}
+
+	async findByExternalRef(
+		externalRef: string,
+		db: DbContext = this.db,
+	): Promise<OrderDto | undefined> {
+		const row = await db
+			.select()
+			.from(orders)
+			.where(eq(orders.externalRef, externalRef))
 			.limit(1)
 			.then(takeFirst)
 		return row ? toOrderDto(row) : undefined
