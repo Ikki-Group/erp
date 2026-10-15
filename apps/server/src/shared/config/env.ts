@@ -25,6 +25,17 @@ const envSchema = z.object({
 	DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 	DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 
+	// CORS — comma-separated origins; required in production ("*" only if set explicitly)
+	CORS_ORIGINS: z
+		.string()
+		.optional()
+		.transform((v) =>
+			v
+				?.split(',')
+				.map((o) => o.trim())
+				.filter(Boolean),
+		),
+
 	// Redis (optional — session store and BentoCache L2 layer; memory-only when unset)
 	REDIS_URL: z.string().optional(),
 
@@ -34,9 +45,24 @@ const envSchema = z.object({
 	AXIOM_DATASET: z.string().optional(),
 })
 
-export type Env = z.infer<typeof envSchema>
+const DEV_CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173']
 
-export const env: Env = envSchema.parse(Bun.env)
+const resolvedEnvSchema = envSchema.transform((e, ctx) => {
+	if (e.CORS_ORIGINS?.length) return { ...e, CORS_ORIGINS: e.CORS_ORIGINS }
+	if (e.NODE_ENV === 'production') {
+		ctx.addIssue({
+			code: 'custom',
+			path: ['CORS_ORIGINS'],
+			message: 'CORS_ORIGINS is required in production',
+		})
+		return z.NEVER
+	}
+	return { ...e, CORS_ORIGINS: DEV_CORS_ORIGINS }
+})
+
+export type Env = z.infer<typeof resolvedEnvSchema>
+
+export const env: Env = resolvedEnvSchema.parse(Bun.env)
 
 // Derived helpers
 export const isTest = env.NODE_ENV === 'test'

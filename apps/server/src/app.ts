@@ -21,6 +21,7 @@ import { supplierModule } from './modules/supplier/index.ts'
 import { uomModule } from './modules/uom/index.ts'
 import { openapiPlugin } from './server/openapi.ts'
 import { errorPlugin } from './server/plugins/error.plugin.ts'
+import { env } from './shared/config/env.ts'
 import { composeModules } from './shared/module/compose.ts'
 import type { ModuleContext, ModuleDescriptor } from './shared/module/registry.ts'
 import type { AnyElysia } from 'elysia'
@@ -99,6 +100,11 @@ for (const module of modules.values()) {
 }
 
 // Apply CORS after module composition so it covers every final route.
-composedApp = composedApp.use(cors({ origin: '*', credentials: false }).as('global'))
+composedApp = composedApp.use(
+	cors({
+		origin: env.CORS_ORIGINS.includes('*') ? '*' : env.CORS_ORIGINS,
+		credentials: false,
+	}).as('global'),
+)
 
 export const app = composedApp
