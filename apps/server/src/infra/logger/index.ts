@@ -1,4 +1,9 @@
-import { configure, getConsoleSink, getLogger as _getLogger } from '@logtape/logtape'
+import {
+	configure,
+	getConsoleSink,
+	getLogger as _getLogger,
+	jsonLinesFormatter,
+} from '@logtape/logtape'
 import { getOpenTelemetrySink } from '@logtape/otel'
 import { getPrettyFormatter } from '@logtape/pretty'
 
@@ -10,7 +15,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 
 /**
  * Initialize LogTape. Call once at app startup (after OTel, before listen).
- * In test env, configures with no sinks (silent).
+ * Production: JSON lines on stdout (`fly logs`) + OpenTelemetry. Test: silent.
  */
 export async function setupLogger(): Promise<void> {
 	const sinks: Record<string, Sink> = {}
@@ -18,8 +23,9 @@ export async function setupLogger(): Promise<void> {
 
 	if (!isTest) {
 		if (isProd) {
+			sinks.console = getConsoleSink({ formatter: jsonLinesFormatter })
 			sinks.otel = getOpenTelemetrySink({ serviceName: SERVICE_NAME })
-			activeSinks = ['otel']
+			activeSinks = ['console', 'otel']
 		} else {
 			sinks.console = getConsoleSink({
 				formatter: getPrettyFormatter({
