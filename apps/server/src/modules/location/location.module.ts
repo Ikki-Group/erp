@@ -1,6 +1,6 @@
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 
-import { LocationRepo } from './location.repo.ts'
+import { createLocationRepo } from './location.repo.ts'
 import { createLocationRoute } from './location.route.ts'
 import { LocationService } from './location.service.ts'
 import type { LocationApi } from './location.service.ts'
@@ -11,7 +11,7 @@ export const locationModule: ModuleDescriptor = {
 	dependsOn: [],
 	create(ctx) {
 		const service = new LocationService({
-			repo: new LocationRepo(ctx.db),
+			repo: createLocationRepo(ctx.db),
 			uow: ctx.uow,
 			cache: ctx.cache,
 			audit: ctx.auditPort,

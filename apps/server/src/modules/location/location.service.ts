@@ -1,6 +1,8 @@
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import type { CachePort } from '@/shared/cache/cache.port.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -34,7 +36,17 @@ export type LocationApi = {
 } & Record<string, unknown>
 
 export class LocationService {
-	constructor(private readonly deps: LocationServiceDeps) {}
+	private readonly mutation: MutationScope
+
+	constructor(private readonly deps: LocationServiceDeps) {
+		this.mutation = {
+			uow: deps.uow,
+			audit: deps.audit,
+			module: 'location',
+			entity: 'location',
+			invalidate: (ref) => deps.cache.invalidate('location', ref.id),
+		}
+	}
 
 	async getById(id: number): Promise<LocationDto | undefined> {
 		return this.deps.cache.getOrSetOptional('location', `byId:${id}`, () =>
@@ -43,7 +55,6 @@ export class LocationService {
 	}
 
 	async getByIds(ids: number[]): Promise<LocationDto[]> {
-		if (ids.length === 0) return []
 		return this.deps.repo.findByIds(ids)
 	}
 
@@ -62,81 +73,54 @@ export class LocationService {
 	}
 
 	async handleCreate(data: LocationCreateDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			await this.deps.repo.assertNoConflict(data, undefined, tx)
 			const written = await this.deps.repo.insert(data, tx)
 			if (!written) throw LocationError.createFailed()
-			await this.deps.audit.record(
-				{
-					actorId: actor.id,
-					actorName: actor.name,
-					locationId: actor.locationId,
-					module: 'location',
-					entity: 'location',
-					entityId: written.id,
+			return {
+				result: written,
+				audit: {
 					action: 'create',
 					summary: `Created location "${data.name}" (${data.code})`,
 					newValues: { code: data.code, name: data.name, type: data.type },
 				},
-				tx,
-			)
-			return written
+			}
 		})
-		await this.deps.cache.invalidate('location', result.id)
-		return result
 	}
 
 	async handleUpdate(data: LocationUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			const existing = await this.deps.repo.findById(id, tx)
 			if (!existing) throw LocationError.notFound(id)
 			await this.deps.repo.assertNoConflict(updateData, id, tx)
 			const written = await this.deps.repo.update(id, updateData, tx)
 			if (!written) throw LocationError.updateFailed(id)
-			await this.deps.audit.record(
-				{
-					actorId: actor.id,
-					actorName: actor.name,
-					locationId: actor.locationId,
-					module: 'location',
-					entity: 'location',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'update',
 					summary: `Updated location "${data.name}" (${data.code})`,
 					oldValues: { code: existing.code, name: existing.name, type: existing.type },
 					newValues: { code: data.code, name: data.name, type: data.type },
 				},
-				tx,
-			)
-			return written
+			}
 		})
-		await this.deps.cache.invalidate('location', result.id)
-		return result
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			const existing = await this.deps.repo.findById(id, tx)
 			if (!existing) throw LocationError.notFound(id)
 			const written = await this.deps.repo.remove(id, { updatedBy: actor.id }, tx)
 			if (!written) throw LocationError.deleteFailed(id)
-			await this.deps.audit.record(
-				{
-					actorId: actor.id,
-					actorName: actor.name,
-					locationId: actor.locationId,
-					module: 'location',
-					entity: 'location',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'delete',
 					summary: `Deleted location "${existing.name}" (${existing.code})`,
 				},
-				tx,
-			)
-			return written
+			}
 		})
-		await this.deps.cache.invalidate('location', result.id)
-		return result
 	}
 }
