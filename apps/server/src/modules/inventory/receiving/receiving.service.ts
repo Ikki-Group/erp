@@ -237,6 +237,10 @@ export class ReceivingService {
 			// 2. Get lines and apply the complete confirmation atomically.
 			const result = await this.deps.uow.run(async (tx) => {
 				const lines = await this.repo.findLinesByReceivingId(data.receivingId, tx)
+				await this.deps.stockService.lockBalances(
+					lines.map((l) => ({ materialId: l.materialId, locationId: receiving.locationId })),
+					tx,
+				)
 
 				for (const line of lines) {
 					const material = await this.deps.materialService.handleGetById(line.materialId)

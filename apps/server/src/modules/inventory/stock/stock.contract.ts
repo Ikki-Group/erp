@@ -95,3 +95,16 @@ export interface RecordMovementInput {
 	notes?: string
 	actorId: number
 }
+/** Identifies one stock_balances row; the unit of row locking for movements. */
+export interface BalanceKey {
+	materialId: number
+	locationId: number
+}
+
+/**
+ * Canonical lock order for balance rows: (locationId, materialId) ascending.
+ * Every transaction that touches several balances MUST lock them in this order.
+ */
+export function compareBalanceKeys(a: BalanceKey, b: BalanceKey): number {
+	return a.locationId - b.locationId || a.materialId - b.materialId
+}

@@ -4,6 +4,8 @@ import { uoms } from '@/db/schema/uom.ts'
 
 import {
 	allOf,
+	anyOf,
+	asc,
 	eq,
 	eqIf,
 	sql,
@@ -16,7 +18,9 @@ import type { DbContext } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
+import { compareBalanceKeys } from './stock.contract.ts'
 import type {
+	BalanceKey,
 	StockBalanceDto,
 	StockBalanceFilterDto,
 	StockMovementDto,
@@ -104,6 +108,8 @@ export interface IStockRepo {
 		locationId: number,
 		db: DbContext,
 	): Promise<StockBalanceDto | undefined>
+	/** Locks (creating when absent) many balance rows in canonical key order. */
+	lockBalances(keys: readonly BalanceKey[], db: DbContext): Promise<void>
 	findBalancesByLocation(
 		filter: StockBalanceFilterDto,
 		db?: DbContext,
@@ -145,6 +151,36 @@ export class StockRepo implements IStockRepo {
 			.for('update')
 			.then(takeFirst)
 		return row ? toBalanceDto(row) : undefined
+	}
+
+	async lockBalances(keys: readonly BalanceKey[], db: DbContext): Promise<void> {
+		const unique = new Map<string, BalanceKey>()
+		for (const key of keys) unique.set(`${key.locationId}:${key.materialId}`, key)
+		if (unique.size === 0) return
+		const sorted = [...unique.values()].toSorted(compareBalanceKeys)
+
+		// VALUES rows are inserted in list order, so waits on concurrently inserted
+		// rows also follow the canonical order.
+		await db
+			.insert(stockBalances)
+			.values(sorted.map(({ materialId, locationId }) => ({ materialId, locationId })))
+			.onConflictDoNothing({ target: [stockBalances.materialId, stockBalances.locationId] })
+		// LockRows sits above Sort, so rows are locked in ORDER BY order.
+		await db
+			.select({ id: stockBalances.id })
+			.from(stockBalances)
+			.where(
+				anyOf(
+					...sorted.map((key) =>
+						and(
+							eq(stockBalances.materialId, key.materialId),
+							eq(stockBalances.locationId, key.locationId),
+						),
+					),
+				),
+			)
+			.orderBy(asc(stockBalances.locationId), asc(stockBalances.materialId))
+			.for('update')
 	}
 
 	async findBalance(

@@ -30,7 +30,7 @@ interface InventoryModuleDeps {
 
 type InventoryStockApi = Pick<
 	StockService,
-	'recordMovement' | 'getBalance' | 'handleGetBalance' | 'invalidateCache'
+	'recordMovement' | 'lockBalances' | 'getBalance' | 'handleGetBalance' | 'invalidateCache'
 >
 
 export interface InventoryApi extends Record<string, unknown> {
@@ -74,6 +74,7 @@ function createInventoryModule(db: DbContext, cacheClient: CacheClient, deps: In
 			getBalance: stock.service.getBalance.bind(stock.service),
 			handleGetBalance: stock.service.handleGetBalance.bind(stock.service),
 			invalidateCache: stock.service.invalidateCache.bind(stock.service),
+			lockBalances: stock.service.lockBalances.bind(stock.service),
 		},
 	}
 	return { route, api }

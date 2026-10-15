@@ -208,6 +208,12 @@ export class OpnameService {
 
 		// 3. Apply all variance movements and complete the opname atomically.
 		const result = await this.deps.uow.run(async (tx) => {
+			await this.deps.stockService.lockBalances(
+				lines
+					.filter((l) => !Qty.of(l.actualQty).eq(Qty.of(l.systemQty)))
+					.map((l) => ({ materialId: l.materialId, locationId: opname.locationId })),
+				tx,
+			)
 			for (const line of lines) {
 				const systemQty = Qty.of(line.systemQty)
 				const actualQty = Qty.of(line.actualQty)

@@ -11,6 +11,7 @@ import type { EntityRef } from '@/shared/types/utils.ts'
 import type { AssignmentService } from '@/modules/material/assignment/assignment.service.ts'
 
 import type {
+	BalanceKey,
 	RecordMovementInput,
 	StockBalanceDto,
 	StockBalanceFilterDto,
@@ -59,6 +60,15 @@ export class StockService {
 			await this.invalidateCache()
 			return recorded
 		})
+	}
+
+	/**
+	 * Locks (creating when absent) every balance row a multi-movement
+	 * transaction will touch, in canonical (locationId, materialId) order, so
+	 * concurrent transactions cannot deadlock on each other's balances.
+	 */
+	async lockBalances(keys: readonly BalanceKey[], db: DbContext): Promise<void> {
+		await this.repo.lockBalances(keys, db)
 	}
 
 	async #applyMovement(input: RecordMovementInput, dbCtx: DbContext): Promise<RecordedMovement> {

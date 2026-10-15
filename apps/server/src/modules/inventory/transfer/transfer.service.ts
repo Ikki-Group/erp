@@ -152,6 +152,10 @@ export class TransferService {
 			// 2. Apply source deductions and status changes atomically.
 			const result = await this.deps.uow.run(async (tx) => {
 				const lines = await this.repo.findLinesByTransferId(data.transferId, tx)
+				await this.deps.stockService.lockBalances(
+					lines.map((l) => ({ materialId: l.materialId, locationId: transfer.fromLocationId })),
+					tx,
+				)
 
 				for (const line of lines) {
 					const movement = await this.deps.stockService.recordMovement(
@@ -214,6 +218,13 @@ export class TransferService {
 			// 2. Validate and process destination receipt atomically.
 			const result = await this.deps.uow.run(async (tx) => {
 				const existingLines = await this.repo.findLinesByTransferId(data.transferId, tx)
+				const receivedMaterialIds = new Set(data.lines.map((l) => l.materialId))
+				await this.deps.stockService.lockBalances(
+					existingLines
+						.filter((l) => receivedMaterialIds.has(l.materialId))
+						.map((l) => ({ materialId: l.materialId, locationId: transfer.toLocationId })),
+					tx,
+				)
 
 				for (const receiveLine of data.lines) {
 					const transferLine = existingLines.find((l) => l.materialId === receiveLine.materialId)

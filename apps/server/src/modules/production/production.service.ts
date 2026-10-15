@@ -345,6 +345,13 @@ export class ProductionService {
 
 			// 4. Process within transaction
 			const updated = await this.deps.uow.run(async (tx) => {
+				await this.deps.inventoryApi.lockBalances(
+					[...recipe.lines.map((l) => l.materialId), recipe.materialId].map((materialId) => ({
+						materialId,
+						locationId: order.locationId,
+					})),
+					tx,
+				)
 				let totalInputCost = Money.zero()
 
 				// 4a. For each input line: convert to base UoM, get cost, record movement out

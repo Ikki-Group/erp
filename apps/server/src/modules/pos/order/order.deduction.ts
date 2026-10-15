@@ -30,6 +30,10 @@ export interface DeductionDeps {
  *
  * Missing recipes and missing materials are non-blocking domain conditions.
  * Database and conversion failures propagate so the caller's UoW can roll back.
+ *
+ * All deductions are planned first and then recorded in ascending materialId
+ * order (the location is fixed), matching the canonical balance lock order so
+ * concurrent orders touching the same materials cannot deadlock.
  */
 export async function deductStockForOrder(
 	orderId: number,
@@ -42,37 +46,60 @@ export async function deductStockForOrder(
 	return record('order.deductStock', async () => {
 		const { recipeService, inventoryApi, uomService, materialService } = deps
 		const conversions = await uomService.getAllConversions()
+		const planned: PlannedDeduction[] = []
 
 		for (const line of orderLines) {
-			await deductForOrderLine(orderId, locationId, line, actorId, {
-				recipeService,
-				inventoryApi,
-				materialService,
-				conversions,
+			await planOrderLine(
+				orderId,
+				line,
+				{ recipeService, materialService, conversions, db },
+				planned,
+			)
+		}
+
+		// Array.prototype.sort is stable: same-material deductions keep line order.
+		planned.sort((a, b) => a.materialId - b.materialId)
+
+		for (const deduction of planned) {
+			await inventoryApi.recordMovement(
+				{
+					materialId: deduction.materialId,
+					locationId,
+					type: 'sales',
+					direction: 'out',
+					qty: deduction.qty.toNumeric(),
+					referenceType: 'order',
+					referenceId: orderId,
+					actorId,
+				},
 				db,
-			})
+			)
 		}
 	})
 }
 
-// ─── Per-Line Deduction ───
+// ─── Planning ───
 
-interface LineDeductionCtx {
+interface PlannedDeduction {
+	materialId: number
+	/** Quantity in the material's base UoM. */
+	qty: Qty
+}
+
+interface PlanCtx {
 	recipeService: RecipeService
-	inventoryApi: InventoryApi['stock']
 	materialService: MaterialService
 	conversions: UomConversionDto[]
 	db: DbContext | undefined
 }
 
-async function deductForOrderLine(
+async function planOrderLine(
 	orderId: number,
-	locationId: number,
 	line: OrderLineDto,
-	actorId: number,
-	ctx: LineDeductionCtx,
+	ctx: PlanCtx,
+	planned: PlannedDeduction[],
 ): Promise<void> {
-	const { recipeService, inventoryApi, materialService, conversions, db } = ctx
+	const { recipeService, materialService, conversions, db } = ctx
 
 	const recipe = await recipeService.getActiveByMenuItemId(line.menuItemId, db)
 	if (!recipe) {
@@ -88,76 +115,24 @@ async function deductForOrderLine(
 	const yieldQty = Qty.of(recipe.yieldQty)
 
 	for (const recipeLine of recipeLines) {
-		await deductRecipeLine(orderId, locationId, recipeLine, orderQty, yieldQty, actorId, {
-			inventoryApi,
-			materialService,
-			conversions,
-			db,
+		const material = await materialService.getById(recipeLine.materialId)
+		if (!material) {
+			logger.warn('Material not found, skipping deduction', {
+				materialId: recipeLine.materialId,
+				orderId,
+			})
+			continue
+		}
+
+		const deductQty = Qty.of(recipeLine.quantity).mul(orderQty).div(yieldQty)
+		planned.push({
+			materialId: recipeLine.materialId,
+			qty: convertToBaseUom(deductQty, recipeLine.uomId, material.baseUomId, conversions, {
+				materialId: recipeLine.materialId,
+				orderId,
+			}),
 		})
 	}
-}
-
-// ─── Per-Recipe-Line Deduction ───
-
-interface RecipeLineCtx {
-	inventoryApi: InventoryApi['stock']
-	materialService: MaterialService
-	conversions: UomConversionDto[]
-	db: DbContext | undefined
-}
-
-interface RecipeLineInput {
-	materialId: number
-	quantity: string
-	uomId: number
-}
-
-async function deductRecipeLine(
-	orderId: number,
-	locationId: number,
-	recipeLine: RecipeLineInput,
-	orderQty: Qty,
-	yieldQty: Qty,
-	actorId: number,
-	ctx: RecipeLineCtx,
-): Promise<void> {
-	const { inventoryApi, materialService, conversions, db } = ctx
-	const recipeQty = Qty.of(recipeLine.quantity)
-	const deductQty = recipeQty.mul(orderQty).div(yieldQty)
-
-	const material = await materialService.getById(recipeLine.materialId)
-	if (!material) {
-		logger.warn('Material not found, skipping deduction', {
-			materialId: recipeLine.materialId,
-			orderId,
-		})
-		return
-	}
-
-	const baseDeductQty = convertToBaseUom(
-		deductQty,
-		recipeLine.uomId,
-		material.baseUomId,
-		conversions,
-		{
-			materialId: recipeLine.materialId,
-			orderId,
-		},
-	)
-
-	await inventoryApi.recordMovement(
-		{
-			materialId: recipeLine.materialId,
-			locationId,
-			type: 'sales',
-			direction: 'out',
-			qty: baseDeductQty.toNumeric(),
-			referenceType: 'order',
-			referenceId: orderId,
-			actorId,
-		},
-		db,
-	)
 }
 
 // ─── Helpers ───
