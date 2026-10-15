@@ -1,9 +1,14 @@
+interface CacheFactoryContext {
+	/** Attach invalidation tags to the value being computed (e.g. derived from the value). */
+	setTags(tags: string[]): void
+}
+
 export interface CachePort {
 	/** Read-through: return cached value or compute, store, and return it. */
 	getOrSet<T>(
 		namespace: string,
 		key: string,
-		factory: () => Promise<T>,
+		factory: (ctx: CacheFactoryContext) => Promise<T>,
 		ttlSeconds?: number,
 		tags?: string[],
 	): Promise<T>
@@ -17,8 +22,6 @@ export interface CachePort {
 	invalidate(namespace: string, id?: number): Promise<void>
 	/** Invalidate an explicit set of fully-qualified keys. */
 	invalidateKeys(keys: string[]): Promise<void>
-	/** Associate existing cache keys with invalidation tags. */
-	tagKeys(keys: string[], tags: string[]): Promise<void>
-	/** Invalidate all keys associated with a cache tag. */
+	/** Invalidate all entries tagged with a cache tag. */
 	invalidateTag(tag: string): Promise<void>
 }

@@ -1,25 +1,22 @@
-import { BentoCache, bentostore } from 'bentocache'
-import { memoryDriver } from 'bentocache/drivers/memory'
-import { redisDriver } from 'bentocache/drivers/redis'
-
 import { redisConnection } from '@/infra/redis/index.ts'
 
-// ─── BentoCache Instance (memory L1, optional Redis L2) ───
+import { createCachePort } from './cache.port.ts'
+import { type CacheClient, createCache } from './client.ts'
 
-const store = bentostore().useL1Layer(memoryDriver({ maxSize: 1000 }))
+export { createCachePort } from './cache.port.ts'
+export { type CacheClient, createCache } from './client.ts'
 
-export const cache = new BentoCache({
-	default: 'primary',
-	stores: {
-		// L2 (Redis) layer is added only when REDIS_URL is configured; otherwise
-		// the cache stays L1-memory-only (e.g. local dev/tests).
-		primary: redisConnection
-			? store.useL2Layer(redisDriver({ connection: redisConnection }))
-			: store,
-	},
-})
+// ─── Single BentoCache instance (L1 memory; + L2 Redis + bus when REDIS_URL is set) ───
 
-export type CacheClient = typeof cache
+export const cache: CacheClient = createCache({ redis: redisConnection })
+
+/** CachePort adapter over the shared instance (ModuleContext.cache). */
+export const cachePort = createCachePort(cache)
+
+/** Disconnect BentoCache stores and bus for graceful shutdown. */
+export async function closeCache(): Promise<void> {
+	await cache.disconnectAll()
+}
 
 // ─── Cache Service (per-module wrapper) ───
 

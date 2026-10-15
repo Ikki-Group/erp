@@ -1,4 +1,4 @@
-import { cache } from '@/infra/cache/cache.memory.ts'
+import { cachePort as cache } from '@/infra/cache/index.ts'
 
 import { describe, expect, test } from 'bun:test'
 
@@ -36,5 +36,33 @@ describe('memory cache adapter', () => {
 		})
 
 		expect(factoryCalls).toBe(2)
+	})
+
+	test('invalidates entries by tag, including tags set from the factory', async () => {
+		const namespace = `__t003_${crypto.randomUUID()}`
+		let calls = 0
+		const load = () =>
+			cache.getOrSet(namespace, 'a', async (ctx) => {
+				calls += 1
+				ctx.setTags([`${namespace}:dyn`])
+				return calls
+			})
+		const loadStatic = () =>
+			cache.getOrSet(namespace, 'b', async () => ++calls, undefined, [`${namespace}:static`])
+
+		await load()
+		await load()
+		expect(calls).toBe(1)
+		await cache.invalidateTag(`${namespace}:dyn`)
+		await load()
+		expect(calls).toBe(2)
+
+		await loadStatic()
+		await cache.invalidateTag(`${namespace}:dyn`)
+		await loadStatic()
+		expect(calls).toBe(3)
+		await cache.invalidateTag(`${namespace}:static`)
+		await loadStatic()
+		expect(calls).toBe(4)
 	})
 })

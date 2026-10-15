@@ -1,4 +1,4 @@
-import { cache } from '@/infra/cache/cache.memory.ts'
+import { cachePort as cache } from '@/infra/cache/index.ts'
 
 const AUTH_NAMESPACE = 'auth'
 
@@ -10,17 +10,23 @@ function authAccessCacheKey(userId: number): string {
 	return `${AUTH_NAMESPACE}:${accessCacheKey(userId)}`
 }
 
+const roleTag = (roleId: number) => `role:${roleId}`
+
 export async function getAuthAccessMap<T extends { roleIds: number[] }>(
 	userId: number,
 	factory: () => Promise<T>,
 	ttlSeconds?: number,
 ): Promise<T> {
-	const value = await cache.getOrSet(AUTH_NAMESPACE, accessCacheKey(userId), factory, ttlSeconds)
-	await cache.tagKeys(
-		[authAccessCacheKey(userId)],
-		[...new Set(value.roleIds)].map((roleId) => `role:${roleId}`),
+	return cache.getOrSet(
+		AUTH_NAMESPACE,
+		accessCacheKey(userId),
+		async (ctx) => {
+			const value = await factory()
+			ctx.setTags([...new Set(value.roleIds)].map(roleTag))
+			return value
+		},
+		ttlSeconds,
 	)
-	return value
 }
 
 export async function invalidateAuthCache(userId: number): Promise<void> {
@@ -28,5 +34,5 @@ export async function invalidateAuthCache(userId: number): Promise<void> {
 }
 
 export async function invalidateAuthCacheForRole(roleId: number): Promise<void> {
-	await cache.invalidateTag(`role:${roleId}`)
+	await cache.invalidateTag(roleTag(roleId))
 }
