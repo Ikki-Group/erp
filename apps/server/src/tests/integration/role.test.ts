@@ -1,4 +1,5 @@
 import { loginAs } from '../helpers/auth.ts'
+import { uniqueSuffix } from '../helpers/fixtures.ts'
 import { DELETE, GET, POST, json } from '../helpers/request.ts'
 import { SEED_USERS } from '../helpers/seed.ts'
 import { describe, expect, test } from 'bun:test'
@@ -9,7 +10,7 @@ describe('iam roles', () => {
 		const response = await POST('/iam/role/create', {
 			token,
 			body: {
-				code: `invalid-permission-${Date.now()}`,
+				code: `invalid-permission-${uniqueSuffix()}`,
 				name: 'Invalid Permission Role',
 				permissions: ['admin.delete.everything'],
 			},
@@ -20,7 +21,7 @@ describe('iam roles', () => {
 
 	test('deletes an unassigned custom role from the catalog', async () => {
 		const token = await loginAs(SEED_USERS.owner.username)
-		const code = `delete-me-${Date.now()}`
+		const code = `delete-me-${uniqueSuffix()}`
 		const createResponse = await POST('/iam/role/create', {
 			token,
 			body: {
@@ -30,7 +31,7 @@ describe('iam roles', () => {
 				permissions: ['iam.read'],
 			},
 		})
-		expect(createResponse.status).toBe(201)
+		expect(createResponse.status).toBe(200)
 		const created = await json<{ data: { id: number } }>(createResponse)
 
 		const deleteResponse = await DELETE('/iam/role/remove', {

@@ -1,16 +1,10 @@
 import { loginAs } from '../helpers/auth.ts'
+import { uniqueSuffix } from '../helpers/fixtures.ts'
 import { DELETE, POST, GET, json } from '../helpers/request.ts'
 import type { Json } from '../helpers/request.ts'
 import { SEED_LOCATION_ID, SEED_USERS, SEED_WAREHOUSE_ID } from '../helpers/seed.ts'
 import { describe, expect, test, beforeAll } from 'bun:test'
 
-/**
- * NOTE: Auth errors thrown inside `record()` (OTel span wrapper) or Elysia's
- * scoped `derive` currently surface as 500 instead of the intended 401/403.
- * This is a known limitation in the error propagation chain. Tests assert
- * on the actual server behavior (non-200) rather than exact 401 status codes.
- * A future fix to the error plugin will let us tighten these assertions.
- */
 describe('auth', () => {
 	// ─── Login ───
 
@@ -30,14 +24,14 @@ describe('auth', () => {
 		const res = await POST('/auth/login', {
 			body: { username: SEED_USERS.owner.username, password: 'wrong-password' },
 		})
-		expect(res.status).toBeGreaterThanOrEqual(400)
+		expect(res.status).toBe(401)
 	})
 
 	test('login with non-existent user rejects', async () => {
 		const res = await POST('/auth/login', {
 			body: { username: 'nobody', password: 'password123' },
 		})
-		expect(res.status).toBeGreaterThanOrEqual(400)
+		expect(res.status).toBe(401)
 	})
 
 	test('login with empty body returns 422', async () => {
@@ -49,12 +43,12 @@ describe('auth', () => {
 
 	test('GET /auth/me without session rejects', async () => {
 		const res = await GET('/auth/me')
-		expect(res.status).toBeGreaterThanOrEqual(400)
+		expect(res.status).toBe(401)
 	})
 
 	test('POST /auth/logout without session rejects', async () => {
 		const res = await POST('/auth/logout')
-		expect(res.status).toBeGreaterThanOrEqual(400)
+		expect(res.status).toBe(401)
 	})
 
 	// ─── Protected Routes (with session) ───
@@ -114,49 +108,65 @@ describe('auth', () => {
 			expect(Object.keys(body.data.access)).toEqual(expect.arrayContaining(['1', '2']))
 		})
 
+		// Seed: manager role at the store, warehouse_staff role at the warehouse.
+		// `order.create` is manager-only and `stock.adjust` is warehouse_staff-only,
+		// so each location must expose exactly its own role's permissions.
 		test('GET /auth/me resolves effective permissions per requested location', async () => {
 			const storeResponse = await GET('/auth/me', { token, locationId: SEED_LOCATION_ID })
 			expect(storeResponse.status).toBe(200)
 			const storeBody: Json = await json(storeResponse)
 			expect(storeBody.data.permissions).toContain('order.create')
-			expect(storeBody.data.permissions).not.toContain('receiving.confirm')
+			expect(storeBody.data.permissions).not.toContain('stock.adjust')
 
 			const warehouseResponse = await GET('/auth/me', { token, locationId: SEED_WAREHOUSE_ID })
 			expect(warehouseResponse.status).toBe(200)
 			const warehouseBody: Json = await json(warehouseResponse)
+			expect(warehouseBody.data.permissions).toContain('stock.adjust')
 			expect(warehouseBody.data.permissions).toContain('receiving.confirm')
 			expect(warehouseBody.data.permissions).not.toContain('order.create')
 
 			const deniedResponse = await GET('/auth/me', { token, locationId: 999 })
-			expect(deniedResponse.status).toBeGreaterThanOrEqual(400)
+			expect(deniedResponse.status).toBe(403)
+			const deniedBody: Json = await json(deniedResponse)
+			expect(deniedBody.error.code).toBe('LOCATION_ACCESS_DENIED')
 		})
 	})
 
 	test('user without assignments cannot use a location-scoped route', async () => {
 		const ownerToken = await loginAs(SEED_USERS.owner.username)
-		const suffix = Date.now()
+		const username = `unassigned-${uniqueSuffix()}`
 		const createResponse = await POST('/iam/user/create', {
 			token: ownerToken,
 			body: {
-				username: `unassigned-${suffix}`,
-				email: `unassigned-${suffix}@example.com`,
+				username,
+				email: `${username}@example.com`,
 				name: 'Unassigned User',
 				password: 'password123',
 				isActive: true,
 			},
 		})
-		expect(createResponse.status).toBe(201)
-		const token = await loginAs(`unassigned-${suffix}`)
-
-		const response = await GET('/location/list', { token, locationId: SEED_LOCATION_ID })
-		expect(response.status).toBeGreaterThanOrEqual(400)
-
+		expect(createResponse.status).toBe(200)
 		const created = await json<{ data: { id: number } }>(createResponse)
-		const deactivateResponse = await DELETE('/iam/user/deactivate', {
-			token: ownerToken,
-			query: { id: String(created.data.id) },
-		})
-		expect(deactivateResponse.status).toBe(200)
+
+		try {
+			const token = await loginAs(username)
+
+			const scoped = await GET('/location/list', { token, locationId: SEED_LOCATION_ID })
+			expect(scoped.status).toBe(403)
+			const scopedBody: Json = await json(scoped)
+			expect(scopedBody.error.code).toBe('LOCATION_ACCESS_DENIED')
+
+			const unscoped = await GET('/location/list', { token })
+			expect(unscoped.status).toBe(403)
+			const unscopedBody: Json = await json(unscoped)
+			expect(unscopedBody.error.code).toBe('PERMISSION_DENIED')
+		} finally {
+			const deactivateResponse = await DELETE('/iam/user/deactivate', {
+				token: ownerToken,
+				query: { id: String(created.data.id) },
+			})
+			expect(deactivateResponse.status).toBe(200)
+		}
 	})
 
 	// ─── Cashier Role ───
