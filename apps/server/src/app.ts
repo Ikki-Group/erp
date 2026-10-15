@@ -9,13 +9,16 @@ import { createMemoryEventBus } from './infra/events/event-bus.memory.ts'
 import { otelPlugin } from './infra/otel/otel.ts'
 import { sessionStore } from './infra/session/index.ts'
 import { auditModule } from './modules/audit/index.ts'
+import { authModule } from './modules/auth/index.ts'
 import { companyModule } from './modules/company/index.ts'
 import { iamModule } from './modules/iam/index.ts'
-import { legacyModule } from './modules/legacy.module.ts'
+import { inventoryModule } from './modules/inventory/index.ts'
 import { locationModule } from './modules/location/index.ts'
 import { materialModule } from './modules/material/index.ts'
 import { menuModule } from './modules/menu/index.ts'
 import { paymentMethodModule } from './modules/payment-method/index.ts'
+import { posModule } from './modules/pos/index.ts'
+import { productionModule } from './modules/production/index.ts'
 import { recipeModule } from './modules/recipe/index.ts'
 import { supplierModule } from './modules/supplier/index.ts'
 import { uomModule } from './modules/uom/index.ts'
@@ -49,7 +52,10 @@ const ALL_MODULE_DESCRIPTORS: ModuleDescriptor[] = [
 	paymentMethodModule,
 	menuModule,
 	recipeModule,
-	legacyModule,
+	authModule,
+	inventoryModule,
+	posModule,
+	productionModule,
 ]
 const modules = composeModules(ALL_MODULE_DESCRIPTORS, ctx)
 

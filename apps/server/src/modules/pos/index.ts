@@ -1,1 +1,1 @@
-export { createPosModule } from './pos.module.ts'
+export { posModule } from './pos.module.ts'

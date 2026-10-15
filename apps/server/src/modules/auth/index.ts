@@ -1,1 +1,1 @@
-export { createAuthModule } from './auth.module.ts'
+export { authModule } from './auth.module.ts'

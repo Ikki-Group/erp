@@ -1,1 +1,1 @@
-export { createProductionModule } from './production.module.ts'
+export { productionModule } from './production.module.ts'
