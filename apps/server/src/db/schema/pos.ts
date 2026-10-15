@@ -10,6 +10,7 @@ import {
 	index,
 	uniqueIndex,
 	boolean,
+	check,
 } from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
@@ -187,6 +188,7 @@ export const orderLines = pgTable(
 		voidedAt: timestamp('voided_at', { withTimezone: true }),
 	},
 	(t) => [
+		check('order_lines_quantity_positive_chk', sql`${t.quantity} > 0`),
 		index('order_lines_order_id_idx').on(t.orderId),
 		index('order_lines_menu_item_id_idx').on(t.menuItemId),
 	],
@@ -209,6 +211,7 @@ export const payments = pgTable(
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	},
 	(t) => [
+		check('payments_amount_positive_chk', sql`${t.amount} > 0`),
 		index('payments_order_id_idx').on(t.orderId),
 		index('payments_payment_method_id_idx').on(t.paymentMethodId),
 	],
@@ -235,6 +238,8 @@ export const vouchers = pgTable(
 	},
 	(t) => [
 		uniqueIndex('vouchers_code_uniq').on(t.code),
+		check('vouchers_value_positive_chk', sql`${t.value} > 0`),
+		check('vouchers_usage_count_nonneg_chk', sql`${t.usageCount} >= 0`),
 		index('vouchers_is_active_idx').on(t.isActive),
 	],
 )

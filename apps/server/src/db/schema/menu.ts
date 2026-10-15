@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import {
 	pgTable,
 	pgEnum,
@@ -7,6 +8,7 @@ import {
 	index,
 	uniqueIndex,
 	boolean,
+	check,
 } from 'drizzle-orm/pg-core'
 
 import { pk, auditBasicColumns } from './_helpers.ts'
@@ -58,6 +60,7 @@ export const menuItems = pgTable(
 	},
 	(t) => [
 		uniqueIndex('menu_items_location_sku_uniq').on(t.locationId, t.sku),
+		check('menu_items_base_price_nonneg_chk', sql`${t.basePrice} >= 0`),
 		index('menu_items_location_id_idx').on(t.locationId),
 		index('menu_items_category_id_idx').on(t.categoryId),
 	],

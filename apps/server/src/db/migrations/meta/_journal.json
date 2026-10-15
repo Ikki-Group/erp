@@ -71,6 +71,13 @@
       "when": 1790231071207,
       "tag": "0009_salty_mulholland_black",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792084722943,
+      "tag": "0010_stock_qty_price_check_constraints",
+      "breakpoints": true
     }
   ]
 }

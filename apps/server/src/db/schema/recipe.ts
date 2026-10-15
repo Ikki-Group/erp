@@ -30,6 +30,7 @@ export const recipes = pgTable(
 		...auditBasicColumns,
 	},
 	(t) => [
+		check('recipes_yield_qty_positive_chk', sql`${t.yieldQty} > 0`),
 		uniqueIndex('recipes_menu_item_active_uniq')
 			.on(t.menuItemId)
 			.where(sql`${t.isActive} = true`),

@@ -52,6 +52,7 @@ export const stockBalances = pgTable(
 	},
 	(t) => [
 		uniqueIndex('stock_balances_material_location_uniq').on(t.materialId, t.locationId),
+		check('stock_balances_cost_price_nonneg_chk', sql`${t.costPrice} >= 0`),
 		index('stock_balances_material_id_idx').on(t.materialId),
 		index('stock_balances_location_id_idx').on(t.locationId),
 	],
@@ -81,6 +82,8 @@ export const stockMovements = pgTable(
 	},
 	(t) => [
 		index('stock_movements_material_location_created_idx').on(
+		check('stock_movements_quantity_nonneg_chk', sql`${t.quantity} >= 0`),
+		check('stock_movements_cost_price_nonneg_chk', sql`${t.costPrice} >= 0`),
 			t.materialId,
 			t.locationId,
 			t.createdAt,
@@ -139,6 +142,10 @@ export const transferLines = pgTable(
 			.references(() => uoms.id, { onDelete: 'restrict' }),
 	},
 	(t) => [
+		check('transfer_lines_requested_qty_positive_chk', sql`${t.requestedQty} > 0`),
+		check('transfer_lines_shipped_qty_nonneg_chk', sql`${t.shippedQty} >= 0`),
+		check('transfer_lines_shipped_cost_price_nonneg_chk', sql`${t.shippedCostPrice} >= 0`),
+		check('transfer_lines_received_qty_nonneg_chk', sql`${t.receivedQty} >= 0`),
 		index('transfer_lines_transfer_id_idx').on(t.transferId),
 		index('transfer_lines_material_id_idx').on(t.materialId),
 		index('transfer_lines_uom_id_idx').on(t.uomId),
@@ -238,6 +245,8 @@ export const receivingLines = pgTable(
 			.references(() => uoms.id, { onDelete: 'restrict' }),
 	},
 	(t) => [
+		check('receiving_lines_quantity_positive_chk', sql`${t.quantity} > 0`),
+		check('receiving_lines_unit_cost_nonneg_chk', sql`${t.unitCost} >= 0`),
 		index('receiving_lines_receiving_id_idx').on(t.receivingId),
 		index('receiving_lines_material_id_idx').on(t.materialId),
 		index('receiving_lines_uom_id_idx').on(t.uomId),

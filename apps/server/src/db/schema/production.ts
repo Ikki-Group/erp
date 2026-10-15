@@ -44,6 +44,7 @@ export const productionRecipes = pgTable(
 		...auditBasicColumns,
 	},
 	(t) => [
+		check('production_recipes_yield_qty_positive_chk', sql`${t.yieldQty} > 0`),
 		uniqueIndex('production_recipes_material_active_uniq')
 			.on(t.materialId)
 			.where(sql`${t.isActive} = true`),
