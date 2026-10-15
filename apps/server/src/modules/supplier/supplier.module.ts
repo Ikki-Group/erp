@@ -7,7 +7,7 @@ import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 import type { MaterialApi } from '@/modules/material/index.ts'
 import type { UomApi } from '@/modules/uom/index.ts'
 
-import { SupplierRepo } from './supplier.repo.ts'
+import { createSupplierRepo } from './supplier.repo.ts'
 import { createSupplierRoute } from './supplier.route.ts'
 import { SupplierService } from './supplier.service.ts'
 
@@ -22,7 +22,7 @@ function createSupplierModule(
 	},
 ) {
 	const service = new SupplierService(
-		new SupplierRepo(db),
+		createSupplierRepo(db),
 		cacheClient,
 		deps.materialService,
 		deps.uomService,
