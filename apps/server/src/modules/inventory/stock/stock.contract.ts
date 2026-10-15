@@ -81,6 +81,12 @@ export const StockMovementFilterDto = z.object({
 })
 export type StockMovementFilterDto = z.infer<typeof StockMovementFilterDto>
 
+/** Same filters as `StockMovementFilterDto`, keyset-paginated by `(createdAt desc, id desc)`. */
+export const StockMovementCursorFilterDto = StockMovementFilterDto.omit({ page: true }).extend(
+	zq.cursorPagination.shape,
+)
+export type StockMovementCursorFilterDto = z.infer<typeof StockMovementCursorFilterDto>
+
 // ─── Internal Input (not Zod — used by other modules via service) ───
 
 export interface RecordMovementInput {
@@ -95,6 +101,7 @@ export interface RecordMovementInput {
 	notes?: string
 	actorId: number
 }
+
 /** Identifies one stock_balances row; the unit of row locking for movements. */
 export interface BalanceKey {
 	materialId: number

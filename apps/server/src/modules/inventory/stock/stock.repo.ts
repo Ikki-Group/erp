@@ -1,3 +1,5 @@
+import { getTableColumns } from 'drizzle-orm'
+
 import { stockBalances, stockMovements } from '@/db/schema/inventory.ts'
 import { materials } from '@/db/schema/material.ts'
 import { uoms } from '@/db/schema/uom.ts'
@@ -15,7 +17,8 @@ import {
 	and,
 } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
-import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import { keyset, keysetOrderBy } from '@/infra/database/keyset.ts'
+import type { WithCursorResult, WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
 import { compareBalanceKeys } from './stock.contract.ts'
@@ -23,9 +26,13 @@ import type {
 	BalanceKey,
 	StockBalanceDto,
 	StockBalanceFilterDto,
+	StockMovementCursorFilterDto,
 	StockMovementDto,
 	StockMovementFilterDto,
 } from './stock.contract.ts'
+
+/** Movement list order (keyset and offset lists agree row-for-row). */
+const movementSortKey = { timestamp: stockMovements.createdAt, id: stockMovements.id }
 
 // ─── Types ───
 
@@ -126,6 +133,10 @@ export interface IStockRepo {
 		filter: StockMovementFilterDto,
 		db?: DbContext,
 	): Promise<WithPaginationResult<StockMovementDto>>
+	findMovementsByCursor(
+		filter: StockMovementCursorFilterDto,
+		db?: DbContext,
+	): Promise<WithCursorResult<StockMovementDto>>
 }
 
 // ─── Implementation ───
@@ -289,7 +300,7 @@ export class StockRepo implements IStockRepo {
 			})
 			.from(stockMovements)
 			.where(where)
-			.orderBy(sql`${stockMovements.createdAt} desc`)
+			.orderBy(...keysetOrderBy(movementSortKey))
 			.limit(limit)
 			.offset(offset)
 
@@ -298,6 +309,20 @@ export class StockRepo implements IStockRepo {
 			data: rows.map((row) => toMovementDto(row)),
 			meta: buildPaginationMeta(filter.page, filter.limit, total),
 		}
+	}
+
+	async findMovementsByCursor(
+		filter: StockMovementCursorFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithCursorResult<StockMovementDto>> {
+		const page = keyset(filter, movementSortKey)
+		const rows = await db
+			.select({ ...getTableColumns(stockMovements), cursorKey: page.sortKey })
+			.from(stockMovements)
+			.where(allOf(this.#buildMovementWhere(filter), page.where))
+			.orderBy(...page.orderBy)
+			.limit(page.limit)
+		return page.page(rows, toMovementDto)
 	}
 
 	// ─── Private ───
@@ -309,7 +334,7 @@ export class StockRepo implements IStockRepo {
 		)
 	}
 
-	#buildMovementWhere(filter: StockMovementFilterDto) {
+	#buildMovementWhere(filter: StockMovementFilterDto | StockMovementCursorFilterDto) {
 		return allOf(
 			eq(stockMovements.materialId, filter.materialId),
 			eq(stockMovements.locationId, filter.locationId),

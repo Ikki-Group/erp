@@ -9,6 +9,7 @@ import {
 	StockBalanceDto,
 	StockBalanceFilterDto,
 	StockBalanceQueryDto,
+	StockMovementCursorFilterDto,
 	StockMovementDto,
 	StockMovementFilterDto,
 } from './stock.contract.ts'
@@ -50,6 +51,18 @@ export function createStockRoute(service: StockService) {
 			{
 				query: StockMovementFilterDto,
 				response: zRes.paginated(StockMovementDto),
+				permission: 'stock.read',
+			},
+		)
+		.get(
+			'/movements/cursor',
+			async ({ query }) => {
+				const result = await service.handleGetMovementsByCursor(query)
+				return res.cursorPaginated(result)
+			},
+			{
+				query: StockMovementCursorFilterDto,
+				response: zRes.cursorPaginated(StockMovementDto),
 				permission: 'stock.read',
 			},
 		)

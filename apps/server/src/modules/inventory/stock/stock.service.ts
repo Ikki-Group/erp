@@ -4,7 +4,7 @@ import { record } from '@/infra/otel/otel.ts'
 import { weightedAvgCost } from '@/shared/domain/costing.ts'
 import { Money } from '@/shared/domain/money.ts'
 import { Qty } from '@/shared/domain/qty.ts'
-import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { WithCursorResult, WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type { AssignmentService } from '@/modules/material/assignment/assignment.service.ts'
@@ -15,6 +15,7 @@ import type {
 	StockBalanceDto,
 	StockBalanceFilterDto,
 	StockBalanceQueryDto,
+	StockMovementCursorFilterDto,
 	StockMovementDto,
 	StockMovementFilterDto,
 } from './stock.contract.ts'
@@ -193,5 +194,11 @@ export class StockService {
 		filter: StockMovementFilterDto,
 	): Promise<WithPaginationResult<StockMovementDto>> {
 		return this.repo.findMovements(filter)
+	}
+
+	async handleGetMovementsByCursor(
+		filter: StockMovementCursorFilterDto,
+	): Promise<WithCursorResult<StockMovementDto>> {
+		return this.repo.findMovementsByCursor(filter)
 	}
 }
