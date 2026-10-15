@@ -45,6 +45,12 @@ export const AuditLogFilterDto = z.object({
 })
 export type AuditLogFilterDto = z.infer<typeof AuditLogFilterDto>
 
+/** Same filters as `AuditLogFilterDto`, keyset-paginated by `(timestamp desc, id desc)`. */
+export const AuditLogCursorFilterDto = AuditLogFilterDto.omit({ page: true }).extend(
+	zq.cursorPagination.shape,
+)
+export type AuditLogCursorFilterDto = z.infer<typeof AuditLogCursorFilterDto>
+
 export const AuditByEntityDto = z.object({
 	entity: z.string().trim().min(1),
 	entityId: z.coerce.number().int().positive(),

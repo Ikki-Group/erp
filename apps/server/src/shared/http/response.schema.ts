@@ -38,7 +38,19 @@ function paginated<T extends z.ZodType>(itemSchema: T) {
 	})
 }
 
+/** Keyset-paginated response envelope; `nextCursor` is `null` on the last page. */
+function cursorPaginated<T extends z.ZodType>(itemSchema: T) {
+	return z.object({
+		success: z.literal(true),
+		data: z.array(itemSchema),
+		meta: z.object({
+			nextCursor: z.string().nullable(),
+			limit: z.number(),
+		}),
+	})
+}
+
 /** No-data success response. */
 const noData = z.object({ success: z.literal(true) })
 
-export const zRes = { ok, created, paginated, noData }
+export const zRes = { ok, created, paginated, cursorPaginated, noData }

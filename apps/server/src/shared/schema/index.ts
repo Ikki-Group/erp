@@ -41,6 +41,12 @@ export const zq = {
 		limit: z.coerce.number().int().positive().max(100).default(20),
 	}),
 
+	/** Keyset pagination: opaque `cursor` from the previous page's `meta.nextCursor`. */
+	cursorPagination: z.object({
+		cursor: z.string().optional(),
+		limit: z.coerce.number().int().positive().max(100).default(20),
+	}),
+
 	search: z.string().trim().optional(),
 
 	recordId: z.object({

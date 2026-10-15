@@ -13,9 +13,34 @@ import {
 	desc,
 } from '@/infra/database/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
-import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import { keyset, keysetOrderBy } from '@/infra/database/keyset.ts'
+import type { WithCursorResult, WithPaginationResult } from '@/shared/types/pagination.ts'
 
-import type { AuditLogDetailDto, AuditLogDto, AuditLogFilterDto } from './audit.contract.ts'
+import type {
+	AuditLogCursorFilterDto,
+	AuditLogDetailDto,
+	AuditLogDto,
+	AuditLogFilterDto,
+} from './audit.contract.ts'
+
+// ─── Projection ───
+
+/** List projection: exactly the `AuditLogDto` fields. */
+const listColumns = {
+	id: auditLogs.id,
+	timestamp: auditLogs.timestamp,
+	userId: auditLogs.userId,
+	userName: auditLogs.userName,
+	locationId: auditLogs.locationId,
+	module: auditLogs.module,
+	entity: auditLogs.entity,
+	entityId: auditLogs.entityId,
+	action: auditLogs.action,
+	summary: auditLogs.summary,
+}
+
+/** Keyset order; the offset list uses it too so both list rows identically. */
+const sortKey = { timestamp: auditLogs.timestamp, id: auditLogs.id }
 
 // ─── Types ───
 
@@ -53,6 +78,10 @@ export interface IAuditRepo {
 	readonly db: DbContext
 	findById(id: number, db?: DbContext): Promise<AuditLogDetailDto | undefined>
 	findPage(filter: AuditLogFilterDto, db?: DbContext): Promise<WithPaginationResult<AuditLogDto>>
+	findCursorPage(
+		filter: AuditLogCursorFilterDto,
+		db?: DbContext,
+	): Promise<WithCursorResult<AuditLogDto>>
 	findByEntity(entity: string, entityId: number, db?: DbContext): Promise<AuditLogDto[]>
 }
 
@@ -79,41 +108,32 @@ export class AuditRepo implements IAuditRepo {
 		const { limit, offset } = toLimitOffset(filter)
 
 		const rows = await db
-			.select({
-				id: auditLogs.id,
-				timestamp: auditLogs.timestamp,
-				userId: auditLogs.userId,
-				userName: auditLogs.userName,
-				locationId: auditLogs.locationId,
-				module: auditLogs.module,
-				entity: auditLogs.entity,
-				entityId: auditLogs.entityId,
-				action: auditLogs.action,
-				summary: auditLogs.summary,
-				rowCount: sql<number>`count(*) over()`.as('row_count'),
-			})
+			.select({ ...listColumns, rowCount: sql<number>`count(*) over()`.as('row_count') })
 			.from(auditLogs)
 			.where(where)
-			.orderBy(desc(auditLogs.timestamp))
+			.orderBy(...keysetOrderBy(sortKey))
 			.limit(limit)
 			.offset(offset)
 
 		const total = rows[0]?.rowCount ?? 0
 		return {
-			data: rows.map((row) => ({
-				id: row.id,
-				timestamp: row.timestamp,
-				userId: row.userId,
-				userName: row.userName,
-				locationId: row.locationId,
-				module: row.module,
-				entity: row.entity,
-				entityId: row.entityId,
-				action: row.action,
-				summary: row.summary,
-			})),
+			data: rows.map(({ rowCount: _, ...row }) => row),
 			meta: buildPaginationMeta(filter.page, filter.limit, total),
 		}
+	}
+
+	async findCursorPage(
+		filter: AuditLogCursorFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithCursorResult<AuditLogDto>> {
+		const page = keyset(filter, sortKey)
+		const rows = await db
+			.select({ ...listColumns, cursorKey: page.sortKey })
+			.from(auditLogs)
+			.where(allOf(this.#buildWhere(filter), page.where))
+			.orderBy(...page.orderBy)
+			.limit(page.limit)
+		return page.page(rows, ({ cursorKey: _, ...row }) => row)
 	}
 
 	async findByEntity(
@@ -132,7 +152,7 @@ export class AuditRepo implements IAuditRepo {
 
 	// ─── Private ───
 
-	#buildWhere(filter: AuditLogFilterDto) {
+	#buildWhere(filter: AuditLogFilterDto | AuditLogCursorFilterDto) {
 		return allOf(
 			eqIf(auditLogs.module, filter.module),
 			eqIf(auditLogs.entity, filter.entity),

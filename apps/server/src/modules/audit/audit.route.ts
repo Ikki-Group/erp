@@ -8,6 +8,7 @@ import { zq } from '@/shared/schema/index.ts'
 
 import {
 	AuditByEntityDto,
+	AuditLogCursorFilterDto,
 	AuditLogDetailDto,
 	AuditLogDto,
 	AuditLogFilterDto,
@@ -26,6 +27,18 @@ export function createAuditRoute(service: AuditService) {
 				return res.paginated(result)
 			},
 			{ query: AuditLogFilterDto, response: zRes.paginated(AuditLogDto), permission: 'audit.read' },
+		)
+		.get(
+			'/list/cursor',
+			async ({ query, auth }) => {
+				const result = await service.handleCursorList(query, auth)
+				return res.cursorPaginated(result)
+			},
+			{
+				query: AuditLogCursorFilterDto,
+				response: zRes.cursorPaginated(AuditLogDto),
+				permission: 'audit.read',
+			},
 		)
 		.get(
 			'/detail',

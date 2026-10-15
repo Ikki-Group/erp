@@ -1,8 +1,13 @@
 import { requirePermission } from '@/shared/auth/index.ts'
 import type { AuthContext } from '@/shared/auth/index.ts'
-import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { WithCursorResult, WithPaginationResult } from '@/shared/types/pagination.ts'
 
-import type { AuditLogDetailDto, AuditLogDto, AuditLogFilterDto } from './audit.contract.ts'
+import type {
+	AuditLogCursorFilterDto,
+	AuditLogDetailDto,
+	AuditLogDto,
+	AuditLogFilterDto,
+} from './audit.contract.ts'
 import { AuditError } from './audit.internal.ts'
 import type { IAuditRepo } from './audit.repo.ts'
 
@@ -21,6 +26,14 @@ export class AuditService {
 	): Promise<WithPaginationResult<AuditLogDto>> {
 		requirePermission(auth, PERMISSION_READ)
 		return this.repo.findPage(filter)
+	}
+
+	async handleCursorList(
+		filter: AuditLogCursorFilterDto,
+		auth: AuthContext,
+	): Promise<WithCursorResult<AuditLogDto>> {
+		requirePermission(auth, PERMISSION_READ)
+		return this.repo.findCursorPage(filter)
 	}
 
 	async handleDetail(id: number, auth: AuthContext): Promise<AuditLogDetailDto> {
