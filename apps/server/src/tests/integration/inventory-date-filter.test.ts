@@ -1,4 +1,5 @@
 import { loginAs } from '../helpers/auth.ts'
+import { createAssignedMaterial, createLocation } from '../helpers/fixtures.ts'
 import { GET, POST } from '../helpers/request.ts'
 import {
 	SEED_LOCATION_ID,
@@ -116,15 +117,19 @@ describe('inventory list date-range filter', () => {
 	})
 
 	test('opname list filters by createdAt range', async () => {
+		// Own location: only one draft opname may exist per location, and this
+		// test leaves its draft behind.
+		const locationId = await createLocation(token, 'warehouse')
+		await createAssignedMaterial(token, { baseUomId: SEED_UOM_ID, locationIds: [locationId] })
 		const createRes = await POST('/inventory/opname/create', {
 			token,
-			body: { locationId: SEED_LOCATION_ID },
+			body: { locationId },
 		})
 		expect(createRes.status).toBe(200)
 		const createBody: Json = await createRes.json()
 		const id = createBody.data.id as number
 		await assertRangeFiltering('/inventory/opname/list', id, {
-			locationId: String(SEED_LOCATION_ID),
+			locationId: String(locationId),
 		})
 	})
 })
