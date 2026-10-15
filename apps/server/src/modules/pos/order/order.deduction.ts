@@ -2,7 +2,6 @@ import type { DbContext } from '@/infra/database/index.ts'
 import { getLogger } from '@/infra/logger/index.ts'
 import { record } from '@/infra/otel/otel.ts'
 import { Qty } from '@/shared/domain/qty.ts'
-import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
 
 import type { InventoryApi } from '@/modules/inventory/index.ts'
 import type { MaterialService } from '@/modules/material/material.service.ts'
@@ -39,11 +38,10 @@ export async function deductStockForOrder(
 	actorId: number,
 	deps: DeductionDeps,
 	db?: DbContext,
-): Promise<StockMovementRecorded[]> {
+): Promise<void> {
 	return record('order.deductStock', async () => {
 		const { recipeService, inventoryApi, uomService, materialService } = deps
 		const conversions = await uomService.getAllConversions()
-		const events: StockMovementRecorded[] = []
 
 		for (const line of orderLines) {
 			await deductForOrderLine(orderId, locationId, line, actorId, {
@@ -52,10 +50,8 @@ export async function deductStockForOrder(
 				materialService,
 				conversions,
 				db,
-				events,
 			})
 		}
-		return events
 	})
 }
 
@@ -67,7 +63,6 @@ interface LineDeductionCtx {
 	materialService: MaterialService
 	conversions: UomConversionDto[]
 	db: DbContext | undefined
-	events: StockMovementRecorded[]
 }
 
 async function deductForOrderLine(
@@ -98,7 +93,6 @@ async function deductForOrderLine(
 			materialService,
 			conversions,
 			db,
-			events: ctx.events,
 		})
 	}
 }
@@ -110,7 +104,6 @@ interface RecipeLineCtx {
 	materialService: MaterialService
 	conversions: UomConversionDto[]
 	db: DbContext | undefined
-	events: StockMovementRecorded[]
 }
 
 interface RecipeLineInput {
@@ -152,7 +145,7 @@ async function deductRecipeLine(
 		},
 	)
 
-	const movement = await inventoryApi.recordMovement(
+	await inventoryApi.recordMovement(
 		{
 			materialId: recipeLine.materialId,
 			locationId,
@@ -165,7 +158,6 @@ async function deductRecipeLine(
 		},
 		db,
 	)
-	ctx.events.push(movement.event)
 }
 
 // ─── Helpers ───

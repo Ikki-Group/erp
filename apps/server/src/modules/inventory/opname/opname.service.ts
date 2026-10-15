@@ -6,8 +6,6 @@ import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Qty } from '@/shared/domain/qty.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
-import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -33,7 +31,6 @@ import type { IOpnameRepo } from './opname.repo.ts'
 export interface OpnameServiceDeps {
 	uow: UnitOfWork
 	audit: AuditPort
-	events: EventBusPort
 	stockService: StockService
 	assignmentService: AssignmentService
 	locationService: LocationService
@@ -210,8 +207,7 @@ export class OpnameService {
 		const lines = await this.repo.findLinesByOpnameId(data.opnameId)
 
 		// 3. Apply all variance movements and complete the opname atomically.
-		const { result, events } = await this.deps.uow.run(async (tx) => {
-			const events: StockMovementRecorded[] = []
+		const result = await this.deps.uow.run(async (tx) => {
 			for (const line of lines) {
 				const systemQty = Qty.of(line.systemQty)
 				const actualQty = Qty.of(line.actualQty)
@@ -220,7 +216,7 @@ export class OpnameService {
 				if (variance.isZero()) continue
 
 				const direction = variance.gt(Qty.zero()) ? 'in' : 'out'
-				const movement = await this.deps.stockService.recordMovement(
+				await this.deps.stockService.recordMovement(
 					{
 						materialId: line.materialId,
 						locationId: opname.locationId,
@@ -234,7 +230,6 @@ export class OpnameService {
 					},
 					tx,
 				)
-				events.push(movement.event)
 			}
 
 			const result = await this.repo.updateStatus(data.opnameId, 'completed', actor.id, tx)
@@ -254,10 +249,9 @@ export class OpnameService {
 				},
 				tx,
 			)
-			return { result, events }
+			return result
 		})
 
-		for (const event of events) this.deps.events.publish(event)
 		await this.deps.stockService.invalidateCache()
 		await this.cache.invalidateStandard()
 

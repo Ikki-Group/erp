@@ -5,8 +5,6 @@ import { record } from '@/infra/otel/otel.ts'
 import { weightedAvgCost } from '@/shared/domain/costing.ts'
 import { Money } from '@/shared/domain/money.ts'
 import { Qty } from '@/shared/domain/qty.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
-import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -30,7 +28,8 @@ const BALANCE_TTL = 10_000 // 10 seconds (Tier 3)
 // ─── Service ───
 
 export interface RecordedMovement extends EntityRef {
-	event: StockMovementRecorded
+	/** Weighted-average cost after this movement. */
+	costPrice: string
 }
 
 export class StockService {
@@ -41,7 +40,6 @@ export class StockService {
 		private readonly repo: IStockRepo,
 		cacheClient: CacheClient,
 		private readonly assignmentService: AssignmentService,
-		private readonly events: EventBusPort,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory-stock')
 	}
@@ -118,26 +116,9 @@ export class StockService {
 			)
 			if (!movementResult) throw StockError.movementFailed()
 
-			const event: StockMovementRecorded = {
-				type: 'StockMovementRecorded',
-				movementId: movementResult.id,
-				materialId,
-				locationId,
-				movementType: type,
-				direction,
-				quantity: moveQty.toNumeric(),
-				costPrice: newCost.toCost(),
-				referenceType: referenceType ?? null,
-				referenceId: referenceId ?? null,
-				actorId,
-			}
+			if (!db) await this.invalidateCache()
 
-			if (!db) {
-				this.events.publish(event)
-				await this.invalidateCache()
-			}
-
-			return { ...movementResult, event }
+			return { ...movementResult, costPrice: newCost.toCost() }
 		})
 	}
 

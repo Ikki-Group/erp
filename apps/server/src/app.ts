@@ -5,7 +5,6 @@ import { auditPort } from './infra/audit/audit.drizzle.ts'
 import { cache as cacheClient, cachePort } from './infra/cache/index.ts'
 import { pool } from './infra/database/client.ts'
 import { db, uow } from './infra/database/index.ts'
-import { createMemoryEventBus } from './infra/events/event-bus.memory.ts'
 import { otelPlugin } from './infra/otel/otel.ts'
 import { sessionStore } from './infra/session/index.ts'
 import { auditModule } from './modules/audit/index.ts'
@@ -37,7 +36,6 @@ const ctx: ModuleContext = {
 	cache: cachePort,
 	cacheClient,
 	sessionStore,
-	events: createMemoryEventBus(),
 	auditPort,
 }
 

@@ -1,7 +1,6 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { CompanyApi } from '@/modules/company/index.ts'
@@ -25,7 +24,6 @@ import { OrderService } from './order.service.ts'
 export interface OrderModuleDeps {
 	uow: UnitOfWork
 	audit: AuditPort
-	events: EventBusPort
 	shiftService: ShiftService
 	tableService: TableService
 	voucherService: VoucherService

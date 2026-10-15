@@ -8,8 +8,6 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Money } from '@/shared/domain/money.ts'
 import { Qty } from '@/shared/domain/qty.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
-import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -40,7 +38,6 @@ import type { IProductionRepo } from './production.repo.ts'
 export interface ProductionServiceDeps {
 	uow: UnitOfWork
 	audit: AuditPort
-	events: EventBusPort
 	inventoryApi: InventoryApi['stock']
 	locationService: LocationService
 	materialService: MaterialService
@@ -347,8 +344,7 @@ export class ProductionService {
 			const multiplier = Qty.of(order.plannedQty).div(Qty.of(recipe.yieldQty))
 
 			// 4. Process within transaction
-			const { updated, events } = await this.deps.uow.run(async (tx) => {
-				const events: StockMovementRecorded[] = []
+			const updated = await this.deps.uow.run(async (tx) => {
 				let totalInputCost = Money.zero()
 
 				// 4a. For each input line: convert to base UoM, get cost, record movement out
@@ -374,7 +370,7 @@ export class ProductionService {
 					totalInputCost = totalInputCost.add(costPrice.mul(baseQty))
 
 					// Record outbound movement (stockService handles insufficient stock check)
-					const movement = await this.deps.inventoryApi.recordMovement(
+					await this.deps.inventoryApi.recordMovement(
 						{
 							materialId: line.materialId,
 							locationId: order.locationId,
@@ -388,7 +384,6 @@ export class ProductionService {
 						},
 						tx,
 					)
-					events.push(movement.event)
 				}
 
 				// 4b. Calculate output unit cost (absorbed costing)
@@ -406,7 +401,7 @@ export class ProductionService {
 					: totalInputCost.div(baseOutputQty).toCost()
 
 				// 4c. Record inbound movement for output
-				const movement = await this.deps.inventoryApi.recordMovement(
+				await this.deps.inventoryApi.recordMovement(
 					{
 						materialId: recipe.materialId,
 						locationId: order.locationId,
@@ -421,7 +416,6 @@ export class ProductionService {
 					},
 					tx,
 				)
-				events.push(movement.event)
 
 				// 4d. Update order status
 				const updated = await this.repo.updateOrder(
@@ -451,10 +445,9 @@ export class ProductionService {
 					tx,
 				)
 
-				return { updated, events }
+				return updated
 			})
 
-			for (const event of events) this.deps.events.publish(event)
 			await this.deps.inventoryApi.invalidateCache()
 			await this.cache.invalidateStandard()
 

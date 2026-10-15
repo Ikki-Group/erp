@@ -1,7 +1,6 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
@@ -22,7 +21,6 @@ import { createTransferModule } from './transfer/transfer.module.ts'
 interface InventoryModuleDeps {
 	uow: UnitOfWork
 	audit: AuditPort
-	events: EventBusPort
 	assignmentService: MaterialApi['assignmentService']
 	locationService: LocationApi['service']
 	materialService: MaterialApi['service']
@@ -44,12 +42,10 @@ export interface InventoryApi extends Record<string, unknown> {
 function createInventoryModule(db: DbContext, cacheClient: CacheClient, deps: InventoryModuleDeps) {
 	const stock = createStockModule(db, cacheClient, {
 		assignmentService: deps.assignmentService,
-		events: deps.events,
 	})
 	const transfer = createTransferModule(db, cacheClient, {
 		uow: deps.uow,
 		audit: deps.audit,
-		events: deps.events,
 		stockService: stock.service,
 		assignmentService: deps.assignmentService,
 		locationService: deps.locationService,
@@ -57,7 +53,6 @@ function createInventoryModule(db: DbContext, cacheClient: CacheClient, deps: In
 	const receiving = createReceivingModule(db, cacheClient, {
 		uow: deps.uow,
 		audit: deps.audit,
-		events: deps.events,
 		stockService: stock.service,
 		assignmentService: deps.assignmentService,
 		locationService: deps.locationService,
@@ -68,7 +63,6 @@ function createInventoryModule(db: DbContext, cacheClient: CacheClient, deps: In
 	const opname = createOpnameModule(db, cacheClient, {
 		uow: deps.uow,
 		audit: deps.audit,
-		events: deps.events,
 		stockService: stock.service,
 		assignmentService: deps.assignmentService,
 		locationService: deps.locationService,
@@ -122,7 +116,6 @@ export const inventoryModule: ModuleDescriptor = {
 		return createInventoryModule(ctx.db, ctx.cacheClient, {
 			uow: ctx.uow,
 			audit: ctx.auditPort,
-			events: ctx.events,
 			assignmentService: material.assignmentService,
 			locationService: location.service,
 			materialService: material.service,

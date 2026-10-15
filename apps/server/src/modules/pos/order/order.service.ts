@@ -7,7 +7,6 @@ import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Money } from '@/shared/domain/money.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -47,7 +46,6 @@ import type { IOrderRepo } from './order.repo.ts'
 export interface OrderServiceDeps {
 	uow: UnitOfWork
 	audit: AuditPort
-	events: EventBusPort
 	shiftService: ShiftService
 	tableService: TableService
 	voucherService: VoucherService
@@ -460,7 +458,7 @@ export class OrderService {
 			const remaining = orderTotal.sub(totalPaid)
 			if (remaining.gt(Money.zero())) throw OrderError.notFullyPaid(orderId, remaining.toString())
 
-			const { updated, movementEvents } = await this.deps.uow.run(async (tx) => {
+			const updated = await this.deps.uow.run(async (tx) => {
 				const current = assertFound(await this.repo.findById(orderId, tx), () =>
 					OrderError.notFound(orderId),
 				)
@@ -480,7 +478,7 @@ export class OrderService {
 
 				if (current.voucherId) await this.deps.voucherService.incrementUsage(current.voucherId, tx)
 
-				const movementEvents = await deductStockForOrder(
+				await deductStockForOrder(
 					orderId,
 					current.locationId,
 					lines,
@@ -510,10 +508,9 @@ export class OrderService {
 					tx,
 				)
 
-				return { updated, movementEvents }
+				return updated
 			})
 
-			for (const event of movementEvents) this.deps.events.publish(event)
 			await this.deps.inventoryApi.invalidateCache()
 			if (order.tableId) await this.deps.tableService.updateStatus(order.tableId, 'available')
 			await this.cache.invalidateStandard(orderId)

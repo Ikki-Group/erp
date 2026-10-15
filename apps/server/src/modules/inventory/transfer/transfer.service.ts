@@ -7,8 +7,6 @@ import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Qty } from '@/shared/domain/qty.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
-import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -34,7 +32,6 @@ import type { ITransferRepo } from './transfer.repo.ts'
 export interface TransferServiceDeps {
 	uow: UnitOfWork
 	audit: AuditPort
-	events: EventBusPort
 	stockService: StockService
 	assignmentService: AssignmentService
 	locationService: LocationService
@@ -153,9 +150,8 @@ export class TransferService {
 			}
 
 			// 2. Apply source deductions and status changes atomically.
-			const { result, events } = await this.deps.uow.run(async (tx) => {
+			const result = await this.deps.uow.run(async (tx) => {
 				const lines = await this.repo.findLinesByTransferId(data.transferId, tx)
-				const events: StockMovementRecorded[] = []
 
 				for (const line of lines) {
 					const movement = await this.deps.stockService.recordMovement(
@@ -172,8 +168,7 @@ export class TransferService {
 						},
 						tx,
 					)
-					events.push(movement.event)
-					await this.repo.updateLineShipped(line.id, movement.event.costPrice, tx)
+					await this.repo.updateLineShipped(line.id, movement.costPrice, tx)
 				}
 
 				const result = await this.repo.updateStatus(data.transferId, 'in_transit', actor.id, tx)
@@ -192,10 +187,9 @@ export class TransferService {
 					},
 					tx,
 				)
-				return { result, events }
+				return result
 			})
 
-			for (const event of events) this.deps.events.publish(event)
 			await this.deps.stockService.invalidateCache()
 			await this.cache.invalidateStandard()
 
@@ -218,9 +212,8 @@ export class TransferService {
 			}
 
 			// 2. Validate and process destination receipt atomically.
-			const { result, events } = await this.deps.uow.run(async (tx) => {
+			const result = await this.deps.uow.run(async (tx) => {
 				const existingLines = await this.repo.findLinesByTransferId(data.transferId, tx)
-				const events: StockMovementRecorded[] = []
 
 				for (const receiveLine of data.lines) {
 					const transferLine = existingLines.find((l) => l.materialId === receiveLine.materialId)
@@ -242,7 +235,7 @@ export class TransferService {
 
 					const sourceCostPrice = transferLine.shippedCostPrice ?? '0'
 
-					const movement = await this.deps.stockService.recordMovement(
+					await this.deps.stockService.recordMovement(
 						{
 							materialId: receiveLine.materialId,
 							locationId: transfer.toLocationId,
@@ -257,8 +250,6 @@ export class TransferService {
 						},
 						tx,
 					)
-
-					events.push(movement.event)
 
 					const totalReceived = alreadyReceived.add(newReceived).toNumeric()
 					await this.repo.updateLineReceivedQty(transferLine.id, totalReceived, tx)
@@ -285,10 +276,9 @@ export class TransferService {
 					},
 					tx,
 				)
-				return { result, newStatus, events }
+				return result
 			})
 
-			for (const event of events) this.deps.events.publish(event)
 			await this.deps.stockService.invalidateCache()
 			await this.cache.invalidateStandard()
 

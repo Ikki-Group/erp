@@ -1,7 +1,6 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
@@ -25,7 +24,6 @@ import { createVoucherModule } from './voucher/voucher.module.ts'
 interface PosModuleDeps {
 	uow: UnitOfWork
 	audit: AuditPort
-	events: EventBusPort
 	locationService: LocationApi['service']
 	paymentMethodService: PaymentMethodApi['service']
 	companyApi: CompanyApi
@@ -56,7 +54,6 @@ function createPosModule(db: DbContext, cacheClient: CacheClient, deps: PosModul
 	const order = createOrderModule(db, cacheClient, {
 		uow: deps.uow,
 		audit: deps.audit,
-		events: deps.events,
 		shiftService: shift.service,
 		tableService: table.service,
 		voucherService: voucher.service,
@@ -143,7 +140,6 @@ export const posModule: ModuleDescriptor = {
 		return createPosModule(ctx.db, ctx.cacheClient, {
 			uow: ctx.uow,
 			audit: ctx.auditPort,
-			events: ctx.events,
 			locationService: location.service,
 			paymentMethodService: paymentMethod.service,
 			companyApi: company,

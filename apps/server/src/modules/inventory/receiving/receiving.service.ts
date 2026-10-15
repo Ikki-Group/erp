@@ -8,8 +8,6 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Money } from '@/shared/domain/money.ts'
 import { Qty } from '@/shared/domain/qty.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
-import type { StockMovementRecorded } from '@/shared/events/stock.events.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -38,7 +36,6 @@ import type { IReceivingRepo } from './receiving.repo.ts'
 export interface ReceivingServiceDeps {
 	uow: UnitOfWork
 	audit: AuditPort
-	events: EventBusPort
 	stockService: StockService
 	assignmentService: AssignmentService
 	locationService: LocationService
@@ -238,9 +235,8 @@ export class ReceivingService {
 			}
 
 			// 2. Get lines and apply the complete confirmation atomically.
-			const { result, events } = await this.deps.uow.run(async (tx) => {
+			const result = await this.deps.uow.run(async (tx) => {
 				const lines = await this.repo.findLinesByReceivingId(data.receivingId, tx)
-				const events: StockMovementRecorded[] = []
 
 				for (const line of lines) {
 					const material = await this.deps.materialService.handleGetById(line.materialId)
@@ -254,7 +250,7 @@ export class ReceivingService {
 					const conversionFactor = baseQty.div(Qty.of(line.quantity))
 					const baseUnitCost = Money.of(line.unitCost).div(conversionFactor).toCost()
 
-					const movement = await this.deps.stockService.recordMovement(
+					await this.deps.stockService.recordMovement(
 						{
 							materialId: line.materialId,
 							locationId: receiving.locationId,
@@ -269,7 +265,6 @@ export class ReceivingService {
 						},
 						tx,
 					)
-					events.push(movement.event)
 				}
 
 				const result = await this.repo.updateStatus(data.receivingId, 'confirmed', actor.id, tx)
@@ -288,10 +283,9 @@ export class ReceivingService {
 					},
 					tx,
 				)
-				return { result, lines, events }
+				return result
 			})
 
-			for (const event of events) this.deps.events.publish(event)
 			await this.deps.stockService.invalidateCache()
 			await this.cache.invalidateStandard()
 

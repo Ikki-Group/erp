@@ -1,7 +1,6 @@
 import type { CacheClient } from '@/infra/cache/index.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import type { EventBusPort } from '@/shared/events/event-bus.port.ts'
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
@@ -19,7 +18,6 @@ import { ProductionService } from './production.service.ts'
 interface ProductionModuleDeps {
 	uow: UnitOfWork
 	audit: AuditPort
-	events: EventBusPort
 	inventoryApi: InventoryApi['stock']
 	locationService: LocationApi['service']
 	materialService: MaterialApi['service']
@@ -37,7 +35,6 @@ function createProductionModule(
 	const service = new ProductionService(repo, cacheClient, {
 		uow: deps.uow,
 		audit: deps.audit,
-		events: deps.events,
 		inventoryApi: deps.inventoryApi,
 		locationService: deps.locationService,
 		materialService: deps.materialService,
@@ -83,7 +80,6 @@ export const productionModule: ModuleDescriptor = {
 		return createProductionModule(ctx.db, ctx.cacheClient, {
 			uow: ctx.uow,
 			audit: ctx.auditPort,
-			events: ctx.events,
 			inventoryApi: inventory.stock,
 			locationService: location.service,
 			materialService: material.service,
