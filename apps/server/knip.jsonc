@@ -17,7 +17,7 @@
 		"src/shared/types/utils.ts",
 	],
 	"project": ["src/**/*.ts"],
-	"ignoreDependencies": ["@total-typescript/ts-reset", "bcrypt", "lint-staged", "ws", "@types/ws"],
+	"ignoreDependencies": ["lint-staged"],
 	"ignoreBinaries": ["flyctl"],
 	"ignoreIssues": {
 		"src/server/plugins/auth.plugin.ts": ["duplicates"],
