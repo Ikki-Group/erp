@@ -6,7 +6,7 @@ import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
 
 import type { LocationApi } from '@/modules/location/index.ts'
 
-import { PaymentMethodRepo } from './payment-method.repo.ts'
+import { createPaymentMethodRepo } from './payment-method.repo.ts'
 import { createPaymentMethodRoute } from './payment-method.route.ts'
 import { PaymentMethodService } from './payment-method.service.ts'
 
@@ -22,7 +22,7 @@ function createPaymentMethodModule(
 	deps: PaymentMethodModuleDeps,
 ) {
 	const service = new PaymentMethodService(
-		new PaymentMethodRepo(db),
+		createPaymentMethodRepo(db),
 		cacheClient,
 		locationService,
 		{

@@ -4,9 +4,10 @@ import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -43,14 +44,19 @@ export interface PaymentMethodServiceDeps {
 
 export class PaymentMethodService {
 	private readonly cache: CacheService
+	private readonly mutation: MutationScope
+	private readonly assignmentMutation: MutationScope
 
 	constructor(
 		private readonly repo: IPaymentMethodRepo,
 		cacheClient: CacheClient,
 		private readonly locationService: LocationService,
-		private readonly deps: PaymentMethodServiceDeps,
+		deps: PaymentMethodServiceDeps,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'payment-method')
+		const scope = { uow: deps.uow, audit: deps.audit, module: 'payment-method' }
+		this.mutation = { ...scope, entity: 'payment_method', invalidate: this.cache }
+		this.assignmentMutation = { ...scope, entity: 'payment_method_location' }
 	}
 
 	// ─── Cached Reads ───
@@ -93,8 +99,7 @@ export class PaymentMethodService {
 	}
 
 	async handleCreate(data: PaymentMethodCreateDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			// 1. Check conflicts
+		return mutate(this.mutation, actor, async (tx) => {
 			await checkConflict({
 				db: tx,
 				table: paymentMethods,
@@ -103,45 +108,25 @@ export class PaymentMethodService {
 				input: data,
 			})
 
-			// 2. Insert
-			const written = await this.repo.insert(
-				{
-					...data,
-					isActive: data.isActive,
-					...stampCreate(actor.id),
-				},
-				tx,
-			)
+			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
 			if (!written) throw PaymentMethodError.createFailed()
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'payment-method',
-					entity: 'payment_method',
-					entityId: written.id,
+			return {
+				result: written,
+				audit: {
 					action: 'create',
 					summary: `Created payment method "${data.name}" (${data.code})`,
 					newValues: { code: data.code, name: data.name, type: data.type },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard()
-		return result
 	}
 
 	async handleUpdate(data: PaymentMethodUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
-
-		const result = await this.deps.uow.run(async (tx) => {
-			// 1. Verify exists
+		return mutate(this.mutation, actor, async (tx) => {
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw PaymentMethodError.notFound(id)
 
-			// 2. Check conflicts (exclude self)
 			await checkConflict({
 				db: tx,
 				table: paymentMethods,
@@ -151,146 +136,104 @@ export class PaymentMethodService {
 				excludeId: id,
 			})
 
-			// 3. Update
-			const written = await this.repo.update(
-				id,
-				{
-					...updateData,
-					isActive: updateData.isActive,
-					...stampUpdate(actor.id),
-				},
-				tx,
-			)
+			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
 			if (!written) throw PaymentMethodError.updateFailed(id)
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'payment-method',
-					entity: 'payment_method',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'update',
 					summary: `Updated payment method "${data.name}" (${data.code})`,
 					newValues: { code: data.code, name: data.name, type: data.type },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		// 4. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			// 1. Verify exists
+		return mutate(this.mutation, actor, async (tx) => {
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw PaymentMethodError.notFound(id)
 
-			// 2. Soft-delete
 			const written = await this.repo.remove(id, stampUpdate(actor.id), tx)
 			if (!written) throw PaymentMethodError.deleteFailed(id)
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'payment-method',
-					entity: 'payment_method',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'delete',
 					summary: `Deleted payment method "${existing.name}" (${existing.code})`,
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	// ─── Location Assignment ───
 
 	async handleAssign(data: PaymentMethodLocationAssignDto, actor: Actor): Promise<EntityRef> {
-		// 1. Validate payment method exists
 		await this.handleGetById(data.paymentMethodId)
-
-		// 2. Validate location exists
 		await this.locationService.handleGetById(data.locationId)
 
-		const result = await this.deps.uow.run(async (tx) => {
-			// 3. Upsert assignment
-			const written = await this.repo.upsertLocationAssignment(
-				{
-					paymentMethodId: data.paymentMethodId,
-					locationId: data.locationId,
-					isEnabled: data.isEnabled,
-				},
-				tx,
-			)
-			if (!written) throw LocationAssignmentError.assignFailed()
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'payment-method',
-					entity: 'payment_method_location',
-					entityId: written.id,
-					action: 'create',
-					summary: `Assigned payment method #${data.paymentMethodId} to location #${data.locationId} (enabled: ${data.isEnabled})`,
-					newValues: {
+		return mutate(
+			this.assignmentMutation,
+			actor,
+			async (tx) => {
+				const written = await this.repo.upsertLocationAssignment(
+					{
 						paymentMethodId: data.paymentMethodId,
 						locationId: data.locationId,
 						isEnabled: data.isEnabled,
 					},
-				}),
-				tx,
-			)
-			return written
-		})
-
-		// 4. Invalidate location cache after commit
-		await this.cache.deleteFromKeys([locationCacheKey(data.locationId)])
-		return result
+					tx,
+				)
+				if (!written) throw LocationAssignmentError.assignFailed()
+				return {
+					result: written,
+					audit: {
+						action: 'create',
+						summary: `Assigned payment method #${data.paymentMethodId} to location #${data.locationId} (enabled: ${data.isEnabled})`,
+						newValues: {
+							paymentMethodId: data.paymentMethodId,
+							locationId: data.locationId,
+							isEnabled: data.isEnabled,
+						},
+					},
+				}
+			},
+			{ invalidate: () => this.cache.deleteFromKeys([locationCacheKey(data.locationId)]) },
+		)
 	}
 
 	async handleUnassign(data: PaymentMethodLocationAssignDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			// 1. Validate assignment exists
-			const existing = await this.repo.findLocationAssignment(
-				data.paymentMethodId,
-				data.locationId,
-				tx,
-			)
-			if (!existing) {
-				throw LocationAssignmentError.notAssigned(data.paymentMethodId, data.locationId)
-			}
+		return mutate(
+			this.assignmentMutation,
+			actor,
+			async (tx) => {
+				const existing = await this.repo.findLocationAssignment(
+					data.paymentMethodId,
+					data.locationId,
+					tx,
+				)
+				if (!existing) {
+					throw LocationAssignmentError.notAssigned(data.paymentMethodId, data.locationId)
+				}
 
-			// 2. Remove assignment
-			const written = await this.repo.removeLocationAssignment(
-				data.paymentMethodId,
-				data.locationId,
-				tx,
-			)
-			if (!written) {
-				throw LocationAssignmentError.notAssigned(data.paymentMethodId, data.locationId)
-			}
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'payment-method',
-					entity: 'payment_method_location',
-					entityId: existing.id,
-					action: 'delete',
-					summary: `Unassigned payment method #${data.paymentMethodId} from location #${data.locationId}`,
-				}),
-				tx,
-			)
-			return written
-		})
-
-		// 3. Invalidate location cache after commit
-		await this.cache.deleteFromKeys([locationCacheKey(data.locationId)])
-		return result
+				const written = await this.repo.removeLocationAssignment(
+					data.paymentMethodId,
+					data.locationId,
+					tx,
+				)
+				if (!written) {
+					throw LocationAssignmentError.notAssigned(data.paymentMethodId, data.locationId)
+				}
+				return {
+					result: written,
+					audit: {
+						entityId: existing.id,
+						action: 'delete',
+						summary: `Unassigned payment method #${data.paymentMethodId} from location #${data.locationId}`,
+					},
+				}
+			},
+			{ invalidate: () => this.cache.deleteFromKeys([locationCacheKey(data.locationId)]) },
+		)
 	}
 }

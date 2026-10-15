@@ -1,33 +1,14 @@
 import { paymentMethods } from '@/db/schema/pos.ts'
 
 import { defineConflictFields } from '@/infra/database/index.ts'
+import { defineEntityErrors } from '@/shared/errors/entity-errors.ts'
 import { ConflictError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
 import type { PaymentMethodCreateDto } from './payment-method.contract.ts'
 
 // ─── Error Factories ───
 
-export const PaymentMethodError = {
-	notFound: (id: number) =>
-		new NotFoundError('Payment method not found', {
-			code: 'PAYMENT_METHOD_NOT_FOUND',
-			context: { id },
-		}),
-	createFailed: () =>
-		new InternalServerError('Payment method creation failed', {
-			code: 'PAYMENT_METHOD_CREATE_FAILED',
-		}),
-	updateFailed: (id: number) =>
-		new InternalServerError('Payment method update failed', {
-			code: 'PAYMENT_METHOD_UPDATE_FAILED',
-			context: { id },
-		}),
-	deleteFailed: (id: number) =>
-		new InternalServerError('Payment method deletion failed', {
-			code: 'PAYMENT_METHOD_DELETE_FAILED',
-			context: { id },
-		}),
-}
+export const PaymentMethodError = defineEntityErrors('Payment method', 'PAYMENT_METHOD')
 
 export const LocationAssignmentError = {
 	assignFailed: () =>
