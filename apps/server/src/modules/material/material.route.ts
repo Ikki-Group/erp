@@ -1,11 +1,10 @@
-import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { crudRoutes } from '@/server/crud-route.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { EntityRefDto, zq } from '@/shared/schema/index.ts'
+import { EntityRefDto } from '@/shared/schema/index.ts'
 
 import { MaterialAssignDto, MaterialLocationDto } from './assignment/assignment.contract.ts'
 import type { AssignmentService } from './assignment/assignment.service.ts'
@@ -29,84 +28,31 @@ export function createMaterialRoute(
 	categoryService: CategoryService,
 	assignmentService: AssignmentService,
 ) {
-	return new Elysia({ prefix: '/material', tags: ['material'] })
-		.use(rbac.as('scoped'))
-		.get('/list', async ({ query }) => res.paginated(await materialService.handleList(query)), {
-			query: MaterialFilterDto,
-			response: zRes.paginated(MaterialDto),
-			permission: 'material.read',
-		})
-		.get('/detail', async ({ query }) => res.ok(await materialService.handleGetById(query.id)), {
-			query: zq.recordId,
-			response: zRes.ok(MaterialDto),
-			permission: 'material.read',
-		})
-		.post(
-			'/create',
-			async ({ body, auth }) =>
-				res.created(await materialService.handleCreate(body, actorOf(auth))),
-			{
-				body: MaterialCreateDto,
-				response: zRes.created(EntityRefDto),
-				permission: 'material.create',
-			},
-		)
-		.put(
-			'/update',
-			async ({ body, auth }) => res.ok(await materialService.handleUpdate(body, actorOf(auth))),
-			{
-				body: MaterialUpdateDto,
-				response: zRes.ok(EntityRefDto),
-				permission: 'material.update',
-			},
-		)
-		.delete(
-			'/remove',
-			async ({ query, auth }) =>
-				res.ok(await materialService.handleDelete(query.id, actorOf(auth))),
-			{
-				query: zq.recordId,
-				response: zRes.ok(EntityRefDto),
-				permission: 'material.delete',
-			},
-		)
-		.get(
-			'/category/list',
-			async ({ query }) => res.paginated(await categoryService.handleList(query)),
-			{
-				query: MaterialCategoryFilterDto,
-				response: zRes.paginated(MaterialCategoryDto),
-				permission: 'material.read',
-			},
-		)
-		.post(
-			'/category/create',
-			async ({ body, auth }) =>
-				res.created(await categoryService.handleCreate(body, actorOf(auth))),
-			{
-				body: MaterialCategoryCreateDto,
-				response: zRes.created(EntityRefDto),
-				permission: 'material.create',
-			},
-		)
-		.put(
-			'/category/update',
-			async ({ body, auth }) => res.ok(await categoryService.handleUpdate(body, actorOf(auth))),
-			{
-				body: MaterialCategoryUpdateDto,
-				response: zRes.ok(EntityRefDto),
-				permission: 'material.update',
-			},
-		)
-		.delete(
-			'/category/remove',
-			async ({ query, auth }) =>
-				res.ok(await categoryService.handleDelete(query.id, actorOf(auth))),
-			{
-				query: zq.recordId,
-				response: zRes.ok(EntityRefDto),
-				permission: 'material.delete',
-			},
+	return crudRoutes({
+		prefix: '/material',
+		resource: 'material',
+		service: materialService,
+		schemas: {
+			filter: MaterialFilterDto,
+			dto: MaterialDto,
+			create: MaterialCreateDto,
+			update: MaterialUpdateDto,
+		},
+	})
+		.use(
+			crudRoutes({
+				prefix: '/category',
+				resource: 'material',
+				tags: ['material'],
+				detail: false,
+				service: categoryService,
+				schemas: {
+					filter: MaterialCategoryFilterDto,
+					dto: MaterialCategoryDto,
+					create: MaterialCategoryCreateDto,
+					update: MaterialCategoryUpdateDto,
+				},
+			}),
 		)
 		.post(
 			'/assignment/assign',

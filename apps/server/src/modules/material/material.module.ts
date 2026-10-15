@@ -9,9 +9,9 @@ import type { UomApi } from '@/modules/uom/index.ts'
 
 import { AssignmentRepo } from './assignment/assignment.repo.ts'
 import { AssignmentService } from './assignment/assignment.service.ts'
-import { CategoryRepo } from './category/category.repo.ts'
+import { createCategoryRepo } from './category/category.repo.ts'
 import { CategoryService } from './category/category.service.ts'
-import { MaterialRepo } from './material.repo.ts'
+import { createMaterialRepo } from './material.repo.ts'
 import { createMaterialRoute } from './material.route.ts'
 import { MaterialService } from './material.service.ts'
 
@@ -23,12 +23,12 @@ interface MaterialModuleDeps {
 }
 
 function createMaterialModule(db: DbContext, cacheClient: CacheClient, deps: MaterialModuleDeps) {
-	const categoryService = new CategoryService(new CategoryRepo(db), cacheClient, {
+	const categoryService = new CategoryService(createCategoryRepo(db), cacheClient, {
 		uow: deps.uow,
 		audit: deps.audit,
 	})
 	const materialService = new MaterialService(
-		new MaterialRepo(db),
+		createMaterialRepo(db),
 		cacheClient,
 		deps.uomService,
 		categoryService,

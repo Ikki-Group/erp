@@ -3,12 +3,11 @@ import { materialCategories } from '@/db/schema/material.ts'
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
-import { defineConflictFields } from '@/infra/database/index.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -20,42 +19,8 @@ import type {
 	MaterialCategoryFilterDto,
 	MaterialCategoryUpdateDto,
 } from './category.contract.ts'
+import { CategoryError, uniqueFields } from './category.internal.ts'
 import type { ICategoryRepo } from './category.repo.ts'
-
-// ─── Error Factories ───
-
-const CategoryError = {
-	notFound: (id: number) =>
-		new NotFoundError('Material category not found', {
-			code: 'MATERIAL_CATEGORY_NOT_FOUND',
-			context: { id },
-		}),
-	createFailed: () =>
-		new InternalServerError('Material category creation failed', {
-			code: 'MATERIAL_CATEGORY_CREATE_FAILED',
-		}),
-	updateFailed: (id: number) =>
-		new InternalServerError('Material category update failed', {
-			code: 'MATERIAL_CATEGORY_UPDATE_FAILED',
-			context: { id },
-		}),
-	deleteFailed: (id: number) =>
-		new InternalServerError('Material category deletion failed', {
-			code: 'MATERIAL_CATEGORY_DELETE_FAILED',
-			context: { id },
-		}),
-}
-
-// ─── Unique Constraint Fields ───
-
-const uniqueFields = defineConflictFields<MaterialCategoryCreateDto>()([
-	{
-		field: 'name',
-		column: materialCategories.name,
-		message: 'Material category name already exists',
-		code: 'MATERIAL_CATEGORY_NAME_EXISTS',
-	},
-])
 
 // ─── Service ───
 
@@ -66,13 +31,21 @@ export interface CategoryServiceDeps {
 
 export class CategoryService {
 	private readonly cache: CacheService
+	private readonly mutation: MutationScope
 
 	constructor(
 		private readonly repo: ICategoryRepo,
 		cacheClient: CacheClient,
-		private readonly deps: CategoryServiceDeps,
+		deps: CategoryServiceDeps,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'material-category')
+		this.mutation = {
+			uow: deps.uow,
+			audit: deps.audit,
+			module: 'material',
+			entity: 'material_category',
+			invalidate: this.cache,
+		}
 	}
 
 	// ─── Cached Reads ───
@@ -104,7 +77,7 @@ export class CategoryService {
 	}
 
 	async handleCreate(data: MaterialCategoryCreateDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			// 1. Check conflicts
 			await checkConflict({
 				db: tx,
@@ -118,28 +91,20 @@ export class CategoryService {
 			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
 			if (!written) throw CategoryError.createFailed()
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'material',
-					entity: 'material_category',
-					entityId: written.id,
+			return {
+				result: written,
+				audit: {
 					action: 'create',
 					summary: `Created material category "${data.name}"`,
 					newValues: { name: data.name },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard()
-		return result
 	}
 
 	async handleUpdate(data: MaterialCategoryUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			// 1. Verify exists
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw CategoryError.notFound(id)
@@ -158,28 +123,20 @@ export class CategoryService {
 			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
 			if (!written) throw CategoryError.updateFailed(id)
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'material',
-					entity: 'material_category',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'update',
 					summary: `Updated material category "${data.name}"`,
 					oldValues: { name: existing.name },
 					newValues: { name: data.name },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		// 4. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			// 1. Verify exists
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw CategoryError.notFound(id)
@@ -188,21 +145,13 @@ export class CategoryService {
 			const written = await this.repo.remove(id, tx)
 			if (!written) throw CategoryError.deleteFailed(id)
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'material',
-					entity: 'material_category',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'delete',
 					summary: `Deleted material category "${existing.name}"`,
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 }

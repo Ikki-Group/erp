@@ -5,10 +5,11 @@ import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Qty } from '@/shared/domain/qty.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -36,15 +37,23 @@ export interface MaterialServiceDeps {
 
 export class MaterialService {
 	private readonly cache: CacheService
+	private readonly mutation: MutationScope
 
 	constructor(
 		private readonly repo: IMaterialRepo,
 		cacheClient: CacheClient,
 		private readonly uomService: UomService,
 		private readonly categoryService: CategoryService,
-		private readonly deps: MaterialServiceDeps,
+		deps: MaterialServiceDeps,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'material')
+		this.mutation = {
+			uow: deps.uow,
+			audit: deps.audit,
+			module: 'material',
+			entity: 'material',
+			invalidate: this.cache,
+		}
 	}
 
 	// ─── Cached Reads ───
@@ -87,7 +96,7 @@ export class MaterialService {
 			recipeUomId: data.defaultRecipeUomId,
 		})
 
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			// 4. Check conflicts (code unique)
 			await checkConflict({
 				db: tx,
@@ -108,23 +117,15 @@ export class MaterialService {
 			)
 			if (!written) throw MaterialError.createFailed()
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'material',
-					entity: 'material',
-					entityId: written.id,
+			return {
+				result: written,
+				audit: {
 					action: 'create',
 					summary: `Created material "${data.name}" (${data.code})`,
 					newValues: { code: data.code, name: data.name, type: data.type },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		// 6. Invalidate cache after commit
-		await this.cache.invalidateStandard()
-		return result
 	}
 
 	async handleUpdate(data: MaterialUpdateDto, actor: Actor): Promise<EntityRef> {
@@ -145,7 +146,7 @@ export class MaterialService {
 			recipeUomId: updateData.defaultRecipeUomId,
 		})
 
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			// 4. Verify exists
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw MaterialError.notFound(id)
@@ -172,27 +173,19 @@ export class MaterialService {
 			)
 			if (!written) throw MaterialError.updateFailed(id)
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'material',
-					entity: 'material',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'update',
 					summary: `Updated material "${data.name}" (${data.code})`,
 					newValues: { code: data.code, name: data.name, type: data.type },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		// 7. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			// 1. Verify exists
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw MaterialError.notFound(id)
@@ -201,22 +194,14 @@ export class MaterialService {
 			const written = await this.repo.remove(id, stampUpdate(actor.id), tx)
 			if (!written) throw MaterialError.deleteFailed(id)
 
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'material',
-					entity: 'material',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'delete',
 					summary: `Deleted material "${existing.name}" (${existing.code})`,
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		// 3. Invalidate cache after commit
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	// ─── Private ───
