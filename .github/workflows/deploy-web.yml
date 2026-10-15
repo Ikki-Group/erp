@@ -1,11 +1,13 @@
 name: Deploy web to Cloudflare Pages
 
+# Runs only after CI succeeds on a push to main (or manually). workflow_run cannot filter by
+# path, so every successful main push redeploys the web app; main only moves on releases.
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
-    paths:
-      - 'apps/web/**'
 
 env:
   CLOUDFLARE_PROJECT_MAIN: ikki-erp
@@ -13,12 +15,20 @@ env:
 
 jobs:
   build_and_deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    concurrency: deploy-web
     permissions:
       contents: read
       deployments: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Deploy exactly the commit CI validated.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Use Bun
         uses: oven-sh/setup-bun@v2
@@ -37,13 +47,15 @@ jobs:
 
       - name: Determine Cloudflare project
         id: cf
+        env:
+          BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
         run: |
-          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+          if [ "${BRANCH}" = "main" ]; then
             echo "project=${CLOUDFLARE_PROJECT_MAIN}" >> $GITHUB_OUTPUT
-          elif [ "${GITHUB_REF_NAME}" = "dev" ]; then
+          elif [ "${BRANCH}" = "dev" ]; then
             echo "project=${CLOUDFLARE_PROJECT_DEV}" >> $GITHUB_OUTPUT
           else
-            echo "Skipping deployment: branch ${GITHUB_REF_NAME} is not main or dev"
+            echo "Skipping deployment: branch ${BRANCH} is not main or dev"
             echo "skip=true" >> $GITHUB_OUTPUT
           fi
 
