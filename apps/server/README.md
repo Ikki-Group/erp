@@ -78,19 +78,32 @@ apps/server/
 ### Development
 
 ```bash
-bun run dev:server        # Start dev server (with --watch)
-bun run dev:web           # Start Vite dev server
-bun run build             # Production build
+bun run dev               # Start dev server (with --watch)
+bun run build             # Compile dist/server + dist/migrate binaries (+ dist/migrations)
+bun run start             # Run the compiled server (./dist/server)
 ```
 
 ### Database
 
 ```bash
-bun run db:generate       # Generate migration from schema
-bun run db:migrate        # Apply migrations
+bun run db:generate       # Generate migration from schema (drizzle-kit)
+bun run db:migrate        # Apply migrations (drizzle-kit, dev)
+bun run db:migrate:prod   # Apply migrations with the production runner (scripts/migrate.ts)
 bun run db:studio         # Open Drizzle Studio
 bun run db:seed           # Seed database
 ```
+
+### Deployment (Fly.io)
+
+`apps/server/Dockerfile` (build context: repo root) compiles two binaries and ships them in a
+distroless image: `/app/server` (CMD) and `/app/migrate` (with migrations in `/app/migrations`).
+`fly.toml` runs `release_command = "/app/migrate"` so migrations are applied before each new
+release starts; Fly health-checks `GET /health`. Deploys run from
+`.github/workflows/deploy-server.yml` after CI passes on `main`.
+
+`./dist/migrate` reads `DATABASE_URL` and optional `MIGRATIONS_DIR` (default: `migrations/` next
+to the binary), and exits non-zero on failure. Production requires `CORS_ORIGINS` to be set
+(`fly secrets set CORS_ORIGINS=https://…`).
 
 ### Code Quality
 
@@ -98,7 +111,7 @@ bun run db:seed           # Seed database
 bun test                  # Run tests
 bun run typecheck         # Type checking
 bun run lint              # Lint code
-bun run verify            # Full verification (lint + typecheck + test)
+bun run verify            # Full verification (lint + typecheck + knip + check-deps)
 bun run check-deps        # Check circular dependencies
 ```
 
@@ -211,9 +224,11 @@ cp .env.example .env.development
 Required variables:
 
 - `DATABASE_URL` - PostgreSQL connection string
-- `REDIS_URL` - Redis connection string (for cache)
-- `JWT_SECRET` - Secret for JWT signing
-- `PORT` - Server port (default: 3000)
+- `CORS_ORIGINS` - Comma-separated allowed origins (required in production)
+
+Optional: `PORT` (default 3000; 8080 in the Docker image), `DB_POOL_MAX`, `REDIS_URL`
+(L2 cache/session store; memory-only when unset), `AUTH_RATE_LIMIT_*`, `AXIOM_*`. See
+`.env.example`.
 
 ---
 
@@ -222,11 +237,8 @@ Required variables:
 ### Database Issues
 
 ```bash
-# Reset database (development only)
-bun run db:push --force
-
-# Check migration status
-bun run db:migrate --check
+# Drop, migrate and seed the database (development/test only, guarded)
+bun run dev:db:reset
 ```
 
 ### Cache Issues
