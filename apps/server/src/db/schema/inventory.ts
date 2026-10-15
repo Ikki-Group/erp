@@ -81,12 +81,14 @@ export const stockMovements = pgTable(
 		createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
 	},
 	(t) => [
-		index('stock_movements_material_location_created_idx').on(
 		check('stock_movements_quantity_nonneg_chk', sql`${t.quantity} >= 0`),
 		check('stock_movements_cost_price_nonneg_chk', sql`${t.costPrice} >= 0`),
+		// Movement list filter + keyset order `(created_at desc, id desc)`.
+		index('stock_movements_material_location_created_id_idx').on(
 			t.materialId,
 			t.locationId,
 			t.createdAt,
+			t.id,
 		),
 		index('stock_movements_material_id_idx').on(t.materialId),
 		index('stock_movements_location_id_idx').on(t.locationId),

@@ -154,6 +154,8 @@ export const orders = pgTable(
 			.on(t.externalRef)
 			.where(sql`${t.externalRef} IS NOT NULL`),
 		index('orders_location_status_ordered_idx').on(t.locationId, t.status, t.orderedAt),
+		// Order list keyset order `(ordered_at desc, id desc)` when no status filter applies.
+		index('orders_location_ordered_id_idx').on(t.locationId, t.orderedAt, t.id),
 		index('orders_table_id_idx').on(t.tableId),
 		uniqueIndex('orders_table_open_uniq')
 			.on(t.tableId)

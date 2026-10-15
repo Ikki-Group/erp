@@ -26,7 +26,8 @@ export const auditLogs = pgTable(
 		metadata: jsonb('metadata'),
 	},
 	(t) => [
-		index('audit_logs_timestamp_idx').on(t.timestamp),
+		// Keyset list order `(timestamp desc, id desc)`.
+		index('audit_logs_timestamp_id_idx').on(t.timestamp, t.id),
 		index('audit_logs_entity_entity_id_idx').on(t.entity, t.entityId),
 		index('audit_logs_user_id_timestamp_idx').on(t.userId, t.timestamp),
 		index('audit_logs_module_timestamp_idx').on(t.module, t.timestamp),

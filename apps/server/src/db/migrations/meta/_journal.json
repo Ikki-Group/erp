@@ -78,6 +78,13 @@
       "when": 1792084722943,
       "tag": "0010_stock_qty_price_check_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792085817003,
+      "tag": "0011_keyset_pagination_indexes",
+      "breakpoints": true
     }
   ]
 }
