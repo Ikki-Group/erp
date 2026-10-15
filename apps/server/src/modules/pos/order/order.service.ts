@@ -459,7 +459,8 @@ export class OrderService {
 			if (remaining.gt(Money.zero())) throw OrderError.notFullyPaid(orderId, remaining.toString())
 
 			const updated = await this.deps.uow.run(async (tx) => {
-				const current = assertFound(await this.repo.findById(orderId, tx), () =>
+				// Row lock serializes concurrent completes so stock is deducted once.
+				const current = assertFound(await this.repo.findByIdForUpdate(orderId, tx), () =>
 					OrderError.notFound(orderId),
 				)
 				if (current.status !== 'open') throw OrderError.notOpen(orderId)
