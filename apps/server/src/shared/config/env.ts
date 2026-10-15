@@ -36,6 +36,12 @@ const envSchema = z.object({
 				.filter(Boolean),
 		),
 
+	// Auth rate limiting (fixed window per client IP + username)
+	AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+	AUTH_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(60),
+	/** Defaults to enabled outside NODE_ENV=test. */
+	AUTH_RATE_LIMIT_ENABLED: z.stringbool().optional(),
+
 	// Redis (optional — session store and BentoCache L2 layer; memory-only when unset)
 	REDIS_URL: z.string().optional(),
 

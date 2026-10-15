@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 
 import { authPlugin } from '@/server/plugins/auth.plugin.ts'
+import { rateLimitPlugin } from '@/server/plugins/rate-limit.plugin.ts'
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -19,6 +20,7 @@ import {
 export function createAuthRoute(service: AuthService) {
 	return (
 		new Elysia({ prefix: '/auth', tags: ['auth'] })
+			.use(rateLimitPlugin({ name: 'auth-login' }))
 			// ─── Login (public — no auth required) ───
 			.post(
 				'/login',
@@ -31,6 +33,7 @@ export function createAuthRoute(service: AuthService) {
 				},
 				{
 					body: LoginDto,
+					rateLimit: true,
 					response: zRes.ok(LoginResponseDto),
 				},
 			)
