@@ -25,8 +25,9 @@ Server (`apps/server`):
 
 - `bun run verify` — lint + typecheck + knip + check-deps (the real gate; run before finishing server work)
 - `bun run typecheck` (`tsc --noEmit`)
-- `bun run test` — `NODE_ENV=test bun test --bail --timeout 30000`. Tests live in `src/tests/`.
-- `bun test src/tests/services/iam.test.ts` — run a single file
+- `bun run test` — `NODE_ENV=test bun test --bail --timeout 30000`. Tests live in `src/tests/`. Integration tests need a migrated + seeded DB (`bun run test:db:reset`) and run concurrently (`bunfig.toml`): build fixtures with unique codes (`src/tests/helpers/fixtures.ts`, `uniqueSuffix()`), never assert global counts.
+- `bun test src/tests/integration/location.test.ts` — run a single file
+- `bun run build` — compiles `dist/server` + `dist/migrate` (+ `dist/migrations`); `bun run start` runs the binary
 - `bun run check-deps` — circular dependency check via dpdm
 
 Web (`apps/web`):
@@ -37,7 +38,9 @@ Web (`apps/web`):
 
 ## Database (from `apps/server`)
 
-- `bun run db:generate` (from schema changes) → `bun run db:migrate`
+- `bun run db:generate --name <descriptive_name>` (from schema changes) → `bun run db:migrate`
+- Production migrations run via the compiled `scripts/migrate.ts` (`/app/migrate`, Fly `release_command`) before new machines start.
+- DB driver is `pg` (node-postgres pool, `DB_POOL_MAX`). On Neon use the pooled (`-pooler`) endpoint.
 - `bun run db:studio`, `bun run db:seed`
 - **Destructive scripts are guarded**: reset/seed only run if `NODE_ENV=test` + `DATABASE_URL` contains `test-user`, OR `NODE_ENV=development` + URL contains `dev-user` (`scripts/db-scripts-helper.ts`). Point env at the right DB or they silently no-op.
 
@@ -63,15 +66,17 @@ Vertical slices under `apps/server/src/modules/<module>/`. A module groups relat
 
 - `*.contract.ts` — Zod DTOs (request/response). Compose with spread-shape: `...UserMutationDto.shape`, `...zc.AuditBasic.shape`. Shared primitives come from `@/shared/schema` (`zp`, `zq`, `zc`).
 - `*.repo.ts` — Drizzle data access behind an `IXxxRepo` interface. Finders return the DTO or `undefined` (never `null`); `insert`/`update` return an `EntityRef` (`{ id }`) or `undefined`. Every method takes an optional `db?: DbContext` for transactions.
-- `*.service.ts` — business logic. Public entry points are `handle*` methods. They check conflicts (`checkConflict`), stamp audit fields (`stampCreate`/`stampUpdate` from `@/shared/audit`), persist, then **invalidate cache** (`CacheService.invalidateStandard(...)`) and **record an audit log** (`auditLog.record({ module, entity, action, ... })`).
+- `*.service.ts` — business logic. Public entry points are `handle*` methods. They check conflicts (`checkConflict`), stamp audit fields (`stampCreate`/`stampUpdate` from `@/shared/audit`), and write through `mutate()` (`@/shared/service/mutate.ts`): it runs the work + audit record in one UoW transaction, then **invalidates cache** after commit. UoW retries on deadlock/serialization failure, so transaction callbacks MUST be re-runnable — no cache/network side effects inside them.
+- Simple CRUD slices compose `createCrudRepo` (`@/infra/database/crud.repo.ts`, + `paginate()`), `crudRoutes` (`@/server/crud-route.ts`, standard `/list` `/detail` `/create` `/update` `/remove`) and `defineEntityErrors` (`@/shared/errors/entity-errors.ts`). Complex domains (pos order, inventory, production) stay hand-written. Large append-only lists also expose keyset `/…/cursor` endpoints (`@/infra/database/keyset.ts`).
+- Stock: multi-line movements lock balances in `(locationId, materialId)` order (`lockBalances`) to avoid deadlocks. POS order create is idempotent on `externalRef`.
 - `*.internal.ts` — module-private helpers, error factories, unique-field lists.
-- Module wiring: `*.module.ts`, `*.route.ts` (Elysia), `index.ts` (barrel).
+- Module wiring: `*.module.ts`, `*.route.ts` (Elysia), `index.ts` (barrel exporting a `ModuleDescriptor`, registered in `src/app.ts`; `dependsOn` is validated eagerly and layers may only depend downward).
 
-Shared building blocks live in `apps/server/src/shared/` (`auth`, `cache`, `errors`, `events`, `http`, `schema`, `uow`, `audit`, ...) and infrastructure in `apps/server/src/infra/` (`database`, `cache`, `audit`). Reads are cached via `CacheService`; mutations invalidate. Audit stamps (`createdBy`/`updatedBy`/`createdAt`/`updatedAt`) are applied through the stamp helpers, not by hand.
+Shared building blocks live in `apps/server/src/shared/` (`auth`, `cache`, `errors`, `http`, `schema`, `uow`, `audit`, ...) and infrastructure in `apps/server/src/infra/` (`database`, `cache`, `redis`, `session`, `audit`). One BentoCache instance (`@/infra/cache`): L1 memory, plus Redis L2 + bus when `REDIS_URL` is set so invalidations reach every machine; use BentoCache tags for grouped invalidation, never in-process key tracking. Postgres errors are mapped centrally (`@/infra/database/pg-errors.ts`: 23505/23503 → 409, 23514 → 422). Audit stamps (`createdBy`/`updatedBy`/`createdAt`/`updatedAt`) are applied through the stamp helpers, not by hand.
 
 ## Deploy / CI
 
-- Server deploys to Fly.io on push to `main` under `apps/server/**` (`.github/workflows/deploy-server.yml`). Build context is repo root; Dockerfile/config at `apps/server`.
+- CI (`.github/workflows/ci.yml`) runs server format check, `verify`, migrate+seed, tests and build on PRs and pushes to `dev`/`main`. Server deploys to Fly.io only after CI succeeds on `main` (`deploy-server.yml`, `workflow_run`). Build context is repo root (allowlist `.dockerignore`); Dockerfile/config at `apps/server`. Probes: `/health` (liveness), `/ready` (DB).
 - Active dev branch is `dev`; `main` triggers deploys.
 - Commit style: conventional prefixes, frequently with emoji (e.g. `✨ feat:`, `🔧 fix:`, `♻️ refactor:`).
 
