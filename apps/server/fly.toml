@@ -1,6 +1,10 @@
 app = 'ikki-erp-dev'
 primary_region = 'sin'
 
+[deploy]
+# Compiled scripts/migrate.ts; applies /app/migrations before new machines start.
+release_command = '/app/migrate'
+
 [http_service]
 internal_port = 8080
 force_https = true
@@ -12,6 +16,14 @@ processes = ['app']
 type = "connections"
 hard_limit = 25
 soft_limit = 20
+
+# Liveness only (/health has no dependency checks); /ready checks DB/Redis.
+[[http_service.checks]]
+method = 'GET'
+path = '/health'
+interval = '15s'
+timeout = '5s'
+grace_period = '10s'
 
 [[vm]]
 # memory = '256mb'
