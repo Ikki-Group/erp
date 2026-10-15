@@ -46,80 +46,92 @@ export class StockService {
 
 	// ─── Core Engine (called by other modules) ───
 
+	/**
+	 * Records one movement and updates its balance under a row lock. With `db`,
+	 * runs inside the caller's transaction (caller invalidates after
+	 * commit); without it, opens its own transaction so the lock is effective.
+	 */
 	async recordMovement(input: RecordMovementInput, db?: DbContext): Promise<RecordedMovement> {
 		return record('stock.recordMovement', async () => {
-			const {
+			if (db) return this.#applyMovement(input, db)
+
+			const recorded = await this.repo.db.transaction((tx) => this.#applyMovement(input, tx))
+			await this.invalidateCache()
+			return recorded
+		})
+	}
+
+	async #applyMovement(input: RecordMovementInput, dbCtx: DbContext): Promise<RecordedMovement> {
+		const {
+			materialId,
+			locationId,
+			type,
+			direction,
+			qty,
+			unitCost,
+			referenceType,
+			referenceId,
+			notes,
+			actorId,
+		} = input
+
+		// Sales and production consumption are intentionally permissive. Every
+		// other movement requires the material to be assigned at the location.
+		if (type !== 'sales' && type !== 'production_out') {
+			const assigned = await this.assignmentService.isAssigned(materialId, locationId, dbCtx)
+			if (!assigned) throw StockError.materialNotAssigned(materialId, locationId)
+		}
+
+		// Inserts a zero row when absent so concurrent first movements serialize.
+		const current = await this.repo.lockBalance(materialId, locationId, dbCtx)
+		if (!current) throw StockError.balanceNotFound(materialId, locationId)
+		const oldQty = Qty.of(current.quantity)
+		const oldCost = Money.of(current.costPrice)
+		const moveQty = Qty.of(qty)
+
+		let newQty = oldQty
+		let newCost = oldCost
+
+		if (direction === 'in') {
+			newQty = oldQty.add(moveQty)
+			const costChanges =
+				type === 'purchase_receipt' || type === 'transfer_in' || type === 'production_in'
+			if (unitCost && costChanges) {
+				newCost = weightedAvgCost(oldQty, oldCost, moveQty, Money.of(unitCost))
+			}
+		} else {
+			if (type === 'transfer_out' && oldQty.lt(moveQty)) {
+				throw StockError.insufficientStock(materialId, locationId, oldQty.toNumeric(), qty)
+			}
+			newQty = oldQty.sub(moveQty)
+		}
+
+		await this.repo.upsertBalance(
+			materialId,
+			locationId,
+			newQty.toNumeric(),
+			newCost.toCost(),
+			dbCtx,
+		)
+
+		const movementResult = await this.repo.insertMovement(
+			{
 				materialId,
 				locationId,
 				type,
 				direction,
-				qty,
-				unitCost,
-				referenceType,
-				referenceId,
-				notes,
-				actorId,
-			} = input
-			const dbCtx = db ?? this.repo.db
+				quantity: moveQty.toNumeric(),
+				costPrice: newCost.toCost(),
+				referenceType: referenceType ?? null,
+				referenceId: referenceId ?? null,
+				notes: notes ?? null,
+				createdBy: actorId,
+			},
+			dbCtx,
+		)
+		if (!movementResult) throw StockError.movementFailed()
 
-			// Sales and production consumption are intentionally permissive. Every
-			// other movement requires the material to be assigned at the location.
-			if (type !== 'sales' && type !== 'production_out') {
-				const assigned = await this.assignmentService.isAssigned(materialId, locationId, dbCtx)
-				if (!assigned) throw StockError.materialNotAssigned(materialId, locationId)
-			}
-
-			const current = await this.repo.findBalance(materialId, locationId, dbCtx)
-			const oldQty = Qty.of(current?.quantity ?? '0')
-			const oldCost = Money.of(current?.costPrice ?? '0')
-			const moveQty = Qty.of(qty)
-
-			let newQty = oldQty
-			let newCost = oldCost
-
-			if (direction === 'in') {
-				newQty = oldQty.add(moveQty)
-				const costChanges =
-					type === 'purchase_receipt' || type === 'transfer_in' || type === 'production_in'
-				if (unitCost && costChanges) {
-					newCost = weightedAvgCost(oldQty, oldCost, moveQty, Money.of(unitCost))
-				}
-			} else {
-				if (type === 'transfer_out' && oldQty.lt(moveQty)) {
-					throw StockError.insufficientStock(materialId, locationId, oldQty.toNumeric(), qty)
-				}
-				newQty = oldQty.sub(moveQty)
-			}
-
-			await this.repo.upsertBalance(
-				materialId,
-				locationId,
-				newQty.toNumeric(),
-				newCost.toCost(),
-				dbCtx,
-			)
-
-			const movementResult = await this.repo.insertMovement(
-				{
-					materialId,
-					locationId,
-					type,
-					direction,
-					quantity: moveQty.toNumeric(),
-					costPrice: newCost.toCost(),
-					referenceType: referenceType ?? null,
-					referenceId: referenceId ?? null,
-					notes: notes ?? null,
-					createdBy: actorId,
-				},
-				dbCtx,
-			)
-			if (!movementResult) throw StockError.movementFailed()
-
-			if (!db) await this.invalidateCache()
-
-			return { ...movementResult, costPrice: newCost.toCost() }
-		})
+		return { ...movementResult, costPrice: newCost.toCost() }
 	}
 
 	async getBalance(

@@ -95,6 +95,15 @@ export interface IStockRepo {
 		locationId: number,
 		db?: DbContext,
 	): Promise<StockBalanceDto | undefined>
+	/**
+	 * Locks the balance row for update, creating a zero row first when absent so
+	 * that concurrent first movements serialize on the same row.
+	 */
+	lockBalance(
+		materialId: number,
+		locationId: number,
+		db: DbContext,
+	): Promise<StockBalanceDto | undefined>
 	findBalancesByLocation(
 		filter: StockBalanceFilterDto,
 		db?: DbContext,
@@ -117,6 +126,26 @@ export interface IStockRepo {
 
 export class StockRepo implements IStockRepo {
 	constructor(readonly db: DbContext) {}
+
+	async lockBalance(
+		materialId: number,
+		locationId: number,
+		db: DbContext,
+	): Promise<StockBalanceDto | undefined> {
+		await db
+			.insert(stockBalances)
+			.values({ materialId, locationId })
+			.onConflictDoNothing({ target: [stockBalances.materialId, stockBalances.locationId] })
+		const row = await db
+			.select()
+			.from(stockBalances)
+			.where(
+				and(eq(stockBalances.materialId, materialId), eq(stockBalances.locationId, locationId)),
+			)
+			.for('update')
+			.then(takeFirst)
+		return row ? toBalanceDto(row) : undefined
+	}
 
 	async findBalance(
 		materialId: number,
