@@ -99,7 +99,8 @@ export function createIamRoute(
 		)
 		.get(
 			'/user/by-location',
-			async ({ query }) => res.paginated(await composedService.handleLocationStaffList(query, query.locationId)),
+			async ({ query }) =>
+				res.paginated(await composedService.handleLocationStaffList(query, query.locationId)),
 			{
 				query: ComposedUserFilterDto.extend({ locationId: z.coerce.number().int().positive() }),
 				response: zRes.paginated(LocationStaffListItemDto),
