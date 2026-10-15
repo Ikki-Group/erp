@@ -272,13 +272,14 @@ export class VoucherService {
 
 	// ─── Usage Tracking (called by pos/order) ───
 
-	async incrementUsage(id: number, db?: DbContext): Promise<void> {
-		const voucher = await this.handleGetById(id)
+	/** Increments usage inside the caller's transaction; call `invalidate` after commit. */
+	async incrementUsage(id: number, db: DbContext): Promise<void> {
 		await this.repo.incrementUsage(id, db)
+	}
 
-		if (!db) {
-			await this.cache.invalidateStandard(id)
-			await this.cache.deleteFromKeys([byCodeKey(voucher.code)])
-		}
+	async invalidate(id: number): Promise<void> {
+		const voucher = await this.repo.findById(id)
+		await this.cache.invalidateStandard(id)
+		if (voucher) await this.cache.deleteFromKeys([byCodeKey(voucher.code)])
 	}
 }

@@ -490,7 +490,7 @@ export class OrderService {
 			const remaining = orderTotal.sub(totalPaid)
 			if (remaining.gt(Money.zero())) throw OrderError.notFullyPaid(orderId, remaining.toString())
 
-			const updated = await this.deps.uow.run(async (tx) => {
+			const { updated, voucherId } = await this.deps.uow.run(async (tx) => {
 				// Row lock serializes concurrent completes so stock is deducted once.
 				const current = assertFound(await this.repo.findByIdForUpdate(orderId, tx), () =>
 					OrderError.notFound(orderId),
@@ -541,10 +541,11 @@ export class OrderService {
 					tx,
 				)
 
-				return updated
+				return { updated, voucherId: current.voucherId }
 			})
 
 			await this.deps.inventoryApi.invalidateCache()
+			if (voucherId) await this.deps.voucherService.invalidate(voucherId)
 			if (order.tableId) await this.deps.tableService.updateStatus(order.tableId, 'available')
 			await this.cache.invalidateStandard(orderId)
 			return updated
