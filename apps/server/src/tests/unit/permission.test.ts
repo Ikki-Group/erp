@@ -20,7 +20,8 @@ const cashier: AuthContext = {
 	userId: 2,
 	userName: 'Cashier User',
 	locationId: 1,
-	permissions: ['order.create', 'order.update', 'shift.open'],
+	permissions: [],
+	access: { '1': ['order.create', 'order.update', 'shift.open'] },
 	isOwner: false,
 }
 
