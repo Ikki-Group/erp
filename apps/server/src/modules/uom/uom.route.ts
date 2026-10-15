@@ -1,7 +1,6 @@
-import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { crudRoutes } from '@/server/crud-route.ts'
 import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -20,45 +19,12 @@ import {
 import type { UomService } from './uom.service.ts'
 
 export function createUomRoute(service: UomService) {
-	return new Elysia({ prefix: '/uom', tags: ['uom'] })
-		.use(rbac.as('scoped'))
-		.get('/list', async ({ query }) => res.paginated(await service.handleList(query)), {
-			query: UomFilterDto,
-			response: zRes.paginated(UomDto),
-			permission: 'uom.read',
-		})
-		.get('/detail', async ({ query }) => res.ok(await service.handleGetById(query.id)), {
-			query: zq.recordId,
-			response: zRes.ok(UomDto),
-			permission: 'uom.read',
-		})
-		.post(
-			'/create',
-			async ({ body, auth }) => res.created(await service.handleCreate(body, actorOf(auth))),
-			{
-				body: UomCreateDto,
-				response: zRes.created(EntityRefDto),
-				permission: 'uom.create',
-			},
-		)
-		.put(
-			'/update',
-			async ({ body, auth }) => res.ok(await service.handleUpdate(body, actorOf(auth))),
-			{
-				body: UomUpdateDto,
-				response: zRes.ok(EntityRefDto),
-				permission: 'uom.update',
-			},
-		)
-		.delete(
-			'/remove',
-			async ({ query, auth }) => res.ok(await service.handleDelete(query.id, actorOf(auth))),
-			{
-				query: zq.recordId,
-				response: zRes.ok(EntityRefDto),
-				permission: 'uom.delete',
-			},
-		)
+	return crudRoutes({
+		prefix: '/uom',
+		resource: 'uom',
+		service,
+		schemas: { filter: UomFilterDto, dto: UomDto, create: UomCreateDto, update: UomUpdateDto },
+	})
 		.get('/conversion/list', async () => res.ok(await service.handleConversionList()), {
 			response: zRes.ok(z.array(UomConversionDto)),
 			permission: 'uom.read',

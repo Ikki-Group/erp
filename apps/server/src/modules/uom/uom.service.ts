@@ -5,10 +5,11 @@ import type { CacheClient } from '@/infra/cache/index.ts'
 import { checkConflict } from '@/infra/database/conflict.ts'
 import type { DbContext } from '@/infra/database/index.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
-import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Qty } from '@/shared/domain/qty.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -38,14 +39,23 @@ export interface UomServiceDeps {
 export class UomService {
 	private readonly cache: CacheService
 	private readonly conversionCache: CacheService
+	private readonly mutation: MutationScope
+	private readonly conversionMutation: MutationScope
 
 	constructor(
 		private readonly repo: IUomRepo,
 		cacheClient: CacheClient,
-		private readonly deps: UomServiceDeps,
+		deps: UomServiceDeps,
 	) {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'uom')
 		this.conversionCache = CacheService.createWithDefaultKeys(cacheClient, 'uom-conversion')
+		const scope = { uow: deps.uow, audit: deps.audit, module: 'uom' }
+		this.mutation = { ...scope, entity: 'uom', invalidate: this.cache }
+		this.conversionMutation = {
+			...scope,
+			entity: 'uom_conversion',
+			invalidate: this.conversionCache,
+		}
 	}
 
 	// ─── UoM Cached Reads ───
@@ -75,7 +85,7 @@ export class UomService {
 	}
 
 	async handleCreate(data: UomCreateDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			await checkConflict({
 				db: tx,
 				table: uoms,
@@ -86,28 +96,20 @@ export class UomService {
 
 			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
 			if (!written) throw UomError.createFailed()
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'uom',
-					entity: 'uom',
-					entityId: written.id,
+			return {
+				result: written,
+				audit: {
 					action: 'create',
 					summary: `Created UoM "${data.name}" (${data.code})`,
 					newValues: { code: data.code, name: data.name, category: data.category },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.cache.invalidateStandard()
-		return result
 	}
 
 	async handleUpdate(data: UomUpdateDto, actor: Actor): Promise<EntityRef> {
 		const { id, ...updateData } = data
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw UomError.notFound(id)
 			if ((SYSTEM_UOM_CODES as readonly string[]).includes(existing.code.toLowerCase())) {
@@ -125,28 +127,20 @@ export class UomService {
 
 			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
 			if (!written) throw UomError.updateFailed(id)
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'uom',
-					entity: 'uom',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'update',
 					summary: `Updated UoM "${data.name}" (${data.code})`,
 					oldValues: { code: existing.code, name: existing.name, category: existing.category },
 					newValues: { code: data.code, name: data.name, category: data.category },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.mutation, actor, async (tx) => {
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw UomError.notFound(id)
 			if ((SYSTEM_UOM_CODES as readonly string[]).includes(existing.code.toLowerCase())) {
@@ -155,22 +149,14 @@ export class UomService {
 
 			const written = await this.repo.remove(id, tx)
 			if (!written) throw UomError.deleteFailed(id)
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'uom',
-					entity: 'uom',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'delete',
 					summary: `Deleted UoM "${existing.name}" (${existing.code})`,
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.cache.invalidateStandard(id)
-		return result
 	}
 
 	// ─── Conversion Cached Reads ───
@@ -190,7 +176,7 @@ export class UomService {
 	}
 
 	async handleConversionCreate(data: UomConversionCreateDto, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
+		return mutate(this.conversionMutation, actor, async (tx) => {
 			// 1. Validate both UoMs exist
 			const fromUom = await this.repo.findById(data.fromUomId, tx)
 			const toUom = await this.repo.findById(data.toUomId, tx)
@@ -205,50 +191,32 @@ export class UomService {
 			// 3. Insert (unique constraint on from+to handles duplicates at DB level)
 			const written = await this.repo.insertConversion({ ...data, ...stampCreate(actor.id) }, tx)
 			if (!written) throw UomError.conversionCreateFailed()
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'uom',
-					entity: 'uom_conversion',
-					entityId: written.id,
+			return {
+				result: written,
+				audit: {
 					action: 'create',
 					summary: `Created conversion ${fromUom.code} → ${toUom.code} (×${data.factor})`,
 					newValues: { fromUomId: data.fromUomId, toUomId: data.toUomId, factor: data.factor },
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.conversionCache.invalidateStandard()
-		return result
 	}
 
 	async handleConversionRemove(id: number, actor: Actor): Promise<EntityRef> {
-		const result = await this.deps.uow.run(async (tx) => {
-			// 1. Verify exists
+		return mutate(this.conversionMutation, actor, async (tx) => {
 			const existing = await this.repo.findConversionById(id, tx)
 			if (!existing) throw UomError.conversionNotFound(id)
 
-			// 2. Delete
 			const written = await this.repo.removeConversion(id, tx)
 			if (!written) throw UomError.conversionNotFound(id)
-
-			await this.deps.audit.record(
-				auditEntryOf(actor, {
-					module: 'uom',
-					entity: 'uom_conversion',
-					entityId: id,
+			return {
+				result: written,
+				audit: {
 					action: 'delete',
 					summary: `Deleted conversion #${id} (from=${existing.fromUomId}, to=${existing.toUomId})`,
-				}),
-				tx,
-			)
-			return written
+				},
+			}
 		})
-
-		await this.conversionCache.invalidateStandard()
-		return result
 	}
 
 	// ─── Convert Handler ───

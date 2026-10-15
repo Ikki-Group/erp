@@ -1,6 +1,7 @@
 import { uoms } from '@/db/schema/uom.ts'
 
 import { defineConflictFields } from '@/infra/database/index.ts'
+import { defineEntityErrors } from '@/shared/errors/entity-errors.ts'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
 import type { UomCreateDto } from './uom.contract.ts'
@@ -14,16 +15,7 @@ export const MAX_CONVERSION_HOPS = 5
 // ─── Error Factories ───
 
 export const UomError = {
-	notFound: (id: number) =>
-		new NotFoundError('UoM not found', { code: 'UOM_NOT_FOUND', context: { id } }),
-	createFailed: () => new InternalServerError('UoM creation failed', { code: 'UOM_CREATE_FAILED' }),
-	updateFailed: (id: number) =>
-		new InternalServerError('UoM update failed', { code: 'UOM_UPDATE_FAILED', context: { id } }),
-	deleteFailed: (id: number) =>
-		new InternalServerError('UoM deletion failed', {
-			code: 'UOM_DELETE_FAILED',
-			context: { id },
-		}),
+	...defineEntityErrors('UoM', 'UOM'),
 	systemUomImmutable: (id: number) =>
 		new BadRequestError('System UoM cannot be modified or deleted', {
 			code: 'UOM_SYSTEM_IMMUTABLE',

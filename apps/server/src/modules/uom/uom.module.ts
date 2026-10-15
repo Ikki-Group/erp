@@ -1,7 +1,7 @@
 import type { ModuleDescriptor } from '@/shared/module/registry.ts'
 
 import { resolveConversion } from './domain/uom.resolver.ts'
-import { UomRepo } from './uom.repo.ts'
+import { createUomRepo } from './uom.repo.ts'
 import { createUomRoute } from './uom.route.ts'
 import { UomService } from './uom.service.ts'
 
@@ -25,7 +25,7 @@ export const uomModule: ModuleDescriptor = {
 	layer: 1,
 	dependsOn: [],
 	create(ctx) {
-		const service = new UomService(new UomRepo(ctx.db), ctx.cacheClient, {
+		const service = new UomService(createUomRepo(ctx.db), ctx.cacheClient, {
 			uow: ctx.uow,
 			audit: ctx.auditPort,
 		})
