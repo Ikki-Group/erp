@@ -30,6 +30,9 @@ export const Route = createFileRoute('/_authenticated/settings/locations/')({
 	component: LocationsPage,
 })
 
+const EDIT_ICON = <EditIcon className="size-4" />
+const DELETE_ICON = <TrashIcon className="size-4" />
+
 const col = createColumnHelper<DataGridFeatures, LocationDto>()
 
 const columns = [
@@ -116,7 +119,7 @@ const actionsColumn = useMemo(
 			getItems: (location) => [
 				canEdit && {
 					label: 'Edit',
-					icon: <EditIcon className="size-4" />,
+					icon: EDIT_ICON,
 					onClick: () =>
 						navigate({
 							to: '/settings/locations/$locationId/edit',
@@ -125,7 +128,7 @@ const actionsColumn = useMemo(
 				},
 				canDelete && {
 					label: 'Delete',
-					icon: <TrashIcon className="size-4" />,
+					icon: DELETE_ICON,
 					onClick: () => handleDelete(location),
 					variant: 'destructive' as const,
 				},
