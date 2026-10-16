@@ -1,8 +1,9 @@
 import { z } from 'zod'
 
-import { useEntityForm } from '@/lib/form/index.ts'
+import { useEntityEditor } from '@/lib/form/index.ts'
 
-import { UOM_CATEGORY_OPTIONS, UomCategoryEnum } from '../dto/index.ts'
+import { uomResource } from '../api.ts'
+import { UOM_CATEGORY_OPTIONS, UomCategoryEnum, UomCreateDto } from '../dto/index.ts'
 import type { UomDto } from '../dto/index.ts'
 
 export interface UomFormValues {
@@ -31,16 +32,29 @@ export function toUomFormValues(unit: UomDto): UomFormValues {
 	}
 }
 
-export interface UseUomFormOptions {
-	defaultValues?: UomFormValues
-	onSubmit: (values: UomFormValues) => Promise<void>
+export function toUomInput(values: UomFormValues): UomCreateDto {
+	return UomCreateDto.parse(values)
 }
 
-export function useUomForm({ defaultValues, onSubmit }: UseUomFormOptions) {
-	return useEntityForm({
-		defaultValues: defaultValues ?? EMPTY_UOM_FORM_VALUES,
+export function useUomForm({
+	unit,
+	onSaved,
+}: {
+	unit?: UomDto
+	onSaved: () => void | Promise<void>
+}) {
+	return useEntityEditor({
+		defaultValues: unit ? toUomFormValues(unit) : EMPTY_UOM_FORM_VALUES,
 		schema: UomFormSchema,
-		onSubmit,
+		mutation: {
+			mutationFn: (input: UomCreateDto) =>
+				unit
+					? uomResource.update.fetch({ ...input, id: unit.id })
+					: uomResource.create.fetch(input),
+		},
+		toPayload: toUomInput,
+		successMessage: unit ? 'Unit updated successfully.' : 'Unit created successfully.',
+		onSaved,
 	})
 }
 
@@ -49,7 +63,7 @@ export type UomForm = ReturnType<typeof useUomForm>
 export function UomFormFields({ form }: { form: UomForm }) {
 	return (
 		<div className="grid gap-4">
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
 					{(field) => <field.TextField label="Code" placeholder="e.g. kg" />}
 				</form.AppField>
@@ -60,7 +74,6 @@ export function UomFormFields({ form }: { form: UomForm }) {
 			<form.AppField name="name">
 				{(field) => <field.TextField label="Name" placeholder="e.g. Kilogram" />}
 			</form.AppField>
-			<form.FormError />
 		</div>
 	)
 }
