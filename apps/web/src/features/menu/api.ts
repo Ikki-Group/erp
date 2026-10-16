@@ -1,6 +1,6 @@
 import { endpoint } from '@/config/endpoint.ts'
 
-import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
+import { createResourceKeys, defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
@@ -127,26 +127,52 @@ export const menuCategoryResource = {
 
 // ─── Modifier Group Resource ───
 
-export const modifierGroupResource = defineResource({
-	feature: 'menu',
-	resource: 'modifier',
-	urls: endpoint.menu.modifier,
-	entitySchema: ModifierGroupDto,
-	filter: ModifierGroupFilterDto,
-	create: ModifierGroupCreateDto,
-	update: ModifierGroupUpdateDto,
+const modifierKeys = createResourceKeys('menu', 'modifier')
+const modifierList = defineQuery({
+	method: 'get',
+	url: endpoint.menu.modifier.list,
+	query: ModifierGroupFilterDto,
+	result: createPaginatedResponseSchema(ModifierGroupDto),
+	queryKey: (query) => modifierKeys.list(query),
 })
 
-// ─── Modifier Group Detail (with options) ───
-
-const modifierDetailQuery = defineQuery({
+const modifierDetail = defineQuery({
 	method: 'get',
 	url: endpoint.menu.modifier.detail,
 	query: zc.RecordId,
 	result: createSuccessResponseSchema(ModifierGroupWithOptionsDto),
-	queryKey: (query) => [endpoint.menu.modifier.detail, query ?? null],
+	queryKey: (query) => modifierKeys.detail(query),
 })
 
-export const modifierGroupExtras = {
-	detail: modifierDetailQuery,
+// Group/options mutations affect enriched item readers as well as modifier lists and detail.
+const modifierInvalidates = [modifierKeys.all(), menuItemResource.keys.details()]
+const modifierCreate = defineMutation({
+	method: 'post',
+	url: endpoint.menu.modifier.create,
+	body: ModifierGroupCreateDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: modifierInvalidates,
+})
+const modifierUpdate = defineMutation({
+	method: 'put',
+	url: endpoint.menu.modifier.update,
+	body: ModifierGroupUpdateDto,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: modifierInvalidates,
+})
+const modifierRemove = defineMutation({
+	method: 'delete',
+	url: endpoint.menu.modifier.remove,
+	query: zc.RecordId,
+	result: createSuccessResponseSchema(zc.RecordId),
+	invalidates: modifierInvalidates,
+})
+
+export const modifierGroupResource = {
+	keys: modifierKeys,
+	list: modifierList,
+	detail: modifierDetail,
+	create: modifierCreate,
+	update: modifierUpdate,
+	remove: modifierRemove,
 }

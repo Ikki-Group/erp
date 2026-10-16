@@ -116,9 +116,9 @@ export const ModifierOptionDto = z.object({
 	groupId: zp.id,
 	name: zp.str,
 	priceAdjustment: zp.str,
-	isDefault: z.number().int(),
+	isDefault: zp.bool,
 	sortOrder: z.number().int(),
-	isActive: z.number().int(),
+	isActive: zp.bool,
 })
 export type ModifierOptionDto = z.infer<typeof ModifierOptionDto>
 
@@ -128,9 +128,9 @@ export const ModifierOptionInputDto = z.object({
 		.string()
 		.regex(/^-?\d+(\.\d+)?$/u, 'Must be a valid number')
 		.default('0'),
-	isDefault: z.number().int().min(0).max(1).default(0),
+	isDefault: zp.bool.default(false),
 	sortOrder: z.number().int().min(0).default(0),
-	isActive: z.number().int().min(0).max(1).default(1),
+	isActive: zp.bool.default(true),
 })
 export type ModifierOptionInputDto = z.infer<typeof ModifierOptionInputDto>
 
@@ -141,7 +141,7 @@ export const ModifierGroupDto = z.object({
 	locationId: zp.id,
 	name: zp.str,
 	selectionType: SelectionTypeEnum,
-	isRequired: z.number().int(),
+	isRequired: zp.bool,
 	minSelect: z.number().int(),
 	maxSelect: z.number().int().nullable(),
 	...zc.AuditBasic.shape,
@@ -165,7 +165,7 @@ export const ModifierGroupCreateDto = z.object({
 	locationId: zp.id,
 	name: zc.strTrim.min(2).max(100),
 	selectionType: SelectionTypeEnum.default('single'),
-	isRequired: z.number().int().min(0).max(1).default(0),
+	isRequired: zp.bool.default(false),
 	minSelect: z.number().int().min(0).default(0),
 	maxSelect: z.number().int().positive().nullable().optional(),
 	options: z.array(ModifierOptionInputDto).min(1),
@@ -176,7 +176,7 @@ export const ModifierGroupUpdateDto = z.object({
 	id: zp.id,
 	name: zc.strTrim.min(2).max(100),
 	selectionType: SelectionTypeEnum.default('single'),
-	isRequired: z.number().int().min(0).max(1).default(0),
+	isRequired: zp.bool.default(false),
 	minSelect: z.number().int().min(0).default(0),
 	maxSelect: z.number().int().positive().nullable().optional(),
 	options: z.array(ModifierOptionInputDto).min(1),

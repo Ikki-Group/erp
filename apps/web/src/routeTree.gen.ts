@@ -67,6 +67,8 @@ import { Route as AuthenticatedSettingsUsersUserIdRouteImport } from './routes/_
 import { Route as AuthenticatedSettingsUsersNewRouteImport } from './routes/_authenticated/settings/users/new'
 import { Route as AuthenticatedMasterMenuItemsItemIdRouteImport } from './routes/_authenticated/master/menu/items/$itemId'
 import { Route as AuthenticatedMasterMenuItemsNewRouteImport } from './routes/_authenticated/master/menu/items/new'
+import { Route as AuthenticatedMasterMenuModifiersGroupIdRouteImport } from './routes/_authenticated/master/menu/modifiers/$groupId'
+import { Route as AuthenticatedMasterMenuModifiersNewRouteImport } from './routes/_authenticated/master/menu/modifiers/new'
 import { Route as AuthenticatedSettingsLocationsLocationIdIndexRouteImport } from './routes/_authenticated/settings/locations/$locationId.index'
 import { Route as AuthenticatedSettingsLocationsLocationIdEditRouteImport } from './routes/_authenticated/settings/locations/$locationId.edit'
 
@@ -400,6 +402,18 @@ const AuthenticatedMasterMenuItemsNewRoute =
     path: '/master/menu/items/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMasterMenuModifiersGroupIdRoute =
+  AuthenticatedMasterMenuModifiersGroupIdRouteImport.update({
+    id: '/master/menu/modifiers/$groupId',
+    path: '/master/menu/modifiers/$groupId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterMenuModifiersNewRoute =
+  AuthenticatedMasterMenuModifiersNewRouteImport.update({
+    id: '/master/menu/modifiers/new',
+    path: '/master/menu/modifiers/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSettingsLocationsLocationIdIndexRoute =
   AuthenticatedSettingsLocationsLocationIdIndexRouteImport.update({
     id: '/settings/locations/$locationId/',
@@ -471,6 +485,8 @@ export interface FileRoutesByFullPath {
   '/settings/locations/': typeof AuthenticatedSettingsLocationsIndexRoute
   '/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
   '/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
+  '/master/menu/modifiers/$groupId': typeof AuthenticatedMasterMenuModifiersGroupIdRoute
+  '/master/menu/modifiers/new': typeof AuthenticatedMasterMenuModifiersNewRoute
   '/settings/locations/$locationId/edit': typeof AuthenticatedSettingsLocationsLocationIdEditRoute
   '/settings/locations/$locationId/': typeof AuthenticatedSettingsLocationsLocationIdIndexRoute
 }
@@ -531,6 +547,8 @@ export interface FileRoutesByTo {
   '/settings/locations': typeof AuthenticatedSettingsLocationsIndexRoute
   '/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
   '/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
+  '/master/menu/modifiers/$groupId': typeof AuthenticatedMasterMenuModifiersGroupIdRoute
+  '/master/menu/modifiers/new': typeof AuthenticatedMasterMenuModifiersNewRoute
   '/settings/locations/$locationId/edit': typeof AuthenticatedSettingsLocationsLocationIdEditRoute
   '/settings/locations/$locationId': typeof AuthenticatedSettingsLocationsLocationIdIndexRoute
 }
@@ -594,6 +612,8 @@ export interface FileRoutesById {
   '/_authenticated/settings/locations/': typeof AuthenticatedSettingsLocationsIndexRoute
   '/_authenticated/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
   '/_authenticated/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
+  '/_authenticated/master/menu/modifiers/$groupId': typeof AuthenticatedMasterMenuModifiersGroupIdRoute
+  '/_authenticated/master/menu/modifiers/new': typeof AuthenticatedMasterMenuModifiersNewRoute
   '/_authenticated/settings/locations/$locationId/edit': typeof AuthenticatedSettingsLocationsLocationIdEditRoute
   '/_authenticated/settings/locations/$locationId/': typeof AuthenticatedSettingsLocationsLocationIdIndexRoute
 }
@@ -657,6 +677,8 @@ export interface FileRouteTypes {
     | '/settings/locations/'
     | '/master/menu/items/$itemId'
     | '/master/menu/items/new'
+    | '/master/menu/modifiers/$groupId'
+    | '/master/menu/modifiers/new'
     | '/settings/locations/$locationId/edit'
     | '/settings/locations/$locationId/'
   fileRoutesByTo: FileRoutesByTo
@@ -717,6 +739,8 @@ export interface FileRouteTypes {
     | '/settings/locations'
     | '/master/menu/items/$itemId'
     | '/master/menu/items/new'
+    | '/master/menu/modifiers/$groupId'
+    | '/master/menu/modifiers/new'
     | '/settings/locations/$locationId/edit'
     | '/settings/locations/$locationId'
   id:
@@ -779,6 +803,8 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/locations/'
     | '/_authenticated/master/menu/items/$itemId'
     | '/_authenticated/master/menu/items/new'
+    | '/_authenticated/master/menu/modifiers/$groupId'
+    | '/_authenticated/master/menu/modifiers/new'
     | '/_authenticated/settings/locations/$locationId/edit'
     | '/_authenticated/settings/locations/$locationId/'
   fileRoutesById: FileRoutesById
@@ -1197,6 +1223,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMasterMenuItemsNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/master/menu/modifiers/$groupId': {
+      id: '/_authenticated/master/menu/modifiers/$groupId'
+      path: '/master/menu/modifiers/$groupId'
+      fullPath: '/master/menu/modifiers/$groupId'
+      preLoaderRoute: typeof AuthenticatedMasterMenuModifiersGroupIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/menu/modifiers/new': {
+      id: '/_authenticated/master/menu/modifiers/new'
+      path: '/master/menu/modifiers/new'
+      fullPath: '/master/menu/modifiers/new'
+      preLoaderRoute: typeof AuthenticatedMasterMenuModifiersNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings/locations/$locationId/': {
       id: '/_authenticated/settings/locations/$locationId/'
       path: '/settings/locations/$locationId'
@@ -1260,6 +1300,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSettingsLocationsIndexRoute: typeof AuthenticatedSettingsLocationsIndexRoute
   AuthenticatedMasterMenuItemsItemIdRoute: typeof AuthenticatedMasterMenuItemsItemIdRoute
   AuthenticatedMasterMenuItemsNewRoute: typeof AuthenticatedMasterMenuItemsNewRoute
+  AuthenticatedMasterMenuModifiersGroupIdRoute: typeof AuthenticatedMasterMenuModifiersGroupIdRoute
+  AuthenticatedMasterMenuModifiersNewRoute: typeof AuthenticatedMasterMenuModifiersNewRoute
   AuthenticatedSettingsLocationsLocationIdEditRoute: typeof AuthenticatedSettingsLocationsLocationIdEditRoute
   AuthenticatedSettingsLocationsLocationIdIndexRoute: typeof AuthenticatedSettingsLocationsLocationIdIndexRoute
 }
@@ -1328,6 +1370,10 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMasterMenuItemsItemIdRoute:
     AuthenticatedMasterMenuItemsItemIdRoute,
   AuthenticatedMasterMenuItemsNewRoute: AuthenticatedMasterMenuItemsNewRoute,
+  AuthenticatedMasterMenuModifiersGroupIdRoute:
+    AuthenticatedMasterMenuModifiersGroupIdRoute,
+  AuthenticatedMasterMenuModifiersNewRoute:
+    AuthenticatedMasterMenuModifiersNewRoute,
   AuthenticatedSettingsLocationsLocationIdEditRoute:
     AuthenticatedSettingsLocationsLocationIdEditRoute,
   AuthenticatedSettingsLocationsLocationIdIndexRoute:

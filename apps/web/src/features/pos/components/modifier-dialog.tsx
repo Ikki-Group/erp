@@ -123,13 +123,9 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 							<div key={group.id} className="space-y-2">
 								<div className="flex items-center gap-2">
 									<Label className="text-xs font-semibold">{group.name}</Label>
-									{group.isRequired === 1 && (
-										<span className="text-xs text-destructive">Wajib</span>
-									)}
+									{group.isRequired && <span className="text-xs text-destructive">Wajib</span>}
 									{group.selectionType === 'multiple' && group.maxSelect && (
-										<span className="text-xs text-muted-foreground">
-											(maks. {group.maxSelect})
-										</span>
+										<span className="text-xs text-muted-foreground">(maks. {group.maxSelect})</span>
 									)}
 								</div>
 
@@ -143,7 +139,7 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 										className="space-y-1"
 									>
 										{group.options
-											.filter((o) => o.isActive === 1)
+											.filter((o) => o.isActive)
 											.map((option) => (
 												<label
 													key={option.id}
@@ -167,11 +163,11 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 													)}
 												</label>
 											))}
-										</RadioGroup>
-									) : (
+									</RadioGroup>
+								) : (
 									<div className="space-y-1">
 										{group.options
-											.filter((o) => o.isActive === 1)
+											.filter((o) => o.isActive)
 											.map((option) => {
 												const checked = selections[group.id]?.includes(option.id) ?? false
 												return (

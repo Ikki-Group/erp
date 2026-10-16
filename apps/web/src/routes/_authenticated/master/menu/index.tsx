@@ -1,57 +1,57 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { useMutation, useQueries, useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, LayersIcon, PlusIcon, TagIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
+import { getActiveLocationId } from '@/lib/api'
+
 import { createEntityColumns, listSearchSchema, useResourceList } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { confirm } from '@/components/shared/confirm'
-import { EmptyState } from '@/components/shared/empty-state'
 import { EntityListPage } from '@/components/shared/entity-list-page'
 import { formDialog } from '@/components/shared/form-dialog'
 import { LocationRequiredPage } from '@/components/shared/location-required-page'
-import { PageShell } from '@/components/shared/page-shell'
-import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
+import { PageTabs } from '@/components/shared/page-tabs'
+import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 import { useWorkflowAction } from '@/components/shared/workflow-action'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/toast'
 
-import type { AuthLocation } from '@/features/auth/dto/index.ts'
-import {
-	menuCategoryResource,
-	menuItemResource,
-	modifierGroupResource,
-} from '@/features/menu/api.ts'
-import { CategoryFormBody } from '@/features/menu/components/category-form.tsx'
-import { MenuCategoryFilter } from '@/features/menu/components/menu-category-filter.tsx'
-import { ModifierGroupFormBody } from '@/features/menu/components/modifier-group-form.tsx'
-import { MENU_ITEM_STATUS_OPTIONS, MenuItemStatusEnum } from '@/features/menu/dto/index.ts'
-import type { MenuCategoryDto, MenuItemDto, ModifierGroupDto } from '@/features/menu/dto/index.ts'
+import type { AuthLocation } from '@/features/auth/dto'
+import { menuCategoryResource, menuItemResource, modifierGroupResource } from '@/features/menu/api'
+import { CategoryFormBody } from '@/features/menu/components/category-form'
+import { MenuCategoryFilter } from '@/features/menu/components/menu-category-filter'
+import { MENU_ITEM_STATUS_OPTIONS, MenuItemStatusEnum } from '@/features/menu/dto'
+import type { MenuCategoryDto, MenuItemDto, ModifierGroupDto } from '@/features/menu/dto'
 
-import { useLocationContext } from '@/providers/location-provider.tsx'
+import { useLocationContext } from '@/providers/location-provider'
 
-// The item list endpoint filters by text, category and status and cannot sort, so the URL
-// carries exactly those.
 const menuSearchSchema = listSearchSchema.omit({ sort: true }).extend({
+	tab: z.enum(['items', 'modifiers']).default('items'),
 	categoryId: z.coerce.number().int().positive().optional(),
 	status: MenuItemStatusEnum.optional().catch(undefined),
 })
-
 export const Route = createFileRoute('/_authenticated/master/menu/')({
 	validateSearch: menuSearchSchema,
 	component: MenuRoute,
 })
+const itemColumns = createEntityColumns<MenuItemDto>()
+const modifierColumns = createEntityColumns<ModifierGroupDto>()
+const tabs = [
+	{ id: 'items', label: 'Menu Items' },
+	{ id: 'modifiers', label: 'Modifier Groups' },
+]
 
 function MenuRoute() {
 	const { activeLocation } = useLocationContext()
-	if (!activeLocation) {
+	const search = Route.useSearch()
+	const navigate = useNavigate({ from: Route.fullPath })
+	if (!activeLocation)
 		return (
 			<LocationRequiredPage
 				title="Menu"
@@ -59,98 +59,55 @@ function MenuRoute() {
 				message="Pilih lokasi terlebih dahulu untuk mengelola menu."
 			/>
 		)
-	}
-	return <MenuPage location={activeLocation} />
+	const navigation = (
+		<PageTabs
+			tabs={tabs}
+			activeTab={search.tab}
+			onTabChange={(tab) =>
+				void navigate({
+					search: {
+						page: 1,
+						pageSize: search.pageSize,
+						tab: tab === 'modifiers' ? 'modifiers' : 'items',
+					},
+				})
+			}
+		/>
+	)
+	return search.tab === 'modifiers' ? (
+		<ModifierList key={activeLocation.id} location={activeLocation} navigation={navigation} />
+	) : (
+		<MenuItems key={activeLocation.id} location={activeLocation} navigation={navigation} />
+	)
 }
 
-// ─── Table Columns ───
+interface ListProps {
+	location: AuthLocation
+	navigation: React.ReactNode
+}
 
-const col = createEntityColumns<MenuItemDto>()
-
-const CATEGORY_PAGE_SIZE = 100
-
-// ─── Page Component ───
-
-function MenuPage({ location }: { location: AuthLocation }) {
-	const locationId = location.id
-	const navigate = useNavigate({ from: Route.fullPath })
+function MenuItems({ location, navigation }: ListProps) {
 	const search = Route.useSearch()
-	const canEditItem = usePermissionCheck({ permission: 'item.update' })
-	const canDeleteItem = usePermissionCheck({ permission: 'item.delete' })
-	const canCreateCategory = usePermissionCheck({ permission: 'category.create' })
-	const canEditCategory = usePermissionCheck({ permission: 'category.update' })
-	const categoryAccess = useRef({ create: canCreateCategory, update: canEditCategory, mounted: true })
-	categoryAccess.current.create = canCreateCategory
-	categoryAccess.current.update = canEditCategory
-	useEffect(() => {
-		categoryAccess.current.mounted = true
-		return () => { categoryAccess.current.mounted = false }
-	}, [])
-	const canDeleteCategory = usePermissionCheck({ permission: 'category.delete' })
-	const canCreateModifier = usePermissionCheck({ permission: 'modifier.create' })
-	const canEditModifier = usePermissionCheck({ permission: 'modifier.update' })
-	const canDeleteModifier = usePermissionCheck({ permission: 'modifier.delete' })
-
-	const [activeTab, setActiveTab] = useState<'items' | 'modifiers'>('items')
-	const [categoryPageCount, setCategoryPageCount] = useState(1)
-
-	// ─── Queries ───
-
-	const itemListQuery = useQuery({
+	const navigate = useNavigate({ from: Route.fullPath })
+	const canRead = usePermissionCheck({ permission: 'item.read' })
+	const canCreate = usePermissionCheck({ permission: 'item.create' })
+	const canEdit = usePermissionCheck({ permission: 'item.update' })
+	const canDelete = usePermissionCheck({ permission: 'item.delete' })
+	const canReadCategories = usePermissionCheck({ permission: 'category.read' })
+	const query = useQuery({
 		...menuItemResource.list.queryOptions({
 			page: search.page,
 			limit: search.pageSize,
 			q: search.q,
 			categoryId: search.categoryId,
 			status: search.status,
-			locationId,
+			locationId: location.id,
 		}),
+		enabled: canRead,
 		throwOnError: false,
 	})
-
-	// Category management pages in on demand, so no category past the first page is unreachable.
-	const categoryPages = useQueries({
-		queries: Array.from({ length: categoryPageCount }, (_, index) => ({
-			...menuCategoryResource.list.queryOptions({
-				page: index + 1,
-				limit: CATEGORY_PAGE_SIZE,
-				locationId,
-			}),
-			throwOnError: false,
-		})),
-	})
-
-	const modifiersQuery = useQuery({
-		...modifierGroupResource.list.queryOptions({
-			page: 1,
-			limit: 100,
-			locationId,
-		}),
-		throwOnError: false,
-	})
-
-	// ─── Mutations ───
-
-	const catRemoveMut = useMutation(menuCategoryResource.remove.mutationOptions())
-
-	const modCreateMut = useMutation(modifierGroupResource.create.mutationOptions())
-	const modUpdateMut = useMutation(modifierGroupResource.update.mutationOptions())
-	const modRemoveMut = useMutation(modifierGroupResource.remove.mutationOptions())
-
-	// ─── Derived Data ───
-
-	const categories = categoryPages.flatMap((page) => page.data?.data ?? [])
-	const lastCategoryPage = categoryPages[categoryPages.length - 1]
-	const failedCategoryPages = categoryPages.filter((page) => page.isError)
-	const hasMoreCategories =
-		lastCategoryPage?.data !== undefined &&
-		lastCategoryPage.data.meta.page < lastCategoryPage.data.meta.totalPages
-	const modifiers = modifiersQuery.data?.data ?? []
-
-	// ─── Menu Item Handlers ───
-
-	const { run: handleDeleteItem, isPending: deletingItem } = useWorkflowAction<MenuItemDto>({
-		availability: () => canDeleteItem,
+	const { run: remove, isPending: deleting } = useWorkflowAction<MenuItemDto>({
+		availability: () => canDelete && getActiveLocationId() === location.id,
 		confirmation: (item) => ({
 			title: 'Hapus menu item?',
 			description: `"${item.name}" (${item.sku}) akan dihapus permanen.`,
@@ -160,138 +117,13 @@ function MenuPage({ location }: { location: AuthLocation }) {
 		execute: (item) => menuItemResource.remove.fetch({ id: item.id }),
 		successMessage: 'Menu item berhasil dihapus.',
 	})
-
-	// ─── Category Handlers ───
-
-	const handleCreateCategory = useCallback(async () => {
-		if (!locationId) return
-
-		await formDialog({
-			title: 'Tambah Kategori',
-			description: 'Buat kategori menu baru.',
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			content: ({ close }) => (
-				<CategoryFormBody
-					onSaved={() => close(true)}
-					onCancel={() => close(false)}
-					location={location}
-					canSave={() => categoryAccess.current.mounted && categoryAccess.current.create}
-				/>
-			),
-		})
-
-	}, [location, locationId])
-
-	const handleEditCategory = useCallback(
-		async (category: MenuCategoryDto) => {
-			await formDialog({
-				title: 'Edit Kategori',
-				description: `Edit "${category.name}".`,
-				// oxlint-disable-next-line react/no-unstable-nested-components
-				content: ({ close }) => (
-					<CategoryFormBody
-						category={category}
-						onSaved={() => close(true)}
-						onCancel={() => close(false)}
-						location={location}
-						canSave={() => categoryAccess.current.mounted && categoryAccess.current.update}
-					/>
-				),
-			})
-
-		},
-		[location],
-	)
-
-	const handleDeleteCategory = useCallback(
-		async (category: MenuCategoryDto) => {
-			await confirm({
-				title: 'Hapus kategori?',
-				description: `"${category.name}" akan dihapus permanen.`,
-				confirmLabel: 'Hapus',
-				variant: 'destructive',
-				onConfirm: async () => {
-					await catRemoveMut.mutateAsync({ id: category.id })
-					toast.add({ title: 'Kategori berhasil dihapus.', type: 'success' })
-				},
-			})
-		},
-		[catRemoveMut],
-	)
-
-	// ─── Modifier Group Handlers ───
-
-	const handleCreateModifier = useCallback(async () => {
-		if (!locationId) return
-
-		const saved = await formDialog({
-			title: 'Tambah Modifier Group',
-			description: 'Buat grup modifier baru (mis. Ukuran, Level Gula).',
-			className: 'sm:max-w-lg',
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			content: ({ close }) => (
-				<ModifierGroupFormBody
-					onSaved={() => close(true)}
-					onCancel={() => close(false)}
-					onSubmitValues={(v) => modCreateMut.mutateAsync({ locationId, ...v })}
-				/>
-			),
-		})
-
-		if (saved) {
-			toast.add({ title: 'Modifier group berhasil dibuat.', type: 'success' })
-		}
-	}, [modCreateMut, locationId])
-
-	const handleEditModifier = useCallback(
-		async (group: ModifierGroupDto) => {
-			const saved = await formDialog({
-				title: 'Edit Modifier Group',
-				description: `Edit "${group.name}".`,
-				className: 'sm:max-w-lg',
-				// oxlint-disable-next-line react/no-unstable-nested-components
-				content: ({ close }) => (
-					<ModifierGroupFormBody
-						defaultValues={group}
-						locationId={locationId!}
-						onSaved={() => close(true)}
-						onCancel={() => close(false)}
-						onSubmitValues={(v) => modUpdateMut.mutateAsync({ id: group.id, ...v })}
-					/>
-				),
-			})
-
-			if (saved) {
-				toast.add({ title: 'Modifier group berhasil diperbarui.', type: 'success' })
-			}
-		},
-		[modUpdateMut, locationId],
-	)
-
-	const handleDeleteModifier = useCallback(
-		async (group: ModifierGroupDto) => {
-			await confirm({
-				title: 'Hapus modifier group?',
-				description: `"${group.name}" beserta semua opsinya akan dihapus permanen.`,
-				confirmLabel: 'Hapus',
-				variant: 'destructive',
-				onConfirm: async () => {
-					await modRemoveMut.mutateAsync({ id: group.id })
-					toast.add({ title: 'Modifier group berhasil dihapus.', type: 'success' })
-				},
-			})
-		},
-		[modRemoveMut],
-	)
-	// ─── Table Columns ───
-
 	const columns = useMemo(
 		() =>
 			[
-				col.code('sku', { header: 'SKU', size: 120, enableSorting: false }),
-				col.text('name', { header: 'Name', size: 200, enableSorting: false }),
-				col.money('basePrice', { header: 'Price', size: 120, enableSorting: false }),
-				col.status(
+				itemColumns.code('sku', { header: 'SKU', size: 120, enableSorting: false }),
+				itemColumns.text('name', { header: 'Name', size: 200, enableSorting: false }),
+				itemColumns.money('basePrice', { header: 'Price', size: 120, enableSorting: false }),
+				itemColumns.status(
 					'status',
 					{
 						active: { label: 'Active', variant: 'success' },
@@ -299,274 +131,368 @@ function MenuPage({ location }: { location: AuthLocation }) {
 					},
 					{ header: 'Status', size: 100, enableSorting: false },
 				),
-				col.actions({
-					// oxlint-disable-next-line react/no-unstable-nested-components -- action-item factory, not a rendered component
+				itemColumns.actions({
+					// oxlint-disable-next-line react/no-unstable-nested-components -- action factory
 					getItems: (item) => [
-						canEditItem && {
+						canEdit && {
 							label: 'Edit',
 							icon: <EditIcon className="size-4" />,
 							onClick: () =>
-								navigate({
-									to: '/master/menu/items/$itemId',
-									params: { itemId: String(item.id) },
-								}),
+								navigate({ to: '/master/menu/items/$itemId', params: { itemId: String(item.id) } }),
 						},
-						canDeleteItem && {
+						canDelete && {
 							label: 'Hapus',
 							icon: <TrashIcon className="size-4" />,
-							onClick: () => handleDeleteItem(item),
-							variant: 'destructive' as const,
-							disabled: deletingItem,
+							onClick: () => remove(item),
+							variant: 'destructive',
+							disabled: deleting,
 						},
 					],
 				}),
 			] as ColumnDef<DataGridFeatures, MenuItemDto>[],
-		[canEditItem, canDeleteItem, deletingItem, handleDeleteItem, navigate],
+		[canEdit, canDelete, deleting, remove, navigate],
 	)
-
 	const list = useResourceList({
-		query: itemListQuery,
+		query,
 		columns,
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
 		hasFilters: (value) => value.categoryId !== undefined || value.status !== undefined,
 	})
-
-	const tabs = (
-		<div className="flex gap-1 rounded-lg border p-1">
-			<button
-				type="button"
-				className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${activeTab === 'items' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-				onClick={() => setActiveTab('items')}
-			>
-				Menu Items
-			</button>
-			<button
-				type="button"
-				className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${activeTab === 'modifiers' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-				onClick={() => setActiveTab('modifiers')}
-			>
-				Modifier Groups
-			</button>
+	return (
+		<div className="space-y-6">
+			{canRead ? (
+				<EntityListPage
+					title="Menu"
+					description={`Kelola menu item di ${location.name}.`}
+					list={list}
+					createAction={
+						canCreate ? (
+							<Button size="sm" onClick={() => navigate({ to: '/master/menu/items/new' })}>
+								<PlusIcon className="size-4" />
+								Menu Item
+							</Button>
+						) : undefined
+					}
+					emptyState={{
+						title: 'Belum ada menu item',
+						description: 'Mulai dengan menambahkan menu item pertama.',
+					}}
+					emptyMessage="Tidak ada menu item yang cocok."
+					toolbar={
+						<div className="space-y-3">
+							{navigation}
+							<div className="flex flex-wrap items-start gap-2">
+								<TableToolbar
+									className="min-w-0 flex-1"
+									searchValue={list.globalFilter}
+									onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
+									searchPlaceholder="Cari menu item..."
+									filters={[
+										{
+											key: 'status',
+											label: 'Status',
+											value: search.status,
+											onChange: (value) =>
+												list.setFilters({ status: MenuItemStatusEnum.safeParse(value).data }),
+											options: MENU_ITEM_STATUS_OPTIONS,
+											allLabel: 'Semua status',
+										},
+									]}
+								/>
+								{canReadCategories && (
+									<MenuCategoryFilter
+										locationId={location.id}
+										value={search.categoryId}
+										onChange={(categoryId) => list.setFilters({ categoryId })}
+									/>
+								)}
+							</div>
+						</div>
+					}
+				/>
+			) : (
+				<>
+					{navigation}
+					<p role="status">Anda tidak memiliki izin melihat menu item.</p>
+				</>
+			)}
+			<CategoryManagement location={location} />
 		</div>
 	)
+}
 
-	const headerActions = (
-		<>
-			<PermissionGate permission="category.create">
-				<Button size="sm" variant="outline" onClick={handleCreateCategory}>
-					<TagIcon className="size-4" />
-					Kategori
-				</Button>
-			</PermissionGate>
-			{canCreateModifier && (
-				<Button size="sm" variant="outline" onClick={handleCreateModifier}>
-					<LayersIcon className="size-4" />
-					Modifier
-				</Button>
-			)}
-		</>
+function CategoryManagement({ location }: { location: AuthLocation }) {
+	const canRead = usePermissionCheck({ permission: 'category.read' })
+	const canCreate = usePermissionCheck({ permission: 'category.create' })
+	const canEdit = usePermissionCheck({ permission: 'category.update' })
+	const canDelete = usePermissionCheck({ permission: 'category.delete' })
+	const live = useRef({ canCreate, canEdit, mounted: true })
+	live.current.canCreate = canCreate
+	live.current.canEdit = canEdit
+	useEffect(() => {
+		live.current.mounted = true
+		return () => {
+			live.current.mounted = false
+		}
+	}, [])
+	const [pageCount, setPageCount] = useState(1)
+	const pages = useQueries({
+		queries: Array.from({ length: pageCount }, (_, index) => ({
+			...menuCategoryResource.list.queryOptions({
+				page: index + 1,
+				limit: 25,
+				locationId: location.id,
+			}),
+			enabled: canRead,
+			throwOnError: false,
+		})),
+	})
+	const categories = pages.flatMap((page) => page.data?.data ?? [])
+	const last = pages[pages.length - 1]!
+	const failed = pages.filter((page) => page.isError)
+	const more = !!last.data && last.data.meta.page < last.data.meta.totalPages
+	const openCategory = useCallback(
+		async (category?: MenuCategoryDto) => {
+			const canSave = () =>
+				live.current.mounted &&
+				(category ? live.current.canEdit : live.current.canCreate) &&
+				getActiveLocationId() === (category?.locationId ?? location.id)
+			if (!canSave()) return
+			await formDialog({
+				title: category ? 'Edit Kategori' : 'Tambah Kategori',
+				description: category
+					? `Edit "${category.name}" di ${location.name}.`
+					: `Buat kategori menu di ${location.name}.`,
+				// oxlint-disable-next-line react/no-unstable-nested-components -- callable dialog renderer
+				content: ({ close }) => (
+					<CategoryFormBody
+						category={category}
+						location={location}
+						canSave={canSave}
+						onSaved={() => close(true)}
+						onCancel={() => close(false)}
+					/>
+				),
+			})
+		},
+		[location],
 	)
-
-	const description = `Kelola menu item di ${location.name}.`
-
-	if (activeTab === 'modifiers') {
-		return (
-			<PageShell title="Menu" description={description} actions={headerActions}>
-				<div className="space-y-6">
-					{tabs}
-					{modifiersQuery.isError && (
+	const { run: remove, isPending: deleting } = useWorkflowAction<MenuCategoryDto>({
+		availability: (category) => canDelete && getActiveLocationId() === category.locationId,
+		confirmation: (category) => ({
+			title: 'Hapus kategori?',
+			description: `"${category.name}" akan dihapus permanen.`,
+			confirmLabel: 'Hapus',
+			variant: 'destructive',
+		}),
+		execute: (category) => menuCategoryResource.remove.fetch({ id: category.id }),
+		successMessage: 'Kategori berhasil dihapus.',
+	})
+	if (!canRead && !canCreate) return null
+	return (
+		<section className="space-y-3" aria-label="Kategori menu">
+			<div className="flex flex-wrap items-center justify-between gap-3">
+				<h2 className="text-sm font-medium">Kategori</h2>
+				{canCreate && (
+					<Button size="sm" variant="outline" onClick={() => openCategory()}>
+						<TagIcon className="size-4" />
+						Tambah Kategori
+					</Button>
+				)}
+			</div>
+			{canRead && (
+				<>
+					{failed.length > 0 && (
 						<div
 							role="alert"
 							className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 p-3 text-sm"
 						>
-							<p>Could not load modifier groups.</p>
-							<Button size="sm" variant="outline" onClick={() => void modifiersQuery.refetch()}>
-								Coba lagi
+							<p>Kategori gagal dimuat. Data terakhir tetap ditampilkan.</p>
+							<Button
+								size="sm"
+								variant="outline"
+								disabled={failed.some((page) => page.isFetching)}
+								onClick={() => failed.forEach((page) => void page.refetch())}
+							>
+								Coba muat kategori lagi
 							</Button>
 						</div>
 					)}
-					{modifiers.length === 0 ? (
-						<EmptyState
-							title="Belum ada modifier group"
-							description="Modifier group digunakan untuk opsi tambahan (mis. Level Gula, Ukuran)."
-							action={
-								canCreateModifier ? (
-									<Button size="sm" onClick={handleCreateModifier}>
-										<PlusIcon className="size-4" />
-										Tambah Modifier Group
-									</Button>
-								) : undefined
-							}
-						/>
-					) : (
+					{pages[0]!.isPending ? (
+						<p role="status" className="text-sm text-muted-foreground">
+							Memuat kategori…
+						</p>
+					) : failed.length === 0 && categories.length === 0 ? (
+						<p className="text-sm text-muted-foreground">Belum ada kategori.</p>
+					) : null}
+					{categories.length > 0 && (
 						<div className="divide-y rounded-md border">
-							{modifiers.map((group) => (
-								<div key={group.id} className="flex items-center justify-between px-4 py-3">
-									<div className="space-y-0.5">
-										<span className="text-sm font-medium">{group.name}</span>
-										<div className="flex items-center gap-2">
-											<Badge variant="secondary" className="text-xs capitalize">
-												{group.selectionType}
-											</Badge>
-											{group.isRequired === 1 && (
-												<Badge variant="outline" className="text-xs">
-													Wajib
-												</Badge>
-											)}
-										</div>
+							{categories.map((category) => (
+								<div
+									key={category.id}
+									className="flex items-center justify-between gap-3 px-4 py-3"
+								>
+									<div className="min-w-0">
+										<span className="break-words text-sm font-medium">{category.name}</span>
+										<Badge variant="outline" className="ml-2 font-mono tabular-nums">
+											{category.sortOrder}
+										</Badge>
 									</div>
-									{(canEditModifier || canDeleteModifier) && (
-										<div className="flex gap-1">
-											{canEditModifier && (
-												<Button
-													size="icon"
-													variant="ghost"
-													className="size-7"
-													onClick={() => handleEditModifier(group)}
-												>
-													<EditIcon className="size-3.5" />
-												</Button>
-											)}
-											{canDeleteModifier && (
-												<Button
-													size="icon"
-													variant="ghost"
-													className="size-7"
-													onClick={() => handleDeleteModifier(group)}
-												>
-													<TrashIcon className="size-3.5" />
-												</Button>
-											)}
-										</div>
-									)}
+									<div className="flex shrink-0 gap-1">
+										{canEdit && (
+											<Button
+												size="icon"
+												variant="ghost"
+												aria-label={`Edit kategori ${category.name}`}
+												onClick={() => openCategory(category)}
+											>
+												<EditIcon className="size-4" />
+											</Button>
+										)}
+										{canDelete && (
+											<Button
+												size="icon"
+												variant="ghost"
+												aria-label={`Hapus kategori ${category.name}`}
+												disabled={deleting}
+												onClick={() => remove(category)}
+											>
+												<TrashIcon className="size-4" />
+											</Button>
+										)}
+									</div>
 								</div>
 							))}
 						</div>
 					)}
-				</div>
-			</PageShell>
-		)
-	}
-
-	return (
-		<div className="space-y-6">
-			<EntityListPage
-				title="Menu"
-				description={description}
-				list={list}
-				actions={headerActions}
-				createAction={
-					<PermissionGate permission="item.create">
-						<Button size="sm" onClick={() => navigate({ to: '/master/menu/items/new' })}>
-							<PlusIcon className="size-4" />
-							Menu Item
+					{more && (
+						<Button
+							size="sm"
+							variant="outline"
+							disabled={last.isFetching || failed.length > 0}
+							onClick={() => setPageCount((count) => count + 1)}
+						>
+							Muat kategori berikutnya
 						</Button>
-					</PermissionGate>
-				}
-				emptyState={{
-					title: 'Belum ada menu item',
-					description: 'Mulai dengan menambahkan menu item pertama.',
-				}}
-				emptyMessage="Tidak ada menu item yang cocok."
-				toolbar={
-					<div className="space-y-3">
-						{tabs}
-						<div className="flex flex-wrap items-start gap-2">
-							<TableToolbar
-								className="min-w-0 flex-1"
-								searchValue={list.globalFilter}
-								onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
-								searchPlaceholder="Cari menu item..."
-								filters={[
-									{
-										key: 'status',
-										label: 'Status',
-										value: search.status,
-										onChange: (value) =>
-											list.setFilters({ status: MenuItemStatusEnum.safeParse(value).data }),
-										options: MENU_ITEM_STATUS_OPTIONS,
-										allLabel: 'Semua status',
-									},
-								]}
-							/>
-							<MenuCategoryFilter
-								locationId={locationId}
-								value={search.categoryId}
-								onChange={(categoryId) => list.setFilters({ categoryId })}
-							/>
-						</div>
-					</div>
-				}
-			/>
-			{failedCategoryPages.length > 0 && (
-				<div
-					role="alert"
-					className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 p-3 text-sm"
-				>
-					<p>Could not load all categories.</p>
-					<Button
-						size="sm"
-						variant="outline"
-						onClick={() => failedCategoryPages.forEach((page) => void page.refetch())}
-					>
-						Coba lagi
+					)}
+				</>
+			)}
+		</section>
+	)
+}
+
+function ModifierList({ location, navigation }: ListProps) {
+	const search = Route.useSearch()
+	const navigate = useNavigate({ from: Route.fullPath })
+	const canRead = usePermissionCheck({ permission: 'modifier.read' })
+	const canCreate = usePermissionCheck({ permission: 'modifier.create' })
+	const canEdit = usePermissionCheck({ permission: 'modifier.update' })
+	const canDelete = usePermissionCheck({ permission: 'modifier.delete' })
+	const query = useQuery({
+		...modifierGroupResource.list.queryOptions({
+			page: search.page,
+			limit: search.pageSize,
+			q: search.q,
+			locationId: location.id,
+		}),
+		enabled: canRead,
+		throwOnError: false,
+	})
+	const { run: remove, isPending: deleting } = useWorkflowAction<ModifierGroupDto>({
+		availability: (group) => canDelete && getActiveLocationId() === group.locationId,
+		confirmation: (group) => ({
+			title: 'Hapus modifier group?',
+			description: `"${group.name}" beserta semua opsinya akan dihapus permanen.`,
+			confirmLabel: 'Hapus',
+			variant: 'destructive',
+		}),
+		execute: (group) => modifierGroupResource.remove.fetch({ id: group.id }),
+		successMessage: 'Modifier group berhasil dihapus.',
+	})
+	const columns = useMemo(
+		() =>
+			[
+				modifierColumns.text('name', { header: 'Nama', size: 230, enableSorting: false }),
+				modifierColumns.text('selectionType', {
+					header: 'Tipe Seleksi',
+					size: 140,
+					enableSorting: false,
+				}),
+				modifierColumns.booleanStatus('isRequired', {
+					header: 'Wajib',
+					size: 100,
+					enableSorting: false,
+					labels: {
+						true: { label: 'Wajib', variant: 'info' },
+						false: { label: 'Opsional', variant: 'outline' },
+					},
+				}),
+				modifierColumns.quantity('minSelect', { header: 'Min', size: 75, enableSorting: false }),
+				modifierColumns.quantity('maxSelect', { header: 'Max', size: 75, enableSorting: false }),
+				modifierColumns.actions({
+					// oxlint-disable-next-line react/no-unstable-nested-components -- action factory
+					getItems: (group) => [
+						canRead && {
+							label: canEdit ? 'Edit' : 'Lihat',
+							icon: <EditIcon className="size-4" />,
+							onClick: () =>
+								navigate({
+									to: '/master/menu/modifiers/$groupId',
+									params: { groupId: String(group.id) },
+								}),
+						},
+						canDelete && {
+							label: 'Hapus',
+							icon: <TrashIcon className="size-4" />,
+							disabled: deleting,
+							variant: 'destructive',
+							onClick: () => remove(group),
+						},
+					],
+				}),
+			] as ColumnDef<DataGridFeatures, ModifierGroupDto>[],
+		[canRead, canEdit, canDelete, deleting, remove, navigate],
+	)
+	const list = useResourceList({
+		query,
+		columns,
+		search,
+		onSearchChange: (next) => navigate({ search: next }),
+	})
+	return canRead ? (
+		<EntityListPage
+			title="Modifier Groups"
+			description={`Kelola pilihan tambahan di ${location.name}. Max kosong berarti tanpa batas.`}
+			list={list}
+			createAction={
+				canCreate ? (
+					<Button size="sm" onClick={() => navigate({ to: '/master/menu/modifiers/new' })}>
+						<LayersIcon className="size-4" />
+						Tambah Modifier Group
 					</Button>
-				</div>
-			)}
-			{categories.length > 0 && (
+				) : undefined
+			}
+			emptyState={{
+				title: 'Belum ada modifier group',
+				description: 'Tambahkan pilihan seperti ukuran atau level gula.',
+			}}
+			emptyMessage="Tidak ada modifier group yang cocok."
+			toolbar={
 				<div className="space-y-3">
-					<h3 className="text-sm font-medium">Kategori</h3>
-					<div className="divide-y rounded-md border">
-						{categories.map((cat) => (
-							<div key={cat.id} className="flex items-center justify-between px-4 py-3">
-								<div className="flex items-center gap-2">
-									<span className="text-sm font-medium">{cat.name}</span>
-									{cat.sortOrder > 0 && (
-										<Badge variant="outline" className="text-xs">
-											#{cat.sortOrder}
-										</Badge>
-									)}
-								</div>
-								{(canEditCategory || canDeleteCategory) && (
-									<div className="flex gap-1">
-										{canEditCategory && (
-											<Button
-												size="icon"
-												variant="ghost"
-												className="size-7"
-												onClick={() => handleEditCategory(cat)}
-											>
-												<EditIcon className="size-3.5" />
-											</Button>
-										)}
-										{canDeleteCategory && (
-											<Button
-												size="icon"
-												variant="ghost"
-												className="size-7"
-												onClick={() => handleDeleteCategory(cat)}
-											>
-												<TrashIcon className="size-3.5" />
-											</Button>
-										)}
-									</div>
-								)}
-							</div>
-						))}
-					</div>
+					{navigation}
+					<TableToolbar
+						searchValue={list.globalFilter}
+						onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
+						searchPlaceholder="Cari modifier group..."
+					/>
 				</div>
-			)}
-			{hasMoreCategories && (
-				<Button
-					size="sm"
-					variant="outline"
-					disabled={lastCategoryPage?.isFetching}
-					onClick={() => setCategoryPageCount((count) => count + 1)}
-				>
-					Muat kategori berikutnya
-				</Button>
-			)}
+			}
+		/>
+	) : (
+		<div className="space-y-4">
+			{navigation}
+			<p role="status">Anda tidak memiliki izin melihat modifier group.</p>
 		</div>
 	)
 }
