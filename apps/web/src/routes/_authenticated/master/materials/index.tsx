@@ -128,6 +128,8 @@ function MaterialsPage() {
 	const navigate = useNavigate({ from: Route.fullPath })
 	const search = Route.useSearch()
 	const canCreate = usePermissionCheck({ permission: 'material.create' })
+	const canRead = usePermissionCheck({ permission: 'material.read' })
+	const canReadLocations = usePermissionCheck({ permission: 'location.read' })
 	const canEdit = usePermissionCheck({ permission: 'material.update' })
 	const canDelete = usePermissionCheck({ permission: 'material.delete' })
 
@@ -175,7 +177,7 @@ function MaterialsPage() {
 			// oxlint-disable-next-line react/no-unstable-nested-components
 			content: ({ close }) => (
 				<div className="space-y-4">
-					<LocationAssignment materialId={material.id} />
+					<LocationAssignment materialId={material.id} permissions={{ canRead: canRead && canReadLocations, canAssign: canCreate, canUnassign: canDelete }} />
 					<div className="flex justify-end">
 						<Button size="sm" onClick={() => close(true)}>
 							Done
@@ -184,7 +186,7 @@ function MaterialsPage() {
 				</div>
 			),
 		})
-	}, [])
+	}, [canRead, canReadLocations, canCreate, canDelete])
 
 	// ─── Category Handlers ───
 

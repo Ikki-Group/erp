@@ -47,8 +47,14 @@ export const categoryResource = defineResource({
 const assignmentUrls = endpoint.material.assignment
 
 const assignmentKeys = {
-	byLocation: (locationId?: number) => [assignmentUrls.byLocation, locationId ?? null] as const,
-	byMaterial: (materialId?: number) => [assignmentUrls.byMaterial, materialId ?? null] as const,
+	byLocation: (locationId?: number) =>
+		locationId === undefined
+			? ([assignmentUrls.byLocation] as const)
+			: ([assignmentUrls.byLocation, locationId] as const),
+	byMaterial: (materialId?: number) =>
+		materialId === undefined
+			? ([assignmentUrls.byMaterial] as const)
+			: ([assignmentUrls.byMaterial, materialId] as const),
 }
 
 const assignmentByLocation = defineQuery({
@@ -56,7 +62,8 @@ const assignmentByLocation = defineQuery({
 	url: assignmentUrls.byLocation,
 	query: z.object({ locationId: z.coerce.number().int().positive() }),
 	result: createSuccessResponseSchema(z.array(MaterialLocationDto)),
-	queryKey: (args) => [assignmentUrls.byLocation, args?.locationId ?? null],
+	queryKey: (args) =>
+		assignmentKeys.byLocation(z.coerce.number().int().positive().parse(args.locationId)),
 })
 
 const assignmentByMaterial = defineQuery({
@@ -64,7 +71,8 @@ const assignmentByMaterial = defineQuery({
 	url: assignmentUrls.byMaterial,
 	query: z.object({ materialId: z.coerce.number().int().positive() }),
 	result: createSuccessResponseSchema(z.array(MaterialLocationDto)),
-	queryKey: (args) => [assignmentUrls.byMaterial, args?.materialId ?? null],
+	queryKey: (args) =>
+		assignmentKeys.byMaterial(z.coerce.number().int().positive().parse(args.materialId)),
 })
 
 const assignmentAssign = defineMutation({
