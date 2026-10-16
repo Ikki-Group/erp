@@ -1,6 +1,11 @@
 import { z } from 'zod'
 
-import { useEntityForm } from '@/lib/form/index.ts'
+import { useEntityEditor } from '@/lib/form/use-entity-editor.ts'
+import type { EntityForm } from '@/lib/form/use-entity-form.ts'
+
+import { companyUpdate } from '../api.ts'
+import { CompanySettingsUpdateDto } from '../dto/index.ts'
+import type { CompanySettingsDto } from '../dto/index.ts'
 
 export interface CompanyFormValues {
 	name: string
@@ -34,32 +39,77 @@ const CompanyFormSchema = z.object({
 	receiptFooter: z.string().trim().max(1000).default(''),
 })
 
-export const EMPTY_COMPANY_FORM_VALUES: CompanyFormValues = {
-	name: '',
-	address: '',
-	phone: '',
-	email: '',
-	taxId: '',
-	taxRate: '0',
-	currencyCode: 'IDR',
-	currencySymbol: 'Rp',
-	receiptFooter: '',
+export function toCompanyFormValues(
+	settings: Pick<
+		CompanySettingsDto,
+		| 'name'
+		| 'address'
+		| 'phone'
+		| 'email'
+		| 'taxId'
+		| 'taxRate'
+		| 'currencyCode'
+		| 'currencySymbol'
+		| 'receiptFooter'
+	>,
+): CompanyFormValues {
+	return {
+		name: settings.name,
+		address: settings.address ?? '',
+		phone: settings.phone ?? '',
+		email: settings.email ?? '',
+		taxId: settings.taxId ?? '',
+		taxRate: settings.taxRate,
+		currencyCode: settings.currencyCode,
+		currencySymbol: settings.currencySymbol,
+		receiptFooter: settings.receiptFooter ?? '',
+	}
 }
 
-export interface UseCompanyFormOptions {
-	defaultValues?: CompanyFormValues
-	onSubmit: (values: CompanyFormValues) => Promise<void>
+/**
+ * The update body for the singleton. `logoUrl` has no field on this form, so it is
+ * carried over from the loaded record instead of being erased by the save.
+ */
+export function toCompanyInput(
+	values: CompanyFormValues,
+	existing: Pick<CompanySettingsDto, 'id' | 'logoUrl'>,
+): CompanySettingsUpdateDto {
+	return CompanySettingsUpdateDto.parse({ ...values, id: existing.id, logoUrl: existing.logoUrl })
 }
 
-export function useCompanyForm({ defaultValues, onSubmit }: UseCompanyFormOptions) {
-	return useEntityForm({
-		defaultValues: defaultValues ?? EMPTY_COMPANY_FORM_VALUES,
+export const COMPANY_UPDATE_DENIED = 'You do not have permission to edit company settings.'
+
+export function useCompanyForm({
+	settings,
+	canWrite,
+}: {
+	settings: CompanySettingsDto
+	canWrite: boolean
+}): CompanyForm {
+	return useEntityEditor({
+		defaultValues: toCompanyFormValues(settings),
 		schema: CompanyFormSchema,
-		onSubmit,
+		mutation: {
+			mutationFn: async (input: CompanySettingsUpdateDto) => {
+				if (!canWrite) throw new Error(COMPANY_UPDATE_DENIED)
+				return companyUpdate.fetch(input)
+			},
+		},
+		toPayload: (values) => toCompanyInput(values, settings),
+		baselineAfterSave: (payload) =>
+			toCompanyFormValues({
+				...payload,
+				address: payload.address ?? null,
+				phone: payload.phone ?? null,
+				email: payload.email ?? null,
+				taxId: payload.taxId ?? null,
+				receiptFooter: payload.receiptFooter ?? null,
+			}),
+		successMessage: 'Company settings updated.',
 	})
 }
 
-export type CompanyForm = ReturnType<typeof useCompanyForm>
+export type CompanyForm = EntityForm<CompanyFormValues>
 
 /** The company settings field layout, split into logical sections like the previous card layout. */
 export function CompanyFormFields({ form }: { form: CompanyForm }) {
@@ -97,6 +147,8 @@ export function CompanyFormFields({ form }: { form: CompanyForm }) {
 						<field.TextField
 							label="Tax Rate (%)"
 							placeholder="11"
+							inputMode="decimal"
+							className="text-right font-mono tabular-nums"
 							description="Default tax rate applied to transactions"
 						/>
 					)}
@@ -123,8 +175,6 @@ export function CompanyFormFields({ form }: { form: CompanyForm }) {
 					)}
 				</form.AppField>
 			</div>
-
-			<form.FormError />
 		</div>
 	)
 }
