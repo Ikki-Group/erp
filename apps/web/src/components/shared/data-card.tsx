@@ -29,22 +29,25 @@ export function DataCard({
 	noPadding,
 }: DataCardProps) {
 	return (
-		<div className={cn('rounded-lg border bg-card text-card-foreground', className)}>
-			<div className="flex items-start justify-between gap-4 border-b px-4 py-3.5">
-				<div className="flex items-start gap-3">
+		<div
+			data-slot="data-card"
+			className={cn('min-w-0 rounded-lg border bg-card text-card-foreground', className)}
+		>
+			<div className="flex flex-wrap items-start justify-between gap-4 border-b px-4 py-3.5">
+				<div className="flex min-w-0 items-start gap-3">
 					{icon && (
 						<IconTile variant="soft" size="sm" className={TONE_CLASS[tone]}>
 							{icon}
 						</IconTile>
 					)}
-					<div className="space-y-0.5">
+					<div className="min-w-0 space-y-0.5">
 						<h3 className="font-heading text-sm font-semibold tracking-tight">{title}</h3>
 						{description && <p className="text-xs text-muted-foreground">{description}</p>}
 					</div>
 				</div>
 				{actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
 			</div>
-			<div className={cn(!noPadding && 'p-4')}>{children}</div>
+			<div className={cn('min-w-0', !noPadding && 'p-4')}>{children}</div>
 		</div>
 	)
 }

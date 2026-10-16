@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { CurrencyDisplay } from '@/components/shared/currency-display'
+
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 /**
  * Header renderer for a right-aligned numeric column — pairs with
@@ -118,10 +119,17 @@ export function TextCell({
 	const [isOverflowing, setIsOverflowing] = useState(false)
 
 	useEffect(() => {
-		if (truncate && textRef.current) {
-			const { scrollWidth, clientWidth } = textRef.current
-			setIsOverflowing(scrollWidth > clientWidth)
+		const element = textRef.current
+		if (!truncate || typeof value !== 'string' || !element) {
+			setIsOverflowing(false)
+			return
 		}
+		setIsOverflowing(element.scrollWidth > element.clientWidth)
+		const observer = new ResizeObserver(() => {
+			setIsOverflowing(element.scrollWidth > element.clientWidth)
+		})
+		observer.observe(element)
+		return () => observer.disconnect()
 	}, [value, truncate])
 
 	const content = (
@@ -129,6 +137,9 @@ export function TextCell({
 			ref={textRef}
 			className={cn(
 				truncate && 'block truncate',
+				truncate &&
+					typeof value === 'string' &&
+					'rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30',
 				mono ? 'font-mono text-xs' : 'text-sm',
 				muted && 'text-muted-foreground',
 				className,
@@ -138,13 +149,17 @@ export function TextCell({
 		</span>
 	)
 
-	if (!truncate || !isOverflowing || typeof value !== 'string') {
+	if (!truncate || typeof value !== 'string') {
 		return content
 	}
 
 	return (
 		<Tooltip>
-			<TooltipTrigger render={content} />
+			<TooltipTrigger
+				render={content}
+				disabled={!isOverflowing}
+				tabIndex={isOverflowing ? 0 : -1}
+			/>
 			<TooltipContent side="top" className="max-w-sm">
 				{value}
 			</TooltipContent>

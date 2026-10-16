@@ -45,18 +45,7 @@ interface StatCardProps {
 	className?: string
 }
 
-/**
- * Dashboard-style metric card.
- *
- * Design: Dark surface with subtle border (Linear-inspired).
- * - 12px border radius (cards standard)
- * - Compact padding (24px)
- * - Clear visual hierarchy with tight typography
- * - Subtle hover states for actionable cards
- * - IconTile with 'soft' variant for colored backgrounds
- *
- * Use for: Dashboard metrics, KPI displays, entity counts.
- */
+/** A Warm Precision metric surface; only actionable cards enter the tab order. */
 export function StatCard({
 	title,
 	value,
@@ -85,13 +74,14 @@ export function StatCard({
 								onClick()
 							}
 						}
-						: undefined
-				}
+					: undefined
+			}
 			className={cn(
 				'rounded-xl border border-border bg-card text-card-foreground',
 				'p-6 transition-colors',
 				'hover:border-border/80',
-				onClick && 'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/40 hover:bg-muted/30',
+				onClick &&
+					'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/40 hover:bg-muted/30',
 				className,
 			)}
 		>
@@ -113,8 +103,10 @@ export function StatCard({
 				</div>
 			) : (
 				<div className="mt-6 space-y-0.5">
-					<div className="flex items-baseline gap-3">
-						<p className="text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
+					<div className="flex flex-wrap items-baseline justify-end gap-3">
+						<p className="text-right font-mono text-2xl font-semibold tracking-tight tabular-nums">
+							{typeof value === 'number' ? value.toLocaleString('id-ID') : value}
+						</p>
 						{trend && (
 							<span
 								className={cn(

@@ -4,6 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { AlertTriangleIcon, BoxesIcon, ShoppingCartIcon, WalletIcon } from 'lucide-react'
 
+import { CurrencyCell, NumericCell } from '@/components/data-table'
 import { IconTile } from '@/components/reui/icon-tile'
 import {
 	AuditTrail,
@@ -52,7 +53,7 @@ function DataDisplayPage() {
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<StatCard
 						title="Total Orders"
-						value="1,284"
+						value={(1284).toLocaleString('id-ID')}
 						icon={<ShoppingCartIcon className="size-4" />}
 						trend={{ value: '+12.5%', positive: true }}
 					/>
@@ -168,9 +169,9 @@ function DataDisplayPage() {
 						<DetailList
 							items={[
 								{ label: 'Supplier', value: 'PT Sumber Jaya' },
-								{ label: 'Last Price', value: 'Rp 85,000 / kg' },
-								{ label: 'Stock', value: '24.5 kg' },
-								{ label: 'Avg Cost', value: 'Rp 82,340 / kg' },
+								{ label: 'Last Price / kg', value: <CurrencyCell value={85000} /> },
+								{ label: 'Stock', value: <NumericCell value={24.5} unit="kg" /> },
+								{ label: 'Avg Cost / kg', value: <CurrencyCell value={82340} /> },
 							]}
 						/>
 					</DataCard>
@@ -192,11 +193,11 @@ function DataDisplayPage() {
 			<PageSection title="Detail List" description="Key-value pairs for detail pages.">
 				<DetailList
 					items={[
-						{ label: 'Code', value: 'MAT-001' },
+						{ label: 'Code', value: <span className="font-mono">MAT-001</span> },
 						{ label: 'Name', value: 'Coffee Beans (Arabica)' },
 						{ label: 'Category', value: 'Raw Material' },
 						{ label: 'Base UoM', value: 'kg' },
-						{ label: 'Min Stock', value: '10 kg' },
+						{ label: 'Min Stock', value: <NumericCell value={10} unit="kg" /> },
 						{ label: 'Status', value: <StatusBadge variant="success">Active</StatusBadge> },
 					]}
 					columns={3}

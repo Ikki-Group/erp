@@ -27,9 +27,9 @@ export function DetailPage({
 	return (
 		<div className={cn('space-y-6', className)}>
 			{breadcrumbs}
-			<div className="flex items-start justify-between gap-4">
-				<PageHeader title={title} description={description} />
-				<div className="flex shrink-0 items-center gap-2">
+			<div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
+				<PageHeader title={title} description={description} className="min-w-0" />
+				<div className="flex max-w-full flex-wrap items-center gap-2 sm:shrink-0">
 					{status}
 					{actions}
 				</div>

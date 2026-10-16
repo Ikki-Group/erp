@@ -1,9 +1,12 @@
 import { useState } from 'react'
 
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 
-import { BoxesIcon, ShoppingCartIcon, TrendingUpIcon } from 'lucide-react'
+import { ArrowRightIcon, BoxesIcon, ShoppingCartIcon, TrendingUpIcon } from 'lucide-react'
 
+import { cn } from '@/lib/utils'
+
+import { CurrencyCell, NumericCell } from '@/components/data-table'
 import { PageHeader, PageSection } from '@/components/shared'
 
 import { Button } from '@/components/ui/button'
@@ -22,13 +25,13 @@ export const Route = createFileRoute('/design-system/cards')({
 })
 
 function CardsPage() {
-	const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+	const [selectedCard, setSelectedCard] = useState<string | null>(null)
 
 	return (
 		<div className="space-y-10">
 			<PageHeader
 				title="Cards"
-				description="Flexible container components for grouping related content. Build with Header/Title/Description/Content/Footer slots."
+				description="Group related information, not every individual field. Use DataCard for titled data sections and StatCard for metrics. All values below are illustrative."
 			/>
 
 			{/* ─── BASIC CARD ─── */}
@@ -42,10 +45,12 @@ function CardsPage() {
 						<p className="text-sm text-muted-foreground">24.5 kg on hand across 3 locations.</p>
 					</CardContent>
 					<CardFooter className="gap-2">
-						<Button size="sm" variant="outline">
-							View
+						<Button size="sm" variant="outline" render={<Link to="/design-system/data-display" />}>
+							View data patterns
 						</Button>
-						<Button size="sm">Edit</Button>
+						<Button size="sm" render={<Link to="/design-system/forms" />}>
+							Edit patterns
+						</Button>
 					</CardFooter>
 				</Card>
 			</PageSection>
@@ -70,8 +75,13 @@ function CardsPage() {
 									<CardDescription className="text-xs">Total in inventory</CardDescription>
 								</div>
 							</div>
-							<Button variant="ghost" size="icon-xs">
-								→
+							<Button
+								variant="ghost"
+								size="icon-xs"
+								aria-label="View materials table pattern"
+								render={<Link to="/design-system/tables" />}
+							>
+								<ArrowRightIcon />
 							</Button>
 						</CardHeader>
 					</Card>
@@ -79,7 +89,9 @@ function CardsPage() {
 					{/* Metric Display */}
 					<Card className="max-w-sm">
 						<CardHeader>
-							<CardTitle className="text-3xl font-bold">1,284</CardTitle>
+							<CardTitle className="text-right font-mono text-2xl font-semibold tabular-nums">
+								{(1284).toLocaleString('id-ID')}
+							</CardTitle>
 							<CardDescription>Total orders this month (+12.5%)</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -122,15 +134,26 @@ function CardsPage() {
 			{/* ─── INTERACTIVE CARDS ─── */}
 			<PageSection
 				title="Interactive Cards"
-				description="Cards with hover states and click interactions."
+				description="An actionable card must work with keyboard and touch. Select a specimen to reveal its detail; do not add a pointer cursor to static content."
 			>
 				<div className="grid gap-4 lg:grid-cols-3">
 					{['material', 'order', 'transfer'].map((type) => (
 						<Card
 							key={type}
-							className="cursor-pointer transition-colors"
-							onMouseEnter={() => setHoveredCard(type)}
-							onMouseLeave={() => setHoveredCard(null)}
+							role="button"
+							tabIndex={0}
+							aria-pressed={selectedCard === type}
+							className={cn(
+								'cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-ring hover:border-primary/50',
+								selectedCard === type && 'border-primary bg-accent/30',
+							)}
+							onClick={() => setSelectedCard(type)}
+							onKeyDown={(event) => {
+								if (event.key === 'Enter' || event.key === ' ') {
+									event.preventDefault()
+									setSelectedCard(type)
+								}
+							}}
 						>
 							<CardHeader>
 								<div className="flex items-start justify-between">
@@ -141,7 +164,7 @@ function CardsPage() {
 									<div
 										className={cn(
 											'flex size-8 items-center justify-center rounded-md transition-colors',
-											hoveredCard === type ? 'bg-primary/10' : 'bg-muted',
+											selectedCard === type ? 'bg-primary/10' : 'bg-muted',
 										)}
 									>
 										{type === 'material' && <BoxesIcon className="size-4" />}
@@ -151,12 +174,17 @@ function CardsPage() {
 								</div>
 							</CardHeader>
 							<CardContent>
-								<p className="text-2xl font-bold">42</p>
+								<NumericCell value={42} className="text-2xl font-semibold" />
 								<p className="text-xs text-muted-foreground">Active items</p>
 							</CardContent>
 						</Card>
 					))}
 				</div>
+				<p role="status" className="text-sm text-muted-foreground">
+					{selectedCard
+						? `Selected specimen: ${selectedCard}. It contains 42 illustrative active items.`
+						: 'Select a card to inspect its specimen.'}
+				</p>
 			</PageSection>
 
 			<Separator />
@@ -180,20 +208,25 @@ function CardsPage() {
 								</div>
 								<div className="space-y-1">
 									<p className="text-xs text-muted-foreground">Last Price</p>
-									<p className="text-sm font-medium">Rp 85,000 / kg</p>
+									<CurrencyCell value={85000} />
 								</div>
 								<div className="space-y-1">
 									<p className="text-xs text-muted-foreground">Stock</p>
-									<p className="text-sm font-medium">24.5 kg</p>
+									<NumericCell value={24.5} unit="kg" />
 								</div>
 								<div className="space-y-1">
 									<p className="text-xs text-muted-foreground">Avg Cost</p>
-									<p className="text-sm font-medium">Rp 82,340 / kg</p>
+									<CurrencyCell value={82340} />
 								</div>
 							</div>
 						</CardContent>
 						<CardFooter>
-							<Button variant="outline" size="sm" className="w-full">
+							<Button
+								variant="outline"
+								size="sm"
+								className="w-full"
+								render={<Link to="/design-system/forms" />}
+							>
 								Edit Details
 							</Button>
 						</CardFooter>
@@ -212,7 +245,7 @@ function CardsPage() {
 							].map((loc) => (
 								<div key={loc.name} className="flex items-center justify-between text-sm">
 									<span className="text-muted-foreground">{loc.name}</span>
-									<span className="font-medium">{loc.qty} kg</span>
+									<NumericCell value={loc.qty} unit="kg" />
 								</div>
 							))}
 						</CardContent>
@@ -256,8 +289,4 @@ function CardsPage() {
 			</PageSection>
 		</div>
 	)
-}
-
-function cn(...classes: (string | undefined | null)[]) {
-	return classes.filter(Boolean).join(' ')
 }
