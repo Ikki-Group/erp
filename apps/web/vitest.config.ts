@@ -16,6 +16,8 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
+		// Keep DOM suites responsive on shared machines; worker contention can exhaust test timeouts.
+		maxWorkers: 2,
 		include: ['src/**/*.test.{ts,tsx}'],
 	},
 })
