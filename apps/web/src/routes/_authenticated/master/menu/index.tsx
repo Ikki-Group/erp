@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useMutation, useQueries, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
@@ -77,7 +77,15 @@ function MenuPage({ location }: { location: AuthLocation }) {
 	const search = Route.useSearch()
 	const canEditItem = usePermissionCheck({ permission: 'item.update' })
 	const canDeleteItem = usePermissionCheck({ permission: 'item.delete' })
+	const canCreateCategory = usePermissionCheck({ permission: 'category.create' })
 	const canEditCategory = usePermissionCheck({ permission: 'category.update' })
+	const categoryAccess = useRef({ create: canCreateCategory, update: canEditCategory, mounted: true })
+	categoryAccess.current.create = canCreateCategory
+	categoryAccess.current.update = canEditCategory
+	useEffect(() => {
+		categoryAccess.current.mounted = true
+		return () => { categoryAccess.current.mounted = false }
+	}, [])
 	const canDeleteCategory = usePermissionCheck({ permission: 'category.delete' })
 	const canCreateModifier = usePermissionCheck({ permission: 'modifier.create' })
 	const canEditModifier = usePermissionCheck({ permission: 'modifier.update' })
@@ -123,8 +131,6 @@ function MenuPage({ location }: { location: AuthLocation }) {
 
 	// ─── Mutations ───
 
-	const catCreateMut = useMutation(menuCategoryResource.create.mutationOptions())
-	const catUpdateMut = useMutation(menuCategoryResource.update.mutationOptions())
 	const catRemoveMut = useMutation(menuCategoryResource.remove.mutationOptions())
 
 	const modCreateMut = useMutation(modifierGroupResource.create.mutationOptions())
@@ -160,7 +166,7 @@ function MenuPage({ location }: { location: AuthLocation }) {
 	const handleCreateCategory = useCallback(async () => {
 		if (!locationId) return
 
-		const saved = await formDialog({
+		await formDialog({
 			title: 'Tambah Kategori',
 			description: 'Buat kategori menu baru.',
 			// oxlint-disable-next-line react/no-unstable-nested-components
@@ -168,37 +174,33 @@ function MenuPage({ location }: { location: AuthLocation }) {
 				<CategoryFormBody
 					onSaved={() => close(true)}
 					onCancel={() => close(false)}
-					onSubmitValues={(v) => catCreateMut.mutateAsync({ locationId, ...v })}
+					location={location}
+					canSave={() => categoryAccess.current.mounted && categoryAccess.current.create}
 				/>
 			),
 		})
 
-		if (saved) {
-			toast.add({ title: 'Kategori berhasil dibuat.', type: 'success' })
-		}
-	}, [catCreateMut, locationId])
+	}, [location, locationId])
 
 	const handleEditCategory = useCallback(
 		async (category: MenuCategoryDto) => {
-			const saved = await formDialog({
+			await formDialog({
 				title: 'Edit Kategori',
 				description: `Edit "${category.name}".`,
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				content: ({ close }) => (
 					<CategoryFormBody
-						defaultValues={category}
+						category={category}
 						onSaved={() => close(true)}
 						onCancel={() => close(false)}
-						onSubmitValues={(v) => catUpdateMut.mutateAsync({ id: category.id, ...v })}
+						location={location}
+						canSave={() => categoryAccess.current.mounted && categoryAccess.current.update}
 					/>
 				),
 			})
 
-			if (saved) {
-				toast.add({ title: 'Kategori berhasil diperbarui.', type: 'success' })
-			}
 		},
-		[catUpdateMut],
+		[location],
 	)
 
 	const handleDeleteCategory = useCallback(
