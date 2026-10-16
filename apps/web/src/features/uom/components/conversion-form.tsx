@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
-import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
+import { FormDialogFooter, FormRoot, useEntityEditor } from '@/lib/form/index.ts'
 
-import type { UomDto } from '../dto/index.ts'
+import { conversionResource } from '../api.ts'
+import { UomConversionCreateDto } from '../dto/index.ts'
+import { UomLookupField } from './uom-lookup-field.tsx'
 
 export interface ConversionFormValues {
 	fromUomId: number | null
@@ -41,70 +43,43 @@ const EMPTY_CONVERSION_FORM_VALUES: ConversionFormValues = {
 }
 
 export interface ConversionFormBodyProps {
-	units: UomDto[]
 	onSaved: () => void
 	onCancel: () => void
-	onCreate: (values: { fromUomId: number; toUomId: number; factor: string }) => Promise<unknown>
 }
 
 /** Quick-add form for a UoM conversion factor — small enough to stay a dialog. */
-export function ConversionFormBody({
-	units,
-	onSaved,
-	onCancel,
-	onCreate,
-}: ConversionFormBodyProps) {
-	const unitOptions = units.map((u) => ({ label: `${u.name} (${u.code})`, value: u.id }))
-
-	const form = useEntityForm({
+export function ConversionFormBody({ onSaved, onCancel }: ConversionFormBodyProps) {
+	const form = useEntityEditor({
 		defaultValues: EMPTY_CONVERSION_FORM_VALUES,
 		schema: ConversionFormSchema,
-		onSubmit: async (values) => {
-			await onCreate({
-				fromUomId: values.fromUomId!,
-				toUomId: values.toUomId!,
-				factor: values.factor,
-			})
-			onSaved()
-		},
+		mutation: conversionResource.create.mutationOptions(),
+		toPayload: (values) => UomConversionCreateDto.parse(values),
+		successMessage: 'Conversion created successfully.',
+		onSaved,
 	})
 
 	return (
 		<form.AppForm>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault()
-					e.stopPropagation()
-					void form.handleSubmit()
-				}}
-				className="grid gap-4"
-			>
-				<div className="grid grid-cols-2 gap-4">
+			<FormRoot form={form} className="grid gap-4">
+				<div className="grid gap-4 sm:grid-cols-2">
 					<form.AppField name="fromUomId">
-						{(field) => (
-							<field.IdSelectField
-								label="From Unit"
-								options={unitOptions}
-								placeholder="Select unit"
-							/>
-						)}
+						{() => <UomLookupField label="From Unit" />}
 					</form.AppField>
-					<form.AppField name="toUomId">
-						{(field) => (
-							<field.IdSelectField
-								label="To Unit"
-								options={unitOptions}
-								placeholder="Select unit"
-							/>
-						)}
-					</form.AppField>
+					<form.AppField name="toUomId">{() => <UomLookupField label="To Unit" />}</form.AppField>
 				</div>
 				<form.AppField name="factor">
-					{(field) => <field.TextField label="Factor" placeholder="e.g. 1000 (1 from = 1000 to)" />}
+					{(field) => (
+						<field.TextField
+							label="Factor"
+							placeholder="e.g. 1000 (1 from = 1000 to)"
+							inputMode="decimal"
+							className="text-right font-mono tabular-nums"
+						/>
+					)}
 				</form.AppField>
 				<form.FormError />
 				<FormDialogFooter onCancel={onCancel} submitLabel="Create" />
-			</form>
+			</FormRoot>
 		</form.AppForm>
 	)
 }

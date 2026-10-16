@@ -3,11 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint.ts'
 
 import { defineMutation, defineQuery, defineResource } from '@/lib/api/index.ts'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@/lib/validation/index.ts'
+import { createSuccessResponseSchema, zc } from '@/lib/validation/index.ts'
 
 import {
 	UomConversionCreateDto,
@@ -28,16 +24,6 @@ export const uomResource = defineResource({
 	filter: UomFilterDto,
 	create: UomCreateDto,
 	update: UomUpdateDto,
-})
-
-// ─── All Units (unpaginated, for selectors/labels) ───
-
-export const uomListAll = defineQuery({
-	method: 'get',
-	url: endpoint.uom.list,
-	query: UomFilterDto,
-	result: createPaginatedResponseSchema(UomDto),
-	queryKey: (query) => [endpoint.uom.list, 'all', query ?? null],
 })
 
 // ─── Conversion Endpoints ───

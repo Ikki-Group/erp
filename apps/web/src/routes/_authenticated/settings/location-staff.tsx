@@ -6,7 +6,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { z } from 'zod'
 
-import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
+import { listSearchSchema, TextCell, useResourceList } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EntityListPage } from '@/components/shared/entity-list-page'
 import { PageError } from '@/components/shared/page-error'
@@ -76,19 +76,18 @@ function LocationStaffPage() {
 			isActive: search.isActive,
 		}),
 		enabled: canRead && !isConsolidated,
+		throwOnError: false,
 	})
 
-	const data = listQuery.data?.data ?? []
-	const totalCount = listQuery.data?.meta?.total ?? 0
-	const { table, globalFilter } = useServerTable({
-		data,
+	const list = useResourceList({
+		query: listQuery,
 		columns: useMemo(
 			() => locationStaffColumns as ColumnDef<DataGridFeatures, LocationStaffListItemDto>[],
 			[],
 		),
-		totalCount,
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
+		hasFilters: (value) => value.isActive !== undefined,
 	})
 
 	if (!canRead) {
@@ -113,10 +112,7 @@ function LocationStaffPage() {
 		<EntityListPage
 			title="Location Staff"
 			description={`Users assigned to ${activeLocation.name}.`}
-			table={table}
-			recordCount={totalCount}
-			isLoading={listQuery.isLoading}
-			isEmpty={!listQuery.isLoading && data.length === 0 && !globalFilter}
+			list={list}
 			emptyMessage="No staff assigned to this location."
 		/>
 	)

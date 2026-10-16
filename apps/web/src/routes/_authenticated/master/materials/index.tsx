@@ -2,25 +2,24 @@ import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { EditIcon, MapPinIcon, PlusIcon, TagIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { FormDialogFooter } from '@/lib/form/index.ts'
 
-import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
+import { createEntityColumns, listSearchSchema, useResourceList } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { createActionColumn } from '@/components/shared/action-column'
-import { confirm } from '@/components/shared/confirm'
 import { EntityListPage } from '@/components/shared/entity-list-page'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
-import { StatusBadge } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
+import { useWorkflowAction } from '@/components/shared/workflow-action'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DialogFooter } from '@/components/ui/dialog'
 import { toast } from '@/components/ui/toast'
 
 import { categoryResource, materialResource } from '@/features/material/api.ts'
@@ -43,39 +42,21 @@ export const Route = createFileRoute('/_authenticated/master/materials/')({
 
 // ─── Table Columns ───
 
-const col = createColumnHelper<DataGridFeatures, MaterialDto>()
+const col = createEntityColumns<MaterialDto>()
 
 const baseColumns = [
-	col.accessor('code', {
-		header: 'Code',
-		size: 100,
-		// oxlint-disable-next-line react/no-unstable-nested-components
-		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
-	}),
-	col.accessor('name', {
-		header: 'Name',
-		size: 200,
-		// oxlint-disable-next-line react/no-unstable-nested-components
-		cell: ({ getValue }) => <TextCell value={getValue()} truncate />,
-	}),
-	col.accessor('type', {
+	col.code('code', { header: 'Code', size: 100 }),
+	col.text('name', { header: 'Name', size: 200 }),
+	col.text('type', {
 		header: 'Type',
 		size: 120,
 		cell: ({ getValue }) => {
 			const type = getValue()
-			const label = MATERIAL_TYPE_OPTIONS.find((o) => o.value === type)?.label ?? type
+			const label = MATERIAL_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? type
 			return <Badge variant="secondary">{label}</Badge>
 		},
 	}),
-	col.accessor('isActive', {
-		header: 'Status',
-		size: 80,
-		cell: ({ getValue }) => (
-			<StatusBadge variant={getValue() ? 'success' : 'outline'}>
-				{getValue() ? 'Active' : 'Inactive'}
-			</StatusBadge>
-		),
-	}),
+	col.booleanStatus('isActive', { header: 'Status', size: 80 }),
 ]
 
 // ─── Category Quick-Add Dialog ───
@@ -127,66 +108,77 @@ function CategoryDialogBody({
 function MaterialsPage() {
 	const navigate = useNavigate({ from: Route.fullPath })
 	const search = Route.useSearch()
-	const canCreate = usePermissionCheck({ permission: 'material.create' })
 	const canRead = usePermissionCheck({ permission: 'material.read' })
 	const canReadLocations = usePermissionCheck({ permission: 'location.read' })
+	const canAssignLocations = usePermissionCheck({ permission: 'material.create' })
 	const canEdit = usePermissionCheck({ permission: 'material.update' })
 	const canDelete = usePermissionCheck({ permission: 'material.delete' })
 
-	const listQuery = useQuery(
-		materialResource.list.queryOptions({
+	const listQuery = useQuery({
+		...materialResource.list.queryOptions({
 			page: search.page,
 			limit: search.pageSize,
 			q: search.q,
 			categoryId: search.categoryId,
 		}),
-	)
-	const categoriesQuery = useQuery(categoryResource.list.queryOptions({ page: 1, limit: 100 }))
+		throwOnError: false,
+	})
+	const categoriesQuery = useQuery({
+		...categoryResource.list.queryOptions({ page: 1, limit: 100 }),
+		throwOnError: false,
+	})
 
 	const removeMut = useMutation(materialResource.remove.mutationOptions())
 	const catRemoveMut = useMutation(categoryResource.remove.mutationOptions())
 
-	const data = listQuery.data?.data ?? []
-	const totalCount = listQuery.data?.meta?.total ?? 0
 	const categories = categoriesQuery.data?.data ?? []
 
 	// ─── Material Handlers ───
 	// Create/edit navigate to the full-page form routes — no dialog, no ref
 	// plumbing. See materials.new.tsx / materials.$materialId.tsx.
 
-	const handleDelete = useCallback(
+	const { run: handleDelete, isPending: deletingMaterial } = useWorkflowAction<MaterialDto>({
+		availability: () => canDelete,
+		confirmation: (material) => ({
+			title: 'Delete material?',
+			description: `Remove "${material.name}" (${material.code}) from the material list? Existing records are retained.`,
+			confirmLabel: 'Delete',
+			variant: 'destructive',
+		}),
+		execute: (material) => removeMut.mutateAsync({ id: material.id }),
+		successMessage: 'Material deleted successfully.',
+	})
+
+	const handleLocations = useCallback(
 		async (material: MaterialDto) => {
-			await confirm({
-				title: 'Delete material?',
-				description: `This will permanently delete "${material.name}" (${material.code}). This action cannot be undone.`,
-				confirmLabel: 'Delete',
-				variant: 'destructive',
-				onConfirm: async () => {
-					await removeMut.mutateAsync({ id: material.id })
-					toast.add({ title: 'Material deleted successfully.', type: 'success' })
-				},
+			await formDialog({
+				title: 'Location Assignment',
+				description: `Locations stocking ${material.name}.`,
+				className: 'sm:max-w-2xl max-h-[90dvh] flex flex-col',
+				// oxlint-disable-next-line react/no-unstable-nested-components
+				content: ({ close }) => (
+					<>
+						<div className="min-h-0 overflow-y-auto">
+							<LocationAssignment
+								materialId={material.id}
+								permissions={{
+									canRead: canRead && canReadLocations,
+									canAssign: canAssignLocations,
+									canUnassign: canDelete,
+								}}
+							/>
+						</div>
+						<DialogFooter>
+							<Button size="sm" onClick={() => close(true)}>
+								Done
+							</Button>
+						</DialogFooter>
+					</>
+				),
 			})
 		},
-		[removeMut],
+		[canRead, canReadLocations, canAssignLocations, canDelete],
 	)
-
-	const handleLocations = useCallback(async (material: MaterialDto) => {
-		await formDialog({
-			title: 'Location Assignment',
-			description: `Manage locations for ${material.name}.`,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			content: ({ close }) => (
-				<div className="space-y-4">
-					<LocationAssignment materialId={material.id} permissions={{ canRead: canRead && canReadLocations, canAssign: canCreate, canUnassign: canDelete }} />
-					<div className="flex justify-end">
-						<Button size="sm" onClick={() => close(true)}>
-							Done
-						</Button>
-					</div>
-				</div>
-			),
-		})
-	}, [canRead, canReadLocations, canCreate, canDelete])
 
 	// ─── Category Handlers ───
 
@@ -210,27 +202,24 @@ function MaterialsPage() {
 		if (saved) toast.add({ title: 'Category updated successfully.', type: 'success' })
 	}, [])
 
-	const handleDeleteCategory = useCallback(
-		async (category: MaterialCategoryDto) => {
-			await confirm({
+	const { run: handleDeleteCategory, isPending: deletingCategory } =
+		useWorkflowAction<MaterialCategoryDto>({
+			availability: () => canDelete,
+			confirmation: (category) => ({
 				title: 'Delete category?',
-				description: `This will permanently delete "${category.name}". This action cannot be undone.`,
+				description: `Permanently delete "${category.name}"? Materials in this category will become uncategorized. This action cannot be undone.`,
 				confirmLabel: 'Delete',
 				variant: 'destructive',
-				onConfirm: async () => {
-					await catRemoveMut.mutateAsync({ id: category.id })
-					toast.add({ title: 'Category deleted successfully.', type: 'success' })
-				},
-			})
-		},
-		[catRemoveMut],
-	)
+			}),
+			execute: (category) => catRemoveMut.mutateAsync({ id: category.id }),
+			successMessage: 'Category deleted successfully.',
+		})
 
 	// ─── Columns with actions ───
 
 	const actionsColumn = useMemo(
 		() =>
-			createActionColumn<MaterialDto>({
+			col.actions({
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (material) => [
 					canEdit && {
@@ -242,7 +231,7 @@ function MaterialsPage() {
 								params: { materialId: String(material.id) },
 							}),
 					},
-					(canCreate || canDelete) && {
+					canRead && {
 						label: 'Locations',
 						icon: <MapPinIcon className="size-4" />,
 						onClick: () => handleLocations(material),
@@ -252,10 +241,11 @@ function MaterialsPage() {
 						icon: <TrashIcon className="size-4" />,
 						onClick: () => handleDelete(material),
 						variant: 'destructive' as const,
+						disabled: deletingMaterial,
 					},
 				],
 			}),
-		[canCreate, canEdit, canDelete, handleDelete, handleLocations, navigate],
+		[canRead, canEdit, canDelete, deletingMaterial, handleDelete, handleLocations, navigate],
 	)
 
 	const columns = useMemo(
@@ -263,52 +253,39 @@ function MaterialsPage() {
 		[actionsColumn],
 	)
 
-	const { table, globalFilter } = useServerTable({
-		data,
+	const list = useResourceList({
+		query: listQuery,
 		columns,
-		totalCount,
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
+		hasFilters: (value) => value.categoryId !== undefined,
 	})
-
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !search.categoryId
 
 	return (
 		<>
 			<EntityListPage
 				title="Materials"
 				description="Manage materials, categories, and location assignments."
+				list={list}
 				actions={
 					<PermissionGate permission="material.create">
-						<div className="flex gap-2">
-							<Button size="sm" variant="outline" onClick={handleCreateCategory}>
-								<TagIcon className="size-4" />
-								Add Category
-							</Button>
-							<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
-								<PlusIcon className="size-4" />
-								Add Material
-							</Button>
-						</div>
+						<Button size="sm" variant="outline" onClick={handleCreateCategory}>
+							<TagIcon className="size-4" />
+							Add Category
+						</Button>
 					</PermissionGate>
 				}
-				table={table}
-				recordCount={totalCount}
-				isLoading={listQuery.isFetching}
-				isError={listQuery.isError}
-				onRetry={() => listQuery.refetch()}
-				isEmpty={isEmpty}
+				createAction={
+					<PermissionGate permission="material.create">
+						<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
+							<PlusIcon className="size-4" />
+							Add Material
+						</Button>
+					</PermissionGate>
+				}
 				emptyState={{
 					title: 'No materials yet',
 					description: 'Get started by creating your first material.',
-					action: (
-						<PermissionGate permission="material.create">
-							<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
-								<PlusIcon className="size-4" />
-								Add Material
-							</Button>
-						</PermissionGate>
-					),
 				}}
 				emptyMessage="No materials match your filters."
 				onRowClick={(row) =>
@@ -319,22 +296,16 @@ function MaterialsPage() {
 				}
 				toolbar={
 					<TableToolbar
-						searchValue={globalFilter}
-						onSearchChange={(value) => table.setGlobalFilter(value)}
+						searchValue={list.globalFilter}
+						onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
 						searchPlaceholder="Search materials..."
 						filters={[
 							{
 								key: 'categoryId',
 								label: 'Category',
 								value: search.categoryId?.toString(),
-								onChange: (v) =>
-									navigate({
-										search: {
-											...search,
-											page: 1,
-											categoryId: v ? Number(v) : undefined,
-										},
-									}),
+								onChange: (value) =>
+									list.setFilters({ categoryId: value ? Number(value) : undefined }),
 								options: categories.map((cat) => ({
 									label: cat.name,
 									value: cat.id.toString(),
@@ -346,6 +317,22 @@ function MaterialsPage() {
 				}
 			/>
 
+			{categoriesQuery.isError && (
+				<div
+					role="alert"
+					className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 p-3 text-sm"
+				>
+					<p>
+						Could not load categories.{' '}
+						{categoriesQuery.data
+							? 'Showing the last loaded categories.'
+							: 'Retry to restore category filters.'}
+					</p>
+					<Button size="sm" variant="outline" onClick={() => void categoriesQuery.refetch()}>
+						Retry categories
+					</Button>
+				</div>
+			)}
 			{categories.length > 0 && (
 				<div className="space-y-3">
 					<h3 className="font-heading text-sm font-semibold tracking-tight">Categories</h3>
@@ -371,6 +358,7 @@ function MaterialsPage() {
 												variant="ghost"
 												className="size-7"
 												onClick={() => handleDeleteCategory(cat)}
+												disabled={deletingCategory}
 											>
 												<TrashIcon className="size-3.5" />
 											</Button>

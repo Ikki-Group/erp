@@ -1,8 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
-
-import { PlusIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -14,11 +12,14 @@ import {
 	rightAlignedHeader,
 	TextCell,
 	useClientTable,
+	useResourceList,
+	type ListSearch,
 } from '@/components/data-table'
 import { createFilter, Filters } from '@/components/reui/filters'
 import type { Filter } from '@/components/reui/filters'
 import { PageHeader, PageSection, TableToolbar } from '@/components/shared'
 import type { DateRange } from '@/components/shared'
+import { EntityListPage } from '@/components/shared/entity-list-page'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -185,9 +186,21 @@ const mockMaterials: MockMaterial[] = [
 ]
 
 const mockColumns = [
-	{ accessorKey: 'code' as const, header: 'Code' },
-	{ accessorKey: 'name' as const, header: 'Name' },
-	{ accessorKey: 'category' as const, header: 'Category' },
+	{
+		accessorKey: 'code' as const,
+		header: 'Code',
+		cell: (ctx: { getValue: () => unknown }) => <TextCell value={ctx.getValue() as string} mono />,
+	},
+	{
+		accessorKey: 'name' as const,
+		header: 'Name',
+		cell: (ctx: { getValue: () => unknown }) => <TextCell value={ctx.getValue() as string} />,
+	},
+	{
+		accessorKey: 'category' as const,
+		header: 'Category',
+		cell: (ctx: { getValue: () => unknown }) => <TextCell value={ctx.getValue() as string} />,
+	},
 	{
 		accessorKey: 'price' as const,
 		header: rightAlignedHeader('Price'),
@@ -217,7 +230,12 @@ function TablesPage() {
 				title="Cell Templates"
 				description="Reusable column renderers from @/components/data-table — pair a numeric/currency column's header with rightAlignedHeader so header and cell line up. Used throughout the Inventory pilot (stock-table.tsx, movement-history.tsx)."
 			>
-				<div className="max-w-xl overflow-hidden rounded-lg border">
+				<div
+					role="region"
+					aria-label="Cell template examples"
+					tabIndex={0}
+					className="data-table-horizontal-scroll max-w-xl overflow-x-auto rounded-lg border focus-visible:outline-2 focus-visible:outline-ring"
+				>
 					<table className="w-full text-sm">
 						<thead className="bg-muted/50">
 							<tr>
@@ -292,6 +310,7 @@ function TablesPage() {
 
 			{/* ─── SIMPLE TABLE ─── */}
 			<PageSection
+				id="simple-table"
 				title="Simple Table"
 				description="Plain HTML table primitives (Table/TableHeader/TableRow/TableCell) — for small static or editable-row tables that don't need DataTable's sorting/filtering/pagination (e.g. the stock-count entry grid in Opname). Reach for DataTable above for anything query-backed."
 			>
@@ -303,7 +322,7 @@ function TablesPage() {
 			{/* ─── ENTITY LIST PAGE (pattern) ─── */}
 			<PageSection
 				title="Entity List Page"
-				description="The standard list-page composition — PageShell + DataTable + EmptyState + PageError, wired to one isError/isEmpty/isLoading switch. Not re-demoed live here since it's exactly the Data Table section above, wrapped; see Materials/Suppliers/UoM/Roles/Users for real usage."
+				description="A query-backed list controller keeps actions and filters available through loading and failures. These illustrative materials demonstrate initial errors, background refreshes with retained rows, and record-empty versus filtered-empty states."
 			>
 				<EntityListPagePattern />
 			</PageSection>
@@ -316,23 +335,32 @@ type DataTableDemoState = 'loaded' | 'loading' | 'empty' | 'error'
 function DataTableSection() {
 	const [category, setCategory] = useState<string | undefined>(undefined)
 	const [state, setState] = useState<DataTableDemoState>('loaded')
+	const data = useMemo(
+		() =>
+			state === 'empty'
+				? []
+				: mockMaterials.filter((material) => !category || material.category === category),
+		[category, state],
+	)
 	const { table, globalFilter, setGlobalFilter, recordCount } = useClientTable({
-		data: state === 'empty' ? [] : mockMaterials,
+		data,
 		columns: mockColumns,
 		pageSize: 5,
 	})
 
 	return (
 		<PageSection
+			id="data-table"
 			title="Data Table"
 			description="Table with global search, client-side pagination, column visibility, and the standard toolbar (search + filter + chips). Use the buttons below to preview the skeleton, empty-record, and error states."
 		>
-			<div className="mb-3 flex gap-2">
+			<div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Table preview state">
 				{(['loaded', 'loading', 'empty', 'error'] as const).map((s) => (
 					<Button
 						key={s}
 						size="sm"
 						variant={state === s ? 'default' : 'outline'}
+						aria-pressed={state === s}
 						onClick={() => setState(s)}
 						className="capitalize"
 					>
@@ -359,7 +387,10 @@ function DataTableSection() {
 								key: 'category',
 								label: 'Category',
 								value: category,
-								onChange: (v) => setCategory(Array.isArray(v) ? v[0] : v),
+								onChange: (v) => {
+									setCategory(Array.isArray(v) ? v[0] : v)
+									table.setPageIndex(0)
+								},
 								options: [
 									{ label: 'Raw Material', value: 'Raw Material' },
 									{ label: 'Dairy', value: 'Dairy' },
@@ -368,12 +399,6 @@ function DataTableSection() {
 								],
 							},
 						]}
-						actions={
-							<Button size="sm">
-								<PlusIcon className="mr-1.5 size-3.5" />
-								Add Material
-							</Button>
-						}
 					/>
 				}
 			/>
@@ -527,29 +552,140 @@ function SimpleTableDemo() {
 	)
 }
 
-// -- Entity List Page pattern (written example, not re-demoed live) --
-function EntityListPagePattern() {
-	return (
-		<pre className="overflow-x-auto rounded-lg border bg-muted/30 p-4 text-xs leading-relaxed">
-			<code>{`function MaterialsPage() {
-  const { table, recordCount, ... } = useServerTable({ ... })
-  const materialsQuery = useQuery(materialResource.list.queryOptions(...))
+type ResourcePreview =
+	| 'ready'
+	| 'initial-loading'
+	| 'initial-error'
+	| 'refreshing'
+	| 'refresh-error'
+	| 'record-empty'
 
-  return (
-    <EntityListPage
-      title="Materials"
-      actions={<PermissionGate permission="material.create">...</PermissionGate>}
-      table={table}
-      recordCount={recordCount}
-      isLoading={materialsQuery.isLoading}
-      isError={materialsQuery.isError}
-      onRetry={() => materialsQuery.refetch()}
-      isEmpty={recordCount === 0}
-      emptyState={{ title: 'No materials yet', action: <Button>Add Material</Button> }}
-      toolbar={<TableToolbar ... />}
-    />
-  )
-}`}</code>
-		</pre>
+function EntityListPagePattern() {
+	const [preview, setPreview] = useState<ResourcePreview>('ready')
+	const [search, setSearch] = useState<ListSearch & { category?: string }>({ page: 1, pageSize: 5 })
+	const envelope = useMemo(() => {
+		const rows =
+			preview === 'record-empty'
+				? []
+				: mockMaterials.filter(
+						(material) =>
+							(!search.category || material.category === search.category) &&
+							(!search.q ||
+								`${material.code} ${material.name}`.toLowerCase().includes(search.q.toLowerCase())),
+					)
+		if (search.sort) {
+			const [key, direction] = search.sort.split(':')
+			rows.sort((a, b) => {
+				const left = a[key as keyof MockMaterial]
+				const right = b[key as keyof MockMaterial]
+				const compared =
+					typeof left === 'number' && typeof right === 'number'
+						? left - right
+						: String(left).localeCompare(String(right))
+				return direction === 'desc' ? -compared : compared
+			})
+		}
+		return {
+			data: rows.slice((search.page - 1) * search.pageSize, search.page * search.pageSize),
+			meta: { total: rows.length },
+		}
+	}, [preview, search])
+	const list = useResourceList({
+		query: {
+			data: preview === 'initial-loading' || preview === 'initial-error' ? undefined : envelope,
+			isPending: preview === 'initial-loading',
+			isFetching: preview === 'initial-loading' || preview === 'refreshing',
+			isError: preview === 'initial-error' || preview === 'refresh-error',
+			refetch: () => setPreview('ready'),
+		},
+		columns: mockColumns,
+		search,
+		onSearchChange: setSearch,
+		hasFilters: (value) => value.category !== undefined,
+	})
+	return (
+		<div className="space-y-4">
+			<div className="flex flex-wrap gap-2" role="group" aria-label="Resource list preview state">
+				{(
+					[
+						'ready',
+						'initial-loading',
+						'initial-error',
+						'refreshing',
+						'refresh-error',
+						'record-empty',
+					] as const
+				).map((state) => (
+					<Button
+						key={state}
+						size="sm"
+						variant={preview === state ? 'default' : 'outline'}
+						aria-pressed={preview === state}
+						onClick={() => setPreview(state)}
+					>
+						{state.replaceAll('-', ' ')}
+					</Button>
+				))}
+			</div>
+			<EntityListPage
+				title="Illustrative materials"
+				list={list}
+				createAction={
+					<Button
+						size="sm"
+						onClick={() => {
+							setSearch({ page: 1, pageSize: 5 })
+							setPreview('ready')
+						}}
+					>
+						Restore sample records
+					</Button>
+				}
+				emptyState={{
+					title: 'No sample records',
+					description: 'Restore the illustrative records to continue exploring the table.',
+				}}
+				emptyMessage="No sample materials match your filters."
+				toolbar={
+					<TableToolbar
+						searchValue={list.globalFilter}
+						onSearchChange={(value) => list.table.setGlobalFilter(value)}
+						searchPlaceholder="Search illustrative materials..."
+						filters={[
+							{
+								key: 'category',
+								label: 'Category',
+								value: search.category,
+								onChange: (category) => list.setFilters({ category }),
+								options: [
+									{ label: 'Raw Material', value: 'Raw Material' },
+									{ label: 'Dairy', value: 'Dairy' },
+									{ label: 'Packaging', value: 'Packaging' },
+								],
+							},
+						]}
+					/>
+				}
+			/>
+			<pre className="overflow-x-auto rounded-lg border bg-muted/30 p-4 text-xs leading-relaxed">
+				<code>{`const query = useQuery({
+  ...materialResource.list.queryOptions({
+    page: search.page, limit: search.pageSize, q: search.q, categoryId: search.categoryId,
+  }),
+  throwOnError: false,
+})
+const list = useResourceList({
+  query, columns, search,
+  onSearchChange: (next) => navigate({ search: next }),
+  hasFilters: (value) => value.categoryId !== undefined,
+})
+<EntityListPage
+  title="Materials" list={list}
+  createAction={<PermissionGate permission="material.create"><Button>Add Material</Button></PermissionGate>}
+  emptyState={{ title: 'No materials yet' }}
+  toolbar={<TableToolbar searchValue={list.globalFilter} onSearchChange={(q) => list.table.setGlobalFilter(q)} />}
+/>`}</code>
+			</pre>
+		</div>
 	)
 }

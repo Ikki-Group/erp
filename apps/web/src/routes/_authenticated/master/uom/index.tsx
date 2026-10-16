@@ -2,25 +2,23 @@ import { useCallback, useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { ArrowRightIcon, EditIcon, LoaderIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
-import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
+import { createEntityColumns, listSearchSchema, useResourceList } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { createActionColumn } from '@/components/shared/action-column'
-import { confirm } from '@/components/shared/confirm'
 import { EntityListPage } from '@/components/shared/entity-list-page'
 import { formDialog } from '@/components/shared/form-dialog'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
+import { useWorkflowAction } from '@/components/shared/workflow-action'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/toast'
 
-import { conversionResource, uomListAll, uomResource } from '@/features/uom/api.ts'
+import { conversionResource, uomResource } from '@/features/uom/api.ts'
 import { ConversionFormBody } from '@/features/uom/components/conversion-form.tsx'
+import { UomLabel } from '@/features/uom/components/uom-label.tsx'
 import { UOM_CATEGORY_OPTIONS, UomCategoryEnum } from '@/features/uom/dto/index.ts'
 import type { UomConversionDto, UomDto } from '@/features/uom/dto/index.ts'
 
@@ -35,26 +33,12 @@ export const Route = createFileRoute('/_authenticated/master/uom/')({
 
 // ─── Table Columns ───
 
-const col = createColumnHelper<DataGridFeatures, UomDto>()
+const col = createEntityColumns<UomDto>()
 
 const baseColumns = [
-	col.accessor('code', {
-		header: 'Code',
-		size: 100,
-		// oxlint-disable-next-line react/no-unstable-nested-components
-		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
-	}),
-	col.accessor('name', {
-		header: 'Name',
-		size: 180,
-		// oxlint-disable-next-line react/no-unstable-nested-components
-		cell: ({ getValue }) => <TextCell value={getValue()} truncate />,
-	}),
-	col.accessor('category', {
-		header: 'Category',
-		size: 120,
-		cell: ({ getValue }) => <span className="capitalize">{getValue()}</span>,
-	}),
+	col.code('code', { header: 'Code', size: 100 }),
+	col.text('name', { header: 'Name', size: 180 }),
+	col.text('category', { header: 'Category', size: 120, cellProps: { className: 'capitalize' } }),
 ]
 
 // ─── Page Component ───
@@ -65,104 +49,68 @@ function UomPage() {
 	const canEdit = usePermissionCheck({ permission: 'uom.update' })
 	const canDelete = usePermissionCheck({ permission: 'uom.delete' })
 
-	const listQuery = useQuery(
-		uomResource.list.queryOptions({
+	const listQuery = useQuery({
+		...uomResource.list.queryOptions({
 			page: search.page,
 			limit: search.pageSize,
 			q: search.q,
 			category: search.category,
 		}),
-	)
-	const allUnitsQuery = useQuery(uomListAll.queryOptions({ page: 1, limit: 999 }))
-	const conversionsQuery = useQuery(conversionResource.list.queryOptions(undefined))
+		throwOnError: false,
+	})
+	const conversionsQuery = useQuery({
+		...conversionResource.list.queryOptions(undefined),
+		throwOnError: false,
+	})
 
 	const removeMut = useMutation(uomResource.remove.mutationOptions())
-	const convCreateMut = useMutation(conversionResource.create.mutationOptions())
 	const convRemoveMut = useMutation(conversionResource.remove.mutationOptions())
 
-	const data = listQuery.data?.data ?? []
-	const totalCount = listQuery.data?.meta?.total ?? 0
-	const allUnits = allUnitsQuery.data?.data ?? []
 	const conversions = conversionsQuery.data?.data ?? []
-
-	const unitMap = useMemo(() => {
-		const map = new Map<number, UomDto>()
-		for (const unit of allUnits) {
-			map.set(unit.id, unit)
-		}
-		return map
-	}, [allUnits])
-
-	const getUnitLabel = useCallback(
-		(id: number) => {
-			const unit = unitMap.get(id)
-			return unit ? `${unit.name} (${unit.code})` : `#${id}`
-		},
-		[unitMap],
-	)
 
 	// ─── Handlers ───
 
-	const handleDelete = useCallback(
-		async (unit: UomDto) => {
-			await confirm({
-				title: 'Delete unit?',
-				description: `This will permanently delete "${unit.name}" (${unit.code}). This action cannot be undone.`,
-				confirmLabel: 'Delete',
-				variant: 'destructive',
-				onConfirm: async () => {
-					await removeMut.mutateAsync({ id: unit.id })
-					toast.add({ title: 'Unit deleted successfully.', type: 'success' })
-				},
-			})
-		},
-		[removeMut],
-	)
+	const { run: handleDelete, isPending: deletingUnit } = useWorkflowAction<UomDto>({
+		availability: () => canDelete,
+		confirmation: (unit) => ({
+			title: 'Delete unit?',
+			description: `This will permanently delete "${unit.name}" (${unit.code}). This action cannot be undone.`,
+			confirmLabel: 'Delete',
+			variant: 'destructive',
+		}),
+		execute: (unit) => removeMut.mutateAsync({ id: unit.id }),
+		successMessage: 'Unit deleted successfully.',
+	})
 
 	const handleAddConversion = useCallback(async () => {
-		const saved = await formDialog({
+		await formDialog({
 			title: 'Add Conversion',
 			description: 'Define a conversion factor between two units.',
 			// oxlint-disable-next-line react/no-unstable-nested-components
 			content: ({ close }) => (
-				<ConversionFormBody
-					units={allUnits}
-					onSaved={() => close(true)}
-					onCancel={() => close(false)}
-					onCreate={(values) => convCreateMut.mutateAsync(values)}
-				/>
+				<ConversionFormBody onSaved={() => close(true)} onCancel={() => close(false)} />
 			),
 		})
+	}, [])
 
-		if (saved) {
-			toast.add({ title: 'Conversion created successfully.', type: 'success' })
-		}
-	}, [convCreateMut, allUnits])
-
-	const handleDeleteConversion = useCallback(
-		async (conversion: UomConversionDto) => {
-			const from = getUnitLabel(conversion.fromUomId)
-			const to = getUnitLabel(conversion.toUomId)
-
-			await confirm({
+	const { run: handleDeleteConversion, isPending: deletingConversion } =
+		useWorkflowAction<UomConversionDto>({
+			availability: () => canDelete,
+			confirmation: () => ({
 				title: 'Delete conversion?',
-				description: `Remove the conversion from ${from} to ${to}?`,
+				description: 'Permanently delete this conversion? This action cannot be undone.',
 				confirmLabel: 'Delete',
 				variant: 'destructive',
-				onConfirm: async () => {
-					await convRemoveMut.mutateAsync({ id: conversion.id })
-					toast.add({ title: 'Conversion deleted successfully.', type: 'success' })
-				},
-			})
-		},
-		[convRemoveMut, getUnitLabel],
-	)
+			}),
+			execute: (conversion) => convRemoveMut.mutateAsync({ id: conversion.id }),
+			successMessage: 'Conversion deleted successfully.',
+		})
 
 	// ─── Columns with actions ───
 
 	const actionsColumn = useMemo(
 		() =>
-			createActionColumn<UomDto>({
+			col.actions({
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (unit) => [
 					canEdit && {
@@ -179,10 +127,11 @@ function UomPage() {
 						icon: <TrashIcon className="size-4" />,
 						onClick: () => handleDelete(unit),
 						variant: 'destructive' as const,
+						disabled: deletingUnit,
 					},
 				],
 			}),
-		[canEdit, canDelete, handleDelete, navigate],
+		[canEdit, canDelete, deletingUnit, handleDelete, navigate],
 	)
 
 	const columns = useMemo(
@@ -190,77 +139,53 @@ function UomPage() {
 		[actionsColumn],
 	)
 
-	const { table, globalFilter } = useServerTable({
-		data,
+	const list = useResourceList({
+		query: listQuery,
 		columns,
-		totalCount,
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
+		hasFilters: (value) => value.category !== undefined,
 	})
-
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter && !search.category
 
 	return (
 		<>
 			<EntityListPage
 				title="Units of Measure"
 				description="Manage units and conversion factors."
+				list={list}
 				actions={
-					<div className="flex gap-2">
-						<PermissionGate permission="uom.create">
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={handleAddConversion}
-								disabled={allUnits.length < 2}
-							>
-								<ArrowRightIcon className="size-4" />
-								Add Conversion
-							</Button>
-						</PermissionGate>
-						<PermissionGate permission="uom.create">
-							<Button size="sm" onClick={() => navigate({ to: '/master/uom/new' })}>
-								<PlusIcon className="size-4" />
-								Add Unit
-							</Button>
-						</PermissionGate>
-					</div>
+					<PermissionGate permission="uom.create">
+						<Button size="sm" variant="outline" onClick={handleAddConversion}>
+							<ArrowRightIcon className="size-4" />
+							Add Conversion
+						</Button>
+					</PermissionGate>
 				}
-				table={table}
-				recordCount={totalCount}
-				isLoading={listQuery.isLoading}
-				isEmpty={isEmpty}
+				createAction={
+					<PermissionGate permission="uom.create">
+						<Button size="sm" onClick={() => navigate({ to: '/master/uom/new' })}>
+							<PlusIcon className="size-4" />
+							Add Unit
+						</Button>
+					</PermissionGate>
+				}
 				emptyState={{
 					title: 'No units yet',
 					description: 'Get started by creating your first unit of measure.',
-					action: (
-						<PermissionGate permission="uom.create">
-							<Button size="sm" onClick={() => navigate({ to: '/master/uom/new' })}>
-								<PlusIcon className="size-4" />
-								Add Unit
-							</Button>
-						</PermissionGate>
-					),
 				}}
 				emptyMessage="No units match your search."
 				toolbar={
 					<TableToolbar
-						searchValue={globalFilter}
-						onSearchChange={(value) => table.setGlobalFilter(value)}
+						searchValue={list.globalFilter}
+						onSearchChange={(value) => list.table.setGlobalFilter(value)}
 						searchPlaceholder="Search units..."
 						filters={[
 							{
 								key: 'category',
 								label: 'Category',
 								value: search.category,
-								onChange: (v) =>
-									navigate({
-										search: {
-											...search,
-											page: 1,
-											category: v as UomCategoryEnum | undefined,
-										},
-									}),
+								onChange: (value) =>
+									list.setFilters({ category: value as UomCategoryEnum | undefined }),
 								options: UOM_CATEGORY_OPTIONS,
 								allLabel: 'All categories',
 							},
@@ -271,33 +196,56 @@ function UomPage() {
 
 			<div className="mt-6 space-y-3">
 				<h3 className="text-sm font-medium">Conversions</h3>
+				{conversionsQuery.isError && (
+					<div
+						role="alert"
+						className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 p-3 text-sm"
+					>
+						<p>
+							Could not load conversions.{' '}
+							{conversionsQuery.data ? 'Showing the last loaded conversions.' : ''}
+						</p>
+						<Button size="sm" variant="outline" onClick={() => void conversionsQuery.refetch()}>
+							Retry conversions
+						</Button>
+					</div>
+				)}
 				{conversionsQuery.isLoading ? (
 					<div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
 						<LoaderIcon className="size-4 animate-spin" />
 						Loading conversions...
 					</div>
-				) : conversions.length === 0 ? (
+				) : conversionsQuery.isError && !conversionsQuery.data ? null : conversions.length === 0 ? (
 					<p className="py-4 text-sm text-muted-foreground">
 						No conversions defined yet. Add at least two units, then create a conversion.
 					</p>
 				) : (
 					<div className="divide-y rounded-md border">
 						{conversions.map((conv) => (
-							<div key={conv.id} className="flex items-center justify-between px-4 py-3">
-								<div className="flex items-center gap-2 text-sm">
-									<Badge variant="secondary">{getUnitLabel(conv.fromUomId)}</Badge>
-									<ArrowRightIcon className="size-3.5 text-muted-foreground" />
-									<Badge variant="secondary">{getUnitLabel(conv.toUomId)}</Badge>
-									<span className="text-muted-foreground">× {conv.factor}</span>
+							<div key={conv.id} className="flex items-start justify-between gap-3 px-4 py-3">
+								<div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-sm">
+									<UomLabel id={conv.fromUomId} />
+									<ArrowRightIcon
+										className="size-3.5 shrink-0 text-muted-foreground"
+										aria-hidden="true"
+									/>
+									<UomLabel id={conv.toUomId} />
+									<span className="min-w-0 break-all text-right font-mono tabular-nums text-muted-foreground sm:ml-auto">
+										× {conv.factor}
+									</span>
 								</div>
-								<Button
-									size="icon"
-									variant="ghost"
-									className="size-7"
-									onClick={() => handleDeleteConversion(conv)}
-								>
-									<TrashIcon className="size-3.5" />
-								</Button>
+								<PermissionGate permission="uom.delete">
+									<Button
+										size="icon"
+										variant="ghost"
+										className="shrink-0"
+										aria-label="Delete conversion"
+										disabled={deletingConversion}
+										onClick={() => handleDeleteConversion(conv)}
+									>
+										<TrashIcon className="size-3.5" />
+									</Button>
+								</PermissionGate>
 							</div>
 						))}
 					</div>

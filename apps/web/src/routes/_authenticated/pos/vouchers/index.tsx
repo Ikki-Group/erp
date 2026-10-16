@@ -8,7 +8,12 @@ import { format, isPast } from 'date-fns'
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { listSearchSchema, rightAlignedHeader, TextCell, useServerTable } from '@/components/data-table'
+import {
+	listSearchSchema,
+	rightAlignedHeader,
+	TextCell,
+	useResourceList,
+} from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
 import { confirm } from '@/components/shared/confirm'
@@ -89,7 +94,9 @@ const baseColumns = [
 			const v = row.original
 			return (
 				<div className="text-right font-mono text-sm tabular-nums">
-					{v.type === 'percentage' ? `${v.value}%` : `Rp ${Number(v.value).toLocaleString('id-ID')}`}
+					{v.type === 'percentage'
+						? `${v.value}%`
+						: `Rp ${Number(v.value).toLocaleString('id-ID')}`}
 				</div>
 			)
 		},
@@ -132,18 +139,16 @@ function VouchersPage() {
 	const search = Route.useSearch()
 	const canManage = usePermissionCheck({ permission: 'voucher.manage' })
 
-	const listQuery = useQuery(
-		voucherResource.list.queryOptions({
+	const listQuery = useQuery({
+		...voucherResource.list.queryOptions({
 			page: search.page,
 			limit: search.pageSize,
 			q: search.q,
 			isActive: search.isActive === undefined ? undefined : search.isActive === 'true',
 		}),
-	)
+		throwOnError: false,
+	})
 	const removeMut = useMutation(voucherResource.remove.mutationOptions())
-
-	const data = listQuery.data?.data ?? []
-	const totalCount = listQuery.data?.meta?.total ?? 0
 
 	const handleDelete = useCallback(
 		async (item: VoucherDto) => {
@@ -193,21 +198,19 @@ function VouchersPage() {
 		[actionsColumn],
 	)
 
-	const { table, globalFilter } = useServerTable({
-		data,
+	const list = useResourceList({
+		query: listQuery,
 		columns,
-		totalCount,
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
+		hasFilters: (value) => value.isActive !== undefined,
 	})
-
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
 
 	return (
 		<EntityListPage
 			title="Vouchers"
 			description="Manage discount vouchers for POS checkout."
-			actions={
+			createAction={
 				canManage ? (
 					<Button size="sm" onClick={() => navigate({ to: '/pos/vouchers/new' })}>
 						<PlusIcon className="size-4" />
@@ -215,35 +218,24 @@ function VouchersPage() {
 					</Button>
 				) : undefined
 			}
-			table={table}
-			recordCount={totalCount}
-			isLoading={listQuery.isFetching}
-			isEmpty={isEmpty}
+			list={list}
 			emptyState={{
 				title: 'No vouchers yet',
 				description: 'Get started by creating your first discount voucher.',
-				action: canManage ? (
-					<Button size="sm" onClick={() => navigate({ to: '/pos/vouchers/new' })}>
-						<PlusIcon className="size-4" />
-						Add Voucher
-					</Button>
-				) : undefined,
 			}}
 			emptyMessage="No vouchers match your search."
 			toolbar={
 				<TableToolbar
-					searchValue={globalFilter}
-					onSearchChange={(value) => table.setGlobalFilter(value)}
+					searchValue={list.globalFilter}
+					onSearchChange={(value) => list.table.setGlobalFilter(value)}
 					searchPlaceholder="Search vouchers..."
 					filters={[
 						{
 							key: 'isActive',
 							label: 'Status',
 							value: search.isActive,
-							onChange: (v) =>
-								navigate({
-									search: { ...search, page: 1, isActive: v as 'true' | 'false' | undefined },
-								}),
+							onChange: (value) =>
+								list.setFilters({ isActive: value as 'true' | 'false' | undefined }),
 							options: STATUS_FILTER_OPTIONS,
 							allLabel: 'All',
 						},

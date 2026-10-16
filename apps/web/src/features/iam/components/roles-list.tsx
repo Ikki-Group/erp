@@ -7,37 +7,33 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { EditIcon, EyeIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
 import type { ListSearch } from '@/components/data-table'
-import { useServerTable } from '@/components/data-table'
+import { useResourceList } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { createActionColumn } from '@/components/shared/action-column'
-import { confirm } from '@/components/shared/confirm'
 import { EntityListPage } from '@/components/shared/entity-list-page'
 import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
+import { useWorkflowAction } from '@/components/shared/workflow-action'
 
 import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/toast'
 
 import { roleResource } from '@/features/iam/api.ts'
 import { roleColumns } from '@/features/iam/components/role-table.tsx'
 import type { RoleDto } from '@/features/iam/dto/index.ts'
 
 export interface RolesListProps {
-	searchParams: {
-		page?: number
-		pageSize?: number
-		q?: string
-		isSystem?: number
-	}
+	searchParams: Partial<ListSearch> & { isSystem?: number; isActive?: number }
 }
 
 interface RolesSearch extends ListSearch {
 	isSystem?: number
+	isActive?: number
 }
 
 export function RolesList({ searchParams }: RolesListProps) {
 	const navigate = useNavigate()
 	const search: RolesSearch = {
+		...searchParams,
 		page: searchParams.page ?? 1,
 		pageSize: searchParams.pageSize ?? 10,
 		q: searchParams.q,
@@ -46,34 +42,28 @@ export function RolesList({ searchParams }: RolesListProps) {
 	const canEdit = usePermissionCheck({ permission: 'iam.update' })
 	const canDelete = usePermissionCheck({ permission: 'iam.delete' })
 
-	const listQuery = useQuery(
-		roleResource.list.queryOptions({
+	const listQuery = useQuery({
+		...roleResource.list.queryOptions({
 			page: search.page,
 			limit: search.pageSize,
 			q: search.q,
 			isSystem: search.isSystem,
 		}),
-	)
+		throwOnError: false,
+	})
 	const removeMut = useMutation(roleResource.remove.mutationOptions())
 
-	const data = listQuery.data?.data ?? []
-	const totalCount = listQuery.data?.meta?.total ?? 0
-
-	const handleDelete = useCallback(
-		async (role: RoleDto) => {
-			await confirm({
-				title: 'Delete role?',
-				description: `This will permanently delete "${role.name}". A role cannot be deleted while it is assigned to users.`,
-				confirmLabel: 'Delete',
-				variant: 'destructive',
-				onConfirm: async () => {
-					await removeMut.mutateAsync({ id: role.id })
-					toast.add({ title: 'Role deleted.', type: 'success' })
-				},
-			})
-		},
-		[removeMut],
-	)
+	const { run: handleDelete, isPending: deletingRole } = useWorkflowAction<RoleDto>({
+		availability: (role) => canDelete && !role.isSystem,
+		confirmation: (role) => ({
+			title: 'Delete role?',
+			description: `This will permanently delete "${role.name}". A role cannot be deleted while it is assigned to users.`,
+			confirmLabel: 'Delete',
+			variant: 'destructive',
+		}),
+		execute: (role) => removeMut.mutateAsync({ id: role.id }),
+		successMessage: 'Role deleted.',
+	})
 
 	const handleView = useCallback(
 		(roleId: number) => {
@@ -100,17 +90,13 @@ export function RolesList({ searchParams }: RolesListProps) {
 	}, [navigate])
 
 	const handleSearchChange = useCallback(
-		(next: ListSearch) => {
-			const rolesNext: RolesSearch = {
-				...next,
-				isSystem: search.isSystem,
-			}
+		(next: RolesSearch) => {
 			navigate({
 				to: '/settings/access-control',
-				search: { ...rolesNext, tab: 'roles' as const },
+				search: { ...next, tab: 'roles' as const },
 			})
 		},
-		[navigate, search.isSystem],
+		[navigate],
 	)
 
 	const actionsColumn = useMemo(
@@ -135,10 +121,11 @@ export function RolesList({ searchParams }: RolesListProps) {
 							icon: <TrashIcon className="size-4" />,
 							onClick: () => handleDelete(role),
 							variant: 'destructive' as const,
+							disabled: deletingRole,
 						},
 				],
 			}),
-		[canEdit, canDelete, handleDelete, handleView, handleEdit],
+		[canEdit, canDelete, deletingRole, handleDelete, handleView, handleEdit],
 	)
 
 	const columns = useMemo(
@@ -146,15 +133,13 @@ export function RolesList({ searchParams }: RolesListProps) {
 		[actionsColumn],
 	)
 
-	const { table, globalFilter } = useServerTable({
-		data,
+	const list = useResourceList({
+		query: listQuery,
 		columns,
-		totalCount,
 		search,
 		onSearchChange: handleSearchChange,
+		hasFilters: (value) => value.isSystem !== undefined,
 	})
-
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !globalFilter
 
 	const addRoleAction = (
 		<PermissionGate permission="iam.create">
@@ -169,21 +154,17 @@ export function RolesList({ searchParams }: RolesListProps) {
 		<EntityListPage
 			title="Roles"
 			description="Manage roles and their permission sets."
-			actions={addRoleAction}
-			table={table}
-			recordCount={totalCount}
-			isLoading={listQuery.isFetching}
-			isEmpty={isEmpty}
+			createAction={addRoleAction}
+			list={list}
 			emptyState={{
 				title: 'No roles yet',
 				description: 'Get started by creating your first role.',
-				action: addRoleAction,
 			}}
 			emptyMessage="No roles match your search."
 			toolbar={
 				<TableToolbar
-					searchValue={globalFilter}
-					onSearchChange={(value) => table.setGlobalFilter(value)}
+					searchValue={list.globalFilter}
+					onSearchChange={(value) => list.table.setGlobalFilter(value)}
 					searchPlaceholder="Search by code or name..."
 					filters={[
 						{
@@ -194,18 +175,8 @@ export function RolesList({ searchParams }: RolesListProps) {
 								{ label: 'System roles', value: '1' },
 								{ label: 'Custom roles', value: '0' },
 							],
-							onChange: (value) => {
-								const nextIsSystem = value === undefined ? undefined : Number(value)
-								navigate({
-									to: '/settings/access-control',
-									search: {
-										...search,
-										page: 1,
-										isSystem: nextIsSystem,
-										tab: 'roles' as const,
-									},
-								})
-								},
+							onChange: (value) =>
+								list.setFilters({ isSystem: value === undefined ? undefined : Number(value) }),
 						},
 					]}
 				/>

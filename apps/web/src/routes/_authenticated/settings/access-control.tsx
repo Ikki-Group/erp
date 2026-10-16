@@ -2,24 +2,24 @@ import { useMemo } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { z } from 'zod'
 
 import { ShieldCheckIcon, UserIcon } from 'lucide-react'
+import { z } from 'zod'
 
+import { listSearchSchema } from '@/components/data-table'
 import { PageHeader, StatCard } from '@/components/shared'
 import { PageTabs } from '@/components/shared/page-tabs'
 import type { PageTab } from '@/components/shared/page-tabs'
 
+import { Button } from '@/components/ui/button'
+
 import { roleResource, userResource } from '@/features/iam/api.ts'
-import { UsersList } from '@/features/iam/components/users-list.tsx'
 import { RolesList } from '@/features/iam/components/roles-list.tsx'
+import { UsersList } from '@/features/iam/components/users-list.tsx'
 
 // Combine all search params for both tabs
-const searchSchema = z.object({
+const searchSchema = listSearchSchema.extend({
 	tab: z.enum(['users', 'roles']).default('users'),
-	page: z.number().optional().default(1),
-	pageSize: z.number().optional().default(10),
-	q: z.string().optional(),
 	// Users filters
 	isActive: z.coerce.number().int().min(0).max(1).optional(),
 	// Roles filters
@@ -37,8 +37,14 @@ function AccessControlPage() {
 	const { tab } = search
 
 	// Stats for both tabs
-	const usersQuery = useQuery(userResource.list.queryOptions({ page: 1, limit: 1 }))
-	const rolesQuery = useQuery(roleResource.list.queryOptions({ page: 1, limit: 1 }))
+	const usersQuery = useQuery({
+		...userResource.list.queryOptions({ page: 1, limit: 1 }),
+		throwOnError: false,
+	})
+	const rolesQuery = useQuery({
+		...roleResource.list.queryOptions({ page: 1, limit: 1 }),
+		throwOnError: false,
+	})
 
 	const totalUsers = usersQuery.data?.meta?.total ?? 0
 	const totalRoles = rolesQuery.data?.meta?.total ?? 0
@@ -52,6 +58,7 @@ function AccessControlPage() {
 				page: 1,
 				pageSize: search.pageSize,
 				q: search.q, // Preserve search across tabs
+				sort: search.sort,
 			},
 			replace: true,
 		})
@@ -62,21 +69,30 @@ function AccessControlPage() {
 			<div className="grid gap-4 sm:grid-cols-2">
 				<StatCard
 					title="Users"
-					value={totalUsers}
+					value={usersQuery.isError && !usersQuery.data ? '—' : totalUsers}
 					icon={<UserIcon className="size-4" />}
 					description="Total registered"
 					isLoading={usersQuery.isLoading}
 				/>
 				<StatCard
 					title="Roles"
-					value={totalRoles}
+					value={rolesQuery.isError && !rolesQuery.data ? '—' : totalRoles}
 					icon={<ShieldCheckIcon className="size-4" />}
 					description="Access control"
 					isLoading={rolesQuery.isLoading}
 				/>
 			</div>
 		),
-		[totalUsers, totalRoles, usersQuery.isLoading, rolesQuery.isLoading],
+		[
+			totalUsers,
+			totalRoles,
+			usersQuery.isLoading,
+			rolesQuery.isLoading,
+			usersQuery.isError,
+			rolesQuery.isError,
+			usersQuery.data,
+			rolesQuery.data,
+		],
 	)
 
 	const tabs: PageTab[] = useMemo(
@@ -99,27 +115,32 @@ function AccessControlPage() {
 
 	return (
 		<div className="space-y-6">
-			<PageHeader
-				title="Access Control"
-				description="Manage users and roles for access control."
-			/>
+			<PageHeader title="Access Control" description="Manage users and roles for access control." />
 
 			{stats}
+			{(usersQuery.isError || rolesQuery.isError) && (
+				<div
+					role="alert"
+					className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 p-3 text-sm"
+				>
+					<p>Could not refresh access-control totals.</p>
+					<Button
+						size="sm"
+						variant="outline"
+						onClick={() => {
+							void usersQuery.refetch()
+							void rolesQuery.refetch()
+						}}
+					>
+						Retry totals
+					</Button>
+				</div>
+			)}
 
 			<PageTabs tabs={tabs} activeTab={tab} onTabChange={handleTabChange} />
 
-			{tab === 'users' && <UsersList searchParams={{
-				page: search.page,
-				pageSize: search.pageSize,
-				q: search.q,
-				isActive: search.isActive,
-			}} />}
-			{tab === 'roles' && <RolesList searchParams={{
-				page: search.page,
-				pageSize: search.pageSize,
-				q: search.q,
-				isSystem: search.isSystem,
-			}} />}
+			{tab === 'users' && <UsersList searchParams={search} />}
+			{tab === 'roles' && <RolesList searchParams={search} />}
 		</div>
 	)
 }
