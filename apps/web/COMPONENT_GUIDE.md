@@ -30,7 +30,7 @@ Use this guide to choose components. Visual authority is `DESIGN.md`; token valu
 | One focused quick-edit task           | `formDialog`                                                                       | `/design-system/overlays`                                                              |
 | Trends and comparisons                | `AreaChart`, `LineChart`, `BarChart` + exact-value table                           | `/design-system/charts`                                                                |
 | Select related records                | Feature-owned Material/Supplier/UOM/Location/Category/Role/Menu Item lookup fields | Entity and operational forms                                                           |
-| Edit document rows                    | `LineItemEditor` with feature-owned fields                                         | Receiving / transfer wizards / Recipes                                                 |
+| Edit document rows                    | `LineItemEditor` with feature-owned fields                                         | Receiving / transfer wizards / Recipes / Modifier options                              |
 | Supplier price relations              | `PricingTable` + feature `PricingForm`                                             | Suppliers → Pricing                                                                    |
 | Material location relations           | `LocationAssignment` + feature workflow hook                                       | Materials → Locations                                                                  |
 
@@ -112,6 +112,8 @@ Recipes use full-page editors and location-scoped material/menu lookups. The edi
 `useEditorLocationScope(fixedLocationId?)` is shared by Recipes and Menu Items. For edits, Menu Items pin `item.locationId`, not the header. Category lookups remain scoped to that location and resolve existing selections beyond the first 100 records. Keep the return-to-location action outside disabled fields. Payment Methods use the same editor lifecycle without location pinning, with pending-safe retry and list/detail/by-location cache invalidation.
 
 Callable dialogs do not inherit authenticated route providers. Resolve permissions before opening and pass capability props to the content. Supplier pricing and material/location assignment are the reference examples: both keep failed fetches distinct from empty data, preserve prior rows on refresh failure, and handle write errors inline. Relation toggles retry a desired state after a fresh read, never invert an uncertain last result.
+
+Menu Categories are focused dialogs with a live permission getter and pinned location checked again at submission. Modifier Groups are full-page editors with stable option rows, record-owned scope, and draft-preserving refetch behavior. Keep signed adjustments as decimal strings and preserve all options, including inactive/default flags and sort order; saving replaces the full option set. Both workflows provide explicit pending-safe retry.
 
 ## Charts
 
