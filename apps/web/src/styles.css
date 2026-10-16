@@ -285,6 +285,33 @@
 	}
 }
 
+/* Menu rows reserve touch space in layout rather than overlapping hit areas. */
+@media (pointer: coarse) {
+	:is(
+		[data-slot='dropdown-menu-item'],
+		[data-slot='dropdown-menu-checkbox-item'],
+		[data-slot='dropdown-menu-radio-item'],
+		[data-slot='dropdown-menu-sub-trigger'],
+		[data-slot='context-menu-item'],
+		[data-slot='context-menu-checkbox-item'],
+		[data-slot='context-menu-radio-item'],
+		[data-slot='context-menu-sub-trigger'],
+		[data-slot='menubar-trigger'],
+		[data-slot='menubar-item'],
+		[data-slot='menubar-checkbox-item'],
+		[data-slot='menubar-sub-trigger'],
+		[data-slot='menubar-radio-item']
+	) {
+		min-height: 2.75rem;
+		min-width: 2.75rem;
+	}
+
+	[data-slot='menubar'] {
+		height: auto;
+		min-height: 3.375rem;
+	}
+}
+
 /*
  * Edge-fade "scroll shadow" for horizontally-scrollable regions (DataTable's
  * `.data-table-horizontal-scroll` on narrow viewports) — a shadow only

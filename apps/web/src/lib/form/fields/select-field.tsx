@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 import { cn } from '@/lib/utils'
 
 import { Label } from '@/components/ui/label'
@@ -18,6 +20,7 @@ export interface SelectFieldOption {
 }
 
 export interface SelectFieldProps {
+	id?: string
 	label: string
 	options: SelectFieldOption[]
 	placeholder?: string
@@ -26,13 +29,9 @@ export interface SelectFieldProps {
 	className?: string
 }
 
-/**
- * Select bound to the field context. The field value is always a `string`
- * (matches the `<select>`/combobox convention used across the app) —
- * numeric ids are stored as their string form and converted at the form's
- * `onSubmit` boundary (see `toId` in `@/lib/form/transform`).
- */
+/** Select for string-valued fields. Use `IdSelectField` for numeric foreign keys. */
 export function SelectField({
+	id,
 	label,
 	options,
 	placeholder = 'Select...',
@@ -41,18 +40,31 @@ export function SelectField({
 	className,
 }: SelectFieldProps) {
 	const field = useFieldContext<string>()
-	const fieldId = field.name
+	const generatedId = useId()
+	const fieldId = id ?? generatedId
 	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
+	const describedBy =
+		[description && `${fieldId}-description`, error && `${fieldId}-error`]
+			.filter(Boolean)
+			.join(' ') || undefined
 
 	return (
 		<div className={cn('space-y-1.5', className)}>
 			<Label htmlFor={fieldId}>{label}</Label>
 			<Select
-				value={field.state.value || undefined}
+				items={options}
+				name={field.name}
+				value={field.state.value || null}
 				onValueChange={(v) => field.handleChange(v ?? '')}
 				disabled={disabled}
 			>
-				<SelectTrigger id={fieldId} className="w-full" aria-invalid={!!error}>
+				<SelectTrigger
+					id={fieldId}
+					className="w-full"
+					onBlur={field.handleBlur}
+					aria-invalid={!!error}
+					aria-describedby={describedBy}
+				>
 					<SelectValue placeholder={placeholder} />
 				</SelectTrigger>
 				<SelectContent>
@@ -63,7 +75,11 @@ export function SelectField({
 					))}
 				</SelectContent>
 			</Select>
-			{description && !error && <p className="text-xs text-muted-foreground">{description}</p>}
+			{description && (
+				<p id={`${fieldId}-description`} className="text-xs text-muted-foreground">
+					{description}
+				</p>
+			)}
 			{error && (
 				<p id={`${fieldId}-error`} className="text-xs text-destructive">
 					{error}

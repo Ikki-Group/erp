@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import { useId, type ComponentProps } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -23,7 +23,8 @@ export function TextareaField({
 	...props
 }: TextareaFieldProps) {
 	const field = useFieldContext<string>()
-	const fieldId = id ?? field.name
+	const generatedId = useId()
+	const fieldId = id ?? generatedId
 	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
 
 	return (
@@ -35,12 +36,24 @@ export function TextareaField({
 				value={field.state.value ?? ''}
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
-				aria-invalid={!!error}
-				aria-describedby={error ? `${fieldId}-error` : undefined}
 				className={className}
 				{...props}
+				aria-invalid={!!error}
+				aria-describedby={
+					[
+						props['aria-describedby'],
+						description && `${fieldId}-description`,
+						error && `${fieldId}-error`,
+					]
+						.filter(Boolean)
+						.join(' ') || undefined
+				}
 			/>
-			{description && !error && <p className="text-xs text-muted-foreground">{description}</p>}
+			{description && (
+				<p id={`${fieldId}-description`} className="text-xs text-muted-foreground">
+					{description}
+				</p>
+			)}
 			{error && (
 				<p id={`${fieldId}-error`} className="text-xs text-destructive">
 					{error}

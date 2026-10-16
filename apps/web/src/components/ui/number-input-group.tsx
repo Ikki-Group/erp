@@ -35,7 +35,7 @@ export const NumberInputGroupAddon = React.forwardRef<HTMLInputElement, NumberIn
 				data-slot="number-input-group-addon"
 				data-disabled={disabled}
 				className={cn(
-					'group/input-group relative flex h-7 w-full min-w-0 items-center rounded-md border border-input bg-input/20 transition-colors outline-none has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/30 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-2 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
+					'group/input-group relative flex h-7 w-full min-w-0 items-center rounded-md border border-input bg-input/20 transition-colors outline-none pointer-coarse:min-h-11 has-[:focus-visible]:border-ring has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/30 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-2 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
 					disabled && 'cursor-not-allowed opacity-50',
 					className,
 				)}
@@ -56,7 +56,7 @@ export const NumberInputGroupAddon = React.forwardRef<HTMLInputElement, NumberIn
 					data-slot="input-group-addon"
 					data-align="inline-end"
 					className={cn(
-						'flex h-auto cursor-text items-center justify-center gap-1 py-2 text-xs/relaxed font-medium text-muted-foreground select-none order-last pr-2',
+						'order-last flex shrink-0 items-center justify-center gap-1 pr-2 font-mono text-xs/relaxed text-muted-foreground select-none',
 						disabled && 'opacity-50',
 					)}
 				>
@@ -87,6 +87,10 @@ export interface NumberInputGroupProps extends Omit<
 	onChange?: (value: number | null) => void
 	/** Called when the UOM selection changes */
 	onUomChange?: (uomId: number) => void
+	/** Form name for the unit, independent of the numeric input's name. */
+	uomName?: string
+	/** Label, description, validation, and blur props for the unit selector. */
+	uomTriggerProps?: React.ComponentProps<typeof SelectTrigger>
 }
 
 /**
@@ -94,7 +98,25 @@ export interface NumberInputGroupProps extends Omit<
  * Use when the user needs to select both quantity and unit of measure.
  */
 export const NumberInputGroup = React.forwardRef<HTMLInputElement, NumberInputGroupProps>(
-	({ className, value, uomId, uomOptions, onChange, onUomChange, disabled, ...props }, ref) => {
+	(
+		{
+			className,
+			value,
+			uomId,
+			uomOptions,
+			onChange,
+			onUomChange,
+			uomName,
+			uomTriggerProps,
+			disabled,
+			...props
+		},
+		ref,
+	) => {
+		const items = React.useMemo(
+			() => uomOptions.map((uom) => ({ value: String(uom.id), label: uom.code })),
+			[uomOptions],
+		)
 		const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 			const inputValue = e.target.value
 			if (inputValue === '') {
@@ -120,7 +142,7 @@ export const NumberInputGroup = React.forwardRef<HTMLInputElement, NumberInputGr
 				data-slot="number-input-group"
 				data-disabled={disabled}
 				className={cn(
-					'group/input-group relative flex h-7 w-full min-w-0 items-center rounded-md border border-input bg-input/20 transition-colors outline-none has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/30 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-2 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
+					'group/input-group relative flex h-7 w-full min-w-0 items-center rounded-md border border-input bg-input/20 transition-colors outline-none pointer-coarse:min-h-11 has-[:focus-visible]:border-ring has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/30 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-2 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
 					disabled && 'cursor-not-allowed opacity-50',
 					className,
 				)}
@@ -139,13 +161,22 @@ export const NumberInputGroup = React.forwardRef<HTMLInputElement, NumberInputGr
 					)}
 					{...props}
 				/>
-				<Select value={uomId?.toString() ?? ''} onValueChange={handleUomChange} disabled={disabled}>
+				<Select
+					items={items}
+					name={uomName}
+					value={uomId?.toString() ?? null}
+					onValueChange={handleUomChange}
+					disabled={disabled}
+				>
 					<SelectTrigger
 						data-slot="input-group-addon"
 						size="sm"
+						aria-label="Unit of measure"
+						{...uomTriggerProps}
 						className={cn(
-							'order-last h-6 rounded-none rounded-r-md border-0 bg-transparent px-2 shadow-none ring-0 focus-visible:ring-0 dark:bg-transparent',
+							'order-last h-6 shrink-0 rounded-none rounded-r-md border-0 border-l bg-transparent px-2 font-mono shadow-none focus-visible:ring-inset dark:bg-transparent',
 							'data-placeholder:text-muted-foreground',
+							uomTriggerProps?.className,
 						)}
 					>
 						<SelectValue placeholder="UOM" />

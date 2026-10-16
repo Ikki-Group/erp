@@ -2,7 +2,8 @@ import { useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
-import { useFieldContext } from '@/lib/form/contexts'
+import { z } from 'zod'
+
 import {
 	NumberInputGroupAddonField,
 	NumberInputGroupField,
@@ -40,7 +41,7 @@ function FormsPage() {
 			{/* ─── FORM COMPONENTS ─── */}
 			<PageSection
 				title="Form Components"
-				description="Field components bound to the useAppForm/useEntityForm engine — see @/lib/form. Each wraps a raw primitive (below) with label, description, and error display via Field."
+				description="Use field adapters inside useAppForm/useEntityForm for labels, hints, and validation. Choose a select for short lists, a combobox for searchable lists, and a fixed unit unless staff need to change it."
 			>
 				<FormFieldsDemo />
 			</PageSection>
@@ -50,7 +51,7 @@ function FormsPage() {
 			{/* ─── CHECKBOX, RADIO & SWITCH ─── */}
 			<PageSection
 				title="Checkbox, Radio & Switch"
-				description="Raw primitives — Form Components above wraps these with label/description/error via Field. Reach for these directly only outside a form (e.g. a toolbar toggle)."
+				description="Use checkboxes for independent choices, radios for one choice from a visible set, and switches for on/off settings. The SwitchField adapter adds a label, hint, and validation inside a form."
 			>
 				<div className="grid gap-8 sm:grid-cols-3">
 					<div className="space-y-3">
@@ -71,7 +72,7 @@ function FormsPage() {
 
 					<div className="space-y-3">
 						<p className="text-xs font-medium text-muted-foreground">Radio Group</p>
-						<RadioGroup defaultValue="store">
+						<RadioGroup defaultValue="store" aria-label="Location type">
 							<label className="flex items-center gap-2 text-sm">
 								<RadioGroupItem value="store" />
 								Store
@@ -106,7 +107,7 @@ function FormsPage() {
 			{/* ─── CURRENCY INPUT ─── */}
 			<PageSection
 				title="Currency Input"
-				description="Standalone Rupiah amount input for money state outside the form engine (e.g. POS payment entry). Use field.CurrencyField instead inside a useEntityForm."
+				description="Use the standalone Rupiah input outside the form engine. Inside useAppForm/useEntityForm, use field.CurrencyField to keep validation and accessible labels together."
 			>
 				<CurrencyInputDemo />
 			</PageSection>
@@ -149,8 +150,8 @@ function FormsPage() {
 
 			{/* ─── CRUD FORM ─── */}
 			<PageSection
-				title="Crud Form"
-				description="CrudForm is a semantic alias for FormPage — the standard full-page create/edit layout: back button, title, body, and a sticky footer with cancel/submit. Boxed and scrollable here only so the sticky footer stays within this demo instead of the whole catalog page."
+				title="Validation & Form Layout"
+				description="Submit the empty form to see recoverable errors, then enter a code, name, and category. This client-only example displays validated values below; it does not save a material. The sticky footer stays within the demo."
 			>
 				<CrudFormDemo />
 			</PageSection>
@@ -158,21 +159,30 @@ function FormsPage() {
 	)
 }
 
+const UOM_OPTIONS = [
+	{ id: 1, code: 'kg' },
+	{ id: 2, code: 'g' },
+	{ id: 3, code: 'L' },
+	{ id: 4, code: 'mL' },
+	{ id: 5, code: 'pcs' },
+]
+
 // -- Form field components demo (bound to useAppForm, no backing mutation) --
 function FormFieldsDemo() {
 	const form = useAppForm({
 		defaultValues: {
-			code: '',
+			code: 'MAT-001',
 			name: '',
 			category: '',
 			supplier: '',
 			minStock: 10 as number | null,
 			quantity: null as number | null,
-			uomId: null as number | null,
 			quantityEditable: null as number | null,
 			uomIdEditable: null as number | null,
 			expiryDate: undefined as Date | undefined,
 			notes: '',
+			price: '',
+			emptySupplier: '',
 			active: true,
 		},
 	})
@@ -181,7 +191,13 @@ function FormFieldsDemo() {
 		<form.AppForm>
 			<div className="grid max-w-3xl gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
-					{(field) => <field.TextField label="Material Code" placeholder="e.g. MAT-001" />}
+					{(field) => (
+						<field.TextField
+							label="Material Code"
+							disabled
+							description="Disabled: a reference value that cannot be edited here."
+						/>
+					)}
 				</form.AppField>
 				<form.AppField name="name">
 					{(field) => <field.TextField label="Name" placeholder="Coffee Beans" />}
@@ -240,8 +256,56 @@ function FormFieldsDemo() {
 				</form.AppField>
 				{/* Editable UOM input group demo */}
 				<form.AppField name="quantityEditable">
-					{() => (
-						<form.AppField name="uomIdEditable">{() => <EditableUomInputDemo />}</form.AppField>
+					{(quantityField) => (
+						<form.AppField name="uomIdEditable">
+							{(uomField) => (
+								<NumberInputGroupField
+									label="Quantity (Editable UOM)"
+									quantityField={quantityField}
+									uomField={uomField}
+									uomOptions={UOM_OPTIONS}
+									step="any"
+									description="Enter 12.5, then switch between kg and g. Changing the unit does not convert the quantity."
+								/>
+							)}
+						</form.AppField>
+					)}
+				</form.AppField>
+				<form.Subscribe
+					selector={(state) => [state.values.quantityEditable, state.values.uomIdEditable] as const}
+				>
+					{([quantity, uomId]) => (
+						<dl className="flex flex-wrap gap-x-6 gap-y-2 rounded-md bg-muted/40 p-3 text-xs sm:col-span-2">
+							<div>
+								<dt className="text-muted-foreground">Entered quantity</dt>
+								<dd className="font-mono tabular-nums">{quantity ?? 'Not entered'}</dd>
+							</div>
+							<div>
+								<dt className="text-muted-foreground">Chosen unit</dt>
+								<dd className="font-mono">
+									{UOM_OPTIONS.find((uom) => uom.id === uomId)?.code ?? 'Not selected'}
+								</dd>
+							</div>
+						</dl>
+					)}
+				</form.Subscribe>
+				<form.AppField name="price">
+					{(field) => (
+						<field.CurrencyField
+							label="Price"
+							description="Use for monetary amounts, not stock quantities."
+						/>
+					)}
+				</form.AppField>
+				<form.AppField name="emptySupplier">
+					{(field) => (
+						<field.ComboboxField
+							label="Supplier (Empty State)"
+							options={[]}
+							placeholder="Search supplier..."
+							emptyMessage="No suppliers available. Add a supplier before selecting one."
+							description="Open to see the empty list and recovery guidance."
+						/>
 					)}
 				</form.AppField>
 				<form.AppField name="active">
@@ -255,28 +319,6 @@ function FormFieldsDemo() {
 				</form.AppField>
 			</div>
 		</form.AppForm>
-	)
-}
-
-// -- Editable UOM input demo --
-function EditableUomInputDemo() {
-	const quantityField = useFieldContext<number | null>()
-	const uomField = useFieldContext<number | null>()
-
-	return (
-		<NumberInputGroupField
-			label="Quantity (Editable UOM)"
-			uomOptions={[
-				{ id: 1, code: 'kg' },
-				{ id: 2, code: 'g' },
-				{ id: 3, code: 'L' },
-				{ id: 4, code: 'mL' },
-				{ id: 5, code: 'pcs' },
-			]}
-			quantityField={quantityField}
-			uomField={uomField}
-			description="Select unit - choose quantity and unit of measure."
-		/>
 	)
 }
 
@@ -321,7 +363,9 @@ function AsyncComboboxDemo() {
 				}}
 			/>
 			<p className="text-xs text-muted-foreground">
-				{value ? `Selected: ${value.label}` : '8 suppliers available server-side — type to filter.'}
+				{value
+					? `Selected: ${value.label}`
+					: '8 local example suppliers — search simulates a network delay.'}
 			</p>
 		</div>
 	)
@@ -375,10 +419,25 @@ function FileUploadDemo() {
 	)
 }
 
+const materialDemoSchema = z.object({
+	code: z.string().trim().min(1, 'Enter a material code, for example MAT-001.'),
+	name: z.string().trim().min(1, 'Enter a material name, for example Coffee Beans.'),
+	category: z
+		.string()
+		.refine((value) => value === 'raw' || value === 'packaging', 'Choose a category.'),
+})
+
 // -- Crud Form demo (FormPage via its CrudForm alias) --
 function CrudFormDemo() {
+	const [submittedValues, setSubmittedValues] = useState<{
+		code: string
+		name: string
+		category: string
+	} | null>(null)
 	const form = useAppForm({
 		defaultValues: { code: '', name: '', category: '' },
+		validators: { onChange: materialDemoSchema, onSubmit: materialDemoSchema },
+		onSubmit: ({ value }) => setSubmittedValues({ ...value }),
 	})
 
 	return (
@@ -386,17 +445,34 @@ function CrudFormDemo() {
 			<form.AppForm>
 				<CrudForm
 					className="p-6"
-					title="Add Material"
-					description="Create a new material in your inventory."
+					title="Validate Material Details"
+					description="Required fields: code, name, and category. No backend request is made."
 					form={form}
-					onCancel={() => alert('Would navigate back to the material list.')}
+					submitLabel="Validate details"
+					cancelLabel="Reset example"
+					onCancel={() => {
+						form.reset()
+						setSubmittedValues(null)
+					}}
 				>
 					<div className="grid gap-4 sm:grid-cols-2">
 						<form.AppField name="code">
-							{(field) => <field.TextField label="Code" placeholder="MAT-XXX" />}
+							{(field) => (
+								<field.TextField
+									label="Code"
+									placeholder="MAT-001"
+									description="Required. Use the material's reference code."
+								/>
+							)}
 						</form.AppField>
 						<form.AppField name="name">
-							{(field) => <field.TextField label="Name" placeholder="Material name" />}
+							{(field) => (
+								<field.TextField
+									label="Name"
+									placeholder="Coffee Beans"
+									description="Required. Enter the material's display name."
+								/>
+							)}
 						</form.AppField>
 						<form.AppField name="category">
 							{(field) => (
@@ -407,9 +483,35 @@ function CrudFormDemo() {
 										{ label: 'Packaging', value: 'packaging' },
 									]}
 									placeholder="Select category"
+									description="Required. Choose the material category."
 								/>
 							)}
 						</form.AppField>
+					</div>
+					<div aria-live="polite" className="mt-4 rounded-md bg-muted/40 p-3 text-sm">
+						{submittedValues ? (
+							<>
+								<p className="font-medium">Last validated values — local only, not saved</p>
+								<dl className="mt-2 space-y-1 text-xs">
+									<div className="flex gap-2">
+										<dt>Code:</dt>
+										<dd className="break-all font-mono">{submittedValues.code}</dd>
+									</div>
+									<div className="flex gap-2">
+										<dt>Name:</dt>
+										<dd className="min-w-0 break-words">{submittedValues.name}</dd>
+									</div>
+									<div className="flex gap-2">
+										<dt>Category:</dt>
+										<dd>{submittedValues.category === 'raw' ? 'Raw Material' : 'Packaging'}</dd>
+									</div>
+								</dl>
+							</>
+						) : (
+							<p className="text-muted-foreground">
+								No values submitted yet. Validate details to display them here.
+							</p>
+						)}
 					</div>
 				</CrudForm>
 			</form.AppForm>

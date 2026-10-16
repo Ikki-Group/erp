@@ -39,8 +39,14 @@ function ButtonsPage() {
 				description="Variant × size. Icon-only buttons use the icon-* size scale (icon-xs/sm/default/lg)."
 			>
 				<div className="space-y-6">
+					<p className="max-w-2xl text-sm text-muted-foreground">
+						Use one primary action per task. Keep supporting actions outline or ghost, and reserve
+						destructive for irreversible changes. Name icon-only actions with an accessible label.
+						Desktop controls stay compact; coarse pointers get at least 44px targets in every size.
+					</p>
 					<div className="overflow-x-auto">
 						<table className="w-full border-collapse text-left">
+							<caption className="sr-only">Button variants, sizes, and disabled states</caption>
 							<thead>
 								<tr>
 									<th className="p-2 text-xs font-medium text-muted-foreground">Variant</th>
@@ -81,16 +87,16 @@ function ButtonsPage() {
 					<div>
 						<p className="mb-2 text-xs font-medium text-muted-foreground">Icon-only</p>
 						<div className="flex items-center gap-3">
-							<Button size="icon-xs" variant="outline">
+							<Button size="icon-xs" variant="outline" aria-label="Add material (extra small)">
 								<PlusIcon />
 							</Button>
-							<Button size="icon-sm" variant="outline">
+							<Button size="icon-sm" variant="outline" aria-label="Add material (small)">
 								<PlusIcon />
 							</Button>
-							<Button size="icon" variant="outline">
+							<Button size="icon" variant="outline" aria-label="Add material (default)">
 								<PlusIcon />
 							</Button>
-							<Button size="icon-lg" variant="outline">
+							<Button size="icon-lg" variant="outline" aria-label="Add material (large)">
 								<PlusIcon />
 							</Button>
 						</div>
@@ -137,15 +143,9 @@ function ButtonsPage() {
 			{/* ─── LOADING BUTTON ─── */}
 			<PageSection
 				title="Loading Button"
-				description="Button with a built-in loading/spinner state."
+				description="Keep the action label stable, prevent duplicate submissions, and announce the outcome. This example copies code to your clipboard; it does not save business data."
 			>
-				<div className="flex gap-3">
-					<LoadingButton loading={false}>Save</LoadingButton>
-					<LoadingButton loading={true}>Saving...</LoadingButton>
-					<LoadingButton loading={true} variant="outline">
-						Loading
-					</LoadingButton>
-				</div>
+				<LoadingButtonDemo />
 			</PageSection>
 
 			<Separator />
@@ -207,6 +207,47 @@ function ButtonsPage() {
 			>
 				<PermissionGateDemo />
 			</PageSection>
+		</div>
+	)
+}
+
+const BUTTON_EXAMPLE = '<Button variant="outline" size="sm">Export</Button>'
+
+function LoadingButtonDemo() {
+	const [status, setStatus] = useState<'idle' | 'copying' | 'copied' | 'error'>('idle')
+
+	async function copyExample() {
+		setStatus('copying')
+		try {
+			await navigator.clipboard.writeText(BUTTON_EXAMPLE)
+			setStatus('copied')
+		} catch {
+			setStatus('error')
+		}
+	}
+
+	return (
+		<div className="space-y-3">
+			<div className="flex flex-wrap items-center gap-3">
+				<LoadingButton loading={status === 'copying'} onClick={copyExample}>
+					Copy button example
+				</LoadingButton>
+				<LoadingButton loading variant="outline">
+					Loading state reference
+				</LoadingButton>
+			</div>
+			<p role="status" className="text-xs text-muted-foreground">
+				{status === 'copied'
+					? 'Button example copied. Paste it into your editor.'
+					: status === 'error'
+						? 'Clipboard access was blocked. Select and copy the example below.'
+						: status === 'copying'
+							? 'Copying the button example to your clipboard.'
+							: 'Copy a ready-to-use button example.'}
+			</p>
+			<pre className="overflow-x-auto rounded-lg border bg-muted/30 p-3 text-xs leading-relaxed">
+				<code>{BUTTON_EXAMPLE}</code>
+			</pre>
 		</div>
 	)
 }

@@ -124,7 +124,7 @@ export function TableToolbar<TData extends object = object>({
 		<div className={cn('space-y-2', className)}>
 			<div className="flex flex-wrap items-center gap-2">
 				{onSearchChange && (
-					<div className="relative flex-1 sm:max-w-xs">
+					<div className="relative min-w-48 flex-1 basis-full sm:max-w-xs sm:basis-0">
 						<SearchIcon className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							type="search"
@@ -132,8 +132,9 @@ export function TableToolbar<TData extends object = object>({
 							value={draftSearch}
 							onChange={(e) => setDraftSearch(e.target.value)}
 							placeholder={searchPlaceholder}
+							aria-label={searchPlaceholder}
 							aria-busy={isPending || draftSearch !== (searchValue ?? '')}
-							className="pl-7 pr-7"
+							className="pl-7 pr-7 pointer-coarse:pr-14"
 						/>
 						{draftSearch && (
 							<Button
@@ -158,6 +159,7 @@ export function TableToolbar<TData extends object = object>({
 						filter.searchable ? (
 							<TableFilterCombobox
 								key={filter.key}
+								aria-label={filter.label}
 								value={filter.value}
 								onValueChange={filter.onChange}
 								options={filter.options}
@@ -166,6 +168,7 @@ export function TableToolbar<TData extends object = object>({
 						) : (
 							<TableFilterSelect
 								key={filter.key}
+								aria-label={filter.label}
 								multiple
 								value={filter.value}
 								onValueChange={filter.onChange}
@@ -176,6 +179,7 @@ export function TableToolbar<TData extends object = object>({
 					) : (
 						<TableFilterSelect
 							key={filter.key}
+							aria-label={filter.label}
 							value={filter.value}
 							onValueChange={filter.onChange}
 							options={filter.options}

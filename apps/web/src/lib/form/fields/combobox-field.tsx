@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 import { cn } from '@/lib/utils'
 
 import {
@@ -19,6 +21,7 @@ export interface ComboboxFieldOption {
 }
 
 export interface ComboboxFieldProps {
+	id?: string
 	label: string
 	options: ComboboxFieldOption[]
 	placeholder?: string
@@ -29,6 +32,7 @@ export interface ComboboxFieldProps {
 }
 
 export function ComboboxField({
+	id,
 	label,
 	options,
 	placeholder = 'Search...',
@@ -38,21 +42,34 @@ export function ComboboxField({
 	className,
 }: ComboboxFieldProps) {
 	const field = useFieldContext<string>()
-	const fieldId = field.name
+	const generatedId = useId()
+	const fieldId = id ?? generatedId
 	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
+	const describedBy =
+		[description && `${fieldId}-description`, error && `${fieldId}-error`]
+			.filter(Boolean)
+			.join(' ') || undefined
 	const selectedOption = options.find((opt) => opt.value === field.state.value)
 
 	return (
 		<div className={cn('space-y-1.5', className)}>
 			<Label htmlFor={fieldId}>{label}</Label>
 			<Combobox
+				name={field.name}
 				items={options}
 				value={selectedOption ?? null}
 				onValueChange={(opt: ComboboxFieldOption | null) => field.handleChange(opt?.value ?? '')}
 				isItemEqualToValue={(a: ComboboxFieldOption, b: ComboboxFieldOption) => a.value === b.value}
 				disabled={disabled}
 			>
-				<ComboboxInput placeholder={placeholder} disabled={disabled} aria-invalid={!!error} />
+				<ComboboxInput
+					id={fieldId}
+					placeholder={placeholder}
+					disabled={disabled}
+					onBlur={field.handleBlur}
+					aria-invalid={!!error}
+					aria-describedby={describedBy}
+				/>
 				<ComboboxContent>
 					<ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
 					<ComboboxList>
@@ -64,7 +81,11 @@ export function ComboboxField({
 					</ComboboxList>
 				</ComboboxContent>
 			</Combobox>
-			{description && !error && <p className="text-xs text-muted-foreground">{description}</p>}
+			{description && (
+				<p id={`${fieldId}-description`} className="text-xs text-muted-foreground">
+					{description}
+				</p>
+			)}
 			{error && (
 				<p id={`${fieldId}-error`} className="text-xs text-destructive">
 					{error}

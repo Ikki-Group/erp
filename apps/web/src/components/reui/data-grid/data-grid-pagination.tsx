@@ -155,7 +155,7 @@ function DataGridPagination(props: DataGridPaginationProps): JSX.Element {
 								table.setPageSize(newPageSize)
 							}}
 						>
-							<SelectTrigger className="w-16" size="sm">
+							<SelectTrigger aria-label="Rows per page" className="w-16" size="sm">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent

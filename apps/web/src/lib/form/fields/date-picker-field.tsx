@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
@@ -14,6 +14,7 @@ import { useFieldContext } from '../contexts.ts'
 import { formatFieldError } from '../field-error.tsx'
 
 export interface DatePickerFieldProps {
+	id?: string
 	label: string
 	placeholder?: string
 	description?: string
@@ -26,6 +27,7 @@ export interface DatePickerFieldProps {
 }
 
 export function DatePickerField({
+	id,
 	label,
 	placeholder = 'Pick a date',
 	description,
@@ -37,8 +39,13 @@ export function DatePickerField({
 	toYear,
 }: DatePickerFieldProps) {
 	const field = useFieldContext<Date | undefined>()
-	const fieldId = field.name
+	const generatedId = useId()
+	const fieldId = id ?? generatedId
 	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
+	const describedBy =
+		[description && `${fieldId}-description`, error && `${fieldId}-error`]
+			.filter(Boolean)
+			.join(' ') || undefined
 
 	const [open, setOpen] = useState(false)
 	const currentYear = new Date().getFullYear()
@@ -54,6 +61,9 @@ export function DatePickerField({
 					render={
 						<Button
 							id={fieldId}
+							type="button"
+							onBlur={field.handleBlur}
+							aria-describedby={describedBy}
 							variant="outline"
 							size="sm"
 							disabled={disabled}
@@ -74,6 +84,7 @@ export function DatePickerField({
 						selected={value}
 						onSelect={(date) => {
 							field.handleChange(date)
+							field.handleBlur()
 							setOpen(false)
 						}}
 						captionLayout={showDropdowns ? 'dropdown' : 'label'}
@@ -82,7 +93,11 @@ export function DatePickerField({
 					/>
 				</PopoverContent>
 			</Popover>
-			{description && !error && <p className="text-xs text-muted-foreground">{description}</p>}
+			{description && (
+				<p id={`${fieldId}-description`} className="text-xs text-muted-foreground">
+					{description}
+				</p>
+			)}
 			{error && (
 				<p id={`${fieldId}-error`} className="text-xs text-destructive">
 					{error}

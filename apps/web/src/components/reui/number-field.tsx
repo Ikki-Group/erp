@@ -17,12 +17,12 @@ const NumberFieldContext = createContext<{
 } | null>(null)
 
 const numberFieldGroupVariants = cva(
-	'relative flex w-full justify-between border border-input data-disabled:pointer-events-none data-disabled:opacity-50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-within:has-aria-invalid:border-destructive focus-within:has-aria-invalid:ring-destructive/20 dark:focus-within:has-aria-invalid:ring-destructive/40 rounded-md bg-transparent dark:bg-input/30 transition-colors focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-3',
+	'relative flex w-full justify-between rounded-md border border-input bg-input/20 transition-colors pointer-coarse:min-h-11 data-disabled:pointer-events-none data-disabled:opacity-50 has-[:focus-visible]:border-ring has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/30 has-[[aria-invalid=true]]:border-destructive has-[[aria-invalid=true]]:ring-2 has-[[aria-invalid=true]]:ring-destructive/20 dark:bg-input/30 dark:has-[[aria-invalid=true]]:ring-destructive/40',
 	{
 		variants: {
 			size: {
 				sm: 'h-7 text-sm',
-				default: 'h-8 text-sm',
+				default: 'h-7 text-sm',
 				lg: 'h-9 text-sm',
 			},
 		},
@@ -33,14 +33,13 @@ const numberFieldGroupVariants = cva(
 )
 
 const numberFieldButtonVariants = cva(
-	'relative flex shrink-0 cursor-pointer items-center justify-center transition-colors pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 hover:bg-accent',
+	'relative flex shrink-0 cursor-pointer items-center justify-center transition-colors outline-none pointer-coarse:min-h-11 pointer-coarse:min-w-11 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50',
 	{
 		variants: {
 			size: {
-				sm: "px-1.5 ([class*='size-'])]:size-3.5 ([class*='size-'])]:size-3.5 [&_svg:not([class*='size-'])]:size-3.5 ([class*='size-'])]:size-3.5 ([class*='size-'])]:size-3 ([class*='size-'])]:size-3.5 ([class*='size-'])]:size-3.5",
-				default:
-					"px-2 ([class*='size-'])]:size-4 ([class*='size-'])]:size-4 [&_svg:not([class*='size-'])]:size-4 ([class*='size-'])]:size-4 ([class*='size-'])]:size-3.5 ([class*='size-'])]:size-4 ([class*='size-'])]:size-3.5",
-				lg: "px-2.5 ([class*='size-'])]:size-4 ([class*='size-'])]:size-4 [&_svg:not([class*='size-'])]:size-4 ([class*='size-'])]:size-4 ([class*='size-'])]:size-3.5 ([class*='size-'])]:size-4 ([class*='size-'])]:size-3.5",
+				sm: "px-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+				default: "px-2 [&_svg:not([class*='size-'])]:size-3.5",
+				lg: "px-2.5 [&_svg:not([class*='size-'])]:size-4",
 			},
 		},
 		defaultVariants: {
@@ -50,7 +49,7 @@ const numberFieldButtonVariants = cva(
 )
 
 const numberFieldInputVariants = cva(
-	'w-full min-w-0 flex-1 bg-transparent text-center tabular-nums outline-none',
+	'w-full min-w-0 flex-1 bg-transparent text-right font-mono tabular-nums outline-none',
 	{
 		variants: {
 			size: {

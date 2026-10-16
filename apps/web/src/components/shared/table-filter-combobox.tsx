@@ -21,6 +21,7 @@ interface TableFilterComboboxProps {
 	value?: string[]
 	onValueChange: (value: string[] | undefined) => void
 	placeholder?: string
+	'aria-label'?: string
 	emptyMessage?: string
 	className?: string
 }
@@ -54,6 +55,7 @@ export function TableFilterCombobox({
 	placeholder = 'Filter...',
 	emptyMessage = 'No results found.',
 	className,
+	'aria-label': ariaLabel = placeholder,
 }: TableFilterComboboxProps) {
 	const selected = value ?? []
 	const selectedOptions = options.filter((o) => selected.includes(o.value))
@@ -72,6 +74,7 @@ export function TableFilterCombobox({
 			}
 		>
 			<ComboboxTrigger
+				aria-label={ariaLabel}
 				className={cn(
 					'flex h-7 w-37.5 items-center justify-between gap-1.5 rounded-md border border-input bg-input/20 px-2 text-xs/relaxed whitespace-nowrap outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 dark:bg-input/30 dark:hover:bg-input/50',
 					className,
@@ -93,7 +96,11 @@ export function TableFilterCombobox({
 				</ComboboxValue>
 			</ComboboxTrigger>
 			<ComboboxContent>
-				<ComboboxInput placeholder={placeholder} showTrigger={false} />
+				<ComboboxInput
+					aria-label={`Search ${ariaLabel}`}
+					placeholder={placeholder}
+					showTrigger={false}
+				/>
 				<ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
 				<ComboboxList>
 					{(opt: TableFilterComboboxOption) => (

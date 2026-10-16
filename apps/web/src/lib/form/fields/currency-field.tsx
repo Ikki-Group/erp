@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 import { toCanonicalCurrency, toDisplayCurrency } from '@/lib/currency.ts'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +15,7 @@ import { useFieldContext } from '../contexts.ts'
 import { formatFieldError } from '../field-error.tsx'
 
 export interface CurrencyFieldProps {
+	id?: string
 	label: string
 	/** Currency prefix shown inside the input, e.g. 'Rp'. */
 	prefix?: string
@@ -23,14 +26,12 @@ export interface CurrencyFieldProps {
 }
 
 /**
- * Currency amount input. The field's value type is the canonical numeric
- * `string` every money DTO expects ("82340.5", never "82.340,5") — the same
- * convention as `TextField` for decimal literals (see `MaterialFormSchema`'s
- * `minStock`). Displays and accepts the value in Indonesian
- * thousands-grouped, comma-decimal notation; use `CurrencyDisplay`
- * (`@/components/shared/currency-display`) for the read-only equivalent.
+ * Currency amount input bound to a canonical numeric string ("82340.5").
+ * Displays and accepts Indonesian thousands-grouped, comma-decimal notation.
+ * Use `CurrencyDisplay` for the read-only equivalent.
  */
 export function CurrencyField({
+	id,
 	label,
 	prefix = 'Rp',
 	placeholder = '0',
@@ -39,8 +40,13 @@ export function CurrencyField({
 	className,
 }: CurrencyFieldProps) {
 	const field = useFieldContext<string>()
-	const fieldId = field.name
+	const generatedId = useId()
+	const fieldId = id ?? generatedId
 	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
+	const describedBy =
+		[description && `${fieldId}-description`, error && `${fieldId}-error`]
+			.filter(Boolean)
+			.join(' ') || undefined
 
 	return (
 		<div className={cn('space-y-1.5', className)}>
@@ -60,12 +66,16 @@ export function CurrencyField({
 					onChange={(e) => field.handleChange(toCanonicalCurrency(e.target.value))}
 					placeholder={placeholder}
 					aria-invalid={!!error}
-					aria-describedby={error ? `${fieldId}-error` : undefined}
+					aria-describedby={describedBy}
 					disabled={disabled}
 					className="text-right font-mono tabular-nums"
 				/>
 			</InputGroup>
-			{description && !error && <p className="text-xs text-muted-foreground">{description}</p>}
+			{description && (
+				<p id={`${fieldId}-description`} className="text-xs text-muted-foreground">
+					{description}
+				</p>
+			)}
 			{error && (
 				<p id={`${fieldId}-error`} className="text-xs text-destructive">
 					{error}

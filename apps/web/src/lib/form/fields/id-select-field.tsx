@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 import { cn } from '@/lib/utils'
 
 import { Label } from '@/components/ui/label'
@@ -13,9 +15,10 @@ export interface IdSelectFieldOption {
 }
 
 export interface IdSelectFieldProps {
+	id?: string
 	label: string
 	options: IdSelectFieldOption[]
-	/** Shown as the first, unselectable-looking option when the field is optional. Omit for a required relation. */
+	/** Adds a selectable option that clears this optional relation. Omit for a required relation. */
 	nullableLabel?: string
 	placeholder?: string
 	description?: string
@@ -41,6 +44,7 @@ export interface IdSelectFieldProps {
  * `SelectField` instead — its value is the string itself, no conversion.
  */
 export function IdSelectField({
+	id,
 	label,
 	options,
 	nullableLabel,
@@ -51,8 +55,13 @@ export function IdSelectField({
 	onValueChange,
 }: IdSelectFieldProps) {
 	const field = useFieldContext<number | null>()
-	const fieldId = field.name
+	const generatedId = useId()
+	const fieldId = id ?? generatedId
 	const error = field.state.meta.isTouched ? formatFieldError(field.state.meta.errors) : undefined
+	const describedBy =
+		[description && `${fieldId}-description`, error && `${fieldId}-error`]
+			.filter(Boolean)
+			.join(' ') || undefined
 	const selectedLabel =
 		field.state.value === null
 			? nullableLabel
@@ -62,6 +71,7 @@ export function IdSelectField({
 		<div className={cn('space-y-1.5', className)}>
 			<Label htmlFor={fieldId}>{label}</Label>
 			<Select
+				name={field.name}
 				value={idToString(field.state.value)}
 				onValueChange={(v: string | null) => {
 					const id = toId(v ?? undefined)
@@ -70,7 +80,13 @@ export function IdSelectField({
 				}}
 				disabled={disabled}
 			>
-				<SelectTrigger id={fieldId} className="w-full" aria-invalid={!!error}>
+				<SelectTrigger
+					id={fieldId}
+					className="w-full"
+					onBlur={field.handleBlur}
+					aria-invalid={!!error}
+					aria-describedby={describedBy}
+				>
 					<span
 						data-slot="select-value"
 						className={cn('min-w-0 flex-1 text-left', !selectedLabel && 'text-muted-foreground')}
@@ -87,7 +103,11 @@ export function IdSelectField({
 					))}
 				</SelectContent>
 			</Select>
-			{description && !error && <p className="text-xs text-muted-foreground">{description}</p>}
+			{description && (
+				<p id={`${fieldId}-description`} className="text-xs text-muted-foreground">
+					{description}
+				</p>
+			)}
 			{error && (
 				<p id={`${fieldId}-error`} className="text-xs text-destructive">
 					{error}

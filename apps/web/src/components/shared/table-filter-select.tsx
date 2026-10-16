@@ -17,6 +17,7 @@ export interface TableFilterOption {
 interface TableFilterSelectBaseProps {
 	options: readonly TableFilterOption[]
 	allLabel?: string
+	'aria-label'?: string
 	className?: string
 }
 
@@ -54,6 +55,7 @@ export function TableFilterSelect({
 	options,
 	allLabel = 'All',
 	className,
+	'aria-label': ariaLabel = allLabel,
 	...props
 }: TableFilterSelectProps) {
 	if (props.multiple) {
@@ -65,7 +67,7 @@ export function TableFilterSelect({
 				value={selected}
 				onValueChange={(next: string[]) => onValueChange(next.length > 0 ? next : undefined)}
 			>
-				<SelectTrigger className={cn('w-37.5', className)}>
+				<SelectTrigger aria-label={ariaLabel} className={cn('w-37.5', className)}>
 					<SelectValue placeholder={allLabel}>
 						{(val: string[] | null) => {
 							const selectedValues = val ?? []
@@ -96,7 +98,7 @@ export function TableFilterSelect({
 			value={value ?? ALL_VALUE}
 			onValueChange={(v: string | null) => onValueChange(!v || v === ALL_VALUE ? undefined : v)}
 		>
-			<SelectTrigger className={cn('w-37.5', className)}>
+			<SelectTrigger aria-label={ariaLabel} className={cn('w-37.5', className)}>
 				<SelectValue placeholder={allLabel}>
 					{(val: string | null) => {
 						if (!val || val === ALL_VALUE) return allLabel

@@ -5,11 +5,13 @@ Reusable numeric input components with UOM (Unit of Measure) integration.
 ## Components
 
 ### `NumberInputGroupAddon`
+
 Numeric input with a **static** UOM label at the end.
 
 Use when the unit of measure is fixed/known in advance (e.g., weight in kg, quantity in pieces).
 
 ### `NumberInputGroup`
+
 Numeric input with an **editable** UOM dropdown at the end.
 
 Use when both the quantity and unit need to be user-selected (e.g., inventory adjustments, recipe ingredients).
@@ -23,13 +25,15 @@ import { NumberInputGroup, NumberInputGroupAddon } from '@/components/ui/number-
 
 // Static UOM
 <NumberInputGroupAddon
+  aria-label="Weight in kilograms"
   uomLabel="kg"
-  value={weight}
-  onChange={(e) => setWeight(parseFloat(e.target.value))}
+  value={weight ?? ''}
+  onChange={(e) => setWeight(e.target.value === '' ? null : Number(e.target.value))}
 />
 
 // Editable UOM
 <NumberInputGroup
+  aria-label="Quantity"
   value={quantity}
   uomId={uomId}
   uomOptions={[
@@ -56,8 +60,8 @@ const form = useAppForm({
 
 <form.AppForm>
   <form.AppField name="weight">
-    {(field) => (
-      <field.NumberInputGroupAddonField
+    {() => (
+      <NumberInputGroupAddonField
         label="Weight"
         uomLabel="kg"
         placeholder="Enter weight..."
@@ -74,7 +78,6 @@ For `NumberInputGroupField` with editable UOM, you need to handle two fields:
 ```tsx
 import { useAppForm } from '@/lib/form'
 import { NumberInputGroupField } from '@/lib/form/fields/number-input-group-field'
-import { useFieldContext } from '@/lib/form/contexts'
 
 const form = useAppForm({
   defaultValues: {
@@ -105,25 +108,26 @@ const form = useAppForm({
 
 ### NumberInputGroupAddonProps
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `uomLabel` | `string` | Static label displayed at the end |
-| `value` | `number \| null \| undefined` | Current numeric value |
-| `onChange` | `(value: number \| null) => void` | Called when value changes |
-| `disabled` | `boolean` | Disabled state |
-| All standard input props | | `placeholder`, `min`, `max`, `step`, etc. |
+| Prop                     | Type                        | Description                                                      |
+| ------------------------ | --------------------------- | ---------------------------------------------------------------- |
+| `uomLabel`               | `string`                    | Static label displayed at the end                                |
+| `value`                  | Native input value          | Pass `''` for an empty controlled input                          |
+| `onChange`               | Native input change handler | Read `event.target.value`; empty means null at the form boundary |
+| `disabled`               | `boolean`                   | Disabled state                                                   |
+| All standard input props |                             | `placeholder`, `min`, `max`, `step`, etc.                        |
 
 ### NumberInputGroupProps
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `value` | `number \| null \| undefined` | Current numeric value |
-| `uomId` | `number \| null \| undefined` | Current UOM ID |
-| `uomOptions` | `Array<{ id: number; code: string }>` | Available UOM options |
-| `onChange` | `(value: number \| null) => void` | Called when value changes |
-| `onUomChange` | `(uomId: number) => void` | Called when UOM changes |
-| `disabled` | `boolean` | Disabled state |
-| All standard input props | | `placeholder`, `min`, `max`, `step`, etc. |
+| Prop                     | Type                                  | Description                                               |
+| ------------------------ | ------------------------------------- | --------------------------------------------------------- |
+| `value`                  | `number \| null \| undefined`         | Current numeric value                                     |
+| `uomId`                  | `number \| null \| undefined`         | Current UOM ID                                            |
+| `uomOptions`             | `Array<{ id: number; code: string }>` | Available UOM options                                     |
+| `onChange`               | `(value: number \| null) => void`     | Called when value changes                                 |
+| `onUomChange`            | `(uomId: number) => void`             | Called when UOM changes                                   |
+| `uomTriggerProps`        | Select trigger props                  | Unit-specific name, description, error, and blur handling |
+| `disabled`               | `boolean`                             | Disabled state                                            |
+| All standard input props |                                       | `placeholder`, `min`, `max`, `step`, etc.                 |
 
 ## Integration Tips
 
@@ -144,3 +148,5 @@ const form = useAppForm({
 - Cache UOM options if used across multiple forms
 - Provide meaningful labels and descriptions for accessibility
 - Use appropriate `min`, `max`, and `step` props for numeric validation
+
+Form adapters generate unique control IDs and associate hints/errors. Use the two render-prop field instances shown above; two context-hook calls inside the inner field both read that inner field. Changing UOM must preserve the quantity. Coarse-pointer controls reserve 44px targets; fine-pointer controls remain compact.
