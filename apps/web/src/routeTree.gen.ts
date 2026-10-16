@@ -26,7 +26,6 @@ import { Route as DesignSystemOverlaysRouteImport } from './routes/design-system
 import { Route as DesignSystemTablesRouteImport } from './routes/design-system/tables'
 import { Route as AuthenticatedInventoryOpnameRouteImport } from './routes/_authenticated/inventory/opname'
 import { Route as AuthenticatedInventoryStockRouteImport } from './routes/_authenticated/inventory/stock'
-import { Route as AuthenticatedMasterRecipesRouteImport } from './routes/_authenticated/master/recipes'
 import { Route as AuthenticatedPosNewOrderRouteImport } from './routes/_authenticated/pos/new-order'
 import { Route as AuthenticatedPosOrdersRouteImport } from './routes/_authenticated/pos/orders'
 import { Route as AuthenticatedPosShiftsRouteImport } from './routes/_authenticated/pos/shifts'
@@ -45,6 +44,9 @@ import { Route as AuthenticatedMasterMenuIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedMasterPaymentMethodsIndexRouteImport } from './routes/_authenticated/master/payment-methods/index'
 import { Route as AuthenticatedMasterPaymentMethodsPaymentMethodIdRouteImport } from './routes/_authenticated/master/payment-methods/$paymentMethodId'
 import { Route as AuthenticatedMasterPaymentMethodsNewRouteImport } from './routes/_authenticated/master/payment-methods/new'
+import { Route as AuthenticatedMasterRecipesIndexRouteImport } from './routes/_authenticated/master/recipes/index'
+import { Route as AuthenticatedMasterRecipesRecipeIdRouteImport } from './routes/_authenticated/master/recipes/$recipeId'
+import { Route as AuthenticatedMasterRecipesNewRouteImport } from './routes/_authenticated/master/recipes/new'
 import { Route as AuthenticatedMasterSuppliersIndexRouteImport } from './routes/_authenticated/master/suppliers/index'
 import { Route as AuthenticatedMasterSuppliersSupplierIdRouteImport } from './routes/_authenticated/master/suppliers/$supplierId'
 import { Route as AuthenticatedMasterSuppliersNewRouteImport } from './routes/_authenticated/master/suppliers/new'
@@ -154,12 +156,6 @@ const AuthenticatedInventoryStockRoute =
     path: '/inventory/stock',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedMasterRecipesRoute =
-  AuthenticatedMasterRecipesRouteImport.update({
-    id: '/master/recipes',
-    path: '/master/recipes',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedPosNewOrderRoute =
   AuthenticatedPosNewOrderRouteImport.update({
     id: '/pos/new-order',
@@ -264,6 +260,24 @@ const AuthenticatedMasterPaymentMethodsNewRoute =
   AuthenticatedMasterPaymentMethodsNewRouteImport.update({
     id: '/master/payment-methods/new',
     path: '/master/payment-methods/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterRecipesIndexRoute =
+  AuthenticatedMasterRecipesIndexRouteImport.update({
+    id: '/master/recipes/',
+    path: '/master/recipes/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterRecipesRecipeIdRoute =
+  AuthenticatedMasterRecipesRecipeIdRouteImport.update({
+    id: '/master/recipes/$recipeId',
+    path: '/master/recipes/$recipeId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMasterRecipesNewRoute =
+  AuthenticatedMasterRecipesNewRouteImport.update({
+    id: '/master/recipes/new',
+    path: '/master/recipes/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedMasterSuppliersIndexRoute =
@@ -416,7 +430,6 @@ export interface FileRoutesByFullPath {
   '/design-system/': typeof DesignSystemIndexRoute
   '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
-  '/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
   '/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
@@ -430,6 +443,8 @@ export interface FileRoutesByFullPath {
   '/master/materials/new': typeof AuthenticatedMasterMaterialsNewRoute
   '/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
   '/master/payment-methods/new': typeof AuthenticatedMasterPaymentMethodsNewRoute
+  '/master/recipes/$recipeId': typeof AuthenticatedMasterRecipesRecipeIdRoute
+  '/master/recipes/new': typeof AuthenticatedMasterRecipesNewRoute
   '/master/suppliers/$supplierId': typeof AuthenticatedMasterSuppliersSupplierIdRoute
   '/master/suppliers/new': typeof AuthenticatedMasterSuppliersNewRoute
   '/master/uom/$uomId': typeof AuthenticatedMasterUomUomIdRoute
@@ -448,6 +463,7 @@ export interface FileRoutesByFullPath {
   '/master/materials/': typeof AuthenticatedMasterMaterialsIndexRoute
   '/master/menu/': typeof AuthenticatedMasterMenuIndexRoute
   '/master/payment-methods/': typeof AuthenticatedMasterPaymentMethodsIndexRoute
+  '/master/recipes/': typeof AuthenticatedMasterRecipesIndexRoute
   '/master/suppliers/': typeof AuthenticatedMasterSuppliersIndexRoute
   '/master/uom/': typeof AuthenticatedMasterUomIndexRoute
   '/pos/tables/': typeof AuthenticatedPosTablesIndexRoute
@@ -474,7 +490,6 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemIndexRoute
   '/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/inventory/stock': typeof AuthenticatedInventoryStockRoute
-  '/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/pos/new-order': typeof AuthenticatedPosNewOrderRoute
   '/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
@@ -488,6 +503,8 @@ export interface FileRoutesByTo {
   '/master/materials/new': typeof AuthenticatedMasterMaterialsNewRoute
   '/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
   '/master/payment-methods/new': typeof AuthenticatedMasterPaymentMethodsNewRoute
+  '/master/recipes/$recipeId': typeof AuthenticatedMasterRecipesRecipeIdRoute
+  '/master/recipes/new': typeof AuthenticatedMasterRecipesNewRoute
   '/master/suppliers/$supplierId': typeof AuthenticatedMasterSuppliersSupplierIdRoute
   '/master/suppliers/new': typeof AuthenticatedMasterSuppliersNewRoute
   '/master/uom/$uomId': typeof AuthenticatedMasterUomUomIdRoute
@@ -506,6 +523,7 @@ export interface FileRoutesByTo {
   '/master/materials': typeof AuthenticatedMasterMaterialsIndexRoute
   '/master/menu': typeof AuthenticatedMasterMenuIndexRoute
   '/master/payment-methods': typeof AuthenticatedMasterPaymentMethodsIndexRoute
+  '/master/recipes': typeof AuthenticatedMasterRecipesIndexRoute
   '/master/suppliers': typeof AuthenticatedMasterSuppliersIndexRoute
   '/master/uom': typeof AuthenticatedMasterUomIndexRoute
   '/pos/tables': typeof AuthenticatedPosTablesIndexRoute
@@ -535,7 +553,6 @@ export interface FileRoutesById {
   '/design-system/': typeof DesignSystemIndexRoute
   '/_authenticated/inventory/opname': typeof AuthenticatedInventoryOpnameRoute
   '/_authenticated/inventory/stock': typeof AuthenticatedInventoryStockRoute
-  '/_authenticated/master/recipes': typeof AuthenticatedMasterRecipesRoute
   '/_authenticated/pos/new-order': typeof AuthenticatedPosNewOrderRoute
   '/_authenticated/pos/orders': typeof AuthenticatedPosOrdersRoute
   '/_authenticated/pos/shifts': typeof AuthenticatedPosShiftsRoute
@@ -549,6 +566,8 @@ export interface FileRoutesById {
   '/_authenticated/master/materials/new': typeof AuthenticatedMasterMaterialsNewRoute
   '/_authenticated/master/payment-methods/$paymentMethodId': typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
   '/_authenticated/master/payment-methods/new': typeof AuthenticatedMasterPaymentMethodsNewRoute
+  '/_authenticated/master/recipes/$recipeId': typeof AuthenticatedMasterRecipesRecipeIdRoute
+  '/_authenticated/master/recipes/new': typeof AuthenticatedMasterRecipesNewRoute
   '/_authenticated/master/suppliers/$supplierId': typeof AuthenticatedMasterSuppliersSupplierIdRoute
   '/_authenticated/master/suppliers/new': typeof AuthenticatedMasterSuppliersNewRoute
   '/_authenticated/master/uom/$uomId': typeof AuthenticatedMasterUomUomIdRoute
@@ -567,6 +586,7 @@ export interface FileRoutesById {
   '/_authenticated/master/materials/': typeof AuthenticatedMasterMaterialsIndexRoute
   '/_authenticated/master/menu/': typeof AuthenticatedMasterMenuIndexRoute
   '/_authenticated/master/payment-methods/': typeof AuthenticatedMasterPaymentMethodsIndexRoute
+  '/_authenticated/master/recipes/': typeof AuthenticatedMasterRecipesIndexRoute
   '/_authenticated/master/suppliers/': typeof AuthenticatedMasterSuppliersIndexRoute
   '/_authenticated/master/uom/': typeof AuthenticatedMasterUomIndexRoute
   '/_authenticated/pos/tables/': typeof AuthenticatedPosTablesIndexRoute
@@ -596,7 +616,6 @@ export interface FileRouteTypes {
     | '/design-system/'
     | '/inventory/opname'
     | '/inventory/stock'
-    | '/master/recipes'
     | '/pos/new-order'
     | '/pos/orders'
     | '/pos/shifts'
@@ -610,6 +629,8 @@ export interface FileRouteTypes {
     | '/master/materials/new'
     | '/master/payment-methods/$paymentMethodId'
     | '/master/payment-methods/new'
+    | '/master/recipes/$recipeId'
+    | '/master/recipes/new'
     | '/master/suppliers/$supplierId'
     | '/master/suppliers/new'
     | '/master/uom/$uomId'
@@ -628,6 +649,7 @@ export interface FileRouteTypes {
     | '/master/materials/'
     | '/master/menu/'
     | '/master/payment-methods/'
+    | '/master/recipes/'
     | '/master/suppliers/'
     | '/master/uom/'
     | '/pos/tables/'
@@ -654,7 +676,6 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/inventory/opname'
     | '/inventory/stock'
-    | '/master/recipes'
     | '/pos/new-order'
     | '/pos/orders'
     | '/pos/shifts'
@@ -668,6 +689,8 @@ export interface FileRouteTypes {
     | '/master/materials/new'
     | '/master/payment-methods/$paymentMethodId'
     | '/master/payment-methods/new'
+    | '/master/recipes/$recipeId'
+    | '/master/recipes/new'
     | '/master/suppliers/$supplierId'
     | '/master/suppliers/new'
     | '/master/uom/$uomId'
@@ -686,6 +709,7 @@ export interface FileRouteTypes {
     | '/master/materials'
     | '/master/menu'
     | '/master/payment-methods'
+    | '/master/recipes'
     | '/master/suppliers'
     | '/master/uom'
     | '/pos/tables'
@@ -714,7 +738,6 @@ export interface FileRouteTypes {
     | '/design-system/'
     | '/_authenticated/inventory/opname'
     | '/_authenticated/inventory/stock'
-    | '/_authenticated/master/recipes'
     | '/_authenticated/pos/new-order'
     | '/_authenticated/pos/orders'
     | '/_authenticated/pos/shifts'
@@ -728,6 +751,8 @@ export interface FileRouteTypes {
     | '/_authenticated/master/materials/new'
     | '/_authenticated/master/payment-methods/$paymentMethodId'
     | '/_authenticated/master/payment-methods/new'
+    | '/_authenticated/master/recipes/$recipeId'
+    | '/_authenticated/master/recipes/new'
     | '/_authenticated/master/suppliers/$supplierId'
     | '/_authenticated/master/suppliers/new'
     | '/_authenticated/master/uom/$uomId'
@@ -746,6 +771,7 @@ export interface FileRouteTypes {
     | '/_authenticated/master/materials/'
     | '/_authenticated/master/menu/'
     | '/_authenticated/master/payment-methods/'
+    | '/_authenticated/master/recipes/'
     | '/_authenticated/master/suppliers/'
     | '/_authenticated/master/uom/'
     | '/_authenticated/pos/tables/'
@@ -884,13 +910,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInventoryStockRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/master/recipes': {
-      id: '/_authenticated/master/recipes'
-      path: '/master/recipes'
-      fullPath: '/master/recipes'
-      preLoaderRoute: typeof AuthenticatedMasterRecipesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/pos/new-order': {
       id: '/_authenticated/pos/new-order'
       path: '/pos/new-order'
@@ -1015,6 +1034,27 @@ declare module '@tanstack/react-router' {
       path: '/master/payment-methods/new'
       fullPath: '/master/payment-methods/new'
       preLoaderRoute: typeof AuthenticatedMasterPaymentMethodsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/recipes/': {
+      id: '/_authenticated/master/recipes/'
+      path: '/master/recipes'
+      fullPath: '/master/recipes/'
+      preLoaderRoute: typeof AuthenticatedMasterRecipesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/recipes/$recipeId': {
+      id: '/_authenticated/master/recipes/$recipeId'
+      path: '/master/recipes/$recipeId'
+      fullPath: '/master/recipes/$recipeId'
+      preLoaderRoute: typeof AuthenticatedMasterRecipesRecipeIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/master/recipes/new': {
+      id: '/_authenticated/master/recipes/new'
+      path: '/master/recipes/new'
+      fullPath: '/master/recipes/new'
+      preLoaderRoute: typeof AuthenticatedMasterRecipesNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/master/suppliers/': {
@@ -1179,7 +1219,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedInventoryOpnameRoute: typeof AuthenticatedInventoryOpnameRoute
   AuthenticatedInventoryStockRoute: typeof AuthenticatedInventoryStockRoute
-  AuthenticatedMasterRecipesRoute: typeof AuthenticatedMasterRecipesRoute
   AuthenticatedPosNewOrderRoute: typeof AuthenticatedPosNewOrderRoute
   AuthenticatedPosOrdersRoute: typeof AuthenticatedPosOrdersRoute
   AuthenticatedPosShiftsRoute: typeof AuthenticatedPosShiftsRoute
@@ -1193,6 +1232,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMasterMaterialsNewRoute: typeof AuthenticatedMasterMaterialsNewRoute
   AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute: typeof AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute
   AuthenticatedMasterPaymentMethodsNewRoute: typeof AuthenticatedMasterPaymentMethodsNewRoute
+  AuthenticatedMasterRecipesRecipeIdRoute: typeof AuthenticatedMasterRecipesRecipeIdRoute
+  AuthenticatedMasterRecipesNewRoute: typeof AuthenticatedMasterRecipesNewRoute
   AuthenticatedMasterSuppliersSupplierIdRoute: typeof AuthenticatedMasterSuppliersSupplierIdRoute
   AuthenticatedMasterSuppliersNewRoute: typeof AuthenticatedMasterSuppliersNewRoute
   AuthenticatedMasterUomUomIdRoute: typeof AuthenticatedMasterUomUomIdRoute
@@ -1211,6 +1252,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMasterMaterialsIndexRoute: typeof AuthenticatedMasterMaterialsIndexRoute
   AuthenticatedMasterMenuIndexRoute: typeof AuthenticatedMasterMenuIndexRoute
   AuthenticatedMasterPaymentMethodsIndexRoute: typeof AuthenticatedMasterPaymentMethodsIndexRoute
+  AuthenticatedMasterRecipesIndexRoute: typeof AuthenticatedMasterRecipesIndexRoute
   AuthenticatedMasterSuppliersIndexRoute: typeof AuthenticatedMasterSuppliersIndexRoute
   AuthenticatedMasterUomIndexRoute: typeof AuthenticatedMasterUomIndexRoute
   AuthenticatedPosTablesIndexRoute: typeof AuthenticatedPosTablesIndexRoute
@@ -1227,7 +1269,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedInventoryOpnameRoute: AuthenticatedInventoryOpnameRoute,
   AuthenticatedInventoryStockRoute: AuthenticatedInventoryStockRoute,
-  AuthenticatedMasterRecipesRoute: AuthenticatedMasterRecipesRoute,
   AuthenticatedPosNewOrderRoute: AuthenticatedPosNewOrderRoute,
   AuthenticatedPosOrdersRoute: AuthenticatedPosOrdersRoute,
   AuthenticatedPosShiftsRoute: AuthenticatedPosShiftsRoute,
@@ -1248,6 +1289,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
     AuthenticatedMasterPaymentMethodsPaymentMethodIdRoute,
   AuthenticatedMasterPaymentMethodsNewRoute:
     AuthenticatedMasterPaymentMethodsNewRoute,
+  AuthenticatedMasterRecipesRecipeIdRoute:
+    AuthenticatedMasterRecipesRecipeIdRoute,
+  AuthenticatedMasterRecipesNewRoute: AuthenticatedMasterRecipesNewRoute,
   AuthenticatedMasterSuppliersSupplierIdRoute:
     AuthenticatedMasterSuppliersSupplierIdRoute,
   AuthenticatedMasterSuppliersNewRoute: AuthenticatedMasterSuppliersNewRoute,
@@ -1273,6 +1317,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMasterMenuIndexRoute: AuthenticatedMasterMenuIndexRoute,
   AuthenticatedMasterPaymentMethodsIndexRoute:
     AuthenticatedMasterPaymentMethodsIndexRoute,
+  AuthenticatedMasterRecipesIndexRoute: AuthenticatedMasterRecipesIndexRoute,
   AuthenticatedMasterSuppliersIndexRoute:
     AuthenticatedMasterSuppliersIndexRoute,
   AuthenticatedMasterUomIndexRoute: AuthenticatedMasterUomIndexRoute,
