@@ -3,8 +3,6 @@ import { useCallback, useRef, useState } from 'react'
 import { AlertTriangleIcon, CheckCircle2Icon } from 'lucide-react'
 import { createCallable } from 'react-call'
 
-import { cn } from '@/lib/utils'
-
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -80,11 +78,6 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 			}
 		}, [onConfirm, close])
 
-		const handleRetry = () => {
-			setError(null)
-			void handleConfirm()
-		}
-
 		const handleCancel = useCallback(() => {
 			if (!loading && !isClosingRef.current && !success) {
 				close(false)
@@ -100,7 +93,7 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 			[loading, success, call.ended, close],
 		)
 
-		const showFooter = !error && !success
+		const showFooter = !success
 
 		return (
 			<Dialog open={!call.ended} onOpenChange={handleOpenChange}>
@@ -121,11 +114,11 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 					</DialogHeader>
 
 					{error && (
-						<div className="animate-in slide-in-from-top-2 duration-200 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs font-medium text-destructive">
-							<div className="mb-2">{error}</div>
-							<Button size="sm" variant="outline" onClick={handleRetry} className="text-xs">
-								Try Again
-							</Button>
+						<div
+							role="alert"
+							className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs font-medium text-destructive"
+						>
+							{error}
 						</div>
 					)}
 
@@ -138,10 +131,9 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 								variant={variant === 'destructive' ? 'destructive' : 'default'}
 								disabled={loading}
 								onClick={handleConfirm}
-								className={cn(variant === 'destructive' && 'shadow-sm hover:shadow-md')}
 							>
 								{loading && <Spinner className="mr-1.5 size-3.5" />}
-								{confirmLabel}
+								{error ? 'Try Again' : confirmLabel}
 							</Button>
 						</DialogFooter>
 					)}

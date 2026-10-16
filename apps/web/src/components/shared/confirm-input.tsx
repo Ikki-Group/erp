@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 
 import { AlertTriangleIcon } from 'lucide-react'
 import { createCallable } from 'react-call'
@@ -48,6 +48,7 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 		inputPlaceholder,
 		onConfirm,
 	}) => {
+		const inputId = useId()
 		const [value, setValue] = useState('')
 		const [loading, setLoading] = useState(false)
 		const [error, setError] = useState<string | null>(null)
@@ -105,7 +106,7 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 						<DialogDescription>{description}</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-2 py-2">
-						<Label htmlFor="confirm-input">
+						<Label htmlFor={inputId}>
 							{inputLabel ?? (
 								<>
 									Type <span className="font-semibold text-foreground">{confirmWord}</span> to
@@ -114,7 +115,7 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 							)}
 						</Label>
 						<Input
-							id="confirm-input"
+							id={inputId}
 							value={value}
 							onChange={(e) => setValue(e.target.value)}
 							placeholder={inputPlaceholder ?? confirmWord}
@@ -124,7 +125,10 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 						/>
 					</div>
 					{error && (
-						<div className="animate-in slide-in-from-top-2 duration-200 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs font-medium text-destructive">
+						<div
+							role="alert"
+							className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs font-medium text-destructive"
+						>
 							{error}
 						</div>
 					)}
@@ -132,12 +136,7 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 						<Button variant="outline" onClick={handleCancel} disabled={loading}>
 							{cancelLabel}
 						</Button>
-						<Button
-							variant="destructive"
-							disabled={!isMatch || loading}
-							onClick={handleConfirm}
-							className="shadow-sm hover:shadow-md"
-						>
+						<Button variant="destructive" disabled={!isMatch || loading} onClick={handleConfirm}>
 							{loading && <Spinner className="mr-1.5 size-3.5" />}
 							{confirmLabel}
 						</Button>

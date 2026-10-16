@@ -76,8 +76,9 @@ function OverlaysPage() {
 
 			{/* ─── CONFIRM (react-call) ─── */}
 			<PageSection
+				id="confirm"
 				title="Confirm (react-call)"
-				description="Imperative awaitable confirm dialog. No state management needed."
+				description="Use for consequential actions with a short review. Keep Cancel visible after errors, preserve context, and allow retry. Use a full page, not a confirmation, for multi-field editing."
 			>
 				<div className="flex flex-wrap gap-3">
 					<Button
