@@ -1,48 +1,33 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import { Building2Icon, WarehouseIcon } from 'lucide-react'
 
-import { TextCell } from '@/components/data-table/cell'
-import { type DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { StatusBadge } from '@/components/shared/status-badge'
+import { createEntityColumns } from '@/components/data-table'
 
 import type { LocationDto } from '../dto/index.ts'
 
-const col = createColumnHelper<DataGridFeatures, LocationDto>()
+const col = createEntityColumns<LocationDto>()
 
 export const locationColumns = [
-	col.accessor('code', {
-		header: 'Code',
-		size: 120,
-		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
-	}),
-	col.accessor('name', {
-		header: 'Name',
-		size: 200,
-	}),
-	col.accessor('type', {
+	col.code('code', { header: 'Code', size: 120 }),
+	col.text('name', { header: 'Name', size: 200 }),
+	col.text('type', {
 		header: 'Type',
 		size: 120,
 		cell: ({ getValue }) => {
 			const type = getValue()
-			return <span className="capitalize">{type}</span>
+			const Icon = type === 'store' ? Building2Icon : WarehouseIcon
+			return (
+				<div className="flex items-center gap-1.5">
+					<Icon className="size-3.5 text-muted-foreground" />
+					<span className="text-sm">{type === 'store' ? 'Store' : 'Warehouse'}</span>
+				</div>
+			)
 		},
 	}),
-	col.accessor('address', {
-		header: 'Address',
-		size: 200,
-		cell: ({ getValue }) => getValue() ?? <span className="text-muted-foreground">—</span>,
-	}),
-	col.accessor('phone', {
+	col.text('address', { header: 'Address', size: 250, cellProps: { muted: true } }),
+	col.text('phone', {
 		header: 'Phone',
-		size: 140,
-		cell: ({ getValue }) => getValue() ?? <span className="text-muted-foreground">—</span>,
+		size: 150,
+		cellProps: { truncate: false, muted: true },
 	}),
-	col.accessor('isActive', {
-		header: 'Status',
-		size: 100,
-		cell: ({ getValue }) => (
-			<StatusBadge variant={getValue() ? 'success' : 'default'}>
-				{getValue() ? 'Active' : 'Inactive'}
-			</StatusBadge>
-		),
-	}),
+	col.booleanStatus('isActive', { header: 'Status', size: 100 }),
 ]

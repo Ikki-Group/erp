@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
-import { z } from 'zod'
 
 import {
 	ArrowLeftIcon,
@@ -12,13 +11,10 @@ import {
 	UserIcon,
 	WarehouseIcon,
 } from 'lucide-react'
+import { z } from 'zod'
 
 import { DataTable, listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Spinner } from '@/components/ui/spinner'
 import {
 	AuditInfo,
 	DetailIcon,
@@ -27,10 +23,17 @@ import {
 	DetailSection,
 	StatusBadge,
 } from '@/components/shared'
-import { confirm } from '@/components/shared/confirm'
+import { PageError } from '@/components/shared/page-error'
+import { usePermissionCheck } from '@/components/shared/permission-gate'
 
-import { locationResource } from '@/features/location/api'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Spinner } from '@/components/ui/spinner'
+
 import { userResource } from '@/features/iam/api'
+import { locationResource } from '@/features/location/api'
+import { useLocationDelete } from '@/features/location/use-location-delete'
 
 const searchSchema = listSearchSchema.extend({
 	tab: z.enum(['users', 'details']).optional().default('users'),
@@ -83,10 +86,13 @@ function LocationDetailPage() {
 	const { locationId } = Route.useParams()
 	const search = Route.useSearch()
 	const navigate = useNavigate({ from: Route.fullPath })
+	const canEdit = usePermissionCheck({ permission: 'location.update' })
+	const deletion = useLocationDelete({ onDeleted: () => navigate({ to: '/settings/locations' }) })
 
 	const detailQuery = useQuery({
 		...locationResource.detail.queryOptions({ id: Number(locationId) }),
 		refetchOnWindowFocus: false,
+		throwOnError: false,
 	})
 
 	const location = detailQuery.data?.data
@@ -99,6 +105,7 @@ function LocationDetailPage() {
 			locationId: Number(locationId),
 		}),
 		enabled: !!location,
+		throwOnError: false,
 	})
 
 	const userCount = usersQuery.data?.meta?.total ?? 0
@@ -111,6 +118,10 @@ function LocationDetailPage() {
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
 	})
+
+	if (detailQuery.isError && !location) {
+		return <PageError title="Could not load location" onRetry={() => void detailQuery.refetch()} />
+	}
 
 	if (detailQuery.isLoading) {
 		return (
@@ -133,19 +144,6 @@ function LocationDetailPage() {
 		)
 	}
 
-	const handleDelete = async () => {
-		await confirm({
-			title: 'Delete Location',
-			description: `Are you sure you want to delete "${location.name}"? This action cannot be undone.`,
-			confirmLabel: 'Delete',
-			variant: 'destructive',
-			onConfirm: async () => {
-				await locationResource.remove.fetch({ id: location.id })
-				navigate({ to: '/settings/locations' })
-			},
-		})
-	}
-
 	return (
 		<DetailPage
 			title={location.name}
@@ -156,23 +154,43 @@ function LocationDetailPage() {
 				</StatusBadge>
 			}
 			actions={
-				<div className="flex gap-2">
-					<Button variant="outline" size="sm" onClick={() => navigate({ to: '/settings/locations' })}>
+				<div className="flex flex-wrap gap-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => navigate({ to: '/settings/locations' })}
+					>
 						<ArrowLeftIcon className="size-4" />
 						Back
 					</Button>
-					<Button variant="outline" size="sm" onClick={handleDelete}>
+					{deletion.canDelete && (
+						<Button
+							variant="outline"
+							size="sm"
+							disabled={deletion.isPending}
+							onClick={() => void deletion.run(location)}
+						>
 							<TrashIcon className="size-4" />
-						Delete
-					</Button>
-					<Button size="sm" onClick={() => navigate({ to: '/settings/locations/$locationId/edit', params: { locationId: String(locationId) } })}>
-						<PencilIcon className="size-4" />
-						Edit
-					</Button>
+							Deactivate
+						</Button>
+					)}
+					{canEdit && (
+						<Button
+							size="sm"
+							onClick={() =>
+								navigate({
+									to: '/settings/locations/$locationId/edit',
+									params: { locationId: String(locationId) },
+								})
+							}
+						>
+							<PencilIcon className="size-4" />
+							Edit
+						</Button>
+					)}
 				</div>
 			}
 		>
-
 			{/* Location Info Card */}
 			<DetailSection title="Location Details">
 				<Card>
@@ -193,10 +211,7 @@ function LocationDetailPage() {
 							]}
 							columns={2}
 						/>
-						<AuditInfo
-							createdAt={location.createdAt}
-							createdBy={location.createdBy}
-						/>
+						<AuditInfo createdAt={location.createdAt} createdBy={location.createdBy} />
 					</CardContent>
 				</Card>
 			</DetailSection>
@@ -217,6 +232,9 @@ function LocationDetailPage() {
 						<DataTable
 							table={table}
 							isLoading={usersQuery.isLoading}
+							recordCount={userCount}
+							isError={usersQuery.isError}
+							onRetry={() => void usersQuery.refetch()}
 							emptyMessage="No users assigned to this location."
 						/>
 					</CardContent>

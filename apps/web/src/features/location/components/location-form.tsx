@@ -1,9 +1,11 @@
 import { Building2Icon, CircleCheckIcon, MapPinIcon, PhoneIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { useEntityForm } from '@/lib/form/index.ts'
+import { useEntityEditor } from '@/lib/form/use-entity-editor'
 
-import { LOCATION_TYPE_OPTIONS, LocationTypeEnum } from '../dto/index.ts'
+import { locationResource } from '../api.ts'
+import { LOCATION_TYPE_OPTIONS, LocationCreateDto, LocationTypeEnum } from '../dto/index.ts'
+import type { LocationDto } from '../dto/index.ts'
 
 export interface LocationFormValues {
 	code: string
@@ -38,16 +40,40 @@ export const EMPTY_LOCATION_FORM_VALUES: LocationFormValues = {
 	isActive: true,
 }
 
-export interface UseLocationFormOptions {
-	defaultValues?: LocationFormValues
-	onSubmit: (values: LocationFormValues) => Promise<void>
+export function toLocationFormValues(location: LocationDto): LocationFormValues {
+	return {
+		code: location.code,
+		name: location.name,
+		type: location.type,
+		address: location.address ?? '',
+		phone: location.phone ?? '',
+		isActive: location.isActive,
+	}
 }
 
-export function useLocationForm({ defaultValues, onSubmit }: UseLocationFormOptions) {
-	return useEntityForm({
-		defaultValues: defaultValues ?? EMPTY_LOCATION_FORM_VALUES,
+export function toLocationInput(values: LocationFormValues): LocationCreateDto {
+	return LocationCreateDto.parse(values)
+}
+
+export function useLocationForm({
+	location,
+	onSaved,
+}: {
+	location?: LocationDto
+	onSaved: () => void | Promise<void>
+}) {
+	return useEntityEditor({
+		defaultValues: location ? toLocationFormValues(location) : EMPTY_LOCATION_FORM_VALUES,
 		schema: LocationFormSchema,
-		onSubmit,
+		mutation: {
+			mutationFn: (input: LocationCreateDto) =>
+				location
+					? locationResource.update.fetch({ ...input, id: location.id })
+					: locationResource.create.fetch(input),
+		},
+		toPayload: toLocationInput,
+		successMessage: location ? 'Location updated successfully.' : 'Location created successfully.',
+		onSaved,
 	})
 }
 
@@ -140,8 +166,6 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 						)}
 					</form.AppField>
 				</section>
-
-				<form.FormError />
 			</div>
 
 			<aside className="hidden space-y-5 lg:block">

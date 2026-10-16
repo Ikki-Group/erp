@@ -1,90 +1,50 @@
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { suspenseOptions } from '@/lib/api'
-import { useUnsavedChangesGuard } from '@/lib/form'
-
-import { FormPage } from '@/components/shared/form-page'
-import { PageError } from '@/components/shared/page-error'
-import { PageSkeleton } from '@/components/shared/page-skeleton'
-import { toast } from '@/components/ui/toast'
+import { DetailBoundary } from '@/components/shared/detail-boundary'
+import { EntityEditorPage } from '@/components/shared/entity-editor-page'
 
 import { locationResource } from '@/features/location/api'
-import {
-	LocationFormFields,
-	useLocationForm,
-} from '@/features/location/components/location-form'
+import { LocationFormFields, useLocationForm } from '@/features/location/components/location-form'
 import type { LocationDto } from '@/features/location/dto'
 
-function detailQueryOptions(id: number) {
-	return locationResource.detail.queryOptions({ id })
-}
-
 export const Route = createFileRoute('/_authenticated/settings/locations/$locationId/edit')({
-	loader: ({ context, params }) =>
-		context.queryClient.ensureQueryData(detailQueryOptions(Number(params.locationId))),
-	pendingComponent: () => <PageSkeleton />,
-	errorComponent: ({ reset }) => (
-		<PageError
-			title="Failed to load location"
-			message="Could not load this location. Check your connection and try again."
-			onRetry={reset}
-		/>
-	),
 	component: EditLocationPage,
 })
-
-function toFormValues(location: LocationDto) {
-	return {
-		code: location.code,
-		name: location.name,
-		type: location.type,
-		address: location.address ?? '',
-		phone: location.phone ?? '',
-		isActive: location.isActive,
-	}
-}
 
 function EditLocationPage() {
 	const { locationId } = Route.useParams()
 	const navigate = useNavigate()
-	const detailQuery = useSuspenseQuery(suspenseOptions(detailQueryOptions(Number(locationId))))
-	const location = detailQuery.data.data
-
-	const updateMut = useMutation(locationResource.update.mutationOptions())
-	const onDone = () => navigate({ to: '/settings/locations' })
-
-	const form = useLocationForm({
-		defaultValues: toFormValues(location),
-		onSubmit: async (values) => {
-			await updateMut.mutateAsync({
-				id: location.id,
-				code: values.code,
-				name: values.name,
-				type: values.type,
-				address: values.address || null,
-				phone: values.phone || null,
-				isActive: values.isActive,
-			})
-			toast.add({ title: 'Location updated successfully.', type: 'success' })
-			onDone()
-		},
-	})
-
-	useUnsavedChangesGuard(form)
+	const detailQuery = useQuery(
+		locationResource.detail.queryOptions({ id: Number(locationId) }, { throwOnError: false }),
+	)
 
 	return (
-		<form.AppForm>
-			<FormPage
-				title="Edit Location"
-				description={`Update details for ${location.name}.`}
-				form={form}
-				className="max-w-5xl"
-				submitLabel="Save Changes"
-				onCancel={onDone}
-			>
-				<LocationFormFields form={form} />
-			</FormPage>
-		</form.AppForm>
+		<DetailBoundary query={detailQuery}>
+			{(response) => (
+				<EditLocationForm
+					key={response.data.id}
+					location={response.data}
+					onDone={() => navigate({ to: '/settings/locations' })}
+				/>
+			)}
+		</DetailBoundary>
+	)
+}
+
+function EditLocationForm({ location, onDone }: { location: LocationDto; onDone: () => void }) {
+	const form = useLocationForm({ location, onSaved: onDone })
+
+	return (
+		<EntityEditorPage
+			title="Edit Location"
+			description={`Update details for ${location.name}.`}
+			form={form}
+			className="max-w-5xl"
+			submitLabel="Save Changes"
+			onCancel={onDone}
+		>
+			<LocationFormFields form={form} />
+		</EntityEditorPage>
 	)
 }
