@@ -12,6 +12,23 @@ import { TextField } from './fields/text-field.tsx'
 import { TextareaField } from './fields/textarea-field.tsx'
 import { FormError } from './form-error.tsx'
 
+/** Field components available on every application form field. */
+export type AppFieldComponents = {
+	TextField: typeof TextField
+	TextareaField: typeof TextareaField
+	SelectField: typeof SelectField
+	IdSelectField: typeof IdSelectField
+	ComboboxField: typeof ComboboxField
+	NumberField: typeof NumberField
+	CurrencyField: typeof CurrencyField
+	SwitchField: typeof SwitchField
+	DatePickerField: typeof DatePickerField
+}
+
+export type AppFormComponents = {
+	FormError: typeof FormError
+}
+
 /**
  * The app's one form hook. Every field component here is pre-bound to
  * `fieldContext`/`formContext`, so a form body is just JSX — no prop
@@ -28,7 +45,7 @@ import { FormError } from './form-error.tsx'
  * directly only for forms with no backing mutation (e.g. multi-step local
  * state, POS cart lines).
  */
-export const { useAppForm, withForm } = createFormHook({
+export const { useAppForm, withForm } = createFormHook<AppFieldComponents, AppFormComponents>({
 	fieldContext,
 	formContext,
 	fieldComponents: {

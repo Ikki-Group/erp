@@ -1,7 +1,32 @@
+import type {
+	AppFieldExtendedReactFormApi,
+	FormAsyncValidateOrFn,
+	FormValidateOrFn,
+} from '@tanstack/react-form'
+
 import { isApiError } from '@/lib/api/errors.ts'
 
 import { useAppForm } from './app-form.ts'
+import type { AppFieldComponents, AppFormComponents } from './app-form.ts'
 import type { ZodTypeAny } from 'zod'
+
+/** Typed entity values, validation state, and the application's registered field components. */
+export type EntityForm<TValues> = AppFieldExtendedReactFormApi<
+	TValues,
+	undefined | FormValidateOrFn<TValues>,
+	undefined | FormValidateOrFn<TValues>,
+	undefined | FormAsyncValidateOrFn<TValues>,
+	undefined | FormValidateOrFn<TValues>,
+	undefined | FormAsyncValidateOrFn<TValues>,
+	undefined | FormValidateOrFn<TValues>,
+	undefined | FormAsyncValidateOrFn<TValues>,
+	undefined | FormValidateOrFn<TValues>,
+	undefined | FormAsyncValidateOrFn<TValues>,
+	undefined | FormAsyncValidateOrFn<TValues>,
+	unknown,
+	AppFieldComponents,
+	AppFormComponents
+>
 
 export interface UseEntityFormOptions<TValues> {
 	/** Initial field values. Pass the entity being edited, mapped to form shape — or an empty-record default for create mode. */
@@ -52,7 +77,7 @@ export function useEntityForm<TValues>({
 	defaultValues,
 	schema,
 	onSubmit,
-}: UseEntityFormOptions<TValues>) {
+}: UseEntityFormOptions<TValues>): EntityForm<TValues> {
 	return useAppForm({
 		defaultValues,
 		// `schema` is intentionally a loosely-typed `ZodTypeAny` (see the

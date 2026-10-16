@@ -28,36 +28,7 @@ export interface FormPageProps {
 	className?: string
 }
 
-/**
- * The standard layout for a full-page create/edit form: back button, title,
- * body, and a sticky footer with cancel/submit. This is the *default* shape
- * for entity forms per the design decision — reach for `FormDialog`
- * (`@/components/shared/form-dialog`) only for genuinely lightweight,
- * few-field cases (quick-add, toggles) that don't warrant leaving the list
- * page.
- *
- * Pair with a form built on `useEntityForm` (`@/lib/form/use-entity-form`)
- * and `useUnsavedChangesGuard(form)` for the back-navigation confirm:
- *
- * ```tsx
- * function NewMaterialPage() {
- *   const form = useMaterialForm({ onSubmit: ... })
- *   useUnsavedChangesGuard(form)
- *
- *   return (
- *     <form.AppForm>
- *       <FormPage
- *         title="Add Material"
- *         form={form}
- *         onCancel={() => navigate({ to: '/master/materials' })}
- *       >
- *         <MaterialFormFields form={form} />
- *       </FormPage>
- *     </form.AppForm>
- *   )
- * }
- * ```
- */
+/** Low-level full-page form layout. Use EntityEditorPage for entity editing with context, errors, and navigation protection. */
 export function FormPage({
 	title,
 	description,

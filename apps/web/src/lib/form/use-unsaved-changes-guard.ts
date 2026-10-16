@@ -1,24 +1,33 @@
+import { useEffect, useRef } from 'react'
+
 import { useStore } from '@tanstack/react-form'
 import type { AnyFormApi } from '@tanstack/react-form'
 import { useBlocker } from '@tanstack/react-router'
 
 import { confirm } from '@/components/shared/confirm'
 
+type FormState = AnyFormApi['store']['state']
+
 /**
- * Reads the form's *current* dirty/submitting state, bypassing React's
- * render cycle. `isSubmitting` — not `isSubmitSuccessful` — is what marks
- * "this navigation was triggered by our own successful submit": TanStack
- * Form only flips `isSubmitSuccessful` to `true` *after* the `onSubmit`
- * callback resolves, but a route's `onSubmit` typically calls `navigate()`
- * as the last statement *inside* that same callback — before it resolves.
- * `isSubmitting`, by contrast, is `true` for the callback's entire
- * duration, so it reliably distinguishes "still submitting (possibly about
- * to navigate on success)" from "user is trying to leave with unsaved
- * edits and no submit in flight".
+ * A form has unsaved changes when its values differ from the current baseline
+ * and no submit is in flight. `isSubmitting` — not `isSubmitSuccessful` —
+ * marks "this navigation was triggered by our own successful submit": a route's
+ * `onSubmit` typically calls `navigate()` inside the callback, before TanStack
+ * flips `isSubmitSuccessful`.
+ *
+ * After a successful submit the values are saved only if they are still the
+ * exact object that was submitted. `isSubmitSuccessful` stays true until the
+ * next submit, so without this identity check any later edit would be ignored.
+ * An on-page editor that rebases after saving replaces the values object and
+ * the baseline, so it is judged by dirtiness alone.
+ * Submission errors live in errorMap because useEntityForm catches rejections;
+ * they always count as unsaved.
  */
-function readHasUnsavedChanges(form: AnyFormApi): boolean {
-	const state = form.store.state
-	return state.isDirty && !state.isSubmitting && !state.isSubmitSuccessful
+function hasUnsavedChanges(state: FormState, submittedValues: unknown): boolean {
+	if (state.isSubmitting) return false
+	if (!state.isDirty && state.isDefaultValue) return false
+	if (state.errorMap.onSubmit !== undefined) return true
+	return !(state.isSubmitSuccessful && state.values === submittedValues)
 }
 
 /**
@@ -33,16 +42,28 @@ function readHasUnsavedChanges(form: AnyFormApi): boolean {
  * dialog via `enableBeforeUnload`, since that one can't be replaced.
  */
 export function useUnsavedChangesGuard(form: AnyFormApi): void {
+	// Values at the moment the latest submit began: what a success would save.
+	const submittedValues = useRef<unknown>(undefined)
+	useEffect(() => {
+		let submitting = form.store.state.isSubmitting
+		const subscription = form.store.subscribe(() => {
+			const state = form.store.state
+			if (state.isSubmitting && !submitting) submittedValues.current = state.values
+			submitting = state.isSubmitting
+		})
+		return () => subscription.unsubscribe()
+	}, [form])
+
 	// Subscribed only so `enableBeforeUnload` (which TanStack Router re-reads
 	// on every render) stays current — the actual navigation decision below
-	// reads the store directly instead of this closure, see the comment there.
-	useStore(form.store, (state) => state.isDirty && !state.isSubmitting && !state.isSubmitSuccessful)
+	// reads the store directly instead of this closure.
+	useStore(form.store, (state) => hasUnsavedChanges(state, submittedValues.current))
 
 	useBlocker({
 		shouldBlockFn: async () => {
 			// Read live, not the value closed over at the last render — see
-			// `readHasUnsavedChanges`'s doc comment for why this matters.
-			if (!readHasUnsavedChanges(form)) return false
+			// `hasUnsavedChanges`'s doc comment for why this matters.
+			if (!hasUnsavedChanges(form.store.state, submittedValues.current)) return false
 			const leave = await confirm({
 				title: 'Unsaved changes',
 				description: 'You have unsaved changes. Leave this page without saving?',
@@ -52,6 +73,6 @@ export function useUnsavedChangesGuard(form: AnyFormApi): void {
 			})
 			return !leave
 		},
-		enableBeforeUnload: () => readHasUnsavedChanges(form),
+		enableBeforeUnload: () => hasUnsavedChanges(form.store.state, submittedValues.current),
 	})
 }

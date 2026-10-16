@@ -1,6 +1,7 @@
 export { useAppForm, withForm } from './app-form.ts'
 export { useEntityForm } from './use-entity-form.ts'
-export type { UseEntityFormOptions } from './use-entity-form.ts'
+export type { EntityForm, UseEntityFormOptions } from './use-entity-form.ts'
+export { useEntityEditor } from './use-entity-editor.ts'
 export { useUnsavedChangesGuard } from './use-unsaved-changes-guard.ts'
 export { FormRoot } from './form-root.tsx'
 export type { FormRootProps } from './form-root.tsx'
@@ -15,5 +16,11 @@ export { useFieldContext, useFormContext } from './contexts.ts'
 export type { SelectFieldOption } from './fields/select-field.tsx'
 export type { IdSelectFieldOption } from './fields/id-select-field.tsx'
 export type { ComboboxFieldOption } from './fields/combobox-field.tsx'
-export type { NumberInputGroupAddonFieldProps, NumberInputGroupFieldProps } from './fields/number-input-group-field.tsx'
-export { NumberInputGroupAddonField, NumberInputGroupField } from './fields/number-input-group-field.tsx'
+export type {
+	NumberInputGroupAddonFieldProps,
+	NumberInputGroupFieldProps,
+} from './fields/number-input-group-field.tsx'
+export {
+	NumberInputGroupAddonField,
+	NumberInputGroupField,
+} from './fields/number-input-group-field.tsx'

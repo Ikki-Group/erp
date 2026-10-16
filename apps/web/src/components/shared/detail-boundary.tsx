@@ -2,6 +2,9 @@ import type { ReactNode } from 'react'
 
 import type { UseQueryResult } from '@tanstack/react-query'
 
+import { Button } from '@/components/ui/button'
+
+import { InlineAlert } from './inline-alert'
 import { PageError } from './page-error'
 import { PageSkeleton } from './page-skeleton'
 
@@ -26,6 +29,21 @@ export function DetailBoundary<TData>({
 	notFound = DEFAULT_NOT_FOUND,
 	error,
 }: DetailBoundaryProps<TData>) {
+	if (query.data !== undefined) {
+		return (
+			<>
+				{query.isError && (
+					<InlineAlert variant="warning" title="Could not refresh this record">
+						<p>Your current work is still available. Retry to refresh the record.</p>
+						<Button type="button" variant="outline" size="sm" onClick={() => void query.refetch()}>
+							Retry
+						</Button>
+					</InlineAlert>
+				)}
+				{children(query.data)}
+			</>
+		)
+	}
 	if (query.isLoading) return loading
 
 	if (query.isError) {
@@ -35,7 +53,7 @@ export function DetailBoundary<TData>({
 		return error ?? <PageError onRetry={() => void query.refetch()} />
 	}
 
-	return query.data === undefined ? notFound : children(query.data)
+	return notFound
 }
 
 function normalizeError(error: unknown): Error {
