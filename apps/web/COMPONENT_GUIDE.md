@@ -117,6 +117,8 @@ Menu Categories are focused dialogs with a live permission getter and pinned loc
 
 Location Staff uses the active header location and `location-staff.read`; Assigned Users on location detail uses the route's location ID and independently requires `iam.read`. Both use shared typed staff columns, search/status filters, pagination, and stale-row recovery. Ambient staff query keys must include the active location.
 
+Goods Receipts and Stock Transfers use shared list/detail states with URL-backed status, dates and selected records. Confirm/ship/receive actions re-read authoritative detail inside their retryable confirmation, recheck location and permission, and reconcile completed writes after a lost response. Transfer receipt sends exact remaining quantities; receipt detail totals use decimal-string arithmetic. Related-record labels resolve detail queries instead of capped lists.
+
 ## Charts
 
 Supply `aria-label` describing the measure and scope. Keep chart/card containers shrinkable. Use an exact-value table alongside charts; catalog examples disclose it through “View exact values.” Switching chart type must preserve the dataset and units. Stacking is meaningful only when series share a unit.

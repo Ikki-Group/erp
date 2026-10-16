@@ -99,12 +99,21 @@ const transferCreate = defineMutation({
 
 // ─── Transfer Ship ───
 
+const transferInvalidationKeys = [
+	transferKeys.lists(),
+	transferKeys.details(),
+	stockKeys.lists(),
+	movementKeys.lists(),
+	[endpoint.audit.byEntity],
+	[endpoint.audit.list],
+]
+
 const transferShip = defineMutation({
 	method: 'post',
 	url: transferUrls.ship,
 	body: TransferShipDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [transferKeys.lists(), transferKeys.details()],
+	invalidates: transferInvalidationKeys,
 })
 
 // ─── Transfer Receive ───
@@ -114,13 +123,15 @@ const transferReceive = defineMutation({
 	url: transferUrls.receive,
 	body: TransferReceiveDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [transferKeys.lists(), transferKeys.details(), stockKeys.lists()],
+	invalidates: transferInvalidationKeys,
 })
 
 // ─── Export ───
 
 export const transferResource = {
 	keys: transferKeys,
+	/** Reconcile readers when a fresh read confirms a previously uncertain write succeeded. */
+	invalidationKeys: transferInvalidationKeys,
 	list: transferList,
 	detail: transferDetail,
 	create: transferCreate,
@@ -243,18 +254,29 @@ const receivingCreate = defineMutation({
 
 // ─── Receiving Confirm ───
 
+const receivingInvalidationKeys = [
+	receivingKeys.lists(),
+	receivingKeys.details(),
+	stockKeys.lists(),
+	movementKeys.lists(),
+	[endpoint.audit.byEntity],
+	[endpoint.audit.list],
+]
+
 const receivingConfirm = defineMutation({
 	method: 'post',
 	url: receivingUrls.confirm,
 	body: ReceivingConfirmDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [receivingKeys.lists(), receivingKeys.details(), stockKeys.lists()],
+	invalidates: receivingInvalidationKeys,
 })
 
 // ─── Export ───
 
 export const receivingResource = {
 	keys: receivingKeys,
+	/** Reconcile readers when a fresh read confirms a previously uncertain write succeeded. */
+	invalidationKeys: receivingInvalidationKeys,
 	list: receivingList,
 	detail: receivingDetail,
 	create: receivingCreate,

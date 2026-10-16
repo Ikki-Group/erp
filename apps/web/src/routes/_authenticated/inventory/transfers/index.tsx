@@ -1,50 +1,61 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, type ReactNode } from 'react'
 
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
-import { ArrowLeftIcon, PackageIcon, PlusIcon, SendIcon, TruckIcon } from 'lucide-react'
+import { ArrowLeftIcon, EyeIcon, PlusIcon, SendIcon, TruckIcon } from 'lucide-react'
+import { z } from 'zod'
 
-import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
+import { createEntityColumns, listSearchSchema, useResourceList } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { ActionMenu } from '@/components/shared/action-menu'
 import { AuditTrail } from '@/components/shared/audit-trail'
-import { confirm } from '@/components/shared/confirm'
-import type { DateRange } from '@/components/shared/date-range-filter'
+import { DetailBoundary } from '@/components/shared/detail-boundary'
 import { DetailList } from '@/components/shared/detail-list'
-import { EmptyState } from '@/components/shared/empty-state'
-import { PageHeader } from '@/components/shared/page-header'
+import { EntityListPage } from '@/components/shared/entity-list-page'
+import { InlineAlert } from '@/components/shared/inline-alert'
+import { LocationRequiredPage } from '@/components/shared/location-required-page'
+import { PageError } from '@/components/shared/page-error'
 import { PageSection } from '@/components/shared/page-section'
-import { usePermissionCheck } from '@/components/shared/permission-gate'
-import { StatusBadge } from '@/components/shared/status-badge'
+import { PageShell } from '@/components/shared/page-shell'
+import { PermissionGate, usePermissionCheck } from '@/components/shared/permission-gate'
 import type { StatusBadgeVariant } from '@/components/shared/status-badge'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/toast'
 
 import { auditResource } from '@/features/audit/api.ts'
+import type { AuthLocation } from '@/features/auth/dto/index.ts'
 import { transferResource } from '@/features/inventory/api.ts'
+import {
+	InventoryLineLocation,
+	InventoryLineMaterial,
+	InventoryLineUom,
+} from '@/features/inventory/components/inventory-line-labels.tsx'
 import { TRANSFER_STATUS_LABELS, TransferStatusEnum } from '@/features/inventory/dto/index.ts'
-import type { TransferDto } from '@/features/inventory/dto/index.ts'
-import { materialResource } from '@/features/material/api.ts'
-import { uomResource } from '@/features/uom/api.ts'
+import type { TransferDetailDto, TransferDto } from '@/features/inventory/dto/index.ts'
+import { useTransferActions } from '@/features/inventory/use-transfer-actions.ts'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
-// No server-side text search on this endpoint — status filter + pagination only.
-const transfersSearchSchema = listSearchSchema.omit({ q: true }).extend({
-	status: TransferStatusEnum.optional(),
+// The list endpoint filters by status and createdAt range only (no q/sort); the selected transfer
+// lives in the URL so Back, refresh, and shared links restore it with the list filters intact.
+const isoDateTime = z.string().datetime({ offset: true }).optional().catch(undefined)
+
+const transfersSearchSchema = listSearchSchema.omit({ q: true, sort: true }).extend({
+	status: TransferStatusEnum.optional().catch(undefined),
+	dateFrom: isoDateTime,
+	dateTo: isoDateTime,
+	id: z.coerce.number().int().positive().optional().catch(undefined),
 })
+
+type TransfersSearch = z.infer<typeof transfersSearchSchema>
 
 export const Route = createFileRoute('/_authenticated/inventory/transfers/')({
 	validateSearch: transfersSearchSchema,
-	component: TransfersPage,
+	component: TransfersRoute,
 })
-
-// ─── Helpers ───
 
 const STATUS_VARIANTS: Record<TransferStatusEnum, StatusBadgeVariant> = {
 	requested: 'info',
@@ -53,293 +64,299 @@ const STATUS_VARIANTS: Record<TransferStatusEnum, StatusBadgeVariant> = {
 	cancelled: 'destructive',
 }
 
-// ─── Table Column Helper ───
+const STATUS_COLUMN_LABELS = Object.fromEntries(
+	TransferStatusEnum.options.map((status) => [
+		status,
+		{ label: TRANSFER_STATUS_LABELS[status], variant: STATUS_VARIANTS[status] },
+	]),
+) as Record<TransferStatusEnum, { label: string; variant: StatusBadgeVariant }>
 
-const col = createColumnHelper<DataGridFeatures, TransferDto>()
+const col = createEntityColumns<TransferDto>()
 
-// ─── Page ───
+const fromColumn: ColumnDef<DataGridFeatures, TransferDto> = {
+	accessorKey: 'fromLocationId',
+	header: 'Dari',
+	size: 140,
+	enableSorting: false,
+	cell: ({ row }) => <InventoryLineLocation id={row.original.fromLocationId} />,
+}
 
-function TransfersPage() {
-	const { activeLocation, locations } = useLocationContext()
+const toColumn: ColumnDef<DataGridFeatures, TransferDto> = {
+	accessorKey: 'toLocationId',
+	header: 'Ke',
+	size: 140,
+	enableSorting: false,
+	cell: ({ row }) => <InventoryLineLocation id={row.original.toLocationId} />,
+}
+
+function TransfersRoute() {
+	const { activeLocation } = useLocationContext()
+	const canRead = usePermissionCheck({ permission: 'transfer.read' })
+	const search = Route.useSearch()
+
+	if (!canRead) {
+		return (
+			<PageError
+				title="Tidak ada akses"
+				message="Anda tidak memiliki izin untuk melihat transfer inventori."
+			/>
+		)
+	}
+	if (!activeLocation) {
+		return (
+			<LocationRequiredPage
+				title="Transfer Inventori"
+				description="Transfer bahan baku antar lokasi."
+				message="Pilih lokasi aktif untuk melihat data transfer."
+			/>
+		)
+	}
+	// Keyed by location so a header switch never leaves a stale list, dialog owner, or selection.
+	return search.id ? (
+		<TransferDetailPage key={activeLocation.id} location={activeLocation} id={search.id} />
+	) : (
+		<TransfersPage key={activeLocation.id} location={activeLocation} />
+	)
+}
+
+function toDateRange(search: TransfersSearch) {
+	if (!search.dateFrom || !search.dateTo) return undefined
+	return { from: new Date(search.dateFrom), to: new Date(search.dateTo) }
+}
+
+function TransfersPage({ location }: { location: AuthLocation }) {
 	const navigate = useNavigate({ from: Route.fullPath })
 	const search = Route.useSearch()
-	const locationId = activeLocation?.id
 	const canCreate = usePermissionCheck({ permission: 'transfer.create' })
-	const canShip = usePermissionCheck({ permission: 'transfer.ship' })
-	const canReceive = usePermissionCheck({ permission: 'transfer.receive' })
-	const canReadAudit = usePermissionCheck({ permission: 'audit.read' })
-
-	const [selectedTransferId, setSelectedTransferId] = useState<number | null>(null)
-	const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
-
-	const locationMap = useMemo(() => {
-		const map = new Map<number, string>()
-		for (const loc of locations) {
-			map.set(loc.id, loc.name)
-		}
-		return map
-	}, [locations])
+	const actions = useTransferActions()
 
 	const listQuery = useQuery({
 		...transferResource.list.queryOptions({
 			page: search.page,
 			limit: search.pageSize,
 			status: search.status,
-			locationId: locationId,
-			dateFrom: dateRange?.from.toISOString(),
-			dateTo: dateRange?.to.toISOString(),
+			locationId: location.id,
+			dateFrom: search.dateFrom,
+			dateTo: search.dateTo,
 		}),
-		enabled: !!locationId,
+		throwOnError: false,
 	})
-
-	const shipMut = useMutation(transferResource.ship.mutationOptions())
-	const receiveMut = useMutation(transferResource.receive.mutationOptions())
-
-	// Server filters by createdAt range (TransferFilterDto.dateFrom/dateTo), so
-	// page + total count both honor the range — no client-side slicing.
-	const data = listQuery.data?.data ?? []
-	const totalCount = listQuery.data?.meta?.total ?? 0
-
-	// ─── Lookup queries for detail view ───
-
-	const materialsQuery = useQuery(materialResource.list.queryOptions({ page: 1, limit: 200 }))
-	const uomsQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 100 }))
-
-	const materialsMap = useMemo(() => {
-		const map = new Map<number, string>()
-		for (const m of materialsQuery.data?.data ?? []) {
-			map.set(m.id, `${m.name} (${m.code})`)
-		}
-		return map
-	}, [materialsQuery.data])
-
-	const uomsMap = useMemo(() => {
-		const map = new Map<number, string>()
-		for (const u of uomsQuery.data?.data ?? []) {
-			map.set(u.id, u.code)
-		}
-		return map
-	}, [uomsQuery.data])
-
-	// ─── Detail view queries ───
-
-	const detailQuery = useQuery({
-		...transferResource.detail.queryOptions({ id: selectedTransferId! }),
-		enabled: !!selectedTransferId,
-	})
-	const detail = detailQuery.data?.data
-
-	const auditQuery = useQuery({
-		...auditResource.byEntity.queryOptions({
-			entity: 'transfer_request',
-			entityId: selectedTransferId!,
-		}),
-		enabled: !!selectedTransferId && canReadAudit,
-	})
-
-	// ─── Ship ───
-
-	const handleShip = useCallback(
-		async (transfer: TransferDto) => {
-			await confirm({
-				title: 'Kirim transfer?',
-				description: `Transfer ${transfer.transferNo} akan ditandai sebagai "Dalam Perjalanan". Lanjutkan?`,
-				confirmLabel: 'Kirim',
-				onConfirm: async () => {
-					await shipMut.mutateAsync({ transferId: transfer.id })
-					toast.add({ title: 'Transfer berhasil dikirim.', type: 'success' })
-				},
-			})
-		},
-		[shipMut],
-	)
-
-	// ─── Receive ───
-
-	const handleReceive = useCallback(
-		async (transfer: TransferDto) => {
-			const detailRes = await transferResource.detail.fetch({ id: transfer.id })
-			const detail = detailRes.data
-
-			await confirm({
-				title: 'Terima transfer?',
-				description: `Konfirmasi penerimaan ${transfer.transferNo} (${detail.lines.length} item). Stok akan diperbarui.`,
-				confirmLabel: 'Terima',
-				onConfirm: async () => {
-					await receiveMut.mutateAsync({
-						transferId: transfer.id,
-						lines: detail.lines.map((l) => ({
-							materialId: l.materialId,
-							receivedQty: l.requestedQty,
-						})),
-					})
-					toast.add({ title: 'Transfer berhasil diterima.', type: 'success' })
-				},
-			})
-		},
-		[receiveMut],
-	)
-
-	// ─── Columns with actions ───
-
-	const baseColumns = useMemo(
-		() => [
-			col.accessor('transferNo', {
-				header: 'No. Transfer',
-				size: 140,
-				// oxlint-disable-next-line react/no-unstable-nested-components
-				cell: ({ getValue }) => <TextCell value={getValue()} mono />,
-			}),
-			col.accessor('status', {
-				header: 'Status',
-				size: 130,
-				// oxlint-disable-next-line react/no-unstable-nested-components
-				cell: ({ getValue }) => {
-					const status = getValue()
-					return (
-						<StatusBadge variant={STATUS_VARIANTS[status]}>
-							{TRANSFER_STATUS_LABELS[status]}
-						</StatusBadge>
-					)
-				},
-			}),
-			col.accessor('fromLocationId', {
-				header: 'Dari',
-				size: 140,
-				cell: ({ getValue }) => locationMap.get(getValue()) ?? `#${getValue()}`,
-			}),
-			col.accessor('toLocationId', {
-				header: 'Ke',
-				size: 140,
-				cell: ({ getValue }) => locationMap.get(getValue()) ?? `#${getValue()}`,
-			}),
-			col.accessor('notes', {
-				header: 'Catatan',
-				size: 200,
-				// oxlint-disable-next-line react/no-unstable-nested-components
-				cell: ({ getValue }) => getValue() ?? <span className="text-muted-foreground">—</span>,
-			}),
-			col.accessor('createdAt', {
-				header: 'Tanggal',
-				size: 140,
-				cell: ({ getValue }) => new Date(getValue()).toLocaleDateString('id-ID'),
-			}),
-		],
-		[locationMap],
-	)
-
-	const actionsColumn = useMemo(() => {
-		return col.display({
-			id: 'actions',
-			size: 60,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => {
-				const transfer = row.original
-				const items = []
-
-				if (canShip && transfer.status === 'requested' && transfer.fromLocationId === locationId) {
-					items.push({
-						label: 'Kirim',
-						icon: <SendIcon className="size-4" />,
-						onClick: () => handleShip(transfer),
-					})
-				}
-
-				if (
-					canReceive &&
-					transfer.status === 'in_transit' &&
-					transfer.toLocationId === locationId
-				) {
-					items.push({
-						label: 'Terima',
-						icon: <TruckIcon className="size-4" />,
-						onClick: () => handleReceive(transfer),
-					})
-				}
-
-				items.push({
-					label: 'Detail',
-					icon: <PackageIcon className="size-4" />,
-					onClick: () => setSelectedTransferId(transfer.id),
-				})
-
-				return <ActionMenu items={items} />
-			},
-		})
-	}, [canShip, canReceive, handleShip, handleReceive, locationId])
 
 	const columns = useMemo(
-		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, TransferDto>[],
-		[baseColumns, actionsColumn],
+		() =>
+			[
+				col.code('transferNo', { header: 'No. Transfer', size: 140, enableSorting: false }),
+				col.status('status', STATUS_COLUMN_LABELS, {
+					header: 'Status',
+					size: 130,
+					enableSorting: false,
+				}),
+				fromColumn,
+				toColumn,
+				col.text('notes', { header: 'Catatan', size: 200, enableSorting: false }),
+				col.date('createdAt', { header: 'Tanggal', size: 140, enableSorting: false }),
+				col.actions({
+					// oxlint-disable-next-line react/no-unstable-nested-components
+					getItems: (transfer) => [
+						{
+							label: 'Detail',
+							icon: <EyeIcon className="size-4" />,
+							onClick: () => navigate({ search: { ...search, id: transfer.id } }),
+						},
+						actions.canShipTransfer(transfer) && {
+							label: 'Kirim',
+							icon: <SendIcon className="size-4" />,
+							onClick: () => actions.ship(transfer),
+							disabled: actions.isPending,
+						},
+						actions.canReceiveTransfer(transfer) && {
+							label: 'Terima',
+							icon: <TruckIcon className="size-4" />,
+							onClick: () => actions.receive(transfer),
+							disabled: actions.isPending,
+						},
+					],
+				}),
+			] as ColumnDef<DataGridFeatures, TransferDto>[],
+		[actions, navigate, search],
 	)
 
-	const { table } = useServerTable({
-		data,
+	const list = useResourceList({
+		query: listQuery,
 		columns,
-		totalCount,
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
+		hasFilters: (value) => Boolean(value.status || value.dateFrom || value.dateTo),
 	})
 
-	// ─── No location ───
+	const createAction = canCreate ? (
+		<Button size="sm" onClick={() => navigate({ to: '/inventory/transfers/new' })}>
+			<PlusIcon className="size-4" />
+			Buat Transfer
+		</Button>
+	) : undefined
 
-	if (!locationId) {
-		return (
-			<div className="space-y-6">
-				<PageHeader title="Transfer Inventori" description="Transfer bahan baku antar lokasi." />
-				<EmptyState
-					title="Pilih lokasi"
-					description="Pilih lokasi aktif untuk melihat data transfer."
-					icon={<PackageIcon className="size-5" />}
+	return (
+		<EntityListPage
+			title="Transfer Inventori"
+			description={`Transfer antar lokasi dari dan ke ${location.name}`}
+			createAction={createAction}
+			list={list}
+			emptyState={{
+				title: 'Belum ada transfer',
+				description: 'Buat transfer pertama untuk memindahkan bahan antar lokasi.',
+			}}
+			emptyMessage="Tidak ada transfer ditemukan."
+			toolbar={
+				<TableToolbar
+					filters={[
+						{
+							key: 'status',
+							label: 'Status',
+							value: search.status,
+							onChange: (value) =>
+								list.setFilters({ status: value as TransferStatusEnum | undefined }),
+							options: TransferStatusEnum.options.map((value) => ({
+								label: TRANSFER_STATUS_LABELS[value],
+								value,
+							})),
+							allLabel: 'Semua status',
+						},
+					]}
+					dateRange={{
+						key: 'createdAt',
+						label: 'Tanggal',
+						value: toDateRange(search),
+						onChange: (range) =>
+							list.setFilters({
+								dateFrom: range?.from.toISOString(),
+								dateTo: range?.to.toISOString(),
+							}),
+						placeholder: 'Filter tanggal transfer',
+					}}
 				/>
-			</div>
-		)
-	}
+			}
+		/>
+	)
+}
 
-	// ─── Detail View ───
+function TransferDetailPage({ location, id }: { location: AuthLocation; id: number }) {
+	const navigate = useNavigate({ from: Route.fullPath })
+	const query = useQuery({
+		...transferResource.detail.queryOptions({ id }),
+		throwOnError: false,
+	})
 
-	if (selectedTransferId && detail) {
-		return (
+	const back = (
+		<Button
+			size="sm"
+			variant="ghost"
+			onClick={() => navigate({ search: (prev) => ({ ...prev, id: undefined }) })}
+		>
+			<ArrowLeftIcon className="size-3.5" />
+			Kembali ke daftar
+		</Button>
+	)
+
+	return (
+		<DetailBoundary
+			query={query}
+			loading={
+				<PageShell title="Detail Transfer" description="Memuat..." actions={back}>
+					<span className="sr-only">Memuat transfer</span>
+				</PageShell>
+			}
+			notFound={
+				<PageShell title="Detail Transfer" actions={back}>
+					<PageError title="Transfer tidak ditemukan" />
+				</PageShell>
+			}
+			error={
+				<PageShell title="Detail Transfer" actions={back}>
+					<PageError title="Tidak dapat memuat transfer" onRetry={() => void query.refetch()} />
+				</PageShell>
+			}
+		>
+			{(response) => <TransferDetail transfer={response.data} location={location} back={back} />}
+		</DetailBoundary>
+	)
+}
+
+function TransferDetail({
+	transfer,
+	location,
+	back,
+}: {
+	transfer: TransferDetailDto
+	location: AuthLocation
+	back: ReactNode
+}) {
+	const canReadAudit = usePermissionCheck({ permission: 'audit.read' })
+	const actions = useTransferActions()
+	const auditQuery = useQuery({
+		...auditResource.byEntity.queryOptions({ entity: 'transfer_request', entityId: transfer.id }),
+		enabled: canReadAudit,
+		throwOnError: false,
+	})
+
+	const inScope = transfer.fromLocationId === location.id || transfer.toLocationId === location.id
+
+	return (
+		<PageShell
+			title={transfer.transferNo}
+			description={`Status: ${TRANSFER_STATUS_LABELS[transfer.status]}`}
+			actions={
+				<div className="flex flex-wrap items-center gap-2">
+					{back}
+					{actions.canShipTransfer(transfer) && (
+						<Button size="sm" disabled={actions.isPending} onClick={() => actions.ship(transfer)}>
+							<SendIcon className="size-4" />
+							Kirim
+						</Button>
+					)}
+					{actions.canReceiveTransfer(transfer) && (
+						<Button
+							size="sm"
+							disabled={actions.isPending}
+							onClick={() => actions.receive(transfer)}
+						>
+							<TruckIcon className="size-4" />
+							Terima
+						</Button>
+					)}
+				</div>
+			}
+		>
 			<div className="space-y-6">
-				<PageHeader
-					title={detail.transferNo}
-					description={`Status: ${TRANSFER_STATUS_LABELS[detail.status]}`}
-				/>
-
-				<Button size="sm" variant="ghost" onClick={() => setSelectedTransferId(null)}>
-					<ArrowLeftIcon className="size-3.5" />
-					Kembali ke daftar
-				</Button>
+				{!inScope && (
+					<InlineAlert variant="warning" title="Transfer ini bukan milik lokasi aktif">
+						<p>
+							Transfer ini tidak melibatkan {location.name}. Pindah ke lokasi asal atau tujuan untuk
+							mengirim atau menerimanya.
+						</p>
+					</InlineAlert>
+				)}
 
 				<DetailList
 					items={[
-						{
-							label: 'Dari',
-							value: locationMap.get(detail.fromLocationId) ?? `#${detail.fromLocationId}`,
-						},
-						{
-							label: 'Ke',
-							value: locationMap.get(detail.toLocationId) ?? `#${detail.toLocationId}`,
-						},
+						{ label: 'Dari', value: <InventoryLineLocation id={transfer.fromLocationId} /> },
+						{ label: 'Ke', value: <InventoryLineLocation id={transfer.toLocationId} /> },
 						{
 							label: 'Status',
 							value: (
-								<StatusBadge variant={STATUS_VARIANTS[detail.status]}>
-									{TRANSFER_STATUS_LABELS[detail.status]}
+								<StatusBadge variant={STATUS_VARIANTS[transfer.status]}>
+									{TRANSFER_STATUS_LABELS[transfer.status]}
 								</StatusBadge>
 							),
 						},
-						{
-							label: 'Tanggal',
-							value: new Date(detail.createdAt).toLocaleDateString('id-ID'),
-						},
-						{ label: 'Catatan', value: detail.notes ?? '—' },
+						{ label: 'Tanggal', value: new Date(transfer.createdAt).toLocaleDateString('id-ID') },
+						{ label: 'Catatan', value: transfer.notes ?? '—' },
 					]}
 				/>
 
 				<div className="space-y-3">
 					<h3 className="font-heading text-sm font-semibold tracking-tight">
-						Item Transfer ({detail.lines.length})
+						Item Transfer ({transfer.lines.length})
 					</h3>
 					<div className="overflow-x-auto rounded-md border">
 						<table className="w-full text-sm">
@@ -353,10 +370,10 @@ function TransfersPage() {
 								</tr>
 							</thead>
 							<tbody>
-								{detail.lines.map((line) => (
+								{transfer.lines.map((line) => (
 									<tr key={line.id} className="border-t">
 										<td className="px-3 py-2">
-											{materialsMap.get(line.materialId) ?? `#${line.materialId}`}
+											<InventoryLineMaterial id={line.materialId} />
 										</td>
 										<td className="px-3 py-2 text-right font-mono tabular-nums">
 											{line.requestedQty}
@@ -367,7 +384,9 @@ function TransfersPage() {
 										<td className="px-3 py-2 text-right font-mono tabular-nums">
 											{line.receivedQty ?? <span className="text-muted-foreground">—</span>}
 										</td>
-										<td className="px-3 py-2">{uomsMap.get(line.uomId) ?? `#${line.uomId}`}</td>
+										<td className="px-3 py-2">
+											<InventoryLineUom id={line.uomId} />
+										</td>
 									</tr>
 								))}
 							</tbody>
@@ -375,105 +394,37 @@ function TransfersPage() {
 					</div>
 				</div>
 
-				{canReadAudit && (
+				<PermissionGate permission="audit.read">
 					<PageSection title="Activity" description="History of changes to this transfer.">
-						<AuditTrail
-							entries={auditQuery.data?.data ?? []}
-							isLoading={auditQuery.isLoading}
-							emptyMessage="No changes recorded for this transfer yet."
-						/>
+						{auditQuery.isError && auditQuery.data === undefined ? (
+							<PageError
+								title="Tidak dapat memuat riwayat"
+								onRetry={() => void auditQuery.refetch()}
+							/>
+						) : (
+							<>
+								{auditQuery.isError && (
+									<InlineAlert variant="warning" title="Riwayat tidak dapat diperbarui">
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={() => void auditQuery.refetch()}
+										>
+											Coba lagi
+										</Button>
+									</InlineAlert>
+								)}
+								<AuditTrail
+									entries={auditQuery.data?.data ?? []}
+									isLoading={auditQuery.isLoading}
+									emptyMessage="No changes recorded for this transfer yet."
+								/>
+							</>
+						)}
 					</PageSection>
-				)}
+				</PermissionGate>
 			</div>
-		)
-	}
-
-	if (selectedTransferId && !detail) {
-		return (
-			<div className="space-y-6">
-				<PageHeader title="Detail Transfer" description="Memuat..." />
-				<Button size="sm" variant="ghost" onClick={() => setSelectedTransferId(null)}>
-					<ArrowLeftIcon className="size-3.5" />
-					Kembali ke daftar
-				</Button>
-			</div>
-		)
-	}
-
-	// ─── Render ───
-
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !search.status
-
-	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Transfer Inventori"
-				description={`Transfer antar lokasi dari ${activeLocation?.name ?? ''}`}
-				actions={
-					canCreate ? (
-						<Button size="sm" onClick={() => navigate({ to: '/inventory/transfers/new' })}>
-							<PlusIcon className="size-4" />
-							Buat Transfer
-						</Button>
-					) : undefined
-				}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="Belum ada transfer"
-					description="Buat transfer pertama untuk memindahkan bahan antar lokasi."
-					action={
-						canCreate ? (
-							<Button size="sm" onClick={() => navigate({ to: '/inventory/transfers/new' })}>
-								<PlusIcon className="size-4" />
-								Buat Transfer
-							</Button>
-						) : undefined
-					}
-				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isFetching}
-					emptyMessage="Tidak ada transfer ditemukan."
-					toolbar={
-						<TableToolbar
-							filters={[
-								{
-									key: 'status',
-									label: 'Status',
-									value: search.status,
-									onChange: (v) =>
-										navigate({
-											search: {
-												...search,
-												page: 1,
-												status: v as TransferStatusEnum | undefined,
-											},
-										}),
-									options: Object.entries(TRANSFER_STATUS_LABELS).map(([value, label]) => ({
-										label,
-										value,
-									})),
-									allLabel: 'All status',
-								},
-							]}
-							dateRange={{
-								key: 'createdAt',
-								label: 'Tanggal',
-								value: dateRange,
-								onChange: (v) => {
-									setDateRange(v)
-									if (search.page !== 1) navigate({ search: { ...search, page: 1 } })
-								},
-								placeholder: 'Filter tanggal transfer',
-							}}
-						/>
-					}
-				/>
-			)}
-		</div>
+		</PageShell>
 	)
 }
