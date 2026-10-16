@@ -44,7 +44,9 @@ const itemDetailQuery = defineQuery({
 	url: endpoint.menu.item.detail,
 	query: zc.RecordId,
 	result: createSuccessResponseSchema(MenuItemDetailDto),
-	queryKey: (query) => [endpoint.menu.item.detail, query ?? null],
+	// Composed shape differs from the entity detail, so it extends that key: item saves still
+	// invalidate it, while the two responses never share one cache entry.
+	queryKey: (query) => [...menuItemResource.keys.detail(query), 'composed'],
 })
 
 // ─── Menu Item Modifier Sync ───
@@ -84,7 +86,11 @@ const categoryCreate = defineMutation({
 	url: categoryUrls.create,
 	body: MenuCategoryCreateDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [categoryKeys.lists(), menuItemResource.keys.lists()],
+	invalidates: [
+		categoryKeys.lists(),
+		menuItemResource.keys.lists(),
+		menuItemResource.keys.details(),
+	],
 })
 
 const categoryUpdate = defineMutation({
@@ -92,7 +98,11 @@ const categoryUpdate = defineMutation({
 	url: categoryUrls.update,
 	body: MenuCategoryUpdateDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [categoryKeys.lists(), menuItemResource.keys.lists()],
+	invalidates: [
+		categoryKeys.lists(),
+		menuItemResource.keys.lists(),
+		menuItemResource.keys.details(),
+	],
 })
 
 const categoryRemove = defineMutation({
@@ -100,7 +110,11 @@ const categoryRemove = defineMutation({
 	url: categoryUrls.remove,
 	query: zc.RecordId,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [categoryKeys.lists(), menuItemResource.keys.lists()],
+	invalidates: [
+		categoryKeys.lists(),
+		menuItemResource.keys.lists(),
+		menuItemResource.keys.details(),
+	],
 })
 
 export const menuCategoryResource = {
