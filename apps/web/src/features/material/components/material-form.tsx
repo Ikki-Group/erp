@@ -1,13 +1,13 @@
-import { useQuery } from '@tanstack/react-query'
-
 import { z } from 'zod'
 
-import { useEntityForm } from '@/lib/form/index.ts'
+import { useEntityEditor } from '@/lib/form/use-entity-editor'
 
-import { uomResource } from '@/features/uom/api.ts'
+import { UomLookupField } from '@/features/uom/components/uom-lookup-field'
 
-import { categoryResource } from '../api.ts'
-import { MATERIAL_TYPE_OPTIONS, MaterialTypeEnum } from '../dto/index.ts'
+import { materialResource } from '../api.ts'
+import { MATERIAL_TYPE_OPTIONS, MaterialCreateDto, MaterialTypeEnum } from '../dto/index.ts'
+import type { MaterialDto } from '../dto/index.ts'
+import { CategoryLookupField } from './category-lookup-field'
 
 export interface MaterialFormValues {
 	code: string
@@ -22,21 +22,7 @@ export interface MaterialFormValues {
 	isActive: boolean
 }
 
-/**
- * Validates the form's own shape — deliberately NOT `MaterialCreateDto`
- * (the wire-contract schema in `../dto/index.ts`). The two differ in ways
- * that matter for a good validation message:
- *
- * - `minStock` is `string` here (an empty text input, not yet `null`) vs.
- *   the DTO's `string | null`, which rejects `''` outright.
- * - `baseUomId` is `number | null` here (unselected before the user picks
- *   one) vs. the DTO's plain `number`, whose Zod error reads
- *   "expected number, received null" — accurate but not user-facing.
- *
- * The DTO still validates the true wire payload, built separately in each
- * route's `onSubmit` (see `materials/new.tsx`) — this schema only owns the
- * in-progress form state. See `docs/web/06-ui-patterns.md`.
- */
+/** Form state remains separate from the wire DTO so incomplete inputs have helpful errors. */
 const MaterialFormSchema = z.object({
 	code: z.string().trim().min(1, 'Code is required').max(50),
 	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
@@ -73,25 +59,44 @@ export const EMPTY_MATERIAL_FORM_VALUES: MaterialFormValues = {
 	isActive: true,
 }
 
-export interface UseMaterialFormOptions {
-	defaultValues?: MaterialFormValues
-	onSubmit: (values: MaterialFormValues) => Promise<void>
+export function toMaterialFormValues(material: MaterialDto): MaterialFormValues {
+	return {
+		code: material.code,
+		name: material.name,
+		type: material.type,
+		categoryId: material.categoryId,
+		baseUomId: material.baseUomId,
+		defaultPurchaseUomId: material.defaultPurchaseUomId,
+		defaultStockUomId: material.defaultStockUomId,
+		defaultRecipeUomId: material.defaultRecipeUomId,
+		minStock: material.minStock ?? '',
+		isActive: material.isActive,
+	}
 }
 
-/**
- * The material create/update form logic — validation, field wiring, submit
- * boundary. Returns the `form` instance; render it with `<MaterialFormFields form={form} />`
- * inside whatever shell the call site needs (`FormPage` for the full-page
- * route, or a `FormDialog` body for a quicker flow).
- */
-export function useMaterialForm({ defaultValues, onSubmit }: UseMaterialFormOptions) {
-	return useEntityForm({
-		defaultValues: defaultValues ?? EMPTY_MATERIAL_FORM_VALUES,
-		// Create and update share the same field shape (the id, when editing,
-		// lives outside form state — see the route's `onSubmit`), so one
-		// schema validates both.
+export function toMaterialInput(values: MaterialFormValues): MaterialCreateDto {
+	return MaterialCreateDto.parse({ ...values, minStock: values.minStock.trim() || null })
+}
+
+export function useMaterialForm({
+	material,
+	onSaved,
+}: {
+	material?: MaterialDto
+	onSaved: () => void | Promise<void>
+}) {
+	return useEntityEditor({
+		defaultValues: material ? toMaterialFormValues(material) : EMPTY_MATERIAL_FORM_VALUES,
 		schema: MaterialFormSchema,
-		onSubmit,
+		mutation: {
+			mutationFn: (input: MaterialCreateDto) =>
+				material
+					? materialResource.update.fetch({ ...input, id: material.id })
+					: materialResource.create.fetch(input),
+		},
+		toPayload: toMaterialInput,
+		successMessage: material ? 'Material updated successfully.' : 'Material created successfully.',
+		onSaved,
 	})
 }
 
@@ -103,21 +108,9 @@ interface MaterialFormFieldsProps {
 
 /** The material form's field layout. Shared by the full-page and dialog entry points. */
 export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
-	const categoriesQuery = useQuery(categoryResource.list.queryOptions({ page: 1, limit: 100 }))
-	const uomQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 100 }))
-
-	const categoryOptions = (categoriesQuery.data?.data ?? []).map((c) => ({
-		label: c.name,
-		value: c.id,
-	}))
-	const uomOptions = (uomQuery.data?.data ?? []).map((u) => ({
-		label: `${u.name} (${u.code})`,
-		value: u.id,
-	}))
-
 	return (
 		<div className="grid gap-4">
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
 					{(field) => <field.TextField label="Code" placeholder="e.g. MAT-001" />}
 				</form.AppField>
@@ -131,63 +124,42 @@ export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
 			</form.AppField>
 
 			<form.AppField name="categoryId">
-				{(field) => (
-					<field.IdSelectField
+				{() => (
+					<CategoryLookupField
 						label="Category"
-						options={categoryOptions}
-						nullableLabel="— None —"
 						placeholder="Select category..."
+						description="Optional. Clear the selection for no category."
 					/>
 				)}
 			</form.AppField>
 
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="baseUomId">
-					{(field) => (
-						<field.IdSelectField
-							label="Base UoM"
-							options={uomOptions}
-							placeholder="Select unit..."
-						/>
-					)}
+					{() => <UomLookupField label="Base UoM" placeholder="Select unit..." />}
 				</form.AppField>
 				<form.AppField name="defaultPurchaseUomId">
-					{(field) => (
-						<field.IdSelectField
-							label="Purchase UoM"
-							options={uomOptions}
-							nullableLabel="— Same as base —"
-							placeholder="Select unit..."
-						/>
-					)}
+					{() => <UomLookupField label="Purchase UoM" placeholder="Same as base" />}
 				</form.AppField>
 			</div>
 
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="defaultStockUomId">
-					{(field) => (
-						<field.IdSelectField
-							label="Stock UoM"
-							options={uomOptions}
-							nullableLabel="— Same as base —"
-							placeholder="Select unit..."
-						/>
-					)}
+					{() => <UomLookupField label="Stock UoM" placeholder="Same as base" />}
 				</form.AppField>
 				<form.AppField name="defaultRecipeUomId">
-					{(field) => (
-						<field.IdSelectField
-							label="Recipe UoM"
-							options={uomOptions}
-							nullableLabel="— Same as base —"
-							placeholder="Select unit..."
-						/>
-					)}
+					{() => <UomLookupField label="Recipe UoM" placeholder="Same as base" />}
 				</form.AppField>
 			</div>
 
 			<form.AppField name="minStock">
-				{(field) => <field.TextField label="Min Stock" placeholder="e.g. 10.5 (optional)" />}
+				{(field) => (
+					<field.TextField
+						label="Min Stock"
+						placeholder="e.g. 10.5 (optional)"
+						inputMode="decimal"
+						className="text-right font-mono tabular-nums"
+					/>
+				)}
 			</form.AppField>
 
 			<form.AppField name="isActive">
@@ -198,8 +170,6 @@ export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
 					/>
 				)}
 			</form.AppField>
-
-			<form.FormError />
 		</div>
 	)
 }

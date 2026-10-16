@@ -1,15 +1,11 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
-
 import { AuditTrail } from '@/components/shared/audit-trail.tsx'
-import { CrudForm } from '@/components/shared/crud-form.tsx'
 import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
+import { EntityEditorPage } from '@/components/shared/entity-editor-page'
 import { PageSection } from '@/components/shared/page-section.tsx'
 import { usePermissionCheck } from '@/components/shared/permission-gate.tsx'
-
-import { toast } from '@/components/ui/toast'
 
 import { auditResource } from '@/features/audit/api.ts'
 import { materialResource } from '@/features/material/api.ts'
@@ -23,32 +19,20 @@ export const Route = createFileRoute('/_authenticated/master/materials/$material
 	component: EditMaterialPage,
 })
 
-function toFormValues(material: MaterialDto) {
-	return {
-		code: material.code,
-		name: material.name,
-		type: material.type,
-		categoryId: material.categoryId,
-		baseUomId: material.baseUomId,
-		defaultPurchaseUomId: material.defaultPurchaseUomId,
-		defaultStockUomId: material.defaultStockUomId,
-		defaultRecipeUomId: material.defaultRecipeUomId,
-		minStock: material.minStock ?? '',
-		isActive: material.isActive,
-	}
-}
-
 function EditMaterialPage() {
 	const { materialId } = Route.useParams()
 	const navigate = useNavigate()
 	const id = Number(materialId)
 
-	const detailQuery = useQuery(materialResource.detail.queryOptions({ id }))
+	const detailQuery = useQuery(
+		materialResource.detail.queryOptions({ id }, { throwOnError: false }),
+	)
 
 	return (
 		<DetailBoundary query={detailQuery}>
 			{(response) => (
 				<EditMaterialForm
+					key={response.data.id}
 					material={response.data}
 					onDone={() => navigate({ to: '/master/materials' })}
 				/>
@@ -62,11 +46,7 @@ interface EditMaterialFormProps {
 	onDone: () => void
 }
 
-/**
- * Split into its own component so `useMaterialForm`'s `defaultValues` are
- * captured once the detail query has resolved — otherwise the form would
- * re-initialize from a stale/empty value on every parent re-render.
- */
+/** Mount an editing session only once the requested entity has loaded. */
 function EditMaterialForm({ material, onDone }: EditMaterialFormProps) {
 	const canReadAudit = usePermissionCheck({ permission: 'audit.read' })
 	const auditQuery = useQuery({
@@ -74,51 +54,27 @@ function EditMaterialForm({ material, onDone }: EditMaterialFormProps) {
 		enabled: canReadAudit,
 	})
 
-	const updateMut = useMutation(materialResource.update.mutationOptions())
-	const form = useMaterialForm({
-		defaultValues: toFormValues(material),
-		onSubmit: async (values) => {
-			await updateMut.mutateAsync({
-				id: material.id,
-				code: values.code,
-				name: values.name,
-				type: values.type,
-				categoryId: values.categoryId,
-				baseUomId: values.baseUomId!,
-				defaultPurchaseUomId: values.defaultPurchaseUomId,
-				defaultStockUomId: values.defaultStockUomId,
-				defaultRecipeUomId: values.defaultRecipeUomId,
-				minStock: values.minStock || null,
-				isActive: values.isActive,
-			})
-			toast.add({ title: 'Material updated successfully.', type: 'success' })
-			onDone()
-		},
-	})
-
-	useUnsavedChangesGuard(form)
+	const form = useMaterialForm({ material, onSaved: onDone })
 
 	return (
-		<form.AppForm>
-			<CrudForm
-				title="Edit Material"
-				description={`Update details for ${material.name}.`}
-				form={form}
-				submitLabel="Save Changes"
-				onCancel={onDone}
-			>
-				<MaterialFormFields form={form} />
+		<EntityEditorPage
+			title="Edit Material"
+			description={`Update details for ${material.name}.`}
+			form={form}
+			submitLabel="Save Changes"
+			onCancel={onDone}
+		>
+			<MaterialFormFields form={form} />
 
-				{canReadAudit && (
-					<PageSection title="Activity" description="Recent changes to this material.">
-						<AuditTrail
-							entries={auditQuery.data?.data ?? []}
-							isLoading={auditQuery.isLoading}
-							emptyMessage="No changes recorded for this material yet."
-						/>
-					</PageSection>
-				)}
-			</CrudForm>
-		</form.AppForm>
+			{canReadAudit && (
+				<PageSection title="Activity" description="Recent changes to this material.">
+					<AuditTrail
+						entries={auditQuery.data?.data ?? []}
+						isLoading={auditQuery.isLoading}
+						emptyMessage="No changes recorded for this material yet."
+					/>
+				</PageSection>
+			)}
+		</EntityEditorPage>
 	)
 }
