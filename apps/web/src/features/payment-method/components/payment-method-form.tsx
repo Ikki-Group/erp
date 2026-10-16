@@ -1,8 +1,14 @@
 import { z } from 'zod'
 
-import { useEntityForm } from '@/lib/form/index.ts'
+import { useEntityEditor } from '@/lib/form/use-entity-editor.ts'
+import type { EntityForm } from '@/lib/form/use-entity-form.ts'
 
-import { PAYMENT_METHOD_TYPE_OPTIONS, PaymentMethodTypeEnum } from '../dto/index.ts'
+import { paymentMethodMutations } from '../api.ts'
+import {
+	PAYMENT_METHOD_TYPE_OPTIONS,
+	PaymentMethodCreateDto,
+	PaymentMethodTypeEnum,
+} from '../dto/index.ts'
 import type { PaymentMethodDto } from '../dto/index.ts'
 
 export interface PaymentMethodFormValues {
@@ -35,25 +41,45 @@ export function toPaymentMethodFormValues(method: PaymentMethodDto): PaymentMeth
 	}
 }
 
-export interface UsePaymentMethodFormOptions {
-	defaultValues?: PaymentMethodFormValues
-	onSubmit: (values: PaymentMethodFormValues) => Promise<void>
+export function toPaymentMethodInput(values: PaymentMethodFormValues): PaymentMethodCreateDto {
+	return PaymentMethodCreateDto.parse(values)
 }
 
-export function usePaymentMethodForm({ defaultValues, onSubmit }: UsePaymentMethodFormOptions) {
-	return useEntityForm({
-		defaultValues: defaultValues ?? EMPTY_PAYMENT_METHOD_FORM_VALUES,
+export const PAYMENT_METHOD_SAVE_DENIED = 'You do not have permission to save this payment method.'
+
+export type PaymentMethodForm = EntityForm<PaymentMethodFormValues>
+
+export function usePaymentMethodForm({
+	method,
+	canWrite,
+	onSaved,
+}: {
+	method?: PaymentMethodDto
+	/** Presentation guard; the server stays authoritative. */
+	canWrite: boolean
+	onSaved: () => void | Promise<void>
+}): PaymentMethodForm {
+	return useEntityEditor({
+		defaultValues: method ? toPaymentMethodFormValues(method) : EMPTY_PAYMENT_METHOD_FORM_VALUES,
 		schema: PaymentMethodFormSchema,
-		onSubmit,
+		mutation: {
+			mutationFn: async (input: PaymentMethodCreateDto) => {
+				if (!canWrite) throw new Error(PAYMENT_METHOD_SAVE_DENIED)
+				return method
+					? paymentMethodMutations.update.fetch({ ...input, id: method.id })
+					: paymentMethodMutations.create.fetch(input)
+			},
+		},
+		toPayload: toPaymentMethodInput,
+		successMessage: method ? 'Payment method updated.' : 'Payment method created.',
+		onSaved,
 	})
 }
-
-export type PaymentMethodForm = ReturnType<typeof usePaymentMethodForm>
 
 export function PaymentMethodFormFields({ form }: { form: PaymentMethodForm }) {
 	return (
 		<div className="grid gap-4">
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
 					{(field) => <field.TextField label="Code" placeholder="e.g. CASH" />}
 				</form.AppField>
@@ -72,7 +98,6 @@ export function PaymentMethodFormFields({ form }: { form: PaymentMethodForm }) {
 					/>
 				)}
 			</form.AppField>
-			<form.FormError />
 		</div>
 	)
 }

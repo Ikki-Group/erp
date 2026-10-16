@@ -33,7 +33,9 @@ export const paymentMethodResource = defineResource({
 	update: PaymentMethodUpdateDto,
 })
 
-// ─── Mutations with byLocation invalidation ───
+// ─── Mutations: the single owner of list, detail and by-location invalidation ───
+
+const detailOf = (args: { id: number }) => paymentMethodResource.keys.detail({ id: args.id })
 
 const createMutation = defineMutation({
 	method: 'post',
@@ -48,7 +50,7 @@ const updateMutation = defineMutation({
 	url: endpoint.paymentMethod.update,
 	body: PaymentMethodUpdateDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
+	invalidates: [paymentMethodResource.keys.lists(), detailOf, byLocationKeys.all()],
 })
 
 const removeMutation = defineMutation({
@@ -56,7 +58,7 @@ const removeMutation = defineMutation({
 	url: endpoint.paymentMethod.remove,
 	query: zc.RecordId,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [paymentMethodResource.keys.lists(), byLocationKeys.all()],
+	invalidates: [paymentMethodResource.keys.lists(), detailOf, byLocationKeys.all()],
 })
 
 export const paymentMethodMutations = {
