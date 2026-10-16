@@ -74,6 +74,8 @@ const baseColumns = [
 function SuppliersPage() {
 	const navigate = useNavigate({ from: Route.fullPath })
 	const search = Route.useSearch()
+	const canRead = usePermissionCheck({ permission: 'supplier.read' })
+	const canCreate = usePermissionCheck({ permission: 'supplier.create' })
 	const canEdit = usePermissionCheck({ permission: 'supplier.update' })
 	const canDelete = usePermissionCheck({ permission: 'supplier.delete' })
 
@@ -113,7 +115,7 @@ function SuppliersPage() {
 			// oxlint-disable-next-line react/no-unstable-nested-components
 			content: ({ close }) => (
 				<div className="space-y-4">
-					<PricingTable supplierId={supplier.id} />
+					<PricingTable supplierId={supplier.id} permissions={{ read: canRead, create: canCreate, update: canEdit, delete: canDelete }} />
 					<div className="flex justify-end">
 						<Button size="sm" onClick={() => close(true)}>
 							Done
@@ -122,7 +124,7 @@ function SuppliersPage() {
 				</div>
 			),
 		})
-	}, [])
+	}, [canRead, canCreate, canEdit, canDelete])
 
 	// ─── Columns with actions ───
 
