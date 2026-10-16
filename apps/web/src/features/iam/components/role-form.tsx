@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react'
 import { SearchIcon, XIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { useEntityForm } from '@/lib/form/index.ts'
+import { formatFieldError } from '@/lib/form/field-error'
+import { useEntityEditor } from '@/lib/form/use-entity-editor'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,7 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-import { PERMISSION_GROUPS } from '../dto/index.ts'
+import { roleResource } from '../api.ts'
+import { PERMISSION_GROUPS, RoleCreateDto } from '../dto/index.ts'
 import type { RoleDto } from '../dto/index.ts'
 
 export interface RoleFormValues {
@@ -25,7 +27,7 @@ const RoleFormSchema = z.object({
 	code: z.string().trim().min(2, 'Code must be at least 2 characters').max(50),
 	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
 	description: z.string().trim().max(500, 'Description must be 500 characters or fewer'),
-	permissions: z.array(z.string()),
+	permissions: RoleCreateDto.shape.permissions,
 })
 
 export const EMPTY_ROLE_FORM_VALUES: RoleFormValues = {
@@ -44,16 +46,35 @@ export function toRoleFormValues(role: RoleDto): RoleFormValues {
 	}
 }
 
-export interface UseRoleFormOptions {
-	defaultValues?: RoleFormValues
-	onSubmit: (values: RoleFormValues) => Promise<void>
+export function toRoleInput(values: RoleFormValues): RoleCreateDto {
+	return RoleCreateDto.parse(values)
 }
 
-export function useRoleForm({ defaultValues, onSubmit }: UseRoleFormOptions) {
-	return useEntityForm({
-		defaultValues: defaultValues ?? EMPTY_ROLE_FORM_VALUES,
+export async function saveRole(input: RoleCreateDto, role?: RoleDto) {
+	if (role?.isSystem) {
+		throw new Error('System roles cannot be modified.')
+	}
+	return role
+		? roleResource.update.fetch({ ...input, id: role.id })
+		: roleResource.create.fetch(input)
+}
+
+export function useRoleForm({
+	role,
+	onSaved,
+}: {
+	role?: RoleDto
+	onSaved: () => void | Promise<void>
+}) {
+	return useEntityEditor({
+		defaultValues: role ? toRoleFormValues(role) : EMPTY_ROLE_FORM_VALUES,
 		schema: RoleFormSchema,
-		onSubmit,
+		mutation: {
+			mutationFn: (input: RoleCreateDto) => saveRole(input, role),
+		},
+		toPayload: toRoleInput,
+		successMessage: role ? 'Role updated successfully.' : 'Role created successfully.',
+		onSaved,
 	})
 }
 
@@ -64,15 +85,12 @@ function permissionLabel(permission: string): string {
 	return action.replaceAll('-', ' ').replace(/\b\w/gu, (letter) => letter.toUpperCase())
 }
 
-function PermissionsPicker({
-	value,
-	onChange,
-	readOnly = false,
-}: {
-	value: string[]
-	onChange: (next: string[]) => void
-	readOnly?: boolean
-}) {
+type PermissionsPickerProps = { value: string[] } & (
+	| { readOnly: true; onChange?: never }
+	| { readOnly?: false; onChange: (next: string[]) => void }
+)
+
+function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps) {
 	const [query, setQuery] = useState('')
 	const normalizedQuery = query.trim().toLowerCase()
 	const totalPermissions = PERMISSION_GROUPS.reduce(
@@ -203,15 +221,15 @@ function PermissionsPicker({
 											key={permission}
 											className="flex items-center gap-2 rounded px-1.5 py-1 text-xs hover:bg-muted/50"
 										>
-										<Checkbox
-											checked={value.includes(permission)}
-											disabled={readOnly}
-											onCheckedChange={() => togglePermission(permission)}
-											className="size-3.5"
-										/>
-										<span className="truncate" title={permission}>
-											{permissionLabel(permission)}
-										</span>
+											<Checkbox
+												checked={value.includes(permission)}
+												disabled={readOnly}
+												onCheckedChange={() => togglePermission(permission)}
+												className="size-3.5"
+											/>
+											<span className="truncate" title={permission}>
+												{permissionLabel(permission)}
+											</span>
 										</label>
 									))}
 								</div>
@@ -224,19 +242,15 @@ function PermissionsPicker({
 	)
 }
 
-export function RoleFormFields({ form, readOnly = false }: { form: RoleForm; readOnly?: boolean }) {
+export function RoleFormFields({ form }: { form: RoleForm }) {
 	return (
 		<div className="grid gap-5">
 			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
-					{(field) => (
-						<field.TextField label="Code" placeholder="e.g. manager" disabled={readOnly} />
-					)}
+					{(field) => <field.TextField label="Code" placeholder="e.g. manager" />}
 				</form.AppField>
 				<form.AppField name="name">
-					{(field) => (
-						<field.TextField label="Name" placeholder="e.g. Store Manager" disabled={readOnly} />
-					)}
+					{(field) => <field.TextField label="Name" placeholder="e.g. Store Manager" />}
 				</form.AppField>
 			</div>
 
@@ -247,22 +261,53 @@ export function RoleFormFields({ form, readOnly = false }: { form: RoleForm; rea
 						placeholder="Explain what this role is responsible for..."
 						maxLength={500}
 						rows={3}
-						disabled={readOnly}
 					/>
 				)}
 			</form.AppField>
 
 			<form.AppField name="permissions">
-				{(field) => (
-					<PermissionsPicker
-						value={field.state.value}
-						onChange={(value) => field.handleChange(value)}
-						readOnly={readOnly}
-					/>
-				)}
+				{(field) => {
+					const error = field.state.meta.isTouched
+						? formatFieldError(field.state.meta.errors)
+						: undefined
+					return (
+						<div className="space-y-1.5">
+							<PermissionsPicker
+								value={field.state.value}
+								onChange={(value) => field.handleChange(value)}
+							/>
+							{error && (
+								<p role="alert" className="text-xs text-destructive">
+									{error}
+								</p>
+							)}
+						</div>
+					)
+				}}
 			</form.AppField>
+		</div>
+	)
+}
 
-			<form.FormError />
+/** Presentation only: viewing a system role never creates an editing session or mutation. */
+export function RoleDetails({ role }: { role: RoleDto }) {
+	return (
+		<div className="grid gap-5">
+			<dl className="grid gap-4 sm:grid-cols-2">
+				<div className="space-y-1">
+					<dt className="text-xs text-muted-foreground">Code</dt>
+					<dd className="break-words font-mono text-sm">{role.code}</dd>
+				</div>
+				<div className="space-y-1">
+					<dt className="text-xs text-muted-foreground">Name</dt>
+					<dd className="break-words text-sm">{role.name}</dd>
+				</div>
+				<div className="space-y-1 sm:col-span-2">
+					<dt className="text-xs text-muted-foreground">Description</dt>
+					<dd className="whitespace-pre-wrap break-words text-sm">{role.description || '—'}</dd>
+				</div>
+			</dl>
+			<PermissionsPicker value={role.permissions} readOnly />
 		</div>
 	)
 }

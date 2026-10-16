@@ -1,13 +1,7 @@
-import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
+import { EntityEditorPage } from '@/components/shared/entity-editor-page'
 
-import { FormPage } from '@/components/shared/form-page.tsx'
-
-import { toast } from '@/components/ui/toast'
-
-import { roleResource } from '@/features/iam/api.ts'
 import { RoleFormFields, useRoleForm } from '@/features/iam/components/role-form.tsx'
 
 export const Route = createFileRoute('/_authenticated/settings/roles/new')({
@@ -16,29 +10,18 @@ export const Route = createFileRoute('/_authenticated/settings/roles/new')({
 
 function NewRolePage() {
 	const navigate = useNavigate()
-	const createMut = useMutation(roleResource.create.mutationOptions())
-
-	const form = useRoleForm({
-		onSubmit: async (values) => {
-			await createMut.mutateAsync(values)
-			toast.add({ title: 'Role created successfully.', type: 'success' })
-			navigate({ to: '/settings/access-control', search: { tab: 'roles' } })
-		},
-	})
-
-	useUnsavedChangesGuard(form)
+	const onDone = () => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })
+	const form = useRoleForm({ onSaved: onDone })
 
 	return (
-		<form.AppForm>
-			<FormPage
-				title="Add Role"
-				description="Create a new role with specific permissions."
-				form={form}
-				submitLabel="Create"
-				onCancel={() => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })}
-			>
-				<RoleFormFields form={form} />
-			</FormPage>
-		</form.AppForm>
+		<EntityEditorPage
+			title="Add Role"
+			description="Create a new role with specific permissions."
+			form={form}
+			submitLabel="Create"
+			onCancel={onDone}
+		>
+			<RoleFormFields form={form} />
+		</EntityEditorPage>
 	)
 }
