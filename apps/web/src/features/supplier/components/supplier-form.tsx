@@ -1,7 +1,10 @@
 import { z } from 'zod'
 
-import { useEntityForm } from '@/lib/form/index.ts'
+import { isApiError } from '@/lib/api'
+import { useEntityEditor } from '@/lib/form/use-entity-editor'
 
+import { supplierResource } from '../api'
+import { SupplierCreateDto } from '../dto/index.ts'
 import type { SupplierDto } from '../dto/index.ts'
 
 export interface SupplierFormValues {
@@ -56,16 +59,43 @@ export function toSupplierFormValues(supplier: SupplierDto): SupplierFormValues 
 	}
 }
 
-export interface UseSupplierFormOptions {
-	defaultValues?: SupplierFormValues
-	onSubmit: (values: SupplierFormValues) => Promise<void>
+export function toSupplierInput(values: SupplierFormValues): SupplierCreateDto {
+	return SupplierCreateDto.parse({
+		...values,
+		contactPerson: values.contactPerson.trim() || null,
+		phone: values.phone.trim() || null,
+		email: values.email.trim() || null,
+		address: values.address.trim() || null,
+		paymentTerms: values.paymentTerms ? Number(values.paymentTerms) : null,
+	})
 }
 
-export function useSupplierForm({ defaultValues, onSubmit }: UseSupplierFormOptions) {
-	return useEntityForm({
-		defaultValues: defaultValues ?? EMPTY_SUPPLIER_FORM_VALUES,
+function supplierSaveError(error: unknown): unknown {
+	return isApiError(error) && error.status === 409
+		? new Error('Supplier code already exists. Please use a different code.', { cause: error })
+		: error
+}
+
+export function useSupplierForm({
+	supplier,
+	onSaved,
+}: {
+	supplier?: SupplierDto
+	onSaved: () => void | Promise<void>
+}) {
+	return useEntityEditor({
+		defaultValues: supplier ? toSupplierFormValues(supplier) : EMPTY_SUPPLIER_FORM_VALUES,
 		schema: SupplierFormSchema,
-		onSubmit,
+		mutation: {
+			mutationFn: (input: SupplierCreateDto) =>
+				supplier
+					? supplierResource.update.fetch({ ...input, id: supplier.id })
+					: supplierResource.create.fetch(input),
+		},
+		toPayload: toSupplierInput,
+		successMessage: supplier ? 'Supplier updated successfully.' : 'Supplier created successfully.',
+		mapError: supplierSaveError,
+		onSaved,
 	})
 }
 
@@ -75,7 +105,7 @@ export type SupplierForm = ReturnType<typeof useSupplierForm>
 export function SupplierFormFields({ form }: { form: SupplierForm }) {
 	return (
 		<div className="grid gap-4">
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
 					{(field) => <field.TextField label="Code" placeholder="e.g. SUP-001" />}
 				</form.AppField>
@@ -84,7 +114,7 @@ export function SupplierFormFields({ form }: { form: SupplierForm }) {
 				</form.AppField>
 			</div>
 
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="contactPerson">
 					{(field) => <field.TextField label="Contact Person" placeholder="Optional" />}
 				</form.AppField>
@@ -102,7 +132,14 @@ export function SupplierFormFields({ form }: { form: SupplierForm }) {
 			</form.AppField>
 
 			<form.AppField name="paymentTerms">
-				{(field) => <field.TextField label="Payment Terms (days)" placeholder="e.g. 30" />}
+				{(field) => (
+					<field.TextField
+						label="Payment Terms (days)"
+						placeholder="e.g. 30"
+						inputMode="numeric"
+						className="text-right font-mono tabular-nums"
+					/>
+				)}
 			</form.AppField>
 
 			<form.AppField name="isActive">
@@ -113,8 +150,6 @@ export function SupplierFormFields({ form }: { form: SupplierForm }) {
 					/>
 				)}
 			</form.AppField>
-
-			<form.FormError />
 		</div>
 	)
 }

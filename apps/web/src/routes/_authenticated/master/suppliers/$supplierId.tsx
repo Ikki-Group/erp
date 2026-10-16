@@ -1,18 +1,12 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { isApiError } from '@/lib/api/index.ts'
-import { useUnsavedChangesGuard } from '@/lib/form/index.ts'
-
 import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
-import { FormPage } from '@/components/shared/form-page.tsx'
-
-import { toast } from '@/components/ui/toast'
+import { EntityEditorPage } from '@/components/shared/entity-editor-page'
 
 import { supplierResource } from '@/features/supplier/api.ts'
 import {
 	SupplierFormFields,
-	toSupplierFormValues,
 	useSupplierForm,
 } from '@/features/supplier/components/supplier-form.tsx'
 import type { SupplierDto } from '@/features/supplier/dto/index.ts'
@@ -26,12 +20,15 @@ function EditSupplierPage() {
 	const navigate = useNavigate()
 	const id = Number(supplierId)
 
-	const detailQuery = useQuery(supplierResource.detail.queryOptions({ id }))
+	const detailQuery = useQuery(
+		supplierResource.detail.queryOptions({ id }, { throwOnError: false }),
+	)
 
 	return (
 		<DetailBoundary query={detailQuery}>
 			{(response) => (
 				<EditSupplierForm
+					key={response.data.id}
 					supplier={response.data}
 					onDone={() => navigate({ to: '/master/suppliers' })}
 				/>
@@ -46,48 +43,17 @@ interface EditSupplierFormProps {
 }
 
 function EditSupplierForm({ supplier, onDone }: EditSupplierFormProps) {
-	const updateMut = useMutation(supplierResource.update.mutationOptions())
-	const form = useSupplierForm({
-		defaultValues: toSupplierFormValues(supplier),
-		onSubmit: async (values) => {
-			try {
-				await updateMut.mutateAsync({
-					id: supplier.id,
-					code: values.code,
-					name: values.name,
-					contactPerson: values.contactPerson || null,
-					phone: values.phone || null,
-					email: values.email || null,
-					address: values.address || null,
-					paymentTerms: values.paymentTerms ? Number(values.paymentTerms) : null,
-					isActive: values.isActive,
-				})
-			} catch (err) {
-				if (isApiError(err) && err.status === 409) {
-					throw new Error('Supplier code already exists. Please use a different code.', {
-						cause: err,
-					})
-				}
-				throw err
-			}
-			toast.add({ title: 'Supplier updated successfully.', type: 'success' })
-			onDone()
-		},
-	})
-
-	useUnsavedChangesGuard(form)
+	const form = useSupplierForm({ supplier, onSaved: onDone })
 
 	return (
-		<form.AppForm>
-			<FormPage
-				title="Edit Supplier"
-				description={`Update details for ${supplier.name}.`}
-				form={form}
-				submitLabel="Save Changes"
-				onCancel={onDone}
-			>
-				<SupplierFormFields form={form} />
-			</FormPage>
-		</form.AppForm>
+		<EntityEditorPage
+			title="Edit Supplier"
+			description={`Update details for ${supplier.name}.`}
+			form={form}
+			submitLabel="Save Changes"
+			onCancel={onDone}
+		>
+			<SupplierFormFields form={form} />
+		</EntityEditorPage>
 	)
 }
