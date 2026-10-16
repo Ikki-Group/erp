@@ -1,94 +1,34 @@
-import { useMemo } from 'react'
-
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
-import { z } from 'zod'
-
-import { listSearchSchema, TextCell, useResourceList } from '@/components/data-table'
-import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
+import { useResourceList } from '@/components/data-table'
 import { EntityListPage } from '@/components/shared/entity-list-page'
+import { LocationRequiredPage } from '@/components/shared/location-required-page'
 import { PageError } from '@/components/shared/page-error'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
-import { StatusBadge } from '@/components/shared/status-badge'
+import { TableToolbar } from '@/components/shared/table-toolbar'
 
+import type { AuthLocation } from '@/features/auth/dto/index.ts'
 import { userResource } from '@/features/iam/api.ts'
-import type { LocationStaffListItemDto } from '@/features/iam/dto/index.ts'
+import {
+	LOCATION_STAFF_STATUS_OPTIONS,
+	locationStaffColumns,
+	locationStaffSearchSchema,
+	parseLocationStaffStatus,
+} from '@/features/iam/components/location-staff-columns.tsx'
 
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
-const locationStaffSearchSchema = listSearchSchema.extend({
-	isActive: z.coerce.number().int().min(0).max(1).optional(),
-})
-
 export const Route = createFileRoute('/_authenticated/settings/location-staff')({
 	validateSearch: locationStaffSearchSchema,
-	component: LocationStaffPage,
+	component: LocationStaffRoute,
 })
 
-const col = createColumnHelper<DataGridFeatures, LocationStaffListItemDto>()
+const TITLE = 'Location Staff'
 
-const locationStaffColumns = [
-	col.accessor('name', {
-		header: 'Name',
-		size: 220,
-		// oxlint-disable-next-line react/no-unstable-nested-components
-		cell: ({ getValue }) => <TextCell value={getValue()} truncate />,
-	}),
-	col.accessor('username', {
-		header: 'Username',
-		size: 160,
-		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
-	}),
-	col.accessor('email', {
-		header: 'Email',
-		size: 220,
-		// oxlint-disable-next-line react/no-unstable-nested-components
-		cell: ({ getValue }) => <TextCell value={getValue()} truncate />,
-	}),
-	col.accessor('roleName', {
-		header: 'Role',
-		size: 180,
-	}),
-	col.accessor('isActive', {
-		header: 'Status',
-		size: 100,
-		cell: ({ getValue }) => (
-			<StatusBadge variant={getValue() ? 'success' : 'default'}>
-				{getValue() ? 'Active' : 'Inactive'}
-			</StatusBadge>
-		),
-	}),
-]
-
-function LocationStaffPage() {
-	const search = Route.useSearch()
-	const navigate = useNavigate({ from: Route.fullPath })
+function LocationStaffRoute() {
 	const canRead = usePermissionCheck({ permission: 'location-staff.read' })
 	const { isConsolidated, activeLocation } = useLocationContext()
-
-	const listQuery = useQuery({
-		...userResource.locationStaff.queryOptions({
-			page: search.page,
-			limit: search.pageSize,
-			q: search.q,
-			isActive: search.isActive,
-		}),
-		enabled: canRead && !isConsolidated,
-		throwOnError: false,
-	})
-
-	const list = useResourceList({
-		query: listQuery,
-		columns: useMemo(
-			() => locationStaffColumns as ColumnDef<DataGridFeatures, LocationStaffListItemDto>[],
-			[],
-		),
-		search,
-		onSearchChange: (next) => navigate({ search: next }),
-		hasFilters: (value) => value.isActive !== undefined,
-	})
 
 	if (!canRead) {
 		return (
@@ -101,19 +41,68 @@ function LocationStaffPage() {
 
 	if (isConsolidated || !activeLocation) {
 		return (
-			<PageError
-				title="Select a location"
+			<LocationRequiredPage
+				title={TITLE}
+				description="Users assigned to the active location."
 				message="Choose an active location to view its assigned staff."
 			/>
 		)
 	}
 
+	// Keyed so a header location change cannot carry rows or state across locations.
+	return <LocationStaffPage key={activeLocation.id} location={activeLocation} />
+}
+
+function LocationStaffPage({ location }: { location: AuthLocation }) {
+	const search = Route.useSearch()
+	const navigate = useNavigate({ from: Route.fullPath })
+
+	// The location comes from the X-Location-ID header; the API layer scopes the cache key by it.
+	const listQuery = useQuery({
+		...userResource.locationStaff.queryOptions({
+			page: search.page,
+			limit: search.pageSize,
+			q: search.q,
+			isActive: search.isActive,
+		}),
+		throwOnError: false,
+	})
+
+	const list = useResourceList({
+		query: listQuery,
+		columns: locationStaffColumns,
+		search,
+		onSearchChange: (next) => navigate({ search: next }),
+		hasFilters: (value) => value.isActive !== undefined,
+	})
+
 	return (
 		<EntityListPage
-			title="Location Staff"
-			description={`Users assigned to ${activeLocation.name}.`}
+			title={TITLE}
+			description={`Users assigned to ${location.name}.`}
 			list={list}
-			emptyMessage="No staff assigned to this location."
+			emptyState={{
+				title: 'No staff assigned',
+				description: 'No users are assigned to this location.',
+			}}
+			emptyMessage="No staff match your search."
+			toolbar={
+				<TableToolbar
+					searchValue={list.globalFilter}
+					onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
+					searchPlaceholder="Search staff..."
+					filters={[
+						{
+							key: 'isActive',
+							label: 'Status',
+							value: search.isActive === undefined ? undefined : String(search.isActive),
+							onChange: (value) => list.setFilters({ isActive: parseLocationStaffStatus(value) }),
+							options: LOCATION_STAFF_STATUS_OPTIONS,
+							allLabel: 'All Statuses',
+						},
+					]}
+				/>
+			}
 		/>
 	)
 }

@@ -213,6 +213,14 @@ Menu tabs are URL-backed (`tab=items|modifiers`). Modifier lists use server sear
 
 Known POS limitations (outside this editor rollout): `ModifierDialog` still prefixes every nonzero adjustment with `+Rp`, producing `+Rp -0,125` for a negative adjustment, and computes `priceTotal` using JavaScript numbers. The POS smoke verified boolean-driven option visibility and selection only, not correct signed-price presentation or exact decimal arithmetic.
 
+## Location Staff and Assigned Users
+
+These surfaces use the same `LocationStaffListItemDto`, typed columns, and URL-backed text/status filters, but have different authorization and scope. `/settings/location-staff` requires `location-staff.read` and a selected header location. It does not query in All Locations. `userResource.locationStaff` includes the active location in its cache key because the server reads `X-Location-ID`; identical filters in two locations must not share rows.
+
+Location detail requires `location.read`. Its Assigned Users section independently requires `iam.read` and uses `userResource.byLocation` with the route record's explicit location ID, regardless of the header. Without IAM access it shows an explanatory note and sends no staff request. Both views expose search, active/inactive filtering and pagination; sorting is omitted because the endpoint does not support it. Global assignments are not part of these location-specific staff results.
+
+Initial request failure remains distinct from empty data. Loaded staff rows survive refresh failure with retry; `DetailBoundary` similarly retains location details. User profile/deactivation, role rename/removal, and assignment mutations invalidate both staff-reader families across location partitions at the API layer. Existing IAM editors remain the only staff assignment mutation workflow; these views are read-only.
+
 ## Verification and adoption
 
 The catalog's Tables page demonstrates resource-list states. Real reference views include Materials/Suppliers/UOM/Locations/Users/custom-Roles/Recipes/Menu-Items/Payment-Methods editors and lists, Company Settings, system-role details, UOM conversions, and receiving/transfer wizards. Tests cover state precedence, URL filters, selected-record resolution, pending search, stable line identity, record-owned location scope, editor retention, on-page saved baselines, cache invalidation, IAM partial-save reconciliation, permission immutability, and action retries. Exercise actual workflows when changing shared modules; a catalog specimen alone is insufficient.

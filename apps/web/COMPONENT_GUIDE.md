@@ -115,6 +115,8 @@ Callable dialogs do not inherit authenticated route providers. Resolve permissio
 
 Menu Categories are focused dialogs with a live permission getter and pinned location checked again at submission. Modifier Groups are full-page editors with stable option rows, record-owned scope, and draft-preserving refetch behavior. Keep signed adjustments as decimal strings and preserve all options, including inactive/default flags and sort order; saving replaces the full option set. Both workflows provide explicit pending-safe retry.
 
+Location Staff uses the active header location and `location-staff.read`; Assigned Users on location detail uses the route's location ID and independently requires `iam.read`. Both use shared typed staff columns, search/status filters, pagination, and stale-row recovery. Ambient staff query keys must include the active location.
+
 ## Charts
 
 Supply `aria-label` describing the measure and scope. Keep chart/card containers shrinkable. Use an exact-value table alongside charts; catalog examples disclose it through “View exact values.” Switching chart type must preserve the dataset and units. Stacking is meaningful only when series share a unit.
