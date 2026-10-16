@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -6,6 +7,7 @@ import { AreaChart } from '@/components/charts/area-chart'
 import { BarChart } from '@/components/charts/bar-chart'
 import { ChartSwitch } from '@/components/charts/chart-switch'
 import { LineChart } from '@/components/charts/line-chart'
+import { CurrencyCell, NumericCell, TextCell } from '@/components/data-table'
 import { DataCard, PageHeader, PageSection } from '@/components/shared'
 
 import type { ChartConfig } from '@/components/ui/chart'
@@ -66,12 +68,19 @@ const stockChartConfig: ChartConfig = {
 function ChartsPage() {
 	return (
 		<div className="space-y-10">
-			<PageHeader title="Charts" description="Data visualization components, built on Recharts." />
+			<PageHeader
+				title="Charts"
+				description="Use a chart to reveal a trend or comparison; use the accompanying values for precise decisions. Illustrative catalog data only."
+			/>
 
-			<PageSection title="Charts" description="Area, line, bar, and stacked-area variants.">
+			<PageSection
+				title="Charts"
+				description="Lines and areas show change over time; bars compare categories. Stack only comparable measures with the same unit. Always provide exact values alongside visual encoding."
+			>
 				<div className="grid gap-6 lg:grid-cols-2">
 					<DataCard title="Revenue Trend" description="Monthly revenue over time.">
 						<AreaChart
+							aria-label="Monthly revenue from January to June in rupiah"
 							data={revenueData}
 							config={revenueChartConfig}
 							xAxisKey="month"
@@ -79,32 +88,69 @@ function ChartsPage() {
 							yAxisFormatter={formatCompactRupiah}
 							yAxisWidth={56}
 						/>
+						<ChartValues
+							caption="Monthly revenue"
+							headings={['Month', 'Revenue (IDR)']}
+							rows={revenueData.map((row) => [
+								row.month,
+								<CurrencyCell key="revenue" value={row.revenue} />,
+							])}
+						/>
 					</DataCard>
 					<DataCard title="Orders" description="Monthly order count.">
 						<LineChart
+							aria-label="Monthly order counts from January to June"
 							data={revenueData}
 							config={revenueChartConfig}
 							xAxisKey="month"
 							dataKeys={['orders']}
 							showDots={true}
 						/>
+						<ChartValues
+							caption="Monthly orders"
+							headings={['Month', 'Orders']}
+							rows={revenueData.map((row) => [
+								row.month,
+								<NumericCell key="orders" value={row.orders} />,
+							])}
+						/>
 					</DataCard>
 					<DataCard title="Sales by Category" description="Top selling categories.">
 						<BarChart
+							aria-label="Sales counts by category"
 							data={categoryData}
 							config={categoryChartConfig}
 							xAxisKey="category"
 							dataKeys={['sales']}
 						/>
+						<ChartValues
+							caption="Category sales"
+							headings={['Category', 'Sales']}
+							rows={categoryData.map((row) => [
+								row.category,
+								<NumericCell key="sales" value={row.sales} />,
+							])}
+						/>
 					</DataCard>
 					<DataCard title="Stock Levels" description="Stock by material type (stacked).">
 						<AreaChart
+							aria-label="Illustrative stock series by month"
 							data={stockData}
 							config={stockChartConfig}
 							xAxisKey="month"
 							dataKeys={['rawMaterial', 'packaging', 'dairy']}
 							stacked={true}
 							showLegend={true}
+						/>
+						<ChartValues
+							caption="Illustrative stock levels"
+							headings={['Month', 'Raw material', 'Packaging', 'Dairy']}
+							rows={stockData.map((row) => [
+								row.month,
+								<NumericCell key="raw" value={row.rawMaterial} />,
+								<NumericCell key="packaging" value={row.packaging} />,
+								<NumericCell key="dairy" value={row.dairy} />,
+							])}
 						/>
 					</DataCard>
 				</div>
@@ -122,8 +168,8 @@ function ChartSwitchDemo() {
 
 	return (
 		<DataCard
-			title="Sales Overview"
-			description="Switch between chart types."
+			title="Monthly Orders"
+			description="The same months and counts in either view. Only the chart type changes."
 			actions={
 				<ChartSwitch
 					options={[
@@ -137,14 +183,16 @@ function ChartSwitchDemo() {
 		>
 			{chartType === 'bar' ? (
 				<BarChart
-					data={categoryData}
-					config={categoryChartConfig}
-					xAxisKey="category"
-					dataKeys={['sales']}
+					aria-label="Monthly orders, bar view"
+					data={revenueData}
+					config={revenueChartConfig}
+					xAxisKey="month"
+					dataKeys={['orders']}
 					className="h-48"
 				/>
 			) : (
 				<LineChart
+					aria-label="Monthly orders, line view"
 					data={revenueData}
 					config={revenueChartConfig}
 					xAxisKey="month"
@@ -152,6 +200,61 @@ function ChartSwitchDemo() {
 					className="h-48"
 				/>
 			)}
+			<ChartValues
+				caption="Monthly orders"
+				headings={['Month', 'Orders']}
+				rows={revenueData.map((row) => [
+					row.month,
+					<NumericCell key="orders" value={row.orders} />,
+				])}
+			/>
 		</DataCard>
+	)
+}
+
+function ChartValues({
+	caption,
+	headings,
+	rows,
+}: {
+	caption: string
+	headings: string[]
+	rows: ReactNode[][]
+}) {
+	return (
+		<details className="mt-4 border-t pt-2">
+			<summary className="cursor-pointer rounded-sm py-1 text-xs font-medium text-primary focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:min-h-11">
+				View exact values
+			</summary>
+			<div className="mt-2 overflow-x-auto" role="region" aria-label={caption} tabIndex={0}>
+				<table className="w-full text-sm">
+					<caption className="sr-only">{caption} — illustrative data</caption>
+					<thead>
+						<tr>
+							{headings.map((heading, index) => (
+								<th
+									key={heading}
+									scope="col"
+									className={`px-2 py-2 text-xs font-medium text-muted-foreground ${index === 0 ? 'text-left' : 'text-right'}`}
+								>
+									{heading}
+								</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{rows.map((row) => (
+							<tr key={String(row[0])} className="border-t">
+								{row.map((value, index) => (
+									<td key={headings[index]} className="px-2 py-2">
+										{index === 0 ? <TextCell value={value} /> : value}
+									</td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</details>
 	)
 }

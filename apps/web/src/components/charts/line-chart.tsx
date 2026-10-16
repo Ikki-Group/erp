@@ -20,6 +20,9 @@ interface LineChartProps {
 	showLegend?: boolean
 	showDots?: boolean
 	className?: string
+	/** Name the measure and grouping; link an exact-value alternative with aria-describedby. */
+	'aria-label'?: string
+	'aria-describedby'?: string
 }
 
 export function LineChart({
@@ -31,10 +34,17 @@ export function LineChart({
 	showLegend = false,
 	showDots = true,
 	className,
+	'aria-label': ariaLabel = 'Line chart',
+	'aria-describedby': ariaDescribedBy,
 }: LineChartProps) {
 	return (
-		<ChartContainer config={config} className={cn('h-64 w-full', className)}>
-			<RechartsLineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+		<ChartContainer config={config} className={cn('h-64 w-full aspect-auto', className)}>
+			<RechartsLineChart
+				data={data}
+				aria-label={ariaLabel}
+				aria-describedby={ariaDescribedBy}
+				margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+			>
 				{showGrid && <CartesianGrid vertical={false} />}
 				<XAxis dataKey={xAxisKey} tickLine={false} axisLine={false} tickMargin={8} />
 				<YAxis tickLine={false} axisLine={false} tickMargin={8} />

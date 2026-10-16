@@ -21,6 +21,9 @@ interface BarChartProps {
 	showGrid?: boolean
 	showLegend?: boolean
 	className?: string
+	/** Name the measure and grouping; link an exact-value alternative with aria-describedby. */
+	'aria-label'?: string
+	'aria-describedby'?: string
 }
 
 export function BarChart({
@@ -33,11 +36,15 @@ export function BarChart({
 	showGrid = true,
 	showLegend = false,
 	className,
+	'aria-label': ariaLabel = 'Bar chart',
+	'aria-describedby': ariaDescribedBy,
 }: BarChartProps) {
 	return (
-		<ChartContainer config={config} className={cn('h-64 w-full', className)}>
+		<ChartContainer config={config} className={cn('h-64 w-full aspect-auto', className)}>
 			<RechartsBarChart
 				data={data}
+				aria-label={ariaLabel}
+				aria-describedby={ariaDescribedBy}
 				layout={horizontal ? 'vertical' : 'horizontal'}
 				margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
 			>
