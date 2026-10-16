@@ -77,8 +77,7 @@ export function UsersList({ searchParams }: UsersListProps) {
 	)
 
 	const handleResetPassword = useCallback(async (user: UserListItemDto) => {
-		const saved = await resetUserPassword(user)
-		if (saved) toast.add({ title: 'Password reset successfully.', type: 'success' })
+		await resetUserPassword(user)
 	}, [])
 
 	const handleView = useCallback(

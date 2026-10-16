@@ -1,29 +1,19 @@
 import { createColumnHelper } from '@tanstack/react-table'
 
-import { TextCell } from '@/components/data-table/cell'
+import { createEntityColumns } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import { StatusBadge } from '@/components/shared/status-badge'
 
 import { Badge } from '@/components/ui/badge'
 
 import type { UserListItemDto } from '../dto/index.ts'
 
 const col = createColumnHelper<DataGridFeatures, UserListItemDto>()
+const fields = createEntityColumns<UserListItemDto>()
 
 export const userColumns = [
-	col.accessor('username', {
-		header: 'Username',
-		size: 160,
-		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
-	}),
-	col.accessor('name', {
-		header: 'Name',
-		size: 180,
-	}),
-	col.accessor('email', {
-		header: 'Email',
-		size: 200,
-	}),
+	fields.code('username', { header: 'Username', size: 160 }),
+	fields.text('name', { header: 'Name', size: 180 }),
+	fields.text('email', { header: 'Email', size: 200 }),
 	col.accessor('roleNames', {
 		header: 'Roles',
 		size: 180,
@@ -46,13 +36,5 @@ export const userColumns = [
 			)
 		},
 	}),
-	col.accessor('isActive', {
-		header: 'Status',
-		size: 100,
-		cell: ({ getValue }) => (
-			<StatusBadge variant={getValue() ? 'success' : 'default'}>
-				{getValue() ? 'Active' : 'Inactive'}
-			</StatusBadge>
-		),
-	}),
+	fields.booleanStatus('isActive', { header: 'Status', size: 100 }),
 ]

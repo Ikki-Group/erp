@@ -1,12 +1,11 @@
-import { useMutation } from '@tanstack/react-query'
-
 import { z } from 'zod'
 
-import { FormDialogFooter, useEntityForm } from '@/lib/form/index.ts'
+import { FormDialogFooter, FormRoot, useEntityEditor } from '@/lib/form/index.ts'
 
 import { formDialog } from '@/components/shared/form-dialog.tsx'
 
 import { userResource } from '../api.ts'
+import { UserResetPasswordDto } from '../dto/index.ts'
 
 const ResetPasswordSchema = z.object({
 	password: z.string().min(8, 'Password must be at least 8 characters').max(100),
@@ -18,31 +17,24 @@ interface ResetPasswordFormBodyProps {
 }
 
 function ResetPasswordFormBody({ userId, close }: ResetPasswordFormBodyProps) {
-	const resetMut = useMutation(userResource.resetPassword.mutationOptions())
-	const form = useEntityForm({
+	const form = useEntityEditor({
 		defaultValues: { password: '' },
 		schema: ResetPasswordSchema,
-		onSubmit: async (values) => {
-			await resetMut.mutateAsync({ id: userId, password: values.password })
-			close(true)
-		},
+		mutation: userResource.resetPassword.mutationOptions(),
+		toPayload: (values) => UserResetPasswordDto.parse({ id: userId, password: values.password }),
+		successMessage: 'Password reset successfully.',
+		onSaved: () => close(true),
 	})
 
 	return (
 		<form.AppForm>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault()
-					e.stopPropagation()
-					void form.handleSubmit()
-				}}
-				className="grid gap-4"
-			>
+			<FormRoot form={form} className="grid gap-4">
 				<form.AppField name="password">
 					{(field) => (
 						<field.TextField
 							label="New password"
 							type="password"
+							autoComplete="new-password"
 							placeholder="Minimum 8 characters"
 							autoFocus
 						/>
@@ -50,17 +42,12 @@ function ResetPasswordFormBody({ userId, close }: ResetPasswordFormBodyProps) {
 				</form.AppField>
 				<form.FormError />
 				<FormDialogFooter onCancel={() => close(false)} submitLabel="Reset password" />
-			</form>
+			</FormRoot>
 		</form.AppForm>
 	)
 }
 
-/**
- * Opens the reset-password dialog for the given user. Resolves `true` if the
- * password was reset, `false` if cancelled — the caller shows its own
- * success toast, matching the app's `formDialog` convention. Resetting
- * signs the user out of every active session (see `handleResetPassword`).
- */
+/** Opens a focused reset flow; owns success feedback and never changes the profile form. */
 export async function resetUserPassword(user: { id: number; name: string }): Promise<boolean> {
 	return formDialog({
 		title: 'Reset Password',
