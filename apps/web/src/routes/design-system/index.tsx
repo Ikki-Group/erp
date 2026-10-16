@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 
 import { PageHeader, PageSection } from '@/components/shared'
 
@@ -13,11 +13,164 @@ function OverviewPage() {
 		<div className="space-y-10">
 			<PageHeader
 				title="Design System"
-				description="Complete catalog of design tokens and reusable components used across the application. Pick a category from the left to see it live — in both themes."
+				description="Warm Precision: a quiet, information-dense toolkit for inventory and finance. Working examples use illustrative data, never live business records."
 			/>
+			<nav
+				aria-label="Foundation sections"
+				className="flex flex-wrap gap-x-5 gap-y-2 border-b pb-4 text-sm"
+			>
+				{[
+					['Choose a component', 'component-guide'],
+					['ERP patterns', 'erp-patterns'],
+					['Density & interaction', 'density'],
+					['Theme tokens', 'theme-tokens'],
+					['Typography', 'typography'],
+				].map(([label, id]) => (
+					<a
+						key={id}
+						href={`#${id}`}
+						className="inline-flex items-center py-1 text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:min-h-11"
+					>
+						{label}
+					</a>
+				))}
+			</nav>
+
+			<PageSection
+				id="component-guide"
+				title="Choose a component"
+				description="Start with the user's task, then choose the smallest component that supports it."
+			>
+				<dl className="divide-y text-sm">
+					{[
+						{
+							task: 'Find and compare records',
+							to: '/design-system/tables',
+							label: 'DataTable + TableToolbar',
+							note: 'Search, filters, sorting, and pagination. Use a simple table for a small editable set.',
+						},
+						{
+							task: 'Enter quantities and amounts',
+							to: '/design-system/forms',
+							label: 'Form fields',
+							note: 'Keep quantity and unit distinct. Use CurrencyField for amounts, not an unformatted text input.',
+						},
+						{
+							task: 'Explain state and recovery',
+							to: '/design-system/feedback',
+							label: 'EmptyState, PageError, InlineAlert',
+							note: 'Distinguish no records from no matches. Keep entered work and offer a clear recovery action.',
+						},
+						{
+							task: 'Review a consequential action',
+							to: '/design-system/overlays',
+							label: 'Confirm + FormDialog',
+							note: 'Confirm irreversible actions. Use a full page for complex forms; a dialog for one focused task.',
+						},
+					].map((item) => (
+						<div
+							key={item.task}
+							className="grid gap-2 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]"
+						>
+							<dt className="font-medium">{item.task}</dt>
+							<dd>
+								<Link
+									to={item.to}
+									className="inline-flex items-center text-primary underline underline-offset-4 pointer-coarse:min-h-11"
+								>
+									{item.label}
+								</Link>
+								<p className="mt-1 max-w-prose text-xs text-muted-foreground">{item.note}</p>
+							</dd>
+						</div>
+					))}
+				</dl>
+			</PageSection>
+
+			<PageSection
+				id="erp-patterns"
+				title="ERP patterns"
+				description="Compose the same primitives around the operational task. These are implementation recipes, not simulated transactions."
+			>
+				<div className="divide-y rounded-lg border px-4">
+					{[
+						{
+							title: 'Entity list',
+							body: 'PageHeader → TableToolbar → DataTable. Keep search and filters available during loading or failure. Show record-empty, filtered-empty, loading, and retry states separately.',
+							to: '/design-system/tables',
+							hash: 'data-table',
+							link: 'Try the complete list example',
+						},
+						{
+							title: 'Receiving',
+							body: 'FormPage with supplier, destination location, date, and material rows. Pair each quantity with a UOM and each cost with CurrencyField. Keep validation beside the field and retain rows after a failed save.',
+							to: '/design-system/forms',
+							hash: '',
+							link: 'Try quantity, UOM, and validation fields',
+						},
+						{
+							title: 'Transfer review',
+							body: 'Keep source and destination locations visible with the material quantities. Explain stock consequences before approval. A failed confirmation must offer both Try Again and Cancel.',
+							to: '/design-system/overlays',
+							hash: 'confirm',
+							link: 'Try async confirmation and recovery',
+						},
+						{
+							title: 'Stock count',
+							body: 'Use a simple editable table: material, UOM, recorded quantity, counted quantity, variance. Empty means not counted; zero is a deliberate count. Right-align quantities and keep audit context with the review.',
+							to: '/design-system/tables',
+							hash: 'simple-table',
+							link: 'Inspect the simple table pattern',
+						},
+					].map((item) => (
+						<details key={item.title} className="py-3">
+							<summary className="cursor-pointer rounded-sm py-1 text-sm font-medium focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:min-h-11">
+								{item.title}
+							</summary>
+							<p className="mt-2 max-w-prose text-sm text-muted-foreground">{item.body}</p>
+							<Link
+								to={item.to}
+								hash={item.hash}
+								className="mt-2 inline-flex items-center text-sm text-primary underline underline-offset-4 pointer-coarse:min-h-11"
+							>
+								{item.link}
+							</Link>
+						</details>
+					))}
+				</div>
+			</PageSection>
+
+			<PageSection
+				id="density"
+				title="Density & interaction"
+				description="One system, two input contexts. Compact desktop controls expand automatically for coarse pointers, including phones and touch tablets."
+			>
+				<div className="grid gap-6 sm:grid-cols-2">
+					<div className="space-y-2">
+						<h3 className="text-sm font-semibold tracking-tight">Compact desktop</h3>
+						<p className="max-w-prose text-sm text-muted-foreground">
+							Keep dense tables and 28px default controls for precise mouse and keyboard use. Use
+							one primary action per task, with secondary actions quieter.
+						</p>
+					</div>
+					<div className="space-y-2">
+						<h3 className="text-sm font-semibold tracking-tight">Comfortable touch</h3>
+						<p className="max-w-prose text-sm text-muted-foreground">
+							Use at least 44px control targets without overlapping hit areas. Let toolbars wrap,
+							keep charts within their cards, and scroll wide tables explicitly.
+						</p>
+					</div>
+				</div>
+				<p className="max-w-prose text-xs text-muted-foreground">
+					Every control needs a visible focus state and an accessible name. Every form field needs a
+					unique label association and linked hints/errors. Never communicate status through color
+					alone.
+				</p>
+			</PageSection>
 
 			{/* ─── THEME TOKENS ─── */}
 			<PageSection
+				id="theme-tokens"
 				title="Theme Tokens"
 				description="Semantic color pairs used across light and dark themes. Toggle the theme (top left) to verify contrast and state consistency."
 			>
@@ -73,12 +226,15 @@ function OverviewPage() {
 
 					<div>
 						<p className="mb-2 text-xs font-medium text-muted-foreground">Chart palette</p>
-						<div className="grid grid-cols-5 gap-3">
-							<TokenSwatch name="Chart 1" className="bg-chart-1 text-white" />
-							<TokenSwatch name="Chart 2" className="bg-chart-2 text-white" />
-							<TokenSwatch name="Chart 3" className="bg-chart-3 text-white" />
-							<TokenSwatch name="Chart 4" className="bg-chart-4 text-white" />
-							<TokenSwatch name="Chart 5" className="bg-chart-5 text-foreground" />
+						<div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+							{['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4', 'bg-chart-5'].map(
+								(color, index) => (
+									<div key={color} className="overflow-hidden rounded-lg border bg-card">
+										<div className={`h-12 ${color}`} />
+										<p className="p-2 text-xs text-card-foreground">Chart {index + 1}</p>
+									</div>
+								),
+							)}
 						</div>
 					</div>
 				</div>
@@ -88,6 +244,7 @@ function OverviewPage() {
 
 			{/* ─── TYPOGRAPHY ─── */}
 			<PageSection
+				id="typography"
 				title="Typography"
 				description="Five deliberate text tiers covering headings, titles, body, captions, and field labels — applied consistently everywhere. See docs/web/07-design-system.md."
 			>

@@ -1,528 +1,134 @@
-# Ikki Web Frontend - UI/UX Component Guide
+# Ikki Web Component Guide
 
-> **Purpose:** Ensure all agents building UI features follow consistent patterns and use the right components from the design system.
+Use this guide to choose components. Visual authority is `DESIGN.md`; token values live in `src/styles.css`. The live `/design-system` catalog is the reference for rendered behavior in both themes. Product constraints live in `PRODUCT.md`.
 
-## Quick Navigation
+## Foundations
 
-- **Design System Browser:** `http://localhost:3000/design-system`
-- **Component Location:** `apps/web/src/components/`
-- **Reusable Patterns:** `apps/web/src/components/shared/`
+**Warm Precision:** Geist Variable, warm paper/charcoal surfaces, forest-green actions, semantic status colors. Inline surfaces use borders; shadows identify floating overlays. Titles stop at semibold. Use monospace and tabular figures for quantities, money, and exact identifiers.
 
----
+- Desktop controls stay compact: default buttons and inputs are 28px.
+- Coarse-pointer controls expand to at least 44px without overlapping invisible hit areas. This is input-device based, not only a viewport breakpoint.
+- Right-align numbers in inputs, table headers/cells, and summaries. Text stays left-aligned.
+- Tailwind's spacing unit is 4px: `gap-2` = 8px, `space-y-4` = 16px, `p-6` = 24px. Do not interpret `p-24` as 24px.
+- Use semantic utilities, never component-local palette values. Solid `bg-X` pairs with `text-X-foreground`; soft `bg-X/10` pairs with `text-X`.
+- Use Base UI's `render` composition, not Radix's `asChild`.
 
-## Design Philosophy
+## Choose by task
 
-### Visual Identity
-- **Style:** Linear-inspired precision instrument (dark mode native)
-- **Tone:** Minimal, professional, ERP-appropriate
-- **Principle:** Content-first, chrome-last
+| Task                                  | Component                                                                          | Catalog                                                                                |
+| ------------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Search, compare, paginate records     | `useResourceList` + `EntityListPage` + `TableToolbar`                              | `/design-system/tables`                                                                |
+| Small static or editable row set      | `Table` primitives + cell renderers                                                | `/design-system/tables#simple-table`                                                   |
+| Create/edit an entity                 | Feature hook using `useEntityEditor` + `EntityEditorPage`                          | Materials / Suppliers / UOM / Locations / IAM / Recipes / Menu Items / Payment Methods |
+| Quantity with a fixed/selectable unit | `NumberInputGroupAddonField` / `NumberInputGroupField`                             | `/design-system/forms`                                                                 |
+| Monetary entry                        | `field.CurrencyField`; standalone `CurrencyInput` outside forms                    | `/design-system/forms`                                                                 |
+| Workflow state                        | `StatusBadge`                                                                      | `/design-system/data-display`                                                          |
+| Category/type/count label             | `Badge`                                                                            | `/design-system/buttons`                                                               |
+| Titled data section / metric          | `DataCard` / `StatCard`                                                            | `/design-system/data-display`                                                          |
+| Empty, loading, failure               | `EmptyState`, `PageSkeleton`, `PageError`                                          | `/design-system/feedback`                                                              |
+| Consequential action                  | `useWorkflowAction` over `confirm`; `confirmInput` for typed confirmation          | `/design-system/overlays#confirm`                                                      |
+| One focused quick-edit task           | `formDialog`                                                                       | `/design-system/overlays`                                                              |
+| Trends and comparisons                | `AreaChart`, `LineChart`, `BarChart` + exact-value table                           | `/design-system/charts`                                                                |
+| Select related records                | Feature-owned Material/Supplier/UOM/Location/Category/Role/Menu Item lookup fields | Entity and operational forms                                                           |
+| Edit document rows                    | `LineItemEditor` with feature-owned fields                                         | Receiving / transfer wizards / Recipes                                                 |
+| Supplier price relations              | `PricingTable` + feature `PricingForm`                                             | Suppliers → Pricing                                                                    |
+| Material location relations           | `LocationAssignment` + feature workflow hook                                       | Materials → Locations                                                                  |
 
-### Key Design Rules
+Catalog search accepts task keywords such as quantity, error, or inventory. Overview includes ERP composition recipes for lists, receiving, transfers, and stock counts. Catalog values are illustrative, never operational records.
 
-#### 1. **Typography**
-- **Font:** Inter Variable (UI), Berkeley Mono (code/IDs)
-- **Size:** 13-16px for body text
-- **Weights:** 400-510 (avoid bold/700+)
-- **Tracking:** Tight (-0.01em to -0.02em) for headings
+## Tables and numbers
 
-#### 2. **Color System**
-- **Background layers:** Void (#08090a) → Carbon (#0f1011) → Obsidian (#161718) → Graphite (#23252a)
-- **Text hierarchy:** Paper (#fff) → Mist (#d0d6e0) → Fog (#8a8f98) → Ash (#62666d)
-- **Accent:** Acid Lime (#e4f222) for primary CTAs (use sparingly)
-- **Semantic:** Use Tailwind semantic tokens (`text-muted-foreground`, `bg-destructive`, etc.)
-
-#### 3. **Spacing**
-- **Base unit:** 4px
-- **Common gaps:** 8px (element), 16px (section), 24px (card), 96px (page section)
-- **Padding:** 24px for cards, 8-12px for buttons, 2.5px horizontal for inputs
-
-#### 4. **Border Radius**
-- **Cards:** 12px
-- **Buttons/Inputs:** 6px
-- **Badges:** 4px
-- **Pills:** 9999px
-
----
-
-## Component Catalog
-
-### 📊 Data Display (Tables)
-
-**Location:** `apps/web/src/components/data-table/`
-
-#### Core Table Components
-- **`DataTable`** — Full-featured table with pagination, sorting, filtering
-- **`useClientTable`** / **`useServerTable`** — Table state hooks
-- **`TableToolbar`** — Search + filters + actions bar
-
-#### Cell Renderers (Use These!)
-```tsx
-import { TextCell, NumericCell, CurrencyCell, DateCell } from '@/components/data-table'
-
-// ✅ RIGHT: Use cell components
-<TextCell value={material.name} truncate />
-<NumericCell value={stock} unit="kg" />
-<CurrencyCell value={price} />
-<DateCell value={createdAt} withTime />
-
-// ❌ WRONG: Render raw values
-<td>{material.name}</td>
-<td className="text-right">{stock}</td>
-```
-
-**Cell Alignment Rules:**
-- **Text:** Left-aligned (default)
-- **Numbers:** Right-aligned (`NumericCell`, `CurrencyCell`)
-- **Currency:** Right-aligned with locale formatting
-- **Dates:** Left-aligned (human-readable)
-
-**Text Truncation:**
-```tsx
-// ✅ Automatic tooltip on overflow
-<TextCell value={longText} truncate className="max-w-40" />
-
-// Tooltip appears on hover + keyboard focus
-// Only when text actually overflows
-```
-
----
-
-### 📝 Forms & Inputs
-
-**Location:** `apps/web/src/components/ui/` + `apps/web/src/lib/form/`
-
-#### Form Setup (TanStack Form)
-```tsx
-import { useAppForm, useEntityForm } from '@/lib/form'
-
-// ✅ Standard form pattern
-const form = useAppForm({
-  defaultValues: {
-    name: '',
-    quantity: null as number | null,
-    uomId: null as number | null,
-  },
-})
-
-<form.AppForm>
-  <form.AppField name="name">
-    {(field) => <field.TextField label="Name" />}
-  </form.AppField>
-</form.AppForm>
-```
-
-#### Field Components
-Available on `field.*`:
-- `TextField` — Basic text input
-- `NumberField` — Numeric input (right-aligned)
-- `TextareaField` — Multi-line text
-- `SelectField` — Dropdown select
-- `ComboboxField` — Searchable select
-- `DatePickerField` — Date picker
-- `SwitchField` — Boolean toggle
-- `CheckboxField` — Checkbox group
-
-#### Number Input Group (NEW)
-```tsx
-import { NumberInputGroupAddonField, NumberInputGroupField } from '@/lib/form/fields/number-input-group-field'
-
-// ✅ Static UOM (fixed unit)
-<form.AppField name="quantity">
-  {() => (
-    <NumberInputGroupAddonField
-      label="Weight"
-      uomLabel="kg"
-      description="Enter weight in kilograms."
-    />
-  )}
-</form.AppField>
-
-// ✅ Editable UOM (dropdown)
-<form.AppField name="quantity">
-  {() => (
-    <form.AppField name="uomId">
-      {() => (
-        <NumberInputGroupField
-          label="Quantity"
-          uomOptions={[
-            { id: 1, code: 'kg' },
-            { id: 2, code: 'L' },
-          ]}
-          quantityField={quantityField}
-          uomField={uomField}
-        />
-      )}
-    </form.AppField>
-  )}
-</form.AppField>
-```
-
-**Number Input Rules:**
-- **Right-aligned** (matches table cells)
-- **Monospace font** (`font-mono tabular-nums`)
-- **Null handling** (empty = null, not 0)
-
----
-
-### 🎨 Layout Components
-
-**Location:** `apps/web/src/components/shared/`
-
-#### Page Structure
-```tsx
-import { PageHeader, PageSection } from '@/components/shared'
-
-<PageShell>
-  <PageHeader
-    title="Materials"
-    description="Manage inventory materials"
-    actions={<Button>Add Material</Button>}
-  />
-  
-  <PageSection title="Section Title">
-    {/* Content */}
-  </PageSection>
-</PageShell>
-```
-
-#### Cards
-```tsx
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-
-<Card>
-  <CardHeader>
-    <CardTitle>Card Title</CardTitle>
-  </CardHeader>
-  <CardContent>
-    {/* Content */}
-  </CardContent>
-</Card>
-```
-
----
-
-### 🔘 Buttons
-
-**Location:** `apps/web/src/components/ui/button.tsx`
-
-#### Button Variants
-```tsx
-import { Button } from '@/components/ui/button'
-
-// Primary actions (acid-lime accent)
-<Button>Save Changes</Button>
-
-// Secondary actions
-<Button variant="outline">Cancel</Button>
-<Button variant="ghost">Edit</Button>
-
-// Destructive actions
-<Button variant="destructive">Delete</Button>
-
-// Sizes
-<Button size="sm">Small</Button>
-<Button size="default">Default</Button>
-<Button size="lg">Large</Button>
-```
-
-**Button Rules:**
-- **One primary per view** (acid-lime filled)
-- **Secondary actions** use outline/ghost
-- **Destructive actions** use `variant="destructive"`
-- **Minimum size:** 44×44px touch target (auto-applied)
-
----
-
-### 🏷️ Badges & Status
-
-**Location:** `apps/web/src/components/ui/badge.tsx`
+Import cell renderers from `@/components/data-table`:
 
 ```tsx
-import { Badge } from '@/components/ui/badge'
-
-<Badge>Default</Badge>
-<Badge variant="success">Active</Badge>
-<Badge variant="warning">Low Stock</Badge>
-<Badge variant="destructive">Out of Stock</Badge>
-<Badge variant="outline">Secondary</Badge>
-```
-
----
-
-### 🔔 Feedback
-
-**Location:** `apps/web/src/components/shared/` + `apps/web/src/components/ui/`
-
-#### Loading States
-```tsx
-import { Spinner } from '@/components/ui/spinner'
-import { Skeleton } from '@/components/ui/skeleton'
-
-// Inline loading
-<Button disabled><Spinner className="mr-2 size-4" /> Loading...</Button>
-
-// Skeleton loading
-<Skeleton className="h-4 w-32" />
-```
-
-#### Toast Notifications
-```tsx
-import { toast } from 'sonner'
-
-toast.success('Material created successfully')
-toast.error('Failed to save changes')
-toast.info('Processing...')
-```
-
-#### Confirm Dialogs
-```tsx
-import { confirm } from '@/components/shared/confirm'
-
-const accepted = await confirm({
-  title: 'Delete material?',
-  description: 'This action cannot be undone.',
-  confirmLabel: 'Delete',
-  variant: 'destructive',
-  onConfirm: async () => {
-    await api.deleteMaterial(id)
-  },
-})
-```
-
----
-
-### 📋 Overlays
-
-**Location:** `apps/web/src/routes/design-system/overlays.tsx`
-
-#### Dialog/Modal
-```tsx
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-
-<Dialog open={isOpen} onOpenChange={setIsOpen}>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Dialog Title</DialogTitle>
-    </DialogHeader>
-    {/* Content */}
-  </DialogContent>
-</Dialog>
-```
-
-#### Sheet (Side Panel)
-```tsx
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-
-<Sheet open={isOpen} onOpenChange={setIsOpen}>
-  <SheetContent>
-    <SheetHeader>
-      <SheetTitle>Sheet Title</SheetTitle>
-    </SheetHeader>
-    {/* Content */}
-  </SheetContent>
-</Sheet>
-```
-
----
-
-## Critical Patterns
-
-### 1. **Right-Align All Numbers**
-Numbers are ALWAYS right-aligned, whether in tables OR forms.
-
-```tsx
-// ✅ RIGHT
-<NumericCell value={1234.56} unit="kg" />
-<CurrencyCell value={82500} />
-<NumberInputGroupAddonField uomLabel="kg" />  {/* Right-aligned internally */}
-
-// ❌ WRONG
-<td>{quantity}</td>  {/* Left-aligned by default */}
-<Input type="number" />  {/* Left-aligned by default */}
-```
-
-### 2. **Use Cell Components in Tables**
-Never render table cells manually. Always use cell components.
-
-```tsx
-// ✅ RIGHT
-col.accessor('price', {
-  header: rightAlignedHeader('Price'),
-  cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
-})
-
-// ❌ WRONG
-col.accessor('price', {
-  header: 'Price',
-  cell: ({ getValue }) => <span>{getValue()}</span>,
-})
-```
-
-### 3. **Form Field Pattern**
-Every form field MUST have a label. Description and error are optional.
-
-```tsx
-// ✅ RIGHT
-<form.AppField name="quantity">
-  {(field) => (
-    <field.NumberField
-      label="Quantity"
-      description="Enter the quantity in stock."
-      min={0}
-    />
-  )}
-</form.AppField>
-
-// ❌ WRONG (placeholder-only labels)
-<Input placeholder="Quantity" />  {/* No visible label */}
-```
-
-### 4. **Semantic Colors**
-Use semantic color tokens, not raw hex values.
-
-```tsx
-// ✅ RIGHT
-<span className="text-muted-foreground">Muted text</span>
-<span className="text-destructive">Error</span>
-<Button variant="destructive">Delete</Button>
-
-// ❌ WRONG
-<span className="text-gray-500">Muted text</span>
-<span style={{ color: '#eb5757' }}>Error</span>
-```
-
-### 5. **Consistent Spacing**
-Use spacing scale (4px base), not arbitrary values.
-
-```tsx
-// ✅ RIGHT
-<div className="space-y-4">  {/* 16px */}
-<div className="gap-2">       {/* 8px */}
-
-// ❌ WRONG
-<div style={{ marginTop: '13px' }}>
-<div className="mt-[15px]">
-```
-
----
-
-## Common Patterns
-
-### Entity List Page
-```tsx
-import { EntityListPage } from '@/components/shared'
-import { DataTable, useServerTable } from '@/components/data-table'
-
-function MaterialsPage() {
-  const { table, recordCount } = useServerTable({
-    queryOptions: materialResource.list.queryOptions(),
-    columns: baseColumns,
-  })
-
-  return (
-    <EntityListPage
-      title="Materials"
-      table={table}
-      recordCount={recordCount}
-      isLoading={isLoading}
-      isError={isError}
-      isEmpty={recordCount === 0}
-      toolbar={<TableToolbar ... />}
-    />
-  )
+{
+  accessorKey: 'quantity',
+  header: rightAlignedHeader('Quantity'),
+  cell: ({ getValue }) => <NumericCell value={getValue()} unit="kg" />,
 }
 ```
 
-### CRUD Form Page
+- `NumericCell`: right-aligned, monospace, `id-ID` digit grouping; null/undefined becomes an em dash, not zero.
+- `CurrencyCell`: same alignment; uses `CurrencyDisplay` for Rupiah. Integer prices have no decimals; fractional costs retain up to two decimals.
+- `TextCell`: use `mono` for identifiers. Use `truncate` only with a bounded width; overflowing strings reveal a tooltip on hover or keyboard focus, and remeasure on resize.
+- `DateCell`: localized dates; `withTime` adds time.
+- Keep wide tables in named, keyboard-focusable horizontal scroll regions. Never hide inaccessible columns with overflow clipping.
+- Every query-backed list needs loading, error/retry, record-empty, and filtered-empty states. Check error before empty. Keep the header and toolbar available.
+- A filter chip must describe the filter actually applied to the query/table. Reset pagination when the filter changes.
+
+Prefer `createEntityColumns<T>()` for standard code/text/quantity/money/date/status columns. It packages cell conventions while retaining TanStack overrides. `useResourceList` derives initial/refresh/error/empty states and preserves typed URL filters; `EntityListPage` consumes `list` and reuses one `createAction` in its header and record-empty state. See `docs/web/06-ui-patterns.md` for the complete interface.
+
+## Forms
+
+Use `useAppForm` for local state, `useEntityForm` for validation/error handling, and `useEntityEditor` for a feature-owned create/edit mutation lifecycle. `EntityEditorPage` supplies form context, inline errors, and the unsaved-changes guard; do not duplicate these around it. Materials, Suppliers, UOM, Locations, Users, and custom Roles are reference consumers. System roles remain read-only presentation. See `docs/web/06-ui-patterns.md` for mapping, partial-save handling, initialization, and adoption rules.
+
 ```tsx
-import { CrudForm } from '@/components/shared'
-
-function MaterialFormPage() {
-  const form = useEntityForm({
-    defaultValues: { name: '', code: '' },
-    onSubmit: async (values) => {
-      await api.createMaterial(values)
-    },
-  })
-
-  return (
-    <CrudForm
-      title="Add Material"
-      form={form}
-      onCancel={() => router.push('/materials')}
-    >
-      <form.AppField name="name">
-        {(field) => <field.TextField label="Name" />}
-      </form.AppField>
-    </CrudForm>
-  )
-}
+<form.AppField name="name">
+	{(field) => <field.TextField label="Name" description="The material's display name." />}
+</form.AppField>
 ```
 
----
+Field adapters generate unique IDs, associate labels/hints/errors, and preserve explicit ID overrides. Give raw controls a visible label or an accessible name. Placeholders supplement labels, not replace them.
 
-## Anti-Patterns (Avoid)
+Relation fields consume `number | null` directly inside AppField. Prefer `UomLookupField`, `CategoryLookupField`, `MaterialLookupField`, `SupplierLookupField`, `LocationLookupField`, and `RoleLookupField` over fetching and mapping the first page inside every form. They resolve existing selections separately, support server search/load more, and distinguish errors from empty results. Assignment fields can exclude IDs used by other rows without hiding the current selected label.
 
-### ❌ Mixed Alignment
+### Quantity with UOM
+
+Use the imported adapter; compound inputs need two distinct field instances. Calling `useFieldContext` twice inside the inner field reads the same field twice.
+
 ```tsx
-// Don't mix alignment in numeric columns
-<td className="text-right">{price}</td>  // Right
-<td>{quantity}</td>  // Left (inconsistent!)
+import { NumberInputGroupField } from '@/lib/form/fields/number-input-group-field'
+;<form.AppField name="quantity">
+	{(quantityField) => (
+		<form.AppField name="uomId">
+			{(uomField) => (
+				<NumberInputGroupField
+					label="Quantity"
+					quantityField={quantityField}
+					uomField={uomField}
+					uomOptions={uomOptions}
+					step="any"
+				/>
+			)}
+		</form.AppField>
+	)}
+</form.AppField>
 ```
 
-### ❌ Bold Weights
-```tsx
-// Don't use bold weights
-<span className="font-bold">Title</span>  // ❌
-<span className="font-medium">Title</span>  // ✅
-```
+An empty quantity is null; zero is an entered value. Changing UOM changes its ID only, not the quantity; conversion is a separate domain operation. For a fixed unit, render imported `NumberInputGroupAddonField` inside the quantity `AppField` with `label` and `uomLabel`.
 
-### ❌ Large Radii on Cards
-```tsx
-// Don't use large radii
-<Card className="rounded-2xl">  // ❌ (16px)
-<Card className="rounded-xl">   // ✅ (12px)
-```
+## Actions and recovery
 
-### ❌ Decorative Gradients
-```tsx
-// Don't add decorative gradients
-<Button className="bg-gradient-to-r ...">  // ❌
-<Button>Save</Button>  // ✅ (flat color)
-```
+Use one primary action per task. Outline/ghost actions are secondary; destructive actions use the destructive variant. Icon-only controls require meaningful accessible names. Loading actions must prevent duplicate submission and announce their result.
 
----
+`confirm({ title, description, onConfirm })` keeps the dialog open during an async action. On failure it shows an inline alert with **Cancel** and **Try Again**. `confirmInput` adds an exact confirmation phrase. Explain consequences; don't use confirmation dialogs for routine reversible edits.
 
-## Testing Your UI
+Use `useWorkflowAction` when repeating availability → confirmation → mutation → success feedback. It rechecks availability before execution and prevents duplicate dialogs/submissions. Features supply consequences and mutation; server authorization and API cache invalidation remain authoritative.
 
-Before submitting UI changes:
+Use `toast` from `@/components/ui/toast` for transient success feedback. Mutation errors belong inline with the affected work, not only in a disappearing toast. Preserve entered values after failure. Complex forms belong on a full page, not inside a small dialog.
 
-1. **Visual Check:** Open `http://localhost:3000/design-system`
-2. **Alignment:** Verify numbers are right-aligned
-3. **Responsive:** Test on mobile (375px) and desktop (1440px)
-4. **Dark Mode:** Check contrast and visibility
-5. **Accessibility:** Verify keyboard navigation and focus states
+Recipes use full-page editors and location-scoped material/menu lookups. The editor pins its starting location: switching the header preserves the draft but blocks saving until restored. Quantities remain decimal strings. Company Settings stays on-page after save using `useEntityEditor.baselineAfterSave`; it preserves edits made during the request and guards subsequent unsaved changes. Failed/missing singleton reads never create an empty writable form.
 
----
+`useEditorLocationScope(fixedLocationId?)` is shared by Recipes and Menu Items. For edits, Menu Items pin `item.locationId`, not the header. Category lookups remain scoped to that location and resolve existing selections beyond the first 100 records. Keep the return-to-location action outside disabled fields. Payment Methods use the same editor lifecycle without location pinning, with pending-safe retry and list/detail/by-location cache invalidation.
 
-## When in Doubt
+Callable dialogs do not inherit authenticated route providers. Resolve permissions before opening and pass capability props to the content. Supplier pricing and material/location assignment are the reference examples: both keep failed fetches distinct from empty data, preserve prior rows on refresh failure, and handle write errors inline. Relation toggles retry a desired state after a fresh read, never invert an uncertain last result.
 
-1. **Check existing usage:** Search the codebase for similar patterns
-2. **Visit design-system:** Browse `http://localhost:3000/design-system/*`
-3. **Follow the principle:** "Content-first, chrome-last"
-4. **Ask:** Is this consistent with the rest of the app?
+## Charts
 
----
+Supply `aria-label` describing the measure and scope. Keep chart/card containers shrinkable. Use an exact-value table alongside charts; catalog examples disclose it through “View exact values.” Switching chart type must preserve the dataset and units. Stacking is meaningful only when series share a unit.
 
-## Reference Files
+## Verification
 
-- **Design Tokens:** `apps/web/src/styles.css` (CSS variables)
-- **Tailwind Config:** `apps/web/tailwind.config.ts`
-- **Component Library:** Shadcn UI + Base UI + Radix
-- **Icons:** Lucide React
-- **Forms:** TanStack Form + Zod validation
+1. Exercise the changed interaction in `/design-system`; don't stop at a screenshot.
+2. Check light/dark, desktop, and a real or emulated coarse pointer at phone/tablet widths.
+3. Check keyboard focus, names, field associations, errors, and long/missing/zero values.
+4. Spot-check a production consumer when available; the catalog doesn't replace an authenticated workflow check.
+5. Run the web app's typecheck, lint, and existing tests. See `AGENTS.md` for commands.
 
----
+## References
 
-**Last Updated:** 2026-10-04  
-**Maintained by:** Ikki Development Team
+- `DESIGN.md`: identity, visual hierarchy, tokens and density policy.
+- `src/styles.css`: actual theme values and coarse-pointer rules.
+- `docs/web/07-design-system.md`: visual implementation conventions.
+- `docs/web/06-ui-patterns.md`: form, table, and mutation composition.
+- `src/routes/design-system/`: runnable examples.

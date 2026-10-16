@@ -1,301 +1,208 @@
 # UI Patterns
 
-Component sources, the form engine, dialogs, tables, and error/loading state conventions — the patterns every page should follow.
+Shared workflow modules remove repeated orchestration from views; features retain validation, API mapping, permissions, and business rules. Use `apps/web/COMPONENT_GUIDE.md` for component selection and `apps/web/DESIGN.md` for visual authority.
 
-> **Status:** Current implementation. This replaces an earlier blueprint that documented `@tanstack/react-form` + `@tanstack/zod-form-adapter` usage that was never actually built — the codebase had instead accumulated ~17 hand-rolled `forwardRef`/`useImperativeHandle`/`useState` form components. That pattern is being migrated away from (breaking changes allowed, per the redesign decision). `Materials` + `Category` (`src/routes/_authenticated/master/materials/`, `src/features/material/components/`) is the reference implementation — copy its shape for new/converted forms rather than the older per-page forms still pending migration (Locations, UoM, Suppliers, Menu, Recipes, Payment Methods, POS forms, Settings Users/Roles).
+## Resource lists
 
-## Component Sources
+Reference consumers: `routes/_authenticated/master/materials/index.tsx` and `suppliers/index.tsx`.
 
-| Priority | Source         | Use for                                             |
-| -------- | -------------- | --------------------------------------------------- |
-| 1        | ReUI registry  | Complex components: DataGrid, Kanban, Filters, etc. |
-| 2        | shadcn/base-ui | Primitives: Button, Dialog, Input, Select, etc.     |
-| 3        | Custom         | App-specific composites not covered by either       |
+`useResourceList` builds on `useServerTable`. The route owns validated URL search and maps it to its API query; the controller owns table state, result extraction, query-state precedence, and pagination resets. There is no second local copy of list search.
 
-Shared UI lives in `src/components/ui/` (primitives), `src/components/shared/` (composites — `PageHeader`, `StatusBadge`, `EmptyState`, `FormPage`, `FormDialog`, ...), `src/components/form/` (legacy standalone field wrappers — being superseded by `src/lib/form/fields/`, see below), and `src/components/data-table/`.
-
-## The Form Engine (`src/lib/form/`)
-
-Every entity create/update form is built the same way, on top of `@tanstack/react-form` (already a dependency; `@tanstack/zod-form-adapter` was removed — Zod schemas pass to TanStack Form's validators directly as Standard Schema validators, no adapter needed).
-
-### Layer map
-
-```
-src/lib/form/
-├── contexts.ts            fieldContext/formContext (createFormHookContexts, once)
-├── app-form.ts             useAppForm (createFormHook) — pre-bound field/form components
-├── use-entity-form.ts      useEntityForm — the hook every entity form's own hook wraps
-├── use-unsaved-changes-guard.ts   useUnsavedChangesGuard(form)
-├── form-root.tsx           <FormRoot form> — <form onSubmit> wiring for dialog bodies
-├── form-dialog-footer.tsx  <FormDialogFooter onCancel> — Cancel/Save footer for dialogs
-├── form-error.tsx          <FormError /> — form-level error banner (registered as form.FormError)
-├── field-error.tsx         formatFieldError — flattens+dedupes field.state.meta.errors
-├── transform.ts            toId / idToString — number|null <-> string at the field boundary
-└── fields/                 TextField, TextareaField, SelectField, IdSelectField,
-                             ComboboxField, NumberField, SwitchField, DatePickerField
-```
-
-Import everything from the barrel: `import { useEntityForm, useUnsavedChangesGuard, FormDialogFooter } from '@/lib/form/index.ts'`.
-
-### `useEntityForm` — the base hook
-
-```ts
-const form = useEntityForm({
-	defaultValues, // form-shape values, not the wire DTO — see below
-	schema, // a Zod schema validating the FORM shape
-	onSubmit: async (values) => {
-		await mutation.mutateAsync(toWirePayload(values))
-	},
+```tsx
+const search = Route.useSearch()
+const query = useQuery({
+  ...materialResource.list.queryOptions({
+    page: search.page,
+    limit: search.pageSize,
+    q: search.q,
+    categoryId: search.categoryId,
+  }),
+  throwOnError: false,
+})
+const list = useResourceList({
+  query,
+  columns,
+  search,
+  onSearchChange: (next) => navigate({ search: next }),
+  hasFilters: (value) => value.categoryId !== undefined,
 })
 ```
 
-- Runs `schema` on both `onChange` (live feedback) and `onSubmit` (catches untouched fields). `field-error.tsx` dedupes the resulting duplicate issues, so don't try to "fix" this by dropping one of the two triggers.
-- Wraps `onSubmit`: a thrown error or rejected mutation promise is caught, converted to a message (`ApiError.friendlyMessage` when available), and set as a form-level error via `form.setErrorMap({ onSubmit: { form: message, fields: {} } })` — render it with `<form.FormError />`.
+The query envelope is `{ data: T[], meta: { total: number } }`; the query exposes `isPending`, `isFetching`, `isError`, and `refetch`. Free-text `q` counts as an active filter automatically. Extra filters remain typed through `list.setFilters({ categoryId })`, which resets page 1. Table search/sort/pagination preserve those extra filters. Do not advertise server sorting unless the endpoint supports and receives it.
 
-**Never pass a wire-contract DTO (`XxxCreateDto`/`XxxUpdateDto` from `features/*/dto/`) as `schema` directly.** The form's in-progress shape and the wire payload differ in ways that matter for UX:
+`EntityListPage` accepts `list`, not separate loading/error/empty flags. `createAction` is defined once and reused in the header and unfiltered empty state. `actions` adds secondary header actions. `toolbar` remains available during failure and empty states.
 
-- An empty optional text field is `''`, not `null` — the DTO's `string | null` rejects `''` outright.
-- An unselected relation is `number | null` — the DTO's plain `number` produces a Zod message like `"expected number, received null"`, accurate but not user-facing.
+State contract:
+- `initial-loading`: skeleton rows, without a false empty prompt.
+- `initial-error`: retryable error with header and filters retained.
+- `ready` + `isRefreshing`: retain current rows and show refresh status.
+- `refresh-error`: retain loaded rows and show inline retry.
+- `record-empty`: feature-specific initial empty state and create action.
+- `filtered-empty`: no matching results, with filters still available.
 
-Instead, define a form-specific schema next to the form (see `material-form.tsx`'s `MaterialFormSchema`) with friendly messages, and build the real DTO payload separately in each route's `onSubmit`. This is the single most important rule in this doc — skipping it is precisely the bug class the Materials migration caught (duplicate/raw Zod messages, a "required" field with no actual required validation).
+Queries feeding an inline-state module use `throwOnError: false`; otherwise global network-error throwing bypasses the module and can unmount work. HTTP authorization still belongs to the backend. `useServerTable` remains the lower-level choice for specialized views using `DataTable` directly; `useClientTable` serves small in-memory datasets.
 
-### Per-entity form module shape
+## Typed columns
 
-One file per entity, e.g. `features/material/components/material-form.tsx`:
-
-1. `XxxFormValues` interface — the form's own value shape.
-2. `XxxFormSchema` (Zod) — validates that shape, with friendly `error` messages.
-3. `EMPTY_XXX_FORM_VALUES` — the create-mode default.
-4. `useXxxForm({ defaultValues, onSubmit })` — thin wrapper over `useEntityForm`.
-5. `XxxFormFields({ form })` — the field layout, shared by every entry point (full page, dialog). Ends with `<form.FormError />`.
-
-Routes/dialogs own the mutation and the form-shape → wire-payload mapping; the form module owns validation and layout only.
-
-### Field components
-
-Each is pre-bound to the field context via `createFormHook` (`app-form.ts`) and rendered through `form.AppField`:
+`createEntityColumns<T>()` from `@/components/data-table` provides `code`, `text`, `quantity`, `money`, `date`, `status`, `booleanStatus`, and `actions`. It owns the existing cell conventions, not entity policy.
 
 ```tsx
-<form.AppField name="name">
-	{(field) => <field.TextField label="Name" placeholder="e.g. Tepung Terigu" />}
+const col = createEntityColumns<MaterialDto>()
+const columns = [
+  col.code('code', { header: 'Code', size: 100 }),
+  col.text('name', { header: 'Name', size: 200 }),
+  col.booleanStatus('isActive', { header: 'Status' }),
+]
+```
+
+Numeric headers align with numeric cells; null is an em dash, not zero. `cellProps` configures a renderer (for example quantity units or text truncation); ordinary TanStack options and custom `cell` renderers remain available. `StatusBadge` represents workflow state; plain `Badge` represents a category/type.
+
+## Entity editors
+
+Reference consumers: Materials, Suppliers, Units of Measure, Locations, custom Roles, Users, Recipes, Menu Items, and Payment Methods create/edit routes with feature-owned form hooks and mappings. Location editors retain their wider identity/contact layout while using the same lifecycle; system roles are presentation-only. Company Settings uses the same lifecycle with an explicit on-page saved baseline.
+
+The feature owns:
+1. Form values, defaults, and a form-shape Zod schema.
+2. `toXxxFormValues(entity)` and `toXxxInput(values)`.
+3. Its create/update choice and feature-specific error translation.
+4. JSX field layout, not a JSON form-generation schema.
+
+`useEntityEditor` composes `useEntityForm` with mutation execution, success feedback, and a stable editing-session baseline. Resource `.fetch()` already owns invalidation; do not invalidate the same query again in the view. `onSaved` stays route-owned navigation. Failed mutations remain inline and retain entered values.
+
+`useEntityForm` owns the named `EntityForm<TValues>` contract, including registered app fields and validation state. Editor hooks return it; feature types such as `RecipeEditorForm` and `CompanyForm` specialize it with their form values instead of deriving a public contract with `ReturnType<typeof hook>`.
+
+```tsx
+function NewMaterialPage() {
+  const navigate = useNavigate()
+  const onDone = () => navigate({ to: '/master/materials' })
+  const form = useMaterialForm({ onSaved: onDone })
+  return (
+    <EntityEditorPage title="Add Material" form={form} onCancel={onDone} submitLabel="Create">
+      <MaterialFormFields form={form} />
+    </EntityEditorPage>
+  )
+}
+```
+
+`EntityEditorPage` owns form context, submit-error presentation, and unsaved-navigation protection through existing `FormPage`. Do not add a duplicate `AppForm`, `FormError`, or guard around it. Render edit sessions only after detail data resolves, with `key={entity.id}`. Same-entity background updates do not overwrite drafts; a different entity starts a new keyed session. `DetailBoundary` keeps a mounted editor through refresh failures and offers retry rather than discarding the draft.
+
+On-page editors may omit `onSaved` and provide `baselineAfterSave(payload, result)` to map the successfully submitted payload to the new baseline. This is opt-in: ordinary navigated editors keep their initial session baseline. The rebase preserves top-level fields changed during the request, compared by identity; values must be immutable, with no deep merge implied. Later edits remain guarded even after an earlier successful submission. Company Settings is the reference consumer.
+
+For forms that do not need mutation lifecycle orchestration, `useEntityForm` still owns on-change/on-submit validation and error translation. TanStack normalizes `{ form: message, fields: {} }` into `errorMap.onSubmit` as a string; `FormError` reads that normalized value. An error caught by the submit callback must still count as unsaved even if TanStack marks that callback resolved.
+
+## Relation lookup fields
+
+Render feature-owned fields inside an `AppField` whose value is `number | null`:
+
+```tsx
+<form.AppField name="baseUomId">
+  {() => <UomLookupField label="Base UoM" />}
 </form.AppField>
 ```
 
-No `value`/`onChange`/`error` props anywhere — the field component reads/writes `field.state` itself. Available: `TextField`, `TextareaField`, `SelectField` (string-valued, for enums), `IdSelectField` (the `number | null` foreign-key select — the most common field in this app: `categoryId`, `baseUomId`, every `*LocationId`), `ComboboxField`, `NumberField`, `SwitchField`, `DatePickerField`. Add new ones under `src/lib/form/fields/` and register in `app-form.ts`'s `createFormHook` call.
+Direct imports:
+- `features/material/components/material-lookup-field`: `MaterialLookupField`.
+- `features/material/components/category-lookup-field`: `CategoryLookupField`.
+- `features/supplier/components/supplier-lookup-field`: `SupplierLookupField`.
+- `features/uom/components/uom-lookup-field`: `UomLookupField`.
+- `features/location/components/location-lookup-field`: `LocationLookupField`.
+- `features/iam/components/role-lookup-field`: `RoleLookupField`.
+- `features/menu/components/menu-item-lookup-field`: `MenuItemLookupField`, with required `locationId`.
 
-`IdSelectField`/`toId`/`idToString` (`transform.ts`) are the one place that stringifies a numeric id for Base UI's `<Select>` and parses it back — never do that conversion ad hoc in a form module.
+Shared props: `label`, `placeholder?`, `description?`, `disabled?`, `excludeIds?`. Exclusions hide another assignment row's choices while preserving this field's current selection and detail resolution. Material adds optional `locationId` for assignment-scoped choices and `onSelect(entity | null)` for decisions such as default UOM; omitting the location retains the global lookup. Supplier defaults to active-only purchasing options; `activeOnly={false}` enables broader selection. Selected inactive suppliers still resolve by detail.
 
-## Full-Page Forms (default) vs. Dialogs (exception)
+`ResourceLookupField` and `useResourceLookup` own debounced server search, 25-record pages and Load more, canonical resource caching, selection outside the current page, error/retry states, and accessible field wiring. Search failures are not empty results. A failed selected-record fetch preserves the selected ID and any known label. Lists never silently stop at the first 100 records. Enter during pending search cannot select a stale option or submit the enclosing form.
 
-**Default to a full-page form for every entity create/edit.** Reach for a dialog only for genuinely lightweight cases: a single-field quick-add (category), a toggle-list picker (location assignment) — anything that isn't worth leaving the list page for.
+Keep endpoint filters and display mapping in feature adapters. Location detail currently rejects inactive locations server-side; the field exposes a retryable selected-record failure rather than inventing a label.
 
-### Full-page form (`FormPage`)
+## Operational line items
 
-```tsx
-// routes/_authenticated/master/materials/new.tsx
-function NewMaterialPage() {
-	const navigate = useNavigate()
-	const createMut = useMutation(materialResource.create.mutationOptions())
+`LineItemEditor` is shared by receiving and transfer wizards. It owns add/remove controls, responsive row layout, array errors, stable identity, and focus transitions. The feature supplies `rows`, `createRow`, `onAdd`, `onRemove`, `renderFields`, `fieldCount`, labels, and optional header actions.
 
-	const form = useMaterialForm({
-		onSubmit: async (values) => {
-			await createMut.mutateAsync({
-				/* map form values -> wire DTO */
-			})
-			toast.add({ title: 'Material created successfully.', type: 'success' })
-			navigate({ to: '/master/materials' })
-		},
-	})
+- Create each row with `createLineItem(values)` once. Its `clientKey` remains stable while field-array indices change.
+- Never key rows by index. Deleting a middle row must preserve the following row's values and mounted controls.
+- Map mutation DTO fields explicitly; `clientKey` is UI state, not an API field.
+- Added rows focus their first editable control. Removal focuses the next row, previous row, or Add when empty.
+- Every row retains real field labels, including visually repeated rows.
+- Receiving owns supplier-catalogue import and unit prices. Transfers own location rules and material base-UOM defaulting.
+- Review labels resolve detail keys shared with the lookups. Receiving subtotals/totals use exact decimal-string arithmetic, not floating-point totals.
 
-	useUnsavedChangesGuard(form)
+Keep the existing wizard/form validation and domain constraints in the feature. The shared editor is not a universal transaction schema.
 
-	return (
-		<form.AppForm>
-			<FormPage
-				title="Add Material"
-				form={form}
-				onCancel={() => navigate({ to: '/master/materials' })}
-			>
-				<MaterialFormFields form={form} />
-			</FormPage>
-		</form.AppForm>
-	)
-}
-```
+## Consequential actions
 
-- Route file per verb: `materials/index.tsx` (list), `materials/new.tsx` (create), `materials/$materialId.tsx` (edit — reads `Route.useParams()`, fetches the detail query, and only mounts the form once data resolves — see the `EditMaterialForm` split-component pattern in `$materialId.tsx` so `useMaterialForm`'s `defaultValues` aren't captured as stale/empty on an early render).
-- `FormPage` reads `isSubmitting`/`canSubmit` off the passed `form` itself — never pass those as separate props.
-- `useUnsavedChangesGuard(form)` blocks in-app navigation and tab close while the form is dirty. Call it once, right after the `useXxxForm(...)` call, in every full-page form.
-- List page action menus and row clicks `navigate()` to `new`/`$id` routes — no ref plumbing, no dialog.
-
-### Dialog (`FormDialog` render-prop form)
+`useWorkflowAction<TEntity>` composes permission/availability checks, confirmation, pending-state suppression, execution, retry, and success feedback:
 
 ```tsx
-const saved = await formDialog({
-	title: 'Add Category',
-	content: ({ close }) => <CategoryDialogBody close={close} />,
-})
-if (saved) toast.add({ title: 'Category created successfully.', type: 'success' })
-```
-
-Where the body owns its own form + footer:
-
-```tsx
-function CategoryDialogBody({
-	close,
-	defaultValues,
-}: {
-	close: (r?: boolean) => void
-	defaultValues?: MaterialCategoryDto
-}) {
-	const createMut = useMutation(categoryResource.create.mutationOptions())
-	const form = useCategoryForm({
-		defaultValues,
-		onSubmit: async (values) => {
-			await createMut.mutateAsync(values)
-			close(true)
-		},
-	})
-	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault()
-				e.stopPropagation()
-				void form.handleSubmit()
-			}}
-		>
-			<CategoryFormFields form={form} />
-			<FormDialogFooter onCancel={() => close(false)} submitLabel="Create" />
-		</form>
-	)
-}
-```
-
-`formDialog`'s `content` is a render prop `({ close }) => ReactNode`, not static content with a separate `onSubmit` — the content decides when it's done (mutation succeeded, "Done" clicked), because not every dialog is a save form. `FormDialogFooter` reads submitting/canSubmit off the form context automatically.
-
-`FormDialog` also still accepts the old shape (`content: ReactNode` + a top-level `onSubmit: () => Promise<void>`) — marked `@deprecated` in its type (`FormDialogLegacyProps`) — purely so the ~17 pages not yet migrated keep compiling. **Never write new dialogs against the legacy shape.**
-
-### Confirmation dialogs
-
-Destructive/consequential one-off actions use the imperative `confirm`/`confirmInput` helpers (`src/components/shared/confirm.tsx` / `confirm-input.tsx`) — unrelated to the form engine, unchanged by this migration:
-
-```tsx
-await confirm({
-	title: 'Delete material?',
-	description: `This will permanently delete "${material.name}". This action cannot be undone.`,
-	confirmLabel: 'Delete',
-	variant: 'destructive',
-	onConfirm: async () => {
-		await removeMut.mutateAsync({ id: material.id })
-		toast.add({ title: 'Material deleted successfully.', type: 'success' })
-	},
+const deletion = useWorkflowAction<MaterialDto>({
+  availability: () => canDelete,
+  confirmation: (material) => ({
+    title: 'Delete material?',
+    description: `Remove "${material.name}" from the list? Existing records are retained.`,
+    confirmLabel: 'Delete',
+    variant: 'destructive',
+  }),
+  execute: (material) => removeMut.mutateAsync({ id: material.id }),
+  successMessage: 'Material deleted successfully.',
 })
 ```
 
-## Data Tables (TanStack Table + ReUI)
+Call `deletion.run(entity)` and use `deletion.isPending` for presentation. Availability is checked before opening and again before execution; it may return a reason string. One interaction owns one dialog and one in-flight execution, including retries. A failed execution leaves Cancel and Try Again visible and never announces success. Backend authorization and resource invalidation remain unchanged. Do not describe soft deletion as irreversible destruction.
 
-`useServerTable`/`useClientTable` (`src/components/data-table/`) manage pagination/sorting/search state and render through `<DataTable table={table} toolbar={...} />`. Pagination/sort/filter state is local `useState` in the page (not URL search params, despite what an older draft of this doc said) — see `materials/index.tsx`'s `listParams`.
+Locations use feature-owned `useLocationDelete({ onDeleted? })` in both list and detail views. Despite the API verb, the operation deactivates the location; history remains. The backend lists and resolves active locations only, so the list supports search/type filters, not an unsupported inactive-status filter. Units and conversions are permanently deleted; their confirmation copy and server constraint failures remain distinct.
 
-```tsx
-const { table, globalFilter, setGlobalFilter } = useServerTable({
-	data,
-	columns,
-	totalCount,
-	pageSize: listParams.limit,
-	onStateChange: (params) =>
-		setListParams((prev) => ({
-			...prev,
-			page: params.page + 1,
-			limit: params.pageSize,
-			q: params.search || undefined,
-		})),
-})
-```
+## Lightweight dialog forms
 
-### Toolbar: `TableToolbar` (default) vs. `Filters` (advanced)
+Use `formDialog({ content: ({ close }) => ... })` for a focused quick-add, not a complex editor. Use `FormRoot` for native form submission and `FormDialogFooter` for submit/cancel. Feature fields can use ordinary `useEntityForm` here. Full-page entity editors use `EntityEditorPage` instead.
 
-**`TableToolbar`** (`src/components/shared/table-toolbar.tsx`) is the single toolbar pattern for every list page — every `DataTable`'s `toolbar` prop renders one of these, whether the page needs search only, search + one filter, or search + several filters. It replaced the old `SearchToolbar` + ad-hoc `<Select>`-per-page pattern (each page previously wrote its own filter dropdown with an inconsistent "All X" label) and the unused `DataTableToolbar`/`DataTableLoading`/`DataTableError`/`DataTableEmpty` dead code — all deleted, no legacy path was kept.
+Callable dialog roots (`FormDialog`, `Confirm`) are mounted outside `AuthProvider` and the authenticated location provider. Resolve permissions in the authenticated caller and pass explicit capability props into dialog content; calling `usePermissionCheck` from that content throws. This is presentation gating only; the server remains authoritative if access changes while a dialog is open.
 
-```tsx
-<DataTable
-	table={table}
-	recordCount={totalCount}
-	isLoading={listQuery.isLoading}
-	toolbar={
-		<TableToolbar
-			searchValue={globalFilter}
-			onSearchChange={setGlobalFilter}
-			searchPlaceholder="Search materials..."
-			filters={[
-				{
-					key: 'categoryId',
-					label: 'Category',
-					value: listParams.categoryId?.toString(),
-					onChange: (v) =>
-						setListParams((prev) => ({
-							...prev,
-							page: 1,
-							categoryId: v === undefined ? undefined : Number(v),
-						})),
-					options: categories.map((cat) => ({ label: cat.name, value: cat.id.toString() })),
-				},
-			]}
-		/>
-	}
-/>
-```
+UOM conversion creation uses `useEntityEditor` in the dialog with `FormRoot` and `FormDialogFooter`. Both relations use `UomLookupField`; no first-999 list or separate selector cache exists. `UomLabel` resolves canonical detail keys for conversion rows and offers retry on failures. Factors remain decimal strings, distinct-unit validation stays local, and category/uniqueness restrictions stay server-owned. Conversion create/delete actions honor their respective UOM permissions.
 
-- `filters` is a `TableFilterDef[]`: each entry renders a `TableFilterSelect` (a `Select` with a standardized "All {label}" option) plus, once its `value` is set, a removable chip in a row below the toolbar. A "Clear filters" button appears whenever at least one filter is active and clears them all.
-- A filter's `value`/`onChange` always deal in `string | undefined` — `undefined` means "All". Cast to the real enum/number type at the `onChange` boundary (see `categoryId: v === undefined ? undefined : Number(v)` above), don't change the filter def's type.
-- Omit `searchValue`/`onSearchChange` entirely for filter-only toolbars (e.g. Shifts, Orders status filter) — the search box only renders when `onSearchChange` is passed.
-- Reset to page 1 inside every filter's `onChange`, same as search.
-- `TableFilterSelect` (`src/components/shared/table-filter-select.tsx`) is exported separately if a page ever needs a standalone filter dropdown outside a `TableToolbar` (rare — prefer the `filters` prop).
+## IAM editor policy
 
-**`Filters`** (`src/components/reui/filters.tsx`) is a Linear/Notion-style filter chip builder: an "Add filter" trigger that lets the user attach any number of independent, non-mutually-exclusive dimensions (each with its own operator — is/is not/contains/between/etc.) at once. Reach for it only when a page genuinely needs to combine several filters simultaneously in a way a handful of fixed dropdowns can't express well — POS Orders (status + date + cashier + type) is the intended candidate. Every other list page uses `TableToolbar`. See the "Advanced Filters" section in `/design-system` for a wired demo (`createFilter`, `Filters`, `onChange`).
+`useRoleForm({ role?, onSaved })` owns custom-role DTO mapping and mutation lifecycle. `saveRole` rejects system roles before issuing a request. `RoleDetails` is a presentation-only system-role view: permission search remains usable, but no editing session, submit handler, or mutation is created. Role deletion requires `iam.delete` and a non-system role; the backend still rejects roles assigned to users.
 
-## Status Display
+`useUserEditor({ user?, onSaved })` returns `{ form, mode }`. Profile and assignment mappings live in `features/iam/user-form-values.ts`; orchestration lives in `user-editor-save.ts`. User fields remain JSX, with `withForm` preserving their inferred field types. Username is locked after creation; passwords appear only during create or in the separate reset dialog, never in update payloads.
 
-**`StatusBadge`** (`src/components/shared/status-badge.tsx`) is the only component for status/workflow-state display (active/inactive, draft/confirmed, in-transit, etc.) — it renders a colored dot + label per semantic variant (`success`/`warning`/`destructive`/`info`/`default`/`outline`).
+Assignment rows use stable client-only keys and nullable role/location selections. Global scope permits distinct global roles; selected-location scope permits one role per location. Changing scope clears the draft assignments. Lookup exclusions prevent duplicate choices, while schema validation remains authoritative for the form. Client keys and scope UI state never enter API payloads.
 
-**`Badge`** (`src/components/ui/badge.tsx`) is for non-status labels only — a type/category tag, a count, anything that isn't a workflow state.
+Account creation and access changes are separate server requests, not an atomic transaction. The editing session retains a confirmed created account ID if later requests fail. An explicit **Retry save** refreshes current user detail, removes obsolete assignments before adding missing ones, and does not recreate the account or repeat committed assignment requests. Errors state that the account is saved but access changes may be incomplete; no rollback is claimed. There are no automatic retries, persisted passwords, or stored drafts. The retained ID is session-local: after leaving/reloading a partially completed create flow, reopen the existing account rather than create it again. A create request whose response is lost remains an ambiguous outcome; this frontend does not invent server idempotency.
 
-```tsx
-// Status column
-<StatusBadge variant={isActive ? 'success' : 'outline'}>{isActive ? 'Active' : 'Inactive'}</StatusBadge>
-// Non-status label
-<Badge variant="secondary">{typeLabel}</Badge>
-```
+Backend authorization, owner-global-only and last-owner restrictions remain server-owned. Frontend permission gates are presentation safeguards, not replacements. `resetUserPassword` owns its form, mutation, success feedback, and session-signout explanation; callers only await it and must not add a second success toast. User deactivation uses the shared pending-safe confirmation workflow.
 
-## Loading, Error, and Empty States
+## Supplier pricing and material locations
 
-Unchanged by the form migration:
+`PricingTable({ supplierId, permissions })` accepts `{ read, create, update, delete }` capabilities resolved by the Suppliers route. It uses shared table/list-state primitives with local 20-row pagination because an embedded dialog does not own route search. Changing supplier starts a new paging session. Initial failures render retry instead of empty; refresh failures retain rows. Removing the final row on a final page returns to a valid page after fresh query data arrives.
 
-- **Route/query loading:** `PageSkeleton` (`src/components/shared/page-skeleton.tsx`) while a detail/list query is loading.
-- **Route/query errors:** `PageError` (`src/components/shared/page-error.tsx`) with an optional `onRetry`.
-- **Empty lists:** `EmptyState` (`src/components/shared/empty-state.tsx`) with a title/description/action.
-- **Success feedback:** `toast.add({ title, type })` (`src/components/ui/toast`) after a mutation succeeds — never a form-level success message inline.
-- **Mutation errors:** surfaced through `<form.FormError />` (form-level) or the field's own inline error (field-level) — not toast. Toast is for success only in this codebase's convention.
+`PricingForm` owns `useEntityEditor`, `FormRoot`, and `FormDialogFooter`; the caller supplies `canSave` and close callbacks. Material and UOM fields use canonical searchable lookups. Material identity is visible but immutable on edit; update payloads contain only price, unit, and minimum quantity. Decimal values stay strings end to end: `CurrencyField` accepts Indonesian comma-decimal display, DTOs receive dot-decimal canonical values, and price cells use string grouping rather than float conversion or rounded IDR formatting. Blank minimum means null; zero means zero. Labels resolve detail queries rather than capped preload arrays. Pricing create/update/delete each honor the corresponding supplier permission.
 
-## Summary of Patterns
+`LocationAssignment({ materialId, permissions })` accepts `{ canRead, canAssign, canUnassign }`; the caller combines material/location read permissions and passes distinct material.create/material.delete write capabilities. `useLocationAssignment` owns 25-row server search/pagination independently of the complete by-material assignment set. Read-only users see status without mutation controls. Initial assignment failure never paints every location as unassigned. Stale relation status remains visible after refresh failure, but writes stay disabled until a successful read.
 
-| Pattern               | Tool / Approach                                                   |
-| --------------------- | ----------------------------------------------------------------- |
-| Entity form           | `useEntityForm` (via a per-entity `useXxxForm` wrapper)           |
-| Form validation       | A form-shape Zod schema (never the wire DTO directly)             |
-| Create/edit surface   | Full-page (`FormPage`) — default; `FormDialog` — lightweight only |
-| Unsaved-changes guard | `useUnsavedChangesGuard(form)` in every full-page form            |
-| Dialog forms          | `formDialog({ content: ({ close }) => ... })` render-prop         |
-| Confirmations         | `confirm()` / `confirmInput()`                                    |
-| Status display        | `StatusBadge` (never plain `Badge`)                               |
-| Tables                | `useServerTable`/`useClientTable` + `DataTable`                   |
-| Table toolbar         | `TableToolbar` (search + filters + chips) — default for all lists |
-| Advanced multi-filter | `Filters` (reui chip builder) — only for multi-dimension pages    |
-| Page loading          | `PageSkeleton`                                                    |
-| Page errors           | `PageError`                                                       |
-| Empty states          | `EmptyState`                                                      |
-| Success feedback      | `toast.add(...)`                                                  |
-| Mutation errors       | `<form.FormError />` or the field's inline error                  |
+An assignment mutation retains the requested desired state and uses no automatic retries. A failed/lost response exposes an inline Retry for that action; Retry first fetches authoritative assignments and only writes if the desired state is still unmet. This prevents duplicate assignment or accidental inversion after a committed request whose response was lost. A ref guard spans mutation and awaited invalidation/refetch. Paging, search, query retry, and independent assign/unassign permissions remain available as appropriate.
 
----
+Material relation cache keys distinguish prefixes from IDs: `keys.byMaterial()` / `keys.byLocation()` return `[endpoint]`; the ID variants return `[endpoint, id]`. Mutations invalidate prefixes in the resource layer. A `[endpoint, null]` key is not a prefix of `[endpoint, 125]` and must not be used for broad invalidation. Views do not add another invalidation convention.
 
-**Next:** [readme.md](./readme.md) — Back to web docs index.
+## Recipes and company settings
+
+Recipes use full-page `/master/recipes/new` and `/master/recipes/$recipeId` editors, not callable dialogs. Feature mappings keep yield and ingredient quantities as decimal strings, strip client-only row keys, and omit the immutable menu item from updates. `LineItemEditor` supplies stable row identity, focus, and a one-row minimum; feature fields retain their own validation. Material and menu searches use the editing session's location, with canonical detail resolution for existing selections outside a search page.
+
+The recipe editor pins its initial location. Changing the header location (including All Locations) preserves the draft, freezes relation choices, removes the save action, and offers a return-to-session-location action. Submission also checks the live location and write permission before making a request. Returning to the correct location restores editing without remounting. Failed saves retain input and offer explicit retry.
+
+The recipe list remains global, while HPP follows the active location. Its endpoint does not support free-text search or sorting, so the page exposes pagination only. HPP is the menu item's active-recipe cost, never an inactive recipe's historical cost. Zero is valid; missing active recipes, request failures, and loading are distinct. Failed refreshes keep the last cost with a stale warning and retry. Display uses standard currency rounding, with the exact server string in the cell title. Recipe mutations invalidate list, enriched detail, by-menu-item and location-specific HPP keys together.
+
+Company Settings mounts only after the singleton record loads. Failed/missing reads offer recovery without an empty writable form; read-only access has no save action. Successful saves stay on-page and establish a clean, normalized baseline without overwriting later edits, including when refetched data arrives after rebasing. Hidden logo data is retained, blank optional fields become null, and tax values stay decimal strings. Failed saves preserve input and permit same-value retry; Retry save is disabled throughout submission to prevent repeated requests. Server authorization remains authoritative for both workflows.
+
+## Menu Items and Payment Methods
+
+`useEditorLocationScope(fixedLocationId?)` in `lib/form` is shared by Recipes and Menu Items. New sessions pin the first selected location. Existing Menu Items pass **`item.locationId`**, never the header location; this applies when opened under another location or All Locations. Mount after detail resolution and key by record ID. Header changes preserve the editing session; `isCurrent` gates saving, `restore()` returns to the pinned scope, and `canRestore` distinguishes unavailable location access. Keep the restore action outside disabled form fields. Mutation code also verifies the live location and write permission before sending.
+
+`useMenuItemEditor` owns normalization, exact decimal prices, create/update payloads and success feedback. Updates omit unedited `imageUrl` rather than clearing it. `MenuCategoryLookupField` and `MenuCategoryFilter` search and page only within the pinned location. The category API has no detail endpoint: the existing category label comes from enriched item detail, or a selection is resolved by paging the same location's category list. Selected-label resolution never adds choices to the eligible list. The Menu Items list supports text/category/status filters, not unsupported sorting; category management offers additional pages instead of stopping at 100.
+
+Payment Methods remain global. `PaymentMethodEditor` uses the shared editor lifecycle and named form contract; read-only users have no save action and disabled fields. Same-value retry is explicit and pending-safe. The list retains text/type filters and uses shared list error states and consequential deletion. `paymentMethodMutations` owns invalidation of list, affected detail, and by-location readers; views do not duplicate it. Server deletion constraints remain visible in the confirmation dialog. POS checkout and location-assignment workflows are unchanged.
+
+## Verification and adoption
+
+The catalog's Tables page demonstrates resource-list states. Real reference views include Materials/Suppliers/UOM/Locations/Users/custom-Roles/Recipes/Menu-Items/Payment-Methods editors and lists, Company Settings, system-role details, UOM conversions, and receiving/transfer wizards. Tests cover state precedence, URL filters, selected-record resolution, pending search, stable line identity, record-owned location scope, editor retention, on-page saved baselines, cache invalidation, IAM partial-save reconciliation, permission immutability, and action retries. Exercise actual workflows when changing shared modules; a catalog specimen alone is insufficient.
+
+All existing `EntityListPage` callers use the list-model contract; there is no legacy flag interface. Other specialized `DataTable`/`useServerTable` views intentionally remain lower-level. Entity editor lifecycle adoption covers Materials, Suppliers, UOM, Locations, Users, custom Roles, Recipes, Company Settings, Menu Items, and Payment Methods; other forms retain their established `useEntityForm` integration.

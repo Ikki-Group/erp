@@ -10,7 +10,7 @@ Live preview: **`/design-system`** — a multi-page catalog shell (its own left 
 
 | Route | Covers |
 | --- | --- |
-| `/design-system` (index) | Theme tokens, typography scale |
+| `/design-system` (index) | Component selection guide, ERP recipes, input-aware density, theme tokens, typography |
 | `/design-system/buttons` | Button variants/sizes, raw Badge, Loading Button, Action Menu, Dropdown Menu, Permission Gate |
 | `/design-system/forms` | Form-engine fields, raw Checkbox/Radio/Switch, Date Range Filter, Async Combobox, Currency Input, File Upload, Crud Form |
 | `/design-system/data-display` | Stat Cards, Icon Tiles, Card, Data Card, Detail List, Status Badges, Segmented Bar, Currency Display, Relative Time, Audit Trail, Avatar |
@@ -21,6 +21,8 @@ Live preview: **`/design-system`** — a multi-page catalog shell (its own left 
 | `/design-system/charts` | Area/Line/Bar/stacked charts, Chart Switch |
 
 To add a page: create `routes/design-system/<name>.tsx` (own `PageHeader` + one or more `PageSection`s) and add one entry to the `NAV_GROUPS` array in `routes/design-system.tsx` — the shell itself never needs another change. Keep each page's mock data colocated in that file; don't thread shared mock data through the shell.
+
+The catalog sidebar searches component names and task keywords. Foundation sections and ERP recipe links provide deep links to examples. Catalog data is illustrative. Interactive examples must demonstrate the behavior they claim: category filters affect rows, quantities and units remain independent, and chart-type switches preserve datasets.
 
 ## Direction
 
@@ -103,9 +105,11 @@ This also means `success`/`warning`/`info`/`destructive` base colors are tuned t
 
 ## Radius, spacing, elevation
 
-- `--radius: 0.5rem` is the single base; `--radius-sm/md/lg/xl/2xl/...` all derive from it via `calc()` in `@theme inline`. Change the one variable to retune the whole scale.
+- `--radius: 0.5rem` drives four derived steps (`sm`, `md`, `lg`, `xl`); `full` is reserved for pills. There is no additional large-radius scale.
 - Deliberately modest — avoid bumping the base radius up for a "softer" look; the brief calls for a precise, understated interface, not a rounded consumer one.
 - **One edge treatment per surface, not two.** Inline surfaces (`Card`, `StatCard`, `DataCard`) use a single subtle `border` and *no* shadow — stacking a shadow on top of a border/ring reads as a muddy double edge. Shadow is reserved for things that actually float above content: dialogs, popovers, dropdowns. If a card needs more presence, reach for a slightly stronger border (`hover:border-foreground/15`) before reaching for a shadow.
+- **Compact desktop, comfortable touch:** shared controls remain compact for fine pointers and reserve at least 44px on `(pointer: coarse)`. This includes numeric groups and real checkbox/radio/switch layout bounds; never add overlapping invisible targets. Wide tables remain scrollable and chart containers use `min-w-0`/`aspect-auto` so content fits narrow cards.
+- **Accessible field contract:** generated unique IDs, associated labels/hints/errors, full-contrast placeholders, and named icon controls. Explicit caller IDs are supported. See `COMPONENT_GUIDE.md` and the live validation example.
 
 ## Numeric & table conventions (Inventory pilot)
 
@@ -114,18 +118,16 @@ Reference implementation: `src/features/inventory/components/stock-table.tsx` an
 - **Right-align numeric columns** (quantity, min stock, cost price) — both the header (`header: () => <div className="text-right">...</div>`) and the cell. Text columns (code, name) stay left-aligned.
 - **`font-mono` + `tabular-nums`** on numeric cells so digits line up across rows.
 - Quantities carry their UOM inline (`34.880 kg`), muted relative to the number itself.
-- Currency uses `Rp` + `id-ID` locale grouping (see `CurrencyDisplay` for the shared formatter), no decimal places for IDR.
+- Currency uses `Rp` + `id-ID` grouping through `CurrencyDisplay`: no fraction for integer prices, up to two digits for fractional costs.
 - Status is always the last column, rendered with `StatusBadge` — never a plain colored cell.
 
 ### Loading, empty, and error — all three, every table
 
 Every query-backed table needs all three branches; a table that silently shows nothing on a failed fetch is a bug, not an edge case.
 
-- **Loading** — pass `isLoading` straight to `DataTable`/`EntityListPage`; it renders skeleton rows (`loadingMode: 'skeleton'` in the underlying `DataGrid`), not a bare spinner.
-- **Empty** — check `!isLoading && data.length === 0` and render `EmptyState` (standalone tables) or pass `isEmpty`/`emptyState` to `EntityListPage`.
-- **Error** — check `query.isError` **before** the empty check and render `PageError` with `onRetry={() => query.refetch()}`. `EntityListPage` takes this as `isError` + `onRetry` (or a fully custom `errorState` node) and swaps in `PageError` in place of the table, keeping the page header/toolbar intact. Standalone tables (not using `EntityListPage`) do the same check inline — see `stock-table.tsx` for the pattern.
-
-Detail pages get the equivalent for free via `DetailBoundary`/`QueryState`, which already branch on `isLoading`/`isError`/empty. `EntityListPage`'s `isError` prop brings list pages to the same standard.
+- **Resource lists** — pass the `useResourceList` model to `EntityListPage list={list}`. It derives initial loading/error, background refresh/error, record-empty, and filtered-empty states. Header and toolbar remain available; refresh failures retain loaded rows. Supply `createAction` once for the header and initial empty prompt.
+- **Standalone tables** — pass loading to `DataTable`; check error before empty and provide retry. Keep prior rows during background refresh when appropriate.
+- **Detail/edit pages** — `DetailBoundary` retains loaded children through a failed refresh, preserving editor state. `EntityEditorPage` owns form context, inline submit errors, and the dirty-navigation guard. See `06-ui-patterns.md` for lifecycle and field lookup contracts.
 
 ## Typography
 
@@ -167,3 +169,14 @@ See the "Form Dialog (react-call)" demo in `/design-system` for the live result.
 2. `bun run typecheck` / `bun run lint` / `bun run test` (`apps/web`) — must stay clean.
 3. Spot-check one real page (not just the catalog) — e.g. `/inventory/stock`, `/master/materials/new` — since the catalog uses mock data and can hide truncation/overflow issues real data triggers.
 4. Tab through a form or the sidebar — confirm the focus ring is visible on both the dark sidebar and light surfaces.
+
+## Design-system refinement
+
+- Quantity/UOM examples bind distinct TanStack field instances and show independent values; changing the unit does not convert the quantity.
+- Category filters in the catalog now filter rows and reset pagination; clearing restores all example records.
+- Failed confirmations retain Cancel beside Try Again and announce errors inline.
+- Form adapters generate unique IDs across forms, associate descriptions/errors, and label numeric increment/decrement and UOM controls.
+- Overflowing TextCell strings are reachable by keyboard and remeasure on resize.
+- Chart examples have names, exact-value tables, and a switch that preserves its dataset.
+- `COMPONENT_GUIDE.md` is aligned with Warm Precision rather than the retired dark/acid-lime direction.
+
