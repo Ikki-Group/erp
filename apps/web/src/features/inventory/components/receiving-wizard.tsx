@@ -1,20 +1,30 @@
+import { useStore } from '@tanstack/react-form'
 import { useQuery } from '@tanstack/react-query'
 
-import { PlusIcon, Trash2Icon } from 'lucide-react'
 import { z } from 'zod'
 
+import { toDisplayCurrency } from '@/lib/currency.ts'
 import { useEntityForm } from '@/lib/form/index.ts'
 
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
+import {
+	createLineItem,
+	LineItemEditor,
+	type LineItem,
+} from '@/components/shared/line-item-editor.tsx'
 
-import { materialResource } from '@/features/material/api.ts'
+import { Button } from '@/components/ui/button'
+
+import { MaterialLookupField } from '@/features/material/components/material-lookup-field.tsx'
 import { pricingResource, supplierResource } from '@/features/supplier/api.ts'
-import { uomResource } from '@/features/uom/api.ts'
+import { SupplierLookupField } from '@/features/supplier/components/supplier-lookup-field.tsx'
+import { UomLookupField } from '@/features/uom/components/uom-lookup-field.tsx'
+
+import { calculateReceivingAmounts } from '../receiving-amounts.ts'
+import { InventoryLineMaterial, InventoryLineUom } from './inventory-line-labels.tsx'
 
 // ─── Values / Schema ───
 
-export interface ReceivingLineValues {
+export interface ReceivingLineValues extends LineItem {
 	materialId: number | null
 	qty: string
 	unitCost: string
@@ -61,11 +71,8 @@ export const ReceivingWizardSchema = z.object({
 	lines: z.array(ReceivingLineSchema).min(1, 'Tambahkan minimal satu item'),
 })
 
-export const EMPTY_RECEIVING_LINE: ReceivingLineValues = {
-	materialId: null,
-	qty: '',
-	unitCost: '',
-	uomId: null,
+export function makeReceivingLineValues(): ReceivingLineValues {
+	return createLineItem({ materialId: null, qty: '', unitCost: '', uomId: null })
 }
 
 export const EMPTY_RECEIVING_WIZARD_VALUES: ReceivingWizardValues = {
@@ -105,21 +112,10 @@ export function isReceivingStepValid(step: number, values: ReceivingWizardValues
 // ─── Step 1: Supplier & Notes ───
 
 export function ReceivingStepSupplier({ form }: { form: ReceivingWizardForm }) {
-	const suppliersQuery = useQuery(supplierResource.list.queryOptions({ page: 1, limit: 100 }))
-	const supplierOptions = (suppliersQuery.data?.data ?? [])
-		.filter((s) => s.isActive)
-		.map((s) => ({ label: `${s.name} (${s.code})`, value: s.id }))
-
 	return (
 		<div className="grid gap-4">
 			<form.AppField name="supplierId">
-				{(field) => (
-					<field.IdSelectField
-						label="Supplier"
-						options={supplierOptions}
-						placeholder="Pilih supplier"
-					/>
-				)}
+				{() => <SupplierLookupField label="Supplier" placeholder="Pilih supplier" />}
 			</form.AppField>
 			<form.AppField name="notes">
 				{(field) => <field.TextField label="Catatan" placeholder="Opsional" />}
@@ -131,123 +127,77 @@ export function ReceivingStepSupplier({ form }: { form: ReceivingWizardForm }) {
 // ─── Step 2: Lines ───
 
 export function ReceivingStepLines({ form }: { form: ReceivingWizardForm }) {
-	const materialsQuery = useQuery(materialResource.list.queryOptions({ page: 1, limit: 200 }))
-	const uomsQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 100 }))
-	const materialOptions = (materialsQuery.data?.data ?? []).map((m) => ({
-		label: `${m.name} (${m.code})`,
-		value: m.id,
-	}))
-	const uomOptions = (uomsQuery.data?.data ?? []).map((u) => ({
-		label: `${u.name} (${u.code})`,
-		value: u.id,
-	}))
-
-	const supplierId = form.store.state.values.supplierId
-
+	const supplierId = useStore(form.store, (state) => state.values.supplierId)
 	const pricingQuery = useQuery({
 		...pricingResource.list.queryOptions({
 			supplierId: supplierId ?? undefined,
 			page: 1,
 			limit: 200,
 		}),
-		enabled: !!supplierId,
+		enabled: supplierId !== null,
+		throwOnError: false,
 	})
 
 	return (
 		<form.AppField name="lines" mode="array">
 			{(linesField) => (
-				<div className="space-y-3">
-					<div className="flex items-center justify-between">
-						<Label>Item Penerimaan</Label>
-						<div className="flex gap-2">
-							{supplierId && (
-								<Button
-									type="button"
-									size="sm"
-									variant="outline"
-									disabled={pricingQuery.isLoading || !pricingQuery.data?.data.length}
-									onClick={() => {
-										for (const sm of pricingQuery.data?.data ?? []) {
-											linesField.pushValue({
-												materialId: sm.materialId,
-												qty: '',
-												unitCost: sm.unitPrice,
-												uomId: sm.uomId,
-											})
-										}
-									}}
-								>
-									Muat dari katalog supplier
-								</Button>
-							)}
+				<LineItemEditor
+					label="Item Penerimaan"
+					rows={linesField.state.value}
+					createRow={makeReceivingLineValues}
+					onAdd={(row) => linesField.pushValue(row)}
+					onRemove={(index) => linesField.removeValue(index)}
+					errors={linesField.state.meta.errors}
+					fieldCount={4}
+					emptyMessage="Belum ada item. Tambah baris manual atau muat dari katalog supplier."
+					actions={
+						supplierId !== null && (
 							<Button
 								type="button"
 								size="sm"
 								variant="outline"
-								onClick={() => linesField.pushValue({ ...EMPTY_RECEIVING_LINE })}
+								disabled={pricingQuery.isLoading || !pricingQuery.data?.data.length}
+								onClick={() => {
+									for (const price of pricingQuery.data?.data ?? []) {
+										linesField.pushValue(
+											createLineItem({
+												materialId: price.materialId,
+												qty: '',
+												unitCost: price.unitPrice,
+												uomId: price.uomId,
+											}),
+										)
+									}
+								}}
 							>
-								<PlusIcon className="size-3.5" />
-								Tambah Baris
+								Muat dari katalog supplier
 							</Button>
-						</div>
-					</div>
-
-					{linesField.state.value.length === 0 && (
-						<p className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-							Belum ada item. Tambah baris manual atau muat dari katalog supplier.
-						</p>
+						)
+					}
+					renderFields={(_, index) => (
+						<>
+							<form.AppField name={`lines[${index}].materialId`}>
+								{() => <MaterialLookupField label="Material" placeholder="Pilih material" />}
+							</form.AppField>
+							<form.AppField name={`lines[${index}].qty`}>
+								{(field) => (
+									<field.TextField
+										label="Jumlah"
+										placeholder="0"
+										inputMode="decimal"
+										className="text-right font-mono tabular-nums"
+									/>
+								)}
+							</form.AppField>
+							<form.AppField name={`lines[${index}].unitCost`}>
+								{(field) => <field.CurrencyField label="Harga Satuan" />}
+							</form.AppField>
+							<form.AppField name={`lines[${index}].uomId`}>
+								{() => <UomLookupField label="Satuan" placeholder="UoM" />}
+							</form.AppField>
+						</>
 					)}
-
-					<div className="space-y-2">
-						{linesField.state.value.map((_, i) => (
-							<div key={i} className="flex items-start gap-2 rounded-md border p-3">
-								<div className="flex-1">
-									<form.AppField name={`lines[${i}].materialId`}>
-										{(field) => (
-											<field.IdSelectField
-												label={i === 0 ? 'Material' : '\u00A0'}
-												options={materialOptions}
-												placeholder="Pilih material"
-											/>
-										)}
-									</form.AppField>
-								</div>
-								<div className="w-28">
-									<form.AppField name={`lines[${i}].qty`}>
-										{(field) => (
-											<field.TextField label={i === 0 ? 'Jumlah' : '\u00A0'} placeholder="0" />
-										)}
-									</form.AppField>
-								</div>
-								<div className="w-36">
-									<form.AppField name={`lines[${i}].unitCost`}>
-										{(field) => <field.CurrencyField label={i === 0 ? 'Harga Satuan' : '\u00A0'} />}
-									</form.AppField>
-								</div>
-								<div className="w-32">
-									<form.AppField name={`lines[${i}].uomId`}>
-										{(field) => (
-											<field.IdSelectField
-												label={i === 0 ? 'Satuan' : '\u00A0'}
-												options={uomOptions}
-												placeholder="UoM"
-											/>
-										)}
-									</form.AppField>
-								</div>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									className={i === 0 ? 'mt-6' : ''}
-									onClick={() => linesField.removeValue(i)}
-								>
-									<Trash2Icon className="size-4" />
-								</Button>
-							</div>
-						))}
-					</div>
-				</div>
+				/>
 			)}
 		</form.AppField>
 	)
@@ -256,21 +206,14 @@ export function ReceivingStepLines({ form }: { form: ReceivingWizardForm }) {
 // ─── Step 3: Review ───
 
 export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
-	const values = form.store.state.values
-
-	const suppliersQuery = useQuery(supplierResource.list.queryOptions({ page: 1, limit: 100 }))
-	const materialsQuery = useQuery(materialResource.list.queryOptions({ page: 1, limit: 200 }))
-	const uomsQuery = useQuery(uomResource.list.queryOptions({ page: 1, limit: 100 }))
-
-	const supplier = (suppliersQuery.data?.data ?? []).find((s) => s.id === values.supplierId)
-	const getMaterial = (id: number | null) =>
-		(materialsQuery.data?.data ?? []).find((m) => m.id === id)
-	const getUom = (id: number | null) => (uomsQuery.data?.data ?? []).find((u) => u.id === id)
-
-	const total = values.lines.reduce(
-		(sum, l) => sum + Number(l.qty || 0) * Number(l.unitCost || 0),
-		0,
-	)
+	const values = useStore(form.store, (state) => state.values)
+	const supplierQuery = useQuery({
+		...supplierResource.detail.queryOptions({ id: values.supplierId! }),
+		enabled: values.supplierId !== null,
+		throwOnError: false,
+	})
+	const supplier = supplierQuery.data?.data
+	const amounts = calculateReceivingAmounts(values.lines)
 
 	return (
 		<div className="space-y-4">
@@ -279,7 +222,11 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 					<div>
 						<dt className="text-muted-foreground">Supplier</dt>
 						<dd className="font-medium">
-							{supplier ? `${supplier.name} (${supplier.code})` : '—'}
+							{supplier
+								? `${supplier.name} (${supplier.code})`
+								: values.supplierId !== null
+									? `#${values.supplierId}`
+									: '—'}
 						</dd>
 					</div>
 					<div>
@@ -301,26 +248,25 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 						</tr>
 					</thead>
 					<tbody>
-						{values.lines.map((line, i) => {
-							const material = getMaterial(line.materialId)
-							const uom = getUom(line.uomId)
-							const subtotal = Number(line.qty || 0) * Number(line.unitCost || 0)
-							return (
-								<tr key={i} className="border-t">
-									<td className="px-3 py-2">
-										{material ? `${material.name} (${material.code})` : `#${line.materialId}`}
-									</td>
-									<td className="px-3 py-2 text-right font-mono tabular-nums">{line.qty}</td>
-									<td className="px-3 py-2">{uom?.code ?? `#${line.uomId}`}</td>
-									<td className="px-3 py-2 text-right font-mono tabular-nums">
-										{Number(line.unitCost || 0).toLocaleString('id-ID')}
-									</td>
-									<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
-										{subtotal.toLocaleString('id-ID')}
-									</td>
-								</tr>
-							)
-						})}
+						{values.lines.map((line, index) => (
+							<tr key={line.clientKey} className="border-t">
+								<td className="px-3 py-2">
+									<InventoryLineMaterial id={line.materialId} />
+								</td>
+								<td className="px-3 py-2 text-right font-mono tabular-nums">{line.qty}</td>
+								<td className="px-3 py-2">
+									<InventoryLineUom id={line.uomId} />
+								</td>
+								<td className="px-3 py-2 text-right font-mono tabular-nums">
+									{toDisplayCurrency(line.unitCost) || '—'}
+								</td>
+								<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
+									{amounts.subtotals[index] === undefined
+										? '—'
+										: toDisplayCurrency(amounts.subtotals[index])}
+								</td>
+							</tr>
+						))}
 					</tbody>
 					<tfoot className="border-t bg-muted/30">
 						<tr>
@@ -328,7 +274,7 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 								Total
 							</td>
 							<td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
-								{total.toLocaleString('id-ID')}
+								{amounts.total === undefined ? '—' : toDisplayCurrency(amounts.total)}
 							</td>
 						</tr>
 					</tfoot>
