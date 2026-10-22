@@ -87,7 +87,8 @@ export function inScope(scope: LocationScope, ...columns: PgColumn[]): SQL | und
 
 export function searchFilter(column: PgColumn, term: string | undefined): SQL | undefined {
 	if (!term || term.trim() === '') return undefined
-	const escaped = term.replace(/%/gu, '\\%').replace(/_/gu, '\\_')
+	// Escape ILIKE's metacharacters, including its escape character (backslash).
+	const escaped = term.replace(/[\\%_]/gu, (char) => `\\${char}`)
 	return ilike(column, `%${escaped}%`)
 }
 

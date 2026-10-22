@@ -51,4 +51,27 @@ describe('location', () => {
 		const afterDelete = await GET('/location/detail', { token, query: { id: String(id) } })
 		expect(afterDelete.status).toBeGreaterThanOrEqual(400)
 	})
+
+	test('search matches LIKE metacharacters literally', async () => {
+		const token = await loginAs(SEED_USERS.owner.username)
+		const suffix = crypto.randomUUID().slice(0, 8)
+		const name = `Lit ${suffix} 50%_\\off`
+		const created = await POST('/location/create', {
+			token,
+			body: { code: `LIT-${suffix}`, name, type: 'store', isActive: true },
+		})
+		expect(created.status).toBe(200)
+
+		const names = async (q: string) => {
+			const res = await GET('/location/list', { token, query: { q, limit: '100' } })
+			expect(res.status).toBe(200)
+			return (await json<{ data: { name: string }[] }>(res)).data.map((row) => row.name)
+		}
+		expect(await names(`${suffix} 50%_\\off`)).toEqual([name])
+		// A trailing backslash must not become a dangling escape (Postgres error).
+		expect(await names(`${suffix} 50%_\\`)).toEqual([name])
+		// `%` / `_` / `\` are literal: these patterns would match the row as wildcards.
+		expect(await names(`${suffix} 5_%`)).toEqual([])
+		expect(await names(`${suffix} \\5`)).toEqual([])
+	})
 })
