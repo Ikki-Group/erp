@@ -52,7 +52,10 @@ export class TransferService {
 
 	// ─── Handlers ───
 
+	/** Created at the source, which ships it; any destination may be named (it authorizes on receive). */
 	async handleCreate(data: TransferCreateDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(data.fromLocationId)
+
 		// 1. Validate different locations
 		if (data.fromLocationId === data.toLocationId) {
 			throw TransferError.sameLocation()

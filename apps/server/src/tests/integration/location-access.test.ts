@@ -178,6 +178,28 @@ describe('location-scoped authorization', () => {
 		for (const row of rows) expect([row.fromLocationId, row.toLocationId]).toContain(WAREHOUSE)
 	})
 
+	test('transfers are created at the source and may target any destination', async () => {
+		const body = (fromLocationId: number, toLocationId: number) => ({
+			fromLocationId,
+			toLocationId,
+			lines: [{ materialId, qty: '1', uomId }],
+		})
+
+		const outbound = await POST('/inventory/transfer/create', {
+			token: warehouse,
+			locationId: WAREHOUSE,
+			body: body(WAREHOUSE, STORE),
+		})
+		expect(outbound.status).toBe(200)
+
+		const inbound = await POST('/inventory/transfer/create', {
+			token: warehouse,
+			locationId: WAREHOUSE,
+			body: body(STORE, WAREHOUSE),
+		})
+		await expectError(inbound, 403, 'PERMISSION_DENIED')
+	})
+
 	test('a cashier cannot read another store’s menu item or remove its table', async () => {
 		const other = await createStoreFixture(owner, { basePrice: '10000' })
 

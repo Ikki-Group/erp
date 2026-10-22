@@ -7,10 +7,10 @@ import { ForbiddenError } from '@/shared/errors/http-error.ts'
 
 import { authPlugin } from './auth.plugin.ts'
 
-/** Request fields that name the location(s) an operation reads or writes. */
-const LOCATION_FIELDS = ['locationId', 'fromLocationId', 'toLocationId'] as const
-
-function parseLocationId(raw: unknown): number | null {
+/** The top-level `locationId` of a query or body, if it names one. */
+function locationIdOf(source: unknown): number | null {
+	if (typeof source !== 'object' || source === null || !('locationId' in source)) return null
+	const raw = source.locationId
 	if (raw === undefined || raw === null || raw === '') return null
 	const id = Number(raw)
 	if (!Number.isInteger(id) || id <= 0) {
@@ -19,30 +19,19 @@ function parseLocationId(raw: unknown): number | null {
 	return id
 }
 
-/** Every location the request names at the top level of its query or body. */
-function namedLocations(...sources: unknown[]): Set<number> {
-	const ids = new Set<number>()
-	for (const source of sources) {
-		if (typeof source !== 'object' || source === null) continue
-		for (const field of LOCATION_FIELDS) {
-			const id = field in source ? parseLocationId(Reflect.get(source, field)) : null
-			if (id !== null) ids.add(id)
-		}
-	}
-	return ids
-}
-
 /**
  * Route guard. `{ permission: 'stock.read' }` authorizes the request and exposes
  * an `actor` bound to that permission:
  *
- * - When the query/body names locations (`locationId`, `fromLocationId`,
- *   `toLocationId`), the permission must hold at **each** of them; the header
- *   never widens access.
+ * - When the query and/or body name a `locationId`, the permission must hold
+ *   at each; the header never widens access.
  * - Otherwise it must hold at the active location (`x-location-id`; none =
  *   global grants only).
- * - Records loaded by id are checked in the service against their own location
- *   (`actor.assertCan(doc.locationId)`); lists filter to `actor.allowedLocations()`.
+ * - Everything else is the service's job: records loaded by id are checked
+ *   against their own location (`actor.assertCan(doc.locationId)`), lists filter
+ *   to `actor.allowedLocations()`, and multi-location operations assert the side
+ *   that acts (a transfer is created and shipped at its source, received at its
+ *   destination).
  */
 export const rbac = new Elysia({ name: 'rbac' }).use(authPlugin).macro({
 	permission(required: string) {
@@ -54,9 +43,10 @@ export const rbac = new Elysia({ name: 'rbac' }).use(authPlugin).macro({
 					query: unknown
 					body: unknown
 				}
-				const named = namedLocations(query, body)
-				if (named.size === 0) assertCan(auth, required, auth.locationId)
-				for (const locationId of named) assertCan(auth, required, locationId)
+				const named = [locationIdOf(query), locationIdOf(body)].filter((id) => id !== null)
+				for (const locationId of named.length > 0 ? named : [auth.locationId]) {
+					assertCan(auth, required, locationId)
+				}
 				return { actor: actorFor(auth, required) }
 			},
 		}
