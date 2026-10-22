@@ -18,7 +18,7 @@ import {
 	TransferFilterDto,
 	TransferReceiveDto,
 	TransferShipDto,
-	OpnameApproveDto,
+	OpnameCompleteDto,
 	OpnameCreateDto,
 	OpnameDetailDto,
 	OpnameDto,
@@ -187,28 +187,43 @@ const opnameUpdateCounts = defineMutation({
 	url: opnameUrls.counts,
 	body: OpnameUpdateCountsDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [opnameKeys.lists(), opnameKeys.details()],
+	invalidates: [
+		opnameKeys.lists(),
+		opnameKeys.details(),
+		[endpoint.audit.byEntity],
+		[endpoint.audit.list],
+	],
 })
 
-// ─── Opname Approve ───
+// ─── Opname Complete ───
 
-const opnameApprove = defineMutation({
+const opnameInvalidationKeys = [
+	opnameKeys.lists(),
+	opnameKeys.details(),
+	stockKeys.lists(),
+	movementKeys.lists(),
+	[endpoint.audit.byEntity],
+	[endpoint.audit.list],
+]
+
+const opnameComplete = defineMutation({
 	method: 'post',
-	url: opnameUrls.approve,
-	body: OpnameApproveDto,
+	url: opnameUrls.complete,
+	body: OpnameCompleteDto,
 	result: createSuccessResponseSchema(zc.RecordId),
-	invalidates: [opnameKeys.lists(), opnameKeys.details()],
+	invalidates: opnameInvalidationKeys,
 })
 
 // ─── Export ───
 
 export const opnameResource = {
 	keys: opnameKeys,
+	invalidationKeys: opnameInvalidationKeys,
 	list: opnameList,
 	detail: opnameDetail,
 	create: opnameCreate,
 	updateCounts: opnameUpdateCounts,
-	approve: opnameApprove,
+	complete: opnameComplete,
 }
 
 // ─── Receiving Keys ───

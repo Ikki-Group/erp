@@ -1,13 +1,9 @@
-import { createColumnHelper } from '@tanstack/react-table'
-
-import { format } from 'date-fns'
-
-import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
+import { createEntityColumns, TextCell } from '@/components/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 
 import type { AuditLogDto } from '../dto/index.ts'
 
-const col = createColumnHelper<DataGridFeatures, AuditLogDto>()
+const col = createEntityColumns<AuditLogDto>()
 
 /** Map a domain/CRUD action to a badge tone. Unknown verbs fall back to neutral. */
 function actionVariant(action: string): 'success' | 'warning' | 'destructive' | 'info' | 'default' {
@@ -18,39 +14,40 @@ function actionVariant(action: string): 'success' | 'warning' | 'destructive' | 
 }
 
 export const auditColumns = [
-	col.accessor('timestamp', {
+	col.date('timestamp', {
 		header: 'Waktu',
-		size: 160,
-		cell: ({ getValue }) => (
-			<span className="whitespace-nowrap text-xs text-muted-foreground">
-				{format(new Date(getValue()), 'dd MMM yyyy HH:mm')}
-			</span>
-		),
+		size: 170,
+		enableSorting: false,
+		cellProps: { withTime: true },
 	}),
-	col.accessor('userName', {
-		header: 'Aktor',
-		size: 140,
-	}),
-	col.accessor('module', {
+	col.text('userName', { header: 'Aktor', size: 140, enableSorting: false }),
+	col.text('module', {
 		header: 'Modul',
 		size: 130,
+		enableSorting: false,
 		cell: ({ row }) => (
-			<span className="text-xs">
-				{row.original.module}
-				<span className="text-muted-foreground"> / {row.original.entity}</span>
-			</span>
+			<TextCell
+				value={
+					<>
+						{row.original.module}
+						<span className="text-muted-foreground"> / {row.original.entity}</span>
+					</>
+				}
+				truncate
+			/>
 		),
 	}),
-	col.accessor('action', {
+	col.text('action', {
 		header: 'Aksi',
 		size: 110,
+		enableSorting: false,
 		cell: ({ getValue }) => (
 			<StatusBadge variant={actionVariant(getValue())}>{getValue()}</StatusBadge>
 		),
 	}),
-	col.accessor('summary', {
+	col.text('summary', {
 		header: 'Ringkasan',
 		size: 320,
-		cell: ({ getValue }) => <span className="text-xs">{getValue()}</span>,
+		enableSorting: false,
 	}),
 ]

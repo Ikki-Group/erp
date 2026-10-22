@@ -119,6 +119,10 @@ Location Staff uses the active header location and `location-staff.read`; Assign
 
 Goods Receipts and Stock Transfers use shared list/detail states with URL-backed status, dates and selected records. Confirm/ship/receive actions re-read authoritative detail inside their retryable confirmation, recheck location and permission, and reconcile completed writes after a lost response. Transfer receipt sends exact remaining quantities; receipt detail totals use decimal-string arithmetic. Related-record labels resolve detail queries instead of capped lists.
 
+Stock Count uses the server's draft-to-completed lifecycle (`opname.complete`), not approval. Its pinned on-page editor keeps zero counts/reasons and exact decimal variance, saves only changed lines, and preserves drafts through failures and refetches. Completion is blocked by unsaved or unreviewed server counts; fresh detail is checked again inside the retryable confirmation. Explicitly loading newer saved counts starts a new baseline. Completion reconciles a lost response without repeating an already-completed write and refreshes stock, movement, document and audit readers.
+
+Audit Log is a read-only shared-list/detail reference. Search, module/action, dates, pagination and open detail ID live in the URL. Failures expose retry and preserve loaded audit content. Detail JSON uses labelled horizontal scroll regions inside a viewport-constrained dialog. Both route and dialog enforce `audit.read`; the server audit feed is not filtered by the active location, and its timestamp/ID order is fixed.
+
 ## Charts
 
 Supply `aria-label` describing the measure and scope. Keep chart/card containers shrinkable. Use an exact-value table alongside charts; catalog examples disclose it through “View exact values.” Switching chart type must preserve the dataset and units. Stacking is meaningful only when series share a unit.

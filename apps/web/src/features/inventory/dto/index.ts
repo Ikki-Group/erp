@@ -249,12 +249,12 @@ export const OpnameUpdateCountsDto = z.object({
 })
 export type OpnameUpdateCountsDto = z.infer<typeof OpnameUpdateCountsDto>
 
-// ─── Input: Approve Opname ───
+// ─── Input: Complete Opname ───
 
-export const OpnameApproveDto = z.object({
+export const OpnameCompleteDto = z.object({
 	opnameId: z.number().int().positive(),
 })
-export type OpnameApproveDto = z.infer<typeof OpnameApproveDto>
+export type OpnameCompleteDto = z.infer<typeof OpnameCompleteDto>
 
 // ─── Filter: Opname List ───
 

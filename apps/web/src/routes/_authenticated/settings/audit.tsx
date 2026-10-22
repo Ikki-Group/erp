@@ -1,29 +1,21 @@
-import { useState } from 'react'
+import { useMemo } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { z } from 'zod'
-
-import { listSearchSchema, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
+import { createEntityColumns, useResourceList } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
-import type { DateRange } from '@/components/shared/date-range-filter'
-import { EmptyState } from '@/components/shared/empty-state'
-import { PageHeader } from '@/components/shared/page-header'
+import { EntityListPage } from '@/components/shared/entity-list-page'
+import { PageError } from '@/components/shared/page-error'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { auditResource } from '@/features/audit/api.ts'
+import { auditSearchSchema, toAuditListQuery } from '@/features/audit/audit-search'
 import { AuditDetailDialog } from '@/features/audit/components/audit-detail-dialog.tsx'
 import { auditColumns } from '@/features/audit/components/audit-table.tsx'
 import type { AuditLogDto } from '@/features/audit/dto/index.ts'
-
-const auditSearchSchema = listSearchSchema.extend({
-	module: z.string().optional(),
-	action: z.string().optional(),
-})
 
 export const Route = createFileRoute('/_authenticated/settings/audit')({
 	validateSearch: auditSearchSchema,
@@ -66,72 +58,71 @@ const ACTION_OPTIONS = [
 
 function AuditPage() {
 	const canRead = usePermissionCheck({ permission: 'audit.read' })
+	if (!canRead)
+		return (
+			<PageError
+				title="Tidak ada akses"
+				message="Anda tidak memiliki izin untuk melihat audit log."
+			/>
+		)
+	return <AuditList />
+}
+
+const col = createEntityColumns<AuditLogDto>()
+
+function AuditList() {
 	const navigate = useNavigate({ from: Route.fullPath })
 	const search = Route.useSearch()
-
-	const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
-	const [detailId, setDetailId] = useState<number | null>(null)
-
 	const listQuery = useQuery({
-		...auditResource.list.queryOptions({
-			page: search.page,
-			limit: search.pageSize,
-			q: search.q,
-			module: search.module,
-			action: search.action,
-			dateFrom: dateRange?.from.toISOString(),
-			dateTo: dateRange?.to.toISOString(),
-		}),
-		enabled: canRead,
+		...auditResource.list.queryOptions(toAuditListQuery(search)),
+		throwOnError: false,
 	})
-
-	const data = listQuery.data?.data ?? []
-	const totalCount = listQuery.data?.meta?.total ?? 0
-
-	const { table, globalFilter } = useServerTable({
-		data,
-		columns: auditColumns as ColumnDef<DataGridFeatures, AuditLogDto>[],
-		totalCount,
+	const columns = useMemo(
+		() =>
+			[
+				...auditColumns,
+				col.actions({
+					// oxlint-disable-next-line react/no-unstable-nested-components -- action-item factory, not a component
+					getItems: (entry) => [
+						{
+							label: 'Detail',
+							onClick: () => navigate({ search: (prev) => ({ ...prev, id: entry.id }) }),
+						},
+					],
+				}),
+			] as ColumnDef<DataGridFeatures, AuditLogDto>[],
+		[navigate],
+	)
+	const list = useResourceList({
+		query: listQuery,
+		columns,
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
+		hasFilters: (value) => !!(value.module || value.action || value.dateFrom || value.dateTo),
 	})
-
-	if (!canRead) {
-		return (
-			<div className="space-y-6">
-				<PageHeader title="Audit Log" description="Riwayat perubahan sistem." />
-				<EmptyState
-					title="Tidak ada akses"
-					description="Anda tidak memiliki izin untuk melihat audit log."
-				/>
-			</div>
-		)
-	}
-
 	return (
-		<div className="space-y-6">
-			<PageHeader
+		<>
+			<EntityListPage
 				title="Audit Log"
 				description="Riwayat setiap perubahan yang tercatat di sistem."
-			/>
-
-			<DataTable
-				table={table}
-				recordCount={totalCount}
-				isLoading={listQuery.isFetching}
+				list={list}
+				emptyState={{
+					title: 'Belum ada entri audit',
+					description: 'Perubahan sistem yang tercatat akan muncul di sini.',
+				}}
 				emptyMessage="Tidak ada entri audit yang cocok."
-				onRowClick={(row) => setDetailId(row.id)}
+				onRowClick={(row) => navigate({ search: (prev) => ({ ...prev, id: row.id }) })}
 				toolbar={
 					<TableToolbar
-						searchValue={globalFilter}
-						onSearchChange={(value) => table.setGlobalFilter(value)}
+						searchValue={list.globalFilter}
+						onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
 						searchPlaceholder="Cari ringkasan..."
 						filters={[
 							{
 								key: 'module',
 								label: 'Modul',
 								value: search.module,
-								onChange: (v) => navigate({ search: { ...search, page: 1, module: v } }),
+								onChange: (module) => list.setFilters({ module }),
 								options: MODULE_OPTIONS,
 								allLabel: 'Semua modul',
 							},
@@ -139,7 +130,7 @@ function AuditPage() {
 								key: 'action',
 								label: 'Aksi',
 								value: search.action,
-								onChange: (v) => navigate({ search: { ...search, page: 1, action: v } }),
+								onChange: (action) => list.setFilters({ action }),
 								options: ACTION_OPTIONS,
 								allLabel: 'Semua aksi',
 							},
@@ -147,18 +138,24 @@ function AuditPage() {
 						dateRange={{
 							key: 'timestamp',
 							label: 'Tanggal',
-							value: dateRange,
-							onChange: (v) => {
-								setDateRange(v)
-								if (search.page !== 1) navigate({ search: { ...search, page: 1 } })
-							},
+							value:
+								search.dateFrom && search.dateTo
+									? { from: new Date(search.dateFrom), to: new Date(search.dateTo) }
+									: undefined,
+							onChange: (range) =>
+								list.setFilters({
+									dateFrom: range?.from.toISOString(),
+									dateTo: range?.to.toISOString(),
+								}),
 							placeholder: 'Filter tanggal',
 						}}
 					/>
 				}
 			/>
-
-			<AuditDetailDialog entryId={detailId} onClose={() => setDetailId(null)} />
-		</div>
+			<AuditDetailDialog
+				entryId={search.id ?? null}
+				onClose={() => navigate({ search: (prev) => ({ ...prev, id: undefined }) })}
+			/>
+		</>
 	)
 }

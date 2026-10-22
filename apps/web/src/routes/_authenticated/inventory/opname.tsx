@@ -1,380 +1,258 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
-import { ArrowLeftIcon, CheckCircleIcon, ClipboardListIcon, PlusIcon } from 'lucide-react'
+import { ArrowLeftIcon, PlusIcon } from 'lucide-react'
+import { z } from 'zod'
 
-import { listSearchSchema, TextCell, useServerTable } from '@/components/data-table'
-import { DataTable } from '@/components/data-table/data-table'
+import { useEditorLocationScope } from '@/lib/form/use-editor-location-scope'
+
+import { createEntityColumns, listSearchSchema, useResourceList } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { AuditTrail } from '@/components/shared/audit-trail'
-import { confirm } from '@/components/shared/confirm'
-import type { DateRange } from '@/components/shared/date-range-filter'
-import { EmptyState } from '@/components/shared/empty-state'
-import { PageHeader } from '@/components/shared/page-header'
+import { DetailBoundary } from '@/components/shared/detail-boundary'
+import { EntityListPage } from '@/components/shared/entity-list-page'
+import { InlineAlert } from '@/components/shared/inline-alert'
+import { LocationRequiredPage } from '@/components/shared/location-required-page'
+import { PageError } from '@/components/shared/page-error'
 import { PageSection } from '@/components/shared/page-section'
+import { PageShell } from '@/components/shared/page-shell'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
-import { StatusBadge } from '@/components/shared/status-badge'
-import type { StatusBadgeVariant } from '@/components/shared/status-badge'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 
 import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/toast'
 
-import { auditResource } from '@/features/audit/api.ts'
-import { opnameResource } from '@/features/inventory/api.ts'
-import { OpnameCountForm } from '@/features/inventory/components/opname-count-form.tsx'
-import type { CountLine } from '@/features/inventory/components/opname-count-form.tsx'
-import { OPNAME_STATUS_LABELS, OpnameStatusEnum } from '@/features/inventory/dto/index.ts'
-import type { OpnameDto } from '@/features/inventory/dto/index.ts'
+import { auditResource } from '@/features/audit/api'
+import type { AuthLocation } from '@/features/auth/dto'
+import { opnameResource } from '@/features/inventory/api'
+import { OpnameCountForm } from '@/features/inventory/components/opname-count-form'
+import { OPNAME_STATUS_LABELS, OpnameStatusEnum } from '@/features/inventory/dto'
+import type { OpnameDetailDto, OpnameDto } from '@/features/inventory/dto'
+import { useOpnameActions } from '@/features/inventory/use-opname-actions'
 
-import { useLocationContext } from '@/providers/location-provider.tsx'
+import { useLocationContext } from '@/providers/location-provider'
 
-// No server-side text search on this endpoint — status filter + pagination only.
-const opnameSearchSchema = listSearchSchema.omit({ q: true }).extend({
-	status: OpnameStatusEnum.optional(),
+const dateTimestamp = z.string().datetime({ offset: true }).optional().catch(undefined)
+const opnameSearchSchema = listSearchSchema.omit({ q: true, sort: true }).extend({
+	status: OpnameStatusEnum.optional().catch(undefined),
+	dateFrom: dateTimestamp,
+	dateTo: dateTimestamp,
+	id: z.coerce.number().int().positive().optional().catch(undefined),
 })
-
 export const Route = createFileRoute('/_authenticated/inventory/opname')({
 	validateSearch: opnameSearchSchema,
-	component: OpnamePage,
+	component: OpnameRoute,
 })
+const col = createEntityColumns<OpnameDto>()
+const labels = {
+	draft: { label: OPNAME_STATUS_LABELS.draft, variant: 'outline' },
+	in_progress: { label: OPNAME_STATUS_LABELS.in_progress, variant: 'warning' },
+	completed: { label: OPNAME_STATUS_LABELS.completed, variant: 'success' },
+	cancelled: { label: OPNAME_STATUS_LABELS.cancelled, variant: 'destructive' },
+} as const
 
-// ─── Helpers ───
-
-const STATUS_VARIANTS: Record<OpnameStatusEnum, StatusBadgeVariant> = {
-	draft: 'default',
-	in_progress: 'warning',
-	completed: 'success',
-	cancelled: 'destructive',
+function OpnameRoute() {
+	const canRead = usePermissionCheck({ permission: 'opname.read' })
+	const { activeLocation } = useLocationContext()
+	const { id } = Route.useSearch()
+	if (!canRead)
+		return (
+			<PageError title="Tidak ada akses" message="Anda tidak memiliki izin melihat stock opname." />
+		)
+	// An open record stays mounted through header changes, including All Locations.
+	if (id !== undefined) return <OpnameDetailPage key={id} id={id} />
+	if (!activeLocation)
+		return (
+			<LocationRequiredPage
+				title="Stock Opname"
+				description="Hitung fisik stok dan bandingkan dengan stok sistem."
+				message="Pilih lokasi aktif untuk memulai opname."
+			/>
+		)
+	return <OpnameList key={activeLocation.id} location={activeLocation} />
 }
 
-// ─── Table Columns ───
-
-const colHelper = createColumnHelper<DataGridFeatures, OpnameDto>()
-
-const baseColumns = [
-	colHelper.accessor('opnameNo', {
-		header: 'No. Opname',
-		size: 140,
-		// oxlint-disable-next-line react/no-unstable-nested-components
-		cell: ({ getValue }) => <TextCell value={getValue()} mono />,
-	}),
-	colHelper.accessor('status', {
-		header: 'Status',
-		size: 130,
-		cell: ({ getValue }) => {
-			const status = getValue()
-			return (
-				<StatusBadge variant={STATUS_VARIANTS[status]}>{OPNAME_STATUS_LABELS[status]}</StatusBadge>
-			)
-		},
-	}),
-	colHelper.accessor('createdAt', {
-		header: 'Tanggal',
-		size: 140,
-		cell: ({ getValue }) => new Date(getValue()).toLocaleDateString('id-ID'),
-	}),
-	colHelper.accessor('completedAt', {
-		header: 'Selesai',
-		size: 140,
-		cell: ({ getValue }) => {
-			const val = getValue()
-			return val ? (
-				new Date(val).toLocaleDateString('id-ID')
-			) : (
-				<span className="text-muted-foreground">—</span>
-			)
-		},
-	}),
-]
-
-// ─── Page ───
-
-function OpnamePage() {
-	const { activeLocation } = useLocationContext()
+function OpnameList({ location }: { location: AuthLocation }) {
 	const navigate = useNavigate({ from: Route.fullPath })
 	const search = Route.useSearch()
-	const locationId = activeLocation?.id
 	const canCreate = usePermissionCheck({ permission: 'opname.create' })
-	const canUpdate = usePermissionCheck({ permission: 'opname.update' })
-	const canComplete = usePermissionCheck({ permission: 'opname.complete' })
-	const canReadAudit = usePermissionCheck({ permission: 'audit.read' })
-
-	const [selectedOpnameId, setSelectedOpnameId] = useState<number | null>(null)
-	const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
-
-	const listQuery = useQuery({
+	const actions = useOpnameActions({
+		onCreated: (id) => navigate({ search: (prev) => ({ ...prev, id }) }),
+	})
+	const query = useQuery({
 		...opnameResource.list.queryOptions({
 			page: search.page,
 			limit: search.pageSize,
 			status: search.status,
-			locationId,
-			dateFrom: dateRange?.from.toISOString(),
-			dateTo: dateRange?.to.toISOString(),
+			locationId: location.id,
+			dateFrom: search.dateFrom,
+			dateTo: search.dateTo,
 		}),
-		enabled: !!locationId,
+		throwOnError: false,
 	})
-
-	const createMut = useMutation(opnameResource.create.mutationOptions())
-	const updateCountsMut = useMutation(opnameResource.updateCounts.mutationOptions())
-	const approveMut = useMutation(opnameResource.approve.mutationOptions())
-
-	// Server filters by createdAt range (OpnameFilterDto.dateFrom/dateTo), so
-	// page + total count both honor the range — no client-side slicing.
-	const data = listQuery.data?.data ?? []
-	const totalCount = listQuery.data?.meta?.total ?? 0
-
-	// ─── Detail query ───
-
-	const detailQuery = useQuery({
-		...opnameResource.detail.queryOptions({ id: selectedOpnameId! }),
-		enabled: !!selectedOpnameId,
-	})
-	const detail = detailQuery.data?.data
-
-	const auditQuery = useQuery({
-		...auditResource.byEntity.queryOptions({ entity: 'stock_opname', entityId: selectedOpnameId! }),
-		enabled: !!selectedOpnameId && canReadAudit,
-	})
-
-	// ─── Create ───
-
-	const handleCreate = useCallback(async () => {
-		if (!locationId) return
-		try {
-			const result = await createMut.mutateAsync({ locationId })
-			toast.add({ title: 'Opname berhasil dibuat.', type: 'success' })
-			setSelectedOpnameId(result.data.id)
-		} catch {
-			toast.add({ title: 'Gagal membuat opname.', type: 'error' })
-		}
-	}, [createMut, locationId])
-
-	// ─── Submit Counts ───
-
-	const handleSubmitCounts = useCallback(
-		async (lines: CountLine[]) => {
-			if (!selectedOpnameId) return
-			try {
-				await updateCountsMut.mutateAsync({
-					opnameId: selectedOpnameId,
-					lines: lines.map((l) => ({
-						materialId: l.materialId,
-						countedQty: l.countedQty,
-						reason: l.reason || undefined,
-					})),
-				})
-				toast.add({ title: 'Hitungan berhasil disimpan.', type: 'success' })
-			} catch {
-				toast.add({ title: 'Gagal menyimpan hitungan.', type: 'error' })
-			}
-		},
-		[updateCountsMut, selectedOpnameId],
-	)
-
-	// ─── Approve ───
-
-	const handleApprove = useCallback(async () => {
-		if (!selectedOpnameId) return
-		await confirm({
-			title: 'Setujui opname?',
-			description:
-				'Setelah disetujui, penyesuaian stok akan dibuat berdasarkan selisih hitungan. Tindakan ini tidak dapat dibatalkan.',
-			confirmLabel: 'Setujui',
-			onConfirm: async () => {
-				await approveMut.mutateAsync({ opnameId: selectedOpnameId })
-				toast.add({ title: 'Opname disetujui. Penyesuaian stok telah dibuat.', type: 'success' })
-			},
-		})
-	}, [approveMut, selectedOpnameId])
-
-	// ─── Columns with row click ───
-
-	const actionsColumn = useMemo(() => {
-		return colHelper.display({
-			id: 'actions',
-			size: 80,
-			// oxlint-disable-next-line react/no-unstable-nested-components
-			cell: ({ row }) => (
-				<Button
-					size="sm"
-					variant="ghost"
-					aria-label={`Detail ${row.original.opnameNo}`}
-					onClick={() => setSelectedOpnameId(row.original.id)}
-				>
-					Detail
-				</Button>
-			),
-		})
-	}, [])
-
 	const columns = useMemo(
-		() => [...baseColumns, actionsColumn] as ColumnDef<DataGridFeatures, OpnameDto>[],
-		[actionsColumn],
+		() =>
+			[
+				col.code('opnameNo', { header: 'No. Opname', size: 160, enableSorting: false }),
+				col.status('status', labels, { header: 'Status', size: 140, enableSorting: false }),
+				col.date('createdAt', { header: 'Tanggal', size: 150, enableSorting: false }),
+				col.date('completedAt', { header: 'Selesai', size: 150, enableSorting: false }),
+				col.actions({
+					// oxlint-disable-next-line react/no-unstable-nested-components -- action factory
+					getItems: (opname) => [
+						{
+							label: 'Detail',
+							onClick: () => navigate({ search: (prev) => ({ ...prev, id: opname.id }) }),
+						},
+					],
+				}),
+			] as ColumnDef<DataGridFeatures, OpnameDto>[],
+		[navigate],
 	)
-
-	const { table } = useServerTable({
-		data,
+	const list = useResourceList({
+		query,
 		columns,
-		totalCount,
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
+		hasFilters: (value) => !!(value.status || value.dateFrom || value.dateTo),
 	})
-
-	// ─── No location ───
-
-	if (!locationId) {
-		return (
-			<div className="space-y-6">
-				<PageHeader
-					title="Stock Opname"
-					description="Hitung fisik stok dan bandingkan dengan stok sistem."
-				/>
-				<EmptyState
-					title="Pilih lokasi"
-					description="Pilih lokasi aktif untuk memulai opname."
-					icon={<ClipboardListIcon className="size-5" />}
-				/>
-			</div>
-		)
-	}
-
-	// ─── Detail View ───
-
-	if (selectedOpnameId) {
-		const isEditable = canUpdate && (detail?.status === 'draft' || detail?.status === 'in_progress')
-		const canApprove = detail?.status === 'in_progress'
-
-		return (
-			<div className="space-y-6">
-				<PageHeader
-					title={detail?.opnameNo ?? 'Detail Opname'}
-					description={`Status: ${detail ? OPNAME_STATUS_LABELS[detail.status] : '...'}`}
-					actions={
-						<div className="flex gap-2">
-							{canApprove && canComplete && (
-								<Button size="sm" onClick={handleApprove}>
-									<CheckCircleIcon className="size-4" />
-									Setujui
-								</Button>
-							)}
-						</div>
-					}
-				/>
-
-				<Button size="sm" variant="ghost" onClick={() => setSelectedOpnameId(null)}>
-					<ArrowLeftIcon className="size-3.5" />
-					Kembali ke daftar
-				</Button>
-
-				{detailQuery.isLoading ? (
-					<div className="py-12 text-center text-sm text-muted-foreground">
-						Memuat data opname...
-					</div>
-				) : detail?.lines.length === 0 ? (
-					<EmptyState
-						title="Tidak ada material"
-						description="Opname ini tidak memiliki baris material."
-					/>
-				) : detail ? (
-					<OpnameCountForm
-						lines={detail.lines}
-						isEditable={isEditable}
-						onSubmitCounts={handleSubmitCounts}
-						isSubmitting={updateCountsMut.isPending}
-					/>
-				) : null}
-
-				{canReadAudit && (
-					<PageSection title="Activity" description="History of changes to this opname.">
-						<AuditTrail
-							entries={auditQuery.data?.data ?? []}
-							isLoading={auditQuery.isLoading}
-							emptyMessage="No changes recorded for this opname yet."
-						/>
-					</PageSection>
-				)}
-			</div>
-		)
-	}
-
-	// ─── List View ───
-
-	const isEmpty = !listQuery.isLoading && data.length === 0 && !search.status
-
 	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Stock Opname"
-				description={`Hitung fisik stok di ${activeLocation?.name ?? ''}`}
-				actions={
-					canCreate ? (
-						<Button size="sm" onClick={handleCreate} disabled={createMut.isPending}>
-							<PlusIcon className="size-4" />
-							Buat Opname
-						</Button>
-					) : undefined
-				}
-			/>
-
-			{isEmpty ? (
-				<EmptyState
-					title="Belum ada opname"
-					description="Buat opname pertama untuk memulai penghitungan fisik stok."
-					action={
-						canCreate ? (
-							<Button size="sm" onClick={handleCreate} disabled={createMut.isPending}>
-								<PlusIcon className="size-4" />
-								Buat Opname
-							</Button>
-						) : undefined
-					}
+		<EntityListPage
+			title="Stock Opname"
+			description={`Hitung fisik stok di ${location.name}`}
+			list={list}
+			createAction={
+				canCreate ? (
+					<Button size="sm" disabled={actions.creating} onClick={() => actions.create(location)}>
+						<PlusIcon className="size-4" />
+						Buat Opname
+					</Button>
+				) : undefined
+			}
+			emptyState={{
+				title: 'Belum ada opname',
+				description: 'Buat opname untuk memulai penghitungan fisik stok.',
+			}}
+			emptyMessage="Tidak ada opname yang cocok."
+			toolbar={
+				<TableToolbar
+					filters={[
+						{
+							key: 'status',
+							label: 'Status',
+							value: search.status,
+							onChange: (value) =>
+								list.setFilters({ status: OpnameStatusEnum.safeParse(value).data }),
+							options: Object.entries(OPNAME_STATUS_LABELS).map(([value, label]) => ({
+								value,
+								label,
+							})),
+							allLabel: 'Semua status',
+						},
+					]}
+					dateRange={{
+						key: 'createdAt',
+						label: 'Tanggal',
+						value:
+							search.dateFrom && search.dateTo
+								? { from: new Date(search.dateFrom), to: new Date(search.dateTo) }
+								: undefined,
+						onChange: (range) =>
+							list.setFilters({
+								dateFrom: range?.from.toISOString(),
+								dateTo: range?.to.toISOString(),
+							}),
+						placeholder: 'Filter tanggal opname',
+					}}
 				/>
-			) : (
-				<DataTable
-					table={table}
-					recordCount={totalCount}
-					isLoading={listQuery.isFetching}
-					emptyMessage="Tidak ada opname ditemukan."
-					toolbar={
-						<TableToolbar
-							filters={[
-								{
-									key: 'status',
-									label: 'Status',
-									value: search.status,
-									onChange: (v) =>
-										navigate({
-											search: {
-												...search,
-												page: 1,
-												status: v as OpnameStatusEnum | undefined,
-											},
-										}),
-									options: Object.entries(OPNAME_STATUS_LABELS).map(([value, label]) => ({
-										label,
-										value,
-									})),
-									allLabel: 'All status',
-								},
-							]}
-							dateRange={{
-								key: 'createdAt',
-								label: 'Tanggal',
-								value: dateRange,
-								onChange: (v) => {
-									setDateRange(v)
-									if (search.page !== 1) navigate({ search: { ...search, page: 1 } })
-								},
-								placeholder: 'Filter tanggal opname',
-							}}
-						/>
-					}
+			}
+		/>
+	)
+}
+
+function OpnameDetailPage({ id }: { id: number }) {
+	const navigate = useNavigate({ from: Route.fullPath })
+	const query = useQuery({ ...opnameResource.detail.queryOptions({ id }), throwOnError: false })
+	return (
+		<div className="space-y-4">
+			<Button
+				variant="ghost"
+				size="sm"
+				onClick={() => navigate({ search: (prev) => ({ ...prev, id: undefined }) })}
+			>
+				<ArrowLeftIcon className="size-4" />
+				Kembali ke daftar
+			</Button>
+			<DetailBoundary query={query}>
+				{(response) => <OpnameSession key={response.data.id} opname={response.data} />}
+			</DetailBoundary>
+		</div>
+	)
+}
+
+function OpnameSession({ opname }: { opname: OpnameDetailDto }) {
+	const scope = useEditorLocationScope(opname.locationId)
+	const canUpdate = usePermissionCheck({ permission: 'opname.update' })
+	const canComplete = usePermissionCheck({ permission: 'opname.complete' })
+	const canReadAudit = usePermissionCheck({ permission: 'audit.read' })
+	const actions = useOpnameActions({})
+	if (!scope.location) return null
+	return (
+		<PageShell
+			title={opname.opnameNo}
+			description={`Status: ${OPNAME_STATUS_LABELS[opname.status]}`}
+			contentClassName="space-y-6"
+		>
+			<OpnameCountForm
+				opname={opname}
+				scope={{ ...scope, location: scope.location }}
+				canUpdate={canUpdate}
+				canComplete={canComplete}
+				completing={actions.completing}
+				onComplete={(expectedCounts) => actions.complete({ ...opname, expectedCounts })}
+			/>
+			{canReadAudit && <OpnameActivity id={opname.id} />}
+		</PageShell>
+	)
+}
+
+function OpnameActivity({ id }: { id: number }) {
+	const query = useQuery({
+		...auditResource.byEntity.queryOptions({ entity: 'stock_opname', entityId: id }),
+		throwOnError: false,
+	})
+	const entries = query.data?.data
+	return (
+		<PageSection title="Activity" description="History of changes to this stock count.">
+			{query.isError && (
+				<InlineAlert
+					variant="warning"
+					title={entries ? 'Could not refresh activity' : 'Could not load activity'}
+				>
+					<p>
+						{entries
+							? 'Showing the last loaded history.'
+							: 'The history is unavailable, not empty.'}
+					</p>
+					<Button
+						size="sm"
+						variant="outline"
+						disabled={query.isFetching}
+						onClick={() => void query.refetch()}
+					>
+						Retry
+					</Button>
+				</InlineAlert>
+			)}
+			{(entries || !query.isError) && (
+				<AuditTrail
+					entries={entries ?? []}
+					isLoading={query.isLoading}
+					emptyMessage="No changes recorded for this opname yet."
 				/>
 			)}
-		</div>
+		</PageSection>
 	)
 }

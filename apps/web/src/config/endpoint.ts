@@ -83,7 +83,7 @@ const inventory = {
 		detail: p('inventory/opname', 'detail'),
 		create: p('inventory/opname', 'create'),
 		counts: p('inventory/opname', 'counts'),
-		approve: p('inventory/opname', 'approve'),
+		complete: p('inventory/opname', 'complete'),
 	},
 	receiving: {
 		list: p('inventory/receiving', 'list'),
