@@ -22,16 +22,16 @@ export function createAuditRoute(service: AuditService) {
 		.use(rbac.as('scoped'))
 		.get(
 			'/list',
-			async ({ query, auth }) => {
-				const result = await service.handleList(query, auth)
+			async ({ query }) => {
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{ query: AuditLogFilterDto, response: zRes.paginated(AuditLogDto), permission: 'audit.read' },
 		)
 		.get(
 			'/list/cursor',
-			async ({ query, auth }) => {
-				const result = await service.handleCursorList(query, auth)
+			async ({ query }) => {
+				const result = await service.handleCursorList(query)
 				return res.cursorPaginated(result)
 			},
 			{
@@ -42,16 +42,16 @@ export function createAuditRoute(service: AuditService) {
 		)
 		.get(
 			'/detail',
-			async ({ query, auth }) => {
-				const result = await service.handleDetail(query.id, auth)
+			async ({ query }) => {
+				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
 			{ query: zq.recordId, response: zRes.ok(AuditLogDetailDto), permission: 'audit.read' },
 		)
 		.get(
 			'/by-entity',
-			async ({ query, auth }) => {
-				const result = await service.handleByEntity(query.entity, query.entityId, auth)
+			async ({ query }) => {
+				const result = await service.handleByEntity(query.entity, query.entityId)
 				return res.ok(result)
 			},
 			{

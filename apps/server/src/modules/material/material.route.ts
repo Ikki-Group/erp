@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
 import { crudRoutes } from '@/server/crud-route.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto } from '@/shared/schema/index.ts'
@@ -56,8 +55,7 @@ export function createMaterialRoute(
 		)
 		.post(
 			'/assignment/assign',
-			async ({ body, auth }) =>
-				res.created(await assignmentService.handleAssign(body, actorOf(auth))),
+			async ({ body, actor }) => res.created(await assignmentService.handleAssign(body, actor)),
 			{
 				body: MaterialAssignDto,
 				response: zRes.created(EntityRefDto),
@@ -66,7 +64,7 @@ export function createMaterialRoute(
 		)
 		.post(
 			'/assignment/unassign',
-			async ({ body, auth }) => res.ok(await assignmentService.handleUnassign(body, actorOf(auth))),
+			async ({ body, actor }) => res.ok(await assignmentService.handleUnassign(body, actor)),
 			{
 				body: MaterialAssignDto,
 				response: zRes.ok(EntityRefDto),

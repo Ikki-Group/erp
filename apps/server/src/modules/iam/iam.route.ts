@@ -2,7 +2,6 @@ import { Elysia } from 'elysia'
 import { z } from 'zod'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { BadRequestError } from '@/shared/errors/http-error.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -47,7 +46,7 @@ export function createIamRoute(
 		})
 		.post(
 			'/role/create',
-			async ({ body, auth }) => res.created(await roleService.handleCreate(body, actorOf(auth))),
+			async ({ body, actor }) => res.created(await roleService.handleCreate(body, actor)),
 			{
 				body: RoleCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -56,7 +55,7 @@ export function createIamRoute(
 		)
 		.put(
 			'/role/update',
-			async ({ body, auth }) => res.ok(await roleService.handleUpdate(body, actorOf(auth))),
+			async ({ body, actor }) => res.ok(await roleService.handleUpdate(body, actor)),
 			{
 				body: RoleUpdateDto,
 				response: zRes.ok(EntityRefDto),
@@ -65,7 +64,7 @@ export function createIamRoute(
 		)
 		.delete(
 			'/role/remove',
-			async ({ query, auth }) => res.ok(await roleService.handleDelete(query.id, actorOf(auth))),
+			async ({ query, actor }) => res.ok(await roleService.handleDelete(query.id, actor)),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
@@ -83,13 +82,13 @@ export function createIamRoute(
 		)
 		.get(
 			'/user/location-staff/list',
-			async ({ query, auth }) => {
-				if (auth.locationId === null) {
+			async ({ query, actor }) => {
+				if (actor.locationId === null) {
 					throw new BadRequestError('An active location is required', {
 						code: 'ACTIVE_LOCATION_REQUIRED',
 					})
 				}
-				return res.paginated(await composedService.handleLocationStaffList(query, auth.locationId))
+				return res.paginated(await composedService.handleLocationStaffList(query, actor.locationId))
 			},
 			{
 				query: ComposedUserFilterDto,
@@ -118,7 +117,7 @@ export function createIamRoute(
 		)
 		.post(
 			'/user/create',
-			async ({ body, auth }) => res.created(await userService.handleCreate(body, actorOf(auth))),
+			async ({ body, actor }) => res.created(await userService.handleCreate(body, actor)),
 			{
 				body: UserCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -127,7 +126,7 @@ export function createIamRoute(
 		)
 		.put(
 			'/user/update',
-			async ({ body, auth }) => res.ok(await userService.handleUpdate(body, actorOf(auth))),
+			async ({ body, actor }) => res.ok(await userService.handleUpdate(body, actor)),
 			{
 				body: UserUpdateDto,
 				response: zRes.ok(EntityRefDto),
@@ -136,8 +135,7 @@ export function createIamRoute(
 		)
 		.delete(
 			'/user/deactivate',
-			async ({ query, auth }) =>
-				res.ok(await userService.handleDeactivate(query.id, actorOf(auth))),
+			async ({ query, actor }) => res.ok(await userService.handleDeactivate(query.id, actor)),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
@@ -146,7 +144,7 @@ export function createIamRoute(
 		)
 		.put(
 			'/user/reset-password',
-			async ({ body, auth }) => res.ok(await userService.handleResetPassword(body, actorOf(auth))),
+			async ({ body, actor }) => res.ok(await userService.handleResetPassword(body, actor)),
 			{
 				body: UserResetPasswordDto,
 				response: zRes.ok(EntityRefDto),
@@ -164,8 +162,7 @@ export function createIamRoute(
 		)
 		.post(
 			'/assignment/assign',
-			async ({ body, auth }) =>
-				res.created(await assignmentService.handleAssign(body, actorOf(auth))),
+			async ({ body, actor }) => res.created(await assignmentService.handleAssign(body, actor)),
 			{
 				body: AssignmentCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -174,7 +171,7 @@ export function createIamRoute(
 		)
 		.delete(
 			'/assignment/remove',
-			async ({ body, auth }) => res.ok(await assignmentService.handleRemove(body, actorOf(auth))),
+			async ({ body, actor }) => res.ok(await assignmentService.handleRemove(body, actor)),
 			{
 				body: AssignmentRemoveDto,
 				response: zRes.ok(EntityRefDto),

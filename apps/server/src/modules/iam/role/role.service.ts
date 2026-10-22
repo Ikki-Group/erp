@@ -76,6 +76,7 @@ export class RoleService {
 	}
 
 	async handleCreate(data: RoleCreateDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
 		return mutate(this.mutation, actor, async (tx) => {
 			await checkConflict({
 				db: tx,
@@ -107,6 +108,7 @@ export class RoleService {
 	}
 
 	async handleUpdate(data: RoleUpdateDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
 		const { id, ...updateData } = data
 		return mutate(
 			this.mutation,
@@ -146,6 +148,7 @@ export class RoleService {
 	}
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
 		return mutate(
 			this.mutation,
 			actor,

@@ -59,8 +59,10 @@ export class TableService {
 
 	// ─── Handlers ───
 
-	async handleGetById(id: number): Promise<TableDto> {
-		return assertFound(await this.getById(id), () => TableError.notFound(id))
+	async handleGetById(id: number, actor: Actor): Promise<TableDto> {
+		const table = assertFound(await this.getById(id), () => TableError.notFound(id))
+		actor.assertCan(table.locationId)
+		return table
 	}
 
 	async handleList(filter: TableFilterDto): Promise<WithPaginationResult<TableDto>> {
@@ -116,7 +118,7 @@ export class TableService {
 		const { id, ...updateData } = data
 
 		// 1. Verify exists
-		const current = await this.handleGetById(id)
+		const current = await this.handleGetById(id, actor)
 
 		// 2. Validate location if changed
 		if (updateData.locationId !== current.locationId) {
@@ -180,7 +182,7 @@ export class TableService {
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
 		// 1. Verify exists
-		const existing = await this.handleGetById(id)
+		const existing = await this.handleGetById(id, actor)
 
 		// 2. Delete and audit atomically
 		const result = await this.uow.run(async (tx) => {
@@ -209,7 +211,7 @@ export class TableService {
 	// ─── Status Update (for POS/Order integration) ───
 
 	async updateStatus(id: number, status: TableStatusEnum): Promise<EntityRef> {
-		const existing = await this.handleGetById(id)
+		const existing = assertFound(await this.getById(id), () => TableError.notFound(id))
 
 		const result = await this.repo.updateStatus(id, status)
 		if (!result) throw TableError.updateFailed(id)

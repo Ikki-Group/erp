@@ -2,7 +2,6 @@ import { Elysia } from 'elysia'
 
 import { authPlugin } from '@/server/plugins/auth.plugin.ts'
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto } from '@/shared/schema/index.ts'
@@ -27,8 +26,8 @@ export function createReceivingRoute(service: ReceivingService) {
 
 		.get(
 			'/list',
-			async ({ query }) => {
-				const result = await service.handleList(query)
+			async ({ query, actor }) => {
+				const result = await service.handleList(query, actor)
 				return res.paginated(result)
 			},
 			{
@@ -39,8 +38,8 @@ export function createReceivingRoute(service: ReceivingService) {
 		)
 		.get(
 			'/detail',
-			async ({ query }) => {
-				const result = await service.handleDetail(query.id)
+			async ({ query, actor }) => {
+				const result = await service.handleDetail(query.id, actor)
 				return res.ok(result)
 			},
 			{
@@ -51,8 +50,8 @@ export function createReceivingRoute(service: ReceivingService) {
 		)
 		.post(
 			'/create',
-			async ({ body, auth }) => {
-				const result = await service.handleCreate(body, actorOf(auth))
+			async ({ body, actor }) => {
+				const result = await service.handleCreate(body, actor)
 				return res.created(result)
 			},
 			{
@@ -64,8 +63,8 @@ export function createReceivingRoute(service: ReceivingService) {
 		)
 		.put(
 			'/update',
-			async ({ body, auth }) => {
-				const result = await service.handleUpdate(body, actorOf(auth))
+			async ({ body, actor }) => {
+				const result = await service.handleUpdate(body, actor)
 				return res.ok(result)
 			},
 			{
@@ -77,8 +76,8 @@ export function createReceivingRoute(service: ReceivingService) {
 		)
 		.post(
 			'/confirm',
-			async ({ body, auth }) => {
-				const result = await service.handleConfirm(body, actorOf(auth))
+			async ({ body, actor }) => {
+				const result = await service.handleConfirm(body, actor)
 				return res.ok(result)
 			},
 			{

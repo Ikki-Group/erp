@@ -5,13 +5,14 @@ import {
 	eq,
 	eqIf,
 	gte,
+	inScope,
 	lte,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -63,7 +64,11 @@ export interface IReceivingRepo {
 	readonly db: DbContext
 	findById(id: number, db?: DbContext): Promise<ReceivingDto | undefined>
 	findDetailById(id: number, db?: DbContext): Promise<ReceivingDetailDto | undefined>
-	findPage(filter: ReceivingFilterDto, db?: DbContext): Promise<WithPaginationResult<ReceivingDto>>
+	findPage(
+		filter: ReceivingFilterDto,
+		scope: LocationScope,
+		db?: DbContext,
+	): Promise<WithPaginationResult<ReceivingDto>>
 	insert(data: ReceivingInsert, db?: DbContext): Promise<EntityRef | undefined>
 	update(id: number, data: Partial<ReceivingInsert>, db?: DbContext): Promise<EntityRef | undefined>
 	updateStatus(
@@ -105,9 +110,10 @@ export class ReceivingRepo implements IReceivingRepo {
 
 	async findPage(
 		filter: ReceivingFilterDto,
+		scope: LocationScope,
 		db: DbContext = this.db,
 	): Promise<WithPaginationResult<ReceivingDto>> {
-		const where = this.#buildWhere(filter)
+		const where = this.#buildWhere(filter, scope)
 		const { limit, offset } = toLimitOffset(filter)
 
 		const rows = await db
@@ -199,8 +205,9 @@ export class ReceivingRepo implements IReceivingRepo {
 
 	// ─── Private ───
 
-	#buildWhere(filter: ReceivingFilterDto) {
+	#buildWhere(filter: ReceivingFilterDto, scope: LocationScope) {
 		return allOf(
+			inScope(scope, receivings.locationId),
 			eqIf(receivings.locationId, filter.locationId),
 			eqIf(receivings.supplierId, filter.supplierId),
 			eqIf(receivings.status, filter.status),

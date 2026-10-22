@@ -1,5 +1,6 @@
 import { CacheService } from '@/infra/cache/index.ts'
 import type { CacheClient } from '@/infra/cache/index.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
 import { NotFoundError } from '@/shared/errors/http-error.ts'
 import { assertFound } from '@/shared/utils/index.ts'
 
@@ -28,13 +29,22 @@ export class ComposedService {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'menu-item-detail')
 	}
 
-	// ─── Handlers ───
+	// ─── Reads ───
 
-	async handleDetail(id: number): Promise<MenuItemDetailDto> {
+	/** Cached item detail, unscoped; for modules that already authorized the caller (POS). */
+	async getDetail(id: number): Promise<MenuItemDetailDto> {
 		const result = await this.cache.getOrSetWithSkip({
 			key: this.cache.keys.byId(id),
 			factory: () => this.repo.findDetailById(id),
 		})
 		return assertFound(result, () => ComposedError.notFound(id))
+	}
+
+	// ─── Handlers ───
+
+	async handleDetail(id: number, actor: Actor): Promise<MenuItemDetailDto> {
+		const detail = await this.getDetail(id)
+		actor.assertCan(detail.locationId)
+		return detail
 	}
 }

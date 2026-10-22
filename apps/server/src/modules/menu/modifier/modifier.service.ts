@@ -57,12 +57,16 @@ export class ModifierService {
 
 	// ─── Handlers ───
 
-	async handleGetById(id: number): Promise<ModifierGroupDto> {
-		return assertFound(await this.getById(id), () => ModifierError.notFound(id))
+	async handleGetById(id: number, actor: Actor): Promise<ModifierGroupDto> {
+		const group = assertFound(await this.getById(id), () => ModifierError.notFound(id))
+		actor.assertCan(group.locationId)
+		return group
 	}
 
-	async handleDetail(id: number): Promise<ModifierGroupWithOptionsDto> {
-		return assertFound(await this.getByIdWithOptions(id), () => ModifierError.notFound(id))
+	async handleDetail(id: number, actor: Actor): Promise<ModifierGroupWithOptionsDto> {
+		const group = assertFound(await this.getByIdWithOptions(id), () => ModifierError.notFound(id))
+		actor.assertCan(group.locationId)
+		return group
 	}
 
 	async handleList(
@@ -106,7 +110,7 @@ export class ModifierService {
 		const { id, options, ...updateData } = data
 
 		// 1. Verify exists
-		const existing = await this.handleGetById(id)
+		const existing = await this.handleGetById(id, actor)
 
 		// 2. Update group, options, and audit in one transaction
 		return mutate(this.mutation, actor, async (tx) => {
@@ -136,7 +140,7 @@ export class ModifierService {
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
 		// 1. Verify exists
-		const existing = await this.handleGetById(id)
+		const existing = await this.handleGetById(id, actor)
 
 		// 2. Delete and audit in one transaction
 		return mutate(this.mutation, actor, async (tx) => {

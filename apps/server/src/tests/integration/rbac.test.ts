@@ -2,8 +2,6 @@ import { Elysia } from 'elysia'
 
 import { errorPlugin } from '@/server/plugins/error.plugin.ts'
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
-import type { AuthContext } from '@/shared/auth/permission.ts'
 
 import { loginAs } from '../helpers/auth.ts'
 import { SEED_USERS } from '../helpers/seed.ts'
@@ -25,19 +23,6 @@ function requestWithToken(token: string): Promise<Response> {
 }
 
 describe('rbac', () => {
-	test('actorOf preserves the resolved authenticated user identity', () => {
-		const auth: AuthContext = {
-			sessionId: 'test-session-rbac',
-			userId: 7,
-			userName: 'Resolved User',
-			locationId: 3,
-			permissions: [],
-			isOwner: false,
-		}
-
-		expect(actorOf(auth)).toEqual({ id: 7, name: 'Resolved User', locationId: 3 })
-	})
-
 	test('guarded route allows owner and rejects a user without permission', async () => {
 		const ownerResponse = await requestWithToken(await loginAs(SEED_USERS.owner.username))
 		expect(ownerResponse.status).toBe(200)

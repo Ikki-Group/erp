@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
 import { crudRoutes } from '@/server/crud-route.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto } from '@/shared/schema/index.ts'
@@ -38,7 +37,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.post(
 			'/location/assign',
-			async ({ body, auth }) => res.ok(await service.handleAssign(body, actorOf(auth))),
+			async ({ body, actor }) => res.ok(await service.handleAssign(body, actor)),
 			{
 				body: PaymentMethodLocationAssignDto,
 				response: zRes.ok(EntityRefDto),
@@ -47,7 +46,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 		)
 		.delete(
 			'/location/unassign',
-			async ({ body, auth }) => res.ok(await service.handleUnassign(body, actorOf(auth))),
+			async ({ body, actor }) => res.ok(await service.handleUnassign(body, actor)),
 			{
 				body: PaymentMethodLocationAssignDto,
 				response: zRes.ok(EntityRefDto),

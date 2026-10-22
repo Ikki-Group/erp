@@ -14,6 +14,8 @@
 export const SEED_USERS = {
 	owner: { username: 'owner', password: 'password123' },
 	cashier: { username: 'cashier', password: 'password123' },
+	/** Warehouse staff at the warehouse only. */
+	warehouse: { username: 'warehouse', password: 'password123' },
 	multiLocation: { username: 'multi-location', password: 'password123' },
 } as const
 

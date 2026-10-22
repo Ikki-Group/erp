@@ -141,6 +141,7 @@ export class OpnameService {
 		const opname = assertFound(await this.repo.findById(data.opnameId), () =>
 			OpnameError.notFound(data.opnameId),
 		)
+		actor.assertCan(opname.locationId)
 
 		if (opname.status === 'completed') {
 			throw OpnameError.alreadyCompleted(data.opnameId)
@@ -195,6 +196,7 @@ export class OpnameService {
 		const opname = assertFound(await this.repo.findById(data.opnameId), () =>
 			OpnameError.notFound(data.opnameId),
 		)
+		actor.assertCan(opname.locationId)
 
 		if (opname.status === 'completed') {
 			throw OpnameError.alreadyCompleted(data.opnameId)
@@ -264,11 +266,16 @@ export class OpnameService {
 		return result
 	}
 
-	async handleList(filter: OpnameFilterDto): Promise<WithPaginationResult<OpnameDto>> {
-		return this.repo.findPage(filter)
+	async handleList(
+		filter: OpnameFilterDto,
+		actor: Actor,
+	): Promise<WithPaginationResult<OpnameDto>> {
+		return this.repo.findPage(filter, actor.allowedLocations())
 	}
 
-	async handleDetail(id: number): Promise<OpnameDetailDto> {
-		return assertFound(await this.repo.findDetailById(id), () => OpnameError.notFound(id))
+	async handleDetail(id: number, actor: Actor): Promise<OpnameDetailDto> {
+		const opname = assertFound(await this.repo.findDetailById(id), () => OpnameError.notFound(id))
+		actor.assertCan(opname.locationId)
+		return opname
 	}
 }

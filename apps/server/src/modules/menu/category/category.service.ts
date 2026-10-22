@@ -56,8 +56,10 @@ export class CategoryService {
 
 	// ─── Handlers ───
 
-	async handleGetById(id: number): Promise<MenuCategoryDto> {
-		return assertFound(await this.getById(id), () => CategoryError.notFound(id))
+	async handleGetById(id: number, actor: Actor): Promise<MenuCategoryDto> {
+		const category = assertFound(await this.getById(id), () => CategoryError.notFound(id))
+		actor.assertCan(category.locationId)
+		return category
 	}
 
 	async handleList(filter: MenuCategoryFilterDto): Promise<WithPaginationResult<MenuCategoryDto>> {
@@ -98,7 +100,7 @@ export class CategoryService {
 		const { id, ...updateData } = data
 
 		// 1. Verify exists
-		const existing = await this.handleGetById(id)
+		const existing = await this.handleGetById(id, actor)
 
 		// 2. Validate parentId belongs to same location
 		if (updateData.parentId) {
@@ -132,7 +134,7 @@ export class CategoryService {
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
 		// 1. Verify exists
-		const existing = await this.handleGetById(id)
+		const existing = await this.handleGetById(id, actor)
 
 		// 2. Delete and audit in one transaction
 		return mutate(this.mutation, actor, async (tx) => {

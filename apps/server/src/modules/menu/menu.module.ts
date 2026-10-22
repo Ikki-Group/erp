@@ -43,7 +43,7 @@ function createMenuModule(
 			composedService,
 		),
 		itemGetById: itemService.handleGetById.bind(itemService),
-		itemDetail: composedService.handleDetail.bind(composedService),
+		itemDetail: composedService.getDetail.bind(composedService),
 		itemService,
 		composedService,
 	}
@@ -51,7 +51,7 @@ function createMenuModule(
 
 export interface MenuApi extends Record<string, unknown> {
 	itemGetById: ItemService['handleGetById']
-	itemDetail: ComposedService['handleDetail']
+	itemDetail: ComposedService['getDetail']
 }
 
 export const menuModule: ModuleDescriptor = {

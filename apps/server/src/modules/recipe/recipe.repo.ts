@@ -1,14 +1,16 @@
+import { menuItems } from '@/db/schema/menu.ts'
 import { recipes, recipeLines } from '@/db/schema/recipe.ts'
 
 import {
 	and,
 	eq,
+	inScope,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -70,7 +72,11 @@ export interface IRecipeRepo {
 	readonly db: DbContext
 	findById(id: number, db?: DbContext): Promise<RecipeDto | undefined>
 	findActiveByMenuItemId(menuItemId: number, db?: DbContext): Promise<RecipeDto | undefined>
-	findPage(filter: RecipeFilterDto, db?: DbContext): Promise<WithPaginationResult<RecipeDto>>
+	findPage(
+		filter: RecipeFilterDto,
+		scope: LocationScope,
+		db?: DbContext,
+	): Promise<WithPaginationResult<RecipeDto>>
 	findLinesByRecipeId(recipeId: number, db?: DbContext): Promise<RecipeLineDto[]>
 	insert(data: RecipeInsert, db?: DbContext): Promise<EntityRef | undefined>
 	update(id: number, data: RecipeUpdate, db?: DbContext): Promise<EntityRef | undefined>
@@ -108,11 +114,15 @@ export class RecipeRepo implements IRecipeRepo {
 
 	async findPage(
 		filter: RecipeFilterDto,
+		scope: LocationScope,
 		db: DbContext = this.db,
 	): Promise<WithPaginationResult<RecipeDto>> {
 		const { limit, offset } = toLimitOffset(filter)
 
-		const conditions = filter.menuItemId ? eq(recipes.menuItemId, filter.menuItemId) : undefined
+		const conditions = and(
+			filter.menuItemId ? eq(recipes.menuItemId, filter.menuItemId) : undefined,
+			inScope(scope, menuItems.locationId),
+		)
 
 		const rows = await db
 			.select({
@@ -128,6 +138,7 @@ export class RecipeRepo implements IRecipeRepo {
 				rowCount: sql<number>`count(*) over()`.as('row_count'),
 			})
 			.from(recipes)
+			.innerJoin(menuItems, eq(menuItems.id, recipes.menuItemId))
 			.where(conditions)
 			.orderBy(sql`${recipes.id} desc`)
 			.limit(limit)

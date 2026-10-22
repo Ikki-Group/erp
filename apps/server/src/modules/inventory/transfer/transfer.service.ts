@@ -144,6 +144,7 @@ export class TransferService {
 			const transfer = assertFound(await this.repo.findById(data.transferId), () =>
 				TransferError.notFound(data.transferId),
 			)
+			actor.assertCan(transfer.fromLocationId)
 
 			if (transfer.status !== 'requested') {
 				throw TransferError.notRequested(data.transferId)
@@ -207,6 +208,7 @@ export class TransferService {
 			const transfer = assertFound(await this.repo.findById(data.transferId), () =>
 				TransferError.notFound(data.transferId),
 			)
+			actor.assertCan(transfer.toLocationId)
 
 			if (transfer.status === 'received') {
 				throw TransferError.alreadyReceived(data.transferId)
@@ -297,11 +299,18 @@ export class TransferService {
 		})
 	}
 
-	async handleList(filter: TransferFilterDto): Promise<WithPaginationResult<TransferDto>> {
-		return this.repo.findPage(filter)
+	async handleList(
+		filter: TransferFilterDto,
+		actor: Actor,
+	): Promise<WithPaginationResult<TransferDto>> {
+		return this.repo.findPage(filter, actor.allowedLocations())
 	}
 
-	async handleDetail(id: number): Promise<TransferDetailDto> {
-		return assertFound(await this.repo.findDetailById(id), () => TransferError.notFound(id))
+	async handleDetail(id: number, actor: Actor): Promise<TransferDetailDto> {
+		const transfer = assertFound(await this.repo.findDetailById(id), () =>
+			TransferError.notFound(id),
+		)
+		if (!actor.can(transfer.fromLocationId)) actor.assertCan(transfer.toLocationId)
+		return transfer
 	}
 }

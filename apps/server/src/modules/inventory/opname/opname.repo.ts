@@ -6,13 +6,14 @@ import {
 	eq,
 	eqIf,
 	gte,
+	inScope,
 	lte,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -69,7 +70,11 @@ export interface IOpnameRepo {
 	readonly db: DbContext
 	findById(id: number, db?: DbContext): Promise<OpnameDto | undefined>
 	findDetailById(id: number, db?: DbContext): Promise<OpnameDetailDto | undefined>
-	findPage(filter: OpnameFilterDto, db?: DbContext): Promise<WithPaginationResult<OpnameDto>>
+	findPage(
+		filter: OpnameFilterDto,
+		scope: LocationScope,
+		db?: DbContext,
+	): Promise<WithPaginationResult<OpnameDto>>
 	insert(data: OpnameInsert, db?: DbContext): Promise<EntityRef | undefined>
 	updateStatus(
 		id: number,
@@ -111,9 +116,10 @@ export class OpnameRepo implements IOpnameRepo {
 
 	async findPage(
 		filter: OpnameFilterDto,
+		scope: LocationScope,
 		db: DbContext = this.db,
 	): Promise<WithPaginationResult<OpnameDto>> {
-		const where = this.#buildWhere(filter)
+		const where = this.#buildWhere(filter, scope)
 		const { limit, offset } = toLimitOffset(filter)
 
 		const rows = await db
@@ -206,8 +212,9 @@ export class OpnameRepo implements IOpnameRepo {
 
 	// ─── Private ───
 
-	#buildWhere(filter: OpnameFilterDto) {
+	#buildWhere(filter: OpnameFilterDto, scope: LocationScope) {
 		return allOf(
+			inScope(scope, stockOpnames.locationId),
 			eqIf(stockOpnames.locationId, filter.locationId),
 			eqIf(stockOpnames.status, filter.status),
 			filter.dateFrom ? gte(stockOpnames.createdAt, filter.dateFrom) : undefined,

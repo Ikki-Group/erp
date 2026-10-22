@@ -2,7 +2,6 @@ import { Elysia } from 'elysia'
 
 import { authPlugin } from '@/server/plugins/auth.plugin.ts'
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto } from '@/shared/schema/index.ts'
@@ -58,8 +57,8 @@ export function createProductionRoute(service: ProductionService) {
 			)
 			.post(
 				'/recipe/create',
-				async ({ body, auth }) => {
-					const result = await service.handleRecipeCreate(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleRecipeCreate(body, actor)
 					return res.created(result)
 				},
 				{
@@ -71,8 +70,8 @@ export function createProductionRoute(service: ProductionService) {
 			)
 			.put(
 				'/recipe/update',
-				async ({ body, auth }) => {
-					const result = await service.handleRecipeUpdate(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleRecipeUpdate(body, actor)
 					return res.ok(result)
 				},
 				{
@@ -84,8 +83,8 @@ export function createProductionRoute(service: ProductionService) {
 			)
 			.delete(
 				'/recipe/remove',
-				async ({ query, auth }) => {
-					await service.handleRecipeRemove(query.id, actorOf(auth))
+				async ({ query, actor }) => {
+					await service.handleRecipeRemove(query.id, actor)
 					return res.ok({ id: query.id })
 				},
 				{
@@ -100,8 +99,8 @@ export function createProductionRoute(service: ProductionService) {
 
 			.get(
 				'/order/list',
-				async ({ query }) => {
-					const result = await service.handleOrderList(query)
+				async ({ query, actor }) => {
+					const result = await service.handleOrderList(query, actor)
 					return res.paginated(result)
 				},
 				{
@@ -112,8 +111,8 @@ export function createProductionRoute(service: ProductionService) {
 			)
 			.get(
 				'/order/detail',
-				async ({ query }) => {
-					const result = await service.handleOrderDetail(query.id)
+				async ({ query, actor }) => {
+					const result = await service.handleOrderDetail(query.id, actor)
 					return res.ok(result)
 				},
 				{
@@ -124,8 +123,8 @@ export function createProductionRoute(service: ProductionService) {
 			)
 			.post(
 				'/order/create',
-				async ({ body, auth }) => {
-					const result = await service.handleOrderCreate(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleOrderCreate(body, actor)
 					return res.created(result)
 				},
 				{
@@ -137,8 +136,8 @@ export function createProductionRoute(service: ProductionService) {
 			)
 			.post(
 				'/order/confirm',
-				async ({ body, auth }) => {
-					const result = await service.handleOrderConfirm(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleOrderConfirm(body, actor)
 					return res.ok(result)
 				},
 				{

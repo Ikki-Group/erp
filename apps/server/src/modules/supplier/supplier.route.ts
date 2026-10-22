@@ -1,5 +1,4 @@
 import { crudRoutes } from '@/server/crud-route.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -35,7 +34,7 @@ export function createSupplierRoute(svc: SupplierService) {
 		})
 		.post(
 			'/material/create',
-			async ({ body, auth }) => res.created(await svc.handlePricingCreate(body, actorOf(auth))),
+			async ({ body, actor }) => res.created(await svc.handlePricingCreate(body, actor)),
 			{
 				body: SupplierMaterialCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -44,7 +43,7 @@ export function createSupplierRoute(svc: SupplierService) {
 		)
 		.put(
 			'/material/update',
-			async ({ body, auth }) => res.ok(await svc.handlePricingUpdate(body, actorOf(auth))),
+			async ({ body, actor }) => res.ok(await svc.handlePricingUpdate(body, actor)),
 			{
 				body: SupplierMaterialUpdateDto,
 				response: zRes.ok(EntityRefDto),
@@ -53,7 +52,7 @@ export function createSupplierRoute(svc: SupplierService) {
 		)
 		.delete(
 			'/material/remove',
-			async ({ query, auth }) => res.ok(await svc.handlePricingDelete(query.id, actorOf(auth))),
+			async ({ query, actor }) => res.ok(await svc.handlePricingDelete(query.id, actor)),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),

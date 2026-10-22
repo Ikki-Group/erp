@@ -69,6 +69,7 @@ Vertical slices under `apps/server/src/modules/<module>/`. A module groups relat
 - `*.service.ts` — business logic. Public entry points are `handle*` methods. They check conflicts (`checkConflict`), stamp audit fields (`stampCreate`/`stampUpdate` from `@/shared/audit`), and write through `mutate()` (`@/shared/service/mutate.ts`): it runs the work + audit record in one UoW transaction, then **invalidates cache** after commit. UoW retries on deadlock/serialization failure, so transaction callbacks MUST be re-runnable — no cache/network side effects inside them.
 - Simple CRUD slices compose `createCrudRepo` (`@/infra/database/crud.repo.ts`, + `paginate()`), `crudRoutes` (`@/server/crud-route.ts`, standard `/list` `/detail` `/create` `/update` `/remove`) and `defineEntityErrors` (`@/shared/errors/entity-errors.ts`). Complex domains (pos order, inventory, production) stay hand-written. Large append-only lists also expose keyset `/…/cursor` endpoints (`@/infra/database/keyset.ts`).
 - Stock: multi-line movements lock balances in `(locationId, materialId)` order (`lockBalances`) to avoid deadlocks. POS order create is idempotent on `externalRef`.
+- Authorization is per location (`@/server/plugins/rbac.plugin.ts`). `permission: 'x.y'` requires the permission at every `locationId`/`fromLocationId`/`toLocationId` named in the query or body (else at the `x-location-id` header; no header = global grants only) and resolves an `actor` bound to that permission into the handler. Services MUST call `actor.assertCan(record.locationId)` on records loaded by id, and lists with an optional location filter MUST filter by `inScope(actor.allowedLocations(), table.locationId)` (`@/infra/database`). Company-wide writes (roles, users, global assignments) call `actor.assertCan(null)`. Covered by `src/tests/integration/location-access.test.ts`.
 - `*.internal.ts` — module-private helpers, error factories, unique-field lists.
 - Module wiring: `*.module.ts`, `*.route.ts` (Elysia), `index.ts` (barrel exporting a `ModuleDescriptor`, registered in `src/app.ts`; `dependsOn` is validated eagerly and layers may only depend downward).
 
@@ -99,6 +100,7 @@ Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agent
 Use the `ui-components` skill when building UI features, forms, tables, or ensuring design consistency. It provides component discovery, usage patterns, and critical design rules (e.g., numbers are right-aligned, use cell components in tables).
 
 **Quick links:**
+
 - Live examples: http://localhost:3000/design-system
 - Full guide: apps/web/COMPONENT_GUIDE.md
 - Skill: .agents/skills/ui-components/SKILL.md

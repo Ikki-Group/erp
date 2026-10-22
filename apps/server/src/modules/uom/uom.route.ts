@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
 import { crudRoutes } from '@/server/crud-route.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -31,8 +30,7 @@ export function createUomRoute(service: UomService) {
 		})
 		.post(
 			'/conversion/create',
-			async ({ body, auth }) =>
-				res.created(await service.handleConversionCreate(body, actorOf(auth))),
+			async ({ body, actor }) => res.created(await service.handleConversionCreate(body, actor)),
 			{
 				body: UomConversionCreateDto,
 				response: zRes.created(EntityRefDto),
@@ -41,8 +39,7 @@ export function createUomRoute(service: UomService) {
 		)
 		.delete(
 			'/conversion/remove',
-			async ({ query, auth }) =>
-				res.ok(await service.handleConversionRemove(query.id, actorOf(auth))),
+			async ({ query, actor }) => res.ok(await service.handleConversionRemove(query.id, actor)),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),

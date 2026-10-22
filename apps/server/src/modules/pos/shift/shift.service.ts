@@ -3,9 +3,6 @@ import type { CacheClient } from '@/infra/cache/index.ts'
 import { auditEntryOf } from '@/shared/audit/audit.port.ts'
 import type { AuditPort } from '@/shared/audit/audit.port.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
-import type { AuthContext } from '@/shared/auth/permission.ts'
-import { requirePermission } from '@/shared/auth/permission.ts'
 import { Money } from '@/shared/domain/money.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
@@ -95,20 +92,18 @@ export class ShiftService {
 		return result
 	}
 
-	async handleClose(data: ShiftCloseDto, auth: AuthContext): Promise<EntityRef> {
-		const actor = actorOf(auth)
+	async handleClose(data: ShiftCloseDto, actor: Actor): Promise<EntityRef> {
 		// 1. Find shift, assert found and open
 		const shift = assertFound(await this.repo.findById(data.shiftId), () =>
 			ShiftError.notFound(data.shiftId),
 		)
+		actor.assertCan(shift.locationId)
 		if (shift.status !== 'open') {
 			throw ShiftError.notOpen(data.shiftId)
 		}
 
-		// 2. Check ownership — own shift or requires close-other permission
-		if (shift.userId !== auth.userId) {
-			requirePermission(auth, 'shift.close-other')
-		}
+		// 2. Check ownership — own shift or requires close-other permission at its location
+		if (shift.userId !== actor.id) actor.assertCan(shift.locationId, 'shift.close-other')
 
 		// 3. Update shift and audit atomically
 		const result = await this.uow.run(async (tx) => {
@@ -158,17 +153,25 @@ export class ShiftService {
 		return result
 	}
 
-	async handleGetActive(userId: number, locationId: number): Promise<ShiftDto | null> {
-		const shift = await this.repo.findActive(userId, locationId)
-		return shift ?? null
+	/** The user's open shift at a location (used by order creation). */
+	async findActive(userId: number, locationId: number): Promise<ShiftDto | null> {
+		return (await this.repo.findActive(userId, locationId)) ?? null
+	}
+
+	/** The actor's open shift at the active location; null when no location is selected. */
+	handleGetActive(actor: Actor): Promise<ShiftDto | null> {
+		return actor.locationId === null
+			? Promise.resolve(null)
+			: this.findActive(actor.id, actor.locationId)
 	}
 
 	async handleList(filter: ShiftFilterDto): Promise<WithPaginationResult<ShiftDto>> {
 		return this.repo.findPage(filter)
 	}
 
-	async handleDetail(id: number): Promise<ShiftDetailDto> {
-		const detail = await this.repo.findDetail(id)
-		return assertFound(detail, () => ShiftError.notFound(id))
+	async handleDetail(id: number, actor: Actor): Promise<ShiftDetailDto> {
+		const detail = assertFound(await this.repo.findDetail(id), () => ShiftError.notFound(id))
+		actor.assertCan(detail.locationId)
+		return detail
 	}
 }

@@ -8,12 +8,13 @@ import {
 	allOf,
 	eq,
 	eqIf,
+	inScope,
 	sql,
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -111,6 +112,7 @@ export interface IProductionRepo {
 	findOrderDetailById(id: number, db?: DbContext): Promise<ProductionOrderDetailDto | undefined>
 	findOrderPage(
 		filter: ProductionOrderFilterDto,
+		scope: LocationScope,
 		db?: DbContext,
 	): Promise<WithPaginationResult<ProductionOrderDto>>
 	insertOrder(data: OrderInsert, db?: DbContext): Promise<EntityRef | undefined>
@@ -275,9 +277,10 @@ export class ProductionRepo implements IProductionRepo {
 
 	async findOrderPage(
 		filter: ProductionOrderFilterDto,
+		scope: LocationScope,
 		db: DbContext = this.db,
 	): Promise<WithPaginationResult<ProductionOrderDto>> {
-		const where = this.#buildOrderWhere(filter)
+		const where = this.#buildOrderWhere(filter, scope)
 		const { limit, offset } = toLimitOffset(filter)
 
 		const rows = await db
@@ -356,8 +359,9 @@ export class ProductionRepo implements IProductionRepo {
 		)
 	}
 
-	#buildOrderWhere(filter: ProductionOrderFilterDto) {
+	#buildOrderWhere(filter: ProductionOrderFilterDto, scope: LocationScope) {
 		return allOf(
+			inScope(scope, productionOrders.locationId),
 			eqIf(productionOrders.locationId, filter.locationId),
 			eqIf(productionOrders.status, filter.status),
 			eqIf(productionOrders.materialId, filter.materialId),

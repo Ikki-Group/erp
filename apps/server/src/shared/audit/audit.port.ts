@@ -22,7 +22,10 @@ export interface AuditPort {
 export type AuditEntryInput = Omit<AuditEntry, 'actorId' | 'actorName' | 'locationId'>
 
 /** Build an audit entry from the authenticated domain actor. */
-export function auditEntryOf(actor: Actor, entry: AuditEntryInput): AuditEntry {
+export function auditEntryOf(
+	actor: Pick<Actor, 'id' | 'name' | 'locationId'>,
+	entry: AuditEntryInput,
+): AuditEntry {
 	const actorName = actor.name.trim()
 	if (!actorName) throw new Error('Audit actor name is required')
 	return {

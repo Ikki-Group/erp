@@ -65,6 +65,7 @@ export class UserService {
 	}
 
 	async handleCreate(data: UserCreateDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
 		const passwordHash = await hashPassword(data.password)
 		const result = await this.deps.uow.run(async (tx) => {
 			await checkConflict({
@@ -107,6 +108,7 @@ export class UserService {
 	}
 
 	async handleUpdate(data: UserUpdateDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
 		const { id, ...updateData } = data
 		const result = await this.deps.uow.run(async (tx) => {
 			const existing = await this.repo.findById(id, tx)
@@ -152,6 +154,7 @@ export class UserService {
 	}
 
 	async handleResetPassword(data: UserResetPasswordDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
 		const passwordHash = await hashPassword(data.password)
 		const result = await this.deps.uow.run(async (tx) => {
 			const existing = await this.repo.findById(data.id, tx)
@@ -186,6 +189,7 @@ export class UserService {
 	}
 
 	async handleDeactivate(id: number, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
 		const result = await this.deps.uow.run(async (tx) => {
 			const existing = await this.repo.findById(id, tx)
 			if (!existing) throw UserError.notFound(id)

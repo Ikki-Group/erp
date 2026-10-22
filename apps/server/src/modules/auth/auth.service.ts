@@ -1,6 +1,6 @@
 import { record } from '@/infra/otel/otel.ts'
 import { invalidateAuthCache } from '@/shared/auth/access-cache.ts'
-import { effectivePermissions } from '@/shared/auth/permission.ts'
+import { permissionsAt } from '@/shared/auth/permission.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
 import type { SessionStore } from '@/shared/auth/session.port.ts'
 import { SESSION_TTL_DAYS } from '@/shared/config/index.ts'
@@ -172,17 +172,14 @@ export class AuthService {
 		// Use the IAM domain projection so /me stays aligned with user detail.
 		const user = await this.deps.composedService.handleUserDetail(auth.userId)
 
-		const globalPermissions = [
-			...new Set(auth.globalPermissions ?? (auth.locationId === null ? auth.permissions : [])),
-		]
-		const access = auth.access ?? {}
+		const { globalPermissions, access } = auth
 		const hasGlobal = hasGlobalAssignment(user.assignments, auth.isOwner)
 		const assignedLocationIds = locationIdsFromAssignments(user.assignments)
 
 		const locations = hasGlobal
 			? await this.deps.locationService.getAll()
 			: await this.deps.locationService.getByIds(assignedLocationIds)
-		const permissions = effectivePermissions({ ...auth, globalPermissions, access })
+		const permissions = permissionsAt(auth, auth.locationId)
 
 		return {
 			user,

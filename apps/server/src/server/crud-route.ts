@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
@@ -14,8 +13,8 @@ import type { z } from 'zod'
 // ─── Types ───
 
 interface CrudRouteService<TFilter, TDto, TCreate, TUpdate> {
-	handleList(filter: TFilter): Promise<WithPaginationResult<TDto>>
-	handleGetById(id: number): Promise<TDto>
+	handleList(filter: TFilter, actor: Actor): Promise<WithPaginationResult<TDto>>
+	handleGetById(id: number, actor: Actor): Promise<TDto>
 	handleCreate(data: TCreate, actor: Actor): Promise<EntityRef>
 	handleUpdate(data: TUpdate, actor: Actor): Promise<EntityRef>
 	handleDelete(id: number, actor: Actor): Promise<EntityRef>
@@ -40,7 +39,7 @@ interface CrudRouteConfig<
 	 * `GET /detail`: defaults to `service.handleGetById` returning `dto`.
 	 * Pass a custom response/handler for a richer detail DTO, or `false` to omit the route.
 	 */
-	detail?: false | { response: R; handle: (id: number) => Promise<z.output<R>> }
+	detail?: false | { response: R; handle: (id: number, actor: Actor) => Promise<z.output<R>> }
 }
 
 // ─── Factory ───
@@ -64,53 +63,57 @@ export function crudRoutes<
 	const schemas: Record<'filter' | 'dto' | 'create' | 'update', z.ZodType> = config.schemas
 	const detail:
 		| false
-		| { response: z.ZodType; handle: (id: number) => Promise<unknown> }
+		| { response: z.ZodType; handle: (id: number, actor: Actor) => Promise<unknown> }
 		| undefined = config.detail
 	const app = new Elysia({ prefix, tags: config.tags ?? [resource] })
 		.use(rbac.as('scoped'))
-		.get('/list', async ({ query }) => res.paginated(await service.handleList(query)), {
-			query: schemas.filter,
-			response: zRes.paginated(schemas.dto),
-			permission: `${resource}.read`,
-		})
+		.get(
+			'/list',
+			async ({ query, actor }) => res.paginated(await service.handleList(query, actor)),
+			{
+				query: schemas.filter,
+				response: zRes.paginated(schemas.dto),
+				permission: `${resource}.read`,
+			},
+		)
 
 	// Elysia methods register on the instance, so the optional route is added in place.
 	if (detail) {
-		app.get('/detail', async ({ query }) => res.ok(await detail.handle(query.id)), {
+		app.get('/detail', async ({ query, actor }) => res.ok(await detail.handle(query.id, actor)), {
 			query: zq.recordId,
 			response: zRes.ok(detail.response),
 			permission: `${resource}.read`,
 		})
 	} else if (detail === undefined) {
-		app.get('/detail', async ({ query }) => res.ok(await service.handleGetById(query.id)), {
-			query: zq.recordId,
-			response: zRes.ok(schemas.dto),
-			permission: `${resource}.read`,
-		})
+		app.get(
+			'/detail',
+			async ({ query, actor }) => res.ok(await service.handleGetById(query.id, actor)),
+			{
+				query: zq.recordId,
+				response: zRes.ok(schemas.dto),
+				permission: `${resource}.read`,
+			},
+		)
 	}
 
 	return app
 		.post(
 			'/create',
-			async ({ body, auth }) => res.created(await service.handleCreate(body, actorOf(auth))),
+			async ({ body, actor }) => res.created(await service.handleCreate(body, actor)),
 			{
 				body: schemas.create,
 				response: zRes.created(EntityRefDto),
 				permission: `${resource}.create`,
 			},
 		)
-		.put(
-			'/update',
-			async ({ body, auth }) => res.ok(await service.handleUpdate(body, actorOf(auth))),
-			{
-				body: schemas.update,
-				response: zRes.ok(EntityRefDto),
-				permission: `${resource}.update`,
-			},
-		)
+		.put('/update', async ({ body, actor }) => res.ok(await service.handleUpdate(body, actor)), {
+			body: schemas.update,
+			response: zRes.ok(EntityRefDto),
+			permission: `${resource}.update`,
+		})
 		.delete(
 			'/remove',
-			async ({ query, auth }) => res.ok(await service.handleDelete(query.id, actorOf(auth))),
+			async ({ query, actor }) => res.ok(await service.handleDelete(query.id, actor)),
 			{
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),

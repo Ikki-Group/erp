@@ -1,4 +1,4 @@
-import { hasPermission, requireAnyPermission, requirePermission } from '@/shared/auth/permission.ts'
+import { allowedLocations, assertCan, can, permissionsAt } from '@/shared/auth/permission.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
 import { ForbiddenError } from '@/shared/errors/http-error.ts'
 
@@ -6,115 +6,96 @@ import { describe, expect, test } from 'bun:test'
 
 // ─── Fixtures ───
 
-const owner: AuthContext = {
-	sessionId: 'test-session-owner',
-	userId: 1,
-	userName: 'Owner User',
-	locationId: 1,
-	permissions: [],
-	isOwner: true,
-}
+const base = { sessionId: 's', userName: 'User', locationId: 1, globalPermissions: [], access: {} }
 
-const cashier: AuthContext = {
-	sessionId: 'test-session-cashier',
+const owner: AuthContext = { ...base, userId: 1, isOwner: true }
+
+/** Cashier at store 1, warehouse staff at location 2. */
+const multi: AuthContext = {
+	...base,
 	userId: 2,
-	userName: 'Cashier User',
-	locationId: 1,
-	permissions: [],
-	access: { '1': ['order.create', 'order.update', 'shift.open'] },
 	isOwner: false,
+	access: { '1': ['order.create', 'stock.read'], '2': ['stock.read', 'receiving.confirm'] },
 }
 
-const noPerms: AuthContext = {
-	sessionId: 'test-session-noperms',
+/** Global auditor plus a store-only role. */
+const auditor: AuthContext = {
+	...base,
 	userId: 3,
-	userName: 'No Permissions User',
-	locationId: 1,
-	permissions: [],
 	isOwner: false,
+	globalPermissions: ['audit.read'],
+	access: { '1': ['order.create'] },
 }
 
-// ─── hasPermission ───
+// ─── can ───
 
-describe('hasPermission', () => {
-	test('owner always has any permission', () => {
-		expect(hasPermission(owner, 'order.create')).toBe(true)
-		expect(hasPermission(owner, 'admin.delete.everything')).toBe(true)
-		expect(hasPermission(owner, 'nonexistent.permission')).toBe(true)
+describe('can', () => {
+	test('owner holds every permission everywhere, including globally', () => {
+		expect(can(owner, 'anything.at.all', null)).toBe(true)
+		expect(can(owner, 'anything.at.all', 99)).toBe(true)
 	})
 
-	test('returns true when user has the permission', () => {
-		expect(hasPermission(cashier, 'order.create')).toBe(true)
-		expect(hasPermission(cashier, 'shift.open')).toBe(true)
+	test('a location grant holds only at that location', () => {
+		expect(can(multi, 'order.create', 1)).toBe(true)
+		expect(can(multi, 'order.create', 2)).toBe(false)
+		expect(can(multi, 'receiving.confirm', 2)).toBe(true)
+		expect(can(multi, 'receiving.confirm', 1)).toBe(false)
 	})
 
-	test('returns false when user lacks the permission', () => {
-		expect(hasPermission(cashier, 'inventory.receiving.confirm')).toBe(false)
-		expect(hasPermission(cashier, 'admin.users.manage')).toBe(false)
+	test('location grants never satisfy a global (null) check', () => {
+		expect(can(multi, 'stock.read', null)).toBe(false)
 	})
 
-	test('returns false for user with no permissions', () => {
-		expect(hasPermission(noPerms, 'pos.order.create')).toBe(false)
+	test('a global grant holds at every location and globally', () => {
+		expect(can(auditor, 'audit.read', null)).toBe(true)
+		expect(can(auditor, 'audit.read', 42)).toBe(true)
+	})
+
+	test('auth utility permissions need no grant', () => {
+		expect(can({ ...multi, access: {} }, 'auth.me', null)).toBe(true)
 	})
 })
 
-// ─── requirePermission ───
+// ─── allowedLocations ───
 
-describe('requirePermission', () => {
-	test('does not throw for owner', () => {
-		expect(() => requirePermission(owner, 'anything')).not.toThrow()
+describe('allowedLocations', () => {
+	test('null (unrestricted) for owner and global grants', () => {
+		expect(allowedLocations(owner, 'stock.read')).toBeNull()
+		expect(allowedLocations(auditor, 'audit.read')).toBeNull()
 	})
 
-	test('does not throw when user has permission', () => {
-		expect(() => requirePermission(cashier, 'order.create')).not.toThrow()
+	test('exactly the locations granting the permission', () => {
+		expect(allowedLocations(multi, 'stock.read')?.toSorted()).toEqual([1, 2])
+		expect(allowedLocations(multi, 'receiving.confirm')).toEqual([2])
 	})
 
-	test('throws ForbiddenError when user lacks permission', () => {
-		expect(() => requirePermission(cashier, 'inventory.receiving.confirm')).toThrow(ForbiddenError)
+	test('empty when no location grants it', () => {
+		expect(allowedLocations(multi, 'transfer.ship')).toEqual([])
 	})
+})
 
-	test('thrown error has correct code and context', () => {
+// ─── permissionsAt ───
+
+describe('permissionsAt', () => {
+	test('merges global with the location grants, without duplicates', () => {
+		expect(permissionsAt(auditor, 1).toSorted()).toEqual(['audit.read', 'order.create'])
+		expect(permissionsAt(auditor, null)).toEqual(['audit.read'])
+	})
+})
+
+// ─── assertCan ───
+
+describe('assertCan', () => {
+	test('throws PERMISSION_DENIED naming the permission and location', () => {
 		try {
-			requirePermission(noPerms, 'admin.users.manage')
+			assertCan(multi, 'order.create', 2)
 			expect.unreachable('should have thrown')
-		} catch (e) {
-			expect(e).toBeInstanceOf(ForbiddenError)
-			const err = e as ForbiddenError
+		} catch (error) {
+			expect(error).toBeInstanceOf(ForbiddenError)
+			const err = error as ForbiddenError
 			expect(err.code).toBe('PERMISSION_DENIED')
-			expect(err.context).toEqual({ required: 'admin.users.manage' })
+			expect(err.context).toEqual({ required: 'order.create', locationId: 2 })
 			expect(err.statusCode).toBe(403)
-		}
-	})
-})
-
-// ─── requireAnyPermission ───
-
-describe('requireAnyPermission', () => {
-	test('does not throw for owner regardless of permissions', () => {
-		expect(() => requireAnyPermission(owner, ['nonexistent.a', 'nonexistent.b'])).not.toThrow()
-	})
-
-	test('does not throw when user has at least one permission', () => {
-		expect(() =>
-			requireAnyPermission(cashier, ['inventory.stock.view', 'order.create']),
-		).not.toThrow()
-	})
-
-	test('throws when user has none of the required permissions', () => {
-		expect(() =>
-			requireAnyPermission(cashier, ['inventory.receiving.confirm', 'admin.users.manage']),
-		).toThrow(ForbiddenError)
-	})
-
-	test('thrown error includes requiredAny in context', () => {
-		const required = ['admin.a', 'admin.b']
-		try {
-			requireAnyPermission(noPerms, required)
-			expect.unreachable('should have thrown')
-		} catch (e) {
-			const err = e as ForbiddenError
-			expect(err.code).toBe('PERMISSION_DENIED')
-			expect(err.context).toEqual({ requiredAny: required })
 		}
 	})
 })

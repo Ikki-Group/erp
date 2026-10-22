@@ -8,7 +8,6 @@ import { db } from '@/infra/database/index.ts'
 import { getLogger } from '@/infra/logger/index.ts'
 import { sessionStore } from '@/infra/session/index.ts'
 import { getAuthAccessMap, invalidateAuthCache } from '@/shared/auth/access-cache.ts'
-import { effectivePermissions } from '@/shared/auth/permission.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
 import type { SessionData } from '@/shared/auth/session.port.ts'
 import {
@@ -160,17 +159,15 @@ async function resolveAuth(
 		})
 	}
 
-	const auth: AuthContext = {
+	return {
 		sessionId,
 		userId: session.userId,
 		userName: accessMap.userName,
 		locationId: requestedLocationId,
-		permissions: [],
 		isOwner: accessMap.isOwner,
 		globalPermissions: accessMap.globalPermissions,
 		access: accessMap.access,
 	}
-	return { ...auth, permissions: effectivePermissions(auth) }
 }
 
 export const authPlugin = new Elysia({ name: 'auth-plugin' }).derive(

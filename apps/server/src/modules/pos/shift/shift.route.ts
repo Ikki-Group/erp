@@ -2,7 +2,6 @@ import { Elysia } from 'elysia'
 
 import { authPlugin } from '@/server/plugins/auth.plugin.ts'
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -25,32 +24,32 @@ export function createShiftRoute(service: ShiftService) {
 
 		.post(
 			'/open',
-			async ({ body, auth }) => {
-				const result = await service.handleOpen(body, actorOf(auth))
+			async ({ body, actor }) => {
+				const result = await service.handleOpen(body, actor)
 				return res.created(result)
 			},
 			{ body: ShiftOpenDto, permission: 'shift.open', response: zRes.created(EntityRefDto) },
 		)
 		.post(
 			'/close',
-			async ({ body, auth }) => {
-				const result = await service.handleClose(body, auth)
+			async ({ body, actor }) => {
+				const result = await service.handleClose(body, actor)
 				return res.ok(result)
 			},
 			{ body: ShiftCloseDto, permission: 'shift.close', response: zRes.ok(EntityRefDto) },
 		)
 		.post(
 			'/close-other',
-			async ({ body, auth }) => {
-				const result = await service.handleClose(body, auth)
+			async ({ body, actor }) => {
+				const result = await service.handleClose(body, actor)
 				return res.ok(result)
 			},
 			{ body: ShiftCloseDto, permission: 'shift.close-other', response: zRes.ok(EntityRefDto) },
 		)
 		.get(
 			'/active',
-			async ({ auth }) => {
-				const result = await service.handleGetActive(auth.userId, auth.locationId!)
+			async ({ actor }) => {
+				const result = await service.handleGetActive(actor)
 				return res.ok(result)
 			},
 			{ permission: 'shift.read', response: zRes.ok(ShiftDto.nullable()) },
@@ -65,8 +64,8 @@ export function createShiftRoute(service: ShiftService) {
 		)
 		.get(
 			'/detail',
-			async ({ query }) => {
-				const result = await service.handleDetail(query.id)
+			async ({ query, actor }) => {
+				const result = await service.handleDetail(query.id, actor)
 				return res.ok(result)
 			},
 			{ query: zq.recordId, permission: 'shift.read', response: zRes.ok(ShiftDetailDto) },

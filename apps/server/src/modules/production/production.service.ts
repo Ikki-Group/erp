@@ -247,14 +247,17 @@ export class ProductionService {
 
 	async handleOrderList(
 		filter: ProductionOrderFilterDto,
+		actor: Actor,
 	): Promise<WithPaginationResult<ProductionOrderDto>> {
-		return this.repo.findOrderPage(filter)
+		return this.repo.findOrderPage(filter, actor.allowedLocations())
 	}
 
-	async handleOrderDetail(id: number): Promise<ProductionOrderDetailDto> {
-		return assertFound(await this.repo.findOrderDetailById(id), () =>
+	async handleOrderDetail(id: number, actor: Actor): Promise<ProductionOrderDetailDto> {
+		const order = assertFound(await this.repo.findOrderDetailById(id), () =>
 			ProductionError.orderNotFound(id),
 		)
+		actor.assertCan(order.locationId)
+		return order
 	}
 
 	async handleOrderCreate(data: ProductionOrderCreateDto, actor: Actor): Promise<EntityRef> {
@@ -327,6 +330,7 @@ export class ProductionService {
 			const order = assertFound(await this.repo.findOrderById(data.orderId), () =>
 				ProductionError.orderNotFound(data.orderId),
 			)
+			actor.assertCan(order.locationId)
 
 			if (order.status === 'completed') {
 				throw ProductionError.alreadyConfirmed(data.orderId)

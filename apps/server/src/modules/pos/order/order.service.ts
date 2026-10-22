@@ -88,13 +88,16 @@ export class OrderService {
 
 	// ─── Handlers ───
 
-	async handleGetById(id: number): Promise<OrderDto> {
-		return assertFound(await this.getById(id), () => OrderError.notFound(id))
+	async handleGetById(id: number, actor: Actor): Promise<OrderDto> {
+		const order = assertFound(await this.getById(id), () => OrderError.notFound(id))
+		actor.assertCan(order.locationId)
+		return order
 	}
 
-	async handleDetail(id: number): Promise<OrderDetailDto> {
-		const detail = await this.repo.findDetailById(id)
-		return assertFound(detail, () => OrderError.notFound(id))
+	async handleDetail(id: number, actor: Actor): Promise<OrderDetailDto> {
+		const detail = assertFound(await this.repo.findDetailById(id), () => OrderError.notFound(id))
+		actor.assertCan(detail.locationId)
+		return detail
 	}
 
 	async handleList(filter: OrderFilterDto): Promise<WithPaginationResult<OrderDto>> {
@@ -115,8 +118,14 @@ export class OrderService {
 		const { locationId, tableId, type, notes, externalRef } = data
 
 		// 1. Validate active shift at location
-		const shift = await this.deps.shiftService.handleGetActive(actor.id, locationId)
+		const shift = await this.deps.shiftService.findActive(actor.id, locationId)
 		if (!shift) throw OrderError.noActiveShift(actor.id, locationId)
+
+		if (tableId) {
+			const table = await this.deps.tableService.getById(tableId)
+			if (!table) throw OrderError.tableNotFound(tableId)
+			if (table.locationId !== locationId) throw OrderError.tableWrongLocation(tableId, locationId)
+		}
 
 		// 2. Get location code for order number
 		const location = await this.deps.locationService.handleGetById(locationId)
@@ -202,7 +211,7 @@ export class OrderService {
 			const { orderId, lines } = data
 
 			// 1. Validate order exists and is open
-			const order = await this.handleGetById(orderId)
+			const order = await this.handleGetById(orderId, actor)
 			if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
 			// 2. Resolve menu items and calculate prices
@@ -304,7 +313,7 @@ export class OrderService {
 			})
 
 			await this.cache.invalidateStandard(orderId)
-			return this.handleDetail(orderId)
+			return this.handleDetail(orderId, actor)
 		})
 	}
 
@@ -314,7 +323,7 @@ export class OrderService {
 		const { orderId, voucherCode } = data
 
 		// 1. Validate order exists and is open
-		const order = await this.handleGetById(orderId)
+		const order = await this.handleGetById(orderId, actor)
 		if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
 		// 2. Check no voucher already applied
@@ -379,7 +388,7 @@ export class OrderService {
 		const { orderId } = data
 
 		// 1. Validate order exists and is open
-		const order = await this.handleGetById(orderId)
+		const order = await this.handleGetById(orderId, actor)
 		if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
 		// 2. Validate voucher is applied
@@ -432,7 +441,7 @@ export class OrderService {
 		const { orderId, paymentMethodId, amount, reference } = data
 
 		// 1. Validate order exists and is open
-		const order = await this.handleGetById(orderId)
+		const order = await this.handleGetById(orderId, actor)
 		if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
 		// 2. Validate payment method available at location
@@ -488,6 +497,7 @@ export class OrderService {
 			const order = assertFound(await this.repo.findById(orderId), () =>
 				OrderError.notFound(orderId),
 			)
+			actor.assertCan(order.locationId)
 			if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
 			const orderTotal = Money.of(order.total)
@@ -563,7 +573,7 @@ export class OrderService {
 		const { orderId, reason } = data
 
 		// 1. Validate order exists and is open
-		const order = await this.handleGetById(orderId)
+		const order = await this.handleGetById(orderId, actor)
 		if (order.status !== 'open') throw OrderError.notOpen(orderId)
 
 		// 2. Update order status and audit atomically

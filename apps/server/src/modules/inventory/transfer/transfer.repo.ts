@@ -10,8 +10,9 @@ import {
 	takeFirst,
 	toLimitOffset,
 	buildPaginationMeta,
+	inScope,
 } from '@/infra/database/index.ts'
-import type { DbContext } from '@/infra/database/index.ts'
+import type { DbContext, LocationScope } from '@/infra/database/index.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 
@@ -65,7 +66,11 @@ export interface ITransferRepo {
 	readonly db: DbContext
 	findById(id: number, db?: DbContext): Promise<TransferDto | undefined>
 	findDetailById(id: number, db?: DbContext): Promise<TransferDetailDto | undefined>
-	findPage(filter: TransferFilterDto, db?: DbContext): Promise<WithPaginationResult<TransferDto>>
+	findPage(
+		filter: TransferFilterDto,
+		scope: LocationScope,
+		db?: DbContext,
+	): Promise<WithPaginationResult<TransferDto>>
 	insert(data: TransferInsert, db?: DbContext): Promise<EntityRef | undefined>
 	updateStatus(
 		id: number,
@@ -107,9 +112,10 @@ export class TransferRepo implements ITransferRepo {
 
 	async findPage(
 		filter: TransferFilterDto,
+		scope: LocationScope,
 		db: DbContext = this.db,
 	): Promise<WithPaginationResult<TransferDto>> {
-		const where = this.#buildWhere(filter)
+		const where = this.#buildWhere(filter, scope)
 		const { limit, offset } = toLimitOffset(filter)
 
 		const rows = await db
@@ -199,8 +205,9 @@ export class TransferRepo implements ITransferRepo {
 
 	// ─── Private ───
 
-	#buildWhere(filter: TransferFilterDto) {
+	#buildWhere(filter: TransferFilterDto, scope: LocationScope) {
 		return allOf(
+			inScope(scope, transferRequests.fromLocationId, transferRequests.toLocationId),
 			eqIf(transferRequests.status, filter.status),
 			filter.locationId
 				? sql`(${transferRequests.fromLocationId} = ${filter.locationId} OR ${transferRequests.toLocationId} = ${filter.locationId})`

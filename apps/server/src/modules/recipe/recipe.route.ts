@@ -2,7 +2,6 @@ import { Elysia } from 'elysia'
 import { z } from 'zod'
 
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -28,24 +27,24 @@ export function createRecipeRoute(recipeService: RecipeService) {
 
 			.get(
 				'/list',
-				async ({ query }) => {
-					const result = await recipeService.handleList(query)
+				async ({ query, actor }) => {
+					const result = await recipeService.handleList(query, actor)
 					return res.paginated(result)
 				},
 				{ query: RecipeFilterDto, response: zRes.paginated(RecipeDto), permission: 'recipe.read' },
 			)
 			.get(
 				'/detail',
-				async ({ query }) => {
-					const result = await recipeService.handleDetail(query.id)
+				async ({ query, actor }) => {
+					const result = await recipeService.handleDetail(query.id, actor)
 					return res.ok(result)
 				},
 				{ query: zq.recordId, response: zRes.ok(RecipeDetailDto), permission: 'recipe.read' },
 			)
 			.get(
 				'/by-menu-item',
-				async ({ query }) => {
-					const result = await recipeService.handleDetailByMenuItem(query.menuItemId)
+				async ({ query, actor }) => {
+					const result = await recipeService.handleDetailByMenuItem(query.menuItemId, actor)
 					return res.ok(result)
 				},
 				{
@@ -56,8 +55,12 @@ export function createRecipeRoute(recipeService: RecipeService) {
 			)
 			.get(
 				'/hpp',
-				async ({ query }) => {
-					const result = await recipeService.handleCalculateHpp(query.menuItemId, query.locationId)
+				async ({ query, actor }) => {
+					const result = await recipeService.handleCalculateHpp(
+						query.menuItemId,
+						query.locationId,
+						actor,
+					)
 					return res.ok(result)
 				},
 				{
@@ -74,8 +77,8 @@ export function createRecipeRoute(recipeService: RecipeService) {
 
 			.post(
 				'/create',
-				async ({ body, auth }) => {
-					const result = await recipeService.handleCreate(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await recipeService.handleCreate(body, actor)
 					return res.created(result)
 				},
 				{
@@ -86,16 +89,16 @@ export function createRecipeRoute(recipeService: RecipeService) {
 			)
 			.put(
 				'/update',
-				async ({ body, auth }) => {
-					const result = await recipeService.handleUpdate(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await recipeService.handleUpdate(body, actor)
 					return res.ok(result)
 				},
 				{ body: RecipeUpdateDto, response: zRes.ok(EntityRefDto), permission: 'recipe.update' },
 			)
 			.delete(
 				'/remove',
-				async ({ query, auth }) => {
-					const result = await recipeService.handleDelete(query.id, actorOf(auth))
+				async ({ query, actor }) => {
+					const result = await recipeService.handleDelete(query.id, actor)
 					return res.ok(result)
 				},
 				{ query: zq.recordId, response: zRes.ok(EntityRefDto), permission: 'recipe.delete' },

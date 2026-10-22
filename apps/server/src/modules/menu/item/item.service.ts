@@ -49,8 +49,10 @@ export class ItemService {
 
 	// ─── Handlers ───
 
-	async handleGetById(id: number): Promise<MenuItemDto> {
-		return assertFound(await this.getById(id), () => ItemError.notFound(id))
+	async handleGetById(id: number, actor: Actor): Promise<MenuItemDto> {
+		const item = assertFound(await this.getById(id), () => ItemError.notFound(id))
+		actor.assertCan(item.locationId)
+		return item
 	}
 
 	async handleList(filter: MenuItemFilterDto): Promise<WithPaginationResult<MenuItemDto>> {
@@ -85,7 +87,7 @@ export class ItemService {
 		const { id, ...updateData } = data
 
 		// 1. Verify exists
-		const existing = await this.handleGetById(id)
+		const existing = await this.handleGetById(id, actor)
 
 		// 2. Validate categoryId belongs to same location
 		if (updateData.categoryId) {
@@ -114,7 +116,7 @@ export class ItemService {
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
 		// 1. Verify exists
-		const existing = await this.handleGetById(id)
+		const existing = await this.handleGetById(id, actor)
 
 		// 2. Delete and audit in one transaction
 		return mutate(this.mutation, actor, async (tx) => {

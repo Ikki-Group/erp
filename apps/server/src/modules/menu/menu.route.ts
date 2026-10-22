@@ -2,7 +2,6 @@ import { Elysia } from 'elysia'
 
 import { crudRoutes } from '@/server/crud-route.ts'
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto } from '@/shared/schema/index.ts'
@@ -72,12 +71,15 @@ export function createMenuRoute(
 					update: MenuItemUpdateDto,
 				},
 				service: itemService,
-				detail: { response: MenuItemDetailDto, handle: (id) => composedService.handleDetail(id) },
+				detail: {
+					response: MenuItemDetailDto,
+					handle: (id, actor) => composedService.handleDetail(id, actor),
+				},
 			}),
 		)
 		.post(
 			'/item/modifiers/sync',
-			async ({ body, auth }) => res.ok(await assignmentService.handleSync(body, actorOf(auth))),
+			async ({ body, actor }) => res.ok(await assignmentService.handleSync(body, actor)),
 			{
 				body: MenuItemModifierSyncDto,
 				response: zRes.ok(EntityRefDto),
@@ -98,7 +100,7 @@ export function createMenuRoute(
 				service: modifierService,
 				detail: {
 					response: ModifierGroupWithOptionsDto,
-					handle: (id) => modifierService.handleDetail(id),
+					handle: (id, actor) => modifierService.handleDetail(id, actor),
 				},
 			}),
 		)

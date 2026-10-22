@@ -53,6 +53,10 @@ export class AssignmentService {
 	// ─── Mutations ───
 
 	async handleAssign(data: AssignmentCreateDto, actor: Actor): Promise<EntityRef> {
+		// The route guard falls back to the active location for a null body
+		// locationId; a global assignment must hold the permission globally.
+		actor.assertCan(data.locationId)
+
 		// 1. Validate locationId exists (if not null)
 		if (data.locationId !== null) {
 			const location = await this.deps.locationService.getById(data.locationId)
@@ -174,6 +178,8 @@ export class AssignmentService {
 	}
 
 	async handleRemove(data: AssignmentRemoveDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(data.locationId)
+
 		const result = await this.deps.uow.run(async (tx) => {
 			// 1. Find the exact assignment
 			const existing = await this.repo.findExact(data.userId, data.roleId, data.locationId, tx)

@@ -13,6 +13,16 @@ export const OrderError = {
 			code: 'ORDER_NOT_FOUND',
 			context: { id },
 		}),
+	tableNotFound: (tableId: number) =>
+		new NotFoundError('Table not found', {
+			code: 'TABLE_NOT_FOUND',
+			context: { tableId },
+		}),
+	tableWrongLocation: (tableId: number, locationId: number) =>
+		new BadRequestError('Table does not belong to order location', {
+			code: 'TABLE_WRONG_LOCATION',
+			context: { tableId, locationId },
+		}),
 	notOpen: (id: number) =>
 		new BadRequestError('Order is not in open status', {
 			code: 'ORDER_NOT_OPEN',

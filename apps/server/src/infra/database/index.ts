@@ -69,6 +69,22 @@ export function eqIf<T>(column: PgColumn, value: T | undefined): SQL | undefined
 	return eq(column, value as Parameters<typeof eq>[1])
 }
 
+// ─── Location Scope ───
+
+/** Locations a query may touch; null = every location (global grant). */
+export type LocationScope = number[] | null
+
+/**
+ * Restricts `columns` to the scope. With several columns (e.g. a transfer's
+ * source and destination) a row matches when any of them is in scope. An empty
+ * scope matches nothing.
+ */
+export function inScope(scope: LocationScope, ...columns: PgColumn[]): SQL | undefined {
+	if (scope === null) return undefined
+	if (scope.length === 0) return sql`false`
+	return anyOf(...columns.map((column) => inArray(column, scope)))
+}
+
 export function searchFilter(column: PgColumn, term: string | undefined): SQL | undefined {
 	if (!term || term.trim() === '') return undefined
 	const escaped = term.replace(/%/gu, '\\%').replace(/_/gu, '\\_')

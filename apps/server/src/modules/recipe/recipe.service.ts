@@ -10,6 +10,7 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
 import type { Actor } from '@/shared/auth/actor.ts'
 import { Money } from '@/shared/domain/money.ts'
 import { Qty } from '@/shared/domain/qty.ts'
+import { NotFoundError } from '@/shared/errors/http-error.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
@@ -42,7 +43,7 @@ export class RecipeService {
 		cacheClient: CacheClient,
 		private readonly materialService: MaterialService,
 		private readonly uomService: UomService,
-		private readonly itemGetById: (id: number) => Promise<MenuItemDto>,
+		private readonly itemGetById: (id: number, actor: Actor) => Promise<MenuItemDto>,
 		private readonly uow: UnitOfWork,
 		private readonly audit: AuditPort,
 	) {
@@ -72,18 +73,22 @@ export class RecipeService {
 
 	// ─── Handlers ───
 
-	async handleGetById(id: number): Promise<RecipeDto> {
-		return assertFound(await this.getById(id), () => RecipeError.notFound(id))
+	/** Loads the recipe and asserts the actor may act at its menu item's location. */
+	async handleGetById(id: number, actor: Actor): Promise<RecipeDto> {
+		const recipe = assertFound(await this.getById(id), () => RecipeError.notFound(id))
+		await this.itemGetById(recipe.menuItemId, actor)
+		return recipe
 	}
 
-	async handleDetail(id: number): Promise<RecipeDetailDto> {
-		const recipe = await this.handleGetById(id)
+	async handleDetail(id: number, actor: Actor): Promise<RecipeDetailDto> {
+		const recipe = await this.handleGetById(id, actor)
 		const lines = await this.repo.findLinesByRecipeId(id)
 		const enrichedLines = await this.enrichLines(lines)
 		return { ...recipe, lines: enrichedLines }
 	}
 
-	async handleDetailByMenuItem(menuItemId: number): Promise<RecipeDetailDto> {
+	async handleDetailByMenuItem(menuItemId: number, actor: Actor): Promise<RecipeDetailDto> {
+		await this.requireMenuItem(menuItemId, actor)
 		const recipe = await this.getActiveByMenuItemId(menuItemId)
 		if (!recipe) throw RecipeError.activeNotFound(menuItemId)
 		const lines = await this.repo.findLinesByRecipeId(recipe.id)
@@ -91,15 +96,16 @@ export class RecipeService {
 		return { ...recipe, lines: enrichedLines }
 	}
 
-	async handleList(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeDto>> {
-		return this.repo.findPage(filter)
+	async handleList(
+		filter: RecipeFilterDto,
+		actor: Actor,
+	): Promise<WithPaginationResult<RecipeDto>> {
+		return this.repo.findPage(filter, actor.allowedLocations())
 	}
 
 	async handleCreate(data: RecipeCreateDto, actor: Actor): Promise<EntityRef> {
-		// 1. Validate menu item exists
-		await this.itemGetById(data.menuItemId).catch(() => {
-			throw RecipeError.menuItemNotFound(data.menuItemId)
-		})
+		// 1. Validate menu item exists and is writable by the actor
+		await this.requireMenuItem(data.menuItemId, actor)
 
 		// 2. Validate lines
 		await this.validateLines(data.lines)
@@ -158,7 +164,7 @@ export class RecipeService {
 		const { id, ...updateData } = data
 
 		// 1. Verify recipe exists
-		const existing = await this.handleGetById(id)
+		const existing = await this.handleGetById(id, actor)
 
 		// 2. Validate lines
 		await this.validateLines(updateData.lines)
@@ -211,7 +217,7 @@ export class RecipeService {
 
 	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
 		// 1. Verify recipe exists
-		const existing = await this.handleGetById(id)
+		const existing = await this.handleGetById(id, actor)
 
 		// 2. Delete and audit in one transaction
 		const result = await this.uow.run(async (tx) => {
@@ -236,7 +242,13 @@ export class RecipeService {
 		return result
 	}
 
-	async handleCalculateHpp(menuItemId: number, locationId: number): Promise<HppResponseDto> {
+	async handleCalculateHpp(
+		menuItemId: number,
+		locationId: number,
+		actor: Actor,
+	): Promise<HppResponseDto> {
+		await this.requireMenuItem(menuItemId, actor)
+
 		// 1. Get active recipe
 		const recipe = await this.getActiveByMenuItemId(menuItemId)
 		if (!recipe) throw RecipeError.activeNotFound(menuItemId)
@@ -312,6 +324,15 @@ export class RecipeService {
 	}
 
 	// ─── Private ───
+
+	private async requireMenuItem(menuItemId: number, actor: Actor): Promise<MenuItemDto> {
+		try {
+			return await this.itemGetById(menuItemId, actor)
+		} catch (error) {
+			if (error instanceof NotFoundError) throw RecipeError.menuItemNotFound(menuItemId)
+			throw error
+		}
+	}
 
 	private async validateLines(
 		lines: { materialId: number; quantity: string; uomId: number }[],

@@ -2,7 +2,6 @@ import { Elysia } from 'elysia'
 
 import { authPlugin } from '@/server/plugins/auth.plugin.ts'
 import { rbac } from '@/server/plugins/rbac.plugin.ts'
-import { actorOf } from '@/shared/auth/actor.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
 import { EntityRefDto, zq } from '@/shared/schema/index.ts'
@@ -55,8 +54,8 @@ export function createOrderRoute(service: OrderService) {
 			)
 			.get(
 				'/detail',
-				async ({ query }) => {
-					const result = await service.handleDetail(query.id)
+				async ({ query, actor }) => {
+					const result = await service.handleDetail(query.id, actor)
 					return res.ok(result)
 				},
 				{ query: zq.recordId, permission: 'order.read', response: zRes.ok(OrderDetailDto) },
@@ -66,24 +65,24 @@ export function createOrderRoute(service: OrderService) {
 
 			.post(
 				'/create',
-				async ({ body, auth }) => {
-					const result = await service.handleCreate(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleCreate(body, actor)
 					return res.created(result)
 				},
 				{ body: OrderCreateDto, permission: 'order.create', response: zRes.created(EntityRefDto) },
 			)
 			.post(
 				'/complete',
-				async ({ body, auth }) => {
-					const result = await service.handleComplete(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleComplete(body, actor)
 					return res.ok(result)
 				},
 				{ body: OrderCompleteDto, permission: 'order.update', response: zRes.ok(EntityRefDto) },
 			)
 			.post(
 				'/void',
-				async ({ body, auth }) => {
-					const result = await service.handleVoid(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleVoid(body, actor)
 					return res.ok(result)
 				},
 				{ body: OrderVoidDto, permission: 'order.void', response: zRes.ok(EntityRefDto) },
@@ -93,8 +92,8 @@ export function createOrderRoute(service: OrderService) {
 
 			.post(
 				'/lines/sync',
-				async ({ body, auth }) => {
-					const result = await service.handleSyncLines(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleSyncLines(body, actor)
 					return res.ok(result)
 				},
 				{ body: OrderLineSyncDto, permission: 'order.update', response: zRes.ok(EntityRefDto) },
@@ -104,8 +103,8 @@ export function createOrderRoute(service: OrderService) {
 
 			.post(
 				'/voucher/apply',
-				async ({ body, auth }) => {
-					const result = await service.handleApplyVoucher(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleApplyVoucher(body, actor)
 					return res.ok(result)
 				},
 				{
@@ -116,8 +115,8 @@ export function createOrderRoute(service: OrderService) {
 			)
 			.post(
 				'/voucher/remove',
-				async ({ body, auth }) => {
-					const result = await service.handleRemoveVoucher(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleRemoveVoucher(body, actor)
 					return res.ok(result)
 				},
 				{
@@ -131,8 +130,8 @@ export function createOrderRoute(service: OrderService) {
 
 			.post(
 				'/payment',
-				async ({ body, auth }) => {
-					const result = await service.handleRecordPayment(body, actorOf(auth))
+				async ({ body, actor }) => {
+					const result = await service.handleRecordPayment(body, actor)
 					return res.created(result)
 				},
 				{

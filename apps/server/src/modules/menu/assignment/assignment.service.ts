@@ -41,11 +41,11 @@ export class AssignmentService {
 		const { menuItemId, groups } = data
 
 		// 1. Validate menu item exists
-		const item = await this.itemService.handleGetById(menuItemId)
+		const item = await this.itemService.handleGetById(menuItemId, actor)
 
 		// 2. Validate all modifier groups belong to the same location
 		for (const assignment of groups) {
-			const group = await this.modifierService.handleGetById(assignment.groupId)
+			const group = await this.modifierService.handleGetById(assignment.groupId, actor)
 			if (group.locationId !== item.locationId) {
 				throw AssignmentError.locationMismatch(assignment.groupId)
 			}

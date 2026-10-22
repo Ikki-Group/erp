@@ -146,6 +146,7 @@ export class ReceivingService {
 		const receiving = assertFound(await this.repo.findById(data.receivingId), () =>
 			ReceivingError.notFound(data.receivingId),
 		)
+		actor.assertCan(receiving.locationId)
 
 		if (receiving.status !== 'draft') {
 			throw ReceivingError.notDraft(data.receivingId)
@@ -226,6 +227,7 @@ export class ReceivingService {
 			const receiving = assertFound(await this.repo.findById(data.receivingId), () =>
 				ReceivingError.notFound(data.receivingId),
 			)
+			actor.assertCan(receiving.locationId)
 
 			if (receiving.status === 'confirmed') {
 				throw ReceivingError.alreadyConfirmed(data.receivingId)
@@ -297,12 +299,19 @@ export class ReceivingService {
 		})
 	}
 
-	async handleList(filter: ReceivingFilterDto): Promise<WithPaginationResult<ReceivingDto>> {
-		return this.repo.findPage(filter)
+	async handleList(
+		filter: ReceivingFilterDto,
+		actor: Actor,
+	): Promise<WithPaginationResult<ReceivingDto>> {
+		return this.repo.findPage(filter, actor.allowedLocations())
 	}
 
-	async handleDetail(id: number): Promise<ReceivingDetailDto> {
-		return assertFound(await this.repo.findDetailById(id), () => ReceivingError.notFound(id))
+	async handleDetail(id: number, actor: Actor): Promise<ReceivingDetailDto> {
+		const receiving = assertFound(await this.repo.findDetailById(id), () =>
+			ReceivingError.notFound(id),
+		)
+		actor.assertCan(receiving.locationId)
+		return receiving
 	}
 
 	// ─── Private ───

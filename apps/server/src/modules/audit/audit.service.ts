@@ -1,5 +1,3 @@
-import { requirePermission } from '@/shared/auth/index.ts'
-import type { AuthContext } from '@/shared/auth/index.ts'
 import type { WithCursorResult, WithPaginationResult } from '@/shared/types/pagination.ts'
 
 import type {
@@ -11,44 +9,27 @@ import type {
 import { AuditError } from './audit.internal.ts'
 import type { IAuditRepo } from './audit.repo.ts'
 
-// ─── Constants ───
-
-const PERMISSION_READ = 'audit.read'
-
 // ─── Service ───
 
+/** Company-wide, read-only audit feed; routes gate it behind `audit.read`. */
 export class AuditService {
 	constructor(private readonly repo: IAuditRepo) {}
 
-	async handleList(
-		filter: AuditLogFilterDto,
-		auth: AuthContext,
-	): Promise<WithPaginationResult<AuditLogDto>> {
-		requirePermission(auth, PERMISSION_READ)
+	handleList(filter: AuditLogFilterDto): Promise<WithPaginationResult<AuditLogDto>> {
 		return this.repo.findPage(filter)
 	}
 
-	async handleCursorList(
-		filter: AuditLogCursorFilterDto,
-		auth: AuthContext,
-	): Promise<WithCursorResult<AuditLogDto>> {
-		requirePermission(auth, PERMISSION_READ)
+	handleCursorList(filter: AuditLogCursorFilterDto): Promise<WithCursorResult<AuditLogDto>> {
 		return this.repo.findCursorPage(filter)
 	}
 
-	async handleDetail(id: number, auth: AuthContext): Promise<AuditLogDetailDto> {
-		requirePermission(auth, PERMISSION_READ)
+	async handleDetail(id: number): Promise<AuditLogDetailDto> {
 		const entry = await this.repo.findById(id)
 		if (!entry) throw AuditError.notFound(id)
 		return entry
 	}
 
-	async handleByEntity(
-		entity: string,
-		entityId: number,
-		auth: AuthContext,
-	): Promise<AuditLogDto[]> {
-		requirePermission(auth, PERMISSION_READ)
+	handleByEntity(entity: string, entityId: number): Promise<AuditLogDto[]> {
 		return this.repo.findByEntity(entity, entityId)
 	}
 }
