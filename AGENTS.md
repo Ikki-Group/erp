@@ -43,6 +43,7 @@ Web (`apps/web`):
 - DB driver is `pg` (node-postgres pool, `DB_POOL_MAX`). On Neon use the pooled (`-pooler`) endpoint.
 - `bun run db:studio`, `bun run db:seed`
 - **Destructive scripts are guarded**: reset/seed only run if `NODE_ENV=test` + `DATABASE_URL` contains `test-user`, OR `NODE_ENV=development` + URL contains `dev-user` (`scripts/db-scripts-helper.ts`). Point env at the right DB or they silently no-op.
+- **Pre-release: no backward compatibility.** The app is still in research/development; there is no production data to preserve. Breaking API/schema changes are fine. If existing data conflicts with a migration (or migration history diverges), reset the database (`NODE_ENV=development DATABASE_URL=… bun run scripts/db-scripts-helper.ts all` = drop + migrate + seed) instead of writing data-preserving migrations.
 
 ## Agent config (omp)
 

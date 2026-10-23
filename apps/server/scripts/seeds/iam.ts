@@ -202,8 +202,10 @@ const ROLES = [
 		permissions: JSON.stringify([
 			'auth.me',
 			'auth.logout',
+			'location.read',
 			'material.read',
 			'supplier.read',
+			'uom.read',
 			'receiving.read',
 			'receiving.create',
 			'receiving.update',
