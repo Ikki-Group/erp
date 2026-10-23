@@ -1,16 +1,23 @@
 import { record } from '@/infra/otel/otel.ts'
 import { invalidateAuthCache } from '@/shared/auth/access-cache.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
 import { permissionsAt } from '@/shared/auth/permission.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
 import type { SessionStore } from '@/shared/auth/session.port.ts'
 import { SESSION_TTL_DAYS } from '@/shared/config/index.ts'
 import { verifyPassword } from '@/shared/utils/index.ts'
 
-import type { AssignmentService, ComposedService } from '@/modules/iam'
+import type { AssignmentService, ComposedService, UserChangePasswordDto } from '@/modules/iam'
 import type { IUserRepo } from '@/modules/iam/user/user.repo.ts'
+import type { UserService } from '@/modules/iam/user/user.service.ts'
 import type { LocationService } from '@/modules/location/location.service.ts'
 
-import type { LoginDto, LoginResponseDto, MeResponseDto } from './auth.contract.ts'
+import type {
+	LoginDto,
+	LoginResponseDto,
+	MeResponseDto,
+	PasswordChangeResultDto,
+} from './auth.contract.ts'
 import { AuthError } from './auth.internal.ts'
 import type { RevokeSessionResultDto, SessionDto } from './session/session.contract.ts'
 import type { ISessionRepo, SessionRow } from './session/session.repo.ts'
@@ -20,6 +27,7 @@ import type { ISessionRepo, SessionRow } from './session/session.repo.ts'
 export interface AuthServiceDeps {
 	userRepo: IUserRepo
 	assignmentService: AssignmentService
+	userService: UserService
 	composedService: ComposedService
 	locationService: LocationService
 	sessionStore: SessionStore
@@ -164,6 +172,19 @@ export class AuthService {
 		const revokedIds = await this.deps.sessionRepo.revokeAllForUser(auth.userId, auth.sessionId)
 		await Promise.all(revokedIds.map((id) => this.deps.sessionStore.delete(id)))
 		return { revoked: revokedIds.length }
+	}
+
+	// ─── Self-service account ───
+
+	async handleChangePassword(
+		auth: AuthContext,
+		data: UserChangePasswordDto,
+		actor: Actor,
+	): Promise<PasswordChangeResultDto> {
+		await this.deps.userService.handleChangePassword(data, actor)
+		// A changed password signs the caller out everywhere else, but not here.
+		const { revoked } = await this.handleRevokeOtherSessions(auth)
+		return { revokedSessions: revoked }
 	}
 
 	// ─── Me ───

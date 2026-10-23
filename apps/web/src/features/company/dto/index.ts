@@ -40,3 +40,39 @@ export const CompanySettingsUpdateDto = z.object({
 	receiptFooter: zc.strTrimNullable.optional(),
 })
 export type CompanySettingsUpdateDto = z.infer<typeof CompanySettingsUpdateDto>
+
+// ─── Overview ───
+
+const count = z.number().int()
+
+export const CompanyOverviewSiteDto = z.object({
+	id: zp.id,
+	code: zp.str,
+	name: zp.str,
+	type: z.enum(['store', 'warehouse']),
+	isActive: z.boolean(),
+	staff: count,
+	transfersInTransit: count,
+	draftReceivings: count,
+	openOpnames: count,
+	lowStock: count,
+	openShifts: count,
+	salesToday: z.object({ orders: count, revenue: zp.str }),
+})
+export type CompanyOverviewSiteDto = z.infer<typeof CompanyOverviewSiteDto>
+
+export const CompanyOverviewDto = z.object({
+	locations: z.object({ total: count, stores: count, warehouses: count, inactive: count }),
+	// null when the caller lacks a global iam.read grant.
+	people: z
+		.object({
+			activeUsers: count,
+			inactiveUsers: count,
+			usersWithoutAccess: count,
+			roles: count,
+		})
+		.nullable(),
+	businessDate: zp.str,
+	sites: z.array(CompanyOverviewSiteDto),
+})
+export type CompanyOverviewDto = z.infer<typeof CompanyOverviewDto>

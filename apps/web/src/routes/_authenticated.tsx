@@ -1,4 +1,4 @@
-import { Outlet, createFileRoute, isRedirect, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute, isRedirect, redirect, useLocation } from '@tanstack/react-router'
 
 import { queryClient } from '@/lib/tanstack-query.ts'
 
@@ -6,6 +6,8 @@ import { AppShell } from '@/components/app-shell'
 import { AppBootScreen } from '@/components/shared/app-boot-screen.tsx'
 import { NotFound } from '@/components/shared/not-found'
 
+import { NoAccessLayout, NoAccessScreen } from '@/features/account/components/no-access.tsx'
+import { hasNoAccess } from '@/features/account/no-access.ts'
 import { authMeQuery } from '@/features/auth/api.ts'
 
 import { useAuth } from '@/providers/auth-provider.tsx'
@@ -40,10 +42,17 @@ export const Route = createFileRoute('/_authenticated')({
 })
 
 function AuthenticatedLayout() {
-	const { locations, user } = useAuth()
+	const { locations, user, isOwner, globalPermissions } = useAuth()
+	const onAccountPage = useLocation({ select: (l) => l.pathname.startsWith('/account') })
 
 	// Query is guaranteed by beforeLoad; guard for type safety
 	if (!user) return null
+
+	// Nothing to navigate to: show the explanation instead of the app. "My account"
+	// stays reachable so the user can still change their password.
+	if (hasNoAccess({ isOwner, locations, globalPermissions })) {
+		return <NoAccessLayout>{onAccountPage ? <Outlet /> : <NoAccessScreen />}</NoAccessLayout>
+	}
 
 	return (
 		<LocationProvider locations={locations}>

@@ -23,6 +23,8 @@ const AUTH_UTILITY_PERMISSIONS: Record<string, true> = {
 	'auth.logout': true,
 	'auth.session.list': true,
 	'auth.session.revoke': true,
+	'auth.profile.update': true,
+	'auth.password.change': true,
 }
 
 // ─── Queries ───

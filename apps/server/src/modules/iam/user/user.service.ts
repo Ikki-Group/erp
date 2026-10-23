@@ -12,12 +12,14 @@ import type { SessionStore } from '@/shared/auth/session.port.ts'
 import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 import type { EntityRef } from '@/shared/types/utils.ts'
 import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
-import { assertFound, hashPassword } from '@/shared/utils/index.ts'
+import { assertFound, hashPassword, verifyPassword } from '@/shared/utils/index.ts'
 
 import type {
+	UserChangePasswordDto,
 	UserCreateDto,
 	UserDto,
 	UserFilterDto,
+	UserProfileUpdateDto,
 	UserResetPasswordDto,
 	UserUpdateDto,
 } from './user.contract.ts'
@@ -150,6 +152,79 @@ export class UserService {
 
 		await this.cache.invalidateStandard(id)
 		await invalidateAuthCache(id)
+		return result
+	}
+
+	/** Self-service: the caller edits their own name/email; username, status and assignments stay. */
+	async handleUpdateProfile(data: UserProfileUpdateDto, actor: Actor): Promise<EntityRef> {
+		const id = actor.id
+		const result = await this.deps.uow.run(async (tx) => {
+			const existing = await this.repo.findById(id, tx)
+			if (!existing) throw UserError.notFound(id)
+
+			await checkConflict<UserCreateDto>({
+				db: tx,
+				table: users,
+				pkColumn: users.id,
+				fields: uniqueFields,
+				input: { email: data.email },
+				excludeId: id,
+			})
+
+			const written = await this.repo.update(
+				id,
+				{ email: data.email, name: data.name, ...stampUpdate(actor.id) },
+				tx,
+			)
+			if (!written) throw UserError.updateFailed(id)
+
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'iam',
+					entity: 'user',
+					entityId: id,
+					action: 'update-profile',
+					summary: `Updated own profile "${existing.username}" (${data.email})`,
+					newValues: { email: data.email, name: data.name },
+				}),
+				tx,
+			)
+			return written
+		})
+
+		await this.cache.invalidateStandard(id)
+		await invalidateAuthCache(id)
+		return result
+	}
+
+	/** Self-service: verifies the caller's current password, then stores the new one. Sessions are the caller's to revoke. */
+	async handleChangePassword(data: UserChangePasswordDto, actor: Actor): Promise<EntityRef> {
+		const id = actor.id
+		const existing = assertFound(await this.repo.findByIdRaw(id), () => UserError.notFound(id))
+		if (!(await verifyPassword(data.currentPassword, existing.passwordHash))) {
+			throw UserError.invalidCurrentPassword()
+		}
+		if (data.newPassword === data.currentPassword) throw UserError.passwordUnchanged()
+
+		const passwordHash = await hashPassword(data.newPassword)
+		const result = await this.deps.uow.run(async (tx) => {
+			const written = await this.repo.update(id, { passwordHash, ...stampUpdate(actor.id) }, tx)
+			if (!written) throw UserError.resetPasswordFailed(id)
+
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'iam',
+					entity: 'user',
+					entityId: id,
+					action: 'change-password',
+					summary: `Changed own password for user "${existing.username}"`,
+				}),
+				tx,
+			)
+			return written
+		})
+
+		await this.cache.invalidateStandard(id)
 		return result
 	}
 

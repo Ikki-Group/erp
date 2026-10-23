@@ -1,3 +1,5 @@
+import { Link } from '@tanstack/react-router'
+
 import { CheckIcon, ChevronsUpDownIcon, LogOutIcon, MapPinIcon, UserIcon } from 'lucide-react'
 
 import { ThemeToggle } from '@/components/shared/theme-toggle'
@@ -79,7 +81,7 @@ export function AppHeader() {
 					<span className="hidden md:inline">{user?.name ?? 'User'}</span>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" sideOffset={8}>
-					<DropdownMenuItem>
+					<DropdownMenuItem render={<Link to="/account" />}>
 						<UserIcon className="mr-2 size-4" />
 						Profile
 					</DropdownMenuItem>

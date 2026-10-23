@@ -6,6 +6,8 @@ const PERMISSIONS = [
 	'auth.logout',
 	'auth.session.list',
 	'auth.session.revoke',
+	'auth.profile.update',
+	'auth.password.change',
 	'company.read',
 	'company.update',
 	'location.read',

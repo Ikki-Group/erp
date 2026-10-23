@@ -13,7 +13,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, expect, it, vi } from 'vitest'
 
 import type { CompanySettingsUpdateDto } from '../dto/index.ts'
-import { Route as CompanyRoute } from '@/routes/_authenticated/settings/company.tsx'
+import { Route as CompanyRoute } from '@/routes/_authenticated/settings/company/edit.tsx'
 
 const { update } = vi.hoisted(() => ({
 	update: vi.fn<(input: CompanySettingsUpdateDto) => Promise<{ data: { id: number } }>>(),
@@ -61,12 +61,17 @@ it('allows same-value retry after failure but ignores further clicks until that 
 	const root = createRootRoute()
 	const company = createRoute({
 		getParentRoute: () => root,
-		path: '/settings/company',
+		path: '/settings/company/edit',
 		component: CompanyRoute.options.component,
 	})
+	const overview = createRoute({
+		getParentRoute: () => root,
+		path: '/settings/company',
+		component: () => <p>Overview</p>,
+	})
 	const router = createRouter({
-		routeTree: root.addChildren([company]),
-		history: createMemoryHistory({ initialEntries: ['/settings/company'] }),
+		routeTree: root.addChildren([company, overview]),
+		history: createMemoryHistory({ initialEntries: ['/settings/company/edit'] }),
 	})
 	render(
 		<QueryClientProvider client={client}>
@@ -91,4 +96,5 @@ it('allows same-value retry after failure but ignores further clicks until that 
 	expect(update).toHaveBeenCalledTimes(2)
 	expect(update).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Saved Company' }))
 	expect(name).toHaveProperty('value', 'Saved Company')
+	expect(await screen.findByText('Overview')).toBeTruthy()
 })

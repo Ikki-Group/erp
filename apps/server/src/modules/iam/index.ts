@@ -4,7 +4,7 @@ export type { ComposedService } from './composed/composed.service.ts'
 export type { AssignmentService } from './assignment/assignment.service.ts'
 export { RoleDto } from './role/role.contract.ts'
 export type { RoleCreateDto, RoleUpdateDto, RoleFilterDto } from './role/role.contract.ts'
-export { UserDto } from './user/user.contract.ts'
+export { UserDto, UserProfileUpdateDto, UserChangePasswordDto } from './user/user.contract.ts'
 export type { UserCreateDto, UserUpdateDto, UserFilterDto } from './user/user.contract.ts'
 export type {
 	AssignmentDto,

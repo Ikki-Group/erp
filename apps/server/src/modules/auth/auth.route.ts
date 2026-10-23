@@ -6,12 +6,16 @@ import { rbac } from '@/server/plugins/rbac.plugin.ts'
 import { SESSION_MAX_AGE_SECONDS } from '@/shared/config/index.ts'
 import { zRes } from '@/shared/http/response.schema.ts'
 import { res } from '@/shared/http/response.ts'
-import { z } from '@/shared/schema/index.ts'
+import { EntityRefDto, z } from '@/shared/schema/index.ts'
+
+import { UserChangePasswordDto, UserProfileUpdateDto } from '@/modules/iam'
+import type { UserService } from '@/modules/iam/user/user.service.ts'
 
 import {
 	LoginDto,
 	LoginResponseDto,
 	MeResponseDto,
+	PasswordChangeResultDto,
 	TokenRequestDto,
 	TokenResponseDto,
 } from './auth.contract.ts'
@@ -24,7 +28,7 @@ import {
 
 // ─── Route Factory ───
 
-export function createAuthRoute(service: AuthService) {
+export function createAuthRoute(service: AuthService, userService: UserService) {
 	return (
 		new Elysia({ prefix: '/auth', tags: ['Auth'] })
 			.use(rateLimitPlugin({ name: 'auth-login' }))
@@ -111,6 +115,38 @@ export function createAuthRoute(service: AuthService) {
 						summary: 'Get the current user',
 						description:
 							'Returns the user, their accessible locations and the permissions effective at the active location.',
+					},
+				},
+			)
+
+			// ─── Self-service account (auth required) ───
+
+			.put(
+				'/profile',
+				async ({ body, actor }) => res.ok(await userService.handleUpdateProfile(body, actor)),
+				{
+					body: UserProfileUpdateDto,
+					response: zRes.ok(EntityRefDto),
+					permission: 'auth.profile.update',
+					detail: {
+						summary: 'Update my profile',
+						description:
+							'Changes the caller’s own name and email. Username, status and assignments are untouched; the email must be unique.',
+					},
+				},
+			)
+			.post(
+				'/password',
+				async ({ body, auth, actor }) =>
+					res.ok(await service.handleChangePassword(auth, body, actor)),
+				{
+					body: UserChangePasswordDto,
+					response: zRes.ok(PasswordChangeResultDto),
+					permission: 'auth.password.change',
+					detail: {
+						summary: 'Change my password',
+						description:
+							'Requires the current password (wrong → 400 INVALID_CURRENT_PASSWORD). Revokes every other session of the caller and keeps the current one.',
 					},
 				},
 			)

@@ -16,6 +16,13 @@ const auth = {
 	login: 'auth/login',
 	me: 'auth/me',
 	logout: 'auth/logout',
+	profile: 'auth/profile',
+	password: 'auth/password',
+	sessions: {
+		list: 'auth/sessions/list',
+		revoke: 'auth/sessions/revoke',
+		revokeOthers: 'auth/sessions/revoke-others',
+	},
 }
 
 const location = crud('location')
@@ -126,6 +133,7 @@ const recipe = {
 
 const company = {
 	settings: 'company/settings',
+	overview: 'company/overview',
 }
 
 const audit = {

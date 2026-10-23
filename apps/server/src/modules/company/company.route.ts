@@ -7,10 +7,13 @@ import { EntityRefDto } from '@/shared/schema/index.ts'
 
 import { CompanySettingsDto, CompanySettingsUpdateDto } from './company.contract.ts'
 import type { CompanyService } from './company.service.ts'
+import { createOverviewRoute } from './overview/overview.route.ts'
+import type { OverviewService } from './overview/overview.service.ts'
 
-export function createCompanyRoute(service: CompanyService) {
+export function createCompanyRoute(service: CompanyService, overview: OverviewService) {
 	return new Elysia({ prefix: '/company', tags: ['Company'] })
 		.use(rbac.as('scoped'))
+		.use(createOverviewRoute(overview))
 		.get('/settings', async () => res.ok(await service.handleGetSettings()), {
 			response: zRes.ok(CompanySettingsDto),
 			permission: 'company.read',

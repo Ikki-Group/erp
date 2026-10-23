@@ -29,12 +29,13 @@ export const authModule: ModuleDescriptor = {
 		if (!isIamApi(iam) || !isLocationApi(location)) throw new Error('Auth dependencies are missing')
 		const service = new AuthService({
 			userRepo: iam.userRepo,
+			userService: iam.userService,
 			assignmentService: iam.assignmentService,
 			composedService: iam.composedService,
 			locationService: location.service,
 			sessionStore: ctx.sessionStore,
 			sessionRepo: new SessionRepo(ctx.db),
 		})
-		return { route: createAuthRoute(service) }
+		return { route: createAuthRoute(service, iam.userService) }
 	},
 }

@@ -59,3 +59,10 @@ export const MeResponseDto = z.object({
 	isOwner: zp.bool,
 })
 export type MeResponseDto = z.infer<typeof MeResponseDto>
+
+// ─── Self-service ───
+
+export const PasswordChangeResultDto = z.object({
+	revokedSessions: z.number().int(),
+})
+export type PasswordChangeResultDto = z.infer<typeof PasswordChangeResultDto>

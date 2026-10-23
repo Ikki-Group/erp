@@ -1,6 +1,6 @@
 import { useStore } from '@tanstack/react-form'
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { isApiError } from '@/lib/api/index.ts'
 
@@ -15,7 +15,7 @@ import { companyDetail } from '@/features/company/api.ts'
 import { CompanyFormFields, useCompanyForm } from '@/features/company/components/company-form.tsx'
 import type { CompanySettingsDto } from '@/features/company/dto/index.ts'
 
-export const Route = createFileRoute('/_authenticated/settings/company')({
+export const Route = createFileRoute('/_authenticated/settings/company/edit')({
 	component: CompanySettingsPage,
 })
 
@@ -72,7 +72,12 @@ function CompanySettingsForm({
 	settings: CompanySettingsDto
 	canWrite: boolean
 }) {
-	const form = useCompanyForm({ settings, canWrite })
+	const navigate = useNavigate()
+	const form = useCompanyForm({
+		settings,
+		canWrite,
+		onSaved: () => navigate({ to: '/settings/company' }),
+	})
 	const saveFailed = useStore(form.store, (state) => state.errorMap.onSubmit !== undefined)
 	const isSubmitting = useStore(form.store, (state) => state.isSubmitting)
 

@@ -53,3 +53,17 @@ export const UserResetPasswordDto = z.object({
 	password: z.string().min(8).max(100),
 })
 export type UserResetPasswordDto = z.infer<typeof UserResetPasswordDto>
+
+// ─── Self-service ───
+
+export const UserProfileUpdateDto = z.object({
+	name: UserMutationDto.shape.name,
+	email: UserMutationDto.shape.email,
+})
+export type UserProfileUpdateDto = z.infer<typeof UserProfileUpdateDto>
+
+export const UserChangePasswordDto = z.object({
+	currentPassword: z.string().min(1),
+	newPassword: z.string().min(8).max(100),
+})
+export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>

@@ -82,9 +82,11 @@ export const COMPANY_UPDATE_DENIED = 'You do not have permission to edit company
 export function useCompanyForm({
 	settings,
 	canWrite,
+	onSaved,
 }: {
 	settings: CompanySettingsDto
 	canWrite: boolean
+	onSaved?: () => void | Promise<void>
 }): CompanyForm {
 	return useEntityEditor({
 		defaultValues: toCompanyFormValues(settings),
@@ -106,6 +108,7 @@ export function useCompanyForm({
 				receiptFooter: payload.receiptFooter ?? null,
 			}),
 		successMessage: 'Company settings updated.',
+		onSaved,
 	})
 }
 

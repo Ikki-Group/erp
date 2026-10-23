@@ -13,6 +13,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedDemoRouteImport } from './routes/_authenticated/demo'
 import { Route as DesignSystemIndexRouteImport } from './routes/design-system/index'
 import { Route as DesignSystemButtonsRouteImport } from './routes/design-system/buttons'
@@ -31,7 +32,6 @@ import { Route as AuthenticatedPosOrdersRouteImport } from './routes/_authentica
 import { Route as AuthenticatedPosShiftsRouteImport } from './routes/_authenticated/pos/shifts'
 import { Route as AuthenticatedSettingsAccessControlRouteImport } from './routes/_authenticated/settings/access-control'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings/audit'
-import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings/company'
 import { Route as AuthenticatedSettingsLocationStaffRouteImport } from './routes/_authenticated/settings/location-staff'
 import { Route as AuthenticatedInventoryReceivingIndexRouteImport } from './routes/_authenticated/inventory/receiving/index'
 import { Route as AuthenticatedInventoryReceivingNewRouteImport } from './routes/_authenticated/inventory/receiving/new'
@@ -59,6 +59,8 @@ import { Route as AuthenticatedPosTablesNewRouteImport } from './routes/_authent
 import { Route as AuthenticatedPosVouchersIndexRouteImport } from './routes/_authenticated/pos/vouchers/index'
 import { Route as AuthenticatedPosVouchersVoucherIdRouteImport } from './routes/_authenticated/pos/vouchers/$voucherId'
 import { Route as AuthenticatedPosVouchersNewRouteImport } from './routes/_authenticated/pos/vouchers/new'
+import { Route as AuthenticatedSettingsCompanyIndexRouteImport } from './routes/_authenticated/settings/company/index'
+import { Route as AuthenticatedSettingsCompanyEditRouteImport } from './routes/_authenticated/settings/company/edit'
 import { Route as AuthenticatedSettingsLocationsIndexRouteImport } from './routes/_authenticated/settings/locations/index'
 import { Route as AuthenticatedSettingsLocationsNewRouteImport } from './routes/_authenticated/settings/locations/new'
 import { Route as AuthenticatedSettingsRolesRoleIdRouteImport } from './routes/_authenticated/settings/roles/$roleId'
@@ -89,6 +91,11 @@ const LoginRoute = LoginRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDemoRoute = AuthenticatedDemoRouteImport.update({
@@ -184,12 +191,6 @@ const AuthenticatedSettingsAuditRoute =
   AuthenticatedSettingsAuditRouteImport.update({
     id: '/settings/audit',
     path: '/settings/audit',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedSettingsCompanyRoute =
-  AuthenticatedSettingsCompanyRouteImport.update({
-    id: '/settings/company',
-    path: '/settings/company',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedSettingsLocationStaffRoute =
@@ -354,6 +355,18 @@ const AuthenticatedPosVouchersNewRoute =
     path: '/pos/vouchers/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSettingsCompanyIndexRoute =
+  AuthenticatedSettingsCompanyIndexRouteImport.update({
+    id: '/settings/company/',
+    path: '/settings/company/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsCompanyEditRoute =
+  AuthenticatedSettingsCompanyEditRouteImport.update({
+    id: '/settings/company/edit',
+    path: '/settings/company/edit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSettingsLocationsIndexRoute =
   AuthenticatedSettingsLocationsIndexRouteImport.update({
     id: '/settings/locations/',
@@ -431,6 +444,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/design-system': typeof DesignSystemRouteWithChildren
   '/login': typeof LoginRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/demo': typeof AuthenticatedDemoRoute
   '/design-system/buttons': typeof DesignSystemButtonsRoute
   '/design-system/cards': typeof DesignSystemCardsRoute
@@ -449,7 +463,6 @@ export interface FileRoutesByFullPath {
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
   '/settings/access-control': typeof AuthenticatedSettingsAccessControlRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
-  '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
   '/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
   '/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
@@ -467,6 +480,7 @@ export interface FileRoutesByFullPath {
   '/pos/tables/new': typeof AuthenticatedPosTablesNewRoute
   '/pos/vouchers/$voucherId': typeof AuthenticatedPosVouchersVoucherIdRoute
   '/pos/vouchers/new': typeof AuthenticatedPosVouchersNewRoute
+  '/settings/company/edit': typeof AuthenticatedSettingsCompanyEditRoute
   '/settings/locations/new': typeof AuthenticatedSettingsLocationsNewRoute
   '/settings/roles/$roleId': typeof AuthenticatedSettingsRolesRoleIdRoute
   '/settings/roles/new': typeof AuthenticatedSettingsRolesNewRoute
@@ -482,6 +496,7 @@ export interface FileRoutesByFullPath {
   '/master/uom/': typeof AuthenticatedMasterUomIndexRoute
   '/pos/tables/': typeof AuthenticatedPosTablesIndexRoute
   '/pos/vouchers/': typeof AuthenticatedPosVouchersIndexRoute
+  '/settings/company/': typeof AuthenticatedSettingsCompanyIndexRoute
   '/settings/locations/': typeof AuthenticatedSettingsLocationsIndexRoute
   '/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
   '/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
@@ -492,6 +507,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/demo': typeof AuthenticatedDemoRoute
   '/design-system/buttons': typeof DesignSystemButtonsRoute
   '/design-system/cards': typeof DesignSystemCardsRoute
@@ -511,7 +527,6 @@ export interface FileRoutesByTo {
   '/pos/shifts': typeof AuthenticatedPosShiftsRoute
   '/settings/access-control': typeof AuthenticatedSettingsAccessControlRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
-  '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
   '/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
   '/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
@@ -529,6 +544,7 @@ export interface FileRoutesByTo {
   '/pos/tables/new': typeof AuthenticatedPosTablesNewRoute
   '/pos/vouchers/$voucherId': typeof AuthenticatedPosVouchersVoucherIdRoute
   '/pos/vouchers/new': typeof AuthenticatedPosVouchersNewRoute
+  '/settings/company/edit': typeof AuthenticatedSettingsCompanyEditRoute
   '/settings/locations/new': typeof AuthenticatedSettingsLocationsNewRoute
   '/settings/roles/$roleId': typeof AuthenticatedSettingsRolesRoleIdRoute
   '/settings/roles/new': typeof AuthenticatedSettingsRolesNewRoute
@@ -544,6 +560,7 @@ export interface FileRoutesByTo {
   '/master/uom': typeof AuthenticatedMasterUomIndexRoute
   '/pos/tables': typeof AuthenticatedPosTablesIndexRoute
   '/pos/vouchers': typeof AuthenticatedPosVouchersIndexRoute
+  '/settings/company': typeof AuthenticatedSettingsCompanyIndexRoute
   '/settings/locations': typeof AuthenticatedSettingsLocationsIndexRoute
   '/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
   '/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
@@ -557,6 +574,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/design-system': typeof DesignSystemRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/demo': typeof AuthenticatedDemoRoute
   '/design-system/buttons': typeof DesignSystemButtonsRoute
   '/design-system/cards': typeof DesignSystemCardsRoute
@@ -576,7 +594,6 @@ export interface FileRoutesById {
   '/_authenticated/pos/shifts': typeof AuthenticatedPosShiftsRoute
   '/_authenticated/settings/access-control': typeof AuthenticatedSettingsAccessControlRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
-  '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/_authenticated/settings/location-staff': typeof AuthenticatedSettingsLocationStaffRoute
   '/_authenticated/inventory/receiving/new': typeof AuthenticatedInventoryReceivingNewRoute
   '/_authenticated/inventory/transfers/new': typeof AuthenticatedInventoryTransfersNewRoute
@@ -594,6 +611,7 @@ export interface FileRoutesById {
   '/_authenticated/pos/tables/new': typeof AuthenticatedPosTablesNewRoute
   '/_authenticated/pos/vouchers/$voucherId': typeof AuthenticatedPosVouchersVoucherIdRoute
   '/_authenticated/pos/vouchers/new': typeof AuthenticatedPosVouchersNewRoute
+  '/_authenticated/settings/company/edit': typeof AuthenticatedSettingsCompanyEditRoute
   '/_authenticated/settings/locations/new': typeof AuthenticatedSettingsLocationsNewRoute
   '/_authenticated/settings/roles/$roleId': typeof AuthenticatedSettingsRolesRoleIdRoute
   '/_authenticated/settings/roles/new': typeof AuthenticatedSettingsRolesNewRoute
@@ -609,6 +627,7 @@ export interface FileRoutesById {
   '/_authenticated/master/uom/': typeof AuthenticatedMasterUomIndexRoute
   '/_authenticated/pos/tables/': typeof AuthenticatedPosTablesIndexRoute
   '/_authenticated/pos/vouchers/': typeof AuthenticatedPosVouchersIndexRoute
+  '/_authenticated/settings/company/': typeof AuthenticatedSettingsCompanyIndexRoute
   '/_authenticated/settings/locations/': typeof AuthenticatedSettingsLocationsIndexRoute
   '/_authenticated/master/menu/items/$itemId': typeof AuthenticatedMasterMenuItemsItemIdRoute
   '/_authenticated/master/menu/items/new': typeof AuthenticatedMasterMenuItemsNewRoute
@@ -623,6 +642,7 @@ export interface FileRouteTypes {
     | '/'
     | '/design-system'
     | '/login'
+    | '/account'
     | '/demo'
     | '/design-system/buttons'
     | '/design-system/cards'
@@ -641,7 +661,6 @@ export interface FileRouteTypes {
     | '/pos/shifts'
     | '/settings/access-control'
     | '/settings/audit'
-    | '/settings/company'
     | '/settings/location-staff'
     | '/inventory/receiving/new'
     | '/inventory/transfers/new'
@@ -659,6 +678,7 @@ export interface FileRouteTypes {
     | '/pos/tables/new'
     | '/pos/vouchers/$voucherId'
     | '/pos/vouchers/new'
+    | '/settings/company/edit'
     | '/settings/locations/new'
     | '/settings/roles/$roleId'
     | '/settings/roles/new'
@@ -674,6 +694,7 @@ export interface FileRouteTypes {
     | '/master/uom/'
     | '/pos/tables/'
     | '/pos/vouchers/'
+    | '/settings/company/'
     | '/settings/locations/'
     | '/master/menu/items/$itemId'
     | '/master/menu/items/new'
@@ -684,6 +705,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/account'
     | '/demo'
     | '/design-system/buttons'
     | '/design-system/cards'
@@ -703,7 +725,6 @@ export interface FileRouteTypes {
     | '/pos/shifts'
     | '/settings/access-control'
     | '/settings/audit'
-    | '/settings/company'
     | '/settings/location-staff'
     | '/inventory/receiving/new'
     | '/inventory/transfers/new'
@@ -721,6 +742,7 @@ export interface FileRouteTypes {
     | '/pos/tables/new'
     | '/pos/vouchers/$voucherId'
     | '/pos/vouchers/new'
+    | '/settings/company/edit'
     | '/settings/locations/new'
     | '/settings/roles/$roleId'
     | '/settings/roles/new'
@@ -736,6 +758,7 @@ export interface FileRouteTypes {
     | '/master/uom'
     | '/pos/tables'
     | '/pos/vouchers'
+    | '/settings/company'
     | '/settings/locations'
     | '/master/menu/items/$itemId'
     | '/master/menu/items/new'
@@ -748,6 +771,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/design-system'
     | '/login'
+    | '/_authenticated/account'
     | '/_authenticated/demo'
     | '/design-system/buttons'
     | '/design-system/cards'
@@ -767,7 +791,6 @@ export interface FileRouteTypes {
     | '/_authenticated/pos/shifts'
     | '/_authenticated/settings/access-control'
     | '/_authenticated/settings/audit'
-    | '/_authenticated/settings/company'
     | '/_authenticated/settings/location-staff'
     | '/_authenticated/inventory/receiving/new'
     | '/_authenticated/inventory/transfers/new'
@@ -785,6 +808,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pos/tables/new'
     | '/_authenticated/pos/vouchers/$voucherId'
     | '/_authenticated/pos/vouchers/new'
+    | '/_authenticated/settings/company/edit'
     | '/_authenticated/settings/locations/new'
     | '/_authenticated/settings/roles/$roleId'
     | '/_authenticated/settings/roles/new'
@@ -800,6 +824,7 @@ export interface FileRouteTypes {
     | '/_authenticated/master/uom/'
     | '/_authenticated/pos/tables/'
     | '/_authenticated/pos/vouchers/'
+    | '/_authenticated/settings/company/'
     | '/_authenticated/settings/locations/'
     | '/_authenticated/master/menu/items/$itemId'
     | '/_authenticated/master/menu/items/new'
@@ -843,6 +868,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/demo': {
@@ -969,13 +1001,6 @@ declare module '@tanstack/react-router' {
       path: '/settings/audit'
       fullPath: '/settings/audit'
       preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/settings/company': {
-      id: '/_authenticated/settings/company'
-      path: '/settings/company'
-      fullPath: '/settings/company'
-      preLoaderRoute: typeof AuthenticatedSettingsCompanyRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings/location-staff': {
@@ -1167,6 +1192,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPosVouchersNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/settings/company/': {
+      id: '/_authenticated/settings/company/'
+      path: '/settings/company'
+      fullPath: '/settings/company/'
+      preLoaderRoute: typeof AuthenticatedSettingsCompanyIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/company/edit': {
+      id: '/_authenticated/settings/company/edit'
+      path: '/settings/company/edit'
+      fullPath: '/settings/company/edit'
+      preLoaderRoute: typeof AuthenticatedSettingsCompanyEditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings/locations/': {
       id: '/_authenticated/settings/locations/'
       path: '/settings/locations'
@@ -1255,6 +1294,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedDemoRoute: typeof AuthenticatedDemoRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedInventoryOpnameRoute: typeof AuthenticatedInventoryOpnameRoute
@@ -1264,7 +1304,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPosShiftsRoute: typeof AuthenticatedPosShiftsRoute
   AuthenticatedSettingsAccessControlRoute: typeof AuthenticatedSettingsAccessControlRoute
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
-  AuthenticatedSettingsCompanyRoute: typeof AuthenticatedSettingsCompanyRoute
   AuthenticatedSettingsLocationStaffRoute: typeof AuthenticatedSettingsLocationStaffRoute
   AuthenticatedInventoryReceivingNewRoute: typeof AuthenticatedInventoryReceivingNewRoute
   AuthenticatedInventoryTransfersNewRoute: typeof AuthenticatedInventoryTransfersNewRoute
@@ -1282,6 +1321,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPosTablesNewRoute: typeof AuthenticatedPosTablesNewRoute
   AuthenticatedPosVouchersVoucherIdRoute: typeof AuthenticatedPosVouchersVoucherIdRoute
   AuthenticatedPosVouchersNewRoute: typeof AuthenticatedPosVouchersNewRoute
+  AuthenticatedSettingsCompanyEditRoute: typeof AuthenticatedSettingsCompanyEditRoute
   AuthenticatedSettingsLocationsNewRoute: typeof AuthenticatedSettingsLocationsNewRoute
   AuthenticatedSettingsRolesRoleIdRoute: typeof AuthenticatedSettingsRolesRoleIdRoute
   AuthenticatedSettingsRolesNewRoute: typeof AuthenticatedSettingsRolesNewRoute
@@ -1297,6 +1337,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMasterUomIndexRoute: typeof AuthenticatedMasterUomIndexRoute
   AuthenticatedPosTablesIndexRoute: typeof AuthenticatedPosTablesIndexRoute
   AuthenticatedPosVouchersIndexRoute: typeof AuthenticatedPosVouchersIndexRoute
+  AuthenticatedSettingsCompanyIndexRoute: typeof AuthenticatedSettingsCompanyIndexRoute
   AuthenticatedSettingsLocationsIndexRoute: typeof AuthenticatedSettingsLocationsIndexRoute
   AuthenticatedMasterMenuItemsItemIdRoute: typeof AuthenticatedMasterMenuItemsItemIdRoute
   AuthenticatedMasterMenuItemsNewRoute: typeof AuthenticatedMasterMenuItemsNewRoute
@@ -1307,6 +1348,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedDemoRoute: AuthenticatedDemoRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedInventoryOpnameRoute: AuthenticatedInventoryOpnameRoute,
@@ -1317,7 +1359,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSettingsAccessControlRoute:
     AuthenticatedSettingsAccessControlRoute,
   AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
-  AuthenticatedSettingsCompanyRoute: AuthenticatedSettingsCompanyRoute,
   AuthenticatedSettingsLocationStaffRoute:
     AuthenticatedSettingsLocationStaffRoute,
   AuthenticatedInventoryReceivingNewRoute:
@@ -1344,6 +1385,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPosVouchersVoucherIdRoute:
     AuthenticatedPosVouchersVoucherIdRoute,
   AuthenticatedPosVouchersNewRoute: AuthenticatedPosVouchersNewRoute,
+  AuthenticatedSettingsCompanyEditRoute: AuthenticatedSettingsCompanyEditRoute,
   AuthenticatedSettingsLocationsNewRoute:
     AuthenticatedSettingsLocationsNewRoute,
   AuthenticatedSettingsRolesRoleIdRoute: AuthenticatedSettingsRolesRoleIdRoute,
@@ -1365,6 +1407,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMasterUomIndexRoute: AuthenticatedMasterUomIndexRoute,
   AuthenticatedPosTablesIndexRoute: AuthenticatedPosTablesIndexRoute,
   AuthenticatedPosVouchersIndexRoute: AuthenticatedPosVouchersIndexRoute,
+  AuthenticatedSettingsCompanyIndexRoute:
+    AuthenticatedSettingsCompanyIndexRoute,
   AuthenticatedSettingsLocationsIndexRoute:
     AuthenticatedSettingsLocationsIndexRoute,
   AuthenticatedMasterMenuItemsItemIdRoute:

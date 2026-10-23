@@ -1,7 +1,7 @@
 import { users } from '@/db/schema/iam.ts'
 
 import { defineConflictFields } from '@/infra/database/index.ts'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
+import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error.ts'
 
 import type { UserCreateDto } from './user.contract.ts'
 
@@ -23,6 +23,13 @@ export const UserError = {
 		new InternalServerError('User password reset failed', {
 			code: 'USER_RESET_PASSWORD_FAILED',
 			context: { id },
+		}),
+	// 400, not 401: the web client treats 401 as an expired session and logs out.
+	invalidCurrentPassword: () =>
+		new BadRequestError('Current password is incorrect', { code: 'INVALID_CURRENT_PASSWORD' }),
+	passwordUnchanged: () =>
+		new BadRequestError('New password must differ from the current password', {
+			code: 'PASSWORD_UNCHANGED',
 		}),
 }
 
