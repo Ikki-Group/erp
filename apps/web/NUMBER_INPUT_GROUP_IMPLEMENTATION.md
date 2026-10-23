@@ -144,7 +144,7 @@ function MyForm() {
 
 ## Demo Location
 
-Live demo available at: `http://localhost:3000/design-system/forms`
+Live demo available at: `http://localhost:4002/design-system/forms`
 
 Scroll to the "Form Components" section to see the `NumberInputGroupAddonField` in action.
 

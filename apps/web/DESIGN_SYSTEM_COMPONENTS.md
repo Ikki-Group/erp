@@ -26,7 +26,7 @@ Text truncation in data tables has been fully implemented with tooltip on hover/
 ```
 
 **Demo Location:**
-- Route: `http://localhost:3000/design-system/tables`
+- Route: `http://localhost:4002/design-system/tables`
 - Section: "Cell Templates"
 - Row: Look for "TextCell" in the first column showing truncated text with tooltip
 
@@ -136,7 +136,7 @@ import { NumberInputGroupField } from '@/lib/form/fields/number-input-group-fiel
 ```
 
 **Demo Location:**
-- Route: `http://localhost:3000/design-system/forms`
+- Route: `http://localhost:4002/design-system/forms`
 - Section: "Form Components"
 - Field: Look for "Quantity" field with "kg" label at the end
 
@@ -172,12 +172,12 @@ Both cell truncation and number input group components are:
 ### Routes to Verify
 
 1. **Tables - Cell Truncation:**
-   - `http://localhost:3000/design-system/tables`
+   - `http://localhost:4002/design-system/tables`
    - Scroll to "Cell Templates" section
    - Hover over the truncated "Organic Single-Origin..." text in the Material column
 
 2. **Forms - Number Input Group:**
-   - `http://localhost:3000/design-system/forms`
+   - `http://localhost:4002/design-system/forms`
    - Scroll to "Form Components" section
    - Look for "Quantity" input with "kg" UOM label at the end
 

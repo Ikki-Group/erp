@@ -8,7 +8,7 @@ Kedua variant number input group sudah diimplementasikan dan tervisualisasi di d
 
 ## Preview Location
 
-**Route:** `http://localhost:3000/design-system/forms`  
+**Route:** `http://localhost:4002/design-system/forms`  
 **Section:** "Form Components"
 
 ---
@@ -336,8 +336,8 @@ function QuantityInput() {
 ✅ **Production-ready**
 
 ### Routes
-- **Static UOM:** `http://localhost:3000/design-system/forms` → "Quantity (Static UOM)" field
-- **Editable UOM:** `http://localhost:3000/design-system/forms` → "Quantity (Editable UOM)" field with dropdown
+- **Static UOM:** `http://localhost:4002/design-system/forms` → "Quantity (Static UOM)" field
+- **Editable UOM:** `http://localhost:4002/design-system/forms` → "Quantity (Editable UOM)" field with dropdown
 
 ### Documentation
 - Core components: `apps/web/src/components/ui/number-input-group.tsx`

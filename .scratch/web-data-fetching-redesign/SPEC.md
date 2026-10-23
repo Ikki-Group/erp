@@ -146,7 +146,7 @@ The end state:
 - **Secondary seam — `apps/web` vitest** for the pure new primitives: the freshness-tier → Query-options mapping (tier in → concrete `staleTime`/`gcTime`/`refetchInterval` out) and the `createQueryKeys` factory (deterministic, structurally-correct key arrays, including the location-scoped variant folding in `locationId`). Pure functions, no DB, fast — these run in this workspace today.
 - **No new internal seams** inside `endpoint.ts`/`http.ts` fetch/validate plumbing — that would test implementation detail the e2e layer already covers through the real contract.
 - **Prior art:** e2e specs live in `apps/e2e/tests/*.spec.ts` (auth fixture in `tests/fixtures/auth.fixture.ts`, seeded creds in `tests/helpers/test-data.ts`); web unit tests run via `bun run test` (vitest) in `apps/web`.
-- **Known execution caveat:** the e2e suite requires an isolated test database via `apps/server/.env.test` (run through `scripts/test-e2e.sh`, which resets+seeds a `test-user` DB on ports 4100/3100). That file is not present in this workspace, so e2e is the _named_ acceptance gate but its execution depends on that env existing. The vitest unit seam has no such dependency.
+- **Known execution caveat:** the e2e suite requires an isolated test database via `apps/server/.env.test` (run through `scripts/test-e2e.sh`, which resets+seeds a `test-user` DB and serves API/web on ports 4101/4102). That file is not present in this workspace, so e2e is the _named_ acceptance gate but its execution depends on that env existing. The vitest unit seam has no such dependency.
 
 ## Out of Scope
 

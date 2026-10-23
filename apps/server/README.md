@@ -226,7 +226,7 @@ Required variables:
 - `DATABASE_URL` - PostgreSQL connection string
 - `CORS_ORIGINS` - Comma-separated allowed origins (required in production)
 
-Optional: `PORT` (default 3000; 8080 in the Docker image), `DB_POOL_MAX`, `REDIS_URL`
+Optional: `PORT` (default 4001, also in the Docker image), `DB_POOL_MAX`, `REDIS_URL`
 (L2 cache/session store; memory-only when unset), `AUTH_RATE_LIMIT_*`, `AXIOM_*`. See
 `.env.example`.
 

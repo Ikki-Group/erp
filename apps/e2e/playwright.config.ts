@@ -15,7 +15,7 @@ export default defineConfig({
 		['html', { outputFolder: './playwright-report/html', open: 'never' }],
 	],
 	use: {
-		baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
+		baseURL: process.env.BASE_URL ?? 'http://localhost:4002',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 	},
@@ -27,7 +27,7 @@ export default defineConfig({
 	],
 	// webServer: {
 	// 	command: 'bun run --cwd ../web dev',
-	// 	url: 'http://localhost:3000',
+	// 	url: 'http://localhost:4002',
 	// 	reuseExistingServer: !process.env.CI,
 	// 	timeout: 120000,
 	// },

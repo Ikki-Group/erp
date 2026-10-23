@@ -9,7 +9,7 @@ This skill helps you discover and correctly use the project's component library 
 
 ## Quick Discovery
 
-**Live Examples:** http://localhost:3000/design-system
+**Live Examples:** http://localhost:4002/design-system
 **Full Documentation:** `apps/web/COMPONENT_GUIDE.md`
 **Component Source:** `apps/web/src/components/`
 
@@ -474,7 +474,7 @@ Apply this skill when:
 ## See Also
 
 - **Full Documentation:** `apps/web/COMPONENT_GUIDE.md` (comprehensive guide)
-- **Design System Routes:** http://localhost:3000/design-system/* (live examples)
+- **Design System Routes:** http://localhost:4002/design-system/* (live examples)
 - **Design Tokens:** `apps/web/src/styles.css` (CSS variables)
 - **Impeccable Skill:** For design decisions and refinements
 - **Shadcn Skill:** For shadcn/ui composition patterns

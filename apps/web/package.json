@@ -3,9 +3,9 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "bunx --bun vite dev --port 3000",
+		"dev": "bunx --bun vite dev --port 4002",
 		"build": "bunx --bun vite build",
-		"preview": "bunx --bun vite preview",
+		"preview": "bunx --bun vite preview --port 4002",
 		"test": "vitest run",
 		"lint": "oxlint .",
 		"lint:fix": "oxlint --fix .",

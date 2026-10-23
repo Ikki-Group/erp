@@ -33,7 +33,7 @@ HTTP client, endpoint registry, and the `defineQuery`/`defineMutation`/`defineRe
 A thin wrapper around native `fetch` that handles base URL, credentials, and default headers.
 
 ```ts
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4001'
 
 export async function apiClient(url: string, init?: RequestInit): Promise<Response> {
 	const fullUrl = `${API_URL}/${url}`

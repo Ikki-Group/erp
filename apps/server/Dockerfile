@@ -23,7 +23,7 @@ FROM gcr.io/distroless/cc-debian12:nonroot AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production \
-	PORT=8080
+	PORT=4001
 
 COPY --from=builder /app/apps/server/dist/server /app/server
 COPY --from=builder /app/apps/server/dist/migrate /app/migrate
@@ -31,7 +31,7 @@ COPY --from=builder /app/apps/server/dist/migrate /app/migrate
 COPY --from=builder /app/apps/server/dist/migrations /app/migrations
 
 USER nonroot
-EXPOSE 8080
+EXPOSE 4001
 
 # Health checks live in fly.toml (Fly ignores Docker HEALTHCHECK).
 CMD ["/app/server"]

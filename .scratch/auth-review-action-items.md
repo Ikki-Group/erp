@@ -12,5 +12,5 @@ Improve auth code quality and maintain the current cross-origin Bearer-token arc
 - [x] Enforce the owner invariant at the domain boundary: location-scoped owner assignments are rejected with `OWNER_ASSIGNMENT_MUST_BE_GLOBAL`; global assignment state is tracked independently from permission count.
 - [x] Remove obsolete client API surface after client-side switching: `switchLocation` is synchronous and `isSwitching` was removed.
 - [x] Add integration coverage for the multi-location `/me` projection and access map. Assigned/unassigned request authorization remains covered by the auth plugin path but requires the configured test database to execute.
-- [x] Fix the CORS configuration using Elysia's final composed app; source-level `OPTIONS /auth/me` verification returns `204` with `Access-Control-Allow-Origin`. The already-running port `4000` process still needs a restart to load it.
+- [x] Fix the CORS configuration using Elysia's final composed app; source-level `OPTIONS /auth/me` verification returns `204` with `Access-Control-Allow-Origin`. An already-running API process needs a restart to load it.
 - [ ] Run the full integration suite with a configured test database, then review the resulting diff before committing. `bun run verify` completed lint/typecheck/knip/check-deps; integration tests were blocked by the database guard.

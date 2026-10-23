@@ -19,7 +19,7 @@ try {
 const envSchema = z.object({
 	// Core
 	NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-	PORT: z.coerce.number().default(3000),
+	PORT: z.coerce.number().default(4001),
 
 	// Database
 	DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
@@ -51,7 +51,7 @@ const envSchema = z.object({
 	AXIOM_DATASET: z.string().optional(),
 })
 
-const DEV_CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173']
+const DEV_CORS_ORIGINS = ['http://localhost:4002']
 
 const resolvedEnvSchema = envSchema.transform((e, ctx) => {
 	if (e.CORS_ORIGINS?.length) return { ...e, CORS_ORIGINS: e.CORS_ORIGINS }

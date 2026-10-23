@@ -4,7 +4,7 @@
 # Usage: ./scripts/test-e2e.sh [playwright args...]
 #
 # 1. Resets + seeds the test database (.env.test)
-# 2. Starts server (port 4100) and web (port 3100) in background
+# 2. Starts server (port 4101) and web (port 4102) in background
 # 3. Runs Playwright tests
 # 4. Cleans up background processes on exit
 #
@@ -16,8 +16,8 @@ WEB_DIR="$ROOT_DIR/apps/web"
 E2E_DIR="$ROOT_DIR/apps/e2e"
 
 # Test ports (isolated from dev)
-export TEST_SERVER_PORT=4100
-export TEST_WEB_PORT=3100
+export TEST_SERVER_PORT=4101
+export TEST_WEB_PORT=4102
 
 # PIDs to clean up
 SERVER_PID=""
@@ -45,7 +45,8 @@ echo ""
 
 echo "🚀 Starting server on port $TEST_SERVER_PORT..."
 cd "$SERVER_DIR"
-NODE_ENV=test bun run --env-file .env.test src/server.ts &
+NODE_ENV=test PORT="$TEST_SERVER_PORT" CORS_ORIGINS="http://localhost:$TEST_WEB_PORT" \
+	bun run --env-file .env.test src/server.ts &
 SERVER_PID=$!
 
 # ─── Step 3: Start Web ───

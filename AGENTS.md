@@ -103,6 +103,6 @@ Use the `ui-components` skill when building UI features, forms, tables, or ensur
 
 **Quick links:**
 
-- Live examples: http://localhost:3000/design-system
+- Live examples: http://localhost:4002/design-system
 - Full guide: apps/web/COMPONENT_GUIDE.md
 - Skill: .agents/skills/ui-components/SKILL.md
