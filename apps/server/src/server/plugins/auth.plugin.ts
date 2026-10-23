@@ -71,10 +71,12 @@ async function loadAccessMap(userId: number): Promise<AccessMap> {
 	let hasGlobalAssignment = false
 
 	for (const row of rows) {
-		if (row.roleId !== null) roleIds.add(row.roleId)
+		// A user with no assignments joins to a single all-null row: no access.
+		if (row.roleId === null) continue
+		roleIds.add(row.roleId)
 		if (row.roleCode === OWNER_ROLE_CODE) isOwner = true
 		const permissions = permissionsFromRole(row.rolePermissions)
-		if (row.roleId !== null && row.assignmentLocationId === null) {
+		if (row.assignmentLocationId === null) {
 			hasGlobalAssignment = true
 			for (const permission of permissions) globalPermissions.add(permission)
 			continue

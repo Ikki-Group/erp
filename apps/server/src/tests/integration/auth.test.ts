@@ -151,6 +151,12 @@ describe('auth', () => {
 		try {
 			const token = await loginAs(username)
 
+			const me = await GET('/auth/me', { token })
+			expect(me.status).toBe(200)
+			const meBody: Json = await json(me)
+			expect(meBody.data).toMatchObject({ locations: [], permissions: [] })
+			expect(meBody.data.access).toEqual({})
+
 			const scoped = await GET('/location/list', { token, locationId: SEED_LOCATION_ID })
 			expect(scoped.status).toBe(403)
 			const scopedBody: Json = await json(scoped)
