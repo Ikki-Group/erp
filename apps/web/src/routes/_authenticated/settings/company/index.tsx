@@ -108,11 +108,11 @@ function OverviewBody({
 	const { locations, people } = overview
 	return (
 		<>
-			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard
 					title="Locations"
 					value={locations.total}
-					description={`${locations.stores} stores, ${locations.warehouses} warehouses, ${locations.inactive} inactive`}
+					description={`${plural(locations.stores, 'store')}, ${plural(locations.warehouses, 'warehouse')}, ${locations.inactive} inactive`}
 				/>
 				{people && (
 					<>
@@ -145,6 +145,10 @@ function OverviewBody({
 			</DetailSection>
 		</>
 	)
+}
+
+function plural(count: number, noun: string): string {
+	return `${count} ${noun}${count === 1 ? '' : 's'}`
 }
 
 function SiteRow({

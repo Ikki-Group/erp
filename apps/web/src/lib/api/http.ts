@@ -36,17 +36,17 @@ async function normalizeError(error: unknown, response?: Response): Promise<neve
 	// HTTP error response
 	if (response && !response.ok) {
 		const contentType = response.headers.get('content-type')
-		let payload: ApiErrorPayload | undefined
+		let body: unknown
 
 		if (contentType?.includes('application/json')) {
 			try {
-				payload = (await response.clone().json()) as ApiErrorPayload
+				body = await response.clone().json()
 			} catch {
 				// Body wasn't valid JSON despite the content-type header
 			}
 		}
 
-		if (payload) throw ApiError.fromPayload(payload, response.status)
+		if (isErrorPayload(body)) throw ApiError.fromPayload(body, response.status)
 		throw new ApiError(response.statusText || 'Request failed', { status: response.status })
 	}
 
@@ -64,6 +64,12 @@ async function normalizeError(error: unknown, response?: Response): Promise<neve
 	}
 
 	throw new ApiError('An unknown error occurred.', { cause: error })
+}
+
+function isErrorPayload(body: unknown): body is ApiErrorPayload {
+	if (typeof body !== 'object' || body === null || !('error' in body)) return false
+	const { error } = body
+	return typeof error === 'object' && error !== null && 'code' in error && 'message' in error
 }
 
 export interface RequestConfig {

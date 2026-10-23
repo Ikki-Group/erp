@@ -2,19 +2,21 @@
 /*  ApiError — normalized HTTP / network failure                              */
 /* -------------------------------------------------------------------------- */
 
-/** Structured error payload shape returned by the server on failures. */
-export interface ApiErrorPayload<T = unknown> {
-	code: string | number
-	message: string
-	data?: T
-	trace?: unknown
+/** Error envelope the server returns on failures: `{ success: false, error: { … } }`. */
+export interface ApiErrorPayload {
+	success: false
+	error: {
+		code: string
+		message: string
+		path?: string
+		context?: Record<string, unknown>
+	}
 }
 
 export interface ApiErrorOptions<T = unknown> {
 	status?: number
-	code?: string | number
+	code?: string
 	data?: T
-	trace?: unknown
 	cause?: unknown
 }
 
@@ -24,9 +26,8 @@ export interface ApiErrorOptions<T = unknown> {
  */
 export class ApiError<TData = unknown> extends Error {
 	readonly status?: number
-	readonly code?: string | number
+	readonly code?: string
 	readonly data?: TData
-	readonly trace?: unknown
 
 	constructor(message: string, options: ApiErrorOptions<TData> = {}) {
 		super(message, options.cause === undefined ? undefined : { cause: options.cause })
@@ -34,19 +35,14 @@ export class ApiError<TData = unknown> extends Error {
 		this.status = options.status
 		this.code = options.code
 		this.data = options.data
-		this.trace = options.trace
 
 		Object.setPrototypeOf(this, ApiError.prototype)
 	}
 
-	/** Builds an `ApiError` from the server's structured error envelope. */
+	/** Builds an `ApiError` from the server's error envelope; `data` carries `error.context`. */
 	static fromPayload(payload: ApiErrorPayload, status?: number): ApiError {
-		return new ApiError(payload.message, {
-			status,
-			code: payload.code,
-			data: payload.data,
-			trace: payload.trace,
-		})
+		const { code, message, context } = payload.error
+		return new ApiError(message, { status, code, data: context })
 	}
 
 	/** `true` when the request never reached the server (offline, DNS, CORS, timeout). */
