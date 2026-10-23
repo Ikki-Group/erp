@@ -21,12 +21,15 @@ export function createUomRoute(service: UomService) {
 	return crudRoutes({
 		prefix: '/uom',
 		resource: 'uom',
+		tag: 'Units of Measure',
+		entity: 'unit of measure',
 		service,
 		schemas: { filter: UomFilterDto, dto: UomDto, create: UomCreateDto, update: UomUpdateDto },
 	})
 		.get('/conversion/list', async () => res.ok(await service.handleConversionList()), {
 			response: zRes.ok(z.array(UomConversionDto)),
 			permission: 'uom.read',
+			detail: { tags: ['UoM Conversions'], summary: 'List unit conversions' },
 		})
 		.post(
 			'/conversion/create',
@@ -35,6 +38,11 @@ export function createUomRoute(service: UomService) {
 				body: UomConversionCreateDto,
 				response: zRes.created(EntityRefDto),
 				permission: 'uom.create',
+				detail: {
+					tags: ['UoM Conversions'],
+					summary: 'Create a unit conversion',
+					description: 'Both units must exist and share the same category.',
+				},
 			},
 		)
 		.delete(
@@ -44,11 +52,18 @@ export function createUomRoute(service: UomService) {
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
 				permission: 'uom.delete',
+				detail: { tags: ['UoM Conversions'], summary: 'Delete a unit conversion' },
 			},
 		)
 		.post('/convert', async ({ body }) => res.ok(await service.handleConvert(body)), {
 			body: ConvertRequestDto,
 			response: zRes.ok(ConvertResponseDto),
 			permission: 'uom.read',
+			detail: {
+				tags: ['UoM Conversions'],
+				summary: 'Convert a quantity between units',
+				description:
+					'Read-only. Units must share a category; resolves a path through defined conversions and fails if none exists.',
+			},
 		})
 }

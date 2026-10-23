@@ -20,7 +20,7 @@ import type { RecipeService } from './recipe.service.ts'
 
 export function createRecipeRoute(recipeService: RecipeService) {
 	return (
-		new Elysia({ prefix: '/recipe', tags: ['recipe'] })
+		new Elysia({ prefix: '/recipe', tags: ['Recipes'] })
 			.use(rbac.as('scoped'))
 
 			// ─── Reads ───
@@ -31,7 +31,12 @@ export function createRecipeRoute(recipeService: RecipeService) {
 					const result = await recipeService.handleList(query, actor)
 					return res.paginated(result)
 				},
-				{ query: RecipeFilterDto, response: zRes.paginated(RecipeDto), permission: 'recipe.read' },
+				{
+					query: RecipeFilterDto,
+					response: zRes.paginated(RecipeDto),
+					permission: 'recipe.read',
+					detail: { summary: 'List recipes' },
+				},
 			)
 			.get(
 				'/detail',
@@ -39,7 +44,12 @@ export function createRecipeRoute(recipeService: RecipeService) {
 					const result = await recipeService.handleDetail(query.id, actor)
 					return res.ok(result)
 				},
-				{ query: zq.recordId, response: zRes.ok(RecipeDetailDto), permission: 'recipe.read' },
+				{
+					query: zq.recordId,
+					response: zRes.ok(RecipeDetailDto),
+					permission: 'recipe.read',
+					detail: { summary: 'Get a recipe' },
+				},
 			)
 			.get(
 				'/by-menu-item',
@@ -51,6 +61,7 @@ export function createRecipeRoute(recipeService: RecipeService) {
 					query: z.object({ menuItemId: z.coerce.number().int().positive() }),
 					response: zRes.ok(RecipeDetailDto),
 					permission: 'recipe.read',
+					detail: { summary: 'Get the active recipe of a menu item' },
 				},
 			)
 			.get(
@@ -70,6 +81,11 @@ export function createRecipeRoute(recipeService: RecipeService) {
 					}),
 					response: zRes.ok(HppResponseDto),
 					permission: 'recipe.read',
+					detail: {
+						summary: 'Calculate menu item HPP',
+						description:
+							"Computes the cost of goods (HPP) of a menu item from its active recipe, valuing each ingredient at the moving cost price held at `locationId`, divided by the recipe's yield. Read-only.",
+					},
 				},
 			)
 
@@ -85,6 +101,11 @@ export function createRecipeRoute(recipeService: RecipeService) {
 					body: RecipeCreateDto,
 					response: zRes.created(EntityRefDto),
 					permission: 'recipe.create',
+					detail: {
+						summary: 'Create a recipe',
+						description:
+							"Creates the menu item's recipe and makes it the active one; any previously active recipe for the item is deactivated.",
+					},
 				},
 			)
 			.put(
@@ -93,7 +114,12 @@ export function createRecipeRoute(recipeService: RecipeService) {
 					const result = await recipeService.handleUpdate(body, actor)
 					return res.ok(result)
 				},
-				{ body: RecipeUpdateDto, response: zRes.ok(EntityRefDto), permission: 'recipe.update' },
+				{
+					body: RecipeUpdateDto,
+					response: zRes.ok(EntityRefDto),
+					permission: 'recipe.update',
+					detail: { summary: 'Update a recipe' },
+				},
 			)
 			.delete(
 				'/remove',
@@ -101,7 +127,12 @@ export function createRecipeRoute(recipeService: RecipeService) {
 					const result = await recipeService.handleDelete(query.id, actor)
 					return res.ok(result)
 				},
-				{ query: zq.recordId, response: zRes.ok(EntityRefDto), permission: 'recipe.delete' },
+				{
+					query: zq.recordId,
+					response: zRes.ok(EntityRefDto),
+					permission: 'recipe.delete',
+					detail: { summary: 'Delete a recipe' },
+				},
 			)
 	)
 }

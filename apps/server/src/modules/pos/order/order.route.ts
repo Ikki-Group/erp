@@ -26,7 +26,7 @@ import type { OrderService } from './order.service.ts'
 
 export function createOrderRoute(service: OrderService) {
 	return (
-		new Elysia({ prefix: '/order' })
+		new Elysia({ prefix: '/order', tags: ['Orders'] })
 			.use(authPlugin)
 			.use(rbac)
 
@@ -38,7 +38,12 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleList(query)
 					return res.paginated(result)
 				},
-				{ query: OrderFilterDto, permission: 'order.read', response: zRes.paginated(OrderDto) },
+				{
+					query: OrderFilterDto,
+					permission: 'order.read',
+					response: zRes.paginated(OrderDto),
+					detail: { summary: 'List orders' },
+				},
 			)
 			.get(
 				'/list/cursor',
@@ -50,6 +55,7 @@ export function createOrderRoute(service: OrderService) {
 					query: OrderCursorFilterDto,
 					permission: 'order.read',
 					response: zRes.cursorPaginated(OrderDto),
+					detail: { summary: 'List orders (cursor)' },
 				},
 			)
 			.get(
@@ -58,7 +64,12 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleDetail(query.id, actor)
 					return res.ok(result)
 				},
-				{ query: zq.recordId, permission: 'order.read', response: zRes.ok(OrderDetailDto) },
+				{
+					query: zq.recordId,
+					permission: 'order.read',
+					response: zRes.ok(OrderDetailDto),
+					detail: { summary: 'Get order detail' },
+				},
 			)
 
 			// ─── Order Lifecycle ───
@@ -69,7 +80,16 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleCreate(body, actor)
 					return res.created(result)
 				},
-				{ body: OrderCreateDto, permission: 'order.create', response: zRes.created(EntityRefDto) },
+				{
+					body: OrderCreateDto,
+					permission: 'order.create',
+					response: zRes.created(EntityRefDto),
+					detail: {
+						summary: 'Create an order',
+						description:
+							'Opens a new order. Requires the caller to have an open shift at the location, and a table (if given) must belong to that location; a table is marked occupied. Idempotent on `externalRef`: a retry returns the existing order instead of creating another.',
+					},
+				},
 			)
 			.post(
 				'/complete',
@@ -77,7 +97,16 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleComplete(body, actor)
 					return res.ok(result)
 				},
-				{ body: OrderCompleteDto, permission: 'order.update', response: zRes.ok(EntityRefDto) },
+				{
+					body: OrderCompleteDto,
+					permission: 'order.update',
+					response: zRes.ok(EntityRefDto),
+					detail: {
+						summary: 'Complete an order',
+						description:
+							'Only an open, fully paid order can be completed. Deducts recipe ingredients from stock, counts the applied voucher as used, and frees the table.',
+					},
+				},
 			)
 			.post(
 				'/void',
@@ -85,7 +114,16 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleVoid(body, actor)
 					return res.ok(result)
 				},
-				{ body: OrderVoidDto, permission: 'order.void', response: zRes.ok(EntityRefDto) },
+				{
+					body: OrderVoidDto,
+					permission: 'order.void',
+					response: zRes.ok(EntityRefDto),
+					detail: {
+						summary: 'Void an order',
+						description:
+							'Only an open order can be voided; the reason is stored as the order notes and the table is freed. Stock is not deducted.',
+					},
+				},
 			)
 
 			// ─── Lines ───
@@ -96,7 +134,16 @@ export function createOrderRoute(service: OrderService) {
 					const result = await service.handleSyncLines(body, actor)
 					return res.ok(result)
 				},
-				{ body: OrderLineSyncDto, permission: 'order.update', response: zRes.ok(EntityRefDto) },
+				{
+					body: OrderLineSyncDto,
+					permission: 'order.update',
+					response: zRes.ok(EntityRefDto),
+					detail: {
+						summary: 'Sync order lines',
+						description:
+							'Replaces all lines of an open order with the submitted list (not a merge). Prices are re-resolved from the menu items, which must belong to the order location, and totals are recalculated.',
+					},
+				},
 			)
 
 			// ─── Voucher ───
@@ -111,6 +158,11 @@ export function createOrderRoute(service: OrderService) {
 					body: OrderApplyVoucherDto,
 					permission: 'discount.apply',
 					response: zRes.ok(OrderVoucherApplyResultDto),
+					detail: {
+						summary: 'Apply a voucher to an order',
+						description:
+							'Only on an open order with no voucher yet. An invalid voucher is not an error: the response has `applied: false` and a reason. On success the discount and totals are recalculated.',
+					},
 				},
 			)
 			.post(
@@ -123,6 +175,11 @@ export function createOrderRoute(service: OrderService) {
 					body: OrderRemoveVoucherDto,
 					permission: 'discount.apply',
 					response: zRes.ok(EntityRefDto),
+					detail: {
+						summary: 'Remove a voucher from an order',
+						description:
+							'Only on an open order that has a voucher. Clears the discount and recalculates totals.',
+					},
 				},
 			)
 
@@ -138,6 +195,11 @@ export function createOrderRoute(service: OrderService) {
 					body: OrderPaymentDto,
 					permission: 'payment.create',
 					response: zRes.created(EntityRefDto),
+					detail: {
+						summary: 'Record an order payment',
+						description:
+							'Only on an open order. The payment method must be available at the order location and the amount cannot exceed the remaining balance; partial payments are allowed.',
+					},
 				},
 			)
 	)

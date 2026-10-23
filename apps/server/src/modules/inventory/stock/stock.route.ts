@@ -18,7 +18,7 @@ import type { StockService } from './stock.service.ts'
 // ─── Route Factory ───
 
 export function createStockRoute(service: StockService) {
-	return new Elysia({ prefix: '/stock' })
+	return new Elysia({ prefix: '/stock', tags: ['Stock'] })
 		.use(authPlugin)
 		.use(rbac)
 
@@ -28,7 +28,12 @@ export function createStockRoute(service: StockService) {
 				const result = await service.handleGetBalance(query)
 				return res.ok(result)
 			},
-			{ query: StockBalanceQueryDto, response: zRes.ok(StockBalanceDto), permission: 'stock.read' },
+			{
+				query: StockBalanceQueryDto,
+				response: zRes.ok(StockBalanceDto),
+				permission: 'stock.read',
+				detail: { summary: 'Get stock balance for a material at a location' },
+			},
 		)
 		.get(
 			'/list',
@@ -40,6 +45,7 @@ export function createStockRoute(service: StockService) {
 				query: StockBalanceFilterDto,
 				response: zRes.paginated(StockBalanceDto),
 				permission: 'stock.read',
+				detail: { summary: 'List stock balances (offset)' },
 			},
 		)
 		.get(
@@ -52,6 +58,11 @@ export function createStockRoute(service: StockService) {
 				query: StockMovementFilterDto,
 				response: zRes.paginated(StockMovementDto),
 				permission: 'stock.read',
+				detail: {
+					summary: 'List stock movements (offset)',
+					description:
+						'Page-number pagination. For large or continuously growing ledgers prefer the cursor variant, which stays stable while new movements are posted.',
+				},
 			},
 		)
 		.get(
@@ -64,6 +75,11 @@ export function createStockRoute(service: StockService) {
 				query: StockMovementCursorFilterDto,
 				response: zRes.cursorPaginated(StockMovementDto),
 				permission: 'stock.read',
+				detail: {
+					summary: 'List stock movements (cursor)',
+					description:
+						'Keyset pagination ordered by `createdAt` then `id`, newest first. Same filters as the offset variant; pass the returned cursor to fetch the next page.',
+				},
 			},
 		)
 }

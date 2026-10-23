@@ -18,7 +18,7 @@ import type { AuditService } from './audit.service.ts'
 // ─── Route Factory ───
 
 export function createAuditRoute(service: AuditService) {
-	return new Elysia({ prefix: '/audit', tags: ['audit'] })
+	return new Elysia({ prefix: '/audit', tags: ['Audit Log'] })
 		.use(rbac.as('scoped'))
 		.get(
 			'/list',
@@ -26,7 +26,15 @@ export function createAuditRoute(service: AuditService) {
 				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
-			{ query: AuditLogFilterDto, response: zRes.paginated(AuditLogDto), permission: 'audit.read' },
+			{
+				query: AuditLogFilterDto,
+				response: zRes.paginated(AuditLogDto),
+				permission: 'audit.read',
+				detail: {
+					summary: 'List audit entries',
+					description: 'Company-wide feed, newest first; not filtered by the active location.',
+				},
+			},
 		)
 		.get(
 			'/list/cursor',
@@ -38,6 +46,7 @@ export function createAuditRoute(service: AuditService) {
 				query: AuditLogCursorFilterDto,
 				response: zRes.cursorPaginated(AuditLogDto),
 				permission: 'audit.read',
+				detail: { summary: 'List audit entries (cursor)' },
 			},
 		)
 		.get(
@@ -46,7 +55,12 @@ export function createAuditRoute(service: AuditService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: zRes.ok(AuditLogDetailDto), permission: 'audit.read' },
+			{
+				query: zq.recordId,
+				response: zRes.ok(AuditLogDetailDto),
+				permission: 'audit.read',
+				detail: { summary: 'Get an audit entry' },
+			},
 		)
 		.get(
 			'/by-entity',
@@ -58,6 +72,7 @@ export function createAuditRoute(service: AuditService) {
 				query: AuditByEntityDto,
 				response: zRes.ok(z.array(AuditLogDto)),
 				permission: 'audit.read',
+				detail: { summary: 'List audit entries for a record' },
 			},
 		)
 }

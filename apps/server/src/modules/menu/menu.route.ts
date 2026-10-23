@@ -42,13 +42,14 @@ export function createMenuRoute(
 	assignmentService: AssignmentService,
 	composedService: ComposedService,
 ) {
-	return new Elysia({ prefix: '/menu', tags: ['menu'] })
+	return new Elysia({ prefix: '/menu' })
 		.use(rbac.as('scoped'))
 		.use(
 			crudRoutes({
 				prefix: '/category',
 				resource: 'category',
-				tags: ['menu'],
+				tag: 'Menu Categories',
+				entity: 'menu category',
 				schemas: {
 					filter: MenuCategoryFilterDto,
 					dto: MenuCategoryDto,
@@ -63,7 +64,8 @@ export function createMenuRoute(
 			crudRoutes({
 				prefix: '/item',
 				resource: 'item',
-				tags: ['menu'],
+				tag: 'Menu Items',
+				entity: 'menu item',
 				schemas: {
 					filter: MenuItemFilterDto,
 					dto: MenuItemDto,
@@ -84,13 +86,20 @@ export function createMenuRoute(
 				body: MenuItemModifierSyncDto,
 				response: zRes.ok(EntityRefDto),
 				permission: 'item.update',
+				detail: {
+					tags: ['Menu Items'],
+					summary: 'Replace item modifier groups',
+					description:
+						"Replaces the menu item's whole modifier-group set with the given groups. Every group must belong to the item's location.",
+				},
 			},
 		)
 		.use(
 			crudRoutes({
 				prefix: '/modifier',
 				resource: 'modifier',
-				tags: ['menu'],
+				tag: 'Modifier Groups',
+				entity: 'modifier group',
 				schemas: {
 					filter: ModifierGroupFilterDto,
 					dto: ModifierGroupDto,

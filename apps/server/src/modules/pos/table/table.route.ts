@@ -12,7 +12,7 @@ import type { TableService } from './table.service.ts'
 // ─── Route Factory ───
 
 export function createTableRoute(service: TableService) {
-	return new Elysia({ prefix: '/table' })
+	return new Elysia({ prefix: '/table', tags: ['Tables'] })
 		.use(authPlugin)
 		.use(rbac)
 		.get(
@@ -21,7 +21,12 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
-			{ query: TableFilterDto, permission: 'table.manage', response: zRes.paginated(TableDto) },
+			{
+				query: TableFilterDto,
+				permission: 'table.manage',
+				response: zRes.paginated(TableDto),
+				detail: { summary: 'List tables' },
+			},
 		)
 		.get(
 			'/detail',
@@ -29,7 +34,12 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleGetById(query.id, actor)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, permission: 'table.manage', response: zRes.ok(TableDto) },
+			{
+				query: zq.recordId,
+				permission: 'table.manage',
+				response: zRes.ok(TableDto),
+				detail: { summary: 'Get table detail' },
+			},
 		)
 		.post(
 			'/create',
@@ -37,7 +47,12 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleCreate(body, actor)
 				return res.created(result)
 			},
-			{ body: TableCreateDto, permission: 'table.manage', response: zRes.created(EntityRefDto) },
+			{
+				body: TableCreateDto,
+				permission: 'table.manage',
+				response: zRes.created(EntityRefDto),
+				detail: { summary: 'Create a table' },
+			},
 		)
 		.put(
 			'/update',
@@ -45,7 +60,12 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleUpdate(body, actor)
 				return res.ok(result)
 			},
-			{ body: TableUpdateDto, permission: 'table.manage', response: zRes.ok(EntityRefDto) },
+			{
+				body: TableUpdateDto,
+				permission: 'table.manage',
+				response: zRes.ok(EntityRefDto),
+				detail: { summary: 'Update a table' },
+			},
 		)
 		.delete(
 			'/remove',
@@ -53,6 +73,11 @@ export function createTableRoute(service: TableService) {
 				const result = await service.handleDelete(query.id, actor)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, permission: 'table.manage', response: zRes.ok(EntityRefDto) },
+			{
+				query: zq.recordId,
+				permission: 'table.manage',
+				response: zRes.ok(EntityRefDto),
+				detail: { summary: 'Delete a table' },
+			},
 		)
 }

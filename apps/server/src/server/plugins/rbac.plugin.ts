@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia'
 
+import { PROTECTED_SECURITY } from '@/server/openapi.ts'
 import { actorFor } from '@/shared/auth/actor.ts'
 import { assertCan } from '@/shared/auth/permission.ts'
 import type { AuthContext } from '@/shared/auth/permission.ts'
@@ -20,6 +21,23 @@ function locationIdOf(source: unknown): number | null {
 }
 
 /**
+ * Adds the permission to the route's own description. `detail` from a macro would
+ * replace the route's description, and `@elysiajs/openapi` drops `detail.responses`
+ * whenever a route declares `response`, so the note goes through `introspect`,
+ * which receives the route hook.
+ */
+function documentPermission(hook: unknown, required: string): void {
+	// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Elysia passes the route hook here; its type only models macro options.
+	const route = hook as { detail?: { description?: string } }
+	// Where it must hold (and the 401/403 shapes) is explained once in the API introduction.
+	const note = `**Permission:** \`${required}\``
+	route.detail ??= {}
+	const { description } = route.detail
+	if (description?.includes(note)) return
+	route.detail.description = description ? `${description}\n\n${note}` : note
+}
+
+/**
  * Route guard. `{ permission: 'stock.read' }` authorizes the request and exposes
  * an `actor` bound to that permission:
  *
@@ -36,6 +54,8 @@ function locationIdOf(source: unknown): number | null {
 export const rbac = new Elysia({ name: 'rbac' }).use(authPlugin).macro({
 	permission(required: string) {
 		return {
+			detail: { security: PROTECTED_SECURITY, 'x-permission': required },
+			introspect: (hook) => documentPermission(hook, required),
 			resolve(context) {
 				// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Elysia 1.4 omits scoped derive fields from macro context types; authPlugin supplies `auth` at runtime.
 				const { auth, query, body } = context as unknown as {

@@ -18,6 +18,8 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 	return crudRoutes({
 		prefix: '/payment-method',
 		resource: 'payment-method',
+		tag: 'Payment Methods',
+		entity: 'payment method',
 		service,
 		schemas: {
 			filter: PaymentMethodFilterDto,
@@ -33,6 +35,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 				query: z.object({ locationId: z.coerce.number().int().positive() }),
 				response: zRes.ok(z.array(PaymentMethodDto)),
 				permission: 'payment-method.read',
+				detail: { summary: 'List payment methods at a location' },
 			},
 		)
 		.post(
@@ -42,6 +45,10 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 				body: PaymentMethodLocationAssignDto,
 				response: zRes.ok(EntityRefDto),
 				permission: 'payment-method.update',
+				detail: {
+					summary: 'Assign a payment method to a location',
+					description: 'Upserts the assignment, so calling it again updates `isEnabled`.',
+				},
 			},
 		)
 		.delete(
@@ -51,6 +58,7 @@ export function createPaymentMethodRoute(service: PaymentMethodService) {
 				body: PaymentMethodLocationAssignDto,
 				response: zRes.ok(EntityRefDto),
 				permission: 'payment-method.update',
+				detail: { summary: 'Unassign a payment method from a location' },
 			},
 		)
 }

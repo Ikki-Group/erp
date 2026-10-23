@@ -19,6 +19,8 @@ export function createSupplierRoute(svc: SupplierService) {
 	return crudRoutes({
 		prefix: '/supplier',
 		resource: 'supplier',
+		tag: 'Suppliers',
+		entity: 'supplier',
 		service: svc,
 		schemas: {
 			filter: SupplierFilterDto,
@@ -31,6 +33,7 @@ export function createSupplierRoute(svc: SupplierService) {
 			query: SupplierMaterialFilterDto,
 			response: zRes.paginated(SupplierMaterialDto),
 			permission: 'supplier.read',
+			detail: { tags: ['Supplier Pricing'], summary: 'List supplier material pricing' },
 		})
 		.post(
 			'/material/create',
@@ -39,6 +42,12 @@ export function createSupplierRoute(svc: SupplierService) {
 				body: SupplierMaterialCreateDto,
 				response: zRes.created(EntityRefDto),
 				permission: 'supplier.create',
+				detail: {
+					tags: ['Supplier Pricing'],
+					summary: 'Create supplier material pricing',
+					description:
+						'One price per supplier and material pair; fails if the pair already exists.',
+				},
 			},
 		)
 		.put(
@@ -48,6 +57,7 @@ export function createSupplierRoute(svc: SupplierService) {
 				body: SupplierMaterialUpdateDto,
 				response: zRes.ok(EntityRefDto),
 				permission: 'supplier.update',
+				detail: { tags: ['Supplier Pricing'], summary: 'Update supplier material pricing' },
 			},
 		)
 		.delete(
@@ -57,6 +67,7 @@ export function createSupplierRoute(svc: SupplierService) {
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
 				permission: 'supplier.delete',
+				detail: { tags: ['Supplier Pricing'], summary: 'Delete supplier material pricing' },
 			},
 		)
 }

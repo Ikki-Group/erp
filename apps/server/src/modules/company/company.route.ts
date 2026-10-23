@@ -9,15 +9,17 @@ import { CompanySettingsDto, CompanySettingsUpdateDto } from './company.contract
 import type { CompanyService } from './company.service.ts'
 
 export function createCompanyRoute(service: CompanyService) {
-	return new Elysia({ prefix: '/company', tags: ['company'] })
+	return new Elysia({ prefix: '/company', tags: ['Company'] })
 		.use(rbac.as('scoped'))
 		.get('/settings', async () => res.ok(await service.handleGetSettings()), {
 			response: zRes.ok(CompanySettingsDto),
 			permission: 'company.read',
+			detail: { summary: 'Get company settings' },
 		})
 		.put('/settings', async ({ body, actor }) => res.ok(await service.handleUpdate(body, actor)), {
 			body: CompanySettingsUpdateDto,
 			response: zRes.ok(EntityRefDto),
 			permission: 'company.update',
+			detail: { summary: 'Update company settings' },
 		})
 }

@@ -177,9 +177,13 @@ export const authPlugin = new Elysia({ name: 'auth-plugin' }).derive(
 		const sessionId = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
 		if (!sessionId) throw new UnauthorizedError('Authorization header missing')
 
-		const rawLocationId = headers[LOCATION_ID_HEADER]
-		const requestedLocationId = rawLocationId === undefined ? null : Number(rawLocationId)
-		if (rawLocationId !== undefined && !Number.isInteger(requestedLocationId)) {
+		// An empty header (API tools send one when the field is blank) means no active location.
+		const rawLocationId = headers[LOCATION_ID_HEADER]?.trim() ?? ''
+		const requestedLocationId = rawLocationId === '' ? null : Number(rawLocationId)
+		if (
+			requestedLocationId !== null &&
+			!(Number.isInteger(requestedLocationId) && requestedLocationId > 0)
+		) {
 			throw new ForbiddenError('Invalid location header', {
 				code: 'INVALID_LOCATION_HEADER',
 			})

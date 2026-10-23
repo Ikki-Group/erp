@@ -20,7 +20,7 @@ import type { TransferService } from './transfer.service.ts'
 // ─── Route Factory ───
 
 export function createTransferRoute(service: TransferService) {
-	return new Elysia({ prefix: '/transfer' })
+	return new Elysia({ prefix: '/transfer', tags: ['Transfers'] })
 		.use(authPlugin)
 		.use(rbac)
 
@@ -34,6 +34,7 @@ export function createTransferRoute(service: TransferService) {
 				query: TransferFilterDto,
 				response: zRes.paginated(TransferDto),
 				permission: 'transfer.read',
+				detail: { summary: 'List transfers' },
 			},
 		)
 		.get(
@@ -46,6 +47,7 @@ export function createTransferRoute(service: TransferService) {
 				query: TransferDetailQueryDto,
 				response: zRes.ok(TransferDetailDto),
 				permission: 'transfer.read',
+				detail: { summary: 'Get transfer detail' },
 			},
 		)
 		.post(
@@ -58,6 +60,11 @@ export function createTransferRoute(service: TransferService) {
 				body: TransferCreateDto,
 				auth: true,
 				permission: 'transfer.create',
+				detail: {
+					summary: 'Create a transfer request',
+					description:
+						'Authorized at the source location; the destination may be any other location and authorizes the receive step. Materials must be assigned to both locations. Creates the transfer as `requested`; no stock moves yet.',
+				},
 				response: zRes.created(EntityRefDto),
 			},
 		)
@@ -71,6 +78,11 @@ export function createTransferRoute(service: TransferService) {
 				body: TransferShipDto,
 				auth: true,
 				permission: 'transfer.ship',
+				detail: {
+					summary: 'Ship a transfer',
+					description:
+						'Authorized at the source location. Requested only: deducts the requested quantity of every line from source stock (`transfer_out`) and sets the status to `in_transit`.',
+				},
 				response: zRes.ok(EntityRefDto),
 			},
 		)
@@ -84,6 +96,11 @@ export function createTransferRoute(service: TransferService) {
 				body: TransferReceiveDto,
 				auth: true,
 				permission: 'transfer.receive',
+				detail: {
+					summary: 'Receive a transfer',
+					description:
+						'Authorized at the destination location. In-transit only. Line `receivedQty` values are deltas added to the quantity already received, and the total may not exceed the requested quantity. Each delta is posted as `transfer_in` at the shipped cost; the transfer becomes `received` once every line is fully received, otherwise stays `in_transit` (partial receipts allowed).',
+				},
 				response: zRes.ok(EntityRefDto),
 			},
 		)

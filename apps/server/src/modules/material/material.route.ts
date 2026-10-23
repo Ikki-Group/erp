@@ -30,6 +30,8 @@ export function createMaterialRoute(
 	return crudRoutes({
 		prefix: '/material',
 		resource: 'material',
+		tag: 'Materials',
+		entity: 'material',
 		service: materialService,
 		schemas: {
 			filter: MaterialFilterDto,
@@ -42,7 +44,8 @@ export function createMaterialRoute(
 			crudRoutes({
 				prefix: '/category',
 				resource: 'material',
-				tags: ['material'],
+				tag: 'Material Categories',
+				entity: 'material category',
 				detail: false,
 				service: categoryService,
 				schemas: {
@@ -60,6 +63,11 @@ export function createMaterialRoute(
 				body: MaterialAssignDto,
 				response: zRes.created(EntityRefDto),
 				permission: 'material.create',
+				detail: {
+					tags: ['Material Assignments'],
+					summary: 'Assign a material to a location',
+					description: 'Fails if the material is already assigned to the location.',
+				},
 			},
 		)
 		.post(
@@ -69,6 +77,11 @@ export function createMaterialRoute(
 				body: MaterialAssignDto,
 				response: zRes.ok(EntityRefDto),
 				permission: 'material.delete',
+				detail: {
+					tags: ['Material Assignments'],
+					summary: 'Unassign a material from a location',
+					description: 'Fails if the material is not assigned to the location.',
+				},
 			},
 		)
 		.get(
@@ -78,6 +91,10 @@ export function createMaterialRoute(
 				query: z.object({ locationId: z.coerce.number().int().positive() }),
 				response: zRes.ok(z.array(MaterialLocationDto)),
 				permission: 'material.read',
+				detail: {
+					tags: ['Material Assignments'],
+					summary: 'List materials assigned to a location',
+				},
 			},
 		)
 		.get(
@@ -87,6 +104,10 @@ export function createMaterialRoute(
 				query: z.object({ materialId: z.coerce.number().int().positive() }),
 				response: zRes.ok(z.array(MaterialLocationDto)),
 				permission: 'material.read',
+				detail: {
+					tags: ['Material Assignments'],
+					summary: 'List locations a material is assigned to',
+				},
 			},
 		)
 }

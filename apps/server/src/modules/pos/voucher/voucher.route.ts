@@ -19,7 +19,7 @@ import type { VoucherService } from './voucher.service.ts'
 // ─── Route Factory ───
 
 export function createVoucherRoute(service: VoucherService) {
-	return new Elysia({ prefix: '/voucher' })
+	return new Elysia({ prefix: '/voucher', tags: ['Vouchers'] })
 		.use(authPlugin)
 		.use(rbac)
 
@@ -33,6 +33,7 @@ export function createVoucherRoute(service: VoucherService) {
 				query: VoucherFilterDto,
 				permission: 'voucher.manage',
 				response: zRes.paginated(VoucherDto),
+				detail: { summary: 'List vouchers' },
 			},
 		)
 		.get(
@@ -41,7 +42,12 @@ export function createVoucherRoute(service: VoucherService) {
 				const result = await service.handleGetById(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, permission: 'voucher.manage', response: zRes.ok(VoucherDto) },
+			{
+				query: zq.recordId,
+				permission: 'voucher.manage',
+				response: zRes.ok(VoucherDto),
+				detail: { summary: 'Get voucher detail' },
+			},
 		)
 		.post(
 			'/create',
@@ -53,6 +59,7 @@ export function createVoucherRoute(service: VoucherService) {
 				body: VoucherCreateDto,
 				permission: 'voucher.manage',
 				response: zRes.created(EntityRefDto),
+				detail: { summary: 'Create a voucher' },
 			},
 		)
 		.put(
@@ -61,7 +68,12 @@ export function createVoucherRoute(service: VoucherService) {
 				const result = await service.handleUpdate(body, actor)
 				return res.ok(result)
 			},
-			{ body: VoucherUpdateDto, permission: 'voucher.manage', response: zRes.ok(EntityRefDto) },
+			{
+				body: VoucherUpdateDto,
+				permission: 'voucher.manage',
+				response: zRes.ok(EntityRefDto),
+				detail: { summary: 'Update a voucher' },
+			},
 		)
 		.delete(
 			'/remove',
@@ -69,7 +81,12 @@ export function createVoucherRoute(service: VoucherService) {
 				const result = await service.handleDelete(query.id, actor)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, permission: 'voucher.manage', response: zRes.ok(EntityRefDto) },
+			{
+				query: zq.recordId,
+				permission: 'voucher.manage',
+				response: zRes.ok(EntityRefDto),
+				detail: { summary: 'Delete a voucher' },
+			},
 		)
 		.post(
 			'/validate',
@@ -81,6 +98,11 @@ export function createVoucherRoute(service: VoucherService) {
 				body: VoucherValidateDto,
 				permission: 'discount.apply',
 				response: zRes.ok(VoucherValidateResponseDto),
+				detail: {
+					summary: 'Validate a voucher code',
+					description:
+						'Checks a code against an order total without applying it. An unusable voucher is not an error: the response has `valid: false` with a reason (not found, inactive, expired, usage limit, below minimum purchase).',
+				},
 			},
 		)
 }

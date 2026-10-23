@@ -25,7 +25,7 @@ import type { ProductionService } from './production.service.ts'
 
 export function createProductionRoute(service: ProductionService) {
 	return (
-		new Elysia({ prefix: '/production', tags: ['production'] })
+		new Elysia({ prefix: '/production' })
 			.use(authPlugin)
 			.use(rbac)
 
@@ -41,6 +41,7 @@ export function createProductionRoute(service: ProductionService) {
 					query: ProductionRecipeFilterDto,
 					response: zRes.paginated(ProductionRecipeDto),
 					permission: 'production.read',
+					detail: { tags: ['Production Recipes'], summary: 'List production recipes' },
 				},
 			)
 			.get(
@@ -53,6 +54,7 @@ export function createProductionRoute(service: ProductionService) {
 					query: ProductionDetailQueryDto,
 					response: zRes.ok(ProductionRecipeDetailDto),
 					permission: 'production.read',
+					detail: { tags: ['Production Recipes'], summary: 'Get a production recipe' },
 				},
 			)
 			.post(
@@ -66,6 +68,12 @@ export function createProductionRoute(service: ProductionService) {
 					auth: true,
 					permission: 'production.create',
 					response: zRes.created(EntityRefDto),
+					detail: {
+						tags: ['Production Recipes'],
+						summary: 'Create a production recipe',
+						description:
+							'The output material must be semi-finished, and every yield and input UoM must be convertible to its material base UoM.',
+					},
 				},
 			)
 			.put(
@@ -79,6 +87,7 @@ export function createProductionRoute(service: ProductionService) {
 					auth: true,
 					permission: 'production.update',
 					response: zRes.ok(EntityRefDto),
+					detail: { tags: ['Production Recipes'], summary: 'Update a production recipe' },
 				},
 			)
 			.delete(
@@ -92,6 +101,7 @@ export function createProductionRoute(service: ProductionService) {
 					auth: true,
 					permission: 'production.delete',
 					response: zRes.ok(EntityRefDto),
+					detail: { tags: ['Production Recipes'], summary: 'Delete a production recipe' },
 				},
 			)
 
@@ -107,6 +117,7 @@ export function createProductionRoute(service: ProductionService) {
 					query: ProductionOrderFilterDto,
 					response: zRes.paginated(ProductionOrderDto),
 					permission: 'production.read',
+					detail: { tags: ['Production Orders'], summary: 'List production orders' },
 				},
 			)
 			.get(
@@ -119,6 +130,7 @@ export function createProductionRoute(service: ProductionService) {
 					query: ProductionDetailQueryDto,
 					response: zRes.ok(ProductionOrderDetailDto),
 					permission: 'production.read',
+					detail: { tags: ['Production Orders'], summary: 'Get a production order' },
 				},
 			)
 			.post(
@@ -132,6 +144,12 @@ export function createProductionRoute(service: ProductionService) {
 					auth: true,
 					permission: 'production.create',
 					response: zRes.created(EntityRefDto),
+					detail: {
+						tags: ['Production Orders'],
+						summary: 'Create a production order',
+						description:
+							'Creates a draft order numbered `PRD-…`. Planned output is the recipe yield times `multiplier`; no stock moves until the order is confirmed.',
+					},
 				},
 			)
 			.post(
@@ -145,6 +163,12 @@ export function createProductionRoute(service: ProductionService) {
 					auth: true,
 					permission: 'production.confirm',
 					response: zRes.ok(EntityRefDto),
+					detail: {
+						tags: ['Production Orders'],
+						summary: 'Confirm a production order',
+						description:
+							'Completes a draft order: consumes the recipe inputs from stock (`production_out`) and posts the output material into stock (`production_in`) at the order location, costed from the consumed inputs. Fails if the order is already completed or not draft.',
+					},
 				},
 			)
 	)

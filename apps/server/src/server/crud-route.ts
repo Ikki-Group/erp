@@ -31,8 +31,10 @@ interface CrudRouteConfig<
 	prefix: string
 	/** Permission resource: routes require `<resource>.read|create|update|delete`. */
 	resource: string
-	/** OpenAPI tags; defaults to `[resource]`. */
-	tags?: string[]
+	/** OpenAPI tag (a name from `TAG_GROUPS` in `@/server/openapi.ts`), e.g. `Locations`. */
+	tag: string
+	/** Singular entity label for operation summaries, e.g. `location`. */
+	entity: string
 	schemas: { filter: F; dto: D; create: C; update: U }
 	service: CrudRouteService<z.output<F>, z.output<D>, z.output<C>, z.output<U>>
 	/**
@@ -55,7 +57,7 @@ export function crudRoutes<
 	U extends z.ZodType,
 	R extends z.ZodType = D,
 >(config: CrudRouteConfig<F, D, C, U, R>) {
-	const { prefix, resource } = config
+	const { prefix, resource, tag, entity } = config
 	// The generic signature ties the service to the schemas' outputs at the call site. Elysia
 	// cannot resolve schema types for type parameters, so routes are built against the erased
 	// shapes (method params are bivariant); request validation keeps the runtime contract.
@@ -65,7 +67,7 @@ export function crudRoutes<
 		| false
 		| { response: z.ZodType; handle: (id: number, actor: Actor) => Promise<unknown> }
 		| undefined = config.detail
-	const app = new Elysia({ prefix, tags: config.tags ?? [resource] })
+	const app = new Elysia({ prefix, tags: [tag] })
 		.use(rbac.as('scoped'))
 		.get(
 			'/list',
@@ -74,6 +76,7 @@ export function crudRoutes<
 				query: schemas.filter,
 				response: zRes.paginated(schemas.dto),
 				permission: `${resource}.read`,
+				detail: { summary: `List ${tag.toLowerCase()}` },
 			},
 		)
 
@@ -83,6 +86,7 @@ export function crudRoutes<
 			query: zq.recordId,
 			response: zRes.ok(detail.response),
 			permission: `${resource}.read`,
+			detail: { summary: `Get a ${entity}` },
 		})
 	} else if (detail === undefined) {
 		app.get(
@@ -92,6 +96,7 @@ export function crudRoutes<
 				query: zq.recordId,
 				response: zRes.ok(schemas.dto),
 				permission: `${resource}.read`,
+				detail: { summary: `Get a ${entity}` },
 			},
 		)
 	}
@@ -104,12 +109,14 @@ export function crudRoutes<
 				body: schemas.create,
 				response: zRes.created(EntityRefDto),
 				permission: `${resource}.create`,
+				detail: { summary: `Create a ${entity}` },
 			},
 		)
 		.put('/update', async ({ body, actor }) => res.ok(await service.handleUpdate(body, actor)), {
 			body: schemas.update,
 			response: zRes.ok(EntityRefDto),
 			permission: `${resource}.update`,
+			detail: { summary: `Update a ${entity}` },
 		})
 		.delete(
 			'/remove',
@@ -118,6 +125,7 @@ export function crudRoutes<
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
 				permission: `${resource}.delete`,
+				detail: { summary: `Remove a ${entity}` },
 			},
 		)
 }

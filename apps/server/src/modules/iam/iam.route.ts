@@ -32,17 +32,25 @@ export function createIamRoute(
 	assignmentService: AssignmentService,
 	composedService: ComposedService,
 ) {
-	return new Elysia({ prefix: '/iam', tags: ['iam'] })
+	return new Elysia({ prefix: '/iam' })
 		.use(rbac.as('scoped'))
 		.get('/role/list', async ({ query }) => res.paginated(await roleService.handleList(query)), {
 			query: RoleFilterDto,
 			response: zRes.paginated(RoleDto),
 			permission: 'iam.read',
+			detail: {
+				tags: ['Roles'],
+				summary: 'List roles',
+			},
 		})
 		.get('/role/detail', async ({ query }) => res.ok(await roleService.handleGetById(query.id)), {
 			query: zq.recordId,
 			response: zRes.ok(RoleDto),
 			permission: 'iam.read',
+			detail: {
+				tags: ['Roles'],
+				summary: 'Get a role',
+			},
 		})
 		.post(
 			'/role/create',
@@ -51,6 +59,10 @@ export function createIamRoute(
 				body: RoleCreateDto,
 				response: zRes.created(EntityRefDto),
 				permission: 'iam.create',
+				detail: {
+					tags: ['Roles'],
+					summary: 'Create a role',
+				},
 			},
 		)
 		.put(
@@ -60,6 +72,11 @@ export function createIamRoute(
 				body: RoleUpdateDto,
 				response: zRes.ok(EntityRefDto),
 				permission: 'iam.update',
+				detail: {
+					tags: ['Roles'],
+					summary: 'Update a role',
+					description: 'System roles are immutable.',
+				},
 			},
 		)
 		.delete(
@@ -69,6 +86,11 @@ export function createIamRoute(
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
 				permission: 'iam.delete',
+				detail: {
+					tags: ['Roles'],
+					summary: 'Delete a role',
+					description: 'System roles and roles with assignments cannot be deleted.',
+				},
 			},
 		)
 		.get(
@@ -78,6 +100,10 @@ export function createIamRoute(
 				query: ComposedUserFilterDto,
 				response: zRes.paginated(UserListItemDto),
 				permission: 'iam.read',
+				detail: {
+					tags: ['Users'],
+					summary: 'List users',
+				},
 			},
 		)
 		.get(
@@ -94,6 +120,12 @@ export function createIamRoute(
 				query: ComposedUserFilterDto,
 				response: zRes.paginated(LocationStaffListItemDto),
 				permission: 'location-staff.read',
+				detail: {
+					tags: ['Users'],
+					summary: 'List staff at the active location',
+					description:
+						'Lists users assigned to the **active location** (`X-Location-ID`); 400 if none is active. For an explicit location use `/iam/user/by-location`.',
+				},
 			},
 		)
 		.get(
@@ -104,6 +136,12 @@ export function createIamRoute(
 				query: ComposedUserFilterDto.extend({ locationId: z.coerce.number().int().positive() }),
 				response: zRes.paginated(LocationStaffListItemDto),
 				permission: 'iam.read',
+				detail: {
+					tags: ['Users'],
+					summary: 'List staff at a location',
+					description:
+						'Lists users assigned to the location given by the required `locationId` query. Unlike `/iam/user/location-staff/list`, it ignores the active location.',
+				},
 			},
 		)
 		.get(
@@ -113,6 +151,10 @@ export function createIamRoute(
 				query: zq.recordId,
 				response: zRes.ok(UserDetailDto),
 				permission: 'iam.read',
+				detail: {
+					tags: ['Users'],
+					summary: 'Get a user',
+				},
 			},
 		)
 		.post(
@@ -122,6 +164,10 @@ export function createIamRoute(
 				body: UserCreateDto,
 				response: zRes.created(EntityRefDto),
 				permission: 'iam.create',
+				detail: {
+					tags: ['Users'],
+					summary: 'Create a user',
+				},
 			},
 		)
 		.put(
@@ -131,6 +177,10 @@ export function createIamRoute(
 				body: UserUpdateDto,
 				response: zRes.ok(EntityRefDto),
 				permission: 'iam.update',
+				detail: {
+					tags: ['Users'],
+					summary: 'Update a user',
+				},
 			},
 		)
 		.delete(
@@ -140,6 +190,12 @@ export function createIamRoute(
 				query: zq.recordId,
 				response: zRes.ok(EntityRefDto),
 				permission: 'iam.delete',
+				detail: {
+					tags: ['Users'],
+					summary: 'Deactivate a user',
+					description:
+						'Sets the user inactive; the record is kept. Does not assign or remove roles.',
+				},
 			},
 		)
 		.put(
@@ -149,6 +205,11 @@ export function createIamRoute(
 				body: UserResetPasswordDto,
 				response: zRes.ok(EntityRefDto),
 				permission: 'iam.update',
+				detail: {
+					tags: ['Users'],
+					summary: 'Reset a user password',
+					description: 'Also signs the user out of every session.',
+				},
 			},
 		)
 		.get(
@@ -158,6 +219,10 @@ export function createIamRoute(
 				query: AssignmentFilterDto,
 				response: zRes.paginated(AssignmentDto),
 				permission: 'iam.read',
+				detail: {
+					tags: ['User Assignments'],
+					summary: 'List role assignments',
+				},
 			},
 		)
 		.post(
@@ -167,6 +232,12 @@ export function createIamRoute(
 				body: AssignmentCreateDto,
 				response: zRes.created(EntityRefDto),
 				permission: 'iam.create',
+				detail: {
+					tags: ['User Assignments'],
+					summary: 'Assign a role to a user',
+					description:
+						'A user is either global or location-scoped, never both, and may hold one role per location. The owner role must be global.',
+				},
 			},
 		)
 		.delete(
@@ -176,6 +247,11 @@ export function createIamRoute(
 				body: AssignmentRemoveDto,
 				response: zRes.ok(EntityRefDto),
 				permission: 'iam.delete',
+				detail: {
+					tags: ['User Assignments'],
+					summary: 'Remove a role assignment',
+					description: 'The last owner assignment cannot be removed.',
+				},
 			},
 		)
 }

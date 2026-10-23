@@ -12,6 +12,8 @@ export function createLocationRoute(service: LocationService) {
 	return crudRoutes({
 		prefix: '/location',
 		resource: 'location',
+		tag: 'Locations',
+		entity: 'location',
 		service,
 		schemas: {
 			filter: LocationFilterDto,

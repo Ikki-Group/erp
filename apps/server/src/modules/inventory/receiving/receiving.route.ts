@@ -20,7 +20,7 @@ import type { ReceivingService } from './receiving.service.ts'
 // ─── Route Factory ───
 
 export function createReceivingRoute(service: ReceivingService) {
-	return new Elysia({ prefix: '/receiving' })
+	return new Elysia({ prefix: '/receiving', tags: ['Receiving'] })
 		.use(authPlugin)
 		.use(rbac)
 
@@ -34,6 +34,7 @@ export function createReceivingRoute(service: ReceivingService) {
 				query: ReceivingFilterDto,
 				response: zRes.paginated(ReceivingDto),
 				permission: 'receiving.read',
+				detail: { summary: 'List receivings' },
 			},
 		)
 		.get(
@@ -46,6 +47,7 @@ export function createReceivingRoute(service: ReceivingService) {
 				query: ReceivingDetailQueryDto,
 				response: zRes.ok(ReceivingDetailDto),
 				permission: 'receiving.read',
+				detail: { summary: 'Get receiving detail' },
 			},
 		)
 		.post(
@@ -58,6 +60,11 @@ export function createReceivingRoute(service: ReceivingService) {
 				body: ReceivingCreateDto,
 				auth: true,
 				permission: 'receiving.create',
+				detail: {
+					summary: 'Create a draft receiving',
+					description:
+						'Creates a `draft` receiving with generated number. Materials must be assigned to the location and each line UoM must convert to the material base UoM. No stock is posted until confirmed.',
+				},
 				response: zRes.created(EntityRefDto),
 			},
 		)
@@ -71,6 +78,10 @@ export function createReceivingRoute(service: ReceivingService) {
 				body: ReceivingUpdateDto,
 				auth: true,
 				permission: 'receiving.update',
+				detail: {
+					summary: 'Update a draft receiving',
+					description: 'Draft only. When `lines` is supplied it replaces all existing lines.',
+				},
 				response: zRes.ok(EntityRefDto),
 			},
 		)
@@ -84,6 +95,11 @@ export function createReceivingRoute(service: ReceivingService) {
 				body: ReceivingConfirmDto,
 				auth: true,
 				permission: 'receiving.confirm',
+				detail: {
+					summary: 'Confirm a receiving',
+					description:
+						'Draft only. Posts a `purchase_receipt` stock-in movement per line at the receiving location, converting quantity and unit cost to the material base UoM, then marks the receiving `confirmed`.',
+				},
 				response: zRes.ok(EntityRefDto),
 			},
 		)
