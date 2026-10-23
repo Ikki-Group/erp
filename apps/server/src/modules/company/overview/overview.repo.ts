@@ -71,13 +71,16 @@ export function createOverviewRepo(db: DbContext, timeZone: string): IOverviewRe
 		},
 
 		async findPeople() {
+			// Joined so Drizzle qualifies every column; a NOT EXISTS written as raw SQL renders
+			// `"id"` unqualified and binds it to the subquery's own table.
 			const [userRow] = await db
 				.select({
-					active: sql<number>`count(*) filter (where ${users.isActive})::int`,
-					inactive: sql<number>`count(*) filter (where not ${users.isActive})::int`,
-					withoutAccess: sql<number>`count(*) filter (where ${users.isActive} and not exists (select 1 from ${userAssignments} where ${userAssignments.userId} = ${users.id}))::int`,
+					active: sql<number>`count(distinct ${users.id}) filter (where ${users.isActive})::int`,
+					inactive: sql<number>`count(distinct ${users.id}) filter (where not ${users.isActive})::int`,
+					withoutAccess: sql<number>`count(distinct ${users.id}) filter (where ${users.isActive} and ${userAssignments.id} is null)::int`,
 				})
 				.from(users)
+				.leftJoin(userAssignments, eq(userAssignments.userId, users.id))
 			const [roleRow] = await db.select({ total: count }).from(roles)
 			return {
 				activeUsers: userRow?.active ?? 0,
