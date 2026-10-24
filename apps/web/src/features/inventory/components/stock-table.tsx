@@ -1,0 +1,148 @@
+import { useMemo, useState } from 'react'
+
+import { useQuery } from '@tanstack/react-query'
+import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+
+import type { ListSearch } from '@/components/data-table'
+import {
+	CurrencyCell,
+	NumericCell,
+	rightAlignedHeader,
+	TextCell,
+} from '@/components/data-table/cell'
+import { DataTable } from '@/components/data-table/data-table'
+import { useServerTable } from '@/components/data-table/use-server-table'
+import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
+import { EmptyState } from '@/components/shared/empty-state'
+import { PageError } from '@/components/shared/page-error'
+import { StatusBadge, type StatusBadgeVariant } from '@/components/shared/status-badge'
+
+import { stockBalanceList } from '@/features/inventory/api.ts'
+import type { StockBalanceDto } from '@/features/inventory/dto/index.ts'
+
+// ─── Stock Status Logic ───
+
+type StockStatus = 'normal' | 'low' | 'out'
+
+function getStockStatus(qty: string, minStock: string | null): StockStatus {
+	const n = Number(qty)
+	if (n <= 0) return 'out'
+	if (minStock !== null && n <= Number(minStock)) return 'low'
+	return 'normal'
+}
+
+const STATUS_CONFIG: Record<StockStatus, { label: string; variant: StatusBadgeVariant }> = {
+	normal: { label: 'Normal', variant: 'success' },
+	low: { label: 'Stok Rendah', variant: 'warning' },
+	out: { label: 'Habis', variant: 'destructive' },
+}
+
+// ─── Columns ───
+
+const col = createColumnHelper<DataGridFeatures, StockBalanceDto>()
+
+const baseColumns = [
+	col.accessor('materialCode', {
+		header: 'Kode',
+		size: 90,
+		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
+	}),
+	col.accessor('materialName', {
+		header: 'Material',
+		size: 220,
+		cell: ({ getValue }) => <TextCell value={getValue()} truncate className="font-medium" />,
+	}),
+	col.accessor('quantity', {
+		header: rightAlignedHeader('Stok'),
+		size: 110,
+		cell: ({ row }) => <NumericCell value={row.original.quantity} unit={row.original.uomCode} />,
+	}),
+	col.accessor('minStock', {
+		header: rightAlignedHeader('Min. Stok'),
+		size: 100,
+		cell: ({ getValue, row }) => (
+			<NumericCell value={getValue()} unit={row.original.uomCode} muted />
+		),
+	}),
+	col.accessor('costPrice', {
+		header: rightAlignedHeader('Harga Pokok'),
+		size: 140,
+		cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
+	}),
+	col.display({
+		id: 'status',
+		header: 'Status',
+		size: 130,
+		cell: ({ row }) => {
+			const status = getStockStatus(row.original.quantity, row.original.minStock)
+			const config = STATUS_CONFIG[status]
+			return <StatusBadge variant={config.variant}>{config.label}</StatusBadge>
+		},
+	}),
+]
+
+// ─── Props ───
+
+interface StockTableProps {
+	locationId: number
+	onRowClick?: (balance: StockBalanceDto) => void
+}
+
+// Embedded (non-route) table: its pagination isn't a shareable URL, so it holds
+// the same URL-shaped `ListSearch` state locally and feeds it to the hook.
+const INITIAL_SEARCH: ListSearch = { page: 1, pageSize: 10 }
+
+export function StockTable({ locationId, onRowClick }: StockTableProps) {
+	const [search, setSearch] = useState<ListSearch>(INITIAL_SEARCH)
+
+	const listQuery = useQuery(
+		stockBalanceList.queryOptions(
+			{ locationId, page: search.page, limit: search.pageSize },
+			{ enabled: locationId > 0 },
+		),
+	)
+
+	const data = listQuery.data?.data ?? []
+	const totalCount = listQuery.data?.meta?.total ?? 0
+
+	const columns = useMemo(() => baseColumns as ColumnDef<DataGridFeatures, StockBalanceDto>[], [])
+
+	const { table } = useServerTable({
+		data,
+		columns,
+		totalCount,
+		search,
+		onSearchChange: setSearch,
+	})
+
+	const isEmpty = !listQuery.isLoading && data.length === 0
+
+	if (listQuery.isError) {
+		return (
+			<PageError
+				title="Gagal memuat data stok"
+				message="Tidak dapat terhubung ke server. Periksa koneksi Anda dan coba lagi."
+				onRetry={() => listQuery.refetch()}
+			/>
+		)
+	}
+
+	if (isEmpty) {
+		return (
+			<EmptyState
+				title="Belum ada data stok"
+				description="Stok akan muncul setelah ada penerimaan barang di lokasi ini."
+			/>
+		)
+	}
+
+	return (
+		<DataTable
+			table={table}
+			recordCount={totalCount}
+			isLoading={listQuery.isLoading}
+			emptyMessage="Tidak ada data stok."
+			onRowClick={onRowClick}
+		/>
+	)
+}

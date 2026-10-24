@@ -1,103 +1,142 @@
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
+import { suppliers, supplierMaterials } from '@/db/schema/supplier.ts'
 
-import {
-	paginate,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/core/database'
-
-import { suppliersTable } from '@/db/schema/supplier'
+import { createCrudRepo } from '@/infra/database/crud.repo.ts'
+import type { SoftDeleteCrudRepo } from '@/infra/database/crud.repo.ts'
+import { allOf, and, eq, eqIf, searchAcross, takeFirst } from '@/infra/database/index.ts'
+import type { DbContext } from '@/infra/database/index.ts'
+import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
 
 import type {
-	SupplierCreateDto,
 	SupplierDto,
 	SupplierFilterDto,
-	SupplierUpdateDto,
-} from './supplier.dto'
+	SupplierMaterialDto,
+	SupplierMaterialFilterDto,
+} from './supplier.contract.ts'
 
-export class SupplierRepo {
-	constructor(private readonly db: DbClient) {}
+// ─── Types ───
 
-	/* ---------------------------------- QUERY --------------------------------- */
+type SupplierInsert = typeof suppliers.$inferInsert
 
-	async getListPaginated(filter: SupplierFilterDto): Promise<WithPaginationResult<SupplierDto>> {
-		return record('SupplierRepo.getListPaginated', async () => {
-			const { q, page, limit } = filter
+type SupplierMaterialInsert = typeof supplierMaterials.$inferInsert
+type SupplierMaterialUpdate = Partial<Omit<SupplierMaterialInsert, 'id'>>
 
-			const searchCondition = q
-				? or(ilike(suppliersTable.name, `%${q}%`), ilike(suppliersTable.code, `%${q}%`))
-				: undefined
+type SupplierRow = typeof suppliers.$inferSelect
+type SupplierMaterialRow = typeof supplierMaterials.$inferSelect
 
-			const where = and(isNull(suppliersTable.deletedAt), searchCondition)
+// ─── Mappers ───
 
-			return paginate<SupplierDto>({
-				data: ({ limit: l, offset }) =>
-					this.db
-						.select()
-						.from(suppliersTable)
-						.where(where)
-						.orderBy(sortBy(suppliersTable.updatedAt, 'desc'))
-						.limit(l)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(suppliersTable).where(where),
-			})
-		})
+function toDto(row: SupplierRow): SupplierDto {
+	return {
+		id: row.id,
+		code: row.code,
+		name: row.name,
+		contactPerson: row.contactPerson,
+		phone: row.phone,
+		email: row.email,
+		address: row.address,
+		paymentTerms: row.paymentTerms,
+		isActive: row.isActive,
+		createdAt: row.createdAt,
+		updatedAt: row.updatedAt,
+		createdBy: row.createdBy,
+		updatedBy: row.updatedBy,
 	}
+}
 
-	async getById(id: number): Promise<SupplierDto | undefined> {
-		return record('SupplierRepo.getById', async () => {
-			return this.db
+function toPricingDto(row: SupplierMaterialRow): SupplierMaterialDto {
+	return {
+		id: row.id,
+		supplierId: row.supplierId,
+		materialId: row.materialId,
+		unitPrice: row.unitPrice,
+		uomId: row.uomId,
+		minOrderQty: row.minOrderQty,
+		createdAt: row.createdAt,
+		updatedAt: row.updatedAt,
+		createdBy: row.createdBy,
+		updatedBy: row.updatedBy,
+	}
+}
+
+// ─── Interface ───
+
+export interface ISupplierRepo extends SoftDeleteCrudRepo<SupplierDto, SupplierInsert> {
+	findPage(filter: SupplierFilterDto, db?: DbContext): Promise<WithPaginationResult<SupplierDto>>
+
+	// ─── Supplier-Material Pricing ───
+	findPricingById(id: number, db?: DbContext): Promise<SupplierMaterialDto | undefined>
+	findPricingPage(
+		filter: SupplierMaterialFilterDto,
+		db?: DbContext,
+	): Promise<WithPaginationResult<SupplierMaterialDto>>
+	findPricingByPair(
+		supplierId: number,
+		materialId: number,
+		db?: DbContext,
+	): Promise<SupplierMaterialDto | undefined>
+	insertPricing(data: SupplierMaterialInsert, db?: DbContext): Promise<EntityRef | undefined>
+	updatePricing(
+		id: number,
+		data: SupplierMaterialUpdate,
+		db?: DbContext,
+	): Promise<EntityRef | undefined>
+	removePricing(id: number, db?: DbContext): Promise<EntityRef | undefined>
+}
+
+// ─── Implementation ───
+
+export function createSupplierRepo(baseDb: DbContext): ISupplierRepo {
+	const crud = createCrudRepo({ db: baseDb, table: suppliers, toDto, softDelete: true })
+	const pricing = createCrudRepo({ db: baseDb, table: supplierMaterials, toDto: toPricingDto })
+
+	return {
+		...crud,
+
+		findPage: (filter, db) =>
+			crud.paginate(
+				filter,
+				{
+					where: allOf(
+						searchAcross(filter.q, [suppliers.code, suppliers.name]),
+						eqIf(suppliers.isActive, filter.isActive),
+					),
+				},
+				db,
+			),
+
+		// ─── Supplier-Material Pricing ───
+
+		findPricingById: pricing.findById,
+		insertPricing: pricing.insert,
+		updatePricing: pricing.update,
+		removePricing: pricing.remove,
+
+		findPricingPage: (filter, db) =>
+			pricing.paginate(
+				filter,
+				{
+					where: allOf(
+						eqIf(supplierMaterials.supplierId, filter.supplierId),
+						eqIf(supplierMaterials.materialId, filter.materialId),
+					),
+				},
+				db,
+			),
+
+		async findPricingByPair(supplierId, materialId, db = baseDb) {
+			const row = await db
 				.select()
-				.from(suppliersTable)
-				.where(and(eq(suppliersTable.id, id), isNull(suppliersTable.deletedAt)))
+				.from(supplierMaterials)
+				.where(
+					and(
+						eq(supplierMaterials.supplierId, supplierId),
+						eq(supplierMaterials.materialId, materialId),
+					),
+				)
 				.limit(1)
 				.then(takeFirst)
-		})
-	}
-
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: SupplierCreateDto, actorId: number): Promise<number | undefined> {
-		return record('SupplierRepo.create', async () => {
-			const metadata = stampCreate(actorId)
-			const [res] = await this.db
-				.insert(suppliersTable)
-				.values({ ...data, ...metadata })
-				.returning({ id: suppliersTable.id })
-
-			return res?.id
-		})
-	}
-
-	async update(data: SupplierUpdateDto, actorId: number): Promise<number | undefined> {
-		return record('SupplierRepo.update', async () => {
-			const { id, ...rest } = data
-			const metadata = stampUpdate(actorId)
-			const [res] = await this.db
-				.update(suppliersTable)
-				.set({ ...rest, ...metadata })
-				.where(eq(suppliersTable.id, id))
-				.returning({ id: suppliersTable.id })
-
-			return res?.id
-		})
-	}
-
-	async remove(id: number, actorId: number): Promise<number | undefined> {
-		return record('SupplierRepo.remove', async () => {
-			const [res] = await this.db
-				.update(suppliersTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(suppliersTable.id, id))
-				.returning({ id: suppliersTable.id })
-
-			return res?.id
-		})
+			return row ? toPricingDto(row) : undefined
+		},
 	}
 }

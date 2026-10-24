@@ -1,124 +1,225 @@
-import { record } from '@elysiajs/opentelemetry'
+import { suppliers } from '@/db/schema/supplier.ts'
 
-import { CacheService, type CacheClient } from '@/core/cache'
-import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
-import { InternalServerError, NotFoundError } from '@/core/http/errors'
+import { CacheService } from '@/infra/cache/index.ts'
+import type { CacheClient } from '@/infra/cache/index.ts'
+import { checkConflict } from '@/infra/database/conflict.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { MutationScope } from '@/shared/service/mutate.ts'
+import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
+import { assertFound } from '@/shared/utils/index.ts'
 
-import { suppliersTable } from '@/db/schema/supplier'
+import type { MaterialService } from '@/modules/material/material.service.ts'
+import type { UomService } from '@/modules/uom/uom.service.ts'
 
 import type {
 	SupplierCreateDto,
 	SupplierDto,
 	SupplierFilterDto,
+	SupplierMaterialCreateDto,
+	SupplierMaterialDto,
+	SupplierMaterialFilterDto,
+	SupplierMaterialUpdateDto,
 	SupplierUpdateDto,
-} from './supplier.dto'
-import { SupplierRepo } from './supplier.repo'
+} from './supplier.contract.ts'
+import { SupplierError, uniqueFields } from './supplier.internal.ts'
+import type { ISupplierRepo } from './supplier.repo.ts'
 
-const supplierConflictFields: ConflictField<'code'>[] = [
-	{
-		field: 'code',
-		column: suppliersTable.code,
-		message: 'Supplier code already exists',
-		code: 'SUPPLIER_CODE_ALREADY_EXISTS',
-	},
-]
+// ─── Service ───
 
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError(`Supplier with ID ${id} not found`, 'SUPPLIER_NOT_FOUND'),
-	createFailed: () => new InternalServerError('Supplier creation failed', 'SUPPLIER_CREATE_FAILED'),
+export interface SupplierServiceDeps {
+	uow: UnitOfWork
+	audit: AuditPort
 }
 
 export class SupplierService {
 	private readonly cache: CacheService
+	private readonly mutation: MutationScope
+	private readonly pricingMutation: MutationScope
 
 	constructor(
-		private readonly repo: SupplierRepo,
+		private readonly repo: ISupplierRepo,
 		cacheClient: CacheClient,
+		private readonly materialService: MaterialService,
+		private readonly uomService: UomService,
+		deps: SupplierServiceDeps,
 	) {
-		this.cache = new CacheService({ ns: 'supplier', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'supplier')
+		const scope = { uow: deps.uow, audit: deps.audit, module: 'supplier' }
+		this.mutation = { ...scope, entity: 'supplier', invalidate: this.cache }
+		this.pricingMutation = { ...scope, entity: 'supplier_material' }
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
+	// ─── Cached Reads ───
 
 	async getById(id: number): Promise<SupplierDto | undefined> {
-		return record('SupplierService.getById', async () => {
-			return this.cache.getOrSetSkipUndefined({
-				key: `byId:${id}`,
-				factory: () => this.repo.getById(id),
-			})
+		return this.cache.getOrSetWithSkip({
+			key: this.cache.keys.byId(id),
+			factory: () => this.repo.findById(id),
 		})
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
+	async getByIds(ids: number[]): Promise<SupplierDto[]> {
+		return this.repo.findByIds(ids)
+	}
+
+	// ─── Supplier Handlers ───
+
+	async handleGetById(id: number): Promise<SupplierDto> {
+		return assertFound(await this.getById(id), () => SupplierError.notFound(id))
+	}
 
 	async handleList(filter: SupplierFilterDto): Promise<WithPaginationResult<SupplierDto>> {
-		return record('SupplierService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
-		})
+		return this.repo.findPage(filter)
 	}
 
-	async handleDetail(id: number): Promise<SupplierDto> {
-		return record('SupplierService.handleDetail', async () => {
-			const result = await this.getById(id)
-			if (!result) throw err.notFound(id)
-			return result
-		})
-	}
-
-	async handleCreate(data: SupplierCreateDto, actorId: number): Promise<{ id: number }> {
-		return record('SupplierService.handleCreate', async () => {
+	async handleCreate(data: SupplierCreateDto, actor: Actor): Promise<EntityRef> {
+		return mutate(this.mutation, actor, async (tx) => {
 			await checkConflict({
-				table: suppliersTable,
-				pkColumn: suppliersTable.id,
-				fields: supplierConflictFields,
+				db: tx,
+				table: suppliers,
+				pkColumn: suppliers.id,
+				fields: uniqueFields,
 				input: data,
 			})
 
-			const result = await this.repo.create(data, actorId)
-			if (!result) throw err.createFailed()
-
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
-
-			return { id: result }
+			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
+			if (!written) throw SupplierError.createFailed()
+			return {
+				result: written,
+				audit: {
+					action: 'create',
+					summary: `Created supplier "${data.name}" (${data.code})`,
+					newValues: { code: data.code, name: data.name },
+				},
+			}
 		})
 	}
 
-	async handleUpdate(data: SupplierUpdateDto, actorId: number): Promise<{ id: number }> {
-		return record('SupplierService.handleUpdate', async () => {
-			const { id } = data
-
-			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
+	async handleUpdate(data: SupplierUpdateDto, actor: Actor): Promise<EntityRef> {
+		const { id, ...updateData } = data
+		return mutate(this.mutation, actor, async (tx) => {
+			const existing = await this.repo.findById(id, tx)
+			if (!existing) throw SupplierError.notFound(id)
 
 			await checkConflict({
-				table: suppliersTable,
-				pkColumn: suppliersTable.id,
-				fields: supplierConflictFields,
-				input: data,
-				existing,
+				db: tx,
+				table: suppliers,
+				pkColumn: suppliers.id,
+				fields: uniqueFields,
+				input: updateData,
+				excludeId: id,
 			})
 
-			const result = await this.repo.update(data, actorId)
-			if (!result) throw err.notFound(id)
-
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
-			return { id }
+			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
+			if (!written) throw SupplierError.updateFailed(id)
+			return {
+				result: written,
+				audit: {
+					action: 'update',
+					summary: `Updated supplier "${data.name}" (${data.code})`,
+					oldValues: { code: existing.code, name: existing.name },
+					newValues: { code: data.code, name: data.name },
+				},
+			}
 		})
 	}
 
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
-		return record('SupplierService.handleRemove', async () => {
-			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
+	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
+		return mutate(this.mutation, actor, async (tx) => {
+			const existing = await this.repo.findById(id, tx)
+			if (!existing) throw SupplierError.notFound(id)
 
-			const result = await this.repo.remove(id, actorId)
-			if (!result) throw err.notFound(id)
+			const written = await this.repo.remove(id, stampUpdate(actor.id), tx)
+			if (!written) throw SupplierError.deleteFailed(id)
+			return {
+				result: written,
+				audit: {
+					action: 'delete',
+					summary: `Deleted supplier "${existing.name}" (${existing.code})`,
+				},
+			}
+		})
+	}
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+	// ─── Pricing Handlers ───
 
-			return { id }
+	async handlePricingList(
+		filter: SupplierMaterialFilterDto,
+	): Promise<WithPaginationResult<SupplierMaterialDto>> {
+		return this.repo.findPricingPage(filter)
+	}
+
+	async handlePricingCreate(data: SupplierMaterialCreateDto, actor: Actor): Promise<EntityRef> {
+		await this.handleGetById(data.supplierId)
+		await this.materialService.handleGetById(data.materialId)
+		await this.uomService.handleGetById(data.uomId)
+
+		return mutate(this.pricingMutation, actor, async (tx) => {
+			const existing = await this.repo.findPricingByPair(data.supplierId, data.materialId, tx)
+			if (existing) throw SupplierError.pricingExists(data.supplierId, data.materialId)
+
+			const written = await this.repo.insertPricing({ ...data, ...stampCreate(actor.id) }, tx)
+			if (!written) throw SupplierError.pricingCreateFailed()
+			return {
+				result: written,
+				audit: {
+					action: 'create',
+					summary: `Created pricing for supplier #${data.supplierId} / material #${data.materialId}`,
+					newValues: {
+						supplierId: data.supplierId,
+						materialId: data.materialId,
+						unitPrice: data.unitPrice,
+					},
+				},
+			}
+		})
+	}
+
+	async handlePricingUpdate(data: SupplierMaterialUpdateDto, actor: Actor): Promise<EntityRef> {
+		const { id, ...updateData } = data
+		await this.uomService.handleGetById(updateData.uomId)
+
+		return mutate(this.pricingMutation, actor, async (tx) => {
+			const existing = await this.repo.findPricingById(id, tx)
+			if (!existing) throw SupplierError.pricingNotFound(id)
+
+			const written = await this.repo.updatePricing(
+				id,
+				{ ...updateData, ...stampUpdate(actor.id) },
+				tx,
+			)
+			if (!written) throw SupplierError.pricingUpdateFailed(id)
+			return {
+				result: written,
+				audit: {
+					action: 'update',
+					summary: `Updated pricing #${id} for supplier #${existing.supplierId} / material #${existing.materialId}`,
+					oldValues: { unitPrice: existing.unitPrice, uomId: existing.uomId },
+					newValues: { unitPrice: updateData.unitPrice, uomId: updateData.uomId },
+				},
+			}
+		})
+	}
+
+	async handlePricingDelete(id: number, actor: Actor): Promise<EntityRef> {
+		return mutate(this.pricingMutation, actor, async (tx) => {
+			const existing = await this.repo.findPricingById(id, tx)
+			if (!existing) throw SupplierError.pricingNotFound(id)
+
+			const written = await this.repo.removePricing(id, tx)
+			if (!written) throw SupplierError.pricingNotFound(id)
+			return {
+				result: written,
+				audit: {
+					action: 'delete',
+					summary: `Deleted pricing for supplier #${existing.supplierId} / material #${existing.materialId}`,
+				},
+			}
 		})
 	}
 }

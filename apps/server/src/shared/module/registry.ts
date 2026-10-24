@@ -1,0 +1,29 @@
+import type { CacheClient } from '@/infra/cache/index.ts'
+import type { DbContext } from '@/infra/database/client.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import type { SessionStore } from '@/shared/auth/session.port.ts'
+import type { CachePort } from '@/shared/cache/cache.port.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
+
+import type { AnyElysia } from 'elysia'
+
+export interface ModuleContext {
+	db: DbContext
+	uow: UnitOfWork
+	cache: CachePort
+	cacheClient: CacheClient
+	sessionStore: SessionStore
+	auditPort: AuditPort
+}
+
+export interface ModuleDescriptor {
+	name: string
+	layer: 0 | 1 | 2 | 3
+	dependsOn: string[]
+	create(ctx: ModuleContext, deps: Record<string, BuiltModule>): BuiltModule
+}
+
+export interface BuiltModule {
+	route?: AnyElysia
+	api?: Record<string, unknown>
+}

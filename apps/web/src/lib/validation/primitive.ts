@@ -10,11 +10,15 @@ const bool = z.boolean()
 const boolCoerce = z.coerce.boolean()
 
 const date = z.coerce.date()
+const dateNullable = date.nullable()
 
 const id = z.number().int().positive()
-const uuid = z.uuidv7()
+const uuid = z.uuid()
 
-const decimal = z.coerce.number()
+// Decimal values arrive as strings over the wire (server numeric → JSON string).
+// Keep the inferred type as `string` to match the server contract; components
+// convert with Number(...) at the point of use. Lightweight: no coercion.
+const decimal = z.string()
 
 export const zp = {
 	str,
@@ -24,6 +28,7 @@ export const zp = {
 	bool,
 	boolCoerce,
 	date,
+	dateNullable,
 	id,
 	uuid,
 	decimal,

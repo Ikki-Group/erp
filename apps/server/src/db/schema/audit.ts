@@ -1,42 +1,35 @@
-import { pgEnum, pgTable, text, integer, timestamp, jsonb } from 'drizzle-orm/pg-core'
+import { pgTable, varchar, integer, jsonb, timestamp, index } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { pk } from './_helpers.ts'
+import { locations } from './core.ts'
+import { users } from './iam.ts'
 
-export const auditActionEnum = pgEnum('audit_action', [
-	'CREATE',
-	'UPDATE',
-	'DELETE',
-	'LOGIN',
-	'LOGOUT',
-	'OTHER',
-])
+// ─── Audit Logs ───
 
-/**
- * Audit Log Table
- *
- * Tracks all user actions for compliance and security auditing.
- */
-export const auditLogsTable = pgTable('audit_logs', {
-	...pk,
-	/** User who performed the action */
-	userId: integer().notNull(),
-	/** Action type (CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.) */
-	action: auditActionEnum('action').notNull(),
-	/** Entity type (table name or resource name) */
-	entityType: text('entity_type').notNull(),
-	/** Entity ID (record ID that was affected) */
-	entityId: text('entity_id'),
-	/** Description of the action */
-	description: text('description').notNull(),
-	/** Old value before change (for UPDATE actions) */
-	oldValue: jsonb('old_value'),
-	/** New value after change (for CREATE/UPDATE actions) */
-	newValue: jsonb('new_value'),
-	/** IP address of the user */
-	ipAddress: text('ip_address'),
-	/** User agent string */
-	userAgent: text('user_agent'),
-	/** Timestamp when the action occurred */
-	actionAt: timestamp('action_at').defaultNow().notNull(),
-	...auditColumns,
-})
+export const auditLogs = pgTable(
+	'audit_logs',
+	{
+		...pk,
+		timestamp: timestamp('timestamp', { withTimezone: true }).notNull().defaultNow(),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		userName: varchar('user_name', { length: 255 }).notNull(),
+		locationId: integer('location_id').references(() => locations.id, { onDelete: 'set null' }),
+		module: varchar('module', { length: 50 }).notNull(),
+		entity: varchar('entity', { length: 50 }).notNull(),
+		entityId: integer('entity_id').notNull(),
+		action: varchar('action', { length: 20 }).notNull(),
+		summary: varchar('summary', { length: 500 }).notNull(),
+		oldValues: jsonb('old_values'),
+		newValues: jsonb('new_values'),
+		metadata: jsonb('metadata'),
+	},
+	(t) => [
+		// Keyset list order `(timestamp desc, id desc)`.
+		index('audit_logs_timestamp_id_idx').on(t.timestamp, t.id),
+		index('audit_logs_entity_entity_id_idx').on(t.entity, t.entityId),
+		index('audit_logs_user_id_timestamp_idx').on(t.userId, t.timestamp),
+		index('audit_logs_module_timestamp_idx').on(t.module, t.timestamp),
+	],
+)

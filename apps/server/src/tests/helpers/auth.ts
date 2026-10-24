@@ -1,81 +1,27 @@
-import { Elysia } from 'elysia'
-
-import { AuthContext, type AuthenticatedUser } from '@/core/http/auth-macro'
-
-export const mockAuthenticatedUser: AuthenticatedUser = {
-	id: 1,
-	email: 'test@example.com',
-	username: 'testuser',
-	fullname: 'Test User',
-	isActive: true,
-	createdAt: new Date('2024-01-01'),
-	updatedAt: new Date('2024-01-01'),
-	createdBy: 1,
-	updatedBy: 1,
-}
-
-export function createMockAuthPlugin(user: AuthenticatedUser | null = mockAuthenticatedUser) {
-	return new Elysia({ name: 'mock-auth' })
-		.decorate('auth', new AuthContext(user))
-		.derive(({ auth }) => ({ auth }))
-		.macro({
-			auth: (enabled: boolean) => ({
-				resolve: ({ auth }) => {
-					if (enabled && !auth.isAuthenticated) {
-						throw new Error('Unauthorized')
-					}
-				},
-			}),
-		})
-		.as('global')
-}
-
-export function createUnauthenticatedPlugin() {
-	return createMockAuthPlugin(null)
-}
-
-export function authHeaders(token: string = 'test-token') {
-	return { Authorization: `Bearer ${token}` }
-}
+/**
+ * Auth test helper — login and extract bearer token for authenticated requests.
+ */
+import { POST, json } from './request.ts'
 
 /**
- * Mock auth service for testing without database sessions.
- * Verifies test tokens and returns mock user data.
+ * Login as a seeded user and return the bearer token.
+ * Throws if login fails (test setup issue).
  */
-export class MockAuthService {
-	verifyToken(token: string): AuthenticatedUser | null {
-		// For testing, accept any token that looks like a JWT
-		if (token && token.length > 10) {
-			return mockAuthenticatedUser
-		}
-		return null
+export async function loginAs(username: string, password = 'password123'): Promise<string> {
+	const res = await POST('/auth/login', {
+		body: { username, password },
+	})
+
+	if (res.status !== 200) {
+		const body = await res.text()
+		throw new Error(`loginAs('${username}') failed with status ${res.status}: ${body}`)
 	}
 
-	getById(id: number): AuthenticatedUser | null {
-		// Return mock user for any ID
-		if (id === 1) {
-			return mockAuthenticatedUser
-		}
-		return null
-	}
-}
-
-/**
- * Mock login service for testing without database sessions.
- */
-export class MockLoginService {
-	login(): { user: AuthenticatedUser; token: string } {
-		return {
-			user: mockAuthenticatedUser,
-			token: 'mock-test-token',
-		}
+	const body = await json<{ data?: { token?: unknown } }>(res)
+	const token = body.data?.token
+	if (typeof token !== 'string' || !token) {
+		throw new Error(`loginAs('${username}') succeeded but no token in response body`)
 	}
 
-	getById(id: number): AuthenticatedUser | null {
-		// Return mock user for any ID
-		if (id === 1) {
-			return mockAuthenticatedUser
-		}
-		return null
-	}
+	return token
 }

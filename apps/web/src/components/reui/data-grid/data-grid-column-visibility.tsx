@@ -2,6 +2,9 @@ import type { ReactElement } from 'react'
 
 import type { Table } from '@tanstack/react-table'
 
+import { getColumnHeaderLabel } from '@/components/reui/data-grid/data-grid'
+import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
+
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -11,11 +14,11 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-function DataGridColumnVisibility<TData>({
+function DataGridColumnVisibility<TData extends object>({
 	table,
 	trigger,
 }: {
-	table: Table<TData>
+	table: Table<DataGridFeatures, TData>
 	trigger: ReactElement<Record<string, unknown>>
 }) {
 	return (
@@ -26,21 +29,17 @@ function DataGridColumnVisibility<TData>({
 					<DropdownMenuLabel className="font-medium">Toggle Columns</DropdownMenuLabel>
 					{table
 						.getAllColumns()
-						.filter((column) => column.accessorFn !== undefined && column.getCanHide())
+						.filter((column) => column.getCanHide())
 						.map((column) => {
 							return (
 								<DropdownMenuCheckboxItem
 									key={column.id}
 									className="capitalize"
 									checked={column.getIsVisible()}
-									onSelect={(event) => {
-										event.preventDefault()
-									}}
-									onCheckedChange={(value) => {
-										column.toggleVisibility(!!value)
-									}}
+									onSelect={(event) => event.preventDefault()}
+									onCheckedChange={(value) => column.toggleVisibility(!!value)}
 								>
-									{column.columnDef.meta?.headerTitle ?? column.id}
+									{getColumnHeaderLabel(column)}
 								</DropdownMenuCheckboxItem>
 							)
 						})}

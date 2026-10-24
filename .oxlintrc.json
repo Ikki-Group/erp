@@ -3,14 +3,7 @@
 	"env": {
 		"builtin": true
 	},
-	"plugins": [
-		"typescript",
-		"oxc",
-		"import",
-		"jsdoc",
-		"node",
-		"promise"
-	],
+	"plugins": ["typescript", "oxc", "import", "jsdoc", "node", "promise"],
 	"categories": {
 		"correctness": "error",
 		"suspicious": "error",
@@ -29,7 +22,7 @@
 		"typescript/no-unnecessary-template-expression": "off",
 		"typescript/strict-boolean-expressions": "off",
 		"typescript/no-confusing-void-expression": "off",
-		"@typescript-eslint/no-unsafe-type-assertion": "error",
+		"typescript/no-unsafe-type-assertion": "error",
 		"jsdoc/require-returns": "off",
 		"jsdoc/require-param": "off",
 		"require-await": "off",
@@ -47,22 +40,15 @@
 	},
 	"overrides": [
 		{
-			"files": [
-				"apps/server/**/*"
-			],
+			"files": ["apps/server/**/*"],
 			"rules": {
 				"no-inline-comments": "off",
 				"max-classes-per-file": "off"
 			}
 		},
 		{
-			"plugins": [
-				"react",
-				"vitest"
-			],
-			"files": [
-				"apps/web/**/*"
-			],
+			"plugins": ["react", "vitest"],
+			"files": ["apps/web/**/*"],
 			"rules": {
 				// "unicorn/no-useless-fallback-in-spread": "off",
 				"typescript/no-floating-promises": "off",
@@ -84,20 +70,25 @@
 			}
 		},
 		{
+			"plugins": ["react"],
 			"files": [
-				"apps/web/src/components/ui/**/*.{ts,tsx}"
+				"apps/web/src/components/ui/**/*.{ts,tsx}",
+				"apps/web/src/components/reui/**/*.{ts,tsx}"
 			],
 			"rules": {
 				"typescript/no-unsafe-assignment": "off",
 				"typescript/no-unsafe-member-access": "off",
 				"typescript/consistent-return": "off",
-				"typescript/no-unsafe-argument": "off"
+				"typescript/no-unsafe-argument": "off",
+				"react/no-unstable-nested-components": "off",
+				"react/no-object-type-as-default-prop": "off",
+				"oxc/no-accumulating-spread": "off",
+				"promise/always-return": "off",
+				"no-underscore-dangle": "off"
 			}
 		},
 		{
-			"files": [
-				"*.test.ts"
-			],
+			"files": ["*.test.ts"],
 			"rules": {
 				"typescript/no-unsafe-type-assertion": "off",
 				"typescript/no-unsafe-assignment": "off",
@@ -108,11 +99,5 @@
 			}
 		}
 	],
-	"ignorePatterns": [
-		"dist/**",
-		"node_modules/**",
-		"drizzle/**",
-		"**/*.lock",
-		".agents/**"
-	]
+	"ignorePatterns": ["dist/**", "node_modules/**", "drizzle/**", "**/*.lock", ".agents/**"]
 }

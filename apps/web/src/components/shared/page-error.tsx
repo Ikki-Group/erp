@@ -1,0 +1,37 @@
+import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+
+import { IconTile } from '@/components/reui/icon-tile'
+
+import { Button } from '@/components/ui/button'
+
+interface PageErrorProps {
+	title?: string
+	message?: string
+	onRetry?: () => void
+	className?: string
+}
+
+export function PageError({
+	title = 'Something went wrong',
+	message = 'An unexpected error occurred. Please try again.',
+	onRetry,
+	className,
+}: PageErrorProps) {
+	return (
+		<div className={cn('flex flex-col items-center justify-center py-12 text-center', className)}>
+			<IconTile variant="soft" size="lg" className="mb-3 text-destructive">
+				<AlertCircleIcon />
+			</IconTile>
+			<p className="font-heading text-sm font-semibold tracking-tight">{title}</p>
+			<p className="mt-1 max-w-sm text-xs text-muted-foreground">{message}</p>
+			{onRetry && (
+				<Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={onRetry}>
+					<RefreshCwIcon className="size-3.5" />
+					Retry
+				</Button>
+			)}
+		</div>
+	)
+}

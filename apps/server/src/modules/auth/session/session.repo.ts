@@ -1,72 +1,90 @@
-import { record } from '@elysiajs/opentelemetry'
-import { eq, lte } from 'drizzle-orm'
+import { gt, isNull, ne } from 'drizzle-orm'
 
-import { takeFirst, type DbClient } from '@/core/database'
+import { sessions } from '@/db/schema/iam.ts'
 
-import { sessionsTable } from '@/db/schema'
+import { and, desc, eq, takeFirst } from '@/infra/database/index.ts'
+import type { DbContext, Tx } from '@/infra/database/index.ts'
 
-import type { SessionDto } from './session.dto'
+// ─── Types ───
 
-export class SessionRepo {
-	constructor(private readonly db: DbClient) {}
+type SessionInsert = typeof sessions.$inferInsert
+export type SessionRow = typeof sessions.$inferSelect
 
-	/* ---------------------------------- QUERY --------------------------------- */
+export interface SessionRef {
+	id: string
+}
 
-	async getById(id: number): Promise<SessionDto | undefined> {
-		return record('SessionRepo.getById', async () => {
-			const result = await this.db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
-			return takeFirst(result) ?? undefined
-		})
+// ─── Interface ───
+
+/**
+ * Data access for the `sessions` table — the source of truth for session
+ * management (list/revoke). Per-request validation is cache-first via
+ * `SessionStore`; this repo backs the cache miss fallback and the
+ * device-management endpoints.
+ */
+export interface ISessionRepo {
+	readonly db: DbContext
+	insert(data: SessionInsert, db?: DbContext | Tx): Promise<SessionRef | undefined>
+	findById(id: string, db?: DbContext | Tx): Promise<SessionRow | undefined>
+	findActiveByUserId(userId: number, db?: DbContext | Tx): Promise<SessionRow[]>
+	revoke(id: string, db?: DbContext | Tx): Promise<SessionRef | undefined>
+	revokeAllForUser(userId: number, exceptId: string, db?: DbContext | Tx): Promise<string[]>
+	touchLastSeen(id: string, db?: DbContext | Tx): Promise<void>
+}
+
+// ─── Implementation ───
+
+export class SessionRepo implements ISessionRepo {
+	constructor(readonly db: DbContext) {}
+
+	async insert(data: SessionInsert, db: DbContext | Tx = this.db): Promise<SessionRef | undefined> {
+		const [result] = await db.insert(sessions).values(data).returning({ id: sessions.id })
+		return result
 	}
 
-	async getByUserId(userId: number): Promise<SessionDto[]> {
-		return record('SessionRepo.getByUserId', async () => {
-			const result = await this.db
-				.select()
-				.from(sessionsTable)
-				.where(eq(sessionsTable.userId, userId))
-				.orderBy(sessionsTable.createdAt)
-			return result
-		})
+	async findById(id: string, db: DbContext | Tx = this.db): Promise<SessionRow | undefined> {
+		return db.select().from(sessions).where(eq(sessions.id, id)).limit(1).then(takeFirst)
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: typeof sessionsTable.$inferInsert): Promise<SessionDto> {
-		return record('SessionRepo.create', async () => {
-			const [session] = await this.db.insert(sessionsTable).values(data).returning()
-
-			if (!session) throw new Error('Failed to create session')
-			return session as SessionDto
-		})
+	async findActiveByUserId(userId: number, db: DbContext | Tx = this.db): Promise<SessionRow[]> {
+		return db
+			.select()
+			.from(sessions)
+			.where(
+				and(
+					eq(sessions.userId, userId),
+					isNull(sessions.revokedAt),
+					gt(sessions.expiresAt, new Date()),
+				),
+			)
+			.orderBy(desc(sessions.lastSeenAt))
 	}
 
-	async invalidate(id: number): Promise<void> {
-		return record('SessionRepo.invalidate', async () => {
-			await this.db
-				.update(sessionsTable)
-				.set({ expiredAt: new Date() })
-				.where(eq(sessionsTable.id, id))
-		})
+	async revoke(id: string, db: DbContext | Tx = this.db): Promise<SessionRef | undefined> {
+		const [result] = await db
+			.update(sessions)
+			.set({ revokedAt: new Date() })
+			.where(and(eq(sessions.id, id), isNull(sessions.revokedAt)))
+			.returning({ id: sessions.id })
+		return result
 	}
 
-	async invalidateByUserId(userId: number): Promise<void> {
-		return record('SessionRepo.invalidateByUserId', async () => {
-			await this.db
-				.update(sessionsTable)
-				.set({ expiredAt: new Date() })
-				.where(eq(sessionsTable.userId, userId))
-		})
+	async revokeAllForUser(
+		userId: number,
+		exceptId: string,
+		db: DbContext | Tx = this.db,
+	): Promise<string[]> {
+		const rows = await db
+			.update(sessions)
+			.set({ revokedAt: new Date() })
+			.where(
+				and(eq(sessions.userId, userId), isNull(sessions.revokedAt), ne(sessions.id, exceptId)),
+			)
+			.returning({ id: sessions.id })
+		return rows.map((row) => row.id)
 	}
 
-	async cleanupExpired(): Promise<number> {
-		return record('SessionRepo.cleanupExpired', async () => {
-			const result = await this.db
-				.delete(sessionsTable)
-				.where(lte(sessionsTable.expiredAt, new Date()))
-				.returning({ id: sessionsTable.id })
-
-			return result.length
-		})
+	async touchLastSeen(id: string, db: DbContext | Tx = this.db): Promise<void> {
+		await db.update(sessions).set({ lastSeenAt: new Date() }).where(eq(sessions.id, id))
 	}
 }

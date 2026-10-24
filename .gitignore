@@ -21,6 +21,12 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.test.local
 .env.production.local
 .env.local
+.env.test
+
+# age secrets: never commit private keys or plaintext, always commit ciphertext
+secrets/*.key
+*.age.key
+!*.age
 
 # caches
 .eslintcache
@@ -32,17 +38,20 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .tanstack/tmp
 .wrangler/tmp
 
-# IntelliJ based IDEs
-.idea
-
 # Finder (MacOS) folder config
 .DS_Store
+.ignore
 
-.windsurf
 
 # Moka dump
 .collection
 docs/draft
 
 # ai agents
+.windsurf
 .claude
+.notes
+.codegraph
+.playwright-mcp
+.gortex
+.playwright-cli

@@ -1,0 +1,3 @@
+DROP INDEX "user_assignments_user_role_location_uniq";--> statement-breakpoint
+CREATE UNIQUE INDEX "user_assignments_user_role_global_uniq" ON "user_assignments" USING btree ("user_id","role_id") WHERE "user_assignments"."location_id" is null;--> statement-breakpoint
+CREATE UNIQUE INDEX "user_assignments_user_role_location_uniq" ON "user_assignments" USING btree ("user_id","role_id","location_id") WHERE "user_assignments"."location_id" is not null;

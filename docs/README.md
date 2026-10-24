@@ -1,51 +1,48 @@
 # Ikki ERP Documentation
 
-Welcome to the Ikki ERP documentation. This repository is structured to be readable, simple, and effective for both the development team and AI context (AI agents/skills).
+Central documentation for Ikki ERP — an integrated operational system for Ikki Coffee and Ikki Resto covering POS, inventory, finance, HR, and CRM.
 
-## 📁 Directory Structure
+> Toolchain, commands, and deploy: [`AGENTS.md`](../AGENTS.md) (root).
 
-We strictly separate **Business/Product Definitions** from **Technical Implementations** to keep things clean.
+## Layout
 
-### 1. `/product`
+| Directory                           | Purpose                                               |
+| ----------------------------------- | ----------------------------------------------------- |
+| [`product/`](./product/readme.md)   | Business requirements, workflows, glossary, timeline  |
+| [`database/`](./database/readme.md) | Schema reference, ERDs, naming conventions            |
+| [`_archive/`](./_archive/README.md) | Retired docs kept for historical reference only       |
 
-Contains high-level product strategy and logic.
+> **Backend docs:** the previous `server/` tree was retired (it had drifted from the code). The backend architecture and module standard are being re-established from scratch via the aihero.dev planning workflow; this table will gain a `server/` row again once that flow produces it.
 
-- `VISION.md`: Overall product vision and north star.
-- `PRD.md`: Main Product Requirements Document.
-- `WORKFLOWS.md`: High-level business process flows.
+## Key Decisions
 
-### 2. `/features`
+| Decision          | Choice                                                   | Rationale                                      |
+| ----------------- | -------------------------------------------------------- | ---------------------------------------------- |
+| Multi-tenant      | No — single company                                      | Ikki is one business, not a SaaS platform      |
+| Location model    | Single `Location` entity with type (`store`/`warehouse`) | One context switcher, one FK everywhere        |
+| Menu scope        | Per-location                                             | Coffee and Resto have entirely different menus |
+| Material scope    | Global (shared across locations)                         | Enables easy transfer/mutasi between locations |
+| Modifiers         | Modifier Group + Options                                 | Flexible, common in F&B POS                    |
+| Modifier → recipe | Backlog (Phase 1: base recipe only)                      | UI complexity TBD                              |
+| UoM               | Chain conversion, 3-level (purchase/storage/recipe)      | Real-world: karton → liter → ml                |
+| Cost method       | Weighted average                                         | Simpler than FIFO, appropriate for F&B         |
+| POS               | Built in-house + Moka import                             | Full control, multi-source                     |
+| Table service     | Open bill (tab) + close bill (counter)                   | Both Coffee and Resto need it                  |
+| Finance           | Proper double-entry accrual accounting                   | AP, full reporting, akuntan-ready              |
+| HR                | Full (shift, attendance, payroll with variable)          | Monthly salary + bonus/lembur/potongan         |
+| CRM               | Loyalty program + customer tracking                      | Retain customers, targeted promos              |
+| Transfer          | Request-based, no approval, no variance                  | Keep it simple for now                         |
+| Audit trail       | Yes                                                      | Track who did what                             |
+| Notifications     | In-app only (Phase 1)                                    | No email/WA yet                                |
+| Platform          | Web first                                                | Mobile planned post-launch                     |
 
-Contains detailed, module-by-module business requirements.
+## Principles
 
-- These documents are written from a **Product Manager's perspective**.
-- They outline the **Overview, Core Objectives, Use Cases, and Recommended Enhancements**.
-- **No technical implementation** (API, SQL, Data Models) is kept here. This ensures the documents serve as clear AI context and business guidelines without technical clutter.
+1. **Single source of truth.** One canonical doc per rule. Reference it, don't duplicate.
+2. **AI-friendly.** Structured Markdown, tables, ASCII diagrams. No images.
+3. **Business-first in `product/`.** No code/SQL — that belongs in `server/` or `database/`.
+4. **Keep current.** Delete outdated docs. No "TODO: update" markers.
 
-### 3. `/technical`
+---
 
-Contains all the developer-focused documentation.
-
-- `ARCHITECTURE.md`: System design and backend architecture.
-- `DATA_MODEL.md`: Database schemas and relationships.
-- `Tech-Specs.md`: Specific technical specifications and API contracts.
-- `CODE_PATTERNS.md`: Guidelines for writing code.
-- `MODULE_CHECKLIST.md`: Checklist for developing new modules.
-
-### 4. `/templates`
-
-Contains templates to standardize our documentation.
-
-- `FEATURE_TEMPLATE.md`: Use this template when writing a new document for `/features`.
-- `FEATURE_DOCUMENTATION_STANDARD.md`: Rules and standards for documenting features.
-
-### 5. `/backlog`
-
-- `FEATURE_ENHANCEMENT_PLAN.md`: Ideas and planned improvements for phase 2 and beyond.
-
-## 🎯 Documentation Principles
-
-1. **Keep it simple**: Use clear, good English. Avoid unnecessary jargon.
-2. **Business First in Features**: Feature documentation focuses entirely on _what_ the business needs and _why_, not _how_ to code it.
-3. **AI Friendly**: Write in structured formats (Markdown headers, bullet points, clear steps) so AI agents can easily ingest these documents as "Skills" and context.
-4. **Remove the Useless**: If a document or section doesn't add value or clear context, it is removed.
+**Next:** [product/readme.md](./product/readme.md) — Product documentation index.

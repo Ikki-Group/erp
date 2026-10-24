@@ -1,70 +1,25 @@
+import { crudRoutes } from '@/server/crud-route.ts'
+
 import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-	zq,
-} from '@ikki/api-contract/validation'
-import { Elysia } from 'elysia'
+	LocationCreateDto,
+	LocationDto,
+	LocationFilterDto,
+	LocationUpdateDto,
+} from './location.contract.ts'
+import type { LocationService } from './location.service.ts'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
-import { res } from '@/core/http/response'
-
-import * as dto from './location.dto'
-import type { LocationMasterService } from './location.service'
-
-export function initLocationRoute(service: LocationMasterService) {
-	return new Elysia()
-		.use(authPluginMacro)
-		.get(
-			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
-				return res.paginated(result)
-			},
-			{
-				query: dto.LocationFilterDto,
-				response: createPaginatedResponseSchema(dto.LocationDto),
-				auth: true,
-			},
-		)
-		.get(
-			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
-				return res.ok(result)
-			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(dto.LocationDto), auth: true },
-		)
-		.post(
-			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
-				return res.ok(result)
-			},
-			{
-				body: dto.LocationCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
-				auth: true,
-			},
-		)
-		.put(
-			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body, auth.userId)
-				return res.ok(result)
-			},
-			{
-				body: dto.LocationUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
-				auth: true,
-			},
-		)
-		.delete(
-			'/remove',
-			async function remove({ body }) {
-				const result = await service.handleRemove(body.id)
-				return res.ok(result)
-			},
-			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
-		)
+export function createLocationRoute(service: LocationService) {
+	return crudRoutes({
+		prefix: '/location',
+		resource: 'location',
+		tag: 'Locations',
+		entity: 'location',
+		service,
+		schemas: {
+			filter: LocationFilterDto,
+			dto: LocationDto,
+			create: LocationCreateDto,
+			update: LocationUpdateDto,
+		},
+	})
 }

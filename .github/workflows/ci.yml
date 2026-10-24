@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: 1.4.2
+
+jobs:
+  # Root `bun run check` also covers apps/e2e, which does not pass lint/format/knip yet,
+  # so CI gates each app with its own `verify` script instead.
+  server:
+    name: Server (verify + tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test-user
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: ikki_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test-user -d ikki_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgres://test-user:test@localhost:5432/ikki_test
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Format check
+        run: bunx oxfmt --check apps/server
+
+      - name: Verify (lint, typecheck, knip, circular deps)
+        run: bun --filter @ikki/server verify
+
+      - name: Migrate + seed test database
+        working-directory: apps/server
+        run: bun run test:db:reset
+
+      - name: Test
+        working-directory: apps/server
+        run: bun run test
+
+      - name: Build binaries
+        working-directory: apps/server
+        run: bun run build
+
+  web:
+    name: Web (verify + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify (lint, typecheck, tests)
+        run: bun --filter @ikki/web verify
+
+      - name: Build
+        run: bun --filter @ikki/web build

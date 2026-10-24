@@ -1,4 +1,10 @@
-preload = ["./src/core/otel.ts"]
-
 [console]
-depth = 10
+depth = 1000
+
+[test]
+root = "src/tests"
+preload = ["./src/tests/setup.ts"]
+concurrentTestGlob = "**/integration/*.test.ts"
+coverageSkipTestFiles = true
+coverageReporter = ["text", "lcov"]
+coverageDir = "coverage"

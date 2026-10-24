@@ -1,111 +1,15 @@
-// ─── Re-export Tables & Enums ─────────────────────────────────────────────────
+// Database schema barrel export
 
-export {
-	locationTypeEnum,
-	materialTypeEnum,
-	productStatusEnum,
-	transactionTypeEnum,
-	invoiceStatusEnum,
-	paymentMethodEnum,
-	paymentTypeEnum,
-	stockAdjustmentTypeEnum,
-	leaveStatusEnum,
-	leaveTypeEnum,
-	accountTypeEnum,
-	expenditureTypeEnum,
-	expenditureStatusEnum,
-	attendanceStatusEnum,
-	payrollStatusEnum,
-	payrollAdjustmentTypeEnum,
-	salesOrderStatusEnum,
-	salesOrderSourceEnum,
-	workOrderStatusEnum,
-	mokaScrapTypeEnum,
-	mokaScrapStatusEnum,
-	integrationProviderEnum,
-	mokaSyncTriggerModeEnum,
-	purchaseRequestStatusEnum,
-	purchaseOrderStatusEnum,
-	goodsReceiptStatusEnum,
-	paymentMethodCategoryEnum,
-} from './_helpers'
-export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
-export {
-	stockSummariesTable,
-	stockTransactionsTable,
-	stockBatchesTable,
-	stockAdjustmentsTable,
-	stockAdjustmentItemsTable,
-} from './inventory'
-export {
-	stockTransfersTable,
-	stockTransferItemsTable,
-	transferStatusEnum,
-} from './inventory_transfer'
-export { locationsTable } from './location'
-export {
-	materialCategoriesTable,
-	materialConversionsTable,
-	materialLocationsTable,
-	materialsTable,
-	uomsTable,
-} from './material'
-export {
-	categoryExternalMappingsTable,
-	productCategoriesTable,
-	productExternalMappingsTable,
-	productPricesTable,
-	productsTable,
-	productVariantsTable,
-	salesTypesTable,
-	variantPricesTable,
-} from './product'
-export { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
-export { recipeItemsTable, recipesTable } from './recipe'
-export {
-	salesExternalRefsTable,
-	salesOrderBatchesTable,
-	salesOrderItemsTable,
-	salesOrdersTable,
-	salesVoidsTable,
-	salesRefundsTable,
-	salesInvoicesTable,
-	salesInvoiceItemsTable,
-} from './sales'
-export { suppliersTable } from './supplier'
-export {
-	customersTable,
-	customerLoyaltyTransactionsTable,
-	customerTierEnum,
-	loyaltyTransactionTypeEnum,
-} from './customer'
-export { companySettingsTable } from './company'
-export { employeesTable } from './employee'
-export { taxesTable } from './tax'
-export { paymentsTable, paymentInvoicesTable } from './finance_payment'
-export { paymentMethodConfigsTable } from './payment_method_config'
-export { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
-export { auditLogsTable, auditActionEnum } from './audit'
-export {
-	attendancesTable,
-	payrollAdjustmentsTable,
-	payrollBatchesTable,
-	payrollItemsTable,
-	shiftsTable,
-	leaveRequestsTable,
-} from './hr'
-export {
-	goodsReceiptNoteItemsTable,
-	goodsReceiptNotesTable,
-	purchaseOrderItemsTable,
-	purchaseOrdersTable,
-	purchaseRequestItemsTable,
-	purchaseRequestsTable,
-	purchaseInvoicesTable,
-	purchaseInvoiceItemsTable,
-} from './purchasing'
-export { workOrdersTable } from './production'
-
-// ─── Re-export Relations ──────────────────────────────────────────────────────
-
-export { relations } from './relations'
+export * from './_helpers.ts'
+export * from './core.ts'
+export * from './iam.ts'
+export * from './audit.ts'
+export * from './numbering.ts'
+export * from './uom.ts'
+export * from './material.ts'
+export * from './supplier.ts'
+export * from './menu.ts'
+export * from './recipe.ts'
+export * from './pos.ts'
+export * from './inventory.ts'
+export * from './production.ts'
