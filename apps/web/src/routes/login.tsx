@@ -14,11 +14,10 @@ import {
 } from 'lucide-react'
 import { z } from 'zod'
 
+import { Logo } from '@/components/brand'
 import { getStoredToken } from '@/lib/api/client.ts'
 import { isApiError } from '@/lib/api/errors.ts'
 import { queryClient } from '@/lib/tanstack-query.ts'
-
-import { Logo } from '@/components/brand'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -242,3 +241,4 @@ function LoginPage() {
 		</main>
 	)
 }
+
