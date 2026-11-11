@@ -45,10 +45,15 @@ function CardsPage() {
 						<p className="text-sm text-muted-foreground">24.5 kg on hand across 3 locations.</p>
 					</CardContent>
 					<CardFooter className="gap-2">
-						<Button size="sm" variant="outline" render={<Link to="/design-system/data-display" />}>
+						<Button
+							size="sm"
+							variant="outline"
+							nativeButton={false}
+							render={<Link to="/design-system/data-display" />}
+						>
 							View data patterns
 						</Button>
-						<Button size="sm" render={<Link to="/design-system/forms" />}>
+						<Button size="sm" nativeButton={false} render={<Link to="/design-system/forms" />}>
 							Edit patterns
 						</Button>
 					</CardFooter>
@@ -79,6 +84,7 @@ function CardsPage() {
 								variant="ghost"
 								size="icon-xs"
 								aria-label="View materials table pattern"
+								nativeButton={false}
 								render={<Link to="/design-system/tables" />}
 							>
 								<ArrowRightIcon />
@@ -225,6 +231,7 @@ function CardsPage() {
 								variant="outline"
 								size="sm"
 								className="w-full"
+								nativeButton={false}
 								render={<Link to="/design-system/forms" />}
 							>
 								Edit Details

@@ -77,9 +77,7 @@ export function OrderCart({
 											</p>
 										)}
 										{line.notes && (
-											<p className="text-xs italic text-muted-foreground truncate">
-												{line.notes}
-											</p>
+											<p className="text-xs italic text-muted-foreground truncate">{line.notes}</p>
 										)}
 										<p className="mt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
 											Rp {line.unitPrice.toLocaleString('id-ID')}

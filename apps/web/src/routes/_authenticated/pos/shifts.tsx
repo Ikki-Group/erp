@@ -6,7 +6,13 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { LockIcon, UnlockIcon } from 'lucide-react'
 
-import { CurrencyCell, listSearchSchema, NumericCell, rightAlignedHeader, useServerTable } from '@/components/data-table'
+import {
+	CurrencyCell,
+	listSearchSchema,
+	NumericCell,
+	rightAlignedHeader,
+	useServerTable,
+} from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'

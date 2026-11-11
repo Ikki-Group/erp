@@ -22,7 +22,7 @@ export function NoAccessLayout({ children }: { children: ReactNode }) {
 					<Logo />
 				</Link>
 				<div className="flex-1" />
-				<Button variant="ghost" size="sm" render={<Link to="/account" />}>
+				<Button variant="ghost" size="sm" nativeButton={false} render={<Link to="/account" />}>
 					<UserIcon className="size-4" />
 					My account
 				</Button>
@@ -56,7 +56,9 @@ export function NoAccessScreen() {
 				</p>
 			)}
 			<div className="mt-6 flex flex-wrap justify-center gap-2">
-				<Button render={<Link to="/account" />}>My account</Button>
+				<Button nativeButton={false} render={<Link to="/account" />}>
+					My account
+				</Button>
 				<Button variant="outline" onClick={() => void logout()}>
 					Logout
 				</Button>

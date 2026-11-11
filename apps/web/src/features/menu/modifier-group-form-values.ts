@@ -117,15 +117,13 @@ function toGroupFields(values: ModifierGroupFormValues) {
 		isRequired: values.isRequired,
 		minSelect: values.minSelect ?? 0,
 		maxSelect: values.maxSelect,
-		options: values.options.map(
-			(option): ModifierOptionInputDto => ({
-				name: option.name.trim(),
-				priceAdjustment: option.priceAdjustment.trim(),
-				isDefault: option.isDefault,
-				isActive: option.isActive,
-				sortOrder: option.sortOrder ?? 0,
-			}),
-		),
+		options: values.options.map((option): ModifierOptionInputDto => ({
+			name: option.name.trim(),
+			priceAdjustment: option.priceAdjustment.trim(),
+			isDefault: option.isDefault,
+			isActive: option.isActive,
+			sortOrder: option.sortOrder ?? 0,
+		})),
 	}
 }
 

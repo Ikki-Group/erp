@@ -43,7 +43,7 @@ export function AuditInfo({
 				<span>
 					Created{createdBy ? ` by ${formatUser(createdBy)}` : ''} •{' '}
 					{format(createdDate, 'dd MMM yyyy')}
-					</span>
+				</span>
 			</div>
 			{showUpdated && updatedDate && (
 				<div className="flex items-center gap-2 pl-5">
