@@ -1,0 +1,175 @@
+import { useState } from 'react'
+
+import {
+	subDays,
+	subMonths,
+	startOfWeek,
+	startOfMonth,
+	startOfDay,
+	endOfDay,
+	format,
+} from 'date-fns'
+import { CalendarIcon } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+
+export interface DateRange {
+	from: Date
+	to: Date
+}
+
+export interface DateRangePreset {
+	label: string
+	getValue: () => DateRange
+}
+
+/**
+ * A range means whole calendar days: snap `from` to the start of its day and
+ * `to` to the end of its day. Without this, the calendar hands back `to` at
+ * midnight (day start), and an inclusive server `<= dateTo` would exclude the
+ * entire selected end-day.
+ */
+function toWholeDays(range: DateRange): DateRange {
+	return { from: startOfDay(range.from), to: endOfDay(range.to) }
+}
+
+/**
+ * The default preset templates (Today, Last 7 days, ...). Exported so a page
+ * with domain-specific ranges (e.g. "This fiscal quarter") can extend rather
+ * than replace them: `presets={[...createDefaultDateRangePresets(), custom]}`.
+ * A function, not a frozen constant, so "today" stays current across a long
+ * session.
+ */
+export function createDefaultDateRangePresets(): DateRangePreset[] {
+	const today = new Date()
+	return [
+		{
+			label: 'Today',
+			getValue: () => ({ from: today, to: today }),
+		},
+		{
+			label: 'Last 7 days',
+			getValue: () => ({ from: subDays(today, 6), to: today }),
+		},
+		{
+			label: 'This week',
+			getValue: () => ({ from: startOfWeek(today, { weekStartsOn: 1 }), to: today }),
+		},
+		{
+			label: 'Last 30 days',
+			getValue: () => ({ from: subDays(today, 29), to: today }),
+		},
+		{
+			label: 'This month',
+			getValue: () => ({ from: startOfMonth(today), to: today }),
+		},
+		{
+			label: 'Last 3 months',
+			getValue: () => ({ from: subMonths(today, 3), to: today }),
+		},
+		{
+			label: 'Last 6 months',
+			getValue: () => ({ from: subMonths(today, 6), to: today }),
+		},
+	]
+}
+
+interface DateRangeFilterProps {
+	value?: DateRange
+	onChange?: (range: DateRange | undefined) => void
+	placeholder?: string
+	/** Override the default preset templates (Today, Last 7 days, ...). */
+	presets?: DateRangePreset[]
+	className?: string
+}
+
+export function DateRangeFilter({
+	value,
+	onChange,
+	placeholder = 'Select date range',
+	presets,
+	className,
+}: DateRangeFilterProps) {
+	const [open, setOpen] = useState(false)
+	const resolvedPresets = presets ?? createDefaultDateRangePresets()
+
+	const displayValue = value
+		? `${format(value.from, 'dd MMM yyyy')} – ${format(value.to, 'dd MMM yyyy')}`
+		: null
+
+	return (
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger
+				render={
+					<Button
+						variant="outline"
+						size="sm"
+						className={cn(
+							'justify-start text-left font-normal',
+							!value && 'text-muted-foreground',
+							className,
+						)}
+					/>
+				}
+			>
+				<CalendarIcon className="mr-1.5 size-3.5" />
+				<span className="truncate">{displayValue ?? placeholder}</span>
+			</PopoverTrigger>
+			<PopoverContent className="flex w-auto flex-col p-0 sm:flex-row" align="start">
+				{/* Presets sidebar */}
+				<div className="flex flex-row gap-1 border-b p-2 sm:flex-col sm:border-b-0 sm:border-r">
+					<div className="flex flex-row flex-wrap gap-1 sm:flex-col sm:flex-nowrap">
+						{resolvedPresets.map((preset) => (
+							<Button
+								key={preset.label}
+								variant="ghost"
+								size="sm"
+								className="justify-start text-xs"
+								onClick={() => {
+									onChange?.(toWholeDays(preset.getValue()))
+									setOpen(false)
+								}}
+							>
+								{preset.label}
+							</Button>
+						))}
+					</div>
+					{value && (
+						<Button
+							variant="ghost"
+							size="sm"
+							className="justify-start text-xs text-muted-foreground"
+							onClick={() => {
+								onChange?.(undefined)
+								setOpen(false)
+							}}
+						>
+							Clear
+						</Button>
+					)}
+				</div>
+				{/* Calendar */}
+				<div className="p-2">
+					<Calendar
+						mode="range"
+						selected={value ? { from: value.from, to: value.to } : undefined}
+						onSelect={(range) => {
+							if (range?.from && range?.to) {
+								onChange?.(toWholeDays({ from: range.from, to: range.to }))
+								setOpen(false)
+							} else if (range?.from) {
+								// Partial selection — keep popover open
+								onChange?.(toWholeDays({ from: range.from, to: range.from }))
+							}
+						}}
+						numberOfMonths={2}
+					/>
+				</div>
+			</PopoverContent>
+		</Popover>
+	)
+}

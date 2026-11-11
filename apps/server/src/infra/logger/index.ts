@@ -1,0 +1,61 @@
+import {
+	configure,
+	getConsoleSink,
+	getLogger as _getLogger,
+	jsonLinesFormatter,
+} from '@logtape/logtape'
+import { getOpenTelemetrySink } from '@logtape/otel'
+import { getPrettyFormatter } from '@logtape/pretty'
+
+import { SERVICE_NAME } from '@/shared/config'
+import { isProd, isTest } from '@/shared/config/env.ts'
+
+import type { Logger, Sink } from '@logtape/logtape'
+import { AsyncLocalStorage } from 'node:async_hooks'
+
+/**
+ * Initialize LogTape. Call once at app startup (after OTel, before listen).
+ * Production: JSON lines on stdout (`fly logs`) + OpenTelemetry. Test: silent.
+ */
+export async function setupLogger(): Promise<void> {
+	const sinks: Record<string, Sink> = {}
+	let activeSinks: string[] = []
+
+	if (!isTest) {
+		if (isProd) {
+			sinks.console = getConsoleSink({ formatter: jsonLinesFormatter })
+			sinks.otel = getOpenTelemetrySink({ serviceName: SERVICE_NAME })
+			activeSinks = ['console', 'otel']
+		} else {
+			sinks.console = getConsoleSink({
+				formatter: getPrettyFormatter({
+					icons: false,
+					properties: true,
+					align: true,
+				}),
+			})
+			activeSinks = ['console']
+		}
+	}
+
+	await configure({
+		sinks,
+		loggers: [
+			{
+				category: ['ikki'],
+				sinks: activeSinks,
+				lowestLevel: isProd ? 'info' : 'debug',
+			},
+			// Silence LogTape meta logs
+			{ category: ['logtape', 'meta'], sinks: [], lowestLevel: 'warning' },
+		],
+		contextLocalStorage: new AsyncLocalStorage(),
+	})
+}
+
+/** Get a logger with category prefix `["ikki", ...rest]` */
+export function getLogger(category: string[]): Logger {
+	return _getLogger(['ikki', ...category])
+}
+
+export type { Logger }

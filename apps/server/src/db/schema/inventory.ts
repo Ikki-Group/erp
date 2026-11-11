@@ -1,204 +1,256 @@
 import { sql } from 'drizzle-orm'
 import {
-	date,
-	index,
-	integer,
-	numeric,
 	pgTable,
-	text,
+	pgEnum,
+	varchar,
+	numeric,
+	integer,
 	timestamp,
+	check,
+	index,
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { pk, auditBasicColumns } from './_helpers.ts'
+import { locations } from './core.ts'
+import { users } from './iam.ts'
+import { materials } from './material.ts'
+import { suppliers } from './supplier.ts'
+import { uoms } from './uom.ts'
 
-import { stockAdjustmentTypeEnum, transactionTypeEnum } from './_helpers'
-import { locationsTable } from './location'
-import { materialsTable } from './material'
+// ─── Enums ───
 
-// ─── Stock Batches ────────────────────────────────────────────────────────────
+export const movementDirectionEnum = pgEnum('movement_direction', ['in', 'out'])
+export const transferStatusEnum = pgEnum('transfer_status', [
+	'requested',
+	'in_transit',
+	'received',
+	'cancelled',
+])
+export const opnameStatusEnum = pgEnum('opname_status', [
+	'draft',
+	'in_progress',
+	'completed',
+	'cancelled',
+])
+export const receivingStatusEnum = pgEnum('receiving_status', ['draft', 'confirmed'])
 
-/**
- * Stock Batches Table
- *
- * Support for Batch/Lot tracking and Expiry dates.
- */
-export const stockBatchesTable = pgTable(
-	'stock_batches',
+// ─── Stock Balances ───
+
+export const stockBalances = pgTable(
+	'stock_balances',
 	{
 		...pk,
-		materialId: integer()
+		materialId: integer('material_id')
 			.notNull()
-			.references(() => materialsTable.id, { onDelete: 'cascade' }),
-		batchNo: text('batch_no').notNull(),
-		expiryDate: timestamp('expiry_date', { mode: 'date' }),
-		productionDate: timestamp('production_date', { mode: 'date' }),
-		notes: text(),
-		...auditColumns,
+			.references(() => materials.id, { onDelete: 'restrict' }),
+		locationId: integer('location_id')
+			.notNull()
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull().default('0'),
+		costPrice: numeric('cost_price', { precision: 18, scale: 6 }).notNull().default('0'),
 	},
 	(t) => [
-		index('stock_batches_material_idx').on(t.materialId),
-		index('stock_batches_expiry_idx').on(t.expiryDate),
-		uniqueIndex('stock_batches_material_no_idx').on(t.materialId, t.batchNo),
+		uniqueIndex('stock_balances_material_location_uniq').on(t.materialId, t.locationId),
+		check('stock_balances_cost_price_nonneg_chk', sql`${t.costPrice} >= 0`),
+		index('stock_balances_material_id_idx').on(t.materialId),
+		index('stock_balances_location_id_idx').on(t.locationId),
 	],
 )
 
-// ─── Stock Adjustments ────────────────────────────────────────────────────────
+// ─── Stock Movements ───
 
-/**
- * Stock Adjustments Table (Header)
- *
- * Formal tracking of Stock Opname, Waste, Found items, or Corrections.
- */
-export const stockAdjustmentsTable = pgTable(
-	'stock_adjustments',
+export const stockMovements = pgTable(
+	'stock_movements',
 	{
 		...pk,
-		locationId: integer()
+		materialId: integer('material_id')
 			.notNull()
-			.references(() => locationsTable.id, { onDelete: 'restrict' }),
-		type: stockAdjustmentTypeEnum().notNull(),
-		adjustmentDate: timestamp('adjustment_date', { mode: 'date', withTimezone: true })
+			.references(() => materials.id, { onDelete: 'restrict' }),
+		locationId: integer('location_id')
 			.notNull()
-			.defaultNow(),
-		reason: text(),
-		referenceNo: text('reference_no'),
-		...auditColumns,
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		type: varchar('type', { length: 50 }).notNull(),
+		direction: movementDirectionEnum('direction').notNull(),
+		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull(),
+		costPrice: numeric('cost_price', { precision: 18, scale: 6 }).notNull(),
+		referenceType: varchar('reference_type', { length: 50 }),
+		referenceId: integer('reference_id'),
+		notes: varchar('notes', { length: 1000 }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
 	},
 	(t) => [
-		index('stock_adjustments_location_idx').on(t.locationId),
-		index('stock_adjustments_date_idx').on(t.adjustmentDate),
+		check('stock_movements_quantity_nonneg_chk', sql`${t.quantity} >= 0`),
+		check('stock_movements_cost_price_nonneg_chk', sql`${t.costPrice} >= 0`),
+		// Movement list filter + keyset order `(created_at desc, id desc)`.
+		index('stock_movements_material_location_created_id_idx').on(
+			t.materialId,
+			t.locationId,
+			t.createdAt,
+			t.id,
+		),
+		index('stock_movements_material_id_idx').on(t.materialId),
+		index('stock_movements_location_id_idx').on(t.locationId),
+		index('stock_movements_created_by_idx').on(t.createdBy),
 	],
 )
 
-export const stockAdjustmentItemsTable = pgTable(
-	'stock_adjustment_items',
+// ─── Transfer Requests ───
+
+export const transferRequests = pgTable(
+	'transfer_requests',
 	{
 		...pk,
-		adjustmentId: integer()
+		transferNo: varchar('transfer_no', { length: 100 }).notNull(),
+		fromLocationId: integer('from_location_id')
 			.notNull()
-			.references(() => stockAdjustmentsTable.id, { onDelete: 'cascade' }),
-		materialId: integer()
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		toLocationId: integer('to_location_id')
 			.notNull()
-			.references(() => materialsTable.id, { onDelete: 'restrict' }),
-		batchId: integer().references(() => stockBatchesTable.id, { onDelete: 'set null' }),
-
-		/** Difference in quantity: positive for found, negative for waste/correction */
-		qtyDiff: numeric({ precision: 18, scale: 4 }).notNull(),
-		/** Snapshot of unit cost at adjustment time */
-		unitCost: numeric({ precision: 18, scale: 2 }).notNull(),
-
-		notes: text(),
-		...auditColumns,
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		status: transferStatusEnum('status').notNull().default('requested'),
+		notes: varchar('notes', { length: 1000 }),
+		requestedBy: integer('requested_by').references(() => users.id, { onDelete: 'set null' }),
+		...auditBasicColumns,
 	},
 	(t) => [
-		index('stock_adj_items_header_idx').on(t.adjustmentId),
-		index('stock_adj_items_material_idx').on(t.materialId),
+		uniqueIndex('transfer_requests_transfer_no_uniq').on(t.transferNo),
+		check('transfer_requests_diff_location_chk', sql`${t.fromLocationId} != ${t.toLocationId}`),
+		index('transfer_requests_from_location_id_idx').on(t.fromLocationId),
+		index('transfer_requests_to_location_id_idx').on(t.toLocationId),
+		index('transfer_requests_requested_by_idx').on(t.requestedBy),
 	],
 )
 
-// ─── Stock Transactions ───────────────────────────────────────────────────────
+// ─── Transfer Lines ───
 
-export const stockTransactionsTable = pgTable(
-	'stock_transactions',
+export const transferLines = pgTable(
+	'transfer_lines',
 	{
 		...pk,
-		materialId: integer()
+		transferId: integer('transfer_id')
 			.notNull()
-			.references(() => materialsTable.id, { onDelete: 'restrict' }),
-		locationId: integer()
+			.references(() => transferRequests.id, { onDelete: 'cascade' }),
+		materialId: integer('material_id')
 			.notNull()
-			.references(() => locationsTable.id, { onDelete: 'restrict' }),
-
-		type: transactionTypeEnum().notNull(),
-		date: date({ mode: 'date' }).notNull(),
-		referenceNo: text().notNull(),
-		notes: text(),
-
-		// Batch Support
-		batchId: integer().references(() => stockBatchesTable.id, { onDelete: 'set null' }),
-
-		// Quantity & Cost — using numeric
-		// qty keeps scale 4 (e.g., 0.0125 kg)
-		qty: numeric({ precision: 18, scale: 4 }).notNull(),
-		// unitCost & totalCost use scale 2 for IDR/Rupiah or standard fiat
-		unitCost: numeric({ precision: 18, scale: 2 }).notNull(),
-		totalCost: numeric({ precision: 18, scale: 2 }).notNull(),
-
-		// Transfer-specific
-		counterpartLocationId: integer().references(() => locationsTable.id, { onDelete: 'restrict' }),
-		transferId: integer(),
-
-		// Adjustment Link
-		adjustmentItemId: integer().references(() => stockAdjustmentItemsTable.id, {
-			onDelete: 'set null',
-		}),
-
-		// Running snapshot after this transaction
-		runningQty: numeric({ precision: 18, scale: 4 }).notNull(),
-		runningAvgCost: numeric({ precision: 18, scale: 2 }).notNull(),
-
-		...auditColumns,
+			.references(() => materials.id, { onDelete: 'restrict' }),
+		requestedQty: numeric('requested_qty', { precision: 18, scale: 6 }).notNull(),
+		shippedQty: numeric('shipped_qty', { precision: 18, scale: 6 }),
+		shippedCostPrice: numeric('shipped_cost_price', { precision: 18, scale: 6 }),
+		receivedQty: numeric('received_qty', { precision: 18, scale: 6 }),
+		uomId: integer('uom_id')
+			.notNull()
+			.references(() => uoms.id, { onDelete: 'restrict' }),
 	},
 	(t) => [
-		index('stock_txn_material_location_date_idx').on(t.materialId, t.locationId, t.date),
-		index('stock_txn_location_date_idx').on(t.locationId, t.date),
-		index('stock_txn_type_date_idx').on(t.type, t.date),
-		index('stock_txn_transfer_idx').on(t.transferId),
-		index('stock_txn_reference_no_idx').on(t.referenceNo),
-		index('stock_txn_batch_idx').on(t.batchId),
+		check('transfer_lines_requested_qty_positive_chk', sql`${t.requestedQty} > 0`),
+		check('transfer_lines_shipped_qty_nonneg_chk', sql`${t.shippedQty} >= 0`),
+		check('transfer_lines_shipped_cost_price_nonneg_chk', sql`${t.shippedCostPrice} >= 0`),
+		check('transfer_lines_received_qty_nonneg_chk', sql`${t.receivedQty} >= 0`),
+		index('transfer_lines_transfer_id_idx').on(t.transferId),
+		index('transfer_lines_material_id_idx').on(t.materialId),
+		index('transfer_lines_uom_id_idx').on(t.uomId),
 	],
 )
 
-// ─── Stock Summaries (Daily Snapshot) ─────────────────────────────────────────
+// ─── Stock Opnames ───
 
-export const stockSummariesTable = pgTable(
-	'stock_summaries',
+export const stockOpnames = pgTable(
+	'stock_opnames',
 	{
 		...pk,
-		materialId: integer()
+		opnameNo: varchar('opname_no', { length: 100 }).notNull(),
+		locationId: integer('location_id')
 			.notNull()
-			.references(() => materialsTable.id, { onDelete: 'restrict' }),
-		locationId: integer()
-			.notNull()
-			.references(() => locationsTable.id, { onDelete: 'restrict' }),
-		date: date({ mode: 'date' }).notNull(),
-
-		// Opening balance
-		openingQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		openingAvgCost: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		openingValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-
-		// Movements
-		purchaseQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		purchaseValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		transferInQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		transferInValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		transferOutQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		transferOutValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		adjustmentQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		adjustmentValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		usageQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		usageValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		productionInQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		productionInValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		productionOutQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		productionOutValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		sellQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		sellValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-
-		// Closing balance
-		closingQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		closingAvgCost: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		closingValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-
-		...auditColumns,
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		status: opnameStatusEnum('status').notNull().default('draft'),
+		startedAt: timestamp('started_at', { withTimezone: true }),
+		completedAt: timestamp('completed_at', { withTimezone: true }),
+		conductedBy: integer('conducted_by').references(() => users.id, { onDelete: 'set null' }),
+		...auditBasicColumns,
 	},
 	(t) => [
-		uniqueIndex('stock_summaries_material_location_date_idx')
-			.on(t.materialId, t.locationId, t.date)
-			.where(sql`${t.deletedAt} IS NULL`),
-		index('stock_summaries_location_date_idx').on(t.locationId, t.date),
-		index('stock_summaries_date_idx').on(t.date),
+		uniqueIndex('stock_opnames_opname_no_uniq').on(t.opnameNo),
+		uniqueIndex('stock_opnames_location_active_uniq')
+			.on(t.locationId)
+			.where(sql`${t.status} = 'draft'`),
+		index('stock_opnames_location_id_idx').on(t.locationId),
+		index('stock_opnames_conducted_by_idx').on(t.conductedBy),
+	],
+)
+
+// ─── Stock Opname Lines ───
+
+export const stockOpnameLines = pgTable(
+	'stock_opname_lines',
+	{
+		...pk,
+		opnameId: integer('opname_id')
+			.notNull()
+			.references(() => stockOpnames.id, { onDelete: 'cascade' }),
+		materialId: integer('material_id')
+			.notNull()
+			.references(() => materials.id, { onDelete: 'restrict' }),
+		systemQty: numeric('system_qty', { precision: 18, scale: 6 }).notNull(),
+		actualQty: numeric('actual_qty', { precision: 18, scale: 6 }).notNull(),
+		reason: varchar('reason', { length: 500 }),
+	},
+	(t) => [
+		index('stock_opname_lines_opname_id_idx').on(t.opnameId),
+		index('stock_opname_lines_material_id_idx').on(t.materialId),
+	],
+)
+
+// ─── Receivings ───
+
+export const receivings = pgTable(
+	'receivings',
+	{
+		...pk,
+		receivingNo: varchar('receiving_no', { length: 100 }).notNull(),
+		locationId: integer('location_id')
+			.notNull()
+			.references(() => locations.id, { onDelete: 'restrict' }),
+		supplierId: integer('supplier_id')
+			.notNull()
+			.references(() => suppliers.id, { onDelete: 'restrict' }),
+		status: receivingStatusEnum('status').notNull().default('draft'),
+		notes: varchar('notes', { length: 1000 }),
+		receivedBy: integer('received_by').references(() => users.id, { onDelete: 'set null' }),
+		...auditBasicColumns,
+	},
+	(t) => [
+		uniqueIndex('receivings_receiving_no_uniq').on(t.receivingNo),
+		index('receivings_location_id_idx').on(t.locationId),
+		index('receivings_supplier_id_idx').on(t.supplierId),
+		index('receivings_received_by_idx').on(t.receivedBy),
+	],
+)
+
+// ─── Receiving Lines ───
+
+export const receivingLines = pgTable(
+	'receiving_lines',
+	{
+		...pk,
+		receivingId: integer('receiving_id')
+			.notNull()
+			.references(() => receivings.id, { onDelete: 'cascade' }),
+		materialId: integer('material_id')
+			.notNull()
+			.references(() => materials.id, { onDelete: 'restrict' }),
+		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull(),
+		unitCost: numeric('unit_cost', { precision: 18, scale: 6 }).notNull(),
+		uomId: integer('uom_id')
+			.notNull()
+			.references(() => uoms.id, { onDelete: 'restrict' }),
+	},
+	(t) => [
+		check('receiving_lines_quantity_positive_chk', sql`${t.quantity} > 0`),
+		check('receiving_lines_unit_cost_nonneg_chk', sql`${t.unitCost} >= 0`),
+		index('receiving_lines_receiving_id_idx').on(t.receivingId),
+		index('receiving_lines_material_id_idx').on(t.materialId),
+		index('receiving_lines_uom_id_idx').on(t.uomId),
 	],
 )

@@ -1,8 +1,6 @@
-'use client'
-
 import * as React from 'react'
 
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from 'lucide-react'
 import { DayPicker, getDefaultClassNames, type DayButton, type Locale } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
@@ -28,7 +26,7 @@ function Calendar({
 		<DayPicker
 			showOutsideDays={showOutsideDays}
 			className={cn(
-				'group/calendar bg-background p-2 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(7)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent',
+				'group/calendar bg-background p-3 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(6)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent',
 				String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
 				String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
 				className,
@@ -65,19 +63,16 @@ function Calendar({
 					'flex h-(--cell-size) w-full items-center justify-center gap-1.5 text-sm font-medium',
 					defaultClassNames.dropdowns,
 				),
-				dropdown_root: cn(
-					'cn-calendar-dropdown-root relative rounded-(--cell-radius)',
-					defaultClassNames.dropdown_root,
-				),
+				dropdown_root: cn('relative rounded-(--cell-radius)', defaultClassNames.dropdown_root),
 				dropdown: cn('absolute inset-0 bg-popover opacity-0', defaultClassNames.dropdown),
 				caption_label: cn(
 					'font-medium select-none',
 					captionLayout === 'label'
 						? 'text-sm'
-						: 'cn-calendar-caption-label flex items-center gap-1 rounded-(--cell-radius) text-sm [&>svg]:size-3.5 [&>svg]:text-muted-foreground',
+						: 'flex items-center gap-1 rounded-(--cell-radius) text-sm [&>svg]:size-3.5 [&>svg]:text-muted-foreground',
 					defaultClassNames.caption_label,
 				),
-				table: 'w-full border-collapse',
+				month_grid: cn('w-full border-collapse', defaultClassNames.month_grid),
 				weekdays: cn('flex', defaultClassNames.weekdays),
 				weekday: cn(
 					'flex-1 rounded-(--cell-radius) text-[0.8rem] font-normal text-muted-foreground select-none',
@@ -123,11 +118,11 @@ function Calendar({
 				},
 				Chevron: ({ className, orientation, ...props }) => {
 					if (orientation === 'left') {
-						return <ChevronLeftIcon className={cn('cn-rtl-flip size-4', className)} {...props} />
+						return <ChevronLeftIcon className={cn('size-4', className)} {...props} />
 					}
 
 					if (orientation === 'right') {
-						return <ChevronRightIcon className={cn('cn-rtl-flip size-4', className)} {...props} />
+						return <ChevronRightIcon className={cn('size-4', className)} {...props} />
 					}
 
 					return <ChevronDownIcon className={cn('size-4', className)} {...props} />

@@ -8,21 +8,19 @@
 			"packages/*"
 		],
 		"catalog": {
-			"dpdm": "^4.0.1",
-			"knip": "^5.41.0",
-			"oxfmt": "^0.42.0",
-			"oxlint": "^1.57.0",
-			"oxlint-tsgolint": "^0.17.3",
-			"typescript": "^6.0.2",
-			"zod": "^4.3.6"
+			"oxfmt": "^0.62.0",
+			"oxlint": "^1.77.0",
+			"typescript": "^7.0.2",
+			"zod": "^4.4.3"
 		}
 	},
 	"scripts": {
+		"dev": "bun --elide-lines=0 --filter @ikki/* dev",
 		"dev:server": "bun --filter @ikki/server dev",
 		"dev:web": "bun --filter @ikki/web dev",
-		"test:e2e": "bun --filter e2e test",
+		"test:e2e": "./scripts/test-e2e.sh",
 		"test:e2e:ui": "bun --filter e2e test:ui",
-		"test:e2e:headed": "bun --filter e2e test:headed",
+		"test:e2e:headed": "./scripts/test-e2e.sh --headed",
 		"test:e2e:debug": "bun --filter e2e test:debug",
 		"test:e2e:report": "bun --filter e2e test:report",
 		"lint": "oxlint",
@@ -31,14 +29,15 @@
 		"format:check": "oxfmt --check .",
 		"knip": "bunx knip",
 		"check-deps": "bun --filter @ikki/server check-deps",
-		"check": "bun run lint && bun run format:check && bun run knip"
+		"check": "bun run lint && bun run format:check && bun run knip",
+		"clean": "rm -rf node_modules apps/web/node_modules apps/server/node_modules"
 	},
 	"devDependencies": {
-		"dpdm": "^4.0.1",
-		"knip": "^5.88.1",
-		"oxfmt": "^0.42.0",
-		"oxlint": "^1.60.0",
-		"oxlint-tsgolint": "^0.17.4",
-		"typescript": "^6.0.2"
+		"dpdm": "^4.3.0",
+		"knip": "^6.32.0",
+		"oxfmt": "^0.53.0",
+		"oxlint": "^1.77.0",
+		"oxlint-tsgolint": "^0.23.0",
+		"typescript": "^6.0.3"
 	}
 }

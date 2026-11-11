@@ -1,0 +1,190 @@
+import { MinusIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+
+export interface CartLine {
+	menuItemId: number
+	menuItemName: string
+	qty: number
+	unitPrice: number
+	modifierOptionIds: number[]
+	modifierNames: string[]
+	modifierTotal: number
+	notes: string | null
+}
+
+interface OrderCartProps {
+	lines: CartLine[]
+	onUpdateQty: (menuItemId: number, modifierKey: string, qty: number) => void
+	onRemoveLine: (menuItemId: number, modifierKey: string) => void
+	/** Server-authoritative subtotal; `null` while the cart is not yet synced (pending). */
+	subtotal: number | null
+	discountAmount: number
+	/** Server-authoritative tax; `null` while the cart is not yet synced (pending). */
+	taxAmount: number | null
+	/** Server-authoritative grand total; `null` while pending (computed at payment). */
+	total: number | null
+	voucherCode: string | null
+	onRemoveVoucher: () => void
+	onOpenPayment: () => void
+	onOpenVoucher: () => void
+	disabled?: boolean
+}
+
+export function getModifierKey(line: CartLine): string {
+	return `${line.menuItemId}:${line.modifierOptionIds.sort().join(',')}`
+}
+
+export function OrderCart({
+	lines,
+	onUpdateQty,
+	onRemoveLine,
+	subtotal,
+	discountAmount,
+	taxAmount,
+	total,
+	voucherCode,
+	onRemoveVoucher,
+	onOpenPayment,
+	onOpenVoucher,
+	disabled,
+}: OrderCartProps) {
+	return (
+		<div className="flex h-full flex-col rounded-lg border bg-card">
+			<div className="border-b px-4 py-3">
+				<h3 className="font-heading text-sm font-semibold tracking-tight">Pesanan</h3>
+			</div>
+
+			<ScrollArea className="flex-1 px-4">
+				{lines.length === 0 ? (
+					<div className="flex h-32 items-center justify-center text-muted-foreground">
+						Belum ada item
+					</div>
+				) : (
+					<div className="divide-y">
+						{lines.map((line) => {
+							const key = getModifierKey(line)
+							const lineTotal = (line.unitPrice + line.modifierTotal) * line.qty
+							return (
+								<div key={key} className="flex items-start gap-2 py-2.5">
+									<div className="flex-1 min-w-0">
+										<p className="text-xs font-medium truncate">{line.menuItemName}</p>
+										{line.modifierNames.length > 0 && (
+											<p className="text-xs text-muted-foreground truncate">
+												{line.modifierNames.join(', ')}
+											</p>
+										)}
+										{line.notes && (
+											<p className="text-xs italic text-muted-foreground truncate">
+												{line.notes}
+											</p>
+										)}
+										<p className="mt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
+											Rp {line.unitPrice.toLocaleString('id-ID')}
+											{line.modifierTotal > 0 && ` + ${line.modifierTotal.toLocaleString('id-ID')}`}
+										</p>
+									</div>
+									<div className="flex items-center gap-1">
+										<Button
+											variant="outline"
+											size="icon-sm"
+											onClick={() => onUpdateQty(line.menuItemId, key, line.qty - 1)}
+											disabled={disabled}
+										>
+											<MinusIcon className="size-3" />
+										</Button>
+										<span className="w-6 text-center font-mono text-xs font-medium tabular-nums">
+											{line.qty}
+										</span>
+										<Button
+											variant="outline"
+											size="icon-sm"
+											onClick={() => onUpdateQty(line.menuItemId, key, line.qty + 1)}
+											disabled={disabled}
+										>
+											<PlusIcon className="size-3" />
+										</Button>
+										<Button
+											variant="ghost"
+											size="icon-sm"
+											onClick={() => onRemoveLine(line.menuItemId, key)}
+											disabled={disabled}
+										>
+											<Trash2Icon className="size-3 text-destructive" />
+										</Button>
+									</div>
+									<span className="w-20 text-right font-mono text-xs font-medium tabular-nums">
+										Rp {lineTotal.toLocaleString('id-ID')}
+									</span>
+								</div>
+							)
+						})}
+					</div>
+				)}
+			</ScrollArea>
+
+			<div className="border-t px-4 py-3">
+				<div className="space-y-1 font-mono text-xs tabular-nums">
+					<div className="flex justify-between">
+						<span className="font-sans text-muted-foreground">Subtotal</span>
+						<span className={subtotal === null ? 'text-muted-foreground' : undefined}>
+							{subtotal === null ? 'Dihitung saat bayar' : `Rp ${subtotal.toLocaleString('id-ID')}`}
+						</span>
+					</div>
+					{discountAmount > 0 && (
+						<div className="flex justify-between text-success">
+							<span className="flex items-center gap-1 font-sans">
+								Diskon
+								{voucherCode && <span className="text-xs">({voucherCode})</span>}
+							</span>
+							<span>-Rp {discountAmount.toLocaleString('id-ID')}</span>
+						</div>
+					)}
+					<div className="flex justify-between">
+						<span className="font-sans text-muted-foreground">Pajak</span>
+						<span className={taxAmount === null ? 'text-muted-foreground' : undefined}>
+							{taxAmount === null
+								? 'Dihitung saat bayar'
+								: `Rp ${taxAmount.toLocaleString('id-ID')}`}
+						</span>
+					</div>
+					<Separator />
+					<div className="flex justify-between text-sm font-semibold">
+						<span className="font-sans">Total</span>
+						<span className={total === null ? 'text-muted-foreground' : undefined}>
+							{total === null ? 'Dihitung saat bayar' : `Rp ${total.toLocaleString('id-ID')}`}
+						</span>
+					</div>
+				</div>
+
+				<div className="mt-3 flex gap-2">
+					<Button
+						variant="outline"
+						size="sm"
+						className="flex-1"
+						onClick={onOpenVoucher}
+						disabled={disabled || lines.length === 0}
+					>
+						{voucherCode ? 'Ganti Voucher' : 'Voucher'}
+					</Button>
+					{voucherCode && (
+						<Button variant="ghost" size="sm" onClick={onRemoveVoucher} disabled={disabled}>
+							Hapus
+						</Button>
+					)}
+				</div>
+
+				<Button
+					className="mt-2 w-full"
+					size="sm"
+					onClick={onOpenPayment}
+					disabled={disabled || lines.length === 0}
+				>
+					Bayar
+				</Button>
+			</div>
+		</div>
+	)
+}

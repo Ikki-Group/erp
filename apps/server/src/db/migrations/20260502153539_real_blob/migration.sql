@@ -1,1 +1,0 @@
-ALTER TABLE "locations" ALTER COLUMN "code" DROP NOT NULL;

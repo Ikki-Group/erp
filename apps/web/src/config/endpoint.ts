@@ -12,247 +12,174 @@ function crud(base: string) {
 	}
 }
 
-const auth = { login: 'auth/login', me: 'auth/me' }
-
-const audit = {
-	log: {
-		...crud('audit/audit-log'),
-	},
-}
-
-const company = {
-	settings: {
-		get: 'company/settings',
-		detail: 'company/settings/detail',
-		create: 'company/settings/create',
-		update: 'company/settings/update',
-	},
-}
-
-const iam = {
-	user: {
-		...crud('iam/user'),
-		changePassword: 'iam/user/change-password',
-		adminPasswordReset: 'iam/user/admin/password-reset',
-	},
-	role: crud('iam/role'),
-	assignment: {
-		list: 'iam/assignment/list',
-		assign: 'iam/assignment/assign',
-		assignBulk: 'iam/assignment/assign-bulk',
-		updateRoleBulk: 'iam/assignment/update-role-bulk',
-		remove: 'iam/assignment/remove',
-		removeBulk: 'iam/assignment/remove-bulk',
+const auth = {
+	login: 'auth/login',
+	me: 'auth/me',
+	logout: 'auth/logout',
+	profile: 'auth/profile',
+	password: 'auth/password',
+	sessions: {
+		list: 'auth/sessions/list',
+		revoke: 'auth/sessions/revoke',
+		revokeOthers: 'auth/sessions/revoke-others',
 	},
 }
 
 const location = crud('location')
 
+const iam = {
+	role: crud('iam/role'),
+	user: {
+		...crud('iam/user'),
+		deactivate: p('iam/user', 'deactivate'),
+		resetPassword: p('iam/user', 'reset-password'),
+		locationStaff: p('iam/user', 'location-staff', 'list'),
+		byLocation: p('iam/user', 'by-location'),
+	},
+	assignment: {
+		list: p('iam/assignment', 'list'),
+		assign: p('iam/assignment', 'assign'),
+		remove: p('iam/assignment', 'remove'),
+	},
+}
+
+const uom = {
+	...crud('uom'),
+	conversion: {
+		list: p('uom', 'conversion', 'list'),
+		create: p('uom', 'conversion', 'create'),
+		remove: p('uom', 'conversion', 'remove'),
+	},
+}
+
 const material = {
 	...crud('material'),
 	category: crud('material/category'),
-	uom: crud('material/uom'),
-	location: {
-		assign: 'material/location/assign',
-		unassign: 'material/location/unassign',
-		byMaterial: 'material/location/by-material',
-		stock: 'material/location/stock',
-		config: 'material/location/config',
+	assignment: {
+		assign: p('material', 'assignment', 'assign'),
+		unassign: p('material', 'assignment', 'unassign'),
+		byLocation: p('material', 'assignment', 'by-location'),
+		byMaterial: p('material', 'assignment', 'by-material'),
 	},
 }
 
-const product = {
-	...crud('product'),
-	category: crud('product/category'),
+const paymentMethod = {
+	...crud('payment-method'),
+	byLocation: p('payment-method', 'by-location'),
+	location: {
+		assign: p('payment-method', 'location', 'assign'),
+		unassign: p('payment-method', 'location', 'unassign'),
+	},
 }
-
-const recipe = crud('recipe')
 
 const inventory = {
-	summary: {
-		byLocation: 'inventory/summary/by-location',
-		ledger: 'inventory/summary/ledger',
-		generate: 'inventory/summary/generate',
-		remove: 'inventory/summary/remove',
+	stock: {
+		balance: p('inventory/stock', 'balance'),
+		list: p('inventory/stock', 'list'),
+		movements: p('inventory/stock', 'movements'),
 	},
-	transaction: {
-		...crud('inventory/transaction'),
-		purchase: 'inventory/transaction/purchase',
-		transfer: 'inventory/transaction/transfer',
-		adjustment: 'inventory/transaction/adjustment',
-		opname: 'inventory/transaction/opname',
-		usage: 'inventory/transaction/usage',
-		sell: 'inventory/transaction/sell',
-		productionIn: 'inventory/transaction/production-in',
-		productionOut: 'inventory/transaction/production-out',
+	transfer: {
+		list: p('inventory/transfer', 'list'),
+		detail: p('inventory/transfer', 'detail'),
+		create: p('inventory/transfer', 'create'),
+		ship: p('inventory/transfer', 'ship'),
+		receive: p('inventory/transfer', 'receive'),
 	},
-}
-
-const inventoryAlert = { list: 'inventory/alert/list', count: 'inventory/alert/count' }
-
-const inventoryDashboard = { kpi: 'inventory/dashboard/kpi' }
-
-const dashboard = {
-	analytics: { pnl: 'dashboard/analytics/pnl', topSales: 'dashboard/analytics/top-sales' },
-	settings: { summary: 'dashboard/settings/summary' },
-}
-
-const employee = crud('hr/employee')
-
-const finance = {
-	account: crud('finance/account'),
-	journal: { entry: 'finance/general-ledger/entry' },
-	expenditure: crud('finance/expenditure'),
-}
-
-const hr = {
-	shifts: { list: 'hr/shifts', create: 'hr/shifts' },
-	attendances: { list: 'hr/attendances' },
-	clockIn: 'hr/clock-in',
-	clockOut: 'hr/clock-out',
-	payroll: {
-		batches: {
-			list: 'hr/payroll/batches',
-			create: 'hr/payroll/batches',
-			finalize: 'hr/payroll/batches/finalize',
-		},
-		adjustments: { create: 'hr/payroll/adjustments' },
+	opname: {
+		list: p('inventory/opname', 'list'),
+		detail: p('inventory/opname', 'detail'),
+		create: p('inventory/opname', 'create'),
+		counts: p('inventory/opname', 'counts'),
+		complete: p('inventory/opname', 'complete'),
+	},
+	receiving: {
+		list: p('inventory/receiving', 'list'),
+		detail: p('inventory/receiving', 'detail'),
+		create: p('inventory/receiving', 'create'),
+		update: p('inventory/receiving', 'update'),
+		confirm: p('inventory/receiving', 'confirm'),
 	},
 }
 
-const moka = {
-	configuration: {
-		byLocation: 'moka/config/by-location/:locationId',
-		create: 'moka/config/create',
-		update: 'moka/config/update/:id',
-	},
-	scrap: { history: 'moka/scrap/history', trigger: 'moka/scrap/trigger' },
-}
-
-const production = {
-	workOrder: {
-		...crud('production/work-orders'),
-		start: 'production/work-orders/start',
-		complete: 'production/work-orders/complete',
+const supplier = {
+	...crud('supplier'),
+	material: {
+		list: p('supplier', 'material', 'list'),
+		create: p('supplier', 'material', 'create'),
+		update: p('supplier', 'material', 'update'),
+		remove: p('supplier', 'material', 'remove'),
 	},
 }
 
-const purchasing = {
-	order: crud('purchasing/purchase-order'),
-	goodsReceipt: {
-		...crud('purchasing/goods-receipt'),
-		complete: 'purchasing/goods-receipt/complete',
+const menu = {
+	item: {
+		...crud('menu/item'),
+		modifiersSync: p('menu/item', 'modifiers', 'sync'),
 	},
+	category: {
+		list: p('menu/category', 'list'),
+		create: p('menu/category', 'create'),
+		update: p('menu/category', 'update'),
+		remove: p('menu/category', 'remove'),
+	},
+	modifier: crud('menu/modifier'),
 }
 
-const sales = {
+const recipe = {
+	...crud('recipe'),
+	byMenuItem: p('recipe', 'by-menu-item'),
+	hpp: p('recipe', 'hpp'),
+}
+
+const company = {
+	settings: 'company/settings',
+	overview: 'company/overview',
+}
+
+const audit = {
+	list: 'audit/list',
+	detail: 'audit/detail',
+	byEntity: 'audit/by-entity',
+}
+
+const pos = {
+	voucher: crud('pos/voucher'),
+	table: crud('pos/table'),
+	shift: {
+		open: p('pos/shift', 'open'),
+		close: p('pos/shift', 'close'),
+		closeOther: p('pos/shift', 'close-other'),
+		active: p('pos/shift', 'active'),
+		list: p('pos/shift', 'list'),
+		detail: p('pos/shift', 'detail'),
+	},
 	order: {
-		...crud('sales/order'),
-		addBatch: 'sales/order/add-batch',
-		close: 'sales/order/close',
-		void: 'sales/order/void',
-	},
-	salesType: crud('sales/sales-type'),
-}
-
-const supplier = crud('supplier')
-
-const crm = {
-	customer: {
-		...crud('crm/customer'),
-		byPhone: 'crm/customer/by-phone',
-		points: {
-			add: 'crm/customer/points/add',
-			redeem: 'crm/customer/points/redeem',
-		},
-		loyaltyHistory: 'crm/customer/loyalty-history',
-	},
-}
-
-const tool = {
-	seed: 'tool/seed',
-}
-
-const payment = {
-	method: {
-		...crud('payment/method'),
-		enabled: 'payment/method/enabled',
-		seed: 'payment/method/seed',
-	},
-	transaction: {
-		...crud('payment/transaction'),
-		invoices: 'payment/transaction/invoices',
-	},
-}
-
-const reporting = {
-	sales: {
-		revenue: 'reporting/sales/revenue',
-		topProducts: 'reporting/sales/top-products',
-		byLocation: 'reporting/sales/by-location',
-		byType: 'reporting/sales/by-type',
-	},
-	finance: {
-		cashFlow: 'reporting/finance/cash-flow',
-		accountBalances: 'reporting/finance/account-balances',
-		expenditureByCategory: 'reporting/finance/expenditure-by-category',
-	},
-	inventory: {
-		stockLevels: 'reporting/inventory/stock-levels',
-		movements: 'reporting/inventory/movements',
-		stockValue: 'reporting/inventory/stock-value',
-		lowStock: 'reporting/inventory/low-stock',
-		consumption: 'reporting/inventory/consumption',
-		opname: 'reporting/inventory/opname',
-		waste: 'reporting/inventory/waste',
-	},
-	crm: {
-		customerGrowth: 'reporting/crm/customer-growth',
-		customersByTier: 'reporting/crm/customers-by-tier',
-		topCustomers: 'reporting/crm/top-customers',
-		loyaltyPoints: 'reporting/crm/loyalty-points',
-	},
-	procurement: {
-		purchases: 'reporting/procurement/purchases',
-		suppliers: 'reporting/procurement/suppliers',
-		transfers: 'reporting/procurement/transfers',
-		costs: 'reporting/procurement/costs',
-	},
-	insights: {
-		profitability: 'reporting/insights/profitability',
-		location: 'reporting/insights/location',
-		turnover: 'reporting/insights/turnover',
-	},
-	payment: {
-		byMethod: 'reporting/payment/by-method',
-		overTime: 'reporting/payment/over-time',
-		byAccount: 'reporting/payment/by-account',
+		list: p('pos/order', 'list'),
+		detail: p('pos/order', 'detail'),
+		create: p('pos/order', 'create'),
+		complete: p('pos/order', 'complete'),
+		void: p('pos/order', 'void'),
+		linesSync: p('pos/order', 'lines', 'sync'),
+		voucherApply: p('pos/order', 'voucher', 'apply'),
+		voucherRemove: p('pos/order', 'voucher', 'remove'),
+		payment: p('pos/order', 'payment'),
 	},
 }
 
 export const endpoint = {
 	auth,
-	audit,
-	company,
-	iam,
 	location,
+	iam,
+	uom,
 	material,
-	product,
+	supplier,
+	paymentMethod,
+	menu,
 	recipe,
 	inventory,
-	inventoryAlert,
-	inventoryDashboard,
-	dashboard,
-	employee,
-	finance,
-	hr,
-	moka,
-	production,
-	purchasing,
-	sales,
-	supplier,
-	crm,
-	tool,
-	payment,
-	reporting,
+	company,
+	pos,
+	audit,
 } as const
+
+export { crud, p }

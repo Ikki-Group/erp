@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zp } from './primitive'
+import { zp } from './primitive.ts'
 
 const strTrim = z.string().trim()
 const strTrimNullable = z
@@ -9,17 +9,14 @@ const strTrimNullable = z
 	.transform((val) => (val.length === 0 ? null : val))
 	.nullable()
 
-const email = z
-	.email()
-	.max(255)
-	.transform((v) => v.toLowerCase())
+const email = z.email().max(255).toLowerCase()
 
 const username = z
 	.string()
 	.trim()
 	.min(3)
 	.max(30)
-	.regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
+	.regex(/^[a-zA-Z0-9_]+$/u, 'Username can only contain letters, numbers, and underscores')
 
 const password = z.string().min(8).max(100)
 
@@ -33,8 +30,8 @@ const Timestamps = z.object({
 })
 
 const Actors = z.object({
-	createdBy: zp.id,
-	updatedBy: zp.id,
+	createdBy: zp.id.nullable(),
+	updatedBy: zp.id.nullable(),
 })
 
 const SoftDelete = z.object({

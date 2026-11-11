@@ -1,163 +1,174 @@
-import { record } from '@elysiajs/opentelemetry'
+import { roles } from '@/db/schema/iam.ts'
 
-import { CacheService, type CacheClient } from '@/core/cache'
-import * as core from '@/core/database'
+import { CacheService } from '@/infra/cache/index.ts'
+import type { CacheClient } from '@/infra/cache/index.ts'
+import { checkConflict } from '@/infra/database/conflict.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import { invalidateAuthCacheForRole } from '@/shared/auth/access-cache.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import { mutate } from '@/shared/service/mutate.ts'
+import type { Invalidation, MutationScope } from '@/shared/service/mutate.ts'
+import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
+import { assertFound } from '@/shared/utils/index.ts'
 
-import { rolesTable } from '@/db/schema'
+import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from './role.contract.ts'
+import { RoleError, uniqueFields } from './role.internal.ts'
+import type { IRoleRepo } from './role.repo.ts'
 
-import { RelationMap } from '@/lib/utils/relation-map'
+// ─── Dependencies ───
 
-import { SYSTEM_ROLES } from '../constants'
-import { RoleErrors } from '../errors'
-import * as dto from './role.dto'
-import { RoleRepo } from './role.repo'
+export interface RoleServiceDeps {
+	uow: UnitOfWork
+	audit: AuditPort
+}
 
-const roleConflictFields: core.ConflictField<'code' | 'name'>[] = [
-	{
-		field: 'code',
-		column: rolesTable.code,
-		message: 'Role code already exists',
-		code: 'ROLE_CODE_ALREADY_EXISTS',
-	},
-	{
-		field: 'name',
-		column: rolesTable.name,
-		message: 'Role name already exists',
-		code: 'ROLE_NAME_ALREADY_EXISTS',
-	},
-]
+// ─── Service ───
 
 export class RoleService {
 	private readonly cache: CacheService
+	private readonly mutation: MutationScope
+	/** Changing an existing role also drops cached permissions of every session holding it. */
+	private readonly existingRoleInvalidation: readonly Invalidation[]
 
 	constructor(
-		private readonly repo: RoleRepo,
+		private readonly repo: IRoleRepo,
 		cacheClient: CacheClient,
+		deps: RoleServiceDeps,
 	) {
-		this.cache = new CacheService({ ns: 'iam.role', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'role')
+		this.mutation = {
+			uow: deps.uow,
+			audit: deps.audit,
+			module: 'iam',
+			entity: 'role',
+			invalidate: this.cache,
+		}
+		this.existingRoleInvalidation = [(ref) => invalidateAuthCacheForRole(ref.id), this.cache]
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
+	// ─── Cached Reads ───
 
-	async getList(): Promise<dto.RoleDto[]> {
-		return record('RoleService.getList', async () => {
-			return this.cache.getOrSet({
-				key: 'list',
-				factory: () => this.repo.getList(),
-			})
+	async getById(id: number): Promise<RoleDto | undefined> {
+		return this.cache.getOrSetWithSkip({
+			key: this.cache.keys.byId(id),
+			factory: () => this.repo.findById(id),
 		})
 	}
 
-	async getRelationMap(): Promise<RelationMap<number, dto.RoleDto>> {
-		return record('RoleService.getRelationMap', async () => {
-			const roles = await this.getList()
-			return RelationMap.fromArray(roles, (r) => r.id)
+	async getAll(): Promise<RoleDto[]> {
+		return this.cache.getOrSet({
+			key: this.cache.keys.list,
+			factory: () => this.repo.findMany(),
 		})
 	}
 
-	async getById(id: number): Promise<dto.RoleDto | undefined> {
-		return record('RoleService.getById', async () => {
-			return this.cache.getOrSetSkipUndefined({
-				key: `byId:${id}`,
-				factory: () => this.repo.getById(id),
-			})
-		})
+	// ─── Handlers ───
+
+	async handleGetById(id: number): Promise<RoleDto> {
+		return assertFound(await this.getById(id), () => RoleError.notFound(id))
 	}
 
-	async getSuperadmin(): Promise<dto.RoleDto> {
-		return record('RoleService.getSuperadmin', async () => {
-			const result = await this.getById(SYSTEM_ROLES.SUPERADMIN_ID)
-			if (!result) throw RoleErrors.notFound(SYSTEM_ROLES.SUPERADMIN_ID)
-			return result
-		})
+	async handleList(filter: RoleFilterDto): Promise<WithPaginationResult<RoleDto>> {
+		return this.repo.findPage(filter)
 	}
 
-	async count(): Promise<number> {
-		return record('RoleService.count', async () => {
-			return this.cache.getOrSet({
-				key: 'count',
-				factory: () => this.repo.count(),
-			})
-		})
-	}
-
-	async seed(data: (dto.RoleCreateDto & { createdBy: number })[]): Promise<void> {
-		return record('RoleService.seed', async () => {
-			await this.repo.seed(data)
-		})
-	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
-
-	async handleList(filter: dto.RoleFilterDto): Promise<core.WithPaginationResult<dto.RoleDto>> {
-		return record('RoleService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
-		})
-	}
-
-	async handleDetail(id: number): Promise<dto.RoleDto> {
-		return record('RoleService.handleDetail', async () => {
-			const result = await this.getById(id)
-			if (!result) throw RoleErrors.notFound(id)
-			return result
-		})
-	}
-
-	async handleCreate(data: dto.RoleCreateDto, actorId: number): Promise<{ id: number }> {
-		return record('RoleService.handleCreate', async () => {
-			await core.checkConflict({
-				table: rolesTable,
-				pkColumn: rolesTable.id,
-				fields: roleConflictFields,
+	async handleCreate(data: RoleCreateDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
+		return mutate(this.mutation, actor, async (tx) => {
+			await checkConflict({
+				db: tx,
+				table: roles,
+				pkColumn: roles.id,
+				fields: uniqueFields,
 				input: data,
 			})
 
-			const result = await this.repo.create(data, actorId)
-			if (!result) throw RoleErrors.createFailed()
-
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
-
-			return { id: result }
+			const written = await this.repo.insert(
+				{ ...data, isSystem: false, ...stampCreate(actor.id) },
+				tx,
+			)
+			if (!written) throw RoleError.createFailed()
+			return {
+				result: written,
+				audit: {
+					action: 'create',
+					summary: `Created role "${data.name}" (${data.code})`,
+					newValues: {
+						code: data.code,
+						name: data.name,
+						description: data.description,
+						permissions: data.permissions,
+					},
+				},
+			}
 		})
 	}
 
-	async handleUpdate(data: dto.RoleUpdateDto, actorId: number): Promise<{ id: number }> {
-		return record('RoleService.handleUpdate', async () => {
-			const { id } = data
+	async handleUpdate(data: RoleUpdateDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
+		const { id, ...updateData } = data
+		return mutate(
+			this.mutation,
+			actor,
+			async (tx) => {
+				const existing = await this.repo.findById(id, tx)
+				if (!existing) throw RoleError.notFound(id)
+				if (existing.isSystem) throw RoleError.systemRoleImmutable()
 
-			const existing = await this.getById(id)
-			if (!existing) throw RoleErrors.notFound(id)
-			if (existing.isSystem) throw RoleErrors.updateSystemRole()
+				await checkConflict({
+					db: tx,
+					table: roles,
+					pkColumn: roles.id,
+					fields: uniqueFields,
+					input: updateData,
+					excludeId: id,
+				})
 
-			await core.checkConflict({
-				table: rolesTable,
-				pkColumn: rolesTable.id,
-				fields: roleConflictFields,
-				input: data,
-				existing,
-			})
-
-			const result = await this.repo.update(data, actorId)
-			if (!result) throw RoleErrors.notFound(id)
-
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
-			return { id }
-		})
+				const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)
+				if (!written) throw RoleError.updateFailed(id)
+				return {
+					result: written,
+					audit: {
+						action: 'update',
+						summary: `Updated role "${data.name}" (${data.code})`,
+						newValues: {
+							code: data.code,
+							name: data.name,
+							description: data.description,
+							permissions: data.permissions,
+						},
+					},
+				}
+			},
+			{ invalidate: this.existingRoleInvalidation },
+		)
 	}
 
-	async handleRemove(id: number): Promise<{ id: number }> {
-		return record('RoleService.handleRemove', async () => {
-			const existing = await this.getById(id)
-			if (!existing) throw RoleErrors.notFound(id)
-			if (existing.isSystem) throw RoleErrors.deleteSystemRole()
+	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
+		return mutate(
+			this.mutation,
+			actor,
+			async (tx) => {
+				const existing = await this.repo.findById(id, tx)
+				if (!existing) throw RoleError.notFound(id)
+				if (existing.isSystem) throw RoleError.systemRoleImmutable()
+				if ((await this.repo.countAssignments(id, tx)) > 0) throw RoleError.assignedRole(id)
 
-			const result = await this.repo.remove(id)
-			if (!result) throw RoleErrors.notFound(id)
-
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
-			return { id }
-		})
+				const written = await this.repo.remove(id, tx)
+				if (!written) throw RoleError.deleteFailed(id)
+				return {
+					result: written,
+					audit: {
+						action: 'delete',
+						summary: `Deleted role "${existing.name}" (${existing.code})`,
+					},
+				}
+			},
+			{ invalidate: this.existingRoleInvalidation },
+		)
 	}
 }

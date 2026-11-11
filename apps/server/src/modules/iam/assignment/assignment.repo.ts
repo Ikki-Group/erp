@@ -1,177 +1,151 @@
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, inArray } from 'drizzle-orm'
+import { roles, userAssignments } from '@/db/schema/iam.ts'
 
-import { paginate, sortBy, type WithPaginationResult } from '@/core/database'
+import {
+	and,
+	eq,
+	sql,
+	takeFirst,
+	toLimitOffset,
+	buildPaginationMeta,
+} from '@/infra/database/index.ts'
+import type { DbContext } from '@/infra/database/index.ts'
+import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
 
-import { db } from '@/db'
-import { userAssignmentsTable } from '@/db/schema'
+import type { AssignmentDto, AssignmentFilterDto } from './assignment.contract.ts'
+import type { SQL } from 'drizzle-orm'
 
-import * as dto from './assignment.dto'
-import type { OmitPaginationQuery } from '@/types/utils'
+// ─── Types ───
 
-export class UserAssignmentRepo {
-	/* --------------------------------- PRIVATE -------------------------------- */
+type AssignmentInsert = typeof userAssignments.$inferInsert
+type AssignmentRow = typeof userAssignments.$inferSelect
 
-	#buildWhereClause(
-		filter: Partial<Pick<dto.UserAssignmentFilterDto, 'userId' | 'roleId' | 'locationId'>>,
-	) {
-		const { userId, roleId, locationId } = filter
-		return and(
-			userId ? eq(userAssignmentsTable.userId, userId) : undefined,
-			roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
-			locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
-		)
+/** Maps a raw DB row to the DTO shape. */
+function toDto(row: AssignmentRow): AssignmentDto {
+	return {
+		id: row.id,
+		userId: row.userId,
+		roleId: row.roleId,
+		locationId: row.locationId,
 	}
+}
 
-	/* ---------------------------------- QUERY --------------------------------- */
+// ─── Interface ───
 
-	async getListPaginated(
-		filter: dto.UserAssignmentFilterDto,
-	): Promise<WithPaginationResult<dto.UserAssignmentDto>> {
-		return record('UserAssignmentRepo.getListPaginated', async () => {
-			const where = this.#buildWhereClause(filter)
-			const { page, limit } = filter
-
-			return paginate<dto.UserAssignmentDto>({
-				data: ({ limit: l, offset }) =>
-					db
-						.select()
-						.from(userAssignmentsTable)
-						.where(where)
-						.orderBy(sortBy(userAssignmentsTable.addedAt, 'desc'))
-						.limit(l)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(userAssignmentsTable).where(where),
-			})
-		})
-	}
-
-	async getList(
-		filter: OmitPaginationQuery<dto.UserAssignmentFilterDto>,
-	): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentRepo.getList', async () => {
-			return db.select().from(userAssignmentsTable).where(this.#buildWhereClause(filter))
-		})
-	}
-
-	/** Get assignments for multiple users in a single query */
-	async getListByUserIds(userIds: number[]): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentRepo.getListByUserIds', async () => {
-			return db
-				.select()
-				.from(userAssignmentsTable)
-				.where(inArray(userAssignmentsTable.userId, userIds))
-		})
-	}
-
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async replaceBulkByUserId(
+export interface IAssignmentRepo {
+	readonly db: DbContext
+	findByUserId(userId: number, db?: DbContext): Promise<AssignmentDto[]>
+	findPage(
+		filter: AssignmentFilterDto,
+		db?: DbContext,
+	): Promise<WithPaginationResult<AssignmentDto>>
+	findExact(
 		userId: number,
-		assignments: dto.UserAssignmentUpsertDto[],
-		actorId: number,
-	): Promise<void> {
-		return record('UserAssignmentRepo.replaceBulkByUserId', async () => {
-			await db.transaction(async (tx) => {
-				await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
-
-				if (assignments.length > 0) {
-					await tx.insert(userAssignmentsTable).values(
-						assignments.map((a) => ({
-							userId,
-							roleId: a.roleId,
-							locationId: a.locationId,
-							addedAt: new Date(),
-							addedBy: actorId,
-						})),
-					)
-				}
-			})
-		})
-	}
-
-	async removeByUserAndLocation(userId: number, locationId: number): Promise<void> {
-		return record('UserAssignmentRepo.removeByUserAndLocation', async () => {
-			await db
-				.delete(userAssignmentsTable)
-				.where(
-					and(
-						eq(userAssignmentsTable.userId, userId),
-						eq(userAssignmentsTable.locationId, locationId),
-					),
-				)
-		})
-	}
-
-	/** Remove multiple users from a location in a single query */
-	async removeUsersBulkFromLocation(userIds: number[], locationId: number): Promise<void> {
-		return record('UserAssignmentRepo.removeUsersBulkFromLocation', async () => {
-			await db
-				.delete(userAssignmentsTable)
-				.where(
-					and(
-						inArray(userAssignmentsTable.userId, userIds),
-						eq(userAssignmentsTable.locationId, locationId),
-					),
-				)
-		})
-	}
-
-	/** Update role for multiple users in a location in a single query */
-	async updateRoleBulkByLocation(
-		userIds: number[],
-		locationId: number,
 		roleId: number,
-		actorId: number,
-	): Promise<void> {
-		return record('UserAssignmentRepo.updateRoleBulkByLocation', async () => {
-			await db
-				.update(userAssignmentsTable)
-				.set({
-					roleId,
-					addedBy: actorId,
-				})
-				.where(
-					and(
-						inArray(userAssignmentsTable.userId, userIds),
-						eq(userAssignmentsTable.locationId, locationId),
-					),
-				)
-		})
+		locationId: number | null,
+		db?: DbContext,
+	): Promise<AssignmentDto | undefined>
+	insert(data: AssignmentInsert, db?: DbContext): Promise<EntityRef | undefined>
+	remove(id: number, db?: DbContext): Promise<EntityRef | undefined>
+	countOwnerAssignments(db?: DbContext): Promise<number>
+}
+
+// ─── Implementation ───
+
+export class AssignmentRepo implements IAssignmentRepo {
+	constructor(readonly db: DbContext) {}
+
+	async findByUserId(userId: number, db: DbContext = this.db): Promise<AssignmentDto[]> {
+		const rows = await db.select().from(userAssignments).where(eq(userAssignments.userId, userId))
+		return rows.map(toDto)
+	}
+
+	async findPage(
+		filter: AssignmentFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<AssignmentDto>> {
+		const { limit, offset } = toLimitOffset(filter)
+
+		const rows = await db
+			.select({
+				id: userAssignments.id,
+				userId: userAssignments.userId,
+				roleId: userAssignments.roleId,
+				locationId: userAssignments.locationId,
+				rowCount: sql<number>`count(*) over()`.as('row_count'),
+			})
+			.from(userAssignments)
+			.where(eq(userAssignments.userId, filter.userId))
+			.orderBy(sql`${userAssignments.id} desc`)
+			.limit(limit)
+			.offset(offset)
+
+		const total = rows[0]?.rowCount ?? 0
+		return {
+			data: rows.map((row) => ({
+				id: row.id,
+				userId: row.userId,
+				roleId: row.roleId,
+				locationId: row.locationId,
+			})),
+			meta: buildPaginationMeta(filter.page, filter.limit, total),
+		}
+	}
+
+	async findExact(
+		userId: number,
+		roleId: number,
+		locationId: number | null,
+		db: DbContext = this.db,
+	): Promise<AssignmentDto | undefined> {
+		const conditions: SQL[] = [
+			eq(userAssignments.userId, userId),
+			eq(userAssignments.roleId, roleId),
+		]
+
+		if (locationId === null) {
+			conditions.push(sql`${userAssignments.locationId} is null`)
+		} else {
+			conditions.push(eq(userAssignments.locationId, locationId))
+		}
+
+		const row = await db
+			.select()
+			.from(userAssignments)
+			.where(and(...conditions))
+			.limit(1)
+			.then(takeFirst)
+
+		return row ? toDto(row) : undefined
+	}
+
+	async insert(data: AssignmentInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [result] = await db
+			.insert(userAssignments)
+			.values(data)
+			.returning({ id: userAssignments.id })
+		return result
+	}
+
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [result] = await db
+			.delete(userAssignments)
+			.where(eq(userAssignments.id, id))
+			.returning({ id: userAssignments.id })
+		return result
 	}
 
 	/**
-	 * Replace assignments for multiple users in a single transaction.
-	 * Deletes all existing assignments for these users, then inserts new ones.
+	 * Count all assignments that reference the owner role.
+	 * Used to prevent removal of the last owner assignment.
 	 */
-	async replaceBulkByUserIds(
-		userIds: number[],
-		assignmentsByUserId: Map<number, dto.UserAssignmentUpsertDto[]>,
-		actorId: number,
-	): Promise<void> {
-		return record('UserAssignmentRepo.replaceBulkByUserIds', async () => {
-			await db.transaction(async (tx) => {
-				await tx.delete(userAssignmentsTable).where(inArray(userAssignmentsTable.userId, userIds))
+	async countOwnerAssignments(db: DbContext = this.db): Promise<number> {
+		const [result] = await db
+			.select({ count: sql<number>`count(*)` })
+			.from(userAssignments)
+			.innerJoin(roles, eq(userAssignments.roleId, roles.id))
+			.where(eq(roles.code, 'owner'))
 
-				const valuesToInsert: (typeof userAssignmentsTable.$inferInsert)[] = []
-				for (const userId of userIds) {
-					const assignments = assignmentsByUserId.get(userId) ?? []
-					for (const a of assignments) {
-						valuesToInsert.push({
-							userId,
-							roleId: a.roleId,
-							locationId: a.locationId,
-							addedAt: new Date(),
-							addedBy: actorId,
-						})
-					}
-				}
-
-				if (valuesToInsert.length > 0) {
-					await tx.insert(userAssignmentsTable).values(valuesToInsert)
-				}
-			})
-		})
+		return Number(result?.count ?? 0)
 	}
 }

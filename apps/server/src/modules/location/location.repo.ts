@@ -1,133 +1,104 @@
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, or } from 'drizzle-orm'
+import { and, ne } from 'drizzle-orm'
 
-import {
-	paginate,
-	searchFilter,
-	stampCreate,
-	stampUpdate,
-	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/core/database'
+import { locations } from '@/db/schema/core.ts'
 
-import { locationsTable } from '@/db/schema'
+import { createCrudRepo } from '@/infra/database/crud.repo.ts'
+import type { SoftDeleteCrudRepo } from '@/infra/database/crud.repo.ts'
+import { allOf, eqIf, eq, searchAcross, takeFirst } from '@/infra/database/index.ts'
+import type { DbContext } from '@/infra/database/index.ts'
+import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 
-import * as dto from './location.dto'
+import type { LocationDto, LocationFilterDto } from './location.contract.ts'
+import { LocationError } from './location.internal.ts'
 
-export class LocationMasterRepo {
-	constructor(private readonly db: DbClient) {}
+// ─── Types ───
 
-	/* ---------------------------------- QUERY --------------------------------- */
+type LocationInsert = typeof locations.$inferInsert
+type LocationRow = typeof locations.$inferSelect
 
-	async getListPaginated(
-		filter: dto.LocationFilterDto,
-	): Promise<WithPaginationResult<dto.LocationDto>> {
-		return record('LocationMasterRepo.getListPaginated', async () => {
-			const { q, page, limit, type } = filter
-			const where = and(
-				q === undefined
-					? undefined
-					: or(searchFilter(locationsTable.name, q), searchFilter(locationsTable.code, q)),
-				type === undefined ? undefined : eq(locationsTable.type, type),
-			)
-
-			return paginate({
-				data: ({ limit, offset }) =>
-					this.db
-						.select()
-						.from(locationsTable)
-						.where(where)
-						.orderBy(locationsTable.name)
-						.limit(limit)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(locationsTable).where(where),
-			})
-		})
+/** Maps a raw DB row to the DTO shape. */
+function toDto(row: LocationRow): LocationDto {
+	return {
+		id: row.id,
+		code: row.code,
+		name: row.name,
+		type: row.type,
+		address: row.address,
+		phone: row.phone,
+		isActive: row.isActive,
+		createdAt: row.createdAt,
+		updatedAt: row.updatedAt,
+		createdBy: row.createdBy,
+		updatedBy: row.updatedBy,
 	}
+}
 
-	async getList(): Promise<dto.LocationDto[]> {
-		return record('LocationMasterRepo.getList', async () => {
-			return this.db.select().from(locationsTable)
-		})
-	}
+// ─── Interface ───
 
-	async getById(id: number): Promise<dto.LocationDto | undefined> {
-		return record('LocationMasterRepo.getById', async () => {
-			return this.db
+export interface ILocationRepo extends SoftDeleteCrudRepo<LocationDto, LocationInsert> {
+	findPage(filter: LocationFilterDto, db?: DbContext): Promise<WithPaginationResult<LocationDto>>
+	assertNoConflict(
+		data: { code: string; name: string },
+		excludeId: number | undefined,
+		db: DbContext,
+	): Promise<void>
+}
+
+// ─── Implementation ───
+
+export function createLocationRepo(baseDb: DbContext): ILocationRepo {
+	const crud = createCrudRepo({ db: baseDb, table: locations, toDto, softDelete: true })
+	const isActive = eq(locations.isActive, true)
+
+	return {
+		...crud,
+
+		// Soft-deleted locations are hidden from single and full-list reads.
+		async findById(id, db = baseDb) {
+			const row = await db
 				.select()
-				.from(locationsTable)
-				.where(eq(locationsTable.id, id))
+				.from(locations)
+				.where(and(eq(locations.id, id), isActive))
 				.limit(1)
 				.then(takeFirst)
-		})
-	}
+			return row ? toDto(row) : undefined
+		},
 
-	async count(): Promise<number> {
-		return record('LocationMasterRepo.count', async () => {
-			return this.db
-				.select({ count: count() })
-				.from(locationsTable)
-				.then((rows) => rows[0]?.count ?? 0)
-		})
-	}
+		async findMany(db = baseDb) {
+			const rows = await db.select().from(locations).where(isActive)
+			return rows.map(toDto)
+		},
 
-	/* -------------------------------- MUTATION -------------------------------- */
+		findPage: (filter, db) =>
+			crud.paginate(
+				filter,
+				{
+					where: allOf(
+						isActive,
+						searchAcross(filter.q, [locations.code, locations.name]),
+						eqIf(locations.type, filter.type),
+					),
+				},
+				db,
+			),
 
-	async create(data: dto.LocationCreateDto, actorId: number): Promise<number | undefined> {
-		return record('LocationMasterRepo.create', async () => {
-			const metadata = stampCreate(actorId)
-			const [res] = await this.db
-				.insert(locationsTable)
-				.values({ ...data, ...metadata })
-				.returning({ id: locationsTable.id })
+		async assertNoConflict(data, excludeId, db) {
+			const notSelf = excludeId ? ne(locations.id, excludeId) : undefined
+			const byCode = await db
+				.select({ id: locations.id })
+				.from(locations)
+				.where(and(eq(locations.code, data.code), notSelf))
+				.limit(1)
+				.then(takeFirst)
+			if (byCode) throw LocationError.codeExists()
 
-			return res?.id
-		})
-	}
-
-	async update(data: dto.LocationUpdateDto, actorId: number): Promise<number | undefined> {
-		return record('LocationMasterRepo.update', async () => {
-			const metadata = stampUpdate(actorId)
-			const [res] = await this.db
-				.update(locationsTable)
-				.set({ ...data, ...metadata })
-				.where(eq(locationsTable.id, data.id))
-				.returning({ id: locationsTable.id })
-
-			return res?.id
-		})
-	}
-
-	async remove(id: number): Promise<number | undefined> {
-		return record('LocationMasterRepo.remove', async () => {
-			const [res] = await this.db
-				.delete(locationsTable)
-				.where(eq(locationsTable.id, id))
-				.returning({ id: locationsTable.id })
-
-			return res?.id
-		})
-	}
-
-	async seed(data: (dto.LocationCreateDto & { createdBy: number })[]) {
-		return record('LocationMasterRepo.seed', async () => {
-			for (const d of data) {
-				const metadata = stampCreate(d.createdBy)
-				await this.db
-					.insert(locationsTable)
-					.values({ ...d, ...metadata })
-					.onConflictDoUpdate({
-						target: locationsTable.code,
-						set: {
-							name: d.name,
-							type: d.type,
-							updatedAt: metadata.updatedAt,
-							updatedBy: metadata.updatedBy,
-						},
-					})
-			}
-		})
+			const byName = await db
+				.select({ id: locations.id })
+				.from(locations)
+				.where(and(eq(locations.name, data.name), notSelf))
+				.limit(1)
+				.then(takeFirst)
+			if (byName) throw LocationError.nameExists()
+		},
 	}
 }

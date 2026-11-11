@@ -1,0 +1,108 @@
+import { Elysia } from 'elysia'
+
+import { authPlugin } from '@/server/plugins/auth.plugin.ts'
+import { rbac } from '@/server/plugins/rbac.plugin.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
+import { res } from '@/shared/http/response.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
+
+import {
+	VoucherCreateDto,
+	VoucherDto,
+	VoucherFilterDto,
+	VoucherUpdateDto,
+	VoucherValidateDto,
+	VoucherValidateResponseDto,
+} from './voucher.contract.ts'
+import type { VoucherService } from './voucher.service.ts'
+
+// ─── Route Factory ───
+
+export function createVoucherRoute(service: VoucherService) {
+	return new Elysia({ prefix: '/voucher', tags: ['Vouchers'] })
+		.use(authPlugin)
+		.use(rbac)
+
+		.get(
+			'/list',
+			async ({ query }) => {
+				const result = await service.handleList(query)
+				return res.paginated(result)
+			},
+			{
+				query: VoucherFilterDto,
+				permission: 'voucher.manage',
+				response: zRes.paginated(VoucherDto),
+				detail: { summary: 'List vouchers' },
+			},
+		)
+		.get(
+			'/detail',
+			async ({ query }) => {
+				const result = await service.handleGetById(query.id)
+				return res.ok(result)
+			},
+			{
+				query: zq.recordId,
+				permission: 'voucher.manage',
+				response: zRes.ok(VoucherDto),
+				detail: { summary: 'Get voucher detail' },
+			},
+		)
+		.post(
+			'/create',
+			async ({ body, actor }) => {
+				const result = await service.handleCreate(body, actor)
+				return res.created(result)
+			},
+			{
+				body: VoucherCreateDto,
+				permission: 'voucher.manage',
+				response: zRes.created(EntityRefDto),
+				detail: { summary: 'Create a voucher' },
+			},
+		)
+		.put(
+			'/update',
+			async ({ body, actor }) => {
+				const result = await service.handleUpdate(body, actor)
+				return res.ok(result)
+			},
+			{
+				body: VoucherUpdateDto,
+				permission: 'voucher.manage',
+				response: zRes.ok(EntityRefDto),
+				detail: { summary: 'Update a voucher' },
+			},
+		)
+		.delete(
+			'/remove',
+			async ({ query, actor }) => {
+				const result = await service.handleDelete(query.id, actor)
+				return res.ok(result)
+			},
+			{
+				query: zq.recordId,
+				permission: 'voucher.manage',
+				response: zRes.ok(EntityRefDto),
+				detail: { summary: 'Delete a voucher' },
+			},
+		)
+		.post(
+			'/validate',
+			async ({ body }) => {
+				const result = await service.handleValidate(body.code, body.orderTotal)
+				return res.ok(result)
+			},
+			{
+				body: VoucherValidateDto,
+				permission: 'discount.apply',
+				response: zRes.ok(VoucherValidateResponseDto),
+				detail: {
+					summary: 'Validate a voucher code',
+					description:
+						'Checks a code against an order total without applying it. An unusable voucher is not an error: the response has `valid: false` with a reason (not found, inactive, expired, usage limit, below minimum purchase).',
+				},
+			},
+		)
+}

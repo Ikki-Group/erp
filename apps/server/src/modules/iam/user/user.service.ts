@@ -1,297 +1,292 @@
-import { record } from '@elysiajs/opentelemetry'
-import { merge } from 'es-toolkit'
+import { users } from '@/db/schema/iam.ts'
 
-import { CacheService, type CacheClient } from '@/core/cache'
-import * as core from '@/core/database'
+import { CacheService } from '@/infra/cache/index.ts'
+import type { CacheClient } from '@/infra/cache/index.ts'
+import { checkConflict } from '@/infra/database/conflict.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import { invalidateAuthCache } from '@/shared/auth/access-cache.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import type { SessionStore } from '@/shared/auth/session.port.ts'
+import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
+import { assertFound, hashPassword, verifyPassword } from '@/shared/utils/index.ts'
 
-import { usersTable } from '@/db/schema'
+import type {
+	UserChangePasswordDto,
+	UserCreateDto,
+	UserDto,
+	UserFilterDto,
+	UserProfileUpdateDto,
+	UserResetPasswordDto,
+	UserUpdateDto,
+} from './user.contract.ts'
+import { UserError, uniqueFields } from './user.internal.ts'
+import type { IUserRepo } from './user.repo.ts'
 
-import { resolveAudit } from '@/lib/utils/audit-resolver'
-import type { RelationMap } from '@/lib/utils/relation-map'
-import type { AuditResolved } from '@ikki/api-contract'
+// ─── Dependencies ───
 
-import type { LocationDto, LocationServiceModule } from '@/modules/location'
-
-import type { UserAssignmentService } from '../assignment/assignment.service'
-import { UserErrors } from '../errors'
-import type { RoleDto } from '../role/role.dto'
-import type { RoleService } from '../role/role.service'
-import * as dto from './user.dto'
-import type { UserRepo } from './user.repo'
-
-const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
-	{
-		field: 'email',
-		column: usersTable.email,
-		message: 'Email already exists',
-		code: 'USER_EMAIL_ALREADY_EXISTS',
-	},
-	{
-		field: 'username',
-		column: usersTable.username,
-		message: 'Username already exists',
-		code: 'USER_USERNAME_ALREADY_EXISTS',
-	},
-]
-
-interface ServiceDeps {
-	role: RoleService
-	assignment: UserAssignmentService
-	location: LocationServiceModule
+export interface UserServiceDeps {
+	uow: UnitOfWork
+	audit: AuditPort
+	sessionStore: SessionStore
 }
+
+// ─── Service ───
 
 export class UserService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly s: ServiceDeps,
-		private readonly r: UserRepo,
+		private readonly repo: IUserRepo,
 		cacheClient: CacheClient,
+		private readonly deps: UserServiceDeps,
 	) {
-		this.cache = new CacheService({ ns: 'iam.user', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'user')
 	}
 
-	/* --------------------------------- PRIVATE -------------------------------- */
+	// ─── Cached Reads ───
 
-	private async buildUserAssignments(
-		user: dto.UserDto,
-		roleMapper?: RelationMap<number, RoleDto>,
-		locationMapper?: RelationMap<number, LocationDto>,
-	): Promise<dto.UserAssignmentDetailDto[]> {
-		const assignments: dto.UserAssignmentDetailDto[] = []
-		const { id: userId, isRoot, defaultLocationId } = user
+	async getById(id: number): Promise<UserDto | undefined> {
+		return this.cache.getOrSetWithSkip({
+			key: this.cache.keys.byId(id),
+			factory: () => this.repo.findById(id),
+		})
+	}
 
-		if (isRoot) {
-			const [superadmin, locations] = await Promise.all([
-				this.s.role.getSuperadmin(),
-				this.s.location.master.getList(),
-			])
-			const defaultAssignment = this.s.assignment.getDefaultAssignmentForSuperadmin()
-			for (const location of locations) {
-				assignments.push({ ...defaultAssignment, isDefault: false, role: superadmin, location })
-			}
-		} else {
-			const [rawAssignments, roleMap, locationMap] = await Promise.all([
-				this.s.assignment.findByUserId(userId),
-				roleMapper ?? this.s.role.getRelationMap(),
-				locationMapper ?? this.s.location.master.getRelationMap(),
-			])
+	// ─── Handlers ───
 
-			assignments.push(
-				...rawAssignments.map((a) => ({
-					...a,
-					isDefault: false,
-					role: roleMap.getRequired(a.roleId),
-					location: locationMap.getRequired(a.locationId),
-				})),
+	async handleGetById(id: number): Promise<UserDto> {
+		return assertFound(await this.getById(id), () => UserError.notFound(id))
+	}
+
+	async handleList(filter: UserFilterDto): Promise<WithPaginationResult<UserDto>> {
+		return this.repo.findPage(filter)
+	}
+
+	async handleCreate(data: UserCreateDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
+		const passwordHash = await hashPassword(data.password)
+		const result = await this.deps.uow.run(async (tx) => {
+			await checkConflict({
+				db: tx,
+				table: users,
+				pkColumn: users.id,
+				fields: uniqueFields,
+				input: data,
+			})
+
+			const written = await this.repo.insert(
+				{
+					username: data.username,
+					email: data.email,
+					name: data.name,
+					passwordHash,
+					isActive: data.isActive,
+					...stampCreate(actor.id),
+				},
+				tx,
 			)
-		}
+			if (!written) throw UserError.createFailed()
 
-		if (assignments.length > 0 && defaultLocationId === null && assignments[0]) {
-			assignments[0].isDefault = true
-		}
-
-		return assignments
-	}
-
-	/* --------------------------------- PUBLIC --------------------------------- */
-
-	async getList(): Promise<dto.UserDto[]> {
-		return record('UserService.getList', async () => {
-			return this.cache.getOrSet({
-				key: 'list',
-				factory: () => this.r.getList(),
-			})
-		})
-	}
-
-	async getById(id: number): Promise<dto.UserDto | undefined> {
-		return record('UserService.getById', async () => {
-			return this.cache.getOrSetSkipUndefined({
-				key: `byId:${id}`,
-				factory: () => this.r.getById(id),
-			})
-		})
-	}
-
-	async getDetailById(id: number): Promise<dto.UserDetailDto> {
-		return record('UserService.getDetailById', async () => {
-			const user = await this.getById(id)
-			if (!user) throw UserErrors.notFound(id)
-			const assignments = await this.buildUserAssignments(user)
-			return merge(user, { assignments })
-		})
-	}
-
-	async getByIdentifier(
-		identifier: string,
-	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
-		return this.r.getByIdentifier(identifier)
-	}
-
-	async count(): Promise<number> {
-		return record('UserService.count', async () => {
-			return this.cache.getOrSet({
-				key: 'count',
-				factory: () => this.r.count(),
-			})
-		})
-	}
-
-	async seed(
-		data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
-	): Promise<void> {
-		await record('UserService.seed', async () => {
-			await this.r.seed(data)
-		})
-	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
-
-	async handleList(
-		filter: dto.UserFilterDto,
-	): Promise<core.WithPaginationResult<dto.UserDetailDto>> {
-		return record('UserService.handleList', async () => {
-			const p = await this.r.getListPaginated(filter)
-
-			const [roleMap, locationMap] = await Promise.all([
-				this.s.role.getRelationMap(),
-				this.s.location.master.getRelationMap(),
-			])
-
-			const data = await Promise.all(
-				p.data.map(async (user) => {
-					const assignments = await this.buildUserAssignments(user, roleMap, locationMap)
-					return { ...user, assignments }
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'iam',
+					entity: 'user',
+					entityId: written.id,
+					action: 'create',
+					summary: `Created user "${data.username}" (${data.email})`,
+					newValues: { username: data.username, email: data.email, name: data.name },
 				}),
+				tx,
 			)
-
-			return { ...p, data }
+			return written
 		})
+
+		await this.cache.invalidateStandard()
+		return result
 	}
 
-	async handleDetail(id: number): Promise<dto.UserDetailDto & AuditResolved> {
-		return record('UserService.handleDetail', async () => {
-			const user = await this.getById(id)
-			if (!user) throw UserErrors.notFound(id)
-			const assignments = await this.buildUserAssignments(user)
-			return resolveAudit({ ...user, assignments })
-		})
-	}
+	async handleUpdate(data: UserUpdateDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
+		const { id, ...updateData } = data
+		const result = await this.deps.uow.run(async (tx) => {
+			const existing = await this.repo.findById(id, tx)
+			if (!existing) throw UserError.notFound(id)
 
-	async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
-		return record('UserService.handleCreate', async () => {
-			const { password, assignments, isRoot } = data
-			const passwordHash = await Bun.password.hash(password)
-
-			await core.checkConflict({
-				table: usersTable,
-				pkColumn: usersTable.id,
-				fields: userConflictFields,
-				input: data,
+			await checkConflict({
+				db: tx,
+				table: users,
+				pkColumn: users.id,
+				fields: uniqueFields,
+				input: updateData,
+				excludeId: id,
 			})
 
-			const insertedId = await this.r.create({ ...data, passwordHash }, actorId)
-			if (!insertedId) throw UserErrors.createFailed()
-
-			if (assignments && assignments.length > 0 && !isRoot) {
-				await this.s.assignment.handleReplaceBulkByUserId(
-					insertedId,
-					assignments.map((a) => ({
-						userId: insertedId,
-						roleId: a.roleId,
-						locationId: a.locationId,
-					})),
-					actorId,
-				)
+			const payload = {
+				username: updateData.username,
+				email: updateData.email,
+				name: updateData.name,
+				isActive: updateData.isActive,
+				...stampUpdate(actor.id),
 			}
 
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			const written = await this.repo.update(id, payload, tx)
+			if (!written) throw UserError.updateFailed(id)
 
-			return { id: insertedId }
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'iam',
+					entity: 'user',
+					entityId: id,
+					action: 'update',
+					summary: `Updated user "${data.username}" (${data.email})`,
+					newValues: { username: data.username, email: data.email, name: data.name },
+				}),
+				tx,
+			)
+			return written
 		})
+
+		await this.cache.invalidateStandard(id)
+		await invalidateAuthCache(id)
+		return result
 	}
 
-	async handleUpdate(
-		id: number,
-		data: dto.UserUpdateDto,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('UserService.handleUpdate', async () => {
-			const { assignments, password, isRoot } = data
+	/** Self-service: the caller edits their own name/email; username, status and assignments stay. */
+	async handleUpdateProfile(data: UserProfileUpdateDto, actor: Actor): Promise<EntityRef> {
+		const id = actor.id
+		const result = await this.deps.uow.run(async (tx) => {
+			const existing = await this.repo.findById(id, tx)
+			if (!existing) throw UserError.notFound(id)
 
-			const existing = await this.getById(id)
-			if (!existing) throw UserErrors.notFound(id)
-
-			await core.checkConflict({
-				table: usersTable,
-				pkColumn: usersTable.id,
-				fields: userConflictFields,
-				input: data,
-				existing,
+			await checkConflict<UserCreateDto>({
+				db: tx,
+				table: users,
+				pkColumn: users.id,
+				fields: uniqueFields,
+				input: { email: data.email },
+				excludeId: id,
 			})
 
-			const passwordHash = password ? await Bun.password.hash(password) : undefined
-			await this.r.update({ ...data, id, ...(passwordHash ? { passwordHash } : {}) }, actorId)
+			const written = await this.repo.update(
+				id,
+				{ email: data.email, name: data.name, ...stampUpdate(actor.id) },
+				tx,
+			)
+			if (!written) throw UserError.updateFailed(id)
 
-			if (assignments && assignments.length >= 0 && !isRoot) {
-				await this.s.assignment.handleReplaceBulkByUserId(
-					id,
-					assignments.map((a) => ({ userId: id, roleId: a.roleId, locationId: a.locationId })),
-					actorId,
-				)
-			}
-
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
-			return { id }
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'iam',
+					entity: 'user',
+					entityId: id,
+					action: 'update-profile',
+					summary: `Updated own profile "${existing.username}" (${data.email})`,
+					newValues: { email: data.email, name: data.name },
+				}),
+				tx,
+			)
+			return written
 		})
+
+		await this.cache.invalidateStandard(id)
+		await invalidateAuthCache(id)
+		return result
 	}
 
-	async handleChangePassword(
-		id: number,
-		data: dto.UserChangePasswordDto,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('UserService.handleChangePassword', async () => {
-			const passwordHash = await this.r.getPasswordHash(id)
-			if (!passwordHash) throw UserErrors.notFound(id)
+	/** Self-service: verifies the caller's current password, then stores the new one. Sessions are the caller's to revoke. */
+	async handleChangePassword(data: UserChangePasswordDto, actor: Actor): Promise<EntityRef> {
+		const id = actor.id
+		const existing = assertFound(await this.repo.findByIdRaw(id), () => UserError.notFound(id))
+		if (!(await verifyPassword(data.currentPassword, existing.passwordHash))) {
+			throw UserError.invalidCurrentPassword()
+		}
+		if (data.newPassword === data.currentPassword) throw UserError.passwordUnchanged()
 
-			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
-			if (!isMatch) throw UserErrors.passwordMismatch()
+		const passwordHash = await hashPassword(data.newPassword)
+		const result = await this.deps.uow.run(async (tx) => {
+			const written = await this.repo.update(id, { passwordHash, ...stampUpdate(actor.id) }, tx)
+			if (!written) throw UserError.resetPasswordFailed(id)
 
-			const newPasswordHash = await Bun.password.hash(data.newPassword)
-			await this.r.updatePassword(id, newPasswordHash, actorId)
-
-			await this.cache.deleteMany({ keys: [`byId:${id}`] })
-
-			return { id }
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'iam',
+					entity: 'user',
+					entityId: id,
+					action: 'change-password',
+					summary: `Changed own password for user "${existing.username}"`,
+				}),
+				tx,
+			)
+			return written
 		})
+
+		await this.cache.invalidateStandard(id)
+		return result
 	}
 
-	async handleAdminUpdatePassword(
-		data: dto.UserAdminUpdatePasswordDto,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('UserService.handleAdminUpdatePassword', async () => {
-			const { id, password } = data
-			const passwordHash = await Bun.password.hash(password)
-			await this.r.updatePassword(id, passwordHash, actorId)
+	async handleResetPassword(data: UserResetPasswordDto, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
+		const passwordHash = await hashPassword(data.password)
+		const result = await this.deps.uow.run(async (tx) => {
+			const existing = await this.repo.findById(data.id, tx)
+			if (!existing) throw UserError.notFound(data.id)
 
-			await this.cache.deleteMany({ keys: [`byId:${id}`] })
+			const written = await this.repo.update(
+				data.id,
+				{ passwordHash, ...stampUpdate(actor.id) },
+				tx,
+			)
+			if (!written) throw UserError.resetPasswordFailed(data.id)
 
-			return { id }
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'iam',
+					entity: 'user',
+					entityId: data.id,
+					action: 'reset-password',
+					summary: `Reset password for user "${existing.username}" (${existing.email})`,
+				}),
+				tx,
+			)
+			return written
 		})
+
+		await this.cache.invalidateStandard(data.id)
+		await invalidateAuthCache(data.id)
+		// Force sign-out everywhere — a password reset should invalidate every
+		// existing session, not just future auth checks.
+		await this.deps.sessionStore.deleteAllForUser(data.id)
+		return result
 	}
 
-	async handleRemove(id: number): Promise<{ id: number }> {
-		return record('UserService.handleRemove', async () => {
-			const result = await this.r.remove(id)
-			if (!result) throw UserErrors.notFound(id)
+	async handleDeactivate(id: number, actor: Actor): Promise<EntityRef> {
+		actor.assertCan(null)
+		const result = await this.deps.uow.run(async (tx) => {
+			const existing = await this.repo.findById(id, tx)
+			if (!existing) throw UserError.notFound(id)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			const written = await this.repo.update(id, { isActive: false, ...stampUpdate(actor.id) }, tx)
+			if (!written) throw UserError.deactivateFailed(id)
 
-			return { id: result }
+			await this.deps.audit.record(
+				auditEntryOf(actor, {
+					module: 'iam',
+					entity: 'user',
+					entityId: id,
+					action: 'update',
+					summary: `Deactivated user "${existing.username}" (${existing.email})`,
+				}),
+				tx,
+			)
+			return written
 		})
+
+		await this.cache.invalidateStandard(id)
+		await invalidateAuthCache(id)
+		return result
 	}
 }

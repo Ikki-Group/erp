@@ -1,98 +1,64 @@
 import { sql } from 'drizzle-orm'
 import {
-	boolean,
+	pgTable,
+	varchar,
+	numeric,
+	integer,
 	check,
 	index,
-	integer,
-	numeric,
-	pgTable,
-	text,
 	uniqueIndex,
+	boolean,
 } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { pk, auditBasicColumns } from './_helpers.ts'
+import { materials } from './material.ts'
+import { menuItems } from './menu.ts'
+import { uoms } from './uom.ts'
 
-import { materialsTable, uomsTable } from './material'
-import { productsTable, productVariantsTable } from './product'
+// ─── Recipes ───
 
-// ─── Recipes ──────────────────────────────────────────────────────────────────
-
-export const recipesTable = pgTable(
+export const recipes = pgTable(
 	'recipes',
 	{
 		...pk,
-		materialId: integer().references(() => materialsTable.id, { onDelete: 'cascade' }),
-		productId: integer().references(() => productsTable.id, { onDelete: 'cascade' }),
-		productVariantId: integer().references(() => productVariantsTable.id, { onDelete: 'cascade' }),
-
-		// The amount produced by this recipe (expected yield)
-		targetQty: numeric({ precision: 18, scale: 4 }).notNull().default('1'),
-		isActive: boolean().notNull().default(true),
-
-		// Optional preparation instructions for the whole recipe
-		instructions: text(),
-
-		...auditColumns,
+		menuItemId: integer('menu_item_id')
+			.notNull()
+			.references(() => menuItems.id, { onDelete: 'cascade' }),
+		name: varchar('name', { length: 255 }).notNull(),
+		yieldQty: numeric('yield_qty', { precision: 18, scale: 6 }).notNull(),
+		isActive: boolean('is_active').notNull().default(true),
+		...auditBasicColumns,
 	},
 	(t) => [
-		// Ensure a material can have at most one recipe
-		uniqueIndex('recipes_material_idx')
-			.on(t.materialId)
-			.where(sql`${t.materialId} IS NOT NULL AND ${t.deletedAt} IS NULL`),
-		// Ensure a product can have at most one base recipe
-		uniqueIndex('recipes_product_idx')
-			.on(t.productId)
-			.where(sql`${t.productId} IS NOT NULL AND ${t.deletedAt} IS NULL`),
-		// Ensure a product variant can have at most one recipe
-		uniqueIndex('recipes_product_variant_idx')
-			.on(t.productVariantId)
-			.where(sql`${t.productVariantId} IS NOT NULL AND ${t.deletedAt} IS NULL`),
-		// Check constraint: exactly one target must be set
-		check(
-			'recipe_target_chk',
-			sql`num_nonnulls("materialId", "productId", "productVariantId") = 1`,
-		),
+		check('recipes_yield_qty_positive_chk', sql`${t.yieldQty} > 0`),
+		uniqueIndex('recipes_menu_item_active_uniq')
+			.on(t.menuItemId)
+			.where(sql`${t.isActive} = true`),
+		index('recipes_menu_item_id_idx').on(t.menuItemId),
 	],
 )
 
-// ─── Recipe Items ─────────────────────────────────────────────────────────────
+// ─── Recipe Lines ───
 
-export const recipeItemsTable = pgTable(
-	'recipe_items',
+export const recipeLines = pgTable(
+	'recipe_lines',
 	{
 		...pk,
-		recipeId: integer()
+		recipeId: integer('recipe_id')
 			.notNull()
-			.references(() => recipesTable.id, { onDelete: 'cascade' }),
-		// The component material required
-		materialId: integer()
+			.references(() => recipes.id, { onDelete: 'cascade' }),
+		materialId: integer('material_id')
 			.notNull()
-			.references(() => materialsTable.id, { onDelete: 'restrict' }),
-
-		// Quantity of the material needed
-		qty: numeric({ precision: 18, scale: 4 }).notNull(),
-		// Allowed percentage of loss/scrap (e.g., 5% loss during preparation), useful for cost calculation
-		scrapPercentage: numeric({ precision: 5, scale: 2 }).notNull().default('0'),
-		// UOM used for this ingredient in the recipe (should match baseUom or be convertible)
-		uomId: integer()
+			.references(() => materials.id, { onDelete: 'restrict' }),
+		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull(),
+		uomId: integer('uom_id')
 			.notNull()
-			.references(() => uomsTable.id, { onDelete: 'restrict' }),
-
-		// Optional instructions for specific item (e.g. "Finely chopped")
-		notes: text(),
-
-		// Allows ordering of components if the recipe has steps
-		sortOrder: numeric({ precision: 5, scale: 0 }).notNull().default('0'),
-
-		...auditColumns,
+			.references(() => uoms.id, { onDelete: 'restrict' }),
 	},
 	(t) => [
-		// A material should only appear once per recipe
-		uniqueIndex('recipe_items_recipe_material_idx')
-			.on(t.recipeId, t.materialId)
-			.where(sql`${t.deletedAt} IS NULL`),
-		// Standalone indexes for reverse lookups
-		index('recipe_items_material_idx').on(t.materialId),
-		index('recipe_items_uom_idx').on(t.uomId),
+		check('recipe_lines_qty_positive_chk', sql`${t.quantity} > 0`),
+		index('recipe_lines_recipe_id_idx').on(t.recipeId),
+		index('recipe_lines_material_id_idx').on(t.materialId),
+		index('recipe_lines_uom_id_idx').on(t.uomId),
 	],
 )

@@ -1,0 +1,1 @@
+ALTER TABLE "roles" ADD COLUMN "description" varchar(500) DEFAULT '' NOT NULL;
