@@ -13,6 +13,7 @@
 		".agents/**",
 		".scratch/**",
 		".kiro/**",
+		".impeccable/**",
 		".vscode/**",
 		"docs/**",
 		"skills-lock.json",

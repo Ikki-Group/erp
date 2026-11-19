@@ -1,6 +1,6 @@
 {
 	"$schema": "https://unpkg.com/knip@6/schema.json",
-	"ignore": [".agents/**"],
+	"ignore": [".agents/**", ".local/**"],
 	"workspaces": {
 		"apps/server": {
 			// Mirrors apps/server/knip.jsonc (root `knip` does not pick up
