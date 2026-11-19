@@ -1,21 +1,72 @@
 import { test, expect } from './fixtures/auth.fixture'
+import type { Page } from '@playwright/test'
+import { uniqueSuffix } from './helpers/test-data'
 
-/**
- * Picks today's date in the currently open date picker popover.
- * react-day-picker marks today with `data-today` attribute.
- */
-async function pickToday(page: import('@playwright/test').Page) {
-	await page.locator('[data-today]').click()
+/** Local ISO date (YYYY-MM-DD) matching the calendar's `data-day` attribute. */
+function isoDate(date: Date) {
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+	const day = String(date.getDate()).padStart(2, '0')
+	return `${date.getFullYear()}-${month}-${day}`
 }
 
 /**
- * Navigates forward one month and picks the last day in the calendar grid.
- * The forward button uses a chevron-right icon with no text; use aria-label or positional match.
+ * Opens the labelled date picker and clicks `date`, advancing month by month
+ * until the day cell is rendered (react-day-picker keeps `data-day` on the cell).
  */
-async function pickNextMonthLastDay(page: import('@playwright/test').Page) {
-	await page.locator('button.rdp-button_next').click()
-	const days = page.locator('td[role="gridcell"] button:not([disabled])')
-	await days.last().click()
+async function pickDate(page: Page, label: string, date: Date) {
+	await page.getByLabel(label).click()
+	const popover = page.locator('[data-slot="popover-content"]').filter({ visible: true })
+	const cell = popover.locator(`[data-day="${isoDate(date)}"] button`)
+	for (let i = 0; i < 12 && !(await cell.isVisible()); i++) {
+		await popover
+			.getByRole('button', { name: 'Bulan berikutnya' })
+			.filter({ visible: true })
+			.first()
+			.click()
+	}
+	await cell.click()
+}
+
+/** Opens the create page and fills the voucher form, then submits it. */
+async function createVoucher(
+	page: Page,
+	options: { code: string; name: string; type?: 'percentage' | 'fixed'; value?: string },
+) {
+	const { code, name, type = 'percentage', value = '20' } = options
+	await page.goto('/pos/vouchers')
+	await page.getByRole('button', { name: 'Tambah Voucher' }).first().click()
+	await expect(page.getByRole('heading', { name: 'Tambah Voucher' })).toBeVisible()
+
+	await page.getByLabel('Kode').fill(code)
+	await page.getByLabel('Nama', { exact: true }).fill(name)
+
+	if (type === 'fixed') {
+		await page.getByLabel('Tipe').click()
+		await page.getByRole('option', { name: 'Tetap (Rp)' }).click()
+	}
+
+	await page.getByLabel(type === 'percentage' ? 'Nilai (%)' : 'Nilai', { exact: true }).fill(value)
+
+	const today = new Date()
+	const future = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+	await pickDate(page, 'Berlaku Dari', today)
+	await pickDate(page, 'Berlaku Sampai', future)
+
+	await page.getByRole('button', { name: 'Buat' }).click()
+	await expect(page.getByText('Voucher berhasil dibuat.')).toBeVisible()
+	await expect(page).toHaveURL(/\/pos\/vouchers(\?.*)?$/u)
+}
+
+/** Pins the voucher row by searching for its code. */
+async function searchVoucher(page: Page, code: string) {
+	// Reload the list so a still-committing post-create redirect can't wipe the
+	// debounced search navigation.
+	await page.goto('/pos/vouchers')
+	await page.getByPlaceholder('Cari voucher...').fill(code)
+	await expect(page).toHaveURL(/[?&]q=/u)
+	const row = page.getByRole('row').filter({ hasText: code })
+	await expect(row).toBeVisible()
+	return row
 }
 
 test.describe('Vouchers - CRUD', () => {
@@ -24,222 +75,166 @@ test.describe('Vouchers - CRUD', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await expect(page.getByRole('heading', { name: /vouchers/i })).toBeVisible()
-		await expect(page.getByText(/manage discount vouchers/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Voucher' })).toBeVisible()
+		await expect(page.getByText('Kelola voucher diskon untuk pembayaran POS.')).toBeVisible()
 	})
 
-	/** Add Voucher button is visible */
-	test('shows Add Voucher button', async ({ page, login }) => {
+	/** Tombol Tambah Voucher terlihat */
+	test('shows Tambah Voucher button', async ({ page, login }) => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await expect(page.getByRole('button', { name: /add voucher/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Tambah Voucher' }).first()).toBeVisible()
 	})
 
-	/** Opening create dialog */
-	test('opens create dialog when clicking Add Voucher', async ({ page, login }) => {
+	/** Opening the create page */
+	test('opens create page when clicking Tambah Voucher', async ({ page, login }) => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByRole('button', { name: 'Tambah Voucher' }).first().click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText('Add Voucher')).toBeVisible()
+		await expect(page).toHaveURL(/\/pos\/vouchers\/new/)
+		await expect(page.getByRole('heading', { name: 'Tambah Voucher' })).toBeVisible()
 	})
 
 	/** Create a percentage voucher end-to-end */
 	test('can create a percentage voucher', async ({ page, login }) => {
 		await login()
-		await page.goto('/pos/vouchers')
+		const code = `DISC20-E2E-${uniqueSuffix()}`
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await createVoucher(page, { code, name: `Diskon 20% E2E ${uniqueSuffix()}` })
 
-		await page.getByLabel('Code').fill('DISKON20-E2E')
-		await page.getByLabel('Name').fill('Diskon 20% E2E Test')
-
-		// Type defaults to percentage — fill value
-		await page.getByLabel(/value/i).fill('20')
-
-		// Pick Valid From = today
-		await page
-			.getByRole('button', { name: /pick a date/i })
-			.first()
-			.click()
-		await pickToday(page)
-
-		// Pick Valid Until = next month last day
-		await page
-			.getByRole('button', { name: /pick a date/i })
-			.first()
-			.click()
-		await pickNextMonthLastDay(page)
-
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/voucher created/i)).toBeVisible()
+		await searchVoucher(page, code)
 	})
 
 	/** Create a fixed voucher */
 	test('can create a fixed voucher', async ({ page, login }) => {
 		await login()
-		await page.goto('/pos/vouchers')
+		const code = `HEMAT-E2E-${uniqueSuffix()}`
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await createVoucher(page, {
+			code,
+			name: `Hemat 10rb E2E ${uniqueSuffix()}`,
+			type: 'fixed',
+			value: '10000',
+		})
 
-		await page.getByLabel('Code').fill('HEMAT10K-E2E')
-		await page.getByLabel('Name').fill('Hemat 10rb E2E Test')
-
-		// Change type to fixed
-		await page.getByLabel('Type').click()
-		await page.getByRole('option', { name: /fixed/i }).click()
-
-		await page.getByLabel(/value/i).fill('10000')
-
-		// Pick Valid From = today
-		await page
-			.getByRole('button', { name: /pick a date/i })
-			.first()
-			.click()
-		await pickToday(page)
-
-		// Pick Valid Until = next month last day
-		await page
-			.getByRole('button', { name: /pick a date/i })
-			.first()
-			.click()
-		await pickNextMonthLastDay(page)
-
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/voucher created/i)).toBeVisible()
+		await searchVoucher(page, code)
 	})
 
 	/** Search/filter vouchers */
 	test('can search vouchers', async ({ page, login }) => {
 		await login()
-		await page.goto('/pos/vouchers')
+		const code = `CARI-E2E-${uniqueSuffix()}`
+		await createVoucher(page, { code, name: `Cari Voucher E2E ${uniqueSuffix()}` })
 
-		const searchInput = page.getByPlaceholder(/search vouchers/i)
-		await searchInput.fill('DISKON')
-
-		await page.waitForLoadState('networkidle')
+		await searchVoucher(page, code)
 	})
 
 	/** Filter by status */
 	test('can filter vouchers by status', async ({ page, login }) => {
 		await login()
-		await page.goto('/pos/vouchers')
+		const code = `FILTER-E2E-${uniqueSuffix()}`
+		await createVoucher(page, { code, name: `Filter Voucher E2E ${uniqueSuffix()}` })
 
-		// Open the status filter dropdown
-		const statusFilter = page.locator('[data-slot="select-trigger"]').last()
-		await statusFilter.click()
+		const row = await searchVoucher(page, code)
 
-		// Select "Inactive"
-		await page.getByRole('option', { name: /inactive/i }).click()
+		await page.getByRole('combobox', { name: 'Status' }).click()
+		await page.getByRole('option', { name: 'Nonaktif' }).click()
+		await expect(row).toBeHidden()
 
-		await page.waitForLoadState('networkidle')
+		await page.getByRole('combobox', { name: 'Status' }).click()
+		await page.getByRole('option', { name: 'Aktif', exact: true }).click()
+		await expect(row).toBeVisible()
 	})
 
 	/** Edit an existing voucher */
 	test('can edit a voucher via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/pos/vouchers')
+		const code = `UBAH-E2E-${uniqueSuffix()}`
+		await createVoucher(page, { code, name: `Ubah Voucher E2E ${uniqueSuffix()}` })
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const row = await searchVoucher(page, code)
+		await row.getByRole('button', { name: 'Tindakan' }).click()
+		await page.getByRole('menuitem', { name: 'Ubah' }).click()
 
-		await page.getByRole('menuitem', { name: 'Edit' }).click()
+		await expect(page.getByRole('heading', { name: 'Ubah Voucher' })).toBeVisible()
+		const nameField = page.getByLabel('Nama', { exact: true })
+		await nameField.fill(`Voucher Diperbarui ${uniqueSuffix()}`)
+		await page.getByRole('button', { name: 'Simpan Perubahan' }).click()
 
-		await expect(page.getByText('Edit Voucher')).toBeVisible()
-
-		const nameField = page.getByLabel('Name')
-		await nameField.clear()
-		await nameField.fill('Updated Voucher Name')
-
-		await page.getByRole('button', { name: /save changes/i }).click()
-
-		await expect(page.getByText(/voucher updated/i)).toBeVisible()
+		await expect(page.getByText('Voucher berhasil diperbarui.')).toBeVisible()
 	})
 
 	/** Delete a voucher via action menu */
 	test('can delete a voucher via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/pos/vouchers')
+		const code = `HAPUS-E2E-${uniqueSuffix()}`
+		await createVoucher(page, { code, name: `Hapus Voucher E2E ${uniqueSuffix()}` })
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const row = await searchVoucher(page, code)
+		await row.getByRole('button', { name: 'Tindakan' }).click()
+		await page.getByRole('menuitem', { name: 'Hapus' }).click()
 
-		await page.getByRole('menuitem', { name: 'Delete' }).click()
+		const dialog = page.getByRole('dialog')
+		await expect(dialog.getByText('Hapus voucher?')).toBeVisible()
+		await dialog.getByRole('button', { name: 'Hapus' }).click()
 
-		await expect(page.getByText(/delete voucher/i)).toBeVisible()
-		await page.getByRole('button', { name: 'Delete' }).click()
-
-		await expect(page.getByText(/voucher deleted/i)).toBeVisible()
+		await expect(page.getByText('Voucher berhasil dihapus.')).toBeVisible()
 	})
 
 	/** Validation: cross-field — validUntil must be after validFrom */
 	test('shows validation error when validUntil is before validFrom', async ({ page, login }) => {
 		await login()
 		await page.goto('/pos/vouchers')
+		await page.getByRole('button', { name: 'Tambah Voucher' }).first().click()
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByLabel('Kode').fill(`INVALID-DATE-${uniqueSuffix()}`)
+		await page.getByLabel('Nama', { exact: true }).fill('Uji Tanggal Tidak Valid')
+		await page.getByLabel('Nilai (%)', { exact: true }).fill('10')
 
-		await page.getByLabel('Code').fill('INVALID-DATE')
-		await page.getByLabel('Name').fill('Invalid Date Test')
-		await page.getByLabel(/value/i).fill('10')
+		const today = new Date()
+		const future = new Date(today.getTime() + 40 * 24 * 60 * 60 * 1000)
+		await pickDate(page, 'Berlaku Dari', future)
+		await pickDate(page, 'Berlaku Sampai', today)
 
-		// Pick Valid From = today
-		await page
-			.getByRole('button', { name: /pick a date/i })
-			.first()
-			.click()
-		await pickToday(page)
+		await page.getByLabel('Kode').click()
 
-		// Leave Valid Until empty (before Valid From) — submit should fail
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/fix the validation/i)).toBeVisible()
+		await expect(page.getByText('Harus setelah Berlaku Dari')).toBeVisible()
 	})
 
 	/** Validation: percentage value cannot exceed 100 */
 	test('shows validation error when percentage exceeds 100', async ({ page, login }) => {
 		await login()
 		await page.goto('/pos/vouchers')
+		await page.getByRole('button', { name: 'Tambah Voucher' }).first().click()
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByLabel('Kode').fill(`OVER100-${uniqueSuffix()}`)
+		await page.getByLabel('Nama', { exact: true }).fill('Uji Persentase Berlebih')
+		await page.getByLabel('Nilai (%)', { exact: true }).fill('150')
 
-		await page.getByLabel('Code').fill('OVER100')
-		await page.getByLabel('Name').fill('Over 100 Test')
-		await page.getByLabel(/value/i).fill('150')
+		const today = new Date()
+		const future = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+		await pickDate(page, 'Berlaku Dari', today)
+		await pickDate(page, 'Berlaku Sampai', future)
 
-		// Pick dates
-		await page
-			.getByRole('button', { name: /pick a date/i })
-			.first()
-			.click()
-		await pickToday(page)
-		await page
-			.getByRole('button', { name: /pick a date/i })
-			.first()
-			.click()
-		await pickNextMonthLastDay(page)
+		await page.getByLabel('Kode').click()
 
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/fix the validation|cannot exceed 100/i)).toBeVisible()
+		await expect(page.getByText('Persentase tidak boleh melebihi 100')).toBeVisible()
 	})
 
 	/** Validation: form requires name with min length */
 	test('shows validation error for empty required fields', async ({ page, login }) => {
 		await login()
 		await page.goto('/pos/vouchers')
+		await page.getByRole('button', { name: 'Tambah Voucher' }).first().click()
 
-		await page.getByRole('button', { name: /add voucher/i }).click()
+		await page.getByRole('button', { name: 'Buat' }).click()
 
-		// Submit without filling anything
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/fix the validation/i)).toBeVisible()
+		await expect(page.getByText('Kode wajib diisi')).toBeVisible()
+		await expect(page.getByText('Nama minimal 3 karakter')).toBeVisible()
+		await expect(page.getByText('Berlaku Sampai wajib diisi')).toBeVisible()
 	})
 })
 
@@ -247,34 +242,21 @@ test.describe('Vouchers - Status Display', () => {
 	/** Voucher list shows status badges */
 	test('displays status badges for vouchers', async ({ page, login }) => {
 		await login()
-		await page.goto('/pos/vouchers')
+		const code = `STATUS-E2E-${uniqueSuffix()}`
+		await createVoucher(page, { code, name: `Status Voucher E2E ${uniqueSuffix()}` })
 
-		const badges = page.locator('[data-slot="badge"]')
-		const hasBadges = await badges
-			.first()
-			.isVisible({ timeout: 5000 })
-			.catch(() => false)
-
-		if (hasBadges) {
-			const validStatuses = /active|inactive|expired|exhausted/i
-			await expect(badges.first()).toHaveText(validStatuses)
-		}
+		const row = await searchVoucher(page, code)
+		await expect(row.getByText('Aktif', { exact: true })).toBeVisible()
 	})
 
 	/** Usage display shows count format */
 	test('displays usage count in correct format', async ({ page, login }) => {
 		await login()
-		await page.goto('/pos/vouchers')
+		const code = `USAGE-E2E-${uniqueSuffix()}`
+		await createVoucher(page, { code, name: `Usage Voucher E2E ${uniqueSuffix()}` })
 
-		const usagePattern = page.getByText(/\d+\s*\/\s*(\d+|unlimited)/i)
-		const hasUsage = await usagePattern
-			.first()
-			.isVisible({ timeout: 5000 })
-			.catch(() => false)
-
-		if (hasUsage) {
-			await expect(usagePattern.first()).toBeVisible()
-		}
+		const row = await searchVoucher(page, code)
+		await expect(row.getByText('0 / Tanpa Batas')).toBeVisible()
 	})
 })
 
@@ -284,9 +266,9 @@ test.describe('Vouchers - Empty State', () => {
 		await login()
 		await page.goto('/pos/vouchers')
 
-		const emptyState = page.getByText(/no vouchers yet/i)
+		const emptyState = page.getByText('Belum ada voucher')
 		if (await emptyState.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await expect(page.getByRole('button', { name: /add voucher/i })).toBeVisible()
+			await expect(page.getByRole('button', { name: 'Tambah Voucher' }).first()).toBeVisible()
 		}
 	})
 })

@@ -1,4 +1,12 @@
+import type { Page } from '@playwright/test'
+
 import { test, expect } from './fixtures/auth.fixture'
+
+/** Wizard step 1: pick a seeded supplier so the Item step unlocks. */
+async function chooseSupplier(page: Page) {
+	await page.getByLabel('Pemasok').click()
+	await page.getByRole('option', { name: /PT Kopi Nusantara/ }).click()
+}
 
 test.describe('Inventory Receiving - Page Load', () => {
 	/** Receiving page loads and shows header */
@@ -6,7 +14,7 @@ test.describe('Inventory Receiving - Page Load', () => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		await expect(page.getByRole('heading', { name: /penerimaan barang/i })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Penerimaan Barang' })).toBeVisible()
 	})
 
 	/** Shows active location context in description */
@@ -22,7 +30,7 @@ test.describe('Inventory Receiving - Page Load', () => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		await expect(page.getByRole('button', { name: /buat penerimaan/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: /buat penerimaan/i }).first()).toBeVisible()
 	})
 })
 
@@ -39,39 +47,45 @@ test.describe('Inventory Receiving - Empty State', () => {
 	})
 })
 
-test.describe('Inventory Receiving - Create Dialog', () => {
-	/** Opens create receiving dialog */
-	test('opens create receiving dialog on button click', async ({ page, login }) => {
+test.describe('Inventory Receiving - Create Wizard', () => {
+	/** Create button opens the full-page wizard (no dialog anymore) */
+	test('opens create receiving wizard on button click', async ({ page, login }) => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		await page.getByRole('button', { name: /buat penerimaan/i }).click()
+		await page
+			.getByRole('button', { name: /buat penerimaan/i })
+			.first()
+			.click()
 
-		await expect(page.getByRole('heading', { name: /buat penerimaan/i })).toBeVisible()
-		await expect(page.getByText(/supplier/i)).toBeVisible()
+		await expect(page).toHaveURL(/\/inventory\/receiving\/new/)
+		await expect(page.getByRole('heading', { name: 'Buat Penerimaan' })).toBeVisible()
+		await expect(page.getByLabel('Pemasok')).toBeVisible()
 	})
 
-	/** Shows line item section in create dialog */
+	/** Item step shows the line editor with its add-row button */
 	test('shows item section with add line button', async ({ page, login }) => {
 		await login()
-		await page.goto('/inventory/receiving')
+		await page.goto('/inventory/receiving/new')
 
-		await page.getByRole('button', { name: /buat penerimaan/i }).click()
+		await chooseSupplier(page)
+		await page.getByRole('button', { name: 'Lanjut' }).click()
 
-		await expect(page.getByText(/item penerimaan/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: /item penerimaan/i })).toBeVisible()
 		await expect(page.getByRole('button', { name: /tambah baris/i })).toBeVisible()
 	})
 
 	/** Can add additional material lines */
 	test('can add additional material lines', async ({ page, login }) => {
 		await login()
-		await page.goto('/inventory/receiving')
+		await page.goto('/inventory/receiving/new')
 
-		await page.getByRole('button', { name: /buat penerimaan/i }).click()
+		await chooseSupplier(page)
+		await page.getByRole('button', { name: 'Lanjut' }).click()
 		await page.getByRole('button', { name: /tambah baris/i }).click()
 
-		const materialInputs = page.getByPlaceholder('Pilih material')
-		await expect(materialInputs).toHaveCount(2)
+		const materialInputs = page.getByPlaceholder('Pilih bahan')
+		await expect(materialInputs).toHaveCount(1)
 	})
 })
 
@@ -81,16 +95,10 @@ test.describe('Inventory Receiving - Detail View', () => {
 		await login()
 		await page.goto('/inventory/receiving')
 
-		const hasTable = page.locator('table')
-		const hasEmpty = page.getByText(/belum ada penerimaan/i)
+		const detailBtn = page.getByRole('button', { name: /^detail /i }).first()
+		const emptyState = page.getByText(/belum ada penerimaan/i)
 
-		const tableVisible = await hasTable.isVisible().catch(() => false)
-		if (tableVisible) {
-			const detailBtn = page.getByRole('button', { name: /detail/i }).first()
-			await expect(detailBtn).toBeVisible()
-		} else {
-			await expect(hasEmpty).toBeVisible()
-		}
+		await expect(detailBtn.or(emptyState)).toBeVisible()
 	})
 })
 
@@ -99,7 +107,7 @@ test.describe('Inventory Receiving - Navigation', () => {
 	test('can navigate to receiving page from sidebar', async ({ page, login }) => {
 		await login()
 
-		await page.getByRole('link', { name: /penerimaan/i }).click()
+		await page.getByRole('link', { name: /penerimaan barang/i }).click()
 
 		await expect(page).toHaveURL(/\/inventory\/receiving/)
 	})

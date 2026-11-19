@@ -1,121 +1,144 @@
 import { test, expect } from './fixtures/auth.fixture'
 
+import { uniqueSuffix } from './helpers/test-data'
+
+/** Roles live under the tabbed access-control page. */
 test.describe('Roles - CRUD', () => {
 	/** Page loads and shows header */
 	test('displays roles page with header', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/roles')
+		await page.goto('/settings/access-control?tab=roles')
 
-		await expect(page.getByRole('heading', { name: 'Roles' })).toBeVisible()
-		await expect(page.getByText('Manage roles and their permission sets')).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Kontrol Akses' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Peran' })).toBeVisible()
+		await expect(page.getByText('Kelola peran dan kumpulan izinnya.')).toBeVisible()
 	})
 
 	/** Add Role button is visible for authorized users */
 	test('shows Add Role button for authorized user', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/roles')
+		await page.goto('/settings/access-control?tab=roles')
 
-		await expect(page.getByRole('button', { name: /add role/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Tambah Peran' })).toBeVisible()
 	})
 
 	/** Opening the full-page create form */
 	test('opens create form when clicking Add Role', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/roles')
+		await page.goto('/settings/access-control?tab=roles')
 
-		await page.getByRole('button', { name: /add role/i }).click()
+		await page.getByRole('button', { name: 'Tambah Peran' }).click()
 
 		await expect(page).toHaveURL(/\/settings\/roles\/new$/)
-		await expect(page.getByRole('heading', { name: 'Add Role' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Tambah Peran' })).toBeVisible()
 	})
 
 	/** Create a new role end-to-end */
 	test('can create a new role', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/roles')
+		await page.goto('/settings/roles/new')
 
-		await page.getByRole('button', { name: /add role/i }).click()
+		const code = `e2e-role-${uniqueSuffix()}`
 
-		// Fill required fields
-		await page.getByLabel('Code').fill('e2e-role')
-		await page.getByLabel('Name').fill('E2E Test Role')
+		await page.getByLabel('Kode').fill(code)
+		await page.getByLabel('Nama', { exact: true }).fill('Peran E2E')
+		await page.getByLabel('Deskripsi').fill('Peran dibuat oleh pengujian E2E.')
 
-		// Submit
-		await page.getByRole('button', { name: 'Create' }).click()
+		await page.getByRole('button', { name: 'Buat' }).click()
 
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page.getByText('Peran berhasil dibuat.')).toBeVisible()
+		await expect(page).toHaveURL(/\/settings\/access-control/)
 	})
 
 	/** Search/filter roles */
-	test('can search roles by name', async ({ page, login }) => {
+	test('can search roles by code', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/roles')
+		await page.goto('/settings/access-control?tab=roles')
 
-		const searchInput = page.getByPlaceholder(/search roles/i)
-		await searchInput.fill('owner')
+		await page.getByPlaceholder('Cari berdasarkan kode atau nama...').fill('owner')
 
-		await page.waitForLoadState('networkidle')
+		await expect(page).toHaveURL(/[?&]q=owner/)
+		await expect(page.getByRole('row').filter({ hasText: 'owner' }).first()).toBeVisible()
 	})
 
 	/** Edit an existing role (non-system) */
 	test('can edit a role via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/roles')
 
-		// Open action menu on a non-system role row
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const code = `e2e-role-${uniqueSuffix()}`
+		await page.goto('/settings/roles/new')
+		await page.getByLabel('Kode').fill(code)
+		await page.getByLabel('Nama', { exact: true }).fill('Peran E2E')
+		await page.getByRole('button', { name: 'Buat' }).click()
+		await expect(page.getByText('Peran berhasil dibuat.')).toBeVisible()
+		await expect(page).toHaveURL(/\/settings\/access-control/)
 
-		await page.getByRole('menuitem', { name: 'Edit' }).click()
+		await page.getByPlaceholder('Cari berdasarkan kode atau nama...').fill(code)
+		await expect(page).toHaveURL(new RegExp(`[?&]q=${code}`))
 
-		await expect(page.getByText('Edit Role')).toBeVisible()
+		const row = page.getByRole('row').filter({ hasText: code })
+		await row.getByRole('button', { name: 'Tindakan' }).click()
+		await page.getByRole('menuitem', { name: 'Ubah' }).click()
 
-		// Modify name
-		const nameField = page.getByLabel('Name')
+		await expect(page).toHaveURL(/\/settings\/roles\/\d+$/)
+		await expect(page.getByRole('heading', { name: 'Ubah Peran' })).toBeVisible()
+
+		const nameField = page.getByLabel('Nama', { exact: true })
 		await nameField.clear()
-		await nameField.fill('Updated Role')
+		await nameField.fill('Peran E2E Diperbarui')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: 'Simpan Perubahan' }).click()
 
-		await expect(page.getByText(/updated successfully/i)).toBeVisible()
+		await expect(page.getByText('Peran berhasil diperbarui.')).toBeVisible()
 	})
 
 	/** Delete a role via action menu */
 	test('can delete a role via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/roles')
 
-		// Open action menu
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const code = `e2e-role-${uniqueSuffix()}`
+		await page.goto('/settings/roles/new')
+		await page.getByLabel('Kode').fill(code)
+		await page.getByLabel('Nama', { exact: true }).fill('Peran E2E Hapus')
+		await page.getByRole('button', { name: 'Buat' }).click()
+		await expect(page.getByText('Peran berhasil dibuat.')).toBeVisible()
+		await expect(page).toHaveURL(/\/settings\/access-control/)
 
-		await page.getByRole('menuitem', { name: 'Delete' }).click()
+		await page.getByPlaceholder('Cari berdasarkan kode atau nama...').fill(code)
+		await expect(page).toHaveURL(new RegExp(`[?&]q=${code}`))
 
-		// Confirm dialog
-		await expect(page.getByText(/delete role/i)).toBeVisible()
-		await page.getByRole('button', { name: 'Delete' }).click()
+		const row = page.getByRole('row').filter({ hasText: code })
+		await row.getByRole('button', { name: 'Tindakan' }).click()
+		await page.getByRole('menuitem', { name: 'Hapus' }).click()
 
-		await expect(page.getByText(/deleted/i)).toBeVisible()
+		const dialog = page.locator('[data-slot="dialog-content"]')
+		await expect(dialog).toBeVisible()
+		await expect(dialog.getByRole('heading', { name: 'Hapus peran?' })).toBeVisible()
+		await dialog.getByRole('button', { name: 'Hapus' }).click()
+
+		await expect(page.getByText('Peran berhasil dihapus.')).toBeVisible()
 	})
 
 	/** System roles are viewable but remain immutable */
 	test('system roles show view action without edit/delete', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/roles')
+		await page.goto('/settings/access-control?tab=roles')
 
-		// System roles (e.g., Owner, Cashier) should exist in the table.
-		const ownerRow = page.getByRole('row').filter({ hasText: /owner/i })
+		await page.getByPlaceholder('Cari berdasarkan kode atau nama...').fill('owner')
+		await expect(page).toHaveURL(/[?&]q=owner/u)
+
+		const ownerRow = page.getByRole('row').filter({ hasText: 'owner' })
 		await expect(ownerRow).toBeVisible()
 
-		const actionsInRow = ownerRow.getByRole('button', { name: /actions/i })
-		await actionsInRow.click()
-		await expect(page.getByRole('menuitem', { name: 'View' })).toBeVisible()
-		await expect(page.getByRole('menuitem', { name: 'Edit' })).toHaveCount(0)
-		await expect(page.getByRole('menuitem', { name: 'Delete' })).toHaveCount(0)
-		await page.getByRole('menuitem', { name: 'View' }).click()
+		await ownerRow.getByRole('button', { name: 'Tindakan' }).click()
+		await expect(page.getByRole('menuitem', { name: 'Lihat' })).toBeVisible()
+		await expect(page.getByRole('menuitem', { name: 'Ubah' })).toHaveCount(0)
+		await expect(page.getByRole('menuitem', { name: 'Hapus' })).toHaveCount(0)
+		await page.getByRole('menuitem', { name: 'Lihat' }).click()
 
 		await expect(page).toHaveURL(/\/settings\/roles\/\d+$/)
-		await expect(page.getByRole('heading', { name: 'System Role Details' })).toBeVisible()
-		await expect(page.getByRole('button', { name: 'Save' })).toHaveCount(0)
+		await expect(page.getByRole('heading', { name: 'Detail Peran Sistem' })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Kembali' })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Simpan Perubahan' })).toHaveCount(0)
 	})
 })

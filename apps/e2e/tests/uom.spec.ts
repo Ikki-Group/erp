@@ -1,4 +1,16 @@
+import type { Page } from '@playwright/test'
+
 import { test, expect } from './fixtures/auth.fixture'
+import { uniqueSuffix } from './helpers/test-data'
+
+/** Creates a unit through the full-page form and waits for the list. */
+async function createUnit(page: Page, code: string, name: string) {
+	await page.goto('/master/uom/new')
+	await page.getByLabel('Kode').fill(code)
+	await page.getByLabel('Nama').fill(name)
+	await page.getByRole('button', { name: 'Buat', exact: true }).click()
+	await expect(page.getByText('Satuan berhasil dibuat.')).toBeVisible()
+}
 
 test.describe('UoM - Unit CRUD', () => {
 	/** Page loads and shows header */
@@ -6,131 +18,136 @@ test.describe('UoM - Unit CRUD', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		await expect(page.getByRole('heading', { name: /units of measure/i })).toBeVisible()
-		await expect(page.getByText(/manage units and conversion/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Satuan' })).toBeVisible()
+		await expect(page.getByText('Kelola satuan dan faktor konversi.')).toBeVisible()
 	})
 
 	/** Add Unit button is visible for authorized users */
-	test('shows Add Unit button', async ({ page, login }) => {
+	test('shows Tambah Satuan button', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/uom')
 
-		await expect(page.getByRole('button', { name: /add unit/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Tambah Satuan' })).toBeVisible()
 	})
 
-	/** Opening create dialog */
-	test('opens create dialog when clicking Add Unit', async ({ page, login }) => {
+	/** Add Unit navigates to the full-page create route */
+	test('navigates to the create page when clicking Tambah Satuan', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/uom')
 
-		await page.getByRole('button', { name: /add unit/i }).click()
+		await page.getByRole('button', { name: 'Tambah Satuan' }).click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText('Add Unit')).toBeVisible()
+		await expect(page).toHaveURL(/\/master\/uom\/new$/u)
+		await expect(page.getByRole('heading', { name: 'Tambah Satuan' })).toBeVisible()
 	})
 
-	/** Create a new unit end-to-end */
+	/** Create a new unit end-to-end via the full-page form */
 	test('can create a new unit', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/uom')
 
-		await page.getByRole('button', { name: /add unit/i }).click()
+		const suffix = uniqueSuffix()
+		const code = `uom-e2e-${suffix}`
+		await createUnit(page, code, `Satuan E2E ${suffix}`)
 
-		await page.getByLabel('Code').fill('kg-e2e')
-		await page.getByLabel('Name').fill('Kilogram E2E')
-
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page).toHaveURL(/\/master\/uom(\?.*)?$/u)
 	})
 
-	/** Search/filter units */
+	/** Search filters the list by name */
 	test('can search units by name', async ({ page, login }) => {
 		await login()
+
+		const suffix = uniqueSuffix()
+		const code = `uom-e2e-${suffix}`
+		await createUnit(page, code, `Satuan E2E ${suffix}`)
+
 		await page.goto('/master/uom')
+		await page.getByPlaceholder('Cari satuan...').fill(suffix)
 
-		const searchInput = page.getByPlaceholder(/search units/i)
-		await searchInput.fill('Kilogram')
-
-		await page.waitForLoadState('networkidle')
+		await expect(page.getByRole('row', { name: new RegExp(code, 'u') })).toBeVisible()
 	})
 
-	/** Edit an existing unit */
+	/** Edit navigates to the full-page edit route and saves */
 	test('can edit a unit via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/uom')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const suffix = uniqueSuffix()
+		const code = `uom-e2e-${suffix}`
+		await createUnit(page, code, `Satuan E2E ${suffix}`)
 
-		await page.getByRole('menuitem', { name: 'Edit' }).click()
+		await page.goto(`/master/uom?q=${code}`)
+		await expect(page.getByRole('row', { name: new RegExp(code, 'u') })).toBeVisible()
 
-		await expect(page.getByText('Edit Unit')).toBeVisible()
+		await page.getByRole('button', { name: 'Tindakan' }).first().click()
+		await page.getByRole('menuitem', { name: 'Ubah' }).click()
 
-		const nameField = page.getByLabel('Name')
+		await expect(page).toHaveURL(/\/master\/uom\/\d+$/u)
+		await expect(page.getByRole('heading', { name: 'Ubah Satuan' })).toBeVisible()
+
+		const nameField = page.getByLabel('Nama')
 		await nameField.clear()
-		await nameField.fill('Updated Unit')
+		await nameField.fill(`Satuan Ubah ${suffix}`)
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: 'Simpan Perubahan' }).click()
 
-		await expect(page.getByText(/updated successfully/i)).toBeVisible()
+		await expect(page.getByText('Satuan berhasil diperbarui.')).toBeVisible()
 	})
 
 	/** Delete a unit via action menu */
 	test('can delete a unit via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/uom')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const suffix = uniqueSuffix()
+		const code = `uom-e2e-${suffix}`
+		await createUnit(page, code, `Satuan E2E ${suffix}`)
 
-		await page.getByRole('menuitem', { name: 'Delete' }).click()
+		await page.goto(`/master/uom?q=${code}`)
+		await expect(page.getByRole('row', { name: new RegExp(code, 'u') })).toBeVisible()
 
-		await expect(page.getByText(/delete unit/i)).toBeVisible()
-		await page.getByRole('button', { name: 'Delete' }).click()
+		await page.getByRole('button', { name: 'Tindakan' }).first().click()
+		await page.getByRole('menuitem', { name: 'Hapus' }).click()
 
-		await expect(page.getByText(/deleted successfully/i)).toBeVisible()
+		await expect(page.getByText('Hapus satuan?')).toBeVisible()
+		await page.getByRole('dialog').getByRole('button', { name: 'Hapus' }).click()
+
+		await expect(page.getByText('Satuan berhasil dihapus.')).toBeVisible()
 	})
 })
 
 test.describe('UoM - Conversions', () => {
-	/** Add Conversion button is disabled when less than 2 units exist */
-	test('Add Conversion button disabled with fewer than 2 units', async ({ page, login }) => {
+	/** Add Conversion button is visible */
+	test('shows Tambah Konversi button', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/uom')
 
-		const addConvBtn = page.getByRole('button', { name: /add conversion/i })
-		await expect(addConvBtn).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Tambah Konversi' })).toBeVisible()
+		await expect(page.getByText('Konversi', { exact: true })).toBeVisible()
 	})
 
 	/** Create a conversion between two units */
 	test('can create a conversion', async ({ page, login }) => {
 		await login()
+
+		// Seed conversions already cover every same-category pair of the seeded
+		// units, so create a fresh quantity unit first (the form defaults to it).
+		const suffix = uniqueSuffix()
+		const unitName = `Satuan Konversi ${suffix}`
+		await createUnit(page, `uom-konv-${suffix}`, unitName)
+
 		await page.goto('/master/uom')
 
-		// Ensure at least 2 units exist — create them first
-		await page.getByRole('button', { name: /add unit/i }).click()
-		await page.getByLabel('Code').fill('g-e2e')
-		await page.getByLabel('Name').fill('Gram E2E')
-		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await page.getByRole('button', { name: 'Tambah Konversi' }).click()
+		await expect(page.getByRole('heading', { name: 'Tambah Konversi' })).toBeVisible()
 
-		await page.getByRole('button', { name: /add unit/i }).click()
-		await page.getByLabel('Code').fill('kg-e2e2')
-		await page.getByLabel('Name').fill('Kilogram E2E 2')
-		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await page.getByRole('combobox', { name: 'Dari Satuan' }).fill('Pieces')
+		await page.getByRole('option', { name: /Pieces/u }).click()
 
-		// Now add conversion
-		await page.getByRole('button', { name: /add conversion/i }).click()
+		await page.getByRole('combobox', { name: 'Ke Satuan' }).fill(unitName)
+		await page.getByRole('option', { name: new RegExp(unitName, 'u') }).click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText('Add Conversion')).toBeVisible()
+		await page.getByLabel('Faktor').fill('12')
+		await page.getByRole('dialog').getByRole('button', { name: 'Buat', exact: true }).click()
 
-		await page.getByLabel('Factor').fill('1000')
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page.getByText('Konversi berhasil dibuat.')).toBeVisible()
 	})
 
 	/** Delete a conversion */
@@ -138,15 +155,13 @@ test.describe('UoM - Conversions', () => {
 		await login()
 		await page.goto('/master/uom')
 
-		// If conversions section is visible, delete the first one
-		const deleteBtn = page.locator('[class*="divide-y"]').getByRole('button').first()
-		if (await deleteBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await deleteBtn.click()
+		const deleteButton = page.getByRole('button', { name: 'Hapus konversi' }).first()
+		await expect(deleteButton).toBeVisible()
+		await deleteButton.click()
 
-			await expect(page.getByText(/delete conversion/i)).toBeVisible()
-			await page.getByRole('button', { name: 'Delete' }).click()
+		await expect(page.getByText('Hapus konversi?')).toBeVisible()
+		await page.getByRole('dialog').getByRole('button', { name: 'Hapus' }).click()
 
-			await expect(page.getByText(/deleted successfully/i)).toBeVisible()
-		}
+		await expect(page.getByText('Konversi berhasil dihapus.')).toBeVisible()
 	})
 })

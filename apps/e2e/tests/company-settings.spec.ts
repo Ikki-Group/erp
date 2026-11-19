@@ -1,94 +1,102 @@
 import { test, expect } from './fixtures/auth.fixture'
 
+/** Stable name so the parallel update/persist tests don't race on the singleton. */
+const COMPANY_NAME = 'PT. Ikki Test'
+
 test.describe('Company Settings - View & Edit', () => {
-	/** Page loads and shows header */
-	test('displays company settings page with header', async ({ page, login }) => {
+	/** Overview page loads with the profile and sites sections */
+	test('displays company settings overview', async ({ page, login }) => {
 		await login()
 		await page.goto('/settings/company')
 
-		await expect(page.getByRole('heading', { name: /company settings/i })).toBeVisible()
-		await expect(page.getByText(/manage your company profile/i)).toBeVisible()
+		await expect(page.getByText('Ringkasan perusahaan')).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Profil perusahaan' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Lokasi Usaha' })).toBeVisible()
 	})
 
-	/** Save button is visible for authorized user */
-	test('shows Save Changes button for authorized user', async ({ page, login }) => {
+	/** Edit action is visible for authorized user */
+	test('shows Ubah button for authorized user', async ({ page, login }) => {
 		await login()
 		await page.goto('/settings/company')
 
-		await expect(page.getByRole('button', { name: /save changes/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Ubah' })).toBeVisible()
 	})
 
-	/** Form sections are rendered */
+	/** Edit form sections are rendered */
 	test('renders company info, tax, and receipt sections', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/company')
+		await page.goto('/settings/company/edit')
 
-		await expect(page.getByText('Company Info')).toBeVisible()
-		await expect(page.getByText('Tax & Currency')).toBeVisible()
-		await expect(page.getByText('Receipt')).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Info Perusahaan' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Pajak & Mata Uang' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Struk' })).toBeVisible()
 	})
 
 	/** Can fill and save company settings */
 	test('can update company settings', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/company')
+		await page.goto('/settings/company/edit')
 
-		// Wait for form to be ready
-		await expect(page.getByLabel('Company Name')).toBeVisible()
+		await expect(page.getByLabel('Nama Perusahaan')).toBeVisible()
 
-		const nameField = page.getByLabel('Company Name')
+		const nameField = page.getByLabel('Nama Perusahaan')
 		await nameField.clear()
-		await nameField.fill('PT. Ikki Test')
+		await nameField.fill(COMPANY_NAME)
 
 		const emailField = page.getByLabel('Email')
 		await emailField.clear()
 		await emailField.fill('test@ikki.id')
 
-		const taxRateField = page.getByLabel(/tax rate/i)
+		const taxRateField = page.getByLabel(/tarif pajak/iu)
 		await taxRateField.clear()
 		await taxRateField.fill('11')
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: 'Simpan Perubahan' }).click()
 
-		await expect(page.getByText(/settings (created|updated)/i)).toBeVisible()
+		await expect(page.getByText('Pengaturan perusahaan berhasil diperbarui.')).toBeVisible()
+		await expect(page).toHaveURL(/\/settings\/company$/u)
 	})
 
-	/** Values persist after page reload */
+	/** Values persist after saving and reloading */
 	test('saved values persist on refresh', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/company')
+		await page.goto('/settings/company/edit')
 
-		await expect(page.getByLabel('Company Name')).toBeVisible()
+		await expect(page.getByLabel('Nama Perusahaan')).toBeVisible()
 
-		const nameField = page.getByLabel('Company Name')
+		const nameField = page.getByLabel('Nama Perusahaan')
 		await nameField.clear()
-		await nameField.fill('PT. Persist Test')
+		await nameField.fill(COMPANY_NAME)
 
-		await page.getByRole('button', { name: /save changes/i }).click()
-		await expect(page.getByText(/settings (created|updated)/i)).toBeVisible()
+		await page.getByRole('button', { name: 'Simpan Perubahan' }).click()
+		await expect(page.getByText('Pengaturan perusahaan berhasil diperbarui.')).toBeVisible()
 
 		await page.reload()
 
-		await expect(page.getByLabel('Company Name')).toHaveValue('PT. Persist Test')
+		// Saving returns to the overview; reopen the edit form to check the stored value.
+		await page.getByRole('button', { name: 'Ubah' }).click()
+		await expect(page).toHaveURL(/\/settings\/company\/edit$/u)
+		await expect(page.getByLabel('Nama Perusahaan')).toHaveValue(COMPANY_NAME)
 	})
 
-	/** Validation prevents saving invalid tax rate */
+	/** Validation prevents saving a negative tax rate */
 	test('shows validation error for invalid tax rate', async ({ page, login }) => {
 		await login()
-		await page.goto('/settings/company')
+		await page.goto('/settings/company/edit')
 
-		await expect(page.getByLabel('Company Name')).toBeVisible()
+		await expect(page.getByLabel('Nama Perusahaan')).toBeVisible()
 
-		const nameField = page.getByLabel('Company Name')
+		const nameField = page.getByLabel('Nama Perusahaan')
 		await nameField.clear()
 		await nameField.fill('PT. Valid Name')
 
-		const taxRateField = page.getByLabel(/tax rate/i)
+		const taxRateField = page.getByLabel(/tarif pajak/iu)
 		await taxRateField.clear()
 		await taxRateField.fill('-5')
+		await nameField.click()
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await expect(page.getByText(/harus berupa angka desimal positif/iu)).toBeVisible()
 
-		await expect(page.getByText(/invalid/i)).toBeVisible()
+		await expect(page).toHaveURL(/\/settings\/company\/edit$/u)
 	})
 })

@@ -1,4 +1,12 @@
+import type { Page } from '@playwright/test'
+
 import { test, expect } from './fixtures/auth.fixture'
+
+/** Wizard step 1: destination must differ from the locked source location. */
+async function chooseDestination(page: Page) {
+	await page.getByLabel('Lokasi Tujuan').click()
+	await page.getByRole('option', { name: /warehouse pusat/i }).click()
+}
 
 test.describe('Inventory Transfers - Page Load', () => {
 	/** Transfers page loads and shows header */
@@ -6,7 +14,7 @@ test.describe('Inventory Transfers - Page Load', () => {
 		await login()
 		await page.goto('/inventory/transfers')
 
-		await expect(page.getByRole('heading', { name: /transfer inventori/i })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Transfer Inventori' })).toBeVisible()
 	})
 
 	/** Shows location name in description when location is active */
@@ -14,7 +22,7 @@ test.describe('Inventory Transfers - Page Load', () => {
 		await login()
 		await page.goto('/inventory/transfers')
 
-		await expect(page.getByText(/transfer antar lokasi dari/i)).toBeVisible()
+		await expect(page.getByText(/transfer antar lokasi dari dan ke/i)).toBeVisible()
 	})
 
 	/** Shows "Buat Transfer" button */
@@ -39,40 +47,43 @@ test.describe('Inventory Transfers - Empty State', () => {
 	})
 })
 
-test.describe('Inventory Transfers - Create Dialog', () => {
-	/** Opens create transfer dialog */
-	test('opens create transfer dialog on button click', async ({ page, login }) => {
+test.describe('Inventory Transfers - Create Wizard', () => {
+	/** Create button opens the full-page wizard (no dialog anymore) */
+	test('opens create transfer wizard on button click', async ({ page, login }) => {
 		await login()
 		await page.goto('/inventory/transfers')
 
 		await page.getByRole('button', { name: /buat transfer/i }).click()
 
-		await expect(page.getByRole('heading', { name: /buat transfer/i })).toBeVisible()
-		await expect(page.getByText(/lokasi asal/i)).toBeVisible()
-		await expect(page.getByText(/lokasi tujuan/i)).toBeVisible()
+		await expect(page).toHaveURL(/\/inventory\/transfers\/new/)
+		await expect(page.getByRole('heading', { name: 'Buat Transfer' })).toBeVisible()
+		await expect(page.getByLabel('Lokasi Asal')).toBeVisible()
+		await expect(page.getByLabel('Lokasi Tujuan')).toBeVisible()
 	})
 
-	/** Shows material line inputs in create dialog */
+	/** Item step shows the line editor with its add-row button */
 	test('shows item transfer section with material inputs', async ({ page, login }) => {
 		await login()
-		await page.goto('/inventory/transfers')
+		await page.goto('/inventory/transfers/new')
 
-		await page.getByRole('button', { name: /buat transfer/i }).click()
+		await chooseDestination(page)
+		await page.getByRole('button', { name: 'Lanjut' }).click()
 
-		await expect(page.getByText(/item transfer/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: /item transfer/i })).toBeVisible()
 		await expect(page.getByRole('button', { name: /tambah baris/i })).toBeVisible()
 	})
 
-	/** Can add and remove lines in create dialog */
+	/** Can add and remove lines in create wizard */
 	test('can add additional material lines', async ({ page, login }) => {
 		await login()
-		await page.goto('/inventory/transfers')
+		await page.goto('/inventory/transfers/new')
 
-		await page.getByRole('button', { name: /buat transfer/i }).click()
+		await chooseDestination(page)
+		await page.getByRole('button', { name: 'Lanjut' }).click()
 		await page.getByRole('button', { name: /tambah baris/i }).click()
 
-		const materialInputs = page.getByPlaceholder('Pilih material')
-		await expect(materialInputs).toHaveCount(2)
+		const materialInputs = page.getByPlaceholder('Pilih bahan')
+		await expect(materialInputs).toHaveCount(1)
 	})
 })
 
@@ -81,7 +92,7 @@ test.describe('Inventory Transfers - Navigation', () => {
 	test('can navigate to transfers page from sidebar', async ({ page, login }) => {
 		await login()
 
-		await page.getByRole('link', { name: /transfers/i }).click()
+		await page.getByRole('link', { name: /transfer stok/i }).click()
 
 		await expect(page).toHaveURL(/\/inventory\/transfers/)
 	})

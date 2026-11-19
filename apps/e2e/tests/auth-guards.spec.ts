@@ -9,15 +9,17 @@ test.describe('Auth Guards', () => {
 	})
 
 	/** Visiting nested protected routes without auth should redirect */
-	test('redirects from settings/users to login when not authenticated', async ({ page }) => {
-		await page.goto('/settings/users')
+	test('redirects from settings/access-control to login when not authenticated', async ({
+		page,
+	}) => {
+		await page.goto('/settings/access-control')
 
 		await expect(page).toHaveURL(/\/login/)
 	})
 
-	/** Visiting master routes without auth should redirect */
-	test('redirects from master/locations to login when not authenticated', async ({ page }) => {
-		await page.goto('/master/locations')
+	/** Visiting settings routes without auth should redirect */
+	test('redirects from settings/locations to login when not authenticated', async ({ page }) => {
+		await page.goto('/settings/locations')
 
 		await expect(page).toHaveURL(/\/login/)
 	})
@@ -26,7 +28,7 @@ test.describe('Auth Guards', () => {
 	test('allows authenticated user to access protected routes', async ({ page, login }) => {
 		await login()
 
-		await page.goto('/settings/users')
+		await page.goto('/settings/access-control')
 
 		await expect(page).not.toHaveURL(/\/login/)
 	})

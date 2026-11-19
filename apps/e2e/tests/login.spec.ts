@@ -7,8 +7,8 @@ test.describe('Login', () => {
 	test('displays login form with username and password fields', async ({ page }) => {
 		await page.goto('/login')
 
-		await expect(page.getByLabel('Username')).toBeVisible()
-		await expect(page.getByLabel('Password')).toBeVisible()
+		await expect(page.locator('input[name="username"]')).toBeVisible()
+		await expect(page.locator('input[name="password"]')).toBeVisible()
 		await expect(page.getByRole('button', { name: 'Masuk' })).toBeVisible()
 	})
 
@@ -24,8 +24,8 @@ test.describe('Login', () => {
 	test('shows error with invalid credentials', async ({ page }) => {
 		await page.goto('/login')
 
-		await page.getByLabel('Username').fill('nonexistent')
-		await page.getByLabel('Password').fill('wrongpassword')
+		await page.locator('input[name="username"]').fill('nonexistent')
+		await page.locator('input[name="password"]').fill('wrongpassword')
 		await page.getByRole('button', { name: 'Masuk' }).click()
 
 		// Should show a destructive alert with error text

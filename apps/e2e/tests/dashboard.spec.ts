@@ -14,16 +14,17 @@ test.describe('Dashboard', () => {
 	test('shows navigation sidebar', async ({ page, login }) => {
 		await login()
 
-		// Verify sidebar contains navigation links
-		await expect(page.getByRole('navigation')).toBeVisible()
+		// Sidebar renders its grouped nav links (no <nav> landmark in the shell)
+		await expect(page.getByRole('link', { name: 'Dasbor' })).toBeVisible()
+		await expect(page.getByRole('link', { name: 'Stok', exact: true })).toBeVisible()
 	})
 
-	/** User can navigate to settings from sidebar */
-	test('can navigate to settings/users from sidebar', async ({ page, login }) => {
+	/** User can navigate from sidebar */
+	test('can navigate to access control from sidebar', async ({ page, login }) => {
 		await login()
 
-		await page.getByRole('link', { name: /user/i }).click()
+		await page.getByRole('link', { name: 'Kontrol Akses' }).click()
 
-		await expect(page).toHaveURL(/\/settings\/users/)
+		await expect(page).toHaveURL(/\/settings\/access-control/)
 	})
 })

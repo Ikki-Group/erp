@@ -1,4 +1,57 @@
 import { test, expect } from './fixtures/auth.fixture'
+import { uniqueSuffix } from './helpers/test-data'
+
+/** Pins the row for `text` by typing it into the list search box. */
+async function searchRow(page: import('@playwright/test').Page, placeholder: string, text: string) {
+	await page.getByPlaceholder(placeholder).fill(text)
+	await expect(page).toHaveURL(/[?&]q=/u)
+	const row = page.getByRole('row').filter({ hasText: text })
+	await expect(row).toBeVisible()
+	return row
+}
+
+/** Creates a category through the dialog on the menu page and waits for the toast. */
+async function createCategory(page: import('@playwright/test').Page, name: string) {
+	await page.goto('/master/menu')
+	await page.getByRole('button', { name: 'Tambah Kategori' }).click()
+
+	const dialog = page.getByRole('dialog')
+	await expect(dialog.getByText('Tambah Kategori')).toBeVisible()
+	await dialog.getByLabel('Nama Kategori').fill(name)
+	await dialog.getByRole('button', { name: 'Simpan' }).click()
+
+	await expect(page.getByText('Kategori berhasil dibuat.')).toBeVisible()
+}
+
+/** Creates a menu item through its full-page form and waits for the toast. */
+async function createMenuItem(page: import('@playwright/test').Page, sku: string, name: string) {
+	await page.goto('/master/menu')
+	await page.getByRole('button', { name: 'Item Menu' }).click()
+	await expect(page.getByRole('heading', { name: 'Tambah Item Menu' })).toBeVisible()
+
+	await page.getByLabel('SKU').fill(sku)
+	await page.getByLabel('Nama', { exact: true }).fill(name)
+	await page.getByLabel('Harga Dasar').fill('25000')
+	await page.getByRole('button', { name: 'Simpan' }).click()
+
+	await expect(page.getByText('Item menu berhasil dibuat.')).toBeVisible()
+}
+
+/** Creates a modifier group with two options through its full-page form. */
+async function createModifierGroup(page: import('@playwright/test').Page, name: string) {
+	await page.goto('/master/menu')
+	await page.getByRole('tab', { name: 'Grup Modifier' }).click()
+	await page.getByRole('button', { name: 'Tambah Grup Modifier' }).click()
+	await expect(page.getByRole('heading', { name: 'Tambah Grup Modifier' })).toBeVisible()
+
+	await page.getByLabel('Nama Grup').fill(name)
+	await page.getByLabel('Nama', { exact: true }).first().fill('Reguler')
+	await page.getByRole('button', { name: 'Tambah Opsi' }).click()
+	await page.getByLabel('Nama', { exact: true }).nth(1).fill('Large')
+	await page.getByRole('button', { name: 'Simpan' }).click()
+
+	await expect(page.getByText('Grup modifier berhasil dibuat.')).toBeVisible()
+}
 
 test.describe('Menu - Page Load & Location Guard', () => {
 	/** Menu page loads and shows header when location is active */
@@ -9,23 +62,25 @@ test.describe('Menu - Page Load & Location Guard', () => {
 		await expect(page.getByRole('heading', { name: 'Menu' })).toBeVisible()
 	})
 
-	/** Tab switcher is visible with Items and Modifiers tabs */
+	/** Tab switcher is visible with items and modifiers tabs */
 	test('shows tab switcher for items and modifiers', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/menu')
 
-		await expect(page.getByRole('button', { name: /menu items/i })).toBeVisible()
-		await expect(page.getByRole('button', { name: /modifier groups/i })).toBeVisible()
+		await expect(page.getByRole('tab', { name: 'Item Menu' })).toBeVisible()
+		await expect(page.getByRole('tab', { name: 'Grup Modifier' })).toBeVisible()
 	})
 
-	/** Action buttons are visible in header */
+	/** Create actions are visible for the active tab */
 	test('shows action buttons in header', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/menu')
 
-		await expect(page.getByRole('button', { name: /kategori/i })).toBeVisible()
-		await expect(page.getByRole('button', { name: /modifier/i })).toBeVisible()
-		await expect(page.getByRole('button', { name: /menu item/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Item Menu' })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Tambah Kategori' })).toBeVisible()
+
+		await page.getByRole('tab', { name: 'Grup Modifier' }).click()
+		await expect(page.getByRole('button', { name: 'Tambah Grup Modifier' })).toBeVisible()
 	})
 })
 
@@ -33,136 +88,113 @@ test.describe('Menu - Category CRUD', () => {
 	/** Create a new category */
 	test('can create a new category', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/menu')
+		const name = `Minuman E2E ${uniqueSuffix()}`
 
-		await page.getByRole('button', { name: /kategori/i }).click()
+		await createCategory(page, name)
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText(/tambah kategori/i)).toBeVisible()
-
-		await page.getByLabel(/nama kategori/i).fill('Minuman E2E')
-		await page.getByRole('button', { name: /simpan/i }).click()
-
-		await expect(page.getByText(/berhasil dibuat/i)).toBeVisible()
+		await expect(page.getByRole('button', { name: `Edit kategori ${name}` })).toBeVisible()
 	})
 
 	/** Edit an existing category */
 	test('can edit a category', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/menu')
+		const name = `Minuman E2E ${uniqueSuffix()}`
+		const updated = `Minuman Updated ${uniqueSuffix()}`
 
-		const categoryRow = page.locator('div').filter({ hasText: 'Minuman E2E' }).first()
-		await categoryRow
-			.getByRole('button')
-			.filter({ has: page.locator('svg') })
-			.first()
-			.click()
+		await createCategory(page, name)
+		await page.getByRole('button', { name: `Edit kategori ${name}` }).click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText(/edit kategori/i)).toBeVisible()
+		const dialog = page.getByRole('dialog')
+		await expect(dialog.getByText('Ubah Kategori')).toBeVisible()
+		await dialog.getByLabel('Nama Kategori').fill(updated)
+		await dialog.getByRole('button', { name: 'Simpan' }).click()
 
-		const nameField = page.getByLabel(/nama kategori/i)
-		await nameField.clear()
-		await nameField.fill('Minuman Updated')
-
-		await page.getByRole('button', { name: /simpan/i }).click()
-
-		await expect(page.getByText(/berhasil diperbarui/i)).toBeVisible()
+		await expect(page.getByText('Kategori berhasil diperbarui.')).toBeVisible()
 	})
 
 	/** Delete a category */
 	test('can delete a category', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/menu')
+		const name = `Minuman E2E ${uniqueSuffix()}`
 
-		const categoryRow = page.locator('div').filter({ hasText: 'Minuman Updated' }).first()
-		const deleteBtn = categoryRow
-			.getByRole('button')
-			.filter({ has: page.locator('svg') })
-			.last()
-		await deleteBtn.click()
+		await createCategory(page, name)
+		await page.getByRole('button', { name: `Hapus kategori ${name}` }).click()
 
-		await expect(page.getByText(/hapus kategori/i)).toBeVisible()
-		await page.getByRole('button', { name: /hapus/i }).click()
+		const dialog = page.getByRole('dialog')
+		await expect(dialog.getByText('Hapus kategori?')).toBeVisible()
+		await dialog.getByRole('button', { name: 'Hapus' }).click()
 
-		await expect(page.getByText(/berhasil dihapus/i)).toBeVisible()
+		await expect(page.getByText('Kategori berhasil dihapus.')).toBeVisible()
 	})
 })
 
 test.describe('Menu - Item CRUD', () => {
-	/** Open create dialog for menu item */
-	test('opens create dialog when clicking Menu Item button', async ({ page, login }) => {
+	/** Menu Item button opens the full-page create form */
+	test('opens create page when clicking Item Menu button', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /menu item/i }).click()
+		await page.getByRole('button', { name: 'Item Menu' }).click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText(/tambah menu item/i)).toBeVisible()
+		await expect(page).toHaveURL(/\/master\/menu\/items\/new/)
+		await expect(page.getByRole('heading', { name: 'Tambah Item Menu' })).toBeVisible()
 	})
 
 	/** Create a new menu item */
 	test('can create a new menu item', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/menu')
+		const sku = `MNU-E2E-${uniqueSuffix()}`
 
-		await page.getByRole('button', { name: /menu item/i }).click()
+		await createMenuItem(page, sku, 'Es Kopi E2E')
 
-		await page.getByLabel(/sku/i).fill('MNU-E2E-001')
-		await page.getByLabel(/nama/i).fill('Es Kopi E2E')
-		await page.getByLabel(/harga dasar/i).fill('25000')
-
-		await page.getByRole('button', { name: /simpan/i }).click()
-
-		await expect(page.getByText(/berhasil dibuat/i)).toBeVisible()
+		await searchRow(page, 'Cari item menu...', sku)
 	})
 
-	/** Validation error shown for empty required fields */
+	/** Validation errors are shown for empty required fields */
 	test('shows validation errors for empty fields', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /menu item/i }).click()
-		await page.getByRole('button', { name: /simpan/i }).click()
+		await page.getByRole('button', { name: 'Item Menu' }).click()
+		await page.getByRole('button', { name: 'Simpan' }).click()
 
-		await expect(page.getByText(/mohon perbaiki/i)).toBeVisible()
+		await expect(page.getByText('SKU wajib diisi')).toBeVisible()
+		await expect(page.getByText('Nama minimal 2 karakter')).toBeVisible()
 	})
 
 	/** Edit a menu item via action menu */
 	test('can edit a menu item via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/menu')
+		const sku = `MNU-E2E-${uniqueSuffix()}`
+		await createMenuItem(page, sku, 'Es Kopi E2E')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const row = await searchRow(page, 'Cari item menu...', sku)
+		await row.getByRole('button', { name: 'Tindakan' }).click()
+		await page.getByRole('menuitem', { name: 'Ubah' }).click()
 
-		await page.getByRole('menuitem', { name: 'Edit' }).click()
-
-		await expect(page.getByText(/edit menu item/i)).toBeVisible()
-
-		const nameField = page.getByLabel(/nama/i)
-		await nameField.clear()
+		await expect(page.getByRole('heading', { name: 'Ubah Item Menu' })).toBeVisible()
+		const nameField = page.getByLabel('Nama', { exact: true })
 		await nameField.fill('Es Kopi Updated')
+		await page.getByRole('button', { name: 'Simpan' }).click()
 
-		await page.getByRole('button', { name: /simpan/i }).click()
-
-		await expect(page.getByText(/berhasil diperbarui/i)).toBeVisible()
+		await expect(page.getByText('Item menu berhasil diperbarui.')).toBeVisible()
 	})
 
 	/** Delete a menu item via action menu */
 	test('can delete a menu item via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/menu')
+		const sku = `MNU-E2E-${uniqueSuffix()}`
+		await createMenuItem(page, sku, 'Es Kopi E2E')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const row = await searchRow(page, 'Cari item menu...', sku)
+		await row.getByRole('button', { name: 'Tindakan' }).click()
+		await page.getByRole('menuitem', { name: 'Hapus' }).click()
 
-		await page.getByRole('menuitem', { name: /hapus/i }).click()
+		const dialog = page.getByRole('dialog')
+		await expect(dialog.getByText('Hapus item menu?')).toBeVisible()
+		await dialog.getByRole('button', { name: 'Hapus' }).click()
 
-		await expect(page.getByText(/hapus menu item/i)).toBeVisible()
-		await page.getByRole('button', { name: /hapus/i }).click()
-
-		await expect(page.getByText(/berhasil dihapus/i)).toBeVisible()
+		await expect(page.getByText('Item menu berhasil dihapus.')).toBeVisible()
 	})
 })
 
@@ -172,78 +204,53 @@ test.describe('Menu - Modifier Group CRUD', () => {
 		await login()
 		await page.goto('/master/menu')
 
-		await page.getByRole('button', { name: /modifier groups/i }).click()
+		await page.getByRole('tab', { name: 'Grup Modifier' }).click()
 
-		await expect(page.getByText(/belum ada modifier group|modifier group/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Grup Modifier' })).toBeVisible()
 	})
 
 	/** Create a modifier group with options */
 	test('can create a modifier group with options', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/menu')
+		const name = `Level Gula E2E ${uniqueSuffix()}`
 
-		await page.getByRole('button', { name: /^modifier$/i }).click()
+		await createModifierGroup(page, name)
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText(/tambah modifier group/i)).toBeVisible()
-
-		await page.getByLabel(/nama group/i).fill('Level Gula E2E')
-
-		// Fill first option
-		const optionInputs = page.getByPlaceholder(/e\.g\. reguler/i)
-		await optionInputs.first().fill('Normal')
-
-		// Add second option
-		await page.getByRole('button', { name: /tambah opsi/i }).click()
-		await optionInputs.nth(1).fill('Less Sugar')
-
-		await page.getByRole('button', { name: /simpan/i }).click()
-
-		await expect(page.getByText(/berhasil dibuat/i)).toBeVisible()
+		await searchRow(page, 'Cari modifier group...', name)
 	})
 
 	/** Edit a modifier group */
 	test('can edit a modifier group', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/menu')
+		const name = `Level Gula E2E ${uniqueSuffix()}`
+		const updated = `Level Gula Updated ${uniqueSuffix()}`
+		await createModifierGroup(page, name)
 
-		await page.getByRole('button', { name: /modifier groups/i }).click()
+		const row = await searchRow(page, 'Cari modifier group...', name)
+		await row.getByRole('button', { name: 'Tindakan' }).click()
+		await page.getByRole('menuitem', { name: 'Ubah' }).click()
 
-		const groupRow = page.locator('div').filter({ hasText: 'Level Gula E2E' }).first()
-		await groupRow
-			.getByRole('button')
-			.filter({ has: page.locator('svg') })
-			.first()
-			.click()
+		await expect(page.getByRole('heading', { name: 'Ubah Grup Modifier' })).toBeVisible()
+		await page.getByLabel('Nama Grup').fill(updated)
+		await page.getByRole('button', { name: 'Simpan' }).click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-
-		const nameField = page.getByLabel(/nama group/i)
-		await nameField.clear()
-		await nameField.fill('Level Gula Updated')
-
-		await page.getByRole('button', { name: /simpan/i }).click()
-
-		await expect(page.getByText(/berhasil diperbarui/i)).toBeVisible()
+		await expect(page.getByText('Grup modifier berhasil diperbarui.')).toBeVisible()
 	})
 
 	/** Delete a modifier group */
 	test('can delete a modifier group', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/menu')
+		const name = `Level Gula E2E ${uniqueSuffix()}`
+		await createModifierGroup(page, name)
 
-		await page.getByRole('button', { name: /modifier groups/i }).click()
+		const row = await searchRow(page, 'Cari modifier group...', name)
+		await row.getByRole('button', { name: 'Tindakan' }).click()
+		await page.getByRole('menuitem', { name: 'Hapus' }).click()
 
-		const groupRow = page.locator('div').filter({ hasText: 'Level Gula Updated' }).first()
-		const deleteBtn = groupRow
-			.getByRole('button')
-			.filter({ has: page.locator('svg') })
-			.last()
-		await deleteBtn.click()
+		const dialog = page.getByRole('dialog')
+		await expect(dialog.getByText('Hapus modifier group?')).toBeVisible()
+		await dialog.getByRole('button', { name: 'Hapus' }).click()
 
-		await expect(page.getByText(/hapus modifier group/i)).toBeVisible()
-		await page.getByRole('button', { name: /hapus/i }).click()
-
-		await expect(page.getByText(/berhasil dihapus/i)).toBeVisible()
+		await expect(page.getByText('Grup modifier berhasil dihapus.')).toBeVisible()
 	})
 })

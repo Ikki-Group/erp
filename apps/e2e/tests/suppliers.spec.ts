@@ -1,171 +1,166 @@
-import { test, expect } from './fixtures/auth.fixture'
+import type { Page } from '@playwright/test'
 
-test.describe('Suppliers - Supplier CRUD', () => {
+import { test, expect } from './fixtures/auth.fixture'
+import { uniqueSuffix } from './helpers/test-data'
+
+/** Creates a supplier through the full-page form and waits for the list. */
+async function createSupplier(page: Page, code: string, name: string) {
+	await page.goto('/master/suppliers/new')
+	await page.getByLabel('Kode').fill(code)
+	await page.getByLabel('Nama').fill(name)
+	await page.getByRole('button', { name: 'Buat', exact: true }).click()
+	await expect(page.getByText('Pemasok berhasil dibuat.')).toBeVisible()
+}
+
+test.describe('Suppliers - CRUD', () => {
 	/** Page loads and shows header */
 	test('displays suppliers page with header', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/suppliers')
 
-		await expect(page.getByRole('heading', { name: /suppliers/i })).toBeVisible()
-		await expect(page.getByText(/manage suppliers and their material pricing/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Pemasok' })).toBeVisible()
+		await expect(page.getByText('Kelola pemasok dan harga bahannya.')).toBeVisible()
 	})
 
 	/** Add Supplier button is visible */
-	test('shows Add Supplier button', async ({ page, login }) => {
+	test('shows Tambah Pemasok button', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/suppliers')
 
-		await expect(page.getByRole('button', { name: /add supplier/i })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Tambah Pemasok' })).toBeVisible()
 	})
 
-	/** Opening create dialog */
-	test('opens create dialog when clicking Add Supplier', async ({ page, login }) => {
+	/** Add Supplier navigates to the full-page create route */
+	test('navigates to the create page when clicking Tambah Pemasok', async ({ page, login }) => {
 		await login()
 		await page.goto('/master/suppliers')
 
-		await page.getByRole('button', { name: /add supplier/i }).click()
+		await page.getByRole('button', { name: 'Tambah Pemasok' }).click()
 
-		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText('Add Supplier')).toBeVisible()
+		await expect(page).toHaveURL(/\/master\/suppliers\/new$/u)
+		await expect(page.getByRole('heading', { name: 'Tambah Pemasok' })).toBeVisible()
 	})
 
-	/** Create a new supplier end-to-end */
+	/** Create a new supplier end-to-end via the full-page form */
 	test('can create a new supplier', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/suppliers')
 
-		await page.getByRole('button', { name: /add supplier/i }).click()
+		const suffix = uniqueSuffix()
+		await createSupplier(page, `SUP-E2E-${suffix}`, `Pemasok E2E ${suffix}`)
 
-		await page.getByLabel('Code').fill('SUP-E2E-001')
-		await page.getByLabel('Name').fill('Supplier E2E Test')
-		await page.getByLabel('Contact Person').fill('John Doe')
-		await page.getByLabel('Phone').fill('08123456789')
-
-		await page.getByRole('button', { name: 'Create' }).click()
-
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
+		await expect(page).toHaveURL(/\/master\/suppliers(\?.*)?$/u)
 	})
 
-	/** Search suppliers */
+	/** Search filters the list by name */
 	test('can search suppliers by name', async ({ page, login }) => {
 		await login()
+
+		const suffix = uniqueSuffix()
+		const code = `SUP-E2E-${suffix}`
+		await createSupplier(page, code, `Pemasok E2E ${suffix}`)
+
 		await page.goto('/master/suppliers')
+		await page.getByPlaceholder('Cari pemasok...').fill(suffix)
 
-		const searchInput = page.getByPlaceholder(/search suppliers/i)
-		await searchInput.fill('E2E')
-
-		await page.waitForLoadState('networkidle')
+		await expect(page.getByRole('row', { name: new RegExp(code, 'u') })).toBeVisible()
 	})
 
-	/** Edit an existing supplier */
+	/** Edit navigates to the full-page edit route and saves */
 	test('can edit a supplier via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/suppliers')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const suffix = uniqueSuffix()
+		const code = `SUP-E2E-${suffix}`
+		await createSupplier(page, code, `Pemasok E2E ${suffix}`)
 
-		await page.getByRole('menuitem', { name: 'Edit' }).click()
+		await page.goto(`/master/suppliers?q=${code}`)
+		await expect(page.getByRole('row', { name: new RegExp(code, 'u') })).toBeVisible()
 
-		await expect(page.getByText('Edit Supplier')).toBeVisible()
+		await page.getByRole('button', { name: 'Tindakan' }).first().click()
+		await page.getByRole('menuitem', { name: 'Ubah' }).click()
 
-		const nameField = page.getByLabel('Name')
+		await expect(page).toHaveURL(/\/master\/suppliers\/\d+$/u)
+		await expect(page.getByRole('heading', { name: 'Ubah Pemasok' })).toBeVisible()
+
+		const nameField = page.getByLabel('Nama')
 		await nameField.clear()
-		await nameField.fill('Updated Supplier E2E')
+		await nameField.fill(`Pemasok Ubah ${suffix}`)
 
-		await page.getByRole('button', { name: /save changes/i }).click()
+		await page.getByRole('button', { name: 'Simpan Perubahan' }).click()
 
-		await expect(page.getByText(/updated successfully/i)).toBeVisible()
+		await expect(page.getByText('Pemasok berhasil diperbarui.')).toBeVisible()
 	})
 
 	/** Delete a supplier via action menu */
 	test('can delete a supplier via action menu', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/suppliers')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		await actionTrigger.click()
+		const suffix = uniqueSuffix()
+		const code = `SUP-E2E-${suffix}`
+		await createSupplier(page, code, `Pemasok E2E ${suffix}`)
 
-		await page.getByRole('menuitem', { name: 'Delete' }).click()
+		await page.goto(`/master/suppliers?q=${code}`)
+		await expect(page.getByRole('row', { name: new RegExp(code, 'u') })).toBeVisible()
 
-		await expect(page.getByText(/delete supplier/i)).toBeVisible()
-		await page.getByRole('button', { name: 'Delete' }).click()
+		await page.getByRole('button', { name: 'Tindakan' }).first().click()
+		await page.getByRole('menuitem', { name: 'Hapus' }).click()
 
-		await expect(page.getByText(/deleted successfully/i)).toBeVisible()
+		await expect(page.getByText('Hapus pemasok?')).toBeVisible()
+		await page.getByRole('dialog').getByRole('button', { name: 'Hapus' }).click()
+
+		await expect(page.getByText('Pemasok berhasil dihapus.')).toBeVisible()
 	})
 })
 
-test.describe('Suppliers - Material Pricing', () => {
-	/** Open pricing dialog from action menu */
-	test('can open material pricing dialog', async ({ page, login }) => {
+test.describe('Suppliers - Pricing', () => {
+	/** Open the pricing dialog from the action menu */
+	test('can open pricing dialog', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/suppliers')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		if (await actionTrigger.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await actionTrigger.click()
-			await page.getByRole('menuitem', { name: 'Pricing' }).click()
+		const suffix = uniqueSuffix()
+		const code = `SUP-E2E-${suffix}`
+		await createSupplier(page, code, `Pemasok E2E ${suffix}`)
 
-			await expect(page.getByText('Material Pricing')).toBeVisible()
-		}
+		await page.goto(`/master/suppliers?q=${code}`)
+		await expect(page.getByRole('row', { name: new RegExp(code, 'u') })).toBeVisible()
+
+		await page.getByRole('button', { name: 'Tindakan' }).first().click()
+		await page.getByRole('menuitem', { name: 'Harga' }).click()
+
+		await expect(page.getByRole('heading', { name: 'Harga Bahan' })).toBeVisible()
+		await expect(page.getByText('Belum ada data harga untuk pemasok ini.')).toBeVisible()
+
+		await page.getByRole('button', { name: 'Selesai' }).click()
 	})
 
-	/** Add pricing entry */
-	test('can add material pricing entry', async ({ page, login }) => {
+	/** Add a material price for a supplier */
+	test('can add a material price', async ({ page, login }) => {
 		await login()
-		await page.goto('/master/suppliers')
 
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		if (await actionTrigger.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await actionTrigger.click()
-			await page.getByRole('menuitem', { name: 'Pricing' }).click()
+		const suffix = uniqueSuffix()
+		const code = `SUP-E2E-${suffix}`
+		await createSupplier(page, code, `Pemasok E2E ${suffix}`)
 
-			await expect(page.getByText('Material Pricing')).toBeVisible()
+		await page.goto(`/master/suppliers?q=${code}`)
+		await expect(page.getByRole('row', { name: new RegExp(code, 'u') })).toBeVisible()
 
-			await page.getByRole('button', { name: /add/i }).click()
+		await page.getByRole('button', { name: 'Tindakan' }).first().click()
+		await page.getByRole('menuitem', { name: 'Harga' }).click()
 
-			await expect(page.getByText('Add Material Pricing')).toBeVisible()
+		await page.getByRole('button', { name: 'Tambah Harga' }).click()
+		await expect(page.getByRole('heading', { name: 'Tambah Harga Bahan' })).toBeVisible()
 
-			// Select material
-			await page.getByText('Select material...').click()
-			await page.getByRole('option').first().click()
+		await page.getByRole('combobox', { name: 'Bahan' }).click()
+		await page.getByRole('option').first().click()
 
-			// Fill unit price
-			await page.getByLabel('Unit Price').fill('15000')
+		await page.getByLabel('Harga Satuan').fill('50000')
 
-			// Select UoM
-			await page.getByText('Select unit...').click()
-			await page.getByRole('option').first().click()
+		await page.getByRole('combobox', { name: 'Satuan' }).click()
+		await page.getByRole('option').first().click()
 
-			await page.getByRole('button', { name: 'Add' }).click()
+		await page.getByRole('button', { name: 'Tambah', exact: true }).click()
 
-			await expect(page.getByText(/added successfully/i)).toBeVisible()
-		}
-	})
-
-	/** Empty state shows when no pricing entries */
-	test('shows empty state when supplier has no pricing', async ({ page, login }) => {
-		await login()
-		await page.goto('/master/suppliers')
-
-		// Create a fresh supplier
-		await page.getByRole('button', { name: /add supplier/i }).click()
-		await page.getByLabel('Code').fill('SUP-E2E-EMPTY')
-		await page.getByLabel('Name').fill('Supplier No Pricing')
-		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(/created successfully/i)).toBeVisible()
-
-		// Open pricing for the newly created supplier (last in list or search)
-		const searchInput = page.getByPlaceholder(/search suppliers/i)
-		await searchInput.fill('SUP-E2E-EMPTY')
-		await page.waitForLoadState('networkidle')
-
-		const actionTrigger = page.getByRole('button', { name: /actions/i }).first()
-		if (await actionTrigger.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await actionTrigger.click()
-			await page.getByRole('menuitem', { name: 'Pricing' }).click()
-
-			await expect(page.getByText(/no pricing entries/i)).toBeVisible()
-		}
+		await expect(page.getByText('Harga berhasil ditambahkan.')).toBeVisible()
+		await expect(page.getByText('Rp 50.000')).toBeVisible()
 	})
 })

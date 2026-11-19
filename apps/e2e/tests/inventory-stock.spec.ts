@@ -58,7 +58,7 @@ test.describe('Inventory Stock - Movement Tab', () => {
 
 		await page.getByRole('tab', { name: /riwayat pergerakan/i }).click()
 
-		await expect(page.getByText(/pilih material/i)).toBeVisible()
+		await expect(page.getByText(/pilih bahan/i)).toBeVisible()
 	})
 })
 
@@ -67,7 +67,7 @@ test.describe('Inventory Stock - Navigation', () => {
 	test('can navigate to stock page from sidebar', async ({ page, login }) => {
 		await login()
 
-		await page.getByRole('link', { name: /stock/i }).click()
+		await page.getByRole('link', { name: 'Stok', exact: true }).click()
 
 		await expect(page).toHaveURL(/\/inventory\/stock/)
 	})

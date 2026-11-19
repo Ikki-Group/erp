@@ -10,4 +10,11 @@ export const TEST_CREDENTIALS = {
 
 export const SEED = {
 	locationId: 1,
+	storeName: 'Kedai Kopi Nusantara',
+	warehouseName: 'Warehouse Pusat',
 } as const
+
+/** Short random suffix so parallel workers never collide on unique codes. */
+export function uniqueSuffix(): string {
+	return Math.random().toString(36).slice(2, 8)
+}
