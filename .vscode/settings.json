@@ -47,7 +47,6 @@
 		"postman/**": true,
 		".codegraph/**": true,
 		".gortex/**": true,
-		"apps/web-archive": true
 	},
 	// ─── Explorer: hide noise ────────────────────────────────────────────────
 	"files.exclude": {

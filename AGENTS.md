@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Ikki ERP — Bun monorepo. Apps: `apps/server` (Elysia + Drizzle API), `apps/web` (React 19 + Vite + TanStack), `apps/e2e` (Playwright). (`apps/web-archive` is a retired frontend — ignore it.) No `packages/*` exist yet despite the workspace glob.
+Ikki ERP — Bun monorepo. Apps: `apps/server` (Elysia + Drizzle API), `apps/web` (React 19 + Vite + TanStack), `apps/e2e` (Playwright). No `packages/*` exist yet despite the workspace glob.
 
 This file is the single source of truth for conventions and commands. `CLAUDE.md` only routes here. Read the **Server architecture** section below before building server features. Note: several commands (`bun run verify`, `bun run build`, `db:*`) do NOT exist at the repo root — they are per-app.
 
