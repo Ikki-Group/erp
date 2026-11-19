@@ -56,7 +56,7 @@ it('keeps header actions and search available for initial failures without an em
 	expect(screen.getByRole('button', { name: 'Add Material' })).toBeTruthy()
 	expect(screen.getByRole('textbox', { name: 'Search materials' })).toBeTruthy()
 	expect(screen.queryByText('No materials yet')).toBeNull()
-	fireEvent.click(screen.getByRole('button', { name: /try again|retry/iu }))
+	fireEvent.click(screen.getByRole('button', { name: /coba lagi|muat ulang/iu }))
 	expect(retries).toBe(1)
 })
 
@@ -78,8 +78,8 @@ it('renders retained rows with an inline retry after a refresh failure', () => {
 		/>,
 	)
 	expect(screen.getByText('Coffee beans')).toBeTruthy()
-	expect(screen.getByRole('alert').textContent).toContain('last loaded results')
-	fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+	expect(screen.getByRole('alert').textContent).toContain('hasil terakhir yang dimuat')
+	fireEvent.click(screen.getByRole('button', { name: 'Coba lagi' }))
 	expect(retries).toBe(1)
 })
 

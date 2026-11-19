@@ -57,7 +57,7 @@ export function MenuItemFormFields({
 			<fieldset disabled={readOnly} className="contents">
 				<div className="grid gap-4 sm:grid-cols-2">
 					<form.AppField name="sku">
-						{(field) => <field.TextField label="SKU" placeholder="e.g. MNU-001" />}
+						{(field) => <field.TextField label="SKU" placeholder="mis. MNU-001" />}
 					</form.AppField>
 					<form.AppField name="status">
 						{(field) => (
@@ -67,7 +67,7 @@ export function MenuItemFormFields({
 				</div>
 
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Nama" placeholder="e.g. Es Kopi Susu" />}
+					{(field) => <field.TextField label="Nama" placeholder="mis. Es Kopi Susu" />}
 				</form.AppField>
 
 				<div className="grid gap-4 sm:grid-cols-2">

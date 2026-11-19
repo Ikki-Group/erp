@@ -13,7 +13,7 @@ import type { ReceivingDto } from './dto/index.ts'
 type ReceivingRef = Pick<ReceivingDto, 'id' | 'receivingNo' | 'locationId' | 'status'>
 
 const DENIED = 'Anda tidak memiliki izin untuk mengonfirmasi penerimaan ini.'
-const NOT_DRAFT = 'Penerimaan ini tidak lagi berstatus draft.'
+const NOT_DRAFT = 'Penerimaan ini tidak lagi berstatus draf.'
 
 /**
  * Draft receiving confirmation. The write adds stock at the receiving's own location, so it is

@@ -17,18 +17,26 @@ interface LabelProps {
 	query: Pick<UseQueryResult, 'isError' | 'isFetching' | 'refetch'>
 }
 
+const KIND_LABELS: Record<string, string> = {
+	Material: 'Bahan',
+	UOM: 'Satuan',
+	Supplier: 'Pemasok',
+	Location: 'Lokasi',
+}
+
 function InventoryLabel({ id, kind, label, query }: LabelProps) {
 	if (id === null) return <>—</>
+	const kindLabel = KIND_LABELS[kind] ?? kind
 	return (
 		<span className="inline-flex flex-wrap items-center gap-1.5">
-			<span>{label ?? `${kind} #${id}`}</span>
+			<span>{label ?? `${kindLabel} #${id}`}</span>
 			{query.isError && (
 				<Button
 					type="button"
 					size="xs"
 					variant="outline"
 					disabled={query.isFetching}
-					aria-label={`Retry ${kind.toLowerCase()} #${id}`}
+					aria-label={`Coba lagi ${kindLabel.toLowerCase()} #${id}`}
 					onClick={() => void query.refetch()}
 				>
 					Coba lagi

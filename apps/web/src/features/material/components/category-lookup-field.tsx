@@ -12,7 +12,5 @@ const categoryLookup: ResourceLookupAdapter<MaterialCategoryDto> = {
 }
 
 export function CategoryLookupField(props: LookupFieldProps) {
-	return (
-		<ResourceLookupField adapter={categoryLookup} placeholder="Search categories..." {...props} />
-	)
+	return <ResourceLookupField adapter={categoryLookup} placeholder="Cari kategori..." {...props} />
 }

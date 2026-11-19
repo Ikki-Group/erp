@@ -42,8 +42,8 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 		title,
 		description,
 		confirmWord,
-		confirmLabel = 'Confirm',
-		cancelLabel = 'Cancel',
+		confirmLabel = 'Konfirmasi',
+		cancelLabel = 'Batal',
 		inputLabel,
 		inputPlaceholder,
 		onConfirm,
@@ -75,7 +75,7 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 				await onConfirm()
 				close(true)
 			} catch (e) {
-				setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
+				setError(e instanceof Error ? e.message : 'Terjadi kesalahan. Silakan coba lagi.')
 				setLoading(false)
 			}
 		}
@@ -109,8 +109,8 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 						<Label htmlFor={inputId}>
 							{inputLabel ?? (
 								<>
-									Type <span className="font-semibold text-foreground">{confirmWord}</span> to
-									confirm
+									Ketik <span className="font-semibold text-foreground">{confirmWord}</span> untuk
+									konfirmasi
 								</>
 							)}
 						</Label>

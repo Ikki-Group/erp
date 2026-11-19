@@ -24,11 +24,13 @@ import {
 	StatCard,
 	StatusBadge,
 } from '@/components/shared'
+import { usePermissionCheck } from '@/components/shared/permission-gate.tsx'
 
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { auditResource } from '@/features/audit/api.ts'
+import { companyOverview } from '@/features/company/api.ts'
 import {
 	opnameResource,
 	receivingResource,
@@ -55,6 +57,22 @@ function DashboardPage() {
 	// Real-time query configuration
 	const REFETCH_INTERVAL_MS = 30000 // 30 seconds
 	const STALE_TIME_MS = 20000 // 20 seconds
+
+	// ─── Aggregate counts across every accessible location ───
+	// `/company/overview` already returns per-site counts, so consolidated mode
+	// (and the active-location cards) no longer need to sum list pages client-side.
+	const canReadOverview = usePermissionCheck({ permission: 'company.read' })
+	const overviewQuery = useQuery({
+		...companyOverview.queryOptions(),
+		enabled: canReadOverview,
+		refetchInterval: REFETCH_INTERVAL_MS,
+		staleTime: STALE_TIME_MS,
+	})
+	const scopedSites = isConsolidated
+		? (overviewQuery.data?.data?.sites ?? [])
+		: (overviewQuery.data?.data?.sites ?? []).filter((site) => site.id === locationId)
+	const sumSites = (pick: (site: (typeof scopedSites)[number]) => number) =>
+		scopedSites.reduce((total, site) => total + pick(site), 0)
 
 	// ─── Low stock (materials below their minimum at the active location) ───
 	// ponytail: reads only the first 200 balances and filters client-side; a
@@ -122,14 +140,26 @@ function DashboardPage() {
 	})
 	const recentActivity = activityQuery.data?.data ?? []
 
+	// Prefer the overview aggregate; fall back to the list-page totals while the
+	// call is loading or when the caller lacks `company.read`.
+	const hasOverview = scopedSites.length > 0 || (canReadOverview && overviewQuery.isSuccess)
+	const lowStockCount = hasOverview ? sumSites((site) => site.lowStock) : lowStockItems.length
+	const transfersInTransitCount = hasOverview
+		? sumSites((site) => site.transfersInTransit)
+		: (inTransitCount ?? 0)
+	const openOpnameCount = hasOverview
+		? sumSites((site) => site.openOpnames)
+		: (activeOpnameCount ?? 0)
+	const draftReceivingCountTotal = hasOverview
+		? sumSites((site) => site.draftReceivings)
+		: (draftReceivingCount ?? 0)
+
 	return (
 		<div className="space-y-6">
 			{/* Screen reader announcement for location and alerts */}
 			<div className="sr-only" aria-live="polite" aria-atomic="true">
 				{scopeLabel}
-				{!isConsolidated &&
-					lowStockItems.length > 0 &&
-					`: ${lowStockItems.length} item membutuhkan perhatian`}
+				{lowStockCount > 0 && `: ${lowStockCount} item membutuhkan perhatian`}
 			</div>
 
 			<PageHeader
@@ -146,32 +176,32 @@ function DashboardPage() {
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard
 					title="Stok Menipis"
-					value={isConsolidated ? '—' : lowStockItems.length}
+					value={lowStockCount}
 					icon={<AlertTriangleIcon className="size-4" />}
-					description={isConsolidated ? 'Pilih lokasi' : 'Di bawah minimum'}
-					tone={!isConsolidated && lowStockItems.length > 0 ? 'warning' : 'default'}
-					isLoading={!isConsolidated && stockQuery.isLoading}
+					description={isConsolidated ? 'Total semua lokasi' : 'Di bawah minimum'}
+					tone={lowStockCount > 0 ? 'warning' : 'default'}
+					isLoading={overviewQuery.isLoading || (!isConsolidated && stockQuery.isLoading)}
 				/>
 				<StatCard
 					title="Transfer Berjalan"
-					value={isConsolidated ? '—' : (inTransitCount ?? 0)}
+					value={transfersInTransitCount}
 					icon={<TruckIcon className="size-4" />}
-					description={isConsolidated ? 'Pilih lokasi' : 'Dalam perjalanan'}
-					isLoading={!isConsolidated && transfersQuery.isLoading}
+					description={isConsolidated ? 'Total semua lokasi' : 'Dalam perjalanan'}
+					isLoading={overviewQuery.isLoading || (!isConsolidated && transfersQuery.isLoading)}
 				/>
 				<StatCard
 					title="Opname Aktif"
-					value={isConsolidated ? '—' : (activeOpnameCount ?? 0)}
+					value={openOpnameCount}
 					icon={<ClipboardListIcon className="size-4" />}
-					description={isConsolidated ? 'Pilih lokasi' : 'Sedang berjalan'}
-					isLoading={!isConsolidated && opnameQuery.isLoading}
+					description={isConsolidated ? 'Total semua lokasi' : 'Sedang berjalan'}
+					isLoading={overviewQuery.isLoading || (!isConsolidated && opnameQuery.isLoading)}
 				/>
 				<StatCard
-					title="Penerimaan Draft"
-					value={isConsolidated ? '—' : (draftReceivingCount ?? 0)}
+					title="Penerimaan Draf"
+					value={draftReceivingCountTotal}
 					icon={<InboxIcon className="size-4" />}
-					description={isConsolidated ? 'Pilih lokasi' : 'Menunggu konfirmasi'}
-					isLoading={!isConsolidated && receivingQuery.isLoading}
+					description={isConsolidated ? 'Total semua lokasi' : 'Menunggu konfirmasi'}
+					isLoading={overviewQuery.isLoading || (!isConsolidated && receivingQuery.isLoading)}
 				/>
 			</div>
 
@@ -186,7 +216,10 @@ function DashboardPage() {
 				>
 					{isConsolidated ? (
 						<div className="p-4">
-							<EmptyState title="Pilih lokasi" description="Transfer dihitung per lokasi." />
+							<EmptyState
+								title="Pilih lokasi untuk detail"
+								description="Angka di atas sudah mencakup semua lokasi."
+							/>
 						</div>
 					) : transfersQuery.isLoading ? (
 						<div className="space-y-2 p-4">
@@ -246,12 +279,15 @@ function DashboardPage() {
 					title="Stok Menipis"
 					description="Perlu perhatian segera."
 					icon={<AlertTriangleIcon className="size-4" />}
-					tone={!isConsolidated && lowStockItems.length > 0 ? 'warning' : 'default'}
+					tone={lowStockCount > 0 ? 'warning' : 'default'}
 					noPadding
 				>
 					{isConsolidated ? (
 						<div className="p-4">
-							<EmptyState title="Pilih lokasi" description="Stok menipis dihitung per lokasi." />
+							<EmptyState
+								title="Pilih lokasi untuk detail"
+								description="Angka di atas sudah mencakup semua lokasi."
+							/>
 						</div>
 					) : stockQuery.isLoading ? (
 						<div className="space-y-2 p-4">
@@ -269,10 +305,7 @@ function DashboardPage() {
 						</div>
 					) : lowStockItems.length === 0 ? (
 						<div className="p-4">
-							<EmptyState
-								title="Semua stok aman"
-								description="Tidak ada material di bawah minimum."
-							/>
+							<EmptyState title="Semua stok aman" description="Tidak ada bahan di bawah minimum." />
 						</div>
 					) : (
 						<>
@@ -311,7 +344,7 @@ function DashboardPage() {
 
 			<div className="grid gap-4 lg:grid-cols-3">
 				<DataCard
-					title="Penerimaan Draft"
+					title="Penerimaan Draf"
 					description="Penerimaan barang yang menunggu konfirmasi."
 					icon={<InboxIcon className="size-4" />}
 					noPadding
@@ -319,7 +352,10 @@ function DashboardPage() {
 				>
 					{isConsolidated ? (
 						<div className="p-4">
-							<EmptyState title="Pilih lokasi" description="Penerimaan dihitung per lokasi." />
+							<EmptyState
+								title="Pilih lokasi untuk detail"
+								description="Angka di atas sudah mencakup semua lokasi."
+							/>
 						</div>
 					) : receivingQuery.isLoading ? (
 						<div className="space-y-2 p-4">
@@ -338,7 +374,7 @@ function DashboardPage() {
 					) : draftReceivings.length === 0 ? (
 						<div className="p-4">
 							<EmptyState
-								title="Tidak ada penerimaan draft"
+								title="Tidak ada penerimaan draf"
 								description="Semua penerimaan sudah dikonfirmasi."
 							/>
 						</div>

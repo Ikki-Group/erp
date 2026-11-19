@@ -48,31 +48,31 @@ export function createDefaultDateRangePresets(): DateRangePreset[] {
 	const today = new Date()
 	return [
 		{
-			label: 'Today',
+			label: 'Hari ini',
 			getValue: () => ({ from: today, to: today }),
 		},
 		{
-			label: 'Last 7 days',
+			label: '7 hari terakhir',
 			getValue: () => ({ from: subDays(today, 6), to: today }),
 		},
 		{
-			label: 'This week',
+			label: 'Minggu ini',
 			getValue: () => ({ from: startOfWeek(today, { weekStartsOn: 1 }), to: today }),
 		},
 		{
-			label: 'Last 30 days',
+			label: '30 hari terakhir',
 			getValue: () => ({ from: subDays(today, 29), to: today }),
 		},
 		{
-			label: 'This month',
+			label: 'Bulan ini',
 			getValue: () => ({ from: startOfMonth(today), to: today }),
 		},
 		{
-			label: 'Last 3 months',
+			label: '3 bulan terakhir',
 			getValue: () => ({ from: subMonths(today, 3), to: today }),
 		},
 		{
-			label: 'Last 6 months',
+			label: '6 bulan terakhir',
 			getValue: () => ({ from: subMonths(today, 6), to: today }),
 		},
 	]
@@ -90,7 +90,7 @@ interface DateRangeFilterProps {
 export function DateRangeFilter({
 	value,
 	onChange,
-	placeholder = 'Select date range',
+	placeholder = 'Pilih rentang tanggal',
 	presets,
 	className,
 }: DateRangeFilterProps) {
@@ -148,7 +148,7 @@ export function DateRangeFilter({
 								setOpen(false)
 							}}
 						>
-							Clear
+							Bersihkan
 						</Button>
 					)}
 				</div>

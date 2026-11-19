@@ -85,14 +85,14 @@ function RecipesPage({ location }: { location: AuthLocation }) {
 				col.text('name', { header: 'Nama Resep', size: 200, enableSorting: false }),
 				display.display({
 					id: 'menuItem',
-					header: 'Menu Item',
+					header: 'Item Menu',
 					size: 180,
 					enableSorting: false,
 					// oxlint-disable-next-line react/no-unstable-nested-components
 					cell: ({ row }) => <RecipeMenuItemLabel id={row.original.menuItemId} />,
 				}),
 				col.text('yieldQty', {
-					header: rightAlignedHeader('Yield'),
+					header: rightAlignedHeader('Hasil'),
 					size: 80,
 					enableSorting: false,
 					cellProps: { className: 'block text-right font-mono tabular-nums' },
@@ -110,7 +110,7 @@ function RecipesPage({ location }: { location: AuthLocation }) {
 					// oxlint-disable-next-line react/no-unstable-nested-components -- action-item factory, not a rendered component
 					getItems: (recipe) => [
 						canEdit && {
-							label: 'Edit',
+							label: 'Ubah',
 							icon: <EditIcon className="size-4" />,
 							onClick: () =>
 								navigate({

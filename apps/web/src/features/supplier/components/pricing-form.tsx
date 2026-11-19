@@ -34,7 +34,7 @@ export function PricingForm({ supplierId, pricing, canSave, onSaved, onCancel }:
 		schema: PricingFormSchema,
 		mutation: {
 			mutationFn: (input: SupplierMaterialCreateDto | SupplierMaterialUpdateDto) => {
-				if (!canSave) throw new Error('You do not have permission to save supplier pricing.')
+				if (!canSave) throw new Error('Anda tidak memiliki izin untuk menyimpan harga pemasok.')
 				return 'id' in input
 					? pricingResource.update.fetch(input)
 					: pricingResource.create.fetch(input)
@@ -42,7 +42,7 @@ export function PricingForm({ supplierId, pricing, canSave, onSaved, onCancel }:
 		},
 		toPayload: (values) =>
 			pricing ? toPricingUpdateInput(pricing.id, values) : toPricingCreateInput(supplierId, values),
-		successMessage: pricing ? 'Pricing updated successfully.' : 'Pricing added successfully.',
+		successMessage: pricing ? 'Harga berhasil diperbarui.' : 'Harga berhasil ditambahkan.',
 		onSaved,
 	})
 
@@ -55,27 +55,27 @@ export function PricingForm({ supplierId, pricing, canSave, onSaved, onCancel }:
 							<form.AppField name="materialId">
 								{() => (
 									<MaterialLookupField
-										label="Material"
+										label="Bahan"
 										disabled={!!pricing || !canSave || isSubmitting}
 										description={
-											pricing ? 'Material cannot be changed for existing pricing.' : undefined
+											pricing ? 'Bahan tidak dapat diubah untuk harga yang sudah ada.' : undefined
 										}
 									/>
 								)}
 							</form.AppField>
 							<div className="grid min-w-0 gap-4 sm:grid-cols-2">
 								<form.AppField name="unitPrice">
-									{(field) => <field.CurrencyField label="Unit Price" />}
+									{(field) => <field.CurrencyField label="Harga Satuan" />}
 								</form.AppField>
 								<form.AppField name="uomId">
-									{() => <UomLookupField label="UoM" disabled={!canSave || isSubmitting} />}
+									{() => <UomLookupField label="Satuan" disabled={!canSave || isSubmitting} />}
 								</form.AppField>
 							</div>
 							<form.AppField name="minOrderQty">
 								{(field) => (
 									<field.TextField
-										label="Min Order Qty"
-										placeholder="Optional"
+										label="Min. Jumlah Pesanan"
+										placeholder="Opsional"
 										inputMode="decimal"
 										className="text-right font-mono tabular-nums"
 									/>
@@ -84,14 +84,17 @@ export function PricingForm({ supplierId, pricing, canSave, onSaved, onCancel }:
 						</fieldset>
 					)}
 				</form.Subscribe>
-				{!canSave && <p role="alert">You do not have permission to save supplier pricing.</p>}
+				{!canSave && <p role="alert">Anda tidak memiliki izin untuk menyimpan harga pemasok.</p>}
 				<form.FormError />
 				{canSave ? (
-					<FormDialogFooter onCancel={onCancel} submitLabel={pricing ? 'Save Changes' : 'Add'} />
+					<FormDialogFooter
+						onCancel={onCancel}
+						submitLabel={pricing ? 'Simpan Perubahan' : 'Tambah'}
+					/>
 				) : (
 					<DialogFooter>
 						<Button type="button" variant="outline" onClick={onCancel}>
-							Cancel
+							Batal
 						</Button>
 					</DialogFooter>
 				)}

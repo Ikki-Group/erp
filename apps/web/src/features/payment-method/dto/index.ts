@@ -8,7 +8,7 @@ export const PaymentMethodTypeEnum = z.enum(['cash', 'digital'])
 export type PaymentMethodTypeEnum = z.infer<typeof PaymentMethodTypeEnum>
 
 export const PAYMENT_METHOD_TYPE_OPTIONS = [
-	{ label: 'Cash', value: 'cash' },
+	{ label: 'Tunai', value: 'cash' },
 	{ label: 'Digital', value: 'digital' },
 ] as const
 

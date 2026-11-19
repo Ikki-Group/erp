@@ -44,22 +44,22 @@ export const Route = createFileRoute('/_authenticated/pos/vouchers/')({
 // ─── Helpers ───
 
 function getVoucherStatus(voucher: VoucherDto) {
-	if (!voucher.isActive) return { label: 'Inactive', variant: 'outline' as const }
+	if (!voucher.isActive) return { label: 'Nonaktif', variant: 'outline' as const }
 	if (isPast(new Date(voucher.validUntil)))
-		return { label: 'Expired', variant: 'destructive' as const }
+		return { label: 'Kedaluwarsa', variant: 'destructive' as const }
 	if (voucher.usageLimit && voucher.usageCount >= voucher.usageLimit)
-		return { label: 'Exhausted', variant: 'secondary' as const }
-	return { label: 'Active', variant: 'default' as const }
+		return { label: 'Habis', variant: 'secondary' as const }
+	return { label: 'Aktif', variant: 'default' as const }
 }
 
 function formatUsage(voucher: VoucherDto) {
-	if (voucher.usageLimit === null) return `${voucher.usageCount} / Unlimited`
+	if (voucher.usageLimit === null) return `${voucher.usageCount} / Tanpa Batas`
 	return `${voucher.usageCount} / ${voucher.usageLimit}`
 }
 
 const STATUS_FILTER_OPTIONS = [
-	{ label: 'Active', value: 'true' },
-	{ label: 'Inactive', value: 'false' },
+	{ label: 'Aktif', value: 'true' },
+	{ label: 'Nonaktif', value: 'false' },
 ] as const
 
 // ─── Table Columns ───
@@ -68,18 +68,18 @@ const col = createColumnHelper<DataGridFeatures, VoucherDto>()
 
 const baseColumns = [
 	col.accessor('code', {
-		header: 'Code',
+		header: 'Kode',
 		size: 140,
 		cell: ({ getValue }) => <TextCell value={getValue()} mono />,
 	}),
 	col.accessor('name', {
-		header: 'Name',
+		header: 'Nama',
 		size: 200,
 		// oxlint-disable-next-line react/no-unstable-nested-components
 		cell: ({ getValue }) => <TextCell value={getValue()} truncate />,
 	}),
 	col.accessor('type', {
-		header: 'Type',
+		header: 'Tipe',
 		size: 110,
 		cell: ({ getValue }) => (
 			<Badge variant="secondary" className="capitalize">
@@ -88,7 +88,7 @@ const baseColumns = [
 		),
 	}),
 	col.accessor('value', {
-		header: rightAlignedHeader('Value'),
+		header: rightAlignedHeader('Nilai'),
 		size: 100,
 		cell: ({ row }) => {
 			const v = row.original
@@ -103,7 +103,7 @@ const baseColumns = [
 	}),
 	col.display({
 		id: 'validity',
-		header: 'Validity',
+		header: 'Masa Berlaku',
 		size: 180,
 		cell: ({ row }) => {
 			const v = row.original
@@ -117,7 +117,7 @@ const baseColumns = [
 	}),
 	col.display({
 		id: 'usage',
-		header: 'Usage',
+		header: 'Pemakaian',
 		size: 120,
 		cell: ({ row }) => <span className="text-xs">{formatUsage(row.original)}</span>,
 	}),
@@ -153,13 +153,13 @@ function VouchersPage() {
 	const handleDelete = useCallback(
 		async (item: VoucherDto) => {
 			await confirm({
-				title: 'Delete voucher?',
-				description: `This will permanently delete "${item.code}" (${item.name}). This action cannot be undone.`,
-				confirmLabel: 'Delete',
+				title: 'Hapus voucher?',
+				description: `Voucher "${item.code}" (${item.name}) akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
+				confirmLabel: 'Hapus',
 				variant: 'destructive',
 				onConfirm: async () => {
 					await removeMut.mutateAsync({ id: item.id })
-					toast.add({ title: 'Voucher deleted.', type: 'success' })
+					toast.add({ title: 'Voucher berhasil dihapus.', type: 'success' })
 				},
 			})
 		},
@@ -174,7 +174,7 @@ function VouchersPage() {
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (voucher) => [
 					canManage && {
-						label: 'Edit',
+						label: 'Ubah',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
@@ -183,7 +183,7 @@ function VouchersPage() {
 							}),
 					},
 					canManage && {
-						label: 'Delete',
+						label: 'Hapus',
 						icon: <TrashIcon className="size-4" />,
 						onClick: () => handleDelete(voucher),
 						variant: 'destructive' as const,
@@ -208,27 +208,27 @@ function VouchersPage() {
 
 	return (
 		<EntityListPage
-			title="Vouchers"
-			description="Manage discount vouchers for POS checkout."
+			title="Voucher"
+			description="Kelola voucher diskon untuk pembayaran POS."
 			createAction={
 				canManage ? (
 					<Button size="sm" onClick={() => navigate({ to: '/pos/vouchers/new' })}>
 						<PlusIcon className="size-4" />
-						Add Voucher
+						Tambah Voucher
 					</Button>
 				) : undefined
 			}
 			list={list}
 			emptyState={{
-				title: 'No vouchers yet',
-				description: 'Get started by creating your first discount voucher.',
+				title: 'Belum ada voucher',
+				description: 'Mulai dengan membuat voucher diskon pertama Anda.',
 			}}
-			emptyMessage="No vouchers match your search."
+			emptyMessage="Tidak ada voucher yang cocok dengan pencarian Anda."
 			toolbar={
 				<TableToolbar
 					searchValue={list.globalFilter}
-					onSearchChange={(value) => list.table.setGlobalFilter(value)}
-					searchPlaceholder="Search vouchers..."
+					onSearchChange={(value) => list.setFilters({ q: value.trim() || undefined })}
+					searchPlaceholder="Cari voucher..."
 					filters={[
 						{
 							key: 'isActive',
@@ -237,7 +237,7 @@ function VouchersPage() {
 							onChange: (value) =>
 								list.setFilters({ isActive: value as 'true' | 'false' | undefined }),
 							options: STATUS_FILTER_OPTIONS,
-							allLabel: 'All',
+							allLabel: 'Semua',
 						},
 					]}
 				/>

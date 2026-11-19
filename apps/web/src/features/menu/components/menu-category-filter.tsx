@@ -32,7 +32,7 @@ export function MenuCategoryFilter({ locationId, value, onChange }: MenuCategory
 				onSearchChange={lookup.setSearch}
 				options={lookup.options}
 				isLoading={lookup.isLoading}
-				errorMessage={lookup.searchError ? 'Could not load results. Try again.' : undefined}
+				errorMessage={lookup.searchError ? 'Gagal memuat hasil. Coba lagi.' : undefined}
 				onRetry={lookup.retrySearch}
 				hasMore={lookup.hasMore}
 				isLoadingMore={lookup.isLoadingMore}

@@ -37,7 +37,12 @@ function CompanyOverviewPage() {
 	)
 
 	if (!canRead) {
-		return <PageError title="No access" message="You don't have permission to view the company." />
+		return (
+			<PageError
+				title="Tidak ada akses"
+				message="Anda tidak memiliki izin untuk melihat perusahaan."
+			/>
+		)
 	}
 
 	return (
@@ -45,10 +50,10 @@ function CompanyOverviewPage() {
 			{(settings) => (
 				<DetailPage
 					title={settings.data.name}
-					description="Company overview"
+					description="Ringkasan perusahaan"
 					actions={canUpdate ? <EditButton /> : undefined}
 				>
-					<DetailSection title="Company profile">
+					<DetailSection title="Profil perusahaan">
 						<ProfileDetails settings={settings.data} />
 					</DetailSection>
 					<DetailBoundary query={overviewQuery} error={renderError}>
@@ -66,7 +71,7 @@ function CompanyOverviewPage() {
 }
 
 function renderError(_error: Error, retry: () => void) {
-	return <PageError title="Could not load the company overview" onRetry={retry} />
+	return <PageError title="Gagal memuat ringkasan perusahaan" onRetry={retry} />
 }
 
 function EditButton() {
@@ -74,7 +79,7 @@ function EditButton() {
 	return (
 		<Button size="sm" onClick={() => navigate({ to: '/settings/company/edit' })}>
 			<PencilIcon className="size-4" />
-			Edit
+			Ubah
 		</Button>
 	)
 }
@@ -84,14 +89,14 @@ function ProfileDetails({ settings }: { settings: CompanySettingsDto }) {
 		<DetailList
 			columns={3}
 			items={[
-				{ label: 'Name', value: settings.name },
-				{ label: 'Address', value: settings.address || '-' },
-				{ label: 'Phone', value: settings.phone || '-' },
+				{ label: 'Nama', value: settings.name },
+				{ label: 'Alamat', value: settings.address || '-' },
+				{ label: 'Telepon', value: settings.phone || '-' },
 				{ label: 'Email', value: settings.email || '-' },
-				{ label: 'Tax ID', value: settings.taxId || '-' },
-				{ label: 'Tax rate', value: `${settings.taxRate}%` },
-				{ label: 'Currency', value: `${settings.currencyCode} (${settings.currencySymbol})` },
-				{ label: 'Receipt footer', value: settings.receiptFooter || '-' },
+				{ label: 'NPWP', value: settings.taxId || '-' },
+				{ label: 'Tarif pajak', value: `${settings.taxRate}%` },
+				{ label: 'Mata uang', value: `${settings.currencyCode} (${settings.currencySymbol})` },
+				{ label: 'Footer struk', value: settings.receiptFooter || '-' },
 			]}
 		/>
 	)
@@ -110,33 +115,33 @@ function OverviewBody({
 		<>
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard
-					title="Locations"
+					title="Lokasi"
 					value={locations.total}
-					description={`${plural(locations.stores, 'store')}, ${plural(locations.warehouses, 'warehouse')}, ${locations.inactive} inactive`}
+					description={`${plural(locations.stores, 'toko')}, ${plural(locations.warehouses, 'gudang')}, ${locations.inactive} nonaktif`}
 				/>
 				{people && (
 					<>
 						<StatCard
-							title="People"
+							title="Orang"
 							value={people.activeUsers}
-							description={`Active users, ${people.inactiveUsers} inactive`}
+							description={`Pengguna aktif, ${people.inactiveUsers} nonaktif`}
 							onClick={() => navigate({ to: '/settings/access-control', search: { tab: 'users' } })}
 						/>
 						<StatCard
-							title="Without access"
+							title="Tanpa akses"
 							value={people.usersWithoutAccess}
-							description="Active users with no assignment"
+							description="Pengguna aktif tanpa penugasan"
 							tone={people.usersWithoutAccess > 0 ? 'warning' : 'default'}
 						/>
 						<StatCard
-							title="Roles"
+							title="Peran"
 							value={people.roles}
 							onClick={() => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })}
 						/>
 					</>
 				)}
 			</div>
-			<DetailSection title="Sites" description={`Business day ${overview.businessDate}`}>
+			<DetailSection title="Lokasi Usaha" description={`Hari bisnis ${overview.businessDate}`}>
 				<ul className="space-y-3">
 					{overview.sites.map((site) => (
 						<SiteRow key={site.id} site={site} currencySymbol={currencySymbol} />
@@ -148,7 +153,7 @@ function OverviewBody({
 }
 
 function plural(count: number, noun: string): string {
-	return `${count} ${noun}${count === 1 ? '' : 's'}`
+	return `${count} ${noun}`
 }
 
 function SiteRow({
@@ -169,19 +174,19 @@ function SiteRow({
 					{site.name}
 				</Link>
 				<span className="text-xs text-muted-foreground">{site.code}</span>
-				<StatusBadge variant="outline">{site.type === 'store' ? 'Store' : 'Warehouse'}</StatusBadge>
-				{!site.isActive && <StatusBadge>Inactive</StatusBadge>}
+				<StatusBadge variant="outline">{site.type === 'store' ? 'Toko' : 'Gudang'}</StatusBadge>
+				{!site.isActive && <StatusBadge>Nonaktif</StatusBadge>}
 			</div>
 			<dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4 lg:grid-cols-8">
-				<Metric label="Staff" value={site.staff} />
-				<Metric label="In transit" value={site.transfersInTransit} />
-				<Metric label="Draft receivings" value={site.draftReceivings} />
-				<Metric label="Open opnames" value={site.openOpnames} />
-				<Metric label="Low stock" value={site.lowStock} warn={site.lowStock > 0} />
-				<Metric label="Open shifts" value={site.openShifts} />
-				<Metric label="Orders today" value={site.salesToday.orders} />
+				<Metric label="Staf" value={site.staff} />
+				<Metric label="Dalam perjalanan" value={site.transfersInTransit} />
+				<Metric label="Penerimaan draf" value={site.draftReceivings} />
+				<Metric label="Opname terbuka" value={site.openOpnames} />
+				<Metric label="Stok menipis" value={site.lowStock} warn={site.lowStock > 0} />
+				<Metric label="Shift terbuka" value={site.openShifts} />
+				<Metric label="Pesanan hari ini" value={site.salesToday.orders} />
 				<div className="space-y-0.5 text-right">
-					<dt className="text-xs text-muted-foreground">Revenue today</dt>
+					<dt className="text-xs text-muted-foreground">Pendapatan hari ini</dt>
 					<dd className="font-mono text-sm font-medium tabular-nums">
 						<CurrencyDisplay value={site.salesToday.revenue} currency={currencySymbol} />
 					</dd>

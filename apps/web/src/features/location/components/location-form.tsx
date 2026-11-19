@@ -23,8 +23,8 @@ export interface LocationFormValues {
  * `string | null | undefined`.
  */
 const LocationFormSchema = z.object({
-	code: z.string().trim().min(1, 'Code is required').max(50),
-	name: z.string().trim().min(3, 'Name must be at least 3 characters').max(100),
+	code: z.string().trim().min(1, 'Kode wajib diisi').max(50),
+	name: z.string().trim().min(3, 'Nama minimal 3 karakter').max(100),
 	type: LocationTypeEnum,
 	address: z.string().trim().max(500).default(''),
 	phone: z.string().trim().max(50).default(''),
@@ -72,7 +72,7 @@ export function useLocationForm({
 					: locationResource.create.fetch(input),
 		},
 		toPayload: toLocationInput,
-		successMessage: location ? 'Location updated successfully.' : 'Location created successfully.',
+		successMessage: location ? 'Lokasi berhasil diperbarui.' : 'Lokasi berhasil dibuat.',
 		onSaved,
 	})
 }
@@ -91,10 +91,10 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 						</div>
 						<div>
 							<h2 className="font-heading text-sm font-semibold tracking-tight">
-								Location identity
+								Identitas lokasi
 							</h2>
 							<p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-								Use a clear name and a short code your team can recognize at a glance.
+								Gunakan nama yang jelas dan kode singkat yang mudah dikenali tim Anda.
 							</p>
 						</div>
 					</div>
@@ -103,9 +103,9 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 						<form.AppField name="name">
 							{(field) => (
 								<field.TextField
-									label="Name"
-									placeholder="e.g. Kemang store"
-									description="The name shown throughout your workspace."
+									label="Nama"
+									placeholder="mis. Toko Kemang"
+									description="Nama yang ditampilkan di seluruh ruang kerja Anda."
 								/>
 							)}
 						</form.AppField>
@@ -114,18 +114,18 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 							<form.AppField name="code">
 								{(field) => (
 									<field.TextField
-										label="Code"
-										placeholder="e.g. LOC-001"
-										description="A unique internal reference."
+										label="Kode"
+										placeholder="mis. LOC-001"
+										description="Referensi internal yang unik."
 									/>
 								)}
 							</form.AppField>
 							<form.AppField name="type">
 								{(field) => (
 									<field.SelectField
-										label="Type"
+										label="Tipe"
 										options={[...LOCATION_TYPE_OPTIONS]}
-										description="Helps teams identify how this location is used."
+										description="Membantu tim mengenali penggunaan lokasi ini."
 									/>
 								)}
 							</form.AppField>
@@ -139,19 +139,19 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 							<PhoneIcon className="size-4" />
 						</div>
 						<div>
-							<h2 className="font-heading text-sm font-semibold tracking-tight">Contact details</h2>
+							<h2 className="font-heading text-sm font-semibold tracking-tight">Detail kontak</h2>
 							<p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-								Optional details help your team reach the right people quickly.
+								Detail opsional membantu tim menghubungi orang yang tepat dengan cepat.
 							</p>
 						</div>
 					</div>
 
 					<div className="grid gap-5 sm:grid-cols-2">
 						<form.AppField name="address">
-							{(field) => <field.TextField label="Address" placeholder="Optional" />}
+							{(field) => <field.TextField label="Alamat" placeholder="Opsional" />}
 						</form.AppField>
 						<form.AppField name="phone">
-							{(field) => <field.TextField label="Phone" placeholder="Optional" />}
+							{(field) => <field.TextField label="Telepon" placeholder="Opsional" />}
 						</form.AppField>
 					</div>
 				</section>
@@ -160,8 +160,8 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 					<form.AppField name="isActive">
 						{(field) => (
 							<field.SwitchField
-								label="Available for use"
-								description="Inactive locations stay in your records but won't appear in selectors."
+								label="Tersedia untuk digunakan"
+								description="Lokasi nonaktif tetap tersimpan, tetapi tidak muncul di pilihan."
 							/>
 						)}
 					</form.AppField>
@@ -172,23 +172,24 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 				<div className="rounded-xl border bg-primary/4.5 p-5">
 					<Building2Icon className="mb-4 size-5 text-primary" />
 					<h2 className="font-heading text-sm font-semibold tracking-tight">
-						A location is a working place
+						Lokasi adalah tempat kerja
 					</h2>
 					<p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-						Stores and warehouses keep stock, materials, and daily operations organized by place.
+						Toko dan gudang menjaga stok, bahan, dan operasional harian tetap terorganisir per
+						lokasi.
 					</p>
 				</div>
 				<div className="space-y-3 px-1">
 					<div className="flex gap-2.5">
 						<CircleCheckIcon className="mt-0.5 size-4 shrink-0 text-primary" />
 						<p className="text-xs leading-relaxed text-muted-foreground">
-							Keep the code short and consistent.
+							Jaga kode tetap singkat dan konsisten.
 						</p>
 					</div>
 					<div className="flex gap-2.5">
 						<CircleCheckIcon className="mt-0.5 size-4 shrink-0 text-primary" />
 						<p className="text-xs leading-relaxed text-muted-foreground">
-							Deactivate a location instead of deleting its history.
+							Nonaktifkan lokasi alih-alih menghapus riwayatnya.
 						</p>
 					</div>
 				</div>

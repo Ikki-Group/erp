@@ -58,20 +58,20 @@ function EditMaterialForm({ material, onDone }: EditMaterialFormProps) {
 
 	return (
 		<EntityEditorPage
-			title="Edit Material"
+			title="Ubah Bahan"
 			description={`Update details for ${material.name}.`}
 			form={form}
-			submitLabel="Save Changes"
+			submitLabel="Simpan Perubahan"
 			onCancel={onDone}
 		>
 			<MaterialFormFields form={form} />
 
 			{canReadAudit && (
-				<PageSection title="Activity" description="Recent changes to this material.">
+				<PageSection title="Aktivitas" description="Perubahan terbaru pada bahan ini.">
 					<AuditTrail
 						entries={auditQuery.data?.data ?? []}
 						isLoading={auditQuery.isLoading}
-						emptyMessage="No changes recorded for this material yet."
+						emptyMessage="Belum ada perubahan yang tercatat untuk bahan ini."
 					/>
 				</PageSection>
 			)}

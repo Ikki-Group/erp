@@ -9,7 +9,7 @@ import { nowIso } from '../now.ts'
 const now = nowIso()
 
 export const mockMaterialCategorySeed: MaterialCategoryDto[] = [
-	{ id: 1, name: 'Raw Material', createdAt: now, updatedAt: now, createdBy: 1, updatedBy: 1 },
+	{ id: 1, name: 'Bahan Baku', createdAt: now, updatedAt: now, createdBy: 1, updatedBy: 1 },
 	{ id: 2, name: 'Dairy', createdAt: now, updatedAt: now, createdBy: 1, updatedBy: 1 },
 	{ id: 3, name: 'Packaging', createdAt: now, updatedAt: now, createdBy: 1, updatedBy: 1 },
 	{ id: 4, name: 'Condiment', createdAt: now, updatedAt: now, createdBy: 1, updatedBy: 1 },

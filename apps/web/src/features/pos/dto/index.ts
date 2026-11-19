@@ -109,8 +109,8 @@ export const OrderTypeEnum = z.enum(['dine_in', 'takeaway'])
 export type OrderTypeEnum = z.infer<typeof OrderTypeEnum>
 
 export const ORDER_TYPE_OPTIONS = [
-	{ label: 'Dine In', value: 'dine_in' },
-	{ label: 'Takeaway', value: 'takeaway' },
+	{ label: 'Makan di Tempat', value: 'dine_in' },
+	{ label: 'Bawa Pulang', value: 'takeaway' },
 ] as const
 
 export const OrderLineStatusEnum = z.enum(['active', 'voided'])
@@ -272,8 +272,8 @@ export const VoucherTypeEnum = z.enum(['percentage', 'fixed'])
 export type VoucherTypeEnum = z.infer<typeof VoucherTypeEnum>
 
 export const VOUCHER_TYPE_OPTIONS = [
-	{ label: 'Percentage (%)', value: 'percentage' },
-	{ label: 'Fixed (Rp)', value: 'fixed' },
+	{ label: 'Persentase (%)', value: 'percentage' },
+	{ label: 'Tetap (Rp)', value: 'fixed' },
 ] as const
 
 // ─── Voucher Response ───
@@ -325,11 +325,11 @@ const VoucherMutationShape = {
 export const VoucherCreateDto = z
 	.object(VoucherMutationShape)
 	.refine((d) => d.validFrom < d.validUntil, {
-		message: 'Must be after Valid From',
+		message: 'Harus setelah Berlaku Dari',
 		path: ['validUntil'],
 	})
 	.refine((d) => d.type !== 'percentage' || d.value <= 100, {
-		message: 'Percentage cannot exceed 100',
+		message: 'Persentase tidak boleh melebihi 100',
 		path: ['value'],
 	})
 export type VoucherCreateDto = z.infer<typeof VoucherCreateDto>
@@ -339,11 +339,11 @@ export type VoucherCreateDto = z.infer<typeof VoucherCreateDto>
 export const VoucherUpdateDto = z
 	.object({ id: zp.id, ...VoucherMutationShape })
 	.refine((d) => d.validFrom < d.validUntil, {
-		message: 'Must be after Valid From',
+		message: 'Harus setelah Berlaku Dari',
 		path: ['validUntil'],
 	})
 	.refine((d) => d.type !== 'percentage' || d.value <= 100, {
-		message: 'Percentage cannot exceed 100',
+		message: 'Persentase tidak boleh melebihi 100',
 		path: ['value'],
 	})
 export type VoucherUpdateDto = z.infer<typeof VoucherUpdateDto>

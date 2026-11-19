@@ -41,7 +41,7 @@ it('retains the mounted editor when a background refresh fails and recovers', ()
 		</DetailBoundary>,
 	)
 	expect((screen.getByLabelText('Draft name') as HTMLInputElement).value).toBe('Unsaved edit')
-	fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+	fireEvent.click(screen.getByRole('button', { name: 'Coba lagi' }))
 	expect(retries).toBe(1)
 	rerender(
 		<DetailBoundary query={{ ...query, data: { name: 'Updated elsewhere' } }}>

@@ -174,7 +174,7 @@ function OpnameCountSession({
 			<FormRoot form={form} className="space-y-4">
 				<div
 					role="region"
-					aria-label="Hitungan material"
+					aria-label="Hitungan bahan"
 					tabIndex={0}
 					className="data-table-horizontal-scroll max-w-full overflow-x-auto rounded-md border focus-visible:outline-2 focus-visible:outline-ring [&>div]:overflow-visible"
 				>
@@ -182,7 +182,7 @@ function OpnameCountSession({
 						<TableHeader>
 							<TableRow>
 								<TableHead className="w-12">#</TableHead>
-								<TableHead>Material</TableHead>
+								<TableHead>Bahan</TableHead>
 								<TableHead className="w-28 text-right">Stok Sistem</TableHead>
 								<TableHead className="w-36 text-right">Jumlah Aktual</TableHead>
 								<TableHead className="w-28 text-right">Selisih</TableHead>

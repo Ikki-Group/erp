@@ -19,8 +19,8 @@ export interface PaymentMethodFormValues {
 }
 
 const PaymentMethodFormSchema = z.object({
-	code: z.string().trim().min(1, 'Code is required').max(50),
-	name: z.string().trim().min(3, 'Name must be at least 3 characters').max(100),
+	code: z.string().trim().min(1, 'Kode wajib diisi').max(50),
+	name: z.string().trim().min(3, 'Nama minimal 3 karakter').max(100),
 	type: PaymentMethodTypeEnum,
 	isActive: z.boolean(),
 })
@@ -45,7 +45,8 @@ export function toPaymentMethodInput(values: PaymentMethodFormValues): PaymentMe
 	return PaymentMethodCreateDto.parse(values)
 }
 
-export const PAYMENT_METHOD_SAVE_DENIED = 'You do not have permission to save this payment method.'
+export const PAYMENT_METHOD_SAVE_DENIED =
+	'Anda tidak memiliki izin untuk menyimpan metode pembayaran ini.'
 
 export type PaymentMethodForm = EntityForm<PaymentMethodFormValues>
 
@@ -71,7 +72,9 @@ export function usePaymentMethodForm({
 			},
 		},
 		toPayload: toPaymentMethodInput,
-		successMessage: method ? 'Payment method updated.' : 'Payment method created.',
+		successMessage: method
+			? 'Metode pembayaran berhasil diperbarui.'
+			: 'Metode pembayaran berhasil dibuat.',
 		onSaved,
 	})
 }
@@ -81,20 +84,20 @@ export function PaymentMethodFormFields({ form }: { form: PaymentMethodForm }) {
 		<div className="grid gap-4">
 			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
-					{(field) => <field.TextField label="Code" placeholder="e.g. CASH" />}
+					{(field) => <field.TextField label="Kode" placeholder="mis. CASH" />}
 				</form.AppField>
 				<form.AppField name="type">
-					{(field) => <field.SelectField label="Type" options={[...PAYMENT_METHOD_TYPE_OPTIONS]} />}
+					{(field) => <field.SelectField label="Tipe" options={[...PAYMENT_METHOD_TYPE_OPTIONS]} />}
 				</form.AppField>
 			</div>
 			<form.AppField name="name">
-				{(field) => <field.TextField label="Name" placeholder="e.g. Cash" />}
+				{(field) => <field.TextField label="Nama" placeholder="mis. Tunai" />}
 			</form.AppField>
 			<form.AppField name="isActive">
 				{(field) => (
 					<field.SwitchField
-						label="Active"
-						description="Inactive methods won't appear in POS checkout."
+						label="Aktif"
+						description="Metode nonaktif tidak akan muncul di pembayaran POS."
 					/>
 				)}
 			</form.AppField>

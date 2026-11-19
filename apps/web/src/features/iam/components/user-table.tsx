@@ -11,15 +11,15 @@ const col = createColumnHelper<DataGridFeatures, UserListItemDto>()
 const fields = createEntityColumns<UserListItemDto>()
 
 export const userColumns = [
-	fields.code('username', { header: 'Username', size: 160 }),
-	fields.text('name', { header: 'Name', size: 180 }),
+	fields.code('username', { header: 'Nama pengguna', size: 160 }),
+	fields.text('name', { header: 'Nama', size: 180 }),
 	fields.text('email', { header: 'Email', size: 200 }),
 	col.accessor('roleNames', {
-		header: 'Roles',
+		header: 'Peran',
 		size: 180,
 		cell: ({ getValue }) => {
 			const roles = getValue()
-			if (!roles.length) return <span className="text-muted-foreground">No roles</span>
+			if (!roles.length) return <span className="text-muted-foreground">Tidak ada peran</span>
 			return (
 				<div className="flex flex-wrap gap-1">
 					{roles.slice(0, 3).map((role) => (

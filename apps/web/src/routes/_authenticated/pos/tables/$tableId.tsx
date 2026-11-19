@@ -56,7 +56,7 @@ function EditTableForm({ table, onDone }: EditTableFormProps) {
 				capacity: Number(values.capacity),
 				isActive: values.isActive,
 			})
-			toast.add({ title: 'Table updated successfully.', type: 'success' })
+			toast.add({ title: 'Meja berhasil diperbarui.', type: 'success' })
 			onDone()
 		},
 	})
@@ -66,10 +66,10 @@ function EditTableForm({ table, onDone }: EditTableFormProps) {
 	return (
 		<form.AppForm>
 			<FormPage
-				title="Edit Table"
+				title="Ubah Meja"
 				description={`Update details for table ${table.number}.`}
 				form={form}
-				submitLabel="Save Changes"
+				submitLabel="Simpan Perubahan"
 				onCancel={onDone}
 			>
 				<TableFormFields form={form} />

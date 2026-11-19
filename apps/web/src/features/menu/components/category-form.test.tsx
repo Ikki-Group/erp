@@ -158,7 +158,7 @@ describe('category form', () => {
 		await waitFor(() => expect(save().matches(':disabled')).toBe(true))
 		fireEvent.click(save())
 		expect(name().matches(':disabled')).toBe(true)
-		expect(screen.getByRole('button', { name: 'Cancel' }).matches(':disabled')).toBe(true)
+		expect(screen.getByRole('button', { name: 'Batal' }).matches(':disabled')).toBe(true)
 		gate.resolve(ok())
 		await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1))
 		expect(calls).toHaveLength(1)

@@ -33,5 +33,5 @@ export function MaterialLookupField({ locationId, ...props }: MaterialLookupFiel
 		() => (locationId === undefined ? globalMaterialLookup : createMaterialLookup(locationId)),
 		[locationId],
 	)
-	return <ResourceLookupField adapter={adapter} placeholder="Search materials..." {...props} />
+	return <ResourceLookupField adapter={adapter} placeholder="Cari bahan..." {...props} />
 }

@@ -27,7 +27,7 @@ export function CategoryFormFields({ form }: { form: CategoryForm }) {
 	return (
 		<div className="grid gap-4">
 			<form.AppField name="name">
-				{(field) => <field.TextField label="Name" placeholder="e.g. Bahan Kering" />}
+				{(field) => <field.TextField label="Nama" placeholder="mis. Bahan Kering" />}
 			</form.AppField>
 			<form.FormError />
 		</div>

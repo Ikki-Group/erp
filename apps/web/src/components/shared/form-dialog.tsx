@@ -93,7 +93,7 @@ export const FormDialog = createCallable<FormDialogProps, FormDialogResponse>(
 				await onSubmit()
 				close(true)
 			} catch (e) {
-				setError(e instanceof Error ? e.message : 'An error occurred.')
+				setError(e instanceof Error ? e.message : 'Terjadi kesalahan.')
 				setLoading(false)
 			}
 		}
@@ -133,11 +133,11 @@ export const FormDialog = createCallable<FormDialogProps, FormDialogResponse>(
 							)}
 							<DialogFooter>
 								<Button variant="outline" onClick={handleCancel} disabled={loading}>
-									{cancelLabel ?? 'Cancel'}
+									{cancelLabel ?? 'Batal'}
 								</Button>
 								<Button onClick={handleLegacySubmit} disabled={loading}>
 									{loading && <Spinner className="mr-1.5 size-3.5" />}
-									{submitLabel ?? 'Save'}
+									{submitLabel ?? 'Simpan'}
 								</Button>
 							</DialogFooter>
 						</>

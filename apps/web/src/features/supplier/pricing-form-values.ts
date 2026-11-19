@@ -16,18 +16,18 @@ export interface PricingFormValues {
 export const PricingFormSchema = z.object({
 	materialId: SupplierMaterialCreateDto.shape.materialId
 		.nullable()
-		.refine((value) => value !== null, { error: 'Material is required' }),
+		.refine((value) => value !== null, { error: 'Bahan wajib dipilih' }),
 	unitPrice: SupplierMaterialCreateDto.shape.unitPrice,
 	uomId: SupplierMaterialCreateDto.shape.uomId
 		.nullable()
-		.refine((value) => value !== null, { error: 'UoM is required' }),
+		.refine((value) => value !== null, { error: 'Satuan wajib dipilih' }),
 	minOrderQty: z
 		.string()
 		.trim()
 		.refine(
 			(value) =>
 				value === '' || SupplierMaterialCreateDto.shape.minOrderQty.safeParse(value).success,
-			{ error: 'Use a decimal such as 0.5, or leave blank' },
+			{ error: 'Gunakan desimal seperti 0.5, atau kosongkan' },
 		),
 })
 

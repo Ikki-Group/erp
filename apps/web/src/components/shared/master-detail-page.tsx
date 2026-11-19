@@ -19,7 +19,7 @@ export function MasterDetailPage({
 	detail,
 	selectedId,
 	onSelectedIdChange,
-	backLabel = 'Back to list',
+	backLabel = 'Kembali ke daftar',
 	className,
 }: MasterDetailPageProps) {
 	return (

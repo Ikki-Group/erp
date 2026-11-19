@@ -44,7 +44,7 @@ registerRoute('get', endpoint.material.list, (params) => {
 registerRoute('get', endpoint.material.detail, (params) => {
 	const id = Number(params.get('id'))
 	const row = materials.get(id)
-	if (!row) return mockError(404, 'Material tidak ditemukan.', 'NOT_FOUND')
+	if (!row) return mockError(404, 'Bahan tidak ditemukan.', 'NOT_FOUND')
 	return mockSuccess(row)
 })
 
@@ -73,14 +73,14 @@ registerRoute('put', endpoint.material.update, (_params, body) => {
 		updatedAt: new Date(),
 		updatedBy: 1,
 	})
-	if (!row) return mockError(404, 'Material tidak ditemukan.', 'NOT_FOUND')
+	if (!row) return mockError(404, 'Bahan tidak ditemukan.', 'NOT_FOUND')
 	return mockSuccess({ id: row.id })
 })
 
 registerRoute('delete', endpoint.material.remove, (params) => {
 	const id = Number(params.get('id'))
 	const removed = materials.remove(id)
-	if (!removed) return mockError(404, 'Material tidak ditemukan.', 'NOT_FOUND')
+	if (!removed) return mockError(404, 'Bahan tidak ditemukan.', 'NOT_FOUND')
 	return mockSuccess({ id })
 })
 
@@ -116,14 +116,14 @@ registerRoute('put', endpoint.material.category.update, (_params, body) => {
 		updatedAt: new Date(),
 		updatedBy: 1,
 	})
-	if (!row) return mockError(404, 'Category tidak ditemukan.', 'NOT_FOUND')
+	if (!row) return mockError(404, 'Kategori tidak ditemukan.', 'NOT_FOUND')
 	return mockSuccess({ id: row.id })
 })
 
 registerRoute('delete', endpoint.material.category.remove, (params) => {
 	const id = Number(params.get('id'))
 	const removed = categories.remove(id)
-	if (!removed) return mockError(404, 'Category tidak ditemukan.', 'NOT_FOUND')
+	if (!removed) return mockError(404, 'Kategori tidak ditemukan.', 'NOT_FOUND')
 	return mockSuccess({ id })
 })
 

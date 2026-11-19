@@ -41,7 +41,7 @@ export interface OpnameActions {
 
 const CREATE_DENIED = 'Anda tidak memiliki izin untuk membuat stock opname.'
 const COMPLETE_DENIED = 'Anda tidak memiliki izin untuk menyelesaikan stock opname ini.'
-const NOT_DRAFT = 'Stock opname ini tidak lagi berstatus draft.'
+const NOT_DRAFT = 'Stock opname ini tidak lagi berstatus draf.'
 const SCOPE_CHANGED =
 	'Lokasi aktif telah berubah. Kembali ke lokasi stock opname ini untuk melanjutkan.'
 

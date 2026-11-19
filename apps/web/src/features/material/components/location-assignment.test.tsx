@@ -157,7 +157,7 @@ afterEach(() => {
 
 async function loaded() {
 	await screen.findByText('Location 1')
-	await waitFor(() => expect(screen.queryByText('Loading assignments...')).toBeNull())
+	await waitFor(() => expect(screen.queryByText('Memuat penugasan...')).toBeNull())
 }
 
 describe('LocationAssignment', () => {
@@ -167,11 +167,11 @@ describe('LocationAssignment', () => {
 		await loaded()
 		expect(screen.getByText('125')).toBeTruthy()
 		for (let page = 2; page <= 5; page += 1) {
-			fireEvent.click(screen.getByRole('button', { name: 'Next location page' }))
+			fireEvent.click(screen.getByRole('button', { name: 'Halaman lokasi berikutnya' }))
 			await screen.findByText(`Location ${(page - 1) * 25 + 1}`)
 		}
-		fireEvent.click(screen.getByRole('button', { name: 'Assign Location 125' }))
-		await screen.findByRole('button', { name: 'Unassign Location 125' })
+		fireEvent.click(screen.getByRole('button', { name: 'Tugaskan Location 125' }))
+		await screen.findByRole('button', { name: 'Lepas Location 125' })
 		expect(fixture.assign).toHaveBeenCalledTimes(1)
 		expect(success).toHaveBeenCalledTimes(1)
 
@@ -179,9 +179,9 @@ describe('LocationAssignment', () => {
 		await waitFor(() =>
 			expect(fixture.listRead).toHaveBeenLastCalledWith({ page: 1, limit: 25, q: 'Location 125' }),
 		)
-		expect(screen.getByRole('button', { name: 'Unassign Location 125' })).toBeTruthy()
+		expect(screen.getByRole('button', { name: 'Lepas Location 125' })).toBeTruthy()
 		expect(
-			screen.getByRole('button', { name: 'Previous location page' }).hasAttribute('disabled'),
+			screen.getByRole('button', { name: 'Halaman lokasi sebelumnya' }).hasAttribute('disabled'),
 		).toBe(true)
 	})
 
@@ -190,19 +190,19 @@ describe('LocationAssignment', () => {
 		render(fixture.view(1))
 		await loaded()
 		fixture.state.assignmentFails = true
-		fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
-		await screen.findByText(/Could not refresh assignments/u)
-		expect(
-			screen.getByRole('button', { name: 'Unassign Location 1' }).hasAttribute('disabled'),
-		).toBe(true)
-		expect(screen.getByRole('button', { name: 'Assign Location 2' }).hasAttribute('disabled')).toBe(
+		fireEvent.click(screen.getByRole('button', { name: 'Muat ulang' }))
+		await screen.findByText(/Gagal memuat ulang penugasan/u)
+		expect(screen.getByRole('button', { name: 'Lepas Location 1' }).hasAttribute('disabled')).toBe(
 			true,
 		)
+		expect(
+			screen.getByRole('button', { name: 'Tugaskan Location 2' }).hasAttribute('disabled'),
+		).toBe(true)
 		fixture.state.assignmentFails = false
-		fireEvent.click(screen.getByRole('button', { name: 'Retry assignments' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Coba lagi penugasan' }))
 		await waitFor(() =>
 			expect(
-				screen.getByRole('button', { name: 'Unassign Location 1' }).hasAttribute('disabled'),
+				screen.getByRole('button', { name: 'Lepas Location 1' }).hasAttribute('disabled'),
 			).toBe(false),
 		)
 	})
@@ -211,34 +211,36 @@ describe('LocationAssignment', () => {
 		const fixture = setup()
 		fixture.state.assignmentFails = true
 		render(fixture.view(1))
-		await screen.findByText(/Could not load assignments/u)
-		expect(screen.queryByText('Not assigned')).toBeNull()
-		expect(screen.queryByRole('button', { name: 'Assign Location 1' })).toBeNull()
-		expect(screen.getAllByText('Status unavailable')).toHaveLength(25)
+		await screen.findByText(/Gagal memuat penugasan/u)
+		expect(screen.queryByText('Belum ditugaskan')).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Tugaskan Location 1' })).toBeNull()
+		expect(screen.getAllByText('Status tidak tersedia')).toHaveLength(25)
 		fixture.state.assignmentFails = false
-		fireEvent.click(screen.getByRole('button', { name: 'Retry assignments' }))
-		await screen.findByRole('button', { name: 'Unassign Location 1' })
+		fireEvent.click(screen.getByRole('button', { name: 'Coba lagi penugasan' }))
+		await screen.findByRole('button', { name: 'Lepas Location 1' })
 	})
 
 	it('distinguishes initial and refresh location errors, empty data, and no search results', async () => {
 		const fixture = setup()
 		fixture.state.locationFails = true
 		render(fixture.view(1))
-		await screen.findByText(/Could not load locations/u)
-		expect(screen.queryByText('No active locations available.')).toBeNull()
+		await screen.findByText(/Gagal memuat lokasi/u)
+		expect(screen.queryByText('Tidak ada lokasi aktif.')).toBeNull()
 		fixture.state.locationFails = false
-		fireEvent.click(screen.getByRole('button', { name: 'Retry locations' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Coba lagi lokasi' }))
 		await loaded()
 		fixture.state.locationFails = true
-		fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
-		await screen.findByText(/Could not refresh locations/u)
+		fireEvent.click(screen.getByRole('button', { name: 'Muat ulang' }))
+		await screen.findByText(/Gagal memuat ulang lokasi/u)
 		expect(screen.getByText('Location 1')).toBeTruthy()
 		fixture.state.locationFails = false
 		fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Missing location' } })
-		await screen.findByText('No locations match your search. Try another name or code.')
+		await screen.findByText(
+			'Tidak ada lokasi yang cocok dengan pencarian Anda. Coba nama atau kode lain.',
+		)
 		fixture.state.empty = true
 		fireEvent.change(screen.getByRole('searchbox'), { target: { value: '' } })
-		await screen.findByText('No active locations available.')
+		await screen.findByText('Tidak ada lokasi aktif.')
 	})
 
 	it.each([
@@ -252,9 +254,9 @@ describe('LocationAssignment', () => {
 		const fixture = setup()
 		render(fixture.view(1))
 		await loaded()
-		expect(Boolean(screen.queryByRole('button', { name: 'Assign Location 2' }))).toBe(assign)
-		expect(Boolean(screen.queryByRole('button', { name: 'Unassign Location 1' }))).toBe(unassign)
-		expect(screen.getByText('Assigned')).toBeTruthy()
+		expect(Boolean(screen.queryByRole('button', { name: 'Tugaskan Location 2' }))).toBe(assign)
+		expect(Boolean(screen.queryByRole('button', { name: 'Lepas Location 1' }))).toBe(unassign)
+		expect(screen.getByText('Ditugaskan')).toBeTruthy()
 	})
 
 	it('retries the same desired action only after reading authoritative state and avoids a duplicate lost-response write', async () => {
@@ -262,20 +264,20 @@ describe('LocationAssignment', () => {
 		render(fixture.view(1))
 		await loaded()
 		fixture.state.commitThenFail = true
-		fireEvent.click(screen.getByRole('button', { name: 'Assign Location 2' }))
-		await screen.findByRole('button', { name: 'Retry assigning Location 2' })
-		expect(screen.getByRole('button', { name: 'Unassign Location 1' })).toBeTruthy()
+		fireEvent.click(screen.getByRole('button', { name: 'Tugaskan Location 2' }))
+		await screen.findByRole('button', { name: 'Coba lagi menugaskan Location 2' })
+		expect(screen.getByRole('button', { name: 'Lepas Location 1' })).toBeTruthy()
 		expect(fixture.assign).toHaveBeenCalledTimes(1)
 		expect(success).not.toHaveBeenCalled()
 		const reads = fixture.assignmentRead.mock.calls.length
 		fixture.state.commitThenFail = false
 		fixture.state.assignmentFails = true
-		fireEvent.click(screen.getByRole('button', { name: 'Retry assigning Location 2' }))
-		await screen.findByText(/Could not refresh assignments/u)
+		fireEvent.click(screen.getByRole('button', { name: 'Coba lagi menugaskan Location 2' }))
+		await screen.findByText(/Gagal memuat ulang penugasan/u)
 		expect(fixture.assign).toHaveBeenCalledTimes(1)
 		fixture.state.assignmentFails = false
-		fireEvent.click(screen.getByRole('button', { name: 'Retry assigning Location 2' }))
-		await screen.findByRole('button', { name: 'Unassign Location 2' })
+		fireEvent.click(screen.getByRole('button', { name: 'Coba lagi menugaskan Location 2' }))
+		await screen.findByRole('button', { name: 'Lepas Location 2' })
 		expect(fixture.assignmentRead.mock.calls.length).toBeGreaterThan(reads)
 		expect(fixture.assign).toHaveBeenCalledTimes(1)
 		expect(fixture.unassign).not.toHaveBeenCalled()
@@ -287,13 +289,13 @@ describe('LocationAssignment', () => {
 		render(fixture.view(1))
 		await loaded()
 		fixture.state.mutationFails = true
-		fireEvent.click(screen.getByRole('button', { name: 'Unassign Location 1' }))
-		await screen.findByRole('button', { name: 'Retry unassigning Location 1' })
-		expect(screen.getByText('Assigned')).toBeTruthy()
+		fireEvent.click(screen.getByRole('button', { name: 'Lepas Location 1' }))
+		await screen.findByRole('button', { name: 'Coba lagi melepas Location 1' })
+		expect(screen.getByText('Ditugaskan')).toBeTruthy()
 		fixture.state.mutationFails = false
 		const mutation = deferred()
 		fixture.state.mutationGate = mutation.promise
-		const retry = screen.getByRole('button', { name: 'Retry unassigning Location 1' })
+		const retry = screen.getByRole('button', { name: 'Coba lagi melepas Location 1' })
 		fireEvent.click(retry)
 		fireEvent.click(retry)
 		await waitFor(() => expect(fixture.unassign).toHaveBeenCalledTimes(2))
@@ -301,13 +303,13 @@ describe('LocationAssignment', () => {
 		fixture.state.assignmentGate = refetch.promise
 		await act(async () => mutation.resolve())
 		expect(
-			screen.getByRole('button', { name: 'Retry unassigning Location 1' }).hasAttribute('disabled'),
+			screen.getByRole('button', { name: 'Coba lagi melepas Location 1' }).hasAttribute('disabled'),
 		).toBe(true)
-		expect(screen.getByRole('button', { name: 'Assign Location 2' }).hasAttribute('disabled')).toBe(
-			true,
-		)
+		expect(
+			screen.getByRole('button', { name: 'Tugaskan Location 2' }).hasAttribute('disabled'),
+		).toBe(true)
 		await act(async () => refetch.resolve())
-		await screen.findByRole('button', { name: 'Assign Location 1' })
+		await screen.findByRole('button', { name: 'Tugaskan Location 1' })
 		expect(fixture.unassign).toHaveBeenCalledTimes(2)
 		expect(success).toHaveBeenCalledTimes(1)
 	})
@@ -317,20 +319,20 @@ describe('LocationAssignment', () => {
 		const result = render(fixture.view(1))
 		await loaded()
 		fixture.state.mutationFails = true
-		fireEvent.click(screen.getByRole('button', { name: 'Assign Location 2' }))
-		await screen.findByRole('button', { name: 'Retry assigning Location 2' })
-		fireEvent.click(screen.getByRole('button', { name: 'Next location page' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Tugaskan Location 2' }))
+		await screen.findByRole('button', { name: 'Coba lagi menugaskan Location 2' })
+		fireEvent.click(screen.getByRole('button', { name: 'Halaman lokasi berikutnya' }))
 		await screen.findByText('Location 26')
-		fireEvent.click(screen.getByRole('button', { name: 'Previous location page' }))
-		await screen.findByRole('button', { name: 'Retry assigning Location 2' })
+		fireEvent.click(screen.getByRole('button', { name: 'Halaman lokasi sebelumnya' }))
+		await screen.findByRole('button', { name: 'Coba lagi menugaskan Location 2' })
 		fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Location 125' } })
 		await screen.findByText('Location 125')
 		result.rerender(fixture.view(2))
 		await loaded()
 		expect((screen.getByRole('searchbox') as HTMLInputElement).value).toBe('')
-		expect(screen.queryByRole('button', { name: 'Retry assigning Location 2' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Coba lagi menugaskan Location 2' })).toBeNull()
 		expect(
-			within(screen.getByRole('list', { name: 'Location assignments' })).getAllByRole('listitem'),
+			within(screen.getByRole('list', { name: 'Penugasan lokasi' })).getAllByRole('listitem'),
 		).toHaveLength(25)
 	})
 
@@ -339,7 +341,9 @@ describe('LocationAssignment', () => {
 		const fixture = setup()
 		render(fixture.view(1))
 		expect(
-			screen.getByText('You need material and location read access to view location assignments.'),
+			screen.getByText(
+				'Anda memerlukan akses baca bahan dan lokasi untuk melihat penugasan lokasi.',
+			),
 		).toBeTruthy()
 		expect(fixture.listRead).not.toHaveBeenCalled()
 		expect(fixture.assignmentRead).not.toHaveBeenCalled()

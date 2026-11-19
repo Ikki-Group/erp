@@ -15,10 +15,10 @@ function NewUomPage() {
 
 	return (
 		<EntityEditorPage
-			title="Add Unit"
-			description="Create a new unit of measure."
+			title="Tambah Satuan"
+			description="Buat satuan baru."
 			form={form}
-			submitLabel="Create"
+			submitLabel="Buat"
 			onCancel={onDone}
 		>
 			<UomFormFields form={form} />

@@ -136,7 +136,7 @@ export type TransferDetailDto = z.infer<typeof TransferDetailDto>
 
 const TransferLineInputDto = z.object({
 	materialId: z.number().int().positive(),
-	qty: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a positive number'),
+	qty: z.string().regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka positif'),
 	uomId: z.number().int().positive(),
 })
 
@@ -159,7 +159,7 @@ export type TransferShipDto = z.infer<typeof TransferShipDto>
 
 const TransferReceiveLineDto = z.object({
 	materialId: z.number().int().positive(),
-	receivedQty: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a positive number'),
+	receivedQty: z.string().regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka positif'),
 })
 
 export const TransferReceiveDto = z.object({
@@ -185,7 +185,7 @@ export const OpnameStatusEnum = z.enum(['draft', 'in_progress', 'completed', 'ca
 export type OpnameStatusEnum = z.infer<typeof OpnameStatusEnum>
 
 export const OPNAME_STATUS_LABELS: Record<OpnameStatusEnum, string> = {
-	draft: 'Draft',
+	draft: 'Draf',
 	in_progress: 'Sedang Berjalan',
 	completed: 'Selesai',
 	cancelled: 'Dibatalkan',
@@ -239,7 +239,7 @@ export type OpnameCreateDto = z.infer<typeof OpnameCreateDto>
 
 const OpnameCountLineDto = z.object({
 	materialId: z.number().int().positive(),
-	countedQty: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a non-negative number'),
+	countedQty: z.string().regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka non-negatif'),
 	reason: zc.strTrimNullable.optional(),
 })
 
@@ -273,7 +273,7 @@ export const ReceivingStatusEnum = z.enum(['draft', 'confirmed'])
 export type ReceivingStatusEnum = z.infer<typeof ReceivingStatusEnum>
 
 export const RECEIVING_STATUS_LABELS: Record<ReceivingStatusEnum, string> = {
-	draft: 'Draft',
+	draft: 'Draf',
 	confirmed: 'Dikonfirmasi',
 }
 
@@ -315,8 +315,8 @@ export type ReceivingDetailDto = z.infer<typeof ReceivingDetailDto>
 
 const ReceivingLineInputDto = z.object({
 	materialId: z.number().int().positive(),
-	qty: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a positive number'),
-	unitCost: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a positive number or zero'),
+	qty: z.string().regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka positif'),
+	unitCost: z.string().regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka positif atau nol'),
 	uomId: z.number().int().positive(),
 })
 

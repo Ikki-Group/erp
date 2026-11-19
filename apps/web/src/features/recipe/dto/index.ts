@@ -51,7 +51,7 @@ export const RecipeLineMutationDto = z.object({
 	quantity: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
+		.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif'),
 	uomId: zp.id,
 })
 export type RecipeLineMutationDto = z.infer<typeof RecipeLineMutationDto>
@@ -62,8 +62,8 @@ export const RecipeCreateDto = z.object({
 	yieldQty: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
-	lines: z.array(RecipeLineMutationDto).min(1, 'At least one recipe line is required'),
+		.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif'),
+	lines: z.array(RecipeLineMutationDto).min(1, 'Minimal satu baris resep wajib diisi'),
 })
 export type RecipeCreateDto = z.infer<typeof RecipeCreateDto>
 
@@ -73,8 +73,8 @@ export const RecipeUpdateDto = z.object({
 	yieldQty: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
-	lines: z.array(RecipeLineMutationDto).min(1, 'At least one recipe line is required'),
+		.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif'),
+	lines: z.array(RecipeLineMutationDto).min(1, 'Minimal satu baris resep wajib diisi'),
 })
 export type RecipeUpdateDto = z.infer<typeof RecipeUpdateDto>
 

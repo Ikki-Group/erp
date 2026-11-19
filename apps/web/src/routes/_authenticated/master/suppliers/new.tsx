@@ -15,10 +15,10 @@ function NewSupplierPage() {
 
 	return (
 		<EntityEditorPage
-			title="Add Supplier"
-			description="Create a new supplier."
+			title="Tambah Pemasok"
+			description="Buat pemasok baru."
 			form={form}
-			submitLabel="Create"
+			submitLabel="Buat"
 			onCancel={onDone}
 		>
 			<SupplierFormFields form={form} />

@@ -10,7 +10,7 @@ const ShiftOpenFormSchema = z.object({
 	openingCash: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
+		.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif'),
 })
 
 const EMPTY_SHIFT_OPEN_FORM_VALUES: ShiftOpenFormValues = {
@@ -45,10 +45,10 @@ export function ShiftOpenFormBody({ onSaved, onCancel, onCreate }: ShiftOpenForm
 				className="grid gap-4"
 			>
 				<form.AppField name="openingCash">
-					{(field) => <field.CurrencyField label="Opening Cash" />}
+					{(field) => <field.CurrencyField label="Kas Pembukaan" />}
 				</form.AppField>
 				<form.FormError />
-				<FormDialogFooter onCancel={onCancel} submitLabel="Open Shift" />
+				<FormDialogFooter onCancel={onCancel} submitLabel="Buka Shift" />
 			</form>
 		</form.AppForm>
 	)

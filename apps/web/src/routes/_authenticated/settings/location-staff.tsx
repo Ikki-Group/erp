@@ -24,7 +24,7 @@ export const Route = createFileRoute('/_authenticated/settings/location-staff')(
 	component: LocationStaffRoute,
 })
 
-const TITLE = 'Location Staff'
+const TITLE = 'Staf Lokasi'
 
 function LocationStaffRoute() {
 	const canRead = usePermissionCheck({ permission: 'location-staff.read' })
@@ -33,8 +33,8 @@ function LocationStaffRoute() {
 	if (!canRead) {
 		return (
 			<PageError
-				title="Access denied"
-				message="You do not have permission to view staff for this location."
+				title="Akses ditolak"
+				message="Anda tidak memiliki izin untuk melihat staf lokasi ini."
 			/>
 		)
 	}
@@ -43,8 +43,8 @@ function LocationStaffRoute() {
 		return (
 			<LocationRequiredPage
 				title={TITLE}
-				description="Users assigned to the active location."
-				message="Choose an active location to view its assigned staff."
+				description="Pengguna yang ditugaskan ke lokasi aktif."
+				message="Pilih lokasi aktif untuk melihat staf yang ditugaskan."
 			/>
 		)
 	}
@@ -82,15 +82,15 @@ function LocationStaffPage({ location }: { location: AuthLocation }) {
 			description={`Users assigned to ${location.name}.`}
 			list={list}
 			emptyState={{
-				title: 'No staff assigned',
-				description: 'No users are assigned to this location.',
+				title: 'Belum ada staf ditugaskan',
+				description: 'Belum ada pengguna yang ditugaskan ke lokasi ini.',
 			}}
-			emptyMessage="No staff match your search."
+			emptyMessage="Tidak ada staf yang cocok dengan pencarian Anda."
 			toolbar={
 				<TableToolbar
 					searchValue={list.globalFilter}
 					onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
-					searchPlaceholder="Search staff..."
+					searchPlaceholder="Cari staf..."
 					filters={[
 						{
 							key: 'isActive',
@@ -98,7 +98,7 @@ function LocationStaffPage({ location }: { location: AuthLocation }) {
 							value: search.isActive === undefined ? undefined : String(search.isActive),
 							onChange: (value) => list.setFilters({ isActive: parseLocationStaffStatus(value) }),
 							options: LOCATION_STAFF_STATUS_OPTIONS,
-							allLabel: 'All Statuses',
+							allLabel: 'Semua Status',
 						},
 					]}
 				/>

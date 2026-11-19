@@ -104,13 +104,13 @@ export function useLocationAssignment(materialId: number, permissions: Assignmen
 				// The previous response may have been lost after the server committed the change.
 				const result = await assignmentsQuery.refetch()
 				if (!result.isSuccess) {
-					throw result.error ?? new Error('Could not verify the current assignments.')
+					throw result.error ?? new Error('Gagal memverifikasi penugasan saat ini.')
 				}
 				assignments = result.data
 				uncertainRef.current = false
 				setUncertain(false)
 			}
-			if (!assignments) throw new Error('Load assignments before making changes.')
+			if (!assignments) throw new Error('Muat penugasan sebelum melakukan perubahan.')
 
 			const isAssigned = assignments.data.some(
 				(assignment) => assignment.locationId === action.locationId,
@@ -126,7 +126,7 @@ export function useLocationAssignment(materialId: number, permissions: Assignmen
 				return next
 			})
 			toast.add({
-				title: action.assigned ? 'Location assigned.' : 'Location unassigned.',
+				title: action.assigned ? 'Lokasi ditugaskan.' : 'Penugasan lokasi dilepas.',
 				type: 'success',
 			})
 		} catch (error) {
@@ -136,7 +136,7 @@ export function useLocationAssignment(materialId: number, permissions: Assignmen
 				...previous,
 				[action.locationId]: {
 					...action,
-					message: error instanceof Error ? error.message : 'The assignment could not be saved.',
+					message: error instanceof Error ? error.message : 'Penugasan tidak dapat disimpan.',
 				},
 			}))
 		} finally {

@@ -31,7 +31,7 @@ function NewTablePage() {
 				capacity: Number(values.capacity),
 				isActive: values.isActive,
 			})
-			toast.add({ title: 'Table created successfully.', type: 'success' })
+			toast.add({ title: 'Meja berhasil dibuat.', type: 'success' })
 			navigate({ to: '/pos/tables' })
 		},
 	})
@@ -41,10 +41,10 @@ function NewTablePage() {
 	if (!activeLocation) {
 		return (
 			<div className="space-y-6">
-				<PageHeader title="Add Table" description="Create a new table for this location." />
+				<PageHeader title="Tambah Meja" description="Buat meja baru untuk lokasi ini." />
 				<EmptyState
-					title="No location selected"
-					description="Please select a location to manage tables."
+					title="Belum ada lokasi dipilih"
+					description="Pilih lokasi untuk mengelola meja."
 				/>
 			</div>
 		)
@@ -53,10 +53,10 @@ function NewTablePage() {
 	return (
 		<form.AppForm>
 			<FormPage
-				title="Add Table"
-				description="Create a new table for this location."
+				title="Tambah Meja"
+				description="Buat meja baru untuk lokasi ini."
 				form={form}
-				submitLabel="Create"
+				submitLabel="Buat"
 				onCancel={() => navigate({ to: '/pos/tables' })}
 			>
 				<TableFormFields form={form} />

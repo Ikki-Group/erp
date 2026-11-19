@@ -13,8 +13,8 @@ export interface UomFormValues {
 }
 
 const UomFormSchema = z.object({
-	code: z.string().trim().min(1, 'Code is required').max(50),
-	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
+	code: z.string().trim().min(1, 'Kode wajib diisi').max(50),
+	name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(100),
 	category: UomCategoryEnum,
 })
 
@@ -53,7 +53,7 @@ export function useUomForm({
 					: uomResource.create.fetch(input),
 		},
 		toPayload: toUomInput,
-		successMessage: unit ? 'Unit updated successfully.' : 'Unit created successfully.',
+		successMessage: unit ? 'Satuan berhasil diperbarui.' : 'Satuan berhasil dibuat.',
 		onSaved,
 	})
 }
@@ -65,14 +65,14 @@ export function UomFormFields({ form }: { form: UomForm }) {
 		<div className="grid gap-4">
 			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
-					{(field) => <field.TextField label="Code" placeholder="e.g. kg" />}
+					{(field) => <field.TextField label="Kode" placeholder="mis. kg" />}
 				</form.AppField>
 				<form.AppField name="category">
-					{(field) => <field.SelectField label="Category" options={[...UOM_CATEGORY_OPTIONS]} />}
+					{(field) => <field.SelectField label="Kategori" options={[...UOM_CATEGORY_OPTIONS]} />}
 				</form.AppField>
 			</div>
 			<form.AppField name="name">
-				{(field) => <field.TextField label="Name" placeholder="e.g. Kilogram" />}
+				{(field) => <field.TextField label="Nama" placeholder="mis. Kilogram" />}
 			</form.AppField>
 		</div>
 	)

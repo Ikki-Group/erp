@@ -11,7 +11,7 @@ const ShiftCloseFormSchema = z.object({
 	closingCash: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
+		.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif'),
 	notes: z.string().trim().max(1000).default(''),
 })
 
@@ -58,12 +58,12 @@ export function ShiftCloseFormBody({
 			>
 				{expectedCash && (
 					<div className="rounded-md border bg-muted/50 p-3 text-sm">
-						<span className="text-muted-foreground">Expected cash: </span>
+						<span className="text-muted-foreground">Kas diharapkan: </span>
 						<span className="font-medium">{Number(expectedCash).toLocaleString('id-ID')}</span>
 					</div>
 				)}
 				<form.AppField name="closingCash">
-					{(field) => <field.CurrencyField label="Closing Cash" />}
+					{(field) => <field.CurrencyField label="Kas Penutupan" />}
 				</form.AppField>
 				<form.Subscribe selector={(state) => state.values.closingCash}>
 					{(closingCash) => {
@@ -71,7 +71,7 @@ export function ShiftCloseFormBody({
 						const difference = Number(closingCash) - Number(expectedCash)
 						return (
 							<div className="rounded-md border p-3 text-sm">
-								<span className="text-muted-foreground">Difference: </span>
+								<span className="text-muted-foreground">Selisih: </span>
 								<span
 									className={
 										difference === 0
@@ -89,10 +89,10 @@ export function ShiftCloseFormBody({
 					}}
 				</form.Subscribe>
 				<form.AppField name="notes">
-					{(field) => <field.TextField label="Notes" placeholder="Optional notes" />}
+					{(field) => <field.TextField label="Catatan" placeholder="Catatan opsional" />}
 				</form.AppField>
 				<form.FormError />
-				<FormDialogFooter onCancel={onCancel} submitLabel="Close Shift" />
+				<FormDialogFooter onCancel={onCancel} submitLabel="Tutup Shift" />
 			</form>
 		</form.AppForm>
 	)

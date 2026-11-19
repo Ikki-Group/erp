@@ -11,8 +11,8 @@ export interface TableFormValues {
 }
 
 const TableFormSchema = z.object({
-	number: z.string().trim().min(1, 'Number / name is required').max(50),
-	capacity: z.string().trim().regex(/^\d+$/u, 'Must be a whole number'),
+	number: z.string().trim().min(1, 'Nomor / nama wajib diisi').max(50),
+	capacity: z.string().trim().regex(/^\d+$/u, 'Harus bilangan bulat'),
 	isActive: z.boolean(),
 })
 
@@ -49,17 +49,19 @@ export function TableFormFields({ form }: { form: TableForm }) {
 	return (
 		<div className="grid gap-4">
 			<form.AppField name="number">
-				{(field) => <field.TextField label="Number / Name" placeholder="e.g. T-01 or Table 1" />}
+				{(field) => <field.TextField label="Nomor / Nama" placeholder="mis. T-01 atau Meja 1" />}
 			</form.AppField>
 			<form.AppField name="capacity">
-				{(field) => <field.TextField label="Capacity" placeholder="4" />}
+				{(field) => <field.TextField label="Kapasitas" placeholder="4" />}
 			</form.AppField>
 			<form.AppField name="isActive">
 				{(field) => (
-					<field.SwitchField label="Active" description="Inactive tables won't appear in POS." />
+					<field.SwitchField label="Aktif" description="Meja nonaktif tidak akan muncul di POS." />
 				)}
 			</form.AppField>
-			<form.FormError />
+			<form.AppForm>
+				<form.FormError />
+			</form.AppForm>
 		</div>
 	)
 }

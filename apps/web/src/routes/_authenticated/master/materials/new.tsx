@@ -15,10 +15,10 @@ function NewMaterialPage() {
 
 	return (
 		<EntityEditorPage
-			title="Add Material"
-			description="Create a new material."
+			title="Tambah Bahan"
+			description="Buat bahan baru."
 			form={form}
-			submitLabel="Create"
+			submitLabel="Buat"
 			onCancel={onDone}
 		>
 			<MaterialFormFields form={form} />

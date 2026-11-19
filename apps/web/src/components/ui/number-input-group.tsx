@@ -171,7 +171,7 @@ export const NumberInputGroup = React.forwardRef<HTMLInputElement, NumberInputGr
 					<SelectTrigger
 						data-slot="input-group-addon"
 						size="sm"
-						aria-label="Unit of measure"
+						aria-label="Satuan"
 						{...uomTriggerProps}
 						className={cn(
 							'order-last h-6 shrink-0 rounded-none rounded-r-md border-0 border-l bg-transparent px-2 font-mono shadow-none focus-visible:ring-inset dark:bg-transparent',

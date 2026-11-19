@@ -362,7 +362,7 @@ function TransferDetail({
 						<table className="w-full text-sm">
 							<thead className="bg-muted/50">
 								<tr>
-									<th className="px-3 py-2 text-left font-medium">Material</th>
+									<th className="px-3 py-2 text-left font-medium">Bahan</th>
 									<th className="px-3 py-2 text-right font-medium">Diminta</th>
 									<th className="px-3 py-2 text-right font-medium">Dikirim</th>
 									<th className="px-3 py-2 text-right font-medium">Diterima</th>
@@ -395,7 +395,7 @@ function TransferDetail({
 				</div>
 
 				<PermissionGate permission="audit.read">
-					<PageSection title="Activity" description="History of changes to this transfer.">
+					<PageSection title="Aktivitas" description="Riwayat perubahan pada transfer ini.">
 						{auditQuery.isError && auditQuery.data === undefined ? (
 							<PageError
 								title="Tidak dapat memuat riwayat"
@@ -418,7 +418,7 @@ function TransferDetail({
 								<AuditTrail
 									entries={auditQuery.data?.data ?? []}
 									isLoading={auditQuery.isLoading}
-									emptyMessage="No changes recorded for this transfer yet."
+									emptyMessage="Belum ada perubahan yang tercatat untuk transfer ini."
 								/>
 							</>
 						)}

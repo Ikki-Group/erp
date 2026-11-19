@@ -1,17 +1,22 @@
 import { Link, useLocation } from '@tanstack/react-router'
 
 import {
+	ArmchairIcon,
 	BoxesIcon,
 	ChefHatIcon,
 	ClipboardCheckIcon,
 	ClipboardListIcon,
+	ClockIcon,
 	GaugeIcon,
 	HistoryIcon,
 	MapPinIcon,
 	PackageIcon,
+	ReceiptTextIcon,
 	RulerIcon,
+	ShoppingCartIcon,
 	ShieldCheckIcon,
 	StoreIcon,
+	TicketIcon,
 	TruckIcon,
 	UtensilsCrossedIcon,
 	WalletIcon,
@@ -49,27 +54,47 @@ type NavGroup = {
 
 const navGroups: readonly NavGroup[] = [
 	{
-		label: 'Overview',
-		items: [{ title: 'Dashboard', icon: GaugeIcon, href: '/' }],
+		label: 'Ringkasan',
+		items: [{ title: 'Dasbor', icon: GaugeIcon, href: '/' }],
 	},
 	{
-		label: 'Inventory',
+		label: 'Kasir',
 		items: [
-			{ title: 'Stock', icon: PackageIcon, href: '/inventory/stock', anyOf: ['stock.read'] },
 			{
-				title: 'Goods Receipts',
+				title: 'Pesanan Baru',
+				icon: ShoppingCartIcon,
+				href: '/pos/new-order',
+				anyOf: ['order.create', 'order.read'],
+			},
+			{
+				title: 'Riwayat Pesanan',
+				icon: ReceiptTextIcon,
+				href: '/pos/orders',
+				anyOf: ['order.read'],
+			},
+			{ title: 'Shift', icon: ClockIcon, href: '/pos/shifts', anyOf: ['shift.read', 'shift.open'] },
+			{ title: 'Meja', icon: ArmchairIcon, href: '/pos/tables', anyOf: ['table.manage'] },
+			{ title: 'Voucher', icon: TicketIcon, href: '/pos/vouchers', anyOf: ['voucher.manage'] },
+		],
+	},
+	{
+		label: 'Inventori',
+		items: [
+			{ title: 'Stok', icon: PackageIcon, href: '/inventory/stock', anyOf: ['stock.read'] },
+			{
+				title: 'Penerimaan Barang',
 				icon: TruckIcon,
 				href: '/inventory/receiving',
 				anyOf: ['receiving.read'],
 			},
 			{
-				title: 'Stock Transfers',
+				title: 'Transfer Stok',
 				icon: ClipboardListIcon,
 				href: '/inventory/transfers',
 				anyOf: ['transfer.read'],
 			},
 			{
-				title: 'Stock Count',
+				title: 'Stok Opname',
 				icon: ClipboardCheckIcon,
 				href: '/inventory/opname',
 				anyOf: ['opname.read', 'opname.create'],
@@ -77,30 +102,20 @@ const navGroups: readonly NavGroup[] = [
 		],
 	},
 	{
-		label: 'Master Data',
+		label: 'Data Master',
 		items: [
-			{
-				title: 'Materials',
-				icon: BoxesIcon,
-				href: '/master/materials',
-				anyOf: ['material.read'],
-			},
-			{
-				title: 'Suppliers',
-				icon: TruckIcon,
-				href: '/master/suppliers',
-				anyOf: ['supplier.read'],
-			},
-			{ title: 'Units of Measure', icon: RulerIcon, href: '/master/uom', anyOf: ['uom.read'] },
+			{ title: 'Bahan', icon: BoxesIcon, href: '/master/materials', anyOf: ['material.read'] },
+			{ title: 'Pemasok', icon: TruckIcon, href: '/master/suppliers', anyOf: ['supplier.read'] },
+			{ title: 'Satuan', icon: RulerIcon, href: '/master/uom', anyOf: ['uom.read'] },
 			{
 				title: 'Menu',
 				icon: UtensilsCrossedIcon,
 				href: '/master/menu',
 				anyOf: ['item.read', 'category.read', 'modifier.read'],
 			},
-			{ title: 'Recipes', icon: ChefHatIcon, href: '/master/recipes', anyOf: ['recipe.read'] },
+			{ title: 'Resep', icon: ChefHatIcon, href: '/master/recipes', anyOf: ['recipe.read'] },
 			{
-				title: 'Payment Methods',
+				title: 'Metode Pembayaran',
 				icon: WalletIcon,
 				href: '/master/payment-methods',
 				anyOf: ['payment-method.read'],
@@ -108,12 +123,17 @@ const navGroups: readonly NavGroup[] = [
 		],
 	},
 	{
-		label: 'Administration',
+		label: 'Administrasi',
 		items: [
-			{ title: 'Company', icon: StoreIcon, href: '/settings/company', anyOf: ['company.read'] },
-			{ title: 'Locations', icon: MapPinIcon, href: '/settings/locations', anyOf: ['location.read'] },
-			{ title: 'Access Control', icon: ShieldCheckIcon, href: '/settings/access-control', anyOf: ['iam.read'] },
-			{ title: 'Audit Log', icon: HistoryIcon, href: '/settings/audit', anyOf: ['audit.read'] },
+			{ title: 'Perusahaan', icon: StoreIcon, href: '/settings/company', anyOf: ['company.read'] },
+			{ title: 'Lokasi', icon: MapPinIcon, href: '/settings/locations', anyOf: ['location.read'] },
+			{
+				title: 'Kontrol Akses',
+				icon: ShieldCheckIcon,
+				href: '/settings/access-control',
+				anyOf: ['iam.read'],
+			},
+			{ title: 'Log Audit', icon: HistoryIcon, href: '/settings/audit', anyOf: ['audit.read'] },
 		],
 	},
 ]

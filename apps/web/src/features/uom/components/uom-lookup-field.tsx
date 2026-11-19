@@ -12,5 +12,5 @@ const uomLookup: ResourceLookupAdapter<UomDto> = {
 }
 
 export function UomLookupField(props: LookupFieldProps) {
-	return <ResourceLookupField adapter={uomLookup} placeholder="Search units..." {...props} />
+	return <ResourceLookupField adapter={uomLookup} placeholder="Cari satuan..." {...props} />
 }

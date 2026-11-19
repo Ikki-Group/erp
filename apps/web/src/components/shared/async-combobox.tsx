@@ -67,9 +67,9 @@ export function AsyncCombobox({
 	hasMore = false,
 	isLoadingMore = false,
 	onLoadMore,
-	placeholder = 'Search...',
+	placeholder = 'Cari...',
 	loadingMessage = 'Searching...',
-	emptyMessage = 'No results found.',
+	emptyMessage = 'Tidak ada hasil ditemukan.',
 	disabled = false,
 	className,
 	id,
@@ -153,7 +153,7 @@ export function AsyncCombobox({
 						</p>
 						{onRetry && (
 							<Button type="button" variant="outline" size="sm" onClick={onRetry}>
-								Retry search
+								Muat ulang pencarian
 							</Button>
 						)}
 					</div>
@@ -177,7 +177,7 @@ export function AsyncCombobox({
 							disabled={isLoadingMore}
 							onClick={onLoadMore}
 						>
-							{isLoadingMore ? 'Loading more...' : 'Load more'}
+							{isLoadingMore ? 'Memuat lebih banyak...' : 'Muat lebih banyak'}
 						</Button>
 					</div>
 				)}

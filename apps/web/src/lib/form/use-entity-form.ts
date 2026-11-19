@@ -95,7 +95,7 @@ export function useEntityForm<TValues>({
 					? error.friendlyMessage
 					: error instanceof Error
 						? error.message
-						: 'An unexpected error occurred.'
+						: 'Terjadi kesalahan tak terduga.'
 				formApi.setErrorMap({ onSubmit: { form: message, fields: {} } })
 			}
 		},

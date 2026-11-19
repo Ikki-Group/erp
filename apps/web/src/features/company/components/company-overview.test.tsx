@@ -64,7 +64,7 @@ const site = {
 	openOpnames: 0,
 	lowStock: 3,
 	openShifts: 1,
-	salesToday: { orders: 12, revenue: '1250000.00' },
+	salesToday: { orders: 12, revenue: '1250000' },
 } satisfies CompanyOverviewDto['sites'][number]
 
 function renderOverview(data: CompanyOverviewDto) {
@@ -98,13 +98,13 @@ it('renders sites with today sales and the people block', async () => {
 		people: { activeUsers: 5, inactiveUsers: 1, usersWithoutAccess: 2, roles: 3 },
 	})
 	expect(await screen.findByRole('link', { name: 'Kemang' })).toBeTruthy()
-	expect(screen.getByText('Without access')).toBeTruthy()
+	expect(screen.getByText('Tanpa akses')).toBeTruthy()
 	expect(screen.getByText(/1\.250\.000/u)).toBeTruthy()
 })
 
 it('hides the people block when the server returns null', async () => {
 	renderOverview({ ...base, people: null })
 	expect(await screen.findByRole('link', { name: 'Kemang' })).toBeTruthy()
-	expect(screen.queryByText('Without access')).toBeNull()
+	expect(screen.queryByText('Tanpa akses')).toBeNull()
 	expect(screen.queryByText('Roles')).toBeNull()
 })

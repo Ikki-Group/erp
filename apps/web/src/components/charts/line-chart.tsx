@@ -34,7 +34,7 @@ export function LineChart({
 	showLegend = false,
 	showDots = true,
 	className,
-	'aria-label': ariaLabel = 'Line chart',
+	'aria-label': ariaLabel = 'Grafik garis',
 	'aria-describedby': ariaDescribedBy,
 }: LineChartProps) {
 	return (

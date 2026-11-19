@@ -34,7 +34,7 @@ export function SelectField({
 	id,
 	label,
 	options,
-	placeholder = 'Select...',
+	placeholder = 'Pilih...',
 	description,
 	disabled,
 	className,

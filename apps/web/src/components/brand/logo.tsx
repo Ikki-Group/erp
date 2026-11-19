@@ -24,18 +24,18 @@ export function Logo({ className, showText = true, variant = 'themed' }: LogoPro
 						draggable={false}
 					/>
 					{showText && <span className="truncate text-sm font-semibold">Ikki ERP</span>}
-					</>
-				) : (
-					<>
-						<img
-							src="/logo.png"
-							alt="Ikki ERP"
-							className="size-8 rounded-lg object-contain"
-							draggable={false}
-						/>
-						{showText && <span className="truncate text-sm font-semibold">Ikki ERP</span>}
-					</>
-					)}
+				</>
+			) : (
+				<>
+					<img
+						src="/logo.png"
+						alt="Ikki ERP"
+						className="size-8 rounded-lg object-contain"
+						draggable={false}
+					/>
+					{showText && <span className="truncate text-sm font-semibold">Ikki ERP</span>}
+				</>
+			)}
 		</div>
 	)
 }

@@ -48,9 +48,7 @@ export function createWorkflowAction<TEntity>(
 								const available = options.availability(entity)
 								if (available !== true) {
 									throw new Error(
-										typeof available === 'string'
-											? available
-											: 'This action is no longer available.',
+										typeof available === 'string' ? available : 'Tindakan ini tidak lagi tersedia.',
 									)
 								}
 								await options.execute(entity)

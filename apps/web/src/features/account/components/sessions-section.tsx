@@ -19,14 +19,14 @@ import { sessionRevoke, sessionsList, sessionsRevokeOthers } from '../api.ts'
 import type { SessionDto } from '../dto/index.ts'
 
 function errorText(error: unknown): string {
-	return isApiError(error) ? error.friendlyMessage : 'Something went wrong. Please try again.'
+	return isApiError(error) ? error.friendlyMessage : 'Terjadi kesalahan. Silakan coba lagi.'
 }
 
 function renderSessionsError(_error: Error, retry: () => void) {
 	return (
 		<PageError
-			title="Could not load sessions"
-			message="Try loading your active sessions again."
+			title="Gagal memuat sesi"
+			message="Coba muat sesi aktif Anda lagi."
 			onRetry={retry}
 		/>
 	)
@@ -52,10 +52,10 @@ function SessionList({ sessions }: { sessions: SessionDto[] }) {
 		setPendingId(session.id)
 		try {
 			await revokeOne.mutateAsync({ id: session.id })
-			toast.add({ title: 'Session signed out.', type: 'success' })
+			toast.add({ title: 'Sesi berhasil dikeluarkan.', type: 'success' })
 		} catch (error) {
 			toast.add({
-				title: 'Could not sign out session',
+				title: 'Gagal mengeluarkan sesi',
 				description: errorText(error),
 				type: 'error',
 			})
@@ -66,15 +66,15 @@ function SessionList({ sessions }: { sessions: SessionDto[] }) {
 
 	const handleRevokeOthers = async () => {
 		await confirm({
-			title: 'Sign out all other sessions?',
-			description: 'Every device except this one will have to sign in again.',
-			confirmLabel: 'Sign out others',
+			title: 'Keluarkan semua sesi lain?',
+			description: 'Semua perangkat selain perangkat ini harus masuk kembali.',
+			confirmLabel: 'Keluarkan sesi lain',
 			variant: 'destructive',
 			onConfirm: async () => {
 				try {
 					const result = await revokeOthers.mutateAsync()
 					toast.add({
-						title: `${result.data.revoked} other ${result.data.revoked === 1 ? 'session' : 'sessions'} signed out.`,
+						title: `${result.data.revoked} sesi lain telah dikeluarkan.`,
 						type: 'success',
 					})
 				} catch (error) {
@@ -93,10 +93,10 @@ function SessionList({ sessions }: { sessions: SessionDto[] }) {
 						<div className="min-w-0 flex-1 space-y-0.5">
 							<p className="flex flex-wrap items-center gap-2 text-sm font-medium">
 								<span className="truncate">{describeUserAgent(session.userAgent)}</span>
-								{session.isCurrent && <StatusBadge variant="success">This device</StatusBadge>}
+								{session.isCurrent && <StatusBadge variant="success">Perangkat ini</StatusBadge>}
 							</p>
 							<p className="text-xs text-muted-foreground">
-								{session.ipAddress ?? 'Unknown IP'} · Last active{' '}
+								{session.ipAddress ?? 'IP tidak dikenal'} · Terakhir aktif{' '}
 								<RelativeTime value={session.lastSeenAt} />
 							</p>
 						</div>
@@ -108,7 +108,7 @@ function SessionList({ sessions }: { sessions: SessionDto[] }) {
 								disabled={pendingId !== null}
 								onClick={() => void handleRevoke(session)}
 							>
-								Sign out
+								Keluar
 							</Button>
 						)}
 					</li>
@@ -122,7 +122,7 @@ function SessionList({ sessions }: { sessions: SessionDto[] }) {
 						disabled={pendingId !== null}
 						onClick={() => void handleRevokeOthers()}
 					>
-						Sign out all other sessions
+						Keluarkan semua sesi lain
 					</Button>
 				</div>
 			)}
@@ -132,7 +132,7 @@ function SessionList({ sessions }: { sessions: SessionDto[] }) {
 
 /** A readable "Browser on OS" label; the raw agent string is not meant for people. */
 export function describeUserAgent(userAgent: string | null): string {
-	if (!userAgent) return 'Unknown device'
+	if (!userAgent) return 'Perangkat tidak dikenal'
 	const browser = /Edg\//u.test(userAgent)
 		? 'Edge'
 		: /OPR\/|Opera/u.test(userAgent)
@@ -155,6 +155,6 @@ export function describeUserAgent(userAgent: string | null): string {
 					: /Linux/u.test(userAgent)
 						? 'Linux'
 						: undefined
-	if (browser && os) return `${browser} on ${os}`
+	if (browser && os) return `${browser} di ${os}`
 	return browser ?? os ?? userAgent
 }

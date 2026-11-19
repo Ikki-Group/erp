@@ -53,7 +53,7 @@ function LocationsPage() {
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (location) => [
 					canEdit && {
-						label: 'Edit',
+						label: 'Ubah',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
@@ -62,7 +62,7 @@ function LocationsPage() {
 							}),
 					},
 					canDelete && {
-						label: 'Deactivate',
+						label: 'Nonaktifkan',
 						icon: <TrashIcon className="size-4" />,
 						onClick: () => handleDelete(location),
 						variant: 'destructive' as const,
@@ -87,22 +87,22 @@ function LocationsPage() {
 
 	return (
 		<EntityListPage
-			title="Locations"
-			description="Manage active stores and warehouses."
+			title="Lokasi"
+			description="Kelola toko dan gudang aktif."
 			list={list}
 			createAction={
 				canCreate && (
 					<Button size="sm" onClick={() => navigate({ to: '/settings/locations/new' })}>
 						<PlusIcon className="size-4" />
-						Add Location
+						Tambah Lokasi
 					</Button>
 				)
 			}
 			emptyState={{
-				title: 'No active locations',
-				description: 'Add a store or warehouse for your team to use.',
+				title: 'Belum ada lokasi aktif',
+				description: 'Tambahkan toko atau gudang untuk digunakan tim Anda.',
 			}}
-			emptyMessage="No locations match your filters."
+			emptyMessage="Tidak ada lokasi yang cocok dengan filter Anda."
 			onRowClick={(location) =>
 				navigate({
 					to: '/settings/locations/$locationId',
@@ -113,16 +113,16 @@ function LocationsPage() {
 				<TableToolbar
 					searchValue={list.globalFilter}
 					onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
-					searchPlaceholder="Search locations..."
+					searchPlaceholder="Cari lokasi..."
 					filters={[
 						{
 							key: 'type',
-							label: 'Type',
+							label: 'Tipe',
 							value: search.type,
 							onChange: (value) =>
 								list.setFilters({ type: value ? LocationTypeEnum.parse(value) : undefined }),
 							options: LOCATION_TYPE_OPTIONS,
-							allLabel: 'All types',
+							allLabel: 'Semua tipe',
 						},
 					]}
 				/>

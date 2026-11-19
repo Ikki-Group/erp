@@ -32,7 +32,7 @@ function NewVoucherPage() {
 				usageLimit: values.usageLimit ? Number(values.usageLimit) : null,
 				isActive: values.isActive,
 			})
-			toast.add({ title: 'Voucher created.', type: 'success' })
+			toast.add({ title: 'Voucher berhasil dibuat.', type: 'success' })
 			navigate({ to: '/pos/vouchers' })
 		},
 	})
@@ -42,10 +42,10 @@ function NewVoucherPage() {
 	return (
 		<form.AppForm>
 			<FormPage
-				title="Add Voucher"
-				description="Create a new discount voucher."
+				title="Tambah Voucher"
+				description="Buat voucher diskon baru."
 				form={form}
-				submitLabel="Create"
+				submitLabel="Buat"
 				onCancel={() => navigate({ to: '/pos/vouchers' })}
 			>
 				<VoucherFormFields form={form} />

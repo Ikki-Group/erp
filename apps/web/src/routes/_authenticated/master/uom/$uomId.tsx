@@ -45,10 +45,10 @@ function EditUomForm({ unit, onDone }: EditUomFormProps) {
 
 	return (
 		<EntityEditorPage
-			title="Edit Unit"
+			title="Ubah Satuan"
 			description={`Update details for ${unit.name}.`}
 			form={form}
-			submitLabel="Save Changes"
+			submitLabel="Simpan Perubahan"
 			onCancel={onDone}
 		>
 			<UomFormFields form={form} />

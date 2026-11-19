@@ -35,10 +35,10 @@ export const Route = createFileRoute('/_authenticated/master/suppliers/')({
 const col = createEntityColumns<SupplierDto>()
 
 const baseColumns = [
-	col.code('code', { header: 'Code', size: 100 }),
-	col.text('name', { header: 'Name', size: 200 }),
-	col.text('contactPerson', { header: 'Contact', size: 150 }),
-	col.text('phone', { header: 'Phone', size: 120 }),
+	col.code('code', { header: 'Kode', size: 100 }),
+	col.text('name', { header: 'Nama', size: 200 }),
+	col.text('contactPerson', { header: 'Kontak', size: 150 }),
+	col.text('phone', { header: 'Telepon', size: 120 }),
 	col.booleanStatus('isActive', { header: 'Status', size: 80 }),
 ]
 
@@ -66,20 +66,20 @@ function SuppliersPage() {
 	const { run: handleDelete, isPending: deletingSupplier } = useWorkflowAction<SupplierDto>({
 		availability: () => canDelete,
 		confirmation: (supplier) => ({
-			title: 'Delete supplier?',
-			description: `Remove "${supplier.name}" (${supplier.code}) from the supplier list? Existing records are retained.`,
-			confirmLabel: 'Delete',
+			title: 'Hapus pemasok?',
+			description: `Hapus "${supplier.name}" (${supplier.code}) dari daftar pemasok? Data yang sudah ada tetap disimpan.`,
+			confirmLabel: 'Hapus',
 			variant: 'destructive',
 		}),
 		execute: (supplier) => removeMut.mutateAsync({ id: supplier.id }),
-		successMessage: 'Supplier deleted successfully.',
+		successMessage: 'Pemasok berhasil dihapus.',
 	})
 
 	const handlePricing = useCallback(
 		async (supplier: SupplierDto) => {
 			if (!canRead) return
 			await formDialog({
-				title: 'Material Pricing',
+				title: 'Harga Bahan',
 				description: `Manage material pricing for ${supplier.name}.`,
 				className: 'max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-4xl',
 				// oxlint-disable-next-line react/no-unstable-nested-components
@@ -91,7 +91,7 @@ function SuppliersPage() {
 						/>
 						<div className="flex justify-end">
 							<Button size="sm" onClick={() => close(true)}>
-								Done
+								Selesai
 							</Button>
 						</div>
 					</div>
@@ -109,7 +109,7 @@ function SuppliersPage() {
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (supplier) => [
 					canEdit && {
-						label: 'Edit',
+						label: 'Ubah',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
@@ -118,12 +118,12 @@ function SuppliersPage() {
 							}),
 					},
 					canRead && {
-						label: 'Pricing',
+						label: 'Harga',
 						icon: <PackageIcon className="size-4" />,
 						onClick: () => handlePricing(supplier),
 					},
 					canDelete && {
-						label: 'Delete',
+						label: 'Hapus',
 						icon: <TrashIcon className="size-4" />,
 						onClick: () => handleDelete(supplier),
 						variant: 'destructive' as const,
@@ -149,27 +149,27 @@ function SuppliersPage() {
 
 	return (
 		<EntityListPage
-			title="Suppliers"
-			description="Manage suppliers and their material pricing."
+			title="Pemasok"
+			description="Kelola pemasok dan harga bahannya."
 			createAction={
 				<PermissionGate permission="supplier.create">
 					<Button size="sm" onClick={() => navigate({ to: '/master/suppliers/new' })}>
 						<PlusIcon className="size-4" />
-						Add Supplier
+						Tambah Pemasok
 					</Button>
 				</PermissionGate>
 			}
 			list={list}
 			emptyState={{
-				title: 'No suppliers yet',
-				description: 'Get started by creating your first supplier.',
+				title: 'Belum ada pemasok',
+				description: 'Mulai dengan membuat pemasok pertama Anda.',
 			}}
-			emptyMessage="No suppliers match your filters."
+			emptyMessage="Tidak ada pemasok yang cocok dengan filter Anda."
 			toolbar={
 				<TableToolbar
 					searchValue={list.globalFilter}
 					onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
-					searchPlaceholder="Search suppliers..."
+					searchPlaceholder="Cari pemasok..."
 					filters={[
 						{
 							key: 'isActive',
@@ -178,10 +178,10 @@ function SuppliersPage() {
 							onChange: (value) =>
 								list.setFilters({ isActive: value !== undefined ? Number(value) : undefined }),
 							options: [
-								{ label: 'Active', value: '1' },
-								{ label: 'Inactive', value: '0' },
+								{ label: 'Aktif', value: '1' },
+								{ label: 'Nonaktif', value: '0' },
 							],
-							allLabel: 'All status',
+							allLabel: 'Semua status',
 						},
 					]}
 				/>

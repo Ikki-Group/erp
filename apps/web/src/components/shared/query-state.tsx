@@ -7,7 +7,7 @@ import { PageError } from './page-error'
 import { PageSkeleton } from './page-skeleton'
 
 const DEFAULT_LOADING = <PageSkeleton />
-const DEFAULT_EMPTY = <EmptyState title="No data yet" />
+const DEFAULT_EMPTY = <EmptyState title="Belum ada data" />
 
 export interface QueryStateProps<TData> {
 	query: Pick<UseQueryResult<TData>, 'data' | 'isLoading' | 'isError' | 'error' | 'refetch'>
@@ -48,5 +48,5 @@ export function QueryState<TData>({
 }
 
 function normalizeError(error: unknown): Error {
-	return error instanceof Error ? error : new Error('An unexpected error occurred.')
+	return error instanceof Error ? error : new Error('Terjadi kesalahan tak terduga.')
 }

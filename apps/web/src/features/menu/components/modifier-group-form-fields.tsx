@@ -23,7 +23,7 @@ export function ModifierGroupFormFields({ form, scope, readOnly }: ModifierGroup
 		<div className="grid gap-4">
 			{isCurrent ? (
 				<InlineAlert variant="info">
-					Modifier group ini dikelola untuk lokasi <strong>{location.name}</strong>.
+					Grup modifier ini dikelola untuk lokasi <strong>{location.name}</strong>.
 				</InlineAlert>
 			) : (
 				<InlineAlert variant="warning" title="Lokasi aktif telah berubah">
@@ -44,7 +44,7 @@ export function ModifierGroupFormFields({ form, scope, readOnly }: ModifierGroup
 			)}
 			<fieldset disabled={readOnly} className="contents">
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Nama Group" placeholder="e.g. Level Gula, Ukuran" />}
+					{(field) => <field.TextField label="Nama Grup" placeholder="mis. Level Gula, Ukuran" />}
 				</form.AppField>
 
 				<div className="grid gap-4 sm:grid-cols-2">
@@ -59,11 +59,15 @@ export function ModifierGroupFormFields({ form, scope, readOnly }: ModifierGroup
 						</form.AppField>
 					</div>
 					<form.AppField name="minSelect">
-						{(field) => <field.NumberField label="Min Pilih" min={0} />}
+						{(field) => <field.NumberField label="Min. Pilih" min={0} />}
 					</form.AppField>
 					<form.AppField name="maxSelect">
 						{(field) => (
-							<field.NumberField label="Max Pilih" min={1} description="Kosongkan = tanpa batas" />
+							<field.NumberField
+								label="Maks. Pilih"
+								min={1}
+								description="Kosongkan = tanpa batas"
+							/>
 						)}
 					</form.AppField>
 				</div>
@@ -86,7 +90,7 @@ export function ModifierGroupFormFields({ form, scope, readOnly }: ModifierGroup
 							renderFields={(_, index) => (
 								<>
 									<form.AppField name={`options[${index}].name`}>
-										{(field) => <field.TextField label="Nama" placeholder="e.g. Reguler" />}
+										{(field) => <field.TextField label="Nama" placeholder="mis. Reguler" />}
 									</form.AppField>
 									<form.AppField name={`options[${index}].priceAdjustment`}>
 										{(field) => (
@@ -103,7 +107,7 @@ export function ModifierGroupFormFields({ form, scope, readOnly }: ModifierGroup
 									</form.AppField>
 									<div className="flex flex-wrap gap-x-6 gap-y-2 sm:col-span-2 lg:col-span-3">
 										<form.AppField name={`options[${index}].isDefault`}>
-											{(field) => <field.SwitchField label="Default" />}
+											{(field) => <field.SwitchField label="Bawaan" />}
 										</form.AppField>
 										<form.AppField name={`options[${index}].isActive`}>
 											{(field) => <field.SwitchField label="Aktif" />}

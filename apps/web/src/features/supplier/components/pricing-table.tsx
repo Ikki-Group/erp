@@ -37,6 +37,11 @@ interface PricingLabelProps {
 	retry: () => void
 }
 
+const KIND_LABELS: Record<PricingLabelProps['kind'], string> = {
+	Material: 'Bahan',
+	UoM: 'Satuan',
+}
+
 function PricingLabel({ id, kind, record, isError, isFetching, retry }: PricingLabelProps) {
 	return (
 		<div className="min-w-0 space-y-1">
@@ -46,7 +51,10 @@ function PricingLabel({ id, kind, record, isError, isFetching, retry }: PricingL
 					<TextCell value={record.code} mono muted={kind === 'Material'} />
 				</>
 			) : (
-				<TextCell value={`${kind} #${id} — ${isError ? 'unavailable' : 'loading…'}`} muted />
+				<TextCell
+					value={`${KIND_LABELS[kind]} #${id} — ${isError ? 'tidak tersedia' : 'memuat…'}`}
+					muted
+				/>
 			)}
 			{isError && (
 				<Button
@@ -54,10 +62,10 @@ function PricingLabel({ id, kind, record, isError, isFetching, retry }: PricingL
 					size="sm"
 					variant="outline"
 					disabled={isFetching}
-					aria-label={`Retry ${kind.toLowerCase()} #${id}`}
+					aria-label={`Coba lagi ${KIND_LABELS[kind].toLowerCase()} #${id}`}
 					onClick={retry}
 				>
-					Retry label
+					Muat ulang label
 				</Button>
 			)}
 		</div>
@@ -101,13 +109,13 @@ function PricingUom({ id }: { id: number }) {
 const col = createEntityColumns<SupplierMaterialDto>()
 const baseColumns = [
 	col.text('materialId', {
-		header: 'Material',
+		header: 'Bahan',
 		size: 240,
 		enableSorting: false,
 		cell: ({ row }) => <PricingMaterial id={row.original.materialId} />,
 	}),
 	col.text('unitPrice', {
-		header: rightAlignedHeader('Unit Price'),
+		header: rightAlignedHeader('Harga Satuan'),
 		size: 170,
 		enableSorting: false,
 		cell: ({ row }) => (
@@ -119,13 +127,13 @@ const baseColumns = [
 		),
 	}),
 	col.text('uomId', {
-		header: 'UoM',
+		header: 'Satuan',
 		size: 100,
 		enableSorting: false,
 		cell: ({ row }) => <PricingUom id={row.original.uomId} />,
 	}),
 	col.text('minOrderQty', {
-		header: rightAlignedHeader('Min Order Qty'),
+		header: rightAlignedHeader('Min. Jumlah Pesanan'),
 		size: 140,
 		enableSorting: false,
 		cell: ({ row }) =>
@@ -157,7 +165,7 @@ interface PricingTableProps {
 /** Each supplier opens a new local pagination session; no dialog state enters the route URL. */
 export function PricingTable({ supplierId, permissions }: PricingTableProps) {
 	if (!permissions.read)
-		return <p role="alert">You do not have permission to view supplier pricing.</p>
+		return <p role="alert">Anda tidak memiliki izin untuk melihat harga pemasok.</p>
 	return <SupplierPricingList key={supplierId} supplierId={supplierId} permissions={permissions} />
 }
 
@@ -185,10 +193,10 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 			setEditing(true)
 			try {
 				await formDialog({
-					title: pricing ? 'Edit Pricing' : 'Add Material Pricing',
+					title: pricing ? 'Ubah Harga' : 'Tambah Harga Bahan',
 					description: pricing
-						? 'Update the price and ordering unit for this material.'
-						: 'Set the price for a material from this supplier.',
+						? 'Perbarui harga dan satuan pemesanan untuk bahan ini.'
+						: 'Tetapkan harga bahan dari pemasok ini.',
 					className: 'max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg',
 					// oxlint-disable-next-line react/no-unstable-nested-components
 					content: ({ close }) => (
@@ -213,9 +221,9 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 	const { run: handleRemove, isPending: removing } = useWorkflowAction<SupplierMaterialDto>({
 		availability: () => permissions.read && canDelete && !editorOpen.current,
 		confirmation: (pricing) => ({
-			title: 'Remove pricing?',
-			description: `Remove the price for material #${pricing.materialId}? This action cannot be undone.`,
-			confirmLabel: 'Remove',
+			title: 'Hapus harga?',
+			description: `Hapus harga untuk bahan #${pricing.materialId}? Tindakan ini tidak dapat dibatalkan.`,
+			confirmLabel: 'Hapus',
 			variant: 'destructive',
 		}),
 		execute: async (pricing) => {
@@ -226,7 +234,7 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 				)
 			}
 		},
-		successMessage: 'Pricing removed.',
+		successMessage: 'Harga berhasil dihapus.',
 	})
 
 	const columns = useMemo(
@@ -234,17 +242,17 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 			[
 				...baseColumns,
 				col.actions({
-					label: 'Pricing actions',
+					label: 'Tindakan harga',
 					// oxlint-disable-next-line react/no-unstable-nested-components
 					getItems: (pricing) => [
 						canUpdate && {
-							label: 'Edit',
+							label: 'Ubah',
 							icon: <EditIcon className="size-4" />,
 							onClick: () => handleEdit(pricing),
 							disabled: editing || removing,
 						},
 						canDelete && {
-							label: 'Remove',
+							label: 'Hapus',
 							icon: <TrashIcon className="size-4" />,
 							onClick: () => handleRemove(pricing),
 							variant: 'destructive' as const,
@@ -265,19 +273,19 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 	return (
 		<div className="min-w-0 space-y-3" aria-busy={list.isRefreshing}>
 			<div className="flex flex-wrap items-center justify-between gap-2">
-				<p className="text-xs text-muted-foreground">Prices and minimum quantities by material.</p>
+				<p className="text-xs text-muted-foreground">Harga dan jumlah minimum per bahan.</p>
 				{canCreate && (
 					<Button size="sm" onClick={() => handleEdit()} disabled={editing || removing}>
 						<PlusIcon className="size-4" />
-						Add Pricing
+						Tambah Harga
 					</Button>
 				)}
 			</div>
 			{list.state === 'refresh-error' && (
 				<div role="alert" className="flex flex-wrap items-center justify-between gap-2 text-sm">
-					<p>Could not refresh pricing. Showing the last loaded results.</p>
+					<p>Gagal memuat ulang harga. Menampilkan hasil terakhir yang dimuat.</p>
 					<Button size="sm" variant="outline" disabled={list.isRefreshing} onClick={list.retry}>
-						Retry
+						Coba lagi
 					</Button>
 				</div>
 			)}
@@ -291,10 +299,10 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 				recordCount={list.recordCount}
 				isLoading={list.state === 'initial-loading'}
 				isError={list.state === 'initial-error'}
-				errorTitle="Could not load pricing"
-				errorMessage="Try again to load this supplier's material pricing."
+				errorTitle="Gagal memuat harga"
+				errorMessage="Coba lagi untuk memuat harga bahan pemasok ini."
 				onRetry={list.retry}
-				emptyMessage="No pricing entries for this supplier."
+				emptyMessage="Belum ada data harga untuk pemasok ini."
 				showPagination={false}
 			/>
 			<div className="flex flex-wrap items-center justify-end gap-2">
@@ -304,10 +312,10 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 					disabled={search.page <= 1}
 					onClick={() => setSearch((current) => ({ ...current, page: current.page - 1 }))}
 				>
-					Previous
+					Sebelumnya
 				</Button>
 				<span className="text-xs text-muted-foreground">
-					Page {search.page} of {totalPages}
+					Halaman {search.page} dari {totalPages}
 				</span>
 				<Button
 					size="sm"
@@ -315,7 +323,7 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 					disabled={search.page >= totalPages}
 					onClick={() => setSearch((current) => ({ ...current, page: current.page + 1 }))}
 				>
-					Next
+					Berikutnya
 				</Button>
 			</div>
 		</div>

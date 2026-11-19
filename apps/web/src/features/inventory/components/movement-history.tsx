@@ -131,7 +131,7 @@ export function MovementHistory({ materialId, locationId }: MovementHistoryProps
 		return (
 			<EmptyState
 				title="Belum ada riwayat pergerakan"
-				description="Riwayat akan muncul setelah ada transaksi stok untuk material ini."
+				description="Riwayat akan muncul setelah ada transaksi stok untuk bahan ini."
 			/>
 		)
 	}

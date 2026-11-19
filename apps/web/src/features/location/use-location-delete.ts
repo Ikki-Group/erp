@@ -13,16 +13,16 @@ export function useLocationDelete({
 	const action = useWorkflowAction<LocationDto>({
 		availability: (location) => canDelete && location.isActive,
 		confirmation: (location) => ({
-			title: 'Deactivate location?',
-			description: `Deactivate "${location.name}" and remove it from active locations? Its history and existing records are retained.`,
-			confirmLabel: 'Deactivate',
+			title: 'Nonaktifkan lokasi?',
+			description: `Nonaktifkan "${location.name}" dan keluarkan dari lokasi aktif? Riwayat dan data yang ada tetap disimpan.`,
+			confirmLabel: 'Nonaktifkan',
 			variant: 'destructive',
 		}),
 		execute: async (location) => {
 			await locationResource.remove.fetch({ id: location.id })
 			await onDeleted?.()
 		},
-		successMessage: 'Location deactivated successfully.',
+		successMessage: 'Lokasi berhasil dinonaktifkan.',
 	})
 
 	return { ...action, canDelete }

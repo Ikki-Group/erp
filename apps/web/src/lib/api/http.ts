@@ -47,7 +47,7 @@ async function normalizeError(error: unknown, response?: Response): Promise<neve
 		}
 
 		if (isErrorPayload(body)) throw ApiError.fromPayload(body, response.status)
-		throw new ApiError(response.statusText || 'Request failed', { status: response.status })
+		throw new ApiError(response.statusText || 'Permintaan gagal', { status: response.status })
 	}
 
 	// Preserve abort semantics (query cancellation on unmount/refetch)
@@ -56,14 +56,14 @@ async function normalizeError(error: unknown, response?: Response): Promise<neve
 	}
 
 	if (error instanceof TypeError && error.message.includes('fetch')) {
-		throw new ApiError('Network error — unable to reach the server.', { cause: error })
+		throw new ApiError('Kesalahan jaringan — tidak dapat menjangkau server.', { cause: error })
 	}
 
 	if (error instanceof Error) {
 		throw new ApiError(error.message, { cause: error })
 	}
 
-	throw new ApiError('An unknown error occurred.', { cause: error })
+	throw new ApiError('Terjadi kesalahan yang tidak diketahui.', { cause: error })
 }
 
 function isErrorPayload(body: unknown): body is ApiErrorPayload {

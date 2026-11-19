@@ -48,7 +48,7 @@ const baseColumns = [
 		cell: ({ getValue }) => <TextCell value={getValue()} mono muted />,
 	}),
 	col.accessor('materialName', {
-		header: 'Material',
+		header: 'Bahan',
 		size: 220,
 		cell: ({ getValue }) => <TextCell value={getValue()} truncate className="font-medium" />,
 	}),

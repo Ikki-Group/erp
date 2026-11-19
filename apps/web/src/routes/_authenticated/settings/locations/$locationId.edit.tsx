@@ -37,11 +37,11 @@ function EditLocationForm({ location, onDone }: { location: LocationDto; onDone:
 
 	return (
 		<EntityEditorPage
-			title="Edit Location"
+			title="Ubah Lokasi"
 			description={`Update details for ${location.name}.`}
 			form={form}
 			className="max-w-5xl"
-			submitLabel="Save Changes"
+			submitLabel="Simpan Perubahan"
 			onCancel={onDone}
 		>
 			<LocationFormFields form={form} />

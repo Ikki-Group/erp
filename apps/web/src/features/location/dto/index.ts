@@ -8,8 +8,8 @@ export const LocationTypeEnum = z.enum(['store', 'warehouse'])
 export type LocationTypeEnum = z.infer<typeof LocationTypeEnum>
 
 export const LOCATION_TYPE_OPTIONS = [
-	{ label: 'Store', value: 'store' },
-	{ label: 'Warehouse', value: 'warehouse' },
+	{ label: 'Toko', value: 'store' },
+	{ label: 'Gudang', value: 'warehouse' },
 ] as const
 
 // ─── Response ───

@@ -39,7 +39,7 @@ const TransferLineSchema = z.object({
 		.int()
 		.positive()
 		.nullable()
-		.refine((v) => v !== null, { error: 'Material wajib dipilih' }),
+		.refine((v) => v !== null, { error: 'Bahan wajib dipilih' }),
 	qty: z
 		.string()
 		.trim()
@@ -174,8 +174,8 @@ export function TransferStepLines({ form }: { form: TransferWizardForm }) {
 							<form.AppField name={`lines[${index}].materialId`}>
 								{() => (
 									<MaterialLookupField
-										label="Material"
-										placeholder="Pilih material"
+										label="Bahan"
+										placeholder="Pilih bahan"
 										onSelect={(material) => {
 											if (material?.baseUomId)
 												form.setFieldValue(`lines[${index}].uomId`, material.baseUomId)
@@ -256,7 +256,7 @@ export function TransferStepReview({ form }: { form: TransferWizardForm }) {
 				<table className="w-full text-sm">
 					<thead className="bg-muted/50">
 						<tr>
-							<th className="px-3 py-2 text-left font-medium">Material</th>
+							<th className="px-3 py-2 text-left font-medium">Bahan</th>
 							<th className="px-3 py-2 text-right font-medium">Jumlah</th>
 							<th className="px-3 py-2 text-left font-medium">Satuan</th>
 						</tr>
@@ -277,7 +277,9 @@ export function TransferStepReview({ form }: { form: TransferWizardForm }) {
 				</table>
 			</div>
 
-			<form.FormError />
+			<form.AppForm>
+				<form.FormError />
+			</form.AppForm>
 		</div>
 	)
 }

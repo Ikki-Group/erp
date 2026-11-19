@@ -16,14 +16,14 @@ import { RoleLookupField } from './role-lookup-field'
 const scopeOptions = [
 	{
 		value: 'global' as const,
-		label: 'All locations',
-		description: 'Use this for central or company-wide responsibilities.',
+		label: 'Semua lokasi',
+		description: 'Gunakan ini untuk tanggung jawab pusat atau seluruh perusahaan.',
 		Icon: Globe2Icon,
 	},
 	{
 		value: 'per_location' as const,
-		label: 'Selected locations',
-		description: 'Choose one location for each assignment.',
+		label: 'Lokasi terpilih',
+		description: 'Pilih satu lokasi untuk setiap penugasan.',
 		Icon: MapPinIcon,
 	},
 ]
@@ -38,28 +38,28 @@ export const UserFormFields = withForm({
 					<form.AppField name="username">
 						{(field) => (
 							<field.TextField
-								label="Username"
-								placeholder="e.g. john_doe"
+								label="Nama pengguna"
+								placeholder="mis. john_doe"
 								disabled={mode === 'edit'}
 							/>
 						)}
 					</form.AppField>
 					<form.AppField name="email">
-						{(field) => <field.TextField label="Email" placeholder="user@example.com" />}
+						{(field) => <field.TextField label="Email" placeholder="pengguna@contoh.com" />}
 					</form.AppField>
 				</div>
 
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Full name" placeholder="Full name" />}
+					{(field) => <field.TextField label="Nama lengkap" placeholder="Nama lengkap" />}
 				</form.AppField>
 
 				{mode === 'create' && (
 					<form.AppField name="password">
 						{(field) => (
 							<field.TextField
-								label="Password"
+								label="Kata sandi"
 								type="password"
-								placeholder="Minimum 8 characters"
+								placeholder="Minimal 8 karakter"
 							/>
 						)}
 					</form.AppField>
@@ -88,16 +88,17 @@ export const UserFormFields = withForm({
 													<ShieldCheckIcon className="size-4" />
 												</div>
 												<div>
-													<h3 className="font-medium tracking-tight">Access and roles</h3>
+													<h3 className="font-medium tracking-tight">Akses dan peran</h3>
 													<p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
-														Choose how this user receives access, then add the roles they need.
+														Pilih bagaimana pengguna ini menerima akses, lalu tambahkan peran yang
+														dibutuhkan.
 													</p>
 												</div>
 											</div>
 											<Badge variant={assignments.length > 0 ? 'secondary' : 'outline'}>
 												{assignments.length === 0
-													? 'No access yet'
-													: `${assignments.length} ${isGlobal ? 'role' : 'location'}${assignments.length === 1 ? '' : 's'}`}
+													? 'Belum ada akses'
+													: `${assignments.length} ${isGlobal ? 'peran' : 'lokasi'}`}
 											</Badge>
 										</div>
 
@@ -106,14 +107,14 @@ export const UserFormFields = withForm({
 										<div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_220px]">
 											<div className="min-w-0">
 												<fieldset>
-													<legend className="text-sm font-medium">Access scope</legend>
+													<legend className="text-sm font-medium">Cakupan akses</legend>
 													<p className="mt-1 text-xs text-muted-foreground">
-														A user can have either company-wide access or location-specific access.
+														Pengguna dapat memiliki akses seluruh perusahaan atau akses per lokasi.
 													</p>
 													<RadioGroup
 														value={selectedMode}
 														onValueChange={(value) => changeMode(value as AssignmentMode)}
-														aria-label="Access scope"
+														aria-label="Cakupan akses"
 														className="mt-3 grid gap-2 sm:grid-cols-2"
 													>
 														{scopeOptions.map(({ value, label, description, Icon }) => (
@@ -141,26 +142,26 @@ export const UserFormFields = withForm({
 												<div className="mt-6 flex items-end justify-between gap-3">
 													<div>
 														<h4 className="font-medium tracking-tight">
-															{isGlobal ? 'Global roles' : 'Location access'}
+															{isGlobal ? 'Peran global' : 'Akses lokasi'}
 														</h4>
 														<p className="mt-1 text-xs text-muted-foreground">
 															{isGlobal
-																? 'Each role applies everywhere.'
-																: 'Each location can appear only once.'}
+																? 'Setiap peran berlaku di semua lokasi.'
+																: 'Setiap lokasi hanya dapat muncul sekali.'}
 														</p>
 													</div>
 													<Button type="button" size="sm" variant="outline" onClick={addAssignment}>
 														<PlusIcon className="size-3.5" />
-														Add {isGlobal ? 'role' : 'location'}
+														Tambah {isGlobal ? 'peran' : 'lokasi'}
 													</Button>
 												</div>
 
 												{assignments.length === 0 ? (
 													<div className="mt-3 rounded-lg border border-dashed bg-muted/30 px-4 py-7 text-center">
-														<p className="text-sm font-medium">No access assigned</p>
+														<p className="text-sm font-medium">Belum ada akses ditugaskan</p>
 														<p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
-															Add a {isGlobal ? 'role' : 'location'} to let this user access
-															protected resources.
+															Tambah {isGlobal ? 'peran' : 'lokasi'} agar pengguna ini dapat
+															mengakses sumber daya yang dilindungi.
 														</p>
 													</div>
 												) : (
@@ -174,7 +175,7 @@ export const UserFormFields = withForm({
 																	<form.AppField name={`assignments[${index}].locationId`}>
 																		{() => (
 																			<LocationLookupField
-																				label="Location"
+																				label="Lokasi"
 																				excludeIds={assignments.flatMap((other) =>
 																					other.clientKey !== assignment.clientKey &&
 																					other.locationId !== null
@@ -189,7 +190,7 @@ export const UserFormFields = withForm({
 																<form.AppField name={`assignments[${index}].roleId`}>
 																	{() => (
 																		<RoleLookupField
-																			label="Role"
+																			label="Peran"
 																			excludeIds={
 																				isGlobal
 																					? assignments.flatMap((other) =>
@@ -210,7 +211,7 @@ export const UserFormFields = withForm({
 																	variant="ghost"
 																	className="mt-6 justify-self-end text-muted-foreground hover:text-destructive"
 																	onClick={() => assignmentsField.removeValue(index)}
-																	aria-label={`Remove ${isGlobal ? 'role' : 'location'} assignment ${index + 1}`}
+																	aria-label={`Hapus penugasan ${isGlobal ? 'peran' : 'lokasi'} ${index + 1}`}
 																>
 																	<TrashIcon />
 																</Button>
@@ -221,7 +222,7 @@ export const UserFormFields = withForm({
 											</div>
 
 											<aside className="h-fit rounded-lg bg-muted/40 p-4 lg:mt-6">
-												<p className="text-xs font-medium text-muted-foreground">Access summary</p>
+												<p className="text-xs font-medium text-muted-foreground">Ringkasan akses</p>
 												<div className="mt-3 flex items-center gap-2">
 													{isGlobal ? (
 														<Globe2Icon className="size-4 text-primary" />
@@ -229,24 +230,24 @@ export const UserFormFields = withForm({
 														<MapPinIcon className="size-4 text-primary" />
 													)}
 													<span className="text-sm font-medium">
-														{isGlobal ? 'Company-wide' : 'Location-specific'}
+														{isGlobal ? 'Seluruh perusahaan' : 'Khusus lokasi'}
 													</span>
 												</div>
 												<p className="mt-2 text-xs leading-relaxed text-muted-foreground">
 													{isGlobal
-														? 'Every selected role applies across all locations.'
-														: 'Each selected location receives the role shown in its row.'}
+														? 'Setiap peran terpilih berlaku di semua lokasi.'
+														: 'Setiap lokasi terpilih mendapat peran yang tampil di barisnya.'}
 												</p>
 												<Separator className="my-4" />
 												<div className="grid gap-2 text-xs">
 													<div className="flex items-center justify-between gap-2">
-														<span className="text-muted-foreground">Assignments</span>
+														<span className="text-muted-foreground">Penugasan</span>
 														<span className="font-medium tabular-nums">{assignments.length}</span>
 													</div>
 													<div className="flex items-center justify-between gap-2">
-														<span className="text-muted-foreground">Scope</span>
+														<span className="text-muted-foreground">Cakupan</span>
 														<span className="font-medium">
-															{isGlobal ? 'Global' : 'Per location'}
+															{isGlobal ? 'Global' : 'Per lokasi'}
 														</span>
 													</div>
 												</div>
@@ -261,7 +262,7 @@ export const UserFormFields = withForm({
 
 				<form.AppField name="isActive">
 					{(field) => (
-						<field.SwitchField label="Active" description="Inactive users cannot log in." />
+						<field.SwitchField label="Aktif" description="Pengguna nonaktif tidak dapat masuk." />
 					)}
 				</form.AppField>
 				<form.Subscribe
@@ -279,7 +280,7 @@ export const UserFormFields = withForm({
 									void form.handleSubmit()
 								}}
 							>
-								Retry save
+								Coba lagi simpan
 							</Button>
 						) : null
 					}

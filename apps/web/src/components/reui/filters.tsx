@@ -127,61 +127,61 @@ export const DEFAULT_I18N: FilterI18nConfig = {
 	// UI Labels
 	addFilter: 'Filter',
 	searchFields: 'Filter...',
-	noFieldsFound: 'No filters found.',
-	noResultsFound: 'No results found.',
-	select: 'Select...',
-	true: 'True',
-	false: 'False',
+	noFieldsFound: 'Filter tidak ditemukan.',
+	noResultsFound: 'Tidak ada hasil ditemukan.',
+	select: 'Pilih...',
+	true: 'Ya',
+	false: 'Tidak',
 	min: 'Min',
 	max: 'Max',
-	to: 'to',
-	typeAndPressEnter: 'Type and press Enter to add tag',
-	selected: 'selected',
-	selectedCount: 'selected',
+	to: 'sampai',
+	typeAndPressEnter: 'Ketik lalu tekan Enter untuk menambah tag',
+	selected: 'dipilih',
+	selectedCount: 'dipilih',
 	percent: '%',
 	defaultCurrency: '$',
 	defaultColor: '#000000',
-	addFilterTitle: 'Add filter',
-	loadingOptions: 'Loading...',
-	errorLoadingOptions: 'Failed to load options.',
+	addFilterTitle: 'Tambah filter',
+	loadingOptions: 'Memuat...',
+	errorLoadingOptions: 'Gagal memuat opsi.',
 
 	// Operators
 	operators: {
-		is: 'is',
-		isNot: 'is not',
-		isAnyOf: 'is any of',
-		isNotAnyOf: 'is not any of',
-		includesAll: 'includes all',
-		excludesAll: 'excludes all',
-		before: 'before',
-		after: 'after',
-		between: 'between',
-		notBetween: 'not between',
-		contains: 'contains',
-		notContains: 'does not contain',
-		startsWith: 'starts with',
-		endsWith: 'ends with',
-		isExactly: 'is exactly',
-		equals: 'equals',
-		notEquals: 'not equals',
-		greaterThan: 'greater than',
-		lessThan: 'less than',
-		overlaps: 'overlaps',
-		includes: 'includes',
-		excludes: 'excludes',
-		includesAllOf: 'includes all of',
-		includesAnyOf: 'includes any of',
-		empty: 'is empty',
-		notEmpty: 'is not empty',
+		is: 'adalah',
+		isNot: 'bukan',
+		isAnyOf: 'adalah salah satu dari',
+		isNotAnyOf: 'bukan salah satu dari',
+		includesAll: 'mencakup semua',
+		excludesAll: 'mengecualikan semua',
+		before: 'sebelum',
+		after: 'setelah',
+		between: 'antara',
+		notBetween: 'tidak antara',
+		contains: 'mengandung',
+		notContains: 'tidak mengandung',
+		startsWith: 'dimulai dengan',
+		endsWith: 'diakhiri dengan',
+		isExactly: 'tepat sama dengan',
+		equals: 'sama dengan',
+		notEquals: 'tidak sama dengan',
+		greaterThan: 'lebih besar dari',
+		lessThan: 'lebih kecil dari',
+		overlaps: 'tumpang tindih',
+		includes: 'mencakup',
+		excludes: 'mengecualikan',
+		includesAllOf: 'mencakup semua dari',
+		includesAnyOf: 'mencakup salah satu dari',
+		empty: 'kosong',
+		notEmpty: 'tidak kosong',
 	},
 
 	// Placeholders
 	placeholders: {
-		enterField: (fieldType: string) => `Enter ${fieldType}...`,
-		selectField: 'Select...',
-		searchField: (fieldName: string) => `Search ${fieldName.toLowerCase()}...`,
-		enterKey: 'Enter key...',
-		enterValue: 'Enter value...',
+		enterField: (fieldType: string) => `Masukkan ${fieldType}...`,
+		selectField: 'Pilih...',
+		searchField: (fieldName: string) => `Cari ${fieldName.toLowerCase()}...`,
+		enterKey: 'Masukkan kunci...',
+		enterValue: 'Masukkan nilai...',
 	},
 
 	// Helper functions
@@ -191,10 +191,10 @@ export const DEFAULT_I18N: FilterI18nConfig = {
 
 	// Validation
 	validation: {
-		invalidEmail: 'Invalid email format',
-		invalidUrl: 'Invalid URL format',
-		invalidTel: 'Invalid phone format',
-		invalid: 'Invalid input format',
+		invalidEmail: 'Format email tidak valid',
+		invalidUrl: 'Format URL tidak valid',
+		invalidTel: 'Format telepon tidak valid',
+		invalid: 'Format masukan tidak valid',
 	},
 }
 
@@ -360,10 +360,7 @@ function FilterInput<T = unknown>({
 				}
 				onBlur={handleBlur}
 				onKeyDown={handleKeyDown}
-				className={cn(
-					context.size == 'sm' && 'h-7! text-xs',
-					context.size == 'lg' && 'h-8!',
-				)}
+				className={cn(context.size == 'sm' && 'h-7! text-xs', context.size == 'lg' && 'h-8!')}
 				{...props}
 			/>
 			{!isValid && validationMessage && (

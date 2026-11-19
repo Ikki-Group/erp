@@ -18,7 +18,7 @@ let accessorWired = false
 // ─── Context Shape ───
 
 interface LocationContextValue {
-	/** Currently active location, or null for "All Locations" (consolidated view). */
+	/** Currently active location, or null for "Semua Lokasi" (consolidated view). */
 	activeLocation: AuthLocation | null
 	/** Whether the user is viewing consolidated (all-location) mode. */
 	isConsolidated: boolean

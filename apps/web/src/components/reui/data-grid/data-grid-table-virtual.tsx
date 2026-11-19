@@ -578,8 +578,8 @@ function DataGridTableVirtual<TData extends object>({
 	} = virtualizerOptions ?? {}
 
 	const isVirtualizationEnabled = virtualizerOptions?.enabled !== false
-	const loadingMoreMessage = props.fetchingMoreMessage || props.loadingMessage || 'Loading...'
-	const allRowsLoadedMessage = props.allRowsLoadedMessage || 'All records loaded'
+	const loadingMoreMessage = props.fetchingMoreMessage || props.loadingMessage || 'Memuat...'
+	const allRowsLoadedMessage = props.allRowsLoadedMessage || 'Semua data telah dimuat'
 
 	const handleViewportRef = useCallback((node: HTMLDivElement | null) => {
 		setViewportElements({

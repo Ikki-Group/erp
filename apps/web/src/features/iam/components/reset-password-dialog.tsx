@@ -8,7 +8,7 @@ import { userResource } from '../api.ts'
 import { UserResetPasswordDto } from '../dto/index.ts'
 
 const ResetPasswordSchema = z.object({
-	password: z.string().min(8, 'Password must be at least 8 characters').max(100),
+	password: z.string().min(8, 'Kata sandi minimal 8 karakter').max(100),
 })
 
 interface ResetPasswordFormBodyProps {
@@ -22,7 +22,7 @@ function ResetPasswordFormBody({ userId, close }: ResetPasswordFormBodyProps) {
 		schema: ResetPasswordSchema,
 		mutation: userResource.resetPassword.mutationOptions(),
 		toPayload: (values) => UserResetPasswordDto.parse({ id: userId, password: values.password }),
-		successMessage: 'Password reset successfully.',
+		successMessage: 'Kata sandi berhasil direset.',
 		onSaved: () => close(true),
 	})
 
@@ -32,16 +32,16 @@ function ResetPasswordFormBody({ userId, close }: ResetPasswordFormBodyProps) {
 				<form.AppField name="password">
 					{(field) => (
 						<field.TextField
-							label="New password"
+							label="Kata sandi baru"
 							type="password"
 							autoComplete="new-password"
-							placeholder="Minimum 8 characters"
+							placeholder="Minimal 8 karakter"
 							autoFocus
 						/>
 					)}
 				</form.AppField>
 				<form.FormError />
-				<FormDialogFooter onCancel={() => close(false)} submitLabel="Reset password" />
+				<FormDialogFooter onCancel={() => close(false)} submitLabel="Reset kata sandi" />
 			</FormRoot>
 		</form.AppForm>
 	)
@@ -50,8 +50,8 @@ function ResetPasswordFormBody({ userId, close }: ResetPasswordFormBodyProps) {
 /** Opens a focused reset flow; owns success feedback and never changes the profile form. */
 export async function resetUserPassword(user: { id: number; name: string }): Promise<boolean> {
 	return formDialog({
-		title: 'Reset Password',
-		description: `Set a new password for ${user.name}. They will be signed out of all active sessions.`,
+		title: 'Reset Kata Sandi',
+		description: `Tetapkan kata sandi baru untuk ${user.name}. Semua sesi aktifnya akan dikeluarkan.`,
 		// oxlint-disable-next-line react/no-unstable-nested-components
 		content: ({ close }) => <ResetPasswordFormBody userId={user.id} close={close} />,
 	})

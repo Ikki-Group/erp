@@ -35,7 +35,7 @@ export function useUserEditor({
 		schema: userFormSchema(mode),
 		mutation: { mutationFn: session.save, retry: false },
 		toPayload: (values: UserFormValues) => values,
-		successMessage: user ? 'User updated successfully.' : 'User created successfully.',
+		successMessage: user ? 'Pengguna berhasil diperbarui.' : 'Pengguna berhasil dibuat.',
 		onSaved,
 	})
 

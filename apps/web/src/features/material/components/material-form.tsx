@@ -24,8 +24,8 @@ export interface MaterialFormValues {
 
 /** Form state remains separate from the wire DTO so incomplete inputs have helpful errors. */
 const MaterialFormSchema = z.object({
-	code: z.string().trim().min(1, 'Code is required').max(50),
-	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
+	code: z.string().trim().min(1, 'Kode wajib diisi').max(50),
+	name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(255),
 	type: MaterialTypeEnum,
 	categoryId: z.number().int().positive().nullable(),
 	baseUomId: z
@@ -33,14 +33,14 @@ const MaterialFormSchema = z.object({
 		.int()
 		.positive()
 		.nullable()
-		.refine((v) => v !== null, { error: 'Base UoM is required' }),
+		.refine((v) => v !== null, { error: 'Satuan dasar wajib diisi' }),
 	defaultPurchaseUomId: z.number().int().positive().nullable(),
 	defaultStockUomId: z.number().int().positive().nullable(),
 	defaultRecipeUomId: z.number().int().positive().nullable(),
 	minStock: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal')
+		.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif')
 		.or(z.literal(''))
 		.default(''),
 	isActive: z.boolean(),
@@ -95,7 +95,7 @@ export function useMaterialForm({
 					: materialResource.create.fetch(input),
 		},
 		toPayload: toMaterialInput,
-		successMessage: material ? 'Material updated successfully.' : 'Material created successfully.',
+		successMessage: material ? 'Bahan berhasil diperbarui.' : 'Bahan berhasil dibuat.',
 		onSaved,
 	})
 }
@@ -112,50 +112,50 @@ export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
 		<div className="grid gap-4">
 			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
-					{(field) => <field.TextField label="Code" placeholder="e.g. MAT-001" />}
+					{(field) => <field.TextField label="Kode" placeholder="mis. MAT-001" />}
 				</form.AppField>
 				<form.AppField name="type">
-					{(field) => <field.SelectField label="Type" options={[...MATERIAL_TYPE_OPTIONS]} />}
+					{(field) => <field.SelectField label="Tipe" options={[...MATERIAL_TYPE_OPTIONS]} />}
 				</form.AppField>
 			</div>
 
 			<form.AppField name="name">
-				{(field) => <field.TextField label="Name" placeholder="e.g. Tepung Terigu" />}
+				{(field) => <field.TextField label="Nama" placeholder="mis. Tepung Terigu" />}
 			</form.AppField>
 
 			<form.AppField name="categoryId">
 				{() => (
 					<CategoryLookupField
-						label="Category"
-						placeholder="Select category..."
-						description="Optional. Clear the selection for no category."
+						label="Kategori"
+						placeholder="Pilih kategori..."
+						description="Opsional. Kosongkan pilihan untuk tanpa kategori."
 					/>
 				)}
 			</form.AppField>
 
 			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="baseUomId">
-					{() => <UomLookupField label="Base UoM" placeholder="Select unit..." />}
+					{() => <UomLookupField label="Satuan Dasar" placeholder="Pilih satuan..." />}
 				</form.AppField>
 				<form.AppField name="defaultPurchaseUomId">
-					{() => <UomLookupField label="Purchase UoM" placeholder="Same as base" />}
+					{() => <UomLookupField label="Satuan Pembelian" placeholder="Sama dengan dasar" />}
 				</form.AppField>
 			</div>
 
 			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="defaultStockUomId">
-					{() => <UomLookupField label="Stock UoM" placeholder="Same as base" />}
+					{() => <UomLookupField label="Satuan Stok" placeholder="Sama dengan dasar" />}
 				</form.AppField>
 				<form.AppField name="defaultRecipeUomId">
-					{() => <UomLookupField label="Recipe UoM" placeholder="Same as base" />}
+					{() => <UomLookupField label="Satuan Resep" placeholder="Sama dengan dasar" />}
 				</form.AppField>
 			</div>
 
 			<form.AppField name="minStock">
 				{(field) => (
 					<field.TextField
-						label="Min Stock"
-						placeholder="e.g. 10.5 (optional)"
+						label="Stok Minimum"
+						placeholder="mis. 10.5 (opsional)"
 						inputMode="decimal"
 						className="text-right font-mono tabular-nums"
 					/>
@@ -165,8 +165,8 @@ export function MaterialFormFields({ form }: MaterialFormFieldsProps) {
 			<form.AppField name="isActive">
 				{(field) => (
 					<field.SwitchField
-						label="Active"
-						description="Whether this material is available for use."
+						label="Aktif"
+						description="Apakah bahan ini tersedia untuk digunakan."
 					/>
 				)}
 			</form.AppField>

@@ -14,8 +14,8 @@ interface PageErrorProps {
 }
 
 export function PageError({
-	title = 'Something went wrong',
-	message = 'An unexpected error occurred. Please try again.',
+	title = 'Terjadi kesalahan',
+	message = 'Terjadi kesalahan tak terduga. Silakan coba lagi.',
 	onRetry,
 	className,
 }: PageErrorProps) {
@@ -29,7 +29,7 @@ export function PageError({
 			{onRetry && (
 				<Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={onRetry}>
 					<RefreshCwIcon className="size-3.5" />
-					Retry
+					Coba lagi
 				</Button>
 			)}
 		</div>

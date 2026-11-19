@@ -20,18 +20,20 @@ export interface SupplierFormValues {
 
 /** Form-shape schema — see `docs/web/06-ui-patterns.md` for why this isn't `SupplierCreateDto` directly. */
 const SupplierFormSchema = z.object({
-	code: z.string().trim().min(1, 'Code is required').max(50),
-	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
+	code: z.string().trim().min(1, 'Kode wajib diisi').max(50),
+	name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(255),
 	contactPerson: z.string().trim().max(255).default(''),
 	phone: z.string().trim().max(50).default(''),
 	email: z
 		.string()
 		.trim()
 		.max(255)
-		.refine((v) => v === '' || z.email().safeParse(v).success, { error: 'Invalid email address' })
+		.refine((v) => v === '' || z.email().safeParse(v).success, {
+			error: 'Alamat email tidak valid',
+		})
 		.default(''),
 	address: z.string().trim().max(500).default(''),
-	paymentTerms: z.string().trim().regex(/^\d*$/u, 'Must be a whole number of days').default(''),
+	paymentTerms: z.string().trim().regex(/^\d*$/u, 'Harus bilangan bulat hari').default(''),
 	isActive: z.boolean(),
 })
 
@@ -72,7 +74,7 @@ export function toSupplierInput(values: SupplierFormValues): SupplierCreateDto {
 
 function supplierSaveError(error: unknown): unknown {
 	return isApiError(error) && error.status === 409
-		? new Error('Supplier code already exists. Please use a different code.', { cause: error })
+		? new Error('Kode pemasok sudah ada. Gunakan kode lain.', { cause: error })
 		: error
 }
 
@@ -93,7 +95,7 @@ export function useSupplierForm({
 					: supplierResource.create.fetch(input),
 		},
 		toPayload: toSupplierInput,
-		successMessage: supplier ? 'Supplier updated successfully.' : 'Supplier created successfully.',
+		successMessage: supplier ? 'Pemasok berhasil diperbarui.' : 'Pemasok berhasil dibuat.',
 		mapError: supplierSaveError,
 		onSaved,
 	})
@@ -107,35 +109,35 @@ export function SupplierFormFields({ form }: { form: SupplierForm }) {
 		<div className="grid gap-4">
 			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
-					{(field) => <field.TextField label="Code" placeholder="e.g. SUP-001" />}
+					{(field) => <field.TextField label="Kode" placeholder="mis. SUP-001" />}
 				</form.AppField>
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Name" placeholder="e.g. PT Sumber Makmur" />}
+					{(field) => <field.TextField label="Nama" placeholder="mis. PT Sumber Makmur" />}
 				</form.AppField>
 			</div>
 
 			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="contactPerson">
-					{(field) => <field.TextField label="Contact Person" placeholder="Optional" />}
+					{(field) => <field.TextField label="Narahubung" placeholder="Opsional" />}
 				</form.AppField>
 				<form.AppField name="phone">
-					{(field) => <field.TextField label="Phone" placeholder="Optional" />}
+					{(field) => <field.TextField label="Telepon" placeholder="Opsional" />}
 				</form.AppField>
 			</div>
 
 			<form.AppField name="email">
-				{(field) => <field.TextField label="Email" placeholder="Optional" />}
+				{(field) => <field.TextField label="Email" placeholder="Opsional" />}
 			</form.AppField>
 
 			<form.AppField name="address">
-				{(field) => <field.TextField label="Address" placeholder="Optional" />}
+				{(field) => <field.TextField label="Alamat" placeholder="Opsional" />}
 			</form.AppField>
 
 			<form.AppField name="paymentTerms">
 				{(field) => (
 					<field.TextField
-						label="Payment Terms (days)"
-						placeholder="e.g. 30"
+						label="Termin Pembayaran (hari)"
+						placeholder="mis. 30"
 						inputMode="numeric"
 						className="text-right font-mono tabular-nums"
 					/>
@@ -145,8 +147,8 @@ export function SupplierFormFields({ form }: { form: SupplierForm }) {
 			<form.AppField name="isActive">
 				{(field) => (
 					<field.SwitchField
-						label="Active"
-						description="Inactive suppliers won't appear in purchasing selections."
+						label="Aktif"
+						description="Pemasok nonaktif tidak akan muncul di pilihan pembelian."
 					/>
 				)}
 			</form.AppField>

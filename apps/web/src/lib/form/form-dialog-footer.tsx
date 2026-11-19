@@ -21,8 +21,8 @@ export interface FormDialogFooterProps {
  */
 export function FormDialogFooter({
 	onCancel,
-	submitLabel = 'Save',
-	cancelLabel = 'Cancel',
+	submitLabel = 'Simpan',
+	cancelLabel = 'Batal',
 }: FormDialogFooterProps) {
 	const form = useFormContext()
 

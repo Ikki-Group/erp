@@ -56,14 +56,16 @@ describe('mapPasswordError', () => {
 describe('PasswordSection', () => {
 	function fillAndSubmit() {
 		render(<PasswordSection />)
-		fireEvent.change(screen.getByLabelText('Current password'), {
+		fireEvent.change(screen.getByLabelText('Kata sandi saat ini'), {
 			target: { value: 'old-password' },
 		})
-		fireEvent.change(screen.getByLabelText('New password'), { target: { value: 'new-password' } })
-		fireEvent.change(screen.getByLabelText('Confirm new password'), {
+		fireEvent.change(screen.getByLabelText('Kata sandi baru'), {
 			target: { value: 'new-password' },
 		})
-		fireEvent.click(screen.getByRole('button', { name: 'Change password' }))
+		fireEvent.change(screen.getByLabelText('Konfirmasi kata sandi baru'), {
+			target: { value: 'new-password' },
+		})
+		fireEvent.click(screen.getByRole('button', { name: 'Ubah kata sandi' }))
 	}
 
 	it('shows a wrong current password on its field and retires it on edit', async () => {
@@ -71,11 +73,13 @@ describe('PasswordSection', () => {
 			throw apiError('INVALID_CURRENT_PASSWORD')
 		}
 		fillAndSubmit()
-		await screen.findByText('Current password is incorrect')
+		await screen.findByText('Kata sandi saat ini salah')
 		expect(screen.queryByRole('alert')).toBeNull()
 
-		fireEvent.change(screen.getByLabelText('Current password'), { target: { value: 'other-pass' } })
-		await waitFor(() => expect(screen.queryByText('Current password is incorrect')).toBeNull())
+		fireEvent.change(screen.getByLabelText('Kata sandi saat ini'), {
+			target: { value: 'other-pass' },
+		})
+		await waitFor(() => expect(screen.queryByText('Kata sandi saat ini salah')).toBeNull())
 	})
 
 	it('maps PASSWORD_UNCHANGED to the new password field', async () => {
@@ -83,16 +87,16 @@ describe('PasswordSection', () => {
 			throw apiError('PASSWORD_UNCHANGED')
 		}
 		fillAndSubmit()
-		expect(await screen.findByText('New password must differ from the current one')).toBeTruthy()
+		expect(await screen.findByText('Kata sandi baru harus berbeda dari yang sekarang')).toBeTruthy()
 	})
 
 	it('clears the fields and reports how many other sessions were signed out', async () => {
 		api.respond = () => Promise.resolve({ data: { revokedSessions: 2 } })
 		fillAndSubmit()
-		await screen.findByText(/2 other sessions were signed out/u)
+		await screen.findByText(/2 sesi lain telah dikeluarkan/u)
 		expect(api.calls).toEqual([{ currentPassword: 'old-password', newPassword: 'new-password' }])
-		expect((screen.getByLabelText('Current password') as HTMLInputElement).value).toBe('')
-		expect((screen.getByLabelText('New password') as HTMLInputElement).value).toBe('')
+		expect((screen.getByLabelText('Kata sandi saat ini') as HTMLInputElement).value).toBe('')
+		expect((screen.getByLabelText('Kata sandi baru') as HTMLInputElement).value).toBe('')
 	})
 
 	it('surfaces other failures as a form-level error', async () => {

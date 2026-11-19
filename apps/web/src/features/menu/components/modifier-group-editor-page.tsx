@@ -23,8 +23,8 @@ export function ModifierGroupEditorPage({ group }: { group?: ModifierGroupWithOp
 	if (!scope.location) {
 		return (
 			<LocationRequiredPage
-				title="Tambah Modifier Group"
-				description="Buat modifier group baru untuk lokasi ini."
+				title="Tambah Grup Modifier"
+				description="Buat grup modifier baru untuk lokasi ini."
 				message="Pilih lokasi terlebih dahulu untuk mengelola menu."
 			/>
 		)
@@ -48,8 +48,8 @@ function ModifierGroupEditor({
 
 	return (
 		<EntityEditorPage
-			title={group ? 'Edit Modifier Group' : 'Tambah Modifier Group'}
-			description={group ? `Edit "${group.name}".` : 'Buat modifier group baru untuk lokasi ini.'}
+			title={group ? 'Ubah Grup Modifier' : 'Tambah Grup Modifier'}
+			description={group ? `Ubah "${group.name}".` : 'Buat modifier group baru untuk lokasi ini.'}
 			form={form}
 			submitLabel="Simpan"
 			cancelLabel="Batal"

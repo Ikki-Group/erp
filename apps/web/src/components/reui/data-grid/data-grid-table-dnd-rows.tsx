@@ -107,7 +107,7 @@ type DataGridTableDndRowDecoration<TData extends object> = (context: {
 function DataGridTableDndRowHandle({
 	className,
 	disabled,
-	disabledLabel = 'Reordering unavailable',
+	disabledLabel = 'Pengurutan ulang tidak tersedia',
 }: {
 	className?: string
 	/**
@@ -135,7 +135,7 @@ function DataGridTableDndRowHandle({
 					disabled && 'cursor-not-allowed',
 					className,
 				)}
-				aria-label={disabled ? disabledLabel : 'Drag to reorder row'}
+				aria-label={disabled ? disabledLabel : 'Seret untuk mengubah urutan baris'}
 				title={disabled ? disabledLabel : undefined}
 				disabled
 			>
@@ -152,7 +152,7 @@ function DataGridTableDndRowHandle({
 				'size-7 cursor-grab opacity-70 hover:bg-transparent hover:opacity-100 active:cursor-grabbing',
 				className,
 			)}
-			aria-label="Drag to reorder row"
+			aria-label="Seret untuk mengurutkan baris"
 			{...context.attributes}
 			{...context.listeners}
 		>

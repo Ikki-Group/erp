@@ -84,7 +84,7 @@ function createReceivingColumns(onOpen: (id: number) => void) {
 		col.status('status', STATUS_LABELS, { header: 'Status', size: 130, enableSorting: false }),
 		{
 			id: 'supplier',
-			header: 'Supplier',
+			header: 'Pemasok',
 			size: 180,
 			enableSorting: false,
 			cell: ({ row }) => <InventoryLineSupplier id={row.original.supplierId} />,
@@ -116,8 +116,8 @@ function ReceivingRoute() {
 	if (!canRead) {
 		return (
 			<PageError
-				title="Access denied"
-				message="You do not have permission to view goods receipts."
+				title="Akses ditolak"
+				message="Anda tidak memiliki izin untuk melihat penerimaan barang."
 			/>
 		)
 	}
@@ -126,7 +126,7 @@ function ReceivingRoute() {
 		return (
 			<LocationRequiredPage
 				title={TITLE}
-				description="Catat penerimaan barang dari supplier."
+				description="Catat penerimaan barang dari pemasok."
 				message="Pilih lokasi aktif untuk melihat data penerimaan."
 			/>
 		)
@@ -213,7 +213,7 @@ function ReceivingListPage({ location }: { location: AuthLocation }) {
 								label,
 								value,
 							})),
-							allLabel: 'All status',
+							allLabel: 'Semua status',
 						},
 					]}
 					dateRange={{
@@ -275,7 +275,10 @@ function ReceivingDetailPage({ id, location }: { id: number; location: AuthLocat
 				<DetailBoundary
 					query={detailQuery}
 					notFound={
-						<PageError title="Not found" message="Penerimaan tidak ditemukan di lokasi ini." />
+						<PageError
+							title="Tidak ditemukan"
+							message="Penerimaan tidak ditemukan di lokasi ini."
+						/>
 					}
 				>
 					{({ data }) =>
@@ -305,7 +308,7 @@ function ReceivingDetailContent({ receiving }: { receiving: ReceivingDetailDto }
 			<DetailList
 				items={[
 					{ label: 'Lokasi', value: <InventoryLineLocation id={receiving.locationId} /> },
-					{ label: 'Supplier', value: <InventoryLineSupplier id={receiving.supplierId} /> },
+					{ label: 'Pemasok', value: <InventoryLineSupplier id={receiving.supplierId} /> },
 					{
 						label: 'Status',
 						value: (
@@ -330,7 +333,7 @@ function ReceivingDetailContent({ receiving }: { receiving: ReceivingDetailDto }
 					<table className="w-full min-w-[40rem] text-sm">
 						<thead className="bg-muted/50">
 							<tr>
-								<th className="px-3 py-2 text-left font-medium">Material</th>
+								<th className="px-3 py-2 text-left font-medium">Bahan</th>
 								<th className="px-3 py-2 text-right font-medium">Jumlah</th>
 								<th className="px-3 py-2 text-left font-medium">Satuan</th>
 								<th className="px-3 py-2 text-right font-medium">Harga Satuan</th>
@@ -386,17 +389,17 @@ function ReceivingActivity({ receivingId }: { receivingId: number }) {
 	const entries = query.data?.data
 
 	return (
-		<PageSection title="Activity" description="History of changes to this receiving.">
+		<PageSection title="Aktivitas" description="Riwayat perubahan pada penerimaan ini.">
 			{query.isError && (
 				<InlineAlert
 					variant="warning"
-					title={entries ? 'Could not refresh activity' : 'Could not load activity'}
+					title={entries ? 'Gagal memuat ulang aktivitas' : 'Gagal memuat aktivitas'}
 					className="mb-3"
 				>
 					<p>
 						{entries
-							? 'Showing the last loaded history.'
-							: 'The history is unavailable, not empty.'}
+							? 'Menampilkan riwayat terakhir yang dimuat.'
+							: 'Riwayat tidak tersedia, bukan kosong.'}
 					</p>
 					<Button
 						type="button"
@@ -405,7 +408,7 @@ function ReceivingActivity({ receivingId }: { receivingId: number }) {
 						disabled={query.isFetching}
 						onClick={() => void query.refetch()}
 					>
-						Retry
+						Muat ulang
 					</Button>
 				</InlineAlert>
 			)}
@@ -413,7 +416,7 @@ function ReceivingActivity({ receivingId }: { receivingId: number }) {
 				<AuditTrail
 					entries={entries ?? []}
 					isLoading={query.isLoading}
-					emptyMessage="No changes recorded for this receiving yet."
+					emptyMessage="Belum ada perubahan yang tercatat untuk penerimaan ini."
 				/>
 			)}
 		</PageSection>

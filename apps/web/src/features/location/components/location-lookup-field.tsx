@@ -12,7 +12,5 @@ const locationLookup: ResourceLookupAdapter<LocationDto> = {
 }
 
 export function LocationLookupField(props: LookupFieldProps) {
-	return (
-		<ResourceLookupField adapter={locationLookup} placeholder="Search locations..." {...props} />
-	)
+	return <ResourceLookupField adapter={locationLookup} placeholder="Cari lokasi..." {...props} />
 }

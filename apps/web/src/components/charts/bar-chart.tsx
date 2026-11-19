@@ -36,7 +36,7 @@ export function BarChart({
 	showGrid = true,
 	showLegend = false,
 	className,
-	'aria-label': ariaLabel = 'Bar chart',
+	'aria-label': ariaLabel = 'Grafik batang',
 	'aria-describedby': ariaDescribedBy,
 }: BarChartProps) {
 	return (

@@ -62,7 +62,7 @@ function EditVoucherForm({ voucher, onDone }: EditVoucherFormProps) {
 				usageLimit: values.usageLimit ? Number(values.usageLimit) : null,
 				isActive: values.isActive,
 			})
-			toast.add({ title: 'Voucher updated.', type: 'success' })
+			toast.add({ title: 'Voucher berhasil diperbarui.', type: 'success' })
 			onDone()
 		},
 	})
@@ -72,10 +72,10 @@ function EditVoucherForm({ voucher, onDone }: EditVoucherFormProps) {
 	return (
 		<form.AppForm>
 			<FormPage
-				title="Edit Voucher"
+				title="Ubah Voucher"
 				description={`Update details for ${voucher.code}.`}
 				form={form}
-				submitLabel="Save Changes"
+				submitLabel="Simpan Perubahan"
 				onCancel={onDone}
 			>
 				<VoucherFormFields form={form} />

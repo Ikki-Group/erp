@@ -53,7 +53,7 @@ const ALL_VALUE = '__all__'
  */
 export function TableFilterSelect({
 	options,
-	allLabel = 'All',
+	allLabel = 'Semua',
 	className,
 	'aria-label': ariaLabel = allLabel,
 	...props

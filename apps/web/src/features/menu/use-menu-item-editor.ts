@@ -54,7 +54,7 @@ export function useMenuItemEditor({
 			},
 		},
 		toPayload: (values) => ({ values }),
-		successMessage: item ? 'Menu item berhasil diperbarui.' : 'Menu item berhasil dibuat.',
+		successMessage: item ? 'Item menu berhasil diperbarui.' : 'Item menu berhasil dibuat.',
 		onSaved,
 	})
 }

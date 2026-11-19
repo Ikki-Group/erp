@@ -24,7 +24,7 @@ export interface PageTabsProps {
 export function PageTabs({ tabs, activeTab, onTabChange, className }: PageTabsProps) {
 	return (
 		<div className={cn('border-b', className)}>
-			<nav className="-mb-px flex gap-4 overflow-x-auto" aria-label="Tabs">
+			<nav className="-mb-px flex gap-4 overflow-x-auto" aria-label="Tab">
 				{tabs.map((tab) => {
 					const isActive = tab.id === activeTab
 					return (

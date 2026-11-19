@@ -53,7 +53,7 @@ export function TableFilterCombobox({
 	value,
 	onValueChange,
 	placeholder = 'Filter...',
-	emptyMessage = 'No results found.',
+	emptyMessage = 'Tidak ada hasil ditemukan.',
 	className,
 	'aria-label': ariaLabel = placeholder,
 }: TableFilterComboboxProps) {

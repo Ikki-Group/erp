@@ -21,9 +21,9 @@ function partialSaveError(error: unknown, accessOnly: boolean) {
 		? error.friendlyMessage
 		: error instanceof Error
 			? error.message
-			: 'The request failed.'
+			: 'Permintaan gagal.'
 	return new Error(
-		`${accessOnly ? 'Account saved, access changes incomplete.' : 'Account already created, remaining changes incomplete.'} ${reason} Save again to retry the remaining changes; completed changes have not been rolled back.`,
+		`${accessOnly ? 'Akun tersimpan, perubahan akses belum lengkap.' : 'Akun sudah dibuat, perubahan lainnya belum lengkap.'} ${reason} Simpan lagi untuk mencoba ulang perubahan yang tersisa; perubahan yang sudah selesai tidak dibatalkan.`,
 		{ cause: error },
 	)
 }

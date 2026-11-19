@@ -23,16 +23,18 @@ export function PaymentMethodEditor({
 
 	return (
 		<EntityEditorPage
-			title={method ? 'Edit Payment Method' : 'Add Payment Method'}
-			description={method ? `Update details for ${method.name}.` : 'Create a new payment method.'}
+			title={method ? 'Ubah Metode Pembayaran' : 'Tambah Metode Pembayaran'}
+			description={
+				method ? `Perbarui detail untuk ${method.name}.` : 'Buat metode pembayaran baru.'
+			}
 			form={form}
-			submitLabel={method ? 'Save Changes' : 'Create'}
+			submitLabel={method ? 'Simpan Perubahan' : 'Buat'}
 			onCancel={onDone}
 			readOnly={!canWrite}
 			actions={
 				!canWrite ? (
 					<p className="text-xs text-muted-foreground">
-						You don&apos;t have permission to {method ? 'edit' : 'create'} payment methods.
+						Anda tidak memiliki izin untuk {method ? 'mengubah' : 'membuat'} metode pembayaran.
 					</p>
 				) : saveFailed ? (
 					// A failed save blocks the submit button until the next edit; retrying the same values must stay possible.
@@ -45,7 +47,7 @@ export function PaymentMethodEditor({
 							void form.handleSubmit()
 						}}
 					>
-						Retry save
+						Coba lagi simpan
 					</Button>
 				) : undefined
 			}

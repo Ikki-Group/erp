@@ -7,7 +7,12 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { BanIcon, EyeIcon } from 'lucide-react'
 import { z } from 'zod'
 
-import { CurrencyCell, listSearchSchema, rightAlignedHeader, useServerTable } from '@/components/data-table'
+import {
+	CurrencyCell,
+	listSearchSchema,
+	rightAlignedHeader,
+	useServerTable,
+} from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import type { DateRange } from '@/components/shared/date-range-filter'
@@ -51,7 +56,7 @@ const col = createColumnHelper<DataGridFeatures, OrderDto>()
 
 const baseColumns = [
 	col.accessor('orderNo', {
-		header: 'No. Order',
+		header: 'No. Pesanan',
 		size: 120,
 	}),
 	col.accessor('status', {
@@ -61,14 +66,14 @@ const baseColumns = [
 			const status = getValue()
 			const variant =
 				status === 'completed' ? 'success' : status === 'voided' ? 'destructive' : 'warning'
-			const label = status === 'completed' ? 'Selesai' : status === 'voided' ? 'Void' : 'Open'
+			const label = status === 'completed' ? 'Selesai' : status === 'voided' ? 'Dibatalkan' : 'Buka'
 			return <StatusBadge variant={variant}>{label}</StatusBadge>
 		},
 	}),
 	col.accessor('type', {
 		header: 'Tipe',
 		size: 90,
-		cell: ({ getValue }) => (getValue() === 'dine_in' ? 'Dine In' : 'Takeaway'),
+		cell: ({ getValue }) => (getValue() === 'dine_in' ? 'Makan di Tempat' : 'Bawa Pulang'),
 	}),
 	col.accessor('total', {
 		header: rightAlignedHeader('Total'),
@@ -173,10 +178,10 @@ function OrdersPage() {
 		if (!voidOrderId || voidReason.trim().length < 3) return
 		try {
 			await voidMut.mutateAsync({ orderId: voidOrderId, reason: voidReason.trim() })
-			toast.add({ title: 'Order berhasil di-void', type: 'success' })
+			toast.add({ title: 'Pesanan berhasil dibatalkan', type: 'success' })
 			setShowVoidDialog(false)
 		} catch {
-			toast.add({ title: 'Gagal void order', type: 'error' })
+			toast.add({ title: 'Gagal membatalkan pesanan', type: 'error' })
 		}
 	}, [voidOrderId, voidReason, voidMut])
 
@@ -213,7 +218,7 @@ function OrdersPage() {
 	if (!locationId) {
 		return (
 			<div className="space-y-6">
-				<PageHeader title="Riwayat Order" description="Daftar order POS." />
+				<PageHeader title="Riwayat Pesanan" description="Daftar pesanan POS." />
 				<EmptyState
 					title="Tidak ada lokasi dipilih"
 					description="Pilih lokasi untuk melihat riwayat order."
@@ -224,7 +229,7 @@ function OrdersPage() {
 
 	return (
 		<div className="space-y-6">
-			<PageHeader title="Riwayat Order" description="Daftar order POS untuk lokasi ini." />
+			<PageHeader title="Riwayat Pesanan" description="Daftar pesanan POS untuk lokasi ini." />
 
 			{data.length === 0 && !listQuery.isLoading && !globalFilter && !search.status ? (
 				<EmptyState title="Belum ada order" description="Order yang dibuat akan muncul di sini." />
@@ -238,7 +243,7 @@ function OrdersPage() {
 						<TableToolbar
 							searchValue={globalFilter}
 							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Cari no. order..."
+							searchPlaceholder="Cari no. pesanan..."
 							filters={[
 								{
 									key: 'status',
@@ -253,11 +258,11 @@ function OrdersPage() {
 											},
 										}),
 									options: [
-										{ label: 'Open', value: 'open' },
+										{ label: 'Buka', value: 'open' },
 										{ label: 'Selesai', value: 'completed' },
-										{ label: 'Void', value: 'voided' },
+										{ label: 'Dibatalkan', value: 'voided' },
 									],
-									allLabel: 'All status',
+									allLabel: 'Semua status',
 								},
 							]}
 							dateRange={{
@@ -287,10 +292,10 @@ function OrdersPage() {
 			<Dialog open={showVoidDialog} onOpenChange={setShowVoidDialog}>
 				<DialogContent className="sm:max-w-xs">
 					<DialogHeader>
-						<DialogTitle>Void Order</DialogTitle>
+						<DialogTitle>Batalkan Pesanan</DialogTitle>
 					</DialogHeader>
 					<div className="space-y-2">
-						<Label className="text-xs">Alasan void (min. 3 karakter)</Label>
+						<Label className="text-xs">Alasan pembatalan (min. 3 karakter)</Label>
 						<Input
 							value={voidReason}
 							onChange={(e) => setVoidReason(e.target.value)}
@@ -307,7 +312,7 @@ function OrdersPage() {
 							onClick={handleConfirmVoid}
 							disabled={voidReason.trim().length < 3 || voidMut.isPending}
 						>
-							Void
+							Batalkan
 						</Button>
 					</DialogFooter>
 				</DialogContent>

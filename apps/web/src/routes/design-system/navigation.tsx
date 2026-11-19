@@ -2,13 +2,7 @@ import { useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
-import {
-	BoxesIcon,
-	LayoutDashboardIcon,
-	SettingsIcon,
-	StoreIcon,
-	TruckIcon,
-} from 'lucide-react'
+import { BoxesIcon, LayoutDashboardIcon, SettingsIcon, StoreIcon, TruckIcon } from 'lucide-react'
 
 import { PageHeader, PageSection, PageTabs } from '@/components/shared'
 

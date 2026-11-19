@@ -18,8 +18,8 @@ export interface NotFoundProps {
  * Can render standalone (outside app shell) or inside the app shell.
  */
 export function NotFound({
-	title = 'Page not found',
-	description = "The page you're looking for doesn't exist or has been moved.",
+	title = 'Halaman tidak ditemukan',
+	description = 'Halaman yang Anda cari tidak ada atau sudah dipindahkan.',
 	showHomeLink = true,
 	className,
 }: NotFoundProps) {
@@ -40,7 +40,7 @@ export function NotFound({
 				<Link to="/" className="mt-6">
 					<Button variant="outline" size="sm" className="gap-1.5">
 						<HomeIcon className="size-3.5" />
-						Back to Home
+						Kembali ke Beranda
 					</Button>
 				</Link>
 			)}

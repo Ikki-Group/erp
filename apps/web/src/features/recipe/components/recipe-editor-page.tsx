@@ -20,7 +20,7 @@ export function RecipeEditorPage({ recipe }: { recipe?: RecipeDetailDto }) {
 	if (!scope.location) {
 		return (
 			<LocationRequiredPage
-				title={recipe ? 'Edit Resep' : 'Tambah Resep'}
+				title={recipe ? 'Ubah Resep' : 'Tambah Resep'}
 				description="Definisikan resep (BOM) untuk menu item."
 				message="Pilih lokasi terlebih dahulu untuk mengelola resep."
 			/>
@@ -45,8 +45,8 @@ function RecipeEditor({
 
 	return (
 		<EntityEditorPage
-			title={recipe ? 'Edit Resep' : 'Tambah Resep'}
-			description={recipe ? `Edit "${recipe.name}".` : 'Definisikan resep (BOM) untuk menu item.'}
+			title={recipe ? 'Ubah Resep' : 'Tambah Resep'}
+			description={recipe ? `Ubah "${recipe.name}".` : 'Definisikan resep (BOM) untuk menu item.'}
 			form={form}
 			submitLabel="Simpan"
 			cancelLabel="Batal"

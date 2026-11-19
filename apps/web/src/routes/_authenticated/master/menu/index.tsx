@@ -43,8 +43,8 @@ export const Route = createFileRoute('/_authenticated/master/menu/')({
 const itemColumns = createEntityColumns<MenuItemDto>()
 const modifierColumns = createEntityColumns<ModifierGroupDto>()
 const tabs = [
-	{ id: 'items', label: 'Menu Items' },
-	{ id: 'modifiers', label: 'Modifier Groups' },
+	{ id: 'items', label: 'Item Menu' },
+	{ id: 'modifiers', label: 'Grup Modifier' },
 ]
 
 function MenuRoute() {
@@ -109,25 +109,25 @@ function MenuItems({ location, navigation }: ListProps) {
 	const { run: remove, isPending: deleting } = useWorkflowAction<MenuItemDto>({
 		availability: () => canDelete && getActiveLocationId() === location.id,
 		confirmation: (item) => ({
-			title: 'Hapus menu item?',
+			title: 'Hapus item menu?',
 			description: `"${item.name}" (${item.sku}) akan dihapus permanen.`,
 			confirmLabel: 'Hapus',
 			variant: 'destructive',
 		}),
 		execute: (item) => menuItemResource.remove.fetch({ id: item.id }),
-		successMessage: 'Menu item berhasil dihapus.',
+		successMessage: 'Item menu berhasil dihapus.',
 	})
 	const columns = useMemo(
 		() =>
 			[
 				itemColumns.code('sku', { header: 'SKU', size: 120, enableSorting: false }),
-				itemColumns.text('name', { header: 'Name', size: 200, enableSorting: false }),
-				itemColumns.money('basePrice', { header: 'Price', size: 120, enableSorting: false }),
+				itemColumns.text('name', { header: 'Nama', size: 200, enableSorting: false }),
+				itemColumns.money('basePrice', { header: 'Harga', size: 120, enableSorting: false }),
 				itemColumns.status(
 					'status',
 					{
-						active: { label: 'Active', variant: 'success' },
-						inactive: { label: 'Inactive', variant: 'outline' },
+						active: { label: 'Aktif', variant: 'success' },
+						inactive: { label: 'Nonaktif', variant: 'outline' },
 					},
 					{ header: 'Status', size: 100, enableSorting: false },
 				),
@@ -135,7 +135,7 @@ function MenuItems({ location, navigation }: ListProps) {
 					// oxlint-disable-next-line react/no-unstable-nested-components -- action factory
 					getItems: (item) => [
 						canEdit && {
-							label: 'Edit',
+							label: 'Ubah',
 							icon: <EditIcon className="size-4" />,
 							onClick: () =>
 								navigate({ to: '/master/menu/items/$itemId', params: { itemId: String(item.id) } }),
@@ -170,12 +170,12 @@ function MenuItems({ location, navigation }: ListProps) {
 						canCreate ? (
 							<Button size="sm" onClick={() => navigate({ to: '/master/menu/items/new' })}>
 								<PlusIcon className="size-4" />
-								Menu Item
+								Item Menu
 							</Button>
 						) : undefined
 					}
 					emptyState={{
-						title: 'Belum ada menu item',
+						title: 'Belum ada item menu',
 						description: 'Mulai dengan menambahkan menu item pertama.',
 					}}
 					emptyMessage="Tidak ada menu item yang cocok."
@@ -187,7 +187,7 @@ function MenuItems({ location, navigation }: ListProps) {
 									className="min-w-0 flex-1"
 									searchValue={list.globalFilter}
 									onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
-									searchPlaceholder="Cari menu item..."
+									searchPlaceholder="Cari item menu..."
 									filters={[
 										{
 											key: 'status',
@@ -260,7 +260,7 @@ function CategoryManagement({ location }: { location: AuthLocation }) {
 				getActiveLocationId() === (category?.locationId ?? location.id)
 			if (!canSave()) return
 			await formDialog({
-				title: category ? 'Edit Kategori' : 'Tambah Kategori',
+				title: category ? 'Ubah Kategori' : 'Tambah Kategori',
 				description: category
 					? `Edit "${category.name}" di ${location.name}.`
 					: `Buat kategori menu di ${location.name}.`,
@@ -408,7 +408,7 @@ function ModifierList({ location, navigation }: ListProps) {
 			variant: 'destructive',
 		}),
 		execute: (group) => modifierGroupResource.remove.fetch({ id: group.id }),
-		successMessage: 'Modifier group berhasil dihapus.',
+		successMessage: 'Grup modifier berhasil dihapus.',
 	})
 	const columns = useMemo(
 		() =>
@@ -434,7 +434,7 @@ function ModifierList({ location, navigation }: ListProps) {
 					// oxlint-disable-next-line react/no-unstable-nested-components -- action factory
 					getItems: (group) => [
 						canRead && {
-							label: canEdit ? 'Edit' : 'Lihat',
+							label: canEdit ? 'Ubah' : 'Lihat',
 							icon: <EditIcon className="size-4" />,
 							onClick: () =>
 								navigate({
@@ -462,14 +462,14 @@ function ModifierList({ location, navigation }: ListProps) {
 	})
 	return canRead ? (
 		<EntityListPage
-			title="Modifier Groups"
+			title="Grup Modifier"
 			description={`Kelola pilihan tambahan di ${location.name}. Max kosong berarti tanpa batas.`}
 			list={list}
 			createAction={
 				canCreate ? (
 					<Button size="sm" onClick={() => navigate({ to: '/master/menu/modifiers/new' })}>
 						<LayersIcon className="size-4" />
-						Tambah Modifier Group
+						Tambah Grup Modifier
 					</Button>
 				) : undefined
 			}

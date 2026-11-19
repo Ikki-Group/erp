@@ -48,7 +48,7 @@ export function IdSelectField({
 	label,
 	options,
 	nullableLabel,
-	placeholder = 'Select...',
+	placeholder = 'Pilih...',
 	description,
 	disabled,
 	className,

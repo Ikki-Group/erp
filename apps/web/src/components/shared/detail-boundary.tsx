@@ -10,7 +10,7 @@ import { PageSkeleton } from './page-skeleton'
 
 const DEFAULT_LOADING = <PageSkeleton />
 const DEFAULT_NOT_FOUND = (
-	<PageError title="Not found" message="The requested record could not be found." />
+	<PageError title="Tidak ditemukan" message="Data yang diminta tidak ditemukan." />
 )
 
 export interface DetailBoundaryProps<TData> {
@@ -33,10 +33,10 @@ export function DetailBoundary<TData>({
 		return (
 			<>
 				{query.isError && (
-					<InlineAlert variant="warning" title="Could not refresh this record">
-						<p>Your current work is still available. Retry to refresh the record.</p>
+					<InlineAlert variant="warning" title="Gagal memperbarui data ini">
+						<p>Pekerjaan Anda masih tersimpan. Coba muat ulang data ini.</p>
 						<Button type="button" variant="outline" size="sm" onClick={() => void query.refetch()}>
-							Retry
+							Coba lagi
 						</Button>
 					</InlineAlert>
 				)}
@@ -57,5 +57,5 @@ export function DetailBoundary<TData>({
 }
 
 function normalizeError(error: unknown): Error {
-	return error instanceof Error ? error : new Error('An unexpected error occurred.')
+	return error instanceof Error ? error : new Error('Terjadi kesalahan tak terduga.')
 }

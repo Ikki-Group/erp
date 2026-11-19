@@ -109,7 +109,7 @@ export function FileUpload({
 					<UploadIcon />
 				</IconTile>
 				<p className="text-sm font-medium">
-					<span className="text-primary">Click to upload</span> or drag and drop
+					<span className="text-primary">Klik untuk mengunggah</span> atau seret ke sini
 				</p>
 				{description && <p className="text-xs text-muted-foreground">{description}</p>}
 				<input
@@ -148,7 +148,7 @@ export function FileUpload({
 								{onRemove && (
 									<AttachmentActions>
 										<AttachmentAction
-											aria-label={`Remove ${item.name}`}
+											aria-label={`Hapus ${item.name}`}
 											onClick={() => onRemove(item.id)}
 										>
 											<XIcon />

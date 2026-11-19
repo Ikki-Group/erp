@@ -49,7 +49,7 @@ const ReceivingLineSchema = z.object({
 		.int()
 		.positive()
 		.nullable()
-		.refine((v) => v !== null, { error: 'Material wajib dipilih' }),
+		.refine((v) => v !== null, { error: 'Bahan wajib dipilih' }),
 	qty: decimal('Jumlah harus angka positif'),
 	unitCost: decimal('Harga satuan harus angka positif atau nol'),
 	uomId: z
@@ -66,7 +66,7 @@ export const ReceivingWizardSchema = z.object({
 		.int()
 		.positive()
 		.nullable()
-		.refine((v) => v !== null, { error: 'Supplier wajib dipilih' }),
+		.refine((v) => v !== null, { error: 'Pemasok wajib dipilih' }),
 	notes: z.string().trim().default(''),
 	lines: z.array(ReceivingLineSchema).min(1, 'Tambahkan minimal satu item'),
 })
@@ -115,7 +115,7 @@ export function ReceivingStepSupplier({ form }: { form: ReceivingWizardForm }) {
 	return (
 		<div className="grid gap-4">
 			<form.AppField name="supplierId">
-				{() => <SupplierLookupField label="Supplier" placeholder="Pilih supplier" />}
+				{() => <SupplierLookupField label="Pemasok" placeholder="Pilih pemasok" />}
 			</form.AppField>
 			<form.AppField name="notes">
 				{(field) => <field.TextField label="Catatan" placeholder="Opsional" />}
@@ -149,7 +149,7 @@ export function ReceivingStepLines({ form }: { form: ReceivingWizardForm }) {
 					onRemove={(index) => linesField.removeValue(index)}
 					errors={linesField.state.meta.errors}
 					fieldCount={4}
-					emptyMessage="Belum ada item. Tambah baris manual atau muat dari katalog supplier."
+					emptyMessage="Belum ada item. Tambah baris manual atau muat dari katalog pemasok."
 					actions={
 						supplierId !== null && (
 							<Button
@@ -177,7 +177,7 @@ export function ReceivingStepLines({ form }: { form: ReceivingWizardForm }) {
 					renderFields={(_, index) => (
 						<>
 							<form.AppField name={`lines[${index}].materialId`}>
-								{() => <MaterialLookupField label="Material" placeholder="Pilih material" />}
+								{() => <MaterialLookupField label="Bahan" placeholder="Pilih bahan" />}
 							</form.AppField>
 							<form.AppField name={`lines[${index}].qty`}>
 								{(field) => (
@@ -220,7 +220,7 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 			<div className="rounded-md border p-4">
 				<dl className="grid grid-cols-2 gap-3 text-sm">
 					<div>
-						<dt className="text-muted-foreground">Supplier</dt>
+						<dt className="text-muted-foreground">Pemasok</dt>
 						<dd className="font-medium">
 							{supplier
 								? `${supplier.name} (${supplier.code})`
@@ -240,7 +240,7 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 				<table className="w-full text-sm">
 					<thead className="bg-muted/50">
 						<tr>
-							<th className="px-3 py-2 text-left font-medium">Material</th>
+							<th className="px-3 py-2 text-left font-medium">Bahan</th>
 							<th className="px-3 py-2 text-right font-medium">Jumlah</th>
 							<th className="px-3 py-2 text-left font-medium">Satuan</th>
 							<th className="px-3 py-2 text-right font-medium">Harga Satuan</th>
@@ -281,7 +281,9 @@ export function ReceivingStepReview({ form }: { form: ReceivingWizardForm }) {
 				</table>
 			</div>
 
-			<form.FormError />
+			<form.AppForm>
+				<form.FormError />
+			</form.AppForm>
 		</div>
 	)
 }

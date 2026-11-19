@@ -90,7 +90,7 @@ function NewTransferWizard({ fromLocationId }: { fromLocationId: number }) {
 						isValid: isTransferStepValid(2, values),
 					},
 					{
-						title: 'Review',
+						title: 'Tinjau',
 						content: <TransferStepReview form={form} />,
 						isValid: true,
 					},

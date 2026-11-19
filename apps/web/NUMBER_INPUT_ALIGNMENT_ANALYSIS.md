@@ -1,6 +1,7 @@
 # Number Input Group - Alignment Analysis & Recommendation
 
 ## Question
+
 Should the numeric value be left-aligned or right-aligned in the input field with UOM dropdown?
 
 ---
@@ -8,6 +9,7 @@ Should the numeric value be left-aligned or right-aligned in the input field wit
 ## Analysis
 
 ### Current Implementation
+
 - **Current state:** Left-aligned (default)
 - **Component:** `NumberInputGroup` in `apps/web/src/components/ui/number-input-group.tsx`
 - **Input component:** Uses Base UI `Input` with default left alignment
@@ -15,30 +17,36 @@ Should the numeric value be left-aligned or right-aligned in the input field wit
 ### Context: Your Application's Numeric Display Standards
 
 #### 1. Table Cells (Data Display)
+
 Your application consistently uses **RIGHT-aligned** numerics in tables:
 
 **`NumericCell` (line 62-73 in `cell.tsx`):**
+
 ```tsx
 <div className="text-right font-mono text-sm tabular-nums">
-  {numValue.toLocaleString(locale)}
-  {unit && <span className="text-muted-foreground"> {unit}</span>}
+	{numValue.toLocaleString(locale)}
+	{unit && <span className="text-muted-foreground"> {unit}</span>}
 </div>
 ```
 
 **`CurrencyCell` (line 90-92 in `cell.tsx`):**
+
 ```tsx
 <div className="text-right font-mono text-sm">
-  <CurrencyDisplay value={value} currency={currency} locale={locale} />
+	<CurrencyDisplay value={value} currency={currency} locale={locale} />
 </div>
 ```
 
 **Usage:**
+
 - Stock quantities → Right-aligned
 - Currency amounts → Right-aligned
 - All numeric columns in tables → Right-aligned with `rightAlignedHeader()`
 
 #### 2. Design System Principles
+
 Your app follows Linear-style precision instrument aesthetic:
+
 - **Monospaced numerics:** `font-mono tabular-nums` for alignment
 - **Consistent visual language:** Tables, forms, cards should feel unified
 - **Professional ERP aesthetic:** Financial/inventory data is number-heavy
@@ -50,12 +58,14 @@ Your app follows Linear-style precision instrument aesthetic:
 ### Reasons
 
 #### 1. **Visual Consistency** ⭐⭐⭐⭐⭐ (CRITICAL)
+
 **Tables:** Right-aligned  
 **Forms:** Should also be right-aligned
 
 Why: Users scan the same data in tables and edit it in forms. When numbers line up differently in edit mode vs. display mode, it creates cognitive dissonance.
 
 **Example:**
+
 ```
 Display (Table):          Edit (Form - Current):
 ─────────────────         ─────────────────────
@@ -71,7 +81,9 @@ Display (Table):          Edit (Form - Recommended):
 ```
 
 #### 2. **Number Scanning UX** ⭐⭐⭐⭐⭐
+
 Right-aligned numbers make it easy to:
+
 - Compare magnitudes (thousands vs. hundreds vs. tens)
 - Scan decimal points vertically
 - Spot outliers quickly
@@ -80,6 +92,7 @@ Right-aligned numbers make it easy to:
 This is why spreadsheets (Excel, Google Sheets) and financial apps use right alignment by default.
 
 #### 3. **Professional ERP Standards** ⭐⭐⭐⭐
+
 - **SAP:** All quantity fields are right-aligned
 - **Oracle NetSuite:** Right-aligned numerics
 - **Microsoft Dynamics:** Right-aligned amounts and quantities
@@ -89,7 +102,9 @@ This is why spreadsheets (Excel, Google Sheets) and financial apps use right ali
 Enterprise users expect this pattern. Breaking it feels "unprofessional."
 
 #### 4. **Monospace Font Logic** ⭐⭐⭐⭐
+
 Your app already uses `font-mono tabular-nums` for numerics. Monospace fonts are designed for right alignment:
+
 - Each digit has equal width
 - Digits line up in columns
 - Right alignment makes the most of monospace benefits
@@ -97,7 +112,9 @@ Your app already uses `font-mono tabular-nums` for numerics. Monospace fonts are
 Left-aligning monospace numbers defeats the purpose.
 
 #### 5. **International Number Formats** ⭐⭐⭐
+
 Different locales have varying digit group separators:
+
 - Indonesia: `1.250,50` (period for thousands, comma for decimals)
 - US: `1,250.50` (comma for thousands, period for decimals)
 - India: `12,50,500` (lakhs system)
@@ -115,6 +132,7 @@ Right alignment keeps the decimal point FIXED regardless of locale format. This 
 3. **Mobile keyboards:** Number pad appears at bottom, cursor at left
 
 **Rebuttal:**
+
 - **Typing:** Users don't type for long — mostly edit existing values
 - **Short numbers:** Invalid argument — same logic applies to `$5.00` in forms, which is still right-aligned
 - **Mobile:** Modern mobile financial apps (banking, payments) use right-aligned inputs
@@ -128,6 +146,7 @@ Right alignment keeps the decimal point FIXED regardless of locale format. This 
 **File:** `apps/web/src/components/ui/number-input-group.tsx`
 
 **Line 48-51 (NumberInputGroupAddon):**
+
 ```tsx
 // BEFORE (current)
 className={cn(
@@ -146,6 +165,7 @@ className={cn(
 ```
 
 **Line 134-137 (NumberInputGroup):**
+
 ```tsx
 // BEFORE (current)
 className={cn(
@@ -164,6 +184,7 @@ className={cn(
 ```
 
 ### CSS Classes Added
+
 - `text-right` — Right-aligns the input value
 - `font-mono` — Uses monospace font (matches table cells)
 - `tabular-nums` — Ensures digits have equal width (prevents jitter)
@@ -173,6 +194,7 @@ className={cn(
 ## Visual Comparison
 
 ### Mockup: Left-Aligned (Current)
+
 ```
 ┌─────────────────────────────────┐
 │ Quantity                        │
@@ -184,6 +206,7 @@ className={cn(
 ```
 
 ### Mockup: Right-Aligned (Recommended)
+
 ```
 ┌─────────────────────────────────┐
 │ Quantity                        │
@@ -200,14 +223,14 @@ className={cn(
 
 **RECOMMENDATION: Use RIGHT-ALIGNED for numeric values**
 
-| Criterion | Score | Notes |
-|-----------|-------|-------|
-| Visual consistency | ✅ 5/5 | Matches table display |
-| UX scanning | ✅ 5/5 | Professional standard |
-| ERP conventions | ✅ 5/5 | Industry expectation |
-| Monospace logic | ✅ 4/5 | Maximizes font benefit |
-| International support | ✅ 3/5 | Better locale handling |
-| Implementation complexity | ✅ 5/5 | Just 2 CSS classes |
+| Criterion                 | Score  | Notes                  |
+| ------------------------- | ------ | ---------------------- |
+| Visual consistency        | ✅ 5/5 | Matches table display  |
+| UX scanning               | ✅ 5/5 | Professional standard  |
+| ERP conventions           | ✅ 5/5 | Industry expectation   |
+| Monospace logic           | ✅ 4/5 | Maximizes font benefit |
+| International support     | ✅ 3/5 | Better locale handling |
+| Implementation complexity | ✅ 5/5 | Just 2 CSS classes     |
 
 **Total:** 27/30 — Strong recommendation to use right-aligned
 
@@ -216,6 +239,7 @@ className={cn(
 ## Risk Assessment
 
 ### If We Keep Left-Aligned
+
 - ❌ Inconsistent visual language (tables vs. forms)
 - ❌ Users subconsciously feel "something is off"
 - ❌ Harder to compare numbers across form fields
@@ -223,6 +247,7 @@ className={cn(
 - ❌ Defeats purpose of `font-mono tabular-nums`
 
 ### If We Switch to Right-Aligned
+
 - ✅ Consistent with table display
 - ✅ Follows industry standards
 - ✅ Better number scanning UX
@@ -236,6 +261,7 @@ className={cn(
 ## Additional Context
 
 ### When to Use Left-Aligned Numbers
+
 - Phone numbers (not quantities)
 - IP addresses
 - Postal codes
@@ -245,6 +271,7 @@ className={cn(
 These are **identifiers**, not **quantities**. Identifiers are read left-to-right; quantities are compared by magnitude.
 
 ### Your App Uses
+
 - **Left-aligned:** `code`, `name`, `category` (identifiers/text)
 - **Right-aligned:** `price`, `stock`, `total` (quantities/amounts)
 

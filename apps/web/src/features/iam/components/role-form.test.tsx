@@ -76,7 +76,7 @@ describe('role form mapping', () => {
 	it('rejects unknown permissions rather than silently dropping them', () => {
 		const values = { ...toRoleFormValues(role), permissions: ['stock.read', 'unknown.read'] }
 
-		expect(() => toRoleInput(values)).toThrow('Unknown permission')
+		expect(() => toRoleInput(values)).toThrow('Izin tidak dikenal')
 		expect(values.permissions).toEqual(['stock.read', 'unknown.read'])
 	})
 })
@@ -86,7 +86,7 @@ describe('system role immutability', () => {
 		const systemRole = { ...role, isSystem: true }
 		const input = toRoleInput({ ...toRoleFormValues(systemRole), name: 'Changed name' })
 
-		await expect(saveRole(input, systemRole)).rejects.toThrow('System roles cannot be modified.')
+		await expect(saveRole(input, systemRole)).rejects.toThrow('Peran sistem tidak dapat diubah.')
 		expect(systemRole.name).toBe('Inventory Lead')
 		expect(systemRole.permissions).toEqual(role.permissions)
 	})
@@ -97,7 +97,7 @@ describe('system role immutability', () => {
 
 		expect(container.querySelector('form')).toBeNull()
 		expect(
-			screen.queryByRole('button', { name: /save|edit|delete|select all|^clear$/iu }),
+			screen.queryByRole('button', { name: /simpan|ubah|hapus|pilih semua|^bersihkan$/iu }),
 		).toBeNull()
 		for (const checkbox of screen.getAllByRole('checkbox')) {
 			expect(
@@ -105,14 +105,14 @@ describe('system role immutability', () => {
 			).toBe(true)
 		}
 
-		fireEvent.change(screen.getByRole('textbox', { name: 'Search permissions' }), {
+		fireEvent.change(screen.getByRole('textbox', { name: 'Cari izin' }), {
 			target: { value: 'receiving.confirm' },
 		})
-		expect(screen.getByText('Inventory')).toBeTruthy()
+		expect(screen.getByText('Inventori')).toBeTruthy()
 		expect(screen.getByText('Confirm')).toBeTruthy()
-		expect(screen.queryByText('Company')).toBeNull()
-		fireEvent.click(screen.getByRole('button', { name: 'Clear permission search' }))
-		expect(screen.getByText('Company')).toBeTruthy()
+		expect(screen.queryByText('Perusahaan')).toBeNull()
+		fireEvent.click(screen.getByRole('button', { name: 'Bersihkan pencarian izin' }))
+		expect(screen.getByText('Perusahaan')).toBeTruthy()
 		expect(systemRole.permissions).toEqual(role.permissions)
 	})
 })

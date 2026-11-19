@@ -73,22 +73,22 @@ export function AppHeader() {
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					className="flex min-h-9 min-w-9 items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none hover:bg-accent"
-					aria-label={`Open user menu for ${user?.name ?? 'User'}`}
+					aria-label={`Buka menu pengguna untuk ${user?.name ?? 'Pengguna'}`}
 				>
 					<Avatar size="sm">
 						<AvatarFallback>{initials}</AvatarFallback>
 					</Avatar>
-					<span className="hidden md:inline">{user?.name ?? 'User'}</span>
+					<span className="hidden md:inline">{user?.name ?? 'Pengguna'}</span>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" sideOffset={8}>
 					<DropdownMenuItem render={<Link to="/account" />}>
 						<UserIcon className="mr-2 size-4" />
-						Profile
+						Profil
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem onClick={() => logout()}>
 						<LogOutIcon className="mr-2 size-4" />
-						Logout
+						Keluar
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

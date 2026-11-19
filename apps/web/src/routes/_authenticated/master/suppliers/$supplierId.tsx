@@ -47,10 +47,10 @@ function EditSupplierForm({ supplier, onDone }: EditSupplierFormProps) {
 
 	return (
 		<EntityEditorPage
-			title="Edit Supplier"
+			title="Ubah Pemasok"
 			description={`Update details for ${supplier.name}.`}
 			form={form}
-			submitLabel="Save Changes"
+			submitLabel="Simpan Perubahan"
 			onCancel={onDone}
 		>
 			<SupplierFormFields form={form} />

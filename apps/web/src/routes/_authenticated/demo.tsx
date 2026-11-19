@@ -30,20 +30,20 @@ const mockData: MockItem[] = [
 		id: 1,
 		code: 'MAT-001',
 		name: 'Coffee Beans (Arabica)',
-		category: 'Raw Material',
+		category: 'Bahan Baku',
 		price: 85000,
 	},
-	{ id: 2, code: 'MAT-002', name: 'Whole Milk 1L', category: 'Dairy', price: 18000 },
-	{ id: 3, code: 'MAT-003', name: 'Sugar 1kg', category: 'Raw Material', price: 14000 },
-	{ id: 4, code: 'MAT-004', name: 'Paper Cup 12oz', category: 'Packaging', price: 1200 },
-	{ id: 5, code: 'MAT-005', name: 'Chocolate Syrup', category: 'Condiment', price: 45000 },
+	{ id: 2, code: 'MAT-002', name: 'Whole Milk 1L', category: 'Susu', price: 18000 },
+	{ id: 3, code: 'MAT-003', name: 'Sugar 1kg', category: 'Bahan Baku', price: 14000 },
+	{ id: 4, code: 'MAT-004', name: 'Paper Cup 12oz', category: 'Kemasan', price: 1200 },
+	{ id: 5, code: 'MAT-005', name: 'Chocolate Syrup', category: 'Bumbu', price: 45000 },
 ]
 
 const mockColumns = [
-	{ accessorKey: 'code' as const, header: 'Code' },
-	{ accessorKey: 'name' as const, header: 'Name' },
-	{ accessorKey: 'category' as const, header: 'Category' },
-	{ accessorKey: 'price' as const, header: 'Price (IDR)' },
+	{ accessorKey: 'code' as const, header: 'Kode' },
+	{ accessorKey: 'name' as const, header: 'Nama' },
+	{ accessorKey: 'category' as const, header: 'Kategori' },
+	{ accessorKey: 'price' as const, header: 'Harga (IDR)' },
 ]
 
 // -- Demo page --
@@ -60,12 +60,12 @@ function DemoPage() {
 			<section>
 				<SectionTitle>PageHeader</SectionTitle>
 				<PageHeader
-					title="Materials"
-					description="Manage raw materials, packaging, and supplies."
+					title="Bahan"
+					description="Kelola bahan baku, kemasan, dan perlengkapan."
 					actions={
 						<Button size="sm">
 							<PlusIcon className="mr-1.5 size-3.5" />
-							Add Material
+							Tambah Bahan
 						</Button>
 					}
 				/>
@@ -75,7 +75,7 @@ function DemoPage() {
 
 			{/* Form Components */}
 			<section>
-				<SectionTitle>Form Components</SectionTitle>
+				<SectionTitle>Komponen Formulir</SectionTitle>
 				<DemoFormFields />
 			</section>
 
@@ -93,12 +93,12 @@ function DemoPage() {
 			<section>
 				<SectionTitle>EmptyState</SectionTitle>
 				<EmptyState
-					title="No materials yet"
-					description="Add your first material to get started."
+					title="Belum ada bahan"
+					description="Tambahkan bahan pertama Anda untuk memulai."
 					action={
 						<Button size="sm">
 							<PlusIcon className="mr-1.5 size-3.5" />
-							Add Material
+							Tambah Bahan
 						</Button>
 					}
 				/>
@@ -110,8 +110,8 @@ function DemoPage() {
 			<section>
 				<SectionTitle>PageError</SectionTitle>
 				<PageError
-					title="Failed to load materials"
-					message="Could not connect to the server. Please check your connection."
+					title="Gagal memuat bahan"
+					message="Tidak dapat terhubung ke server. Periksa koneksi Anda."
 					onRetry={() => {}}
 				/>
 			</section>
@@ -149,44 +149,44 @@ function DemoFormFields() {
 		<form.AppForm>
 			<div className="grid max-w-2xl gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
-					{(field) => <field.TextField label="Material Code" placeholder="e.g. MAT-001" />}
+					{(field) => <field.TextField label="Kode Bahan" placeholder="mis. MAT-001" />}
 				</form.AppField>
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Name" placeholder="Coffee Beans" />}
+					{(field) => <field.TextField label="Nama" placeholder="Biji Kopi" />}
 				</form.AppField>
 				<form.AppField name="category">
 					{(field) => (
 						<field.SelectField
-							label="Category"
+							label="Kategori"
 							options={[
-								{ label: 'Raw Material', value: 'raw' },
-								{ label: 'Packaging', value: 'packaging' },
-								{ label: 'Dairy', value: 'dairy' },
-								{ label: 'Condiment', value: 'condiment' },
+								{ label: 'Bahan Baku', value: 'raw' },
+								{ label: 'Kemasan', value: 'packaging' },
+								{ label: 'Susu', value: 'dairy' },
+								{ label: 'Bumbu', value: 'condiment' },
 							]}
-							placeholder="Select category"
+							placeholder="Pilih kategori"
 						/>
 					)}
 				</form.AppField>
 				<form.AppField name="supplier">
 					{(field) => (
 						<field.ComboboxField
-							label="Supplier"
+							label="Pemasok"
 							options={[
 								{ label: 'PT Sumber Jaya', value: '1' },
 								{ label: 'CV Makmur Sentosa', value: '2' },
 								{ label: 'UD Berkah', value: '3' },
 							]}
-							placeholder="Search supplier..."
+							placeholder="Cari pemasok..."
 						/>
 					)}
 				</form.AppField>
 				<form.AppField name="notes">
 					{(field) => (
 						<field.TextareaField
-							label="Notes"
-							placeholder="Additional notes..."
-							description="Optional notes about this material."
+							label="Catatan"
+							placeholder="Catatan tambahan..."
+							description="Catatan opsional tentang bahan ini."
 							wrapperClassName="sm:col-span-2"
 						/>
 					)}

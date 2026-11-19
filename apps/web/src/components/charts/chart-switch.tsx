@@ -22,7 +22,7 @@ export function ChartSwitch<T extends string = string>({
 	value,
 	onChange,
 	className,
-	'aria-label': ariaLabel = 'Chart type',
+	'aria-label': ariaLabel = 'Jenis grafik',
 }: ChartSwitchProps<T>) {
 	return (
 		<div

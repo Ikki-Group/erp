@@ -123,7 +123,7 @@ function ToastClose({
 	return (
 		<ToastPrimitive.Close
 			data-slot="toast-close"
-			aria-label="Close toast"
+			aria-label="Tutup notifikasi"
 			render={render}
 			className={cn(
 				"relative shrink-0 text-muted-foreground transition-transform after:absolute after:-inset-2 after:content-[''] hover:text-foreground hover:rotate-90",

@@ -36,8 +36,8 @@ export function FormPage({
 	actions,
 	children,
 	onCancel,
-	submitLabel = 'Save',
-	cancelLabel = 'Cancel',
+	submitLabel = 'Simpan',
+	cancelLabel = 'Batal',
 	readOnly = false,
 	className,
 }: FormPageProps) {

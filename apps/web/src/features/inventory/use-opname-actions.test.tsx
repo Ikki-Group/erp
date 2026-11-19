@@ -191,7 +191,7 @@ describe('opname completion', () => {
 		detailStatus = 'cancelled'
 		const { result } = mount()
 		await act(async () => {
-			await expect(result.current.complete(opname)).rejects.toThrow('tidak lagi berstatus draft')
+			await expect(result.current.complete(opname)).rejects.toThrow('tidak lagi berstatus draf')
 		})
 		expect(writes()).toHaveLength(0)
 	})

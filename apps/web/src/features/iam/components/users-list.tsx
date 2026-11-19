@@ -57,13 +57,13 @@ export function UsersList({ searchParams }: UsersListProps) {
 	const { run: handleDeactivate, isPending: deactivating } = useWorkflowAction<UserListItemDto>({
 		availability: (user) => canDeactivate && user.isActive,
 		confirmation: (user) => ({
-			title: 'Deactivate user?',
-			description: `This will deactivate "${user.name}". They will no longer be able to log in.`,
-			confirmLabel: 'Deactivate',
+			title: 'Nonaktifkan pengguna?',
+			description: `Ini akan menonaktifkan "${user.name}". Pengguna tidak akan bisa masuk lagi.`,
+			confirmLabel: 'Nonaktifkan',
 			variant: 'destructive',
 		}),
 		execute: (user) => deactivateMut.mutateAsync({ id: user.id }),
-		successMessage: 'User deactivated.',
+		successMessage: 'Pengguna berhasil dinonaktifkan.',
 	})
 
 	const handleResetPassword = useCallback(async (user: UserListItemDto) => {
@@ -111,23 +111,23 @@ export function UsersList({ searchParams }: UsersListProps) {
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (user) => [
 					{
-						label: 'View',
+						label: 'Lihat',
 						icon: <EyeIcon className="size-4" />,
 						onClick: () => handleView(user.id),
 					},
 					canEdit && {
-						label: 'Edit',
+						label: 'Ubah',
 						icon: <EditIcon className="size-4" />,
 						onClick: () => handleEdit(user.id),
 					},
 					canEdit && {
-						label: 'Reset Password',
+						label: 'Reset Kata Sandi',
 						icon: <KeyRoundIcon className="size-4" />,
 						onClick: () => handleResetPassword(user),
 					},
 					canDeactivate &&
 						user.isActive && {
-							label: 'Deactivate',
+							label: 'Nonaktifkan',
 							icon: <UserXIcon className="size-4" />,
 							onClick: () => handleDeactivate(user),
 							variant: 'destructive' as const,
@@ -161,35 +161,35 @@ export function UsersList({ searchParams }: UsersListProps) {
 
 	return (
 		<EntityListPage
-			title="Users"
-			description="Manage user accounts and their role assignments."
+			title="Pengguna"
+			description="Kelola akun pengguna dan penugasan perannya."
 			createAction={
 				<PermissionGate permission="iam.create">
 					<Button size="sm" onClick={handleAdd}>
 						<PlusIcon className="size-4" />
-						Add User
+						Tambah Pengguna
 					</Button>
 				</PermissionGate>
 			}
 			list={list}
 			emptyState={{
-				title: 'No users yet',
-				description: 'Get started by creating the first user account.',
+				title: 'Belum ada pengguna',
+				description: 'Mulai dengan membuat akun pengguna pertama.',
 			}}
-			emptyMessage="No users match your search."
+			emptyMessage="Tidak ada pengguna yang cocok dengan pencarian Anda."
 			toolbar={
 				<TableToolbar
 					searchValue={list.globalFilter}
 					onSearchChange={(value) => list.table.setGlobalFilter(value)}
-					searchPlaceholder="Search by username, name, or email..."
+					searchPlaceholder="Cari berdasarkan nama pengguna, nama, atau email..."
 					filters={[
 						{
 							key: 'isActive',
 							label: 'Status',
 							value: search.isActive?.toString(),
 							options: [
-								{ label: 'Active', value: '1' },
-								{ label: 'Inactive', value: '0' },
+								{ label: 'Aktif', value: '1' },
+								{ label: 'Nonaktif', value: '0' },
 							],
 							onChange: (value) =>
 								list.setFilters({ isActive: value === undefined ? undefined : Number(value) }),

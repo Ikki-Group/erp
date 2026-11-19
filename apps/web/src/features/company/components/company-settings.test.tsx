@@ -78,10 +78,10 @@ it('allows same-value retry after failure but ignores further clicks until that 
 			<RouterProvider router={router} />
 		</QueryClientProvider>,
 	)
-	const name = await screen.findByRole('textbox', { name: 'Company Name' })
+	const name = await screen.findByRole('textbox', { name: 'Nama Perusahaan' })
 	fireEvent.change(name, { target: { value: 'Saved Company' } })
-	fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
-	const retry = await screen.findByRole<HTMLButtonElement>('button', { name: 'Retry save' })
+	fireEvent.click(screen.getByRole('button', { name: 'Simpan Perubahan' }))
+	const retry = await screen.findByRole<HTMLButtonElement>('button', { name: 'Coba lagi simpan' })
 	expect(update).toHaveBeenCalledTimes(1)
 	expect(name).toHaveProperty('value', 'Saved Company')
 	fireEvent.click(retry)
@@ -92,7 +92,7 @@ it('allows same-value retry after failure but ignores further clicks until that 
 	await act(async () => {
 		saving.resolve({ data: { id: 1 } })
 	})
-	await waitFor(() => expect(screen.queryByRole('button', { name: 'Retry save' })).toBeNull())
+	await waitFor(() => expect(screen.queryByRole('button', { name: 'Coba lagi simpan' })).toBeNull())
 	expect(update).toHaveBeenCalledTimes(2)
 	expect(update).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Saved Company' }))
 	expect(name).toHaveProperty('value', 'Saved Company')

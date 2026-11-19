@@ -8,8 +8,8 @@ export const MaterialTypeEnum = z.enum(['raw', 'semi_finished'])
 export type MaterialTypeEnum = z.infer<typeof MaterialTypeEnum>
 
 export const MATERIAL_TYPE_OPTIONS = [
-	{ label: 'Raw', value: 'raw' },
-	{ label: 'Semi Finished', value: 'semi_finished' },
+	{ label: 'Mentah', value: 'raw' },
+	{ label: 'Setengah Jadi', value: 'semi_finished' },
 ] as const
 
 // ─── Material Response ───
@@ -55,7 +55,7 @@ export const MaterialCreateDto = z.object({
 	minStock: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal')
+		.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif')
 		.nullable()
 		.default(null),
 	isActive: z.boolean().default(true),
@@ -77,7 +77,7 @@ export const MaterialUpdateDto = z.object({
 	minStock: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal')
+		.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif')
 		.nullable()
 		.default(null),
 	isActive: z.boolean().default(true),

@@ -25,7 +25,7 @@ export function SupplierLookupField({ activeOnly = true, ...props }: SupplierLoo
 	return (
 		<ResourceLookupField
 			adapter={activeOnly ? activeSupplierLookup : supplierLookup}
-			placeholder="Search suppliers..."
+			placeholder="Cari pemasok..."
 			{...props}
 		/>
 	)

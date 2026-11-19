@@ -52,11 +52,11 @@ interface RolePageProps {
 function SystemRoleDetail({ role, onDone }: RolePageProps) {
 	return (
 		<DetailPage
-			title="System Role Details"
-			description={`${role.name} is managed by the system and cannot be modified.`}
+			title="Detail Peran Sistem"
+			description={`${role.name} dikelola oleh sistem dan tidak dapat diubah.`}
 			actions={
 				<Button variant="outline" onClick={onDone}>
-					Back
+					Kembali
 				</Button>
 			}
 			className="mx-auto max-w-2xl"
@@ -71,10 +71,10 @@ function EditRoleForm({ role, onDone }: RolePageProps) {
 
 	return (
 		<EntityEditorPage
-			title="Edit Role"
+			title="Ubah Peran"
 			description={`Update permissions for ${role.name}.`}
 			form={form}
-			submitLabel="Save Changes"
+			submitLabel="Simpan Perubahan"
 			onCancel={onDone}
 		>
 			<RoleFormFields form={form} />

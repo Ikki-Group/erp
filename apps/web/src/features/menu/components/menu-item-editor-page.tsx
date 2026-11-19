@@ -23,7 +23,7 @@ export function MenuItemEditorPage({ item }: { item?: MenuItemDetailDto }) {
 	if (!scope.location) {
 		return (
 			<LocationRequiredPage
-				title="Tambah Menu Item"
+				title="Tambah Item Menu"
 				description="Buat item menu baru untuk lokasi ini."
 				message="Pilih lokasi terlebih dahulu untuk mengelola menu."
 			/>
@@ -49,8 +49,8 @@ function MenuItemEditor({
 
 	return (
 		<EntityEditorPage
-			title={item ? 'Edit Menu Item' : 'Tambah Menu Item'}
-			description={item ? `Edit "${item.name}".` : 'Buat item menu baru untuk lokasi ini.'}
+			title={item ? 'Ubah Item Menu' : 'Tambah Item Menu'}
+			description={item ? `Ubah "${item.name}".` : 'Buat item menu baru untuk lokasi ini.'}
 			form={form}
 			submitLabel="Simpan"
 			cancelLabel="Batal"

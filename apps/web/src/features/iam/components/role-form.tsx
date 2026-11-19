@@ -24,9 +24,9 @@ export interface RoleFormValues {
 }
 
 const RoleFormSchema = z.object({
-	code: z.string().trim().min(2, 'Code must be at least 2 characters').max(50),
-	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
-	description: z.string().trim().max(500, 'Description must be 500 characters or fewer'),
+	code: z.string().trim().min(2, 'Kode minimal 2 karakter').max(50),
+	name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(255),
+	description: z.string().trim().max(500, 'Deskripsi maksimal 500 karakter'),
 	permissions: RoleCreateDto.shape.permissions,
 })
 
@@ -52,7 +52,7 @@ export function toRoleInput(values: RoleFormValues): RoleCreateDto {
 
 export async function saveRole(input: RoleCreateDto, role?: RoleDto) {
 	if (role?.isSystem) {
-		throw new Error('System roles cannot be modified.')
+		throw new Error('Peran sistem tidak dapat diubah.')
 	}
 	return role
 		? roleResource.update.fetch({ ...input, id: role.id })
@@ -73,7 +73,7 @@ export function useRoleForm({
 			mutationFn: (input: RoleCreateDto) => saveRole(input, role),
 		},
 		toPayload: toRoleInput,
-		successMessage: role ? 'Role updated successfully.' : 'Role created successfully.',
+		successMessage: role ? 'Peran berhasil diperbarui.' : 'Peran berhasil dibuat.',
 		onSaved,
 	})
 }
@@ -137,11 +137,13 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 		<div className="space-y-2">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div>
-					<Label>Permissions</Label>
-					<p className="text-xs text-muted-foreground">Choose the actions this role can perform.</p>
+					<Label>Izin</Label>
+					<p className="text-xs text-muted-foreground">
+						Pilih tindakan yang dapat dilakukan peran ini.
+					</p>
 				</div>
 				<Badge variant={selectedCount > 0 ? 'secondary' : 'outline'}>
-					{selectedCount}/{totalPermissions} selected
+					{selectedCount}/{totalPermissions} dipilih
 				</Badge>
 			</div>
 
@@ -151,9 +153,9 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 					<Input
 						value={query}
 						onChange={(event) => setQuery(event.target.value)}
-						placeholder="Search permissions..."
+						placeholder="Cari izin..."
 						className="h-7 pl-8 pr-8 text-xs"
-						aria-label="Search permissions"
+						aria-label="Cari izin"
 					/>
 					{query && (
 						<Button
@@ -162,7 +164,7 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 							size="icon-xs"
 							className="absolute right-1 top-1/2 -translate-y-1/2"
 							onClick={() => setQuery('')}
-							aria-label="Clear permission search"
+							aria-label="Bersihkan pencarian izin"
 						>
 							<XIcon className="size-3" />
 						</Button>
@@ -171,7 +173,7 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 				{!readOnly && (
 					<>
 						<Button type="button" variant="outline" size="xs" onClick={selectAll}>
-							Select all
+							Pilih semua
 						</Button>
 						<Button
 							type="button"
@@ -180,7 +182,7 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 							onClick={() => onChange([])}
 							disabled={selectedCount === 0}
 						>
-							Clear
+							Bersihkan
 						</Button>
 					</>
 				)}
@@ -189,7 +191,7 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 			<div className="max-h-96 space-y-2 overflow-y-auto rounded-md border p-2">
 				{visibleGroups.length === 0 ? (
 					<p className="p-4 text-center text-sm text-muted-foreground">
-						No permissions match your search.
+						Tidak ada izin yang cocok dengan pencarian Anda.
 					</p>
 				) : (
 					visibleGroups.map((group) => {
@@ -247,18 +249,18 @@ export function RoleFormFields({ form }: { form: RoleForm }) {
 		<div className="grid gap-5">
 			<div className="grid gap-4 sm:grid-cols-2">
 				<form.AppField name="code">
-					{(field) => <field.TextField label="Code" placeholder="e.g. manager" />}
+					{(field) => <field.TextField label="Kode" placeholder="mis. manager" />}
 				</form.AppField>
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Name" placeholder="e.g. Store Manager" />}
+					{(field) => <field.TextField label="Nama" placeholder="mis. Manajer Toko" />}
 				</form.AppField>
 			</div>
 
 			<form.AppField name="description">
 				{(field) => (
 					<field.TextareaField
-						label="Description"
-						placeholder="Explain what this role is responsible for..."
+						label="Deskripsi"
+						placeholder="Jelaskan tanggung jawab peran ini..."
 						maxLength={500}
 						rows={3}
 					/>
@@ -295,15 +297,15 @@ export function RoleDetails({ role }: { role: RoleDto }) {
 		<div className="grid gap-5">
 			<dl className="grid gap-4 sm:grid-cols-2">
 				<div className="space-y-1">
-					<dt className="text-xs text-muted-foreground">Code</dt>
+					<dt className="text-xs text-muted-foreground">Kode</dt>
 					<dd className="break-words font-mono text-sm">{role.code}</dd>
 				</div>
 				<div className="space-y-1">
-					<dt className="text-xs text-muted-foreground">Name</dt>
+					<dt className="text-xs text-muted-foreground">Nama</dt>
 					<dd className="break-words text-sm">{role.name}</dd>
 				</div>
 				<div className="space-y-1 sm:col-span-2">
-					<dt className="text-xs text-muted-foreground">Description</dt>
+					<dt className="text-xs text-muted-foreground">Deskripsi</dt>
 					<dd className="whitespace-pre-wrap break-words text-sm">{role.description || '—'}</dd>
 				</div>
 			</dl>

@@ -40,7 +40,7 @@ export function AreaChart({
 	yAxisFormatter,
 	yAxisWidth,
 	className,
-	'aria-label': ariaLabel = 'Area chart',
+	'aria-label': ariaLabel = 'Grafik area',
 	'aria-describedby': ariaDescribedBy,
 }: AreaChartProps) {
 	return (

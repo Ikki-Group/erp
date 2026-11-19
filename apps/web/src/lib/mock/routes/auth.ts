@@ -20,7 +20,7 @@ function toAuthLocation(loc: { id: number; code: string; name: string; type: str
 registerRoute('post', endpoint.auth.login, (_params, body) => {
 	const { username, password } = body as LoginBody
 	const user = session.login(username, password)
-	if (!user) return mockError(401, 'Username atau password salah.', 'INVALID_CREDENTIALS')
+	if (!user) return mockError(401, 'Nama pengguna atau kata sandi salah.', 'INVALID_CREDENTIALS')
 
 	return mockSuccess({
 		user: toAuthUser(user),

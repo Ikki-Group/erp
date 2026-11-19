@@ -56,13 +56,13 @@ export function RolesList({ searchParams }: RolesListProps) {
 	const { run: handleDelete, isPending: deletingRole } = useWorkflowAction<RoleDto>({
 		availability: (role) => canDelete && !role.isSystem,
 		confirmation: (role) => ({
-			title: 'Delete role?',
-			description: `This will permanently delete "${role.name}". A role cannot be deleted while it is assigned to users.`,
-			confirmLabel: 'Delete',
+			title: 'Hapus peran?',
+			description: `Peran "${role.name}" akan dihapus permanen. Peran tidak dapat dihapus selama masih ditugaskan ke pengguna.`,
+			confirmLabel: 'Hapus',
 			variant: 'destructive',
 		}),
 		execute: (role) => removeMut.mutateAsync({ id: role.id }),
-		successMessage: 'Role deleted.',
+		successMessage: 'Peran berhasil dihapus.',
 	})
 
 	const handleView = useCallback(
@@ -105,19 +105,19 @@ export function RolesList({ searchParams }: RolesListProps) {
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (role) => [
 					role.isSystem && {
-						label: 'View',
+						label: 'Lihat',
 						icon: <EyeIcon className="size-4" />,
 						onClick: () => handleView(role.id),
 					},
 					!role.isSystem &&
 						canEdit && {
-							label: 'Edit',
+							label: 'Ubah',
 							icon: <EditIcon className="size-4" />,
 							onClick: () => handleEdit(role.id),
 						},
 					!role.isSystem &&
 						canDelete && {
-							label: 'Delete',
+							label: 'Hapus',
 							icon: <TrashIcon className="size-4" />,
 							onClick: () => handleDelete(role),
 							variant: 'destructive' as const,
@@ -145,35 +145,35 @@ export function RolesList({ searchParams }: RolesListProps) {
 		<PermissionGate permission="iam.create">
 			<Button size="sm" onClick={handleAdd}>
 				<PlusIcon className="size-4" />
-				Add Role
+				Tambah Peran
 			</Button>
 		</PermissionGate>
 	)
 
 	return (
 		<EntityListPage
-			title="Roles"
-			description="Manage roles and their permission sets."
+			title="Peran"
+			description="Kelola peran dan kumpulan izinnya."
 			createAction={addRoleAction}
 			list={list}
 			emptyState={{
-				title: 'No roles yet',
-				description: 'Get started by creating your first role.',
+				title: 'Belum ada peran',
+				description: 'Mulai dengan membuat peran pertama Anda.',
 			}}
-			emptyMessage="No roles match your search."
+			emptyMessage="Tidak ada peran yang cocok dengan pencarian Anda."
 			toolbar={
 				<TableToolbar
 					searchValue={list.globalFilter}
 					onSearchChange={(value) => list.table.setGlobalFilter(value)}
-					searchPlaceholder="Search by code or name..."
+					searchPlaceholder="Cari berdasarkan kode atau nama..."
 					filters={[
 						{
 							key: 'isSystem',
-							label: 'Type',
+							label: 'Tipe',
 							value: search.isSystem?.toString(),
 							options: [
-								{ label: 'System roles', value: '1' },
-								{ label: 'Custom roles', value: '0' },
+								{ label: 'Peran sistem', value: '1' },
+								{ label: 'Peran kustom', value: '0' },
 							],
 							onChange: (value) =>
 								list.setFilters({ isSystem: value === undefined ? undefined : Number(value) }),

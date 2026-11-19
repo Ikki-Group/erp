@@ -17,14 +17,14 @@ export interface LocationRequiredPageProps {
 export function LocationRequiredPage({
 	title,
 	description,
-	message = 'Select an active location to continue.',
+	message = 'Pilih lokasi aktif untuk melanjutkan.',
 	icon,
 	children,
 }: LocationRequiredPageProps) {
 	return (
 		<PageShell title={title} description={description}>
 			{children ?? (
-				<EmptyState title="Select a location" description={message} icon={icon ?? <MapPinIcon />} />
+				<EmptyState title="Pilih lokasi" description={message} icon={icon ?? <MapPinIcon />} />
 			)}
 		</PageShell>
 	)

@@ -16,7 +16,7 @@ const username = z
 	.trim()
 	.min(3)
 	.max(30)
-	.regex(/^[a-zA-Z0-9_]+$/u, 'Username can only contain letters, numbers, and underscores')
+	.regex(/^[a-zA-Z0-9_]+$/u, 'Nama pengguna hanya boleh berisi huruf, angka, dan garis bawah')
 
 const password = z.string().min(8).max(100)
 

@@ -19,20 +19,20 @@ const ConversionFormSchema = z
 			.int()
 			.positive()
 			.nullable()
-			.refine((v) => v !== null, { error: 'Source unit is required' }),
+			.refine((v) => v !== null, { error: 'Satuan asal wajib diisi' }),
 		toUomId: z
 			.number()
 			.int()
 			.positive()
 			.nullable()
-			.refine((v) => v !== null, { error: 'Target unit is required' }),
+			.refine((v) => v !== null, { error: 'Satuan tujuan wajib diisi' }),
 		factor: z
 			.string()
 			.trim()
-			.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
+			.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif'),
 	})
 	.refine((v) => v.fromUomId === null || v.fromUomId !== v.toUomId, {
-		error: 'Must differ from source unit',
+		error: 'Harus berbeda dari satuan asal',
 		path: ['toUomId'],
 	})
 
@@ -54,7 +54,7 @@ export function ConversionFormBody({ onSaved, onCancel }: ConversionFormBodyProp
 		schema: ConversionFormSchema,
 		mutation: conversionResource.create.mutationOptions(),
 		toPayload: (values) => UomConversionCreateDto.parse(values),
-		successMessage: 'Conversion created successfully.',
+		successMessage: 'Konversi berhasil dibuat.',
 		onSaved,
 	})
 
@@ -63,22 +63,22 @@ export function ConversionFormBody({ onSaved, onCancel }: ConversionFormBodyProp
 			<FormRoot form={form} className="grid gap-4">
 				<div className="grid gap-4 sm:grid-cols-2">
 					<form.AppField name="fromUomId">
-						{() => <UomLookupField label="From Unit" />}
+						{() => <UomLookupField label="Dari Satuan" />}
 					</form.AppField>
-					<form.AppField name="toUomId">{() => <UomLookupField label="To Unit" />}</form.AppField>
+					<form.AppField name="toUomId">{() => <UomLookupField label="Ke Satuan" />}</form.AppField>
 				</div>
 				<form.AppField name="factor">
 					{(field) => (
 						<field.TextField
-							label="Factor"
-							placeholder="e.g. 1000 (1 from = 1000 to)"
+							label="Faktor"
+							placeholder="mis. 1000 (1 dari = 1000 ke)"
 							inputMode="decimal"
 							className="text-right font-mono tabular-nums"
 						/>
 					)}
 				</form.AppField>
 				<form.FormError />
-				<FormDialogFooter onCancel={onCancel} submitLabel="Create" />
+				<FormDialogFooter onCancel={onCancel} submitLabel="Buat" />
 			</FormRoot>
 		</form.AppForm>
 	)

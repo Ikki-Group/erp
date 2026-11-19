@@ -50,8 +50,8 @@ function LocationDetailRoute() {
 	if (!canRead) {
 		return (
 			<PageError
-				title="Access denied"
-				message="You do not have permission to view location details."
+				title="Akses ditolak"
+				message="Anda tidak memiliki izin untuk melihat detail lokasi."
 			/>
 		)
 	}
@@ -63,10 +63,10 @@ function LocationDetailRoute() {
 			notFound={
 				<div className="flex h-96 flex-col items-center justify-center gap-4">
 					<MapPinIcon className="size-12 text-muted-foreground" />
-					<p className="text-muted-foreground">Location not found</p>
+					<p className="text-muted-foreground">Lokasi tidak ditemukan</p>
 					<Button variant="outline" onClick={() => navigate({ to: '/settings/locations' })}>
 						<ArrowLeftIcon className="size-4" />
-						Back to Locations
+						Kembali ke Lokasi
 					</Button>
 				</div>
 			}
@@ -77,7 +77,7 @@ function LocationDetailRoute() {
 }
 
 function renderLocationError(_error: Error, retry: () => void) {
-	return <PageError title="Could not load location" onRetry={retry} />
+	return <PageError title="Gagal memuat lokasi" onRetry={retry} />
 }
 
 function LocationDetail({ location }: { location: LocationDto }) {
@@ -91,7 +91,7 @@ function LocationDetail({ location }: { location: LocationDto }) {
 			description={`Code: ${location.code}`}
 			status={
 				<StatusBadge variant={location.isActive ? 'success' : 'default'}>
-					{location.isActive ? 'Active' : 'Inactive'}
+					{location.isActive ? 'Aktif' : 'Nonaktif'}
 				</StatusBadge>
 			}
 			actions={
@@ -102,7 +102,7 @@ function LocationDetail({ location }: { location: LocationDto }) {
 						onClick={() => navigate({ to: '/settings/locations' })}
 					>
 						<ArrowLeftIcon className="size-4" />
-						Back
+						Kembali
 					</Button>
 					{deletion.canDelete && (
 						<Button
@@ -112,7 +112,7 @@ function LocationDetail({ location }: { location: LocationDto }) {
 							onClick={() => void deletion.run(location)}
 						>
 							<TrashIcon className="size-4" />
-							Deactivate
+							Nonaktifkan
 						</Button>
 					)}
 					{canEdit && (
@@ -126,18 +126,18 @@ function LocationDetail({ location }: { location: LocationDto }) {
 							}
 						>
 							<PencilIcon className="size-4" />
-							Edit
+							Ubah
 						</Button>
 					)}
 				</div>
 			}
 		>
-			<DetailSection title="Location Details">
+			<DetailSection title="Detail Lokasi">
 				<DetailList
 					items={[
-						{ label: 'Type', value: location.type === 'store' ? 'Store' : 'Warehouse' },
-						{ label: 'Address', value: location.address || '-' },
-						{ label: 'Phone', value: location.phone || '-' },
+						{ label: 'Tipe', value: location.type === 'store' ? 'Toko' : 'Gudang' },
+						{ label: 'Alamat', value: location.address || '-' },
+						{ label: 'Telepon', value: location.phone || '-' },
 					]}
 					columns={2}
 				/>
@@ -154,12 +154,15 @@ function AssignedUsersSection({ locationId }: { locationId: number }) {
 	const canReadUsers = usePermissionCheck({ permission: 'iam.read' })
 
 	return (
-		<DetailSection title="Assigned Users">
+		<DetailSection title="Pengguna Ditugaskan">
 			{canReadUsers ? (
 				<AssignedUsersTable key={locationId} locationId={locationId} />
 			) : (
-				<InlineAlert variant="info" title="Assigned users are not available">
-					<p>You need permission to view users and roles to see who is assigned here.</p>
+				<InlineAlert variant="info" title="Pengguna yang ditugaskan tidak tersedia">
+					<p>
+						Anda memerlukan izin melihat pengguna dan peran untuk melihat siapa yang ditugaskan di
+						sini.
+					</p>
 				</InlineAlert>
 			)}
 		</DetailSection>
@@ -193,7 +196,7 @@ function AssignedUsersTable({ locationId }: { locationId: number }) {
 		<TableToolbar
 			searchValue={list.globalFilter}
 			onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
-			searchPlaceholder="Search assigned users..."
+			searchPlaceholder="Cari pengguna yang ditugaskan..."
 			filters={[
 				{
 					key: 'isActive',
@@ -201,7 +204,7 @@ function AssignedUsersTable({ locationId }: { locationId: number }) {
 					value: search.isActive === undefined ? undefined : String(search.isActive),
 					onChange: (value) => list.setFilters({ isActive: parseLocationStaffStatus(value) }),
 					options: LOCATION_STAFF_STATUS_OPTIONS,
-					allLabel: 'All Statuses',
+					allLabel: 'Semua Status',
 				},
 			]}
 		/>
@@ -211,7 +214,7 @@ function AssignedUsersTable({ locationId }: { locationId: number }) {
 		return (
 			<div className="space-y-4">
 				{toolbar}
-				<PageError title="Could not load assigned users" onRetry={list.retry} />
+				<PageError title="Gagal memuat pengguna yang ditugaskan" onRetry={list.retry} />
 			</div>
 		)
 	}
@@ -219,8 +222,8 @@ function AssignedUsersTable({ locationId }: { locationId: number }) {
 	return (
 		<div className="min-w-0 space-y-4" aria-busy={list.isRefreshing}>
 			{list.state === 'refresh-error' && (
-				<InlineAlert variant="warning" title="Could not refresh assigned users">
-					<p>Showing the last loaded results.</p>
+				<InlineAlert variant="warning" title="Gagal memuat ulang pengguna yang ditugaskan">
+					<p>Menampilkan hasil terakhir yang dimuat.</p>
 					<Button
 						type="button"
 						variant="outline"
@@ -228,7 +231,7 @@ function AssignedUsersTable({ locationId }: { locationId: number }) {
 						disabled={list.isRefreshing}
 						onClick={list.retry}
 					>
-						Retry
+						Muat ulang
 					</Button>
 				</InlineAlert>
 			)}
@@ -238,8 +241,8 @@ function AssignedUsersTable({ locationId }: { locationId: number }) {
 				isLoading={list.state === 'initial-loading'}
 				emptyMessage={
 					list.state === 'record-empty'
-						? 'No users assigned to this location.'
-						: 'No assigned users match your search.'
+						? 'Belum ada pengguna yang ditugaskan ke lokasi ini.'
+						: 'Tidak ada pengguna yang ditugaskan yang cocok dengan pencarian Anda.'
 				}
 				toolbar={toolbar}
 			/>

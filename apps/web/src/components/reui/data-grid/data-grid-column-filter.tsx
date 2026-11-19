@@ -85,7 +85,9 @@ function DataGridColumnFilter<TData extends object, TValue>({
 				</div>
 				<div className="max-h-75 overflow-y-auto">
 					{filteredOptions.length === 0 ? (
-						<div className="text-muted-foreground py-6 text-center text-sm">No results found.</div>
+						<div className="text-muted-foreground py-6 text-center text-sm">
+							Tidak ada hasil ditemukan.
+						</div>
 					) : (
 						<div className="p-1">
 							{filteredOptions.map((option) => {

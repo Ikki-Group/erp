@@ -64,17 +64,17 @@ async function mount(props: { method?: PaymentMethodDto; canWrite: boolean }) {
 			<RouterProvider router={router} />
 		</QueryClientProvider>,
 	)
-	await screen.findByRole('textbox', { name: 'Name' })
+	await screen.findByRole('textbox', { name: 'Nama' })
 	return { onDone }
 }
 
 it('saves the normalized edit payload for the loaded record and finishes', async () => {
 	update.mockResolvedValue({ data: { id: 3 } })
 	const { onDone } = await mount({ method, canWrite: true })
-	fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), {
+	fireEvent.change(screen.getByRole('textbox', { name: 'Nama' }), {
 		target: { value: '  QRIS Static  ' },
 	})
-	fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+	fireEvent.click(screen.getByRole('button', { name: 'Simpan Perubahan' }))
 	await waitFor(() => expect(onDone).toHaveBeenCalled())
 	expect(update).toHaveBeenCalledWith({
 		id: 3,
@@ -91,17 +91,17 @@ it('keeps the draft after a failed save and retries once without duplicate in-fl
 		.mockRejectedValueOnce(new Error('Connection unavailable'))
 		.mockReturnValueOnce(saving.promise)
 	const { onDone } = await mount({ canWrite: true })
-	const name = screen.getByRole('textbox', { name: 'Name' })
-	fireEvent.change(screen.getByRole('textbox', { name: 'Code' }), { target: { value: 'GOPAY' } })
+	const name = screen.getByRole('textbox', { name: 'Nama' })
+	fireEvent.change(screen.getByRole('textbox', { name: 'Kode' }), { target: { value: 'GOPAY' } })
 	fireEvent.change(name, { target: { value: 'GoPay' } })
-	fireEvent.click(screen.getByRole('button', { name: 'Create' }))
-	const retry = await screen.findByRole<HTMLButtonElement>('button', { name: 'Retry save' })
+	fireEvent.click(screen.getByRole('button', { name: 'Buat' }))
+	const retry = await screen.findByRole<HTMLButtonElement>('button', { name: 'Coba lagi simpan' })
 	expect(await screen.findByText('Connection unavailable')).toBeTruthy()
 	expect(name).toHaveProperty('value', 'GoPay')
 	fireEvent.click(retry)
 	await waitFor(() => expect(create).toHaveBeenCalledTimes(2))
-	expect(screen.queryByRole('button', { name: 'Retry save' })).toBeNull()
-	const submitting = screen.getByRole<HTMLButtonElement>('button', { name: /Create/u })
+	expect(screen.queryByRole('button', { name: 'Coba lagi simpan' })).toBeNull()
+	const submitting = screen.getByRole<HTMLButtonElement>('button', { name: /Buat/u })
 	expect(submitting.disabled).toBe(true)
 	fireEvent.click(submitting)
 	await act(async () => {
@@ -119,8 +119,8 @@ it('keeps the draft after a failed save and retries once without duplicate in-fl
 
 it('offers no save to a read-only user and never calls the server', async () => {
 	await mount({ method, canWrite: false })
-	expect(screen.queryByRole('button', { name: 'Save Changes' })).toBeNull()
-	expect(screen.getByText(/don.t have permission/iu)).toBeTruthy()
-	expect(screen.getByRole('textbox', { name: 'Name' }).matches(':disabled')).toBe(true)
+	expect(screen.queryByRole('button', { name: 'Simpan Perubahan' })).toBeNull()
+	expect(screen.getByText(/tidak memiliki izin/iu)).toBeTruthy()
+	expect(screen.getByRole('textbox', { name: 'Nama' }).matches(':disabled')).toBe(true)
 	expect(update).not.toHaveBeenCalled()
 })

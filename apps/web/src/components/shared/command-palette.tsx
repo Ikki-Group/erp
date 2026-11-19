@@ -56,8 +56,8 @@ export function CommandPalette({
 	open,
 	onOpenChange,
 	actions,
-	placeholder = 'Type a command or search\u2026',
-	emptyMessage = 'No matching actions.',
+	placeholder = 'Ketik perintah atau cari\u2026',
+	emptyMessage = 'Tidak ada tindakan yang cocok.',
 }: CommandPaletteProps) {
 	const [query, setQuery] = useState('')
 	const [activeIndex, setActiveIndex] = useState(0)

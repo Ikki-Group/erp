@@ -13,19 +13,19 @@ export interface MenuItemFormValues {
 }
 
 export const MenuItemFormSchema = z.object({
-	sku: z.string().trim().min(1, 'SKU is required').max(100),
-	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
+	sku: z.string().trim().min(1, 'SKU wajib diisi').max(100),
+	name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(255),
 	categoryId: z.number().int().positive().nullable(),
 	basePrice: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d+)?$/u, 'Must be a valid price'),
+		.regex(/^\d+(\.\d+)?$/u, 'Harus berupa harga yang valid'),
 	status: MenuItemStatusEnum,
 })
 
 export const MENU_ITEM_STATUS_FIELD_OPTIONS = [
-	{ label: 'Active', value: 'active' },
-	{ label: 'Inactive', value: 'inactive' },
+	{ label: 'Aktif', value: 'active' },
+	{ label: 'Nonaktif', value: 'inactive' },
 ]
 
 export function emptyMenuItemFormValues(): MenuItemFormValues {

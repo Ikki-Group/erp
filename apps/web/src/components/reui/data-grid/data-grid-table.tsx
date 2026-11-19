@@ -1221,7 +1221,8 @@ function DataGridTableBodyRow<TData extends object>({
 			}}
 			// Keyboard affordance for clickable rows: focusable + Enter/Space activate,
 			// so a row-click detail view is operable without a mouse (WCAG).
-			role={props.onRowClick ? 'button' : undefined}
+			// The row keeps its implicit `row` role — overriding it with `button`
+			// nests interactive controls (row actions) inside a button.
 			tabIndex={props.onRowClick ? 0 : undefined}
 			onKeyDown={
 				props.onRowClick
@@ -1433,14 +1434,14 @@ function DataGridTableError() {
 			<td colSpan={Math.max(visibleColumnCount, 1)} className="py-10 text-center">
 				<div className="flex flex-col items-center justify-center gap-2">
 					<AlertCircleIcon className="size-5 text-destructive" />
-					<p className="text-sm font-medium">{props.errorTitle || 'Something went wrong'}</p>
+					<p className="text-sm font-medium">{props.errorTitle || 'Terjadi kesalahan'}</p>
 					<p className="max-w-sm text-xs text-muted-foreground">
-						{props.errorMessage || 'An unexpected error occurred. Please try again.'}
+						{props.errorMessage || 'Terjadi kesalahan tak terduga. Silakan coba lagi.'}
 					</p>
 					{props.onRetry && (
 						<Button variant="outline" size="sm" className="mt-1 gap-1.5" onClick={props.onRetry}>
 							<RefreshCwIcon className="size-3.5" />
-							Retry
+							Coba lagi
 						</Button>
 					)}
 				</div>
@@ -1456,7 +1457,7 @@ function DataGridTableLoader() {
 		<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 			<div className="text-muted-foreground bg-card rounded-lg flex items-center gap-2 border px-4 py-2 text-sm leading-none font-medium">
 				<Spinner className="size-5 opacity-60" />
-				{props.loadingMessage || 'Loading...'}
+				{props.loadingMessage || 'Memuat...'}
 			</div>
 		</div>
 	)
@@ -1468,7 +1469,7 @@ function DataGridTableRowPin<TData extends object>({ row }: { row: Row<DataGridF
 	return (
 		<button
 			type="button"
-			aria-label={isPinned ? 'Unpin row' : 'Pin row'}
+			aria-label={isPinned ? 'Lepas pin baris' : 'Pin baris'}
 			onClick={(event) => {
 				// Pinning must not bubble into the row's onRowClick handler.
 				event.stopPropagation()
@@ -1555,7 +1556,7 @@ function DataGridTableRowSelect<TData extends object>({
 							// Selection must not bubble into the row's onRowClick handler.
 							event.stopPropagation()
 						}}
-						aria-label="Select row"
+						aria-label="Pilih baris"
 						className="align-[inherit]"
 					/>
 				</>
@@ -1582,7 +1583,7 @@ function DataGridTableRowSelectAll() {
 						indeterminate={isSomeSelected && !isAllSelected}
 						disabled={isLoading || recordCount === 0}
 						onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-						aria-label="Select all"
+						aria-label="Pilih semua"
 						className="align-[inherit]"
 					/>
 				)
@@ -1621,7 +1622,7 @@ function DataGridTableRowExpand<TData extends object>({
 				<button
 					type="button"
 					aria-expanded={isExpanded}
-					aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+					aria-label={isExpanded ? 'Ciutkan baris' : 'Bentangkan baris'}
 					onClick={(event) => {
 						// Expansion must not bubble into the row's onRowClick handler.
 						event.stopPropagation()
@@ -1731,7 +1732,7 @@ function DataGridTableBodyRows<TData extends object>({
 								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 							></path>
 						</svg>
-						{props.loadingMessage || 'Loading...'}
+						{props.loadingMessage || 'Memuat...'}
 					</div>
 				</td>
 			</tr>

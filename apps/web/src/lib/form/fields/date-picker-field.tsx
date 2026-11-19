@@ -29,7 +29,7 @@ export interface DatePickerFieldProps {
 export function DatePickerField({
 	id,
 	label,
-	placeholder = 'Pick a date',
+	placeholder = 'Pilih tanggal',
 	description,
 	disabled,
 	className,

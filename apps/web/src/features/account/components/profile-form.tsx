@@ -17,8 +17,8 @@ export interface ProfileFormValues {
 }
 
 const ProfileFormSchema = z.object({
-	name: z.string().trim().min(1, 'Name is required').max(255),
-	email: z.string().trim().email('Invalid email').max(255),
+	name: z.string().trim().min(1, 'Nama wajib diisi').max(255),
+	email: z.string().trim().email('Email tidak valid').max(255),
 })
 
 export function useProfileForm(profile: ProfileFormValues) {
@@ -28,7 +28,7 @@ export function useProfileForm(profile: ProfileFormValues) {
 		mutation: profileUpdate.mutationOptions(),
 		toPayload: (values) => ProfileUpdateDto.parse(values),
 		baselineAfterSave: (payload) => ({ name: payload.name, email: payload.email }),
-		successMessage: 'Profile updated.',
+		successMessage: 'Profil berhasil diperbarui.',
 	})
 }
 
@@ -46,14 +46,14 @@ export function ProfileForm({
 		<form.AppForm>
 			<FormRoot form={form} className="grid gap-4">
 				<div className="space-y-1.5">
-					<p className="text-xs font-medium">Username</p>
+					<p className="text-xs font-medium">Nama pengguna</p>
 					<p className="font-mono text-sm">{username}</p>
 					<p className="text-xs text-muted-foreground">
-						Ask an administrator to change your username.
+						Minta administrator untuk mengubah nama pengguna Anda.
 					</p>
 				</div>
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Name" autoComplete="name" />}
+					{(field) => <field.TextField label="Nama" autoComplete="name" />}
 				</form.AppField>
 				<form.AppField name="email">
 					{(field) => <field.TextField label="Email" type="email" autoComplete="email" />}
@@ -66,7 +66,7 @@ export function ProfileForm({
 						{([isSubmitting, canSubmit, isDirty]) => (
 							<Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
 								{isSubmitting && <Spinner className="mr-1.5 size-3.5" />}
-								Save profile
+								Simpan profil
 							</Button>
 						)}
 					</form.Subscribe>

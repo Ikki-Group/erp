@@ -68,17 +68,17 @@ function AccessControlPage() {
 		() => (
 			<div className="grid gap-4 sm:grid-cols-2">
 				<StatCard
-					title="Users"
+					title="Pengguna"
 					value={usersQuery.isError && !usersQuery.data ? '—' : totalUsers}
 					icon={<UserIcon className="size-4" />}
-					description="Total registered"
+					description="Total terdaftar"
 					isLoading={usersQuery.isLoading}
 				/>
 				<StatCard
-					title="Roles"
+					title="Peran"
 					value={rolesQuery.isError && !rolesQuery.data ? '—' : totalRoles}
 					icon={<ShieldCheckIcon className="size-4" />}
-					description="Access control"
+					description="Kontrol akses"
 					isLoading={rolesQuery.isLoading}
 				/>
 			</div>
@@ -99,13 +99,13 @@ function AccessControlPage() {
 		() => [
 			{
 				id: 'users',
-				label: 'Users',
+				label: 'Pengguna',
 				icon: <UserIcon className="size-3.5" />,
 				count: totalUsers,
 			},
 			{
 				id: 'roles',
-				label: 'Roles',
+				label: 'Peran',
 				icon: <ShieldCheckIcon className="size-3.5" />,
 				count: totalRoles,
 			},
@@ -115,7 +115,10 @@ function AccessControlPage() {
 
 	return (
 		<div className="space-y-6">
-			<PageHeader title="Access Control" description="Manage users and roles for access control." />
+			<PageHeader
+				title="Kontrol Akses"
+				description="Kelola pengguna dan peran untuk kontrol akses."
+			/>
 
 			{stats}
 			{(usersQuery.isError || rolesQuery.isError) && (
@@ -123,7 +126,7 @@ function AccessControlPage() {
 					role="alert"
 					className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 p-3 text-sm"
 				>
-					<p>Could not refresh access-control totals.</p>
+					<p>Gagal memuat ulang total kontrol akses.</p>
 					<Button
 						size="sm"
 						variant="outline"

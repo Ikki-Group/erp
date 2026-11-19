@@ -13,14 +13,14 @@ export function MyAccessSection({ me }: { me: MeResponse }) {
 		<div className="space-y-4">
 			{me.isOwner && (
 				<p className="text-sm">
-					You are an <span className="font-medium">owner</span>: you have full access to every
-					location and setting.
+					Anda adalah <span className="font-medium">pemilik</span>: Anda memiliki akses penuh ke
+					semua lokasi dan pengaturan.
 				</p>
 			)}
 			{globalRoles.length > 0 && (
 				<p className="text-sm">
-					Company-wide access: <span className="font-medium">{globalRoles.join(', ')}</span>. This
-					applies to every location.
+					Akses seluruh perusahaan: <span className="font-medium">{globalRoles.join(', ')}</span>.
+					Berlaku untuk semua lokasi.
 				</p>
 			)}
 			{locations.length > 0 ? (
@@ -40,14 +40,14 @@ export function MyAccessSection({ me }: { me: MeResponse }) {
 										</StatusBadge>
 									))
 								) : (
-									<span className="text-xs text-muted-foreground">No role</span>
+									<span className="text-xs text-muted-foreground">Tanpa peran</span>
 								)}
 							</div>
 						</li>
 					))}
 				</ul>
 			) : (
-				<p className="text-sm text-muted-foreground">You are not assigned to any location.</p>
+				<p className="text-sm text-muted-foreground">Anda belum ditugaskan ke lokasi mana pun.</p>
 			)}
 		</div>
 	)

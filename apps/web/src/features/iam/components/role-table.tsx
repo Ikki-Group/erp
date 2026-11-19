@@ -12,9 +12,9 @@ const col = createEntityColumns<RoleDto>()
 const customCol = createColumnHelper<DataGridFeatures, RoleDto>()
 
 export const roleColumns = [
-	col.code('code', { header: 'Code', size: 160 }),
+	col.code('code', { header: 'Kode', size: 160 }),
 	col.text('name', {
-		header: 'Name',
+		header: 'Nama',
 		size: 220,
 		cell: ({ row, getValue }) => (
 			<div className="min-w-0">
@@ -26,7 +26,7 @@ export const roleColumns = [
 		),
 	}),
 	customCol.accessor('permissions', {
-		header: rightAlignedHeader('Permissions'),
+		header: rightAlignedHeader('Izin'),
 		size: 120,
 		cell: ({ getValue }) => {
 			const perms = getValue()
@@ -40,11 +40,11 @@ export const roleColumns = [
 		},
 	}),
 	col.booleanStatus('isSystem', {
-		header: 'Type',
+		header: 'Tipe',
 		size: 100,
 		labels: {
-			true: { label: 'System', variant: 'info' },
-			false: { label: 'Custom', variant: 'default' },
+			true: { label: 'Sistem', variant: 'info' },
+			false: { label: 'Kustom', variant: 'default' },
 		},
 	}),
 ]

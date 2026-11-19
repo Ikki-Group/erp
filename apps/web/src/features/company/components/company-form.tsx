@@ -25,17 +25,19 @@ export interface CompanyFormValues {
  * `string | null` at the submit boundary. See `docs/web/06-ui-patterns.md`.
  */
 const CompanyFormSchema = z.object({
-	name: z.string().trim().min(2, 'Name must be at least 2 characters').max(255),
+	name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(255),
 	address: z.string().trim().max(500).default(''),
 	phone: z.string().trim().max(50).default(''),
-	email: z.union([z.string().trim().max(255).email('Invalid email'), z.literal('')]).default(''),
+	email: z
+		.union([z.string().trim().max(255).email('Email tidak valid'), z.literal('')])
+		.default(''),
 	taxId: z.string().trim().max(50).default(''),
 	taxRate: z
 		.string()
 		.trim()
-		.regex(/^\d+(\.\d{1,2})?$/u, 'Must be a positive decimal (max 2 decimals)'),
-	currencyCode: z.string().trim().min(1, 'Required').max(10),
-	currencySymbol: z.string().trim().min(1, 'Required').max(10),
+		.regex(/^\d+(\.\d{1,2})?$/u, 'Harus berupa angka desimal positif (maks. 2 desimal)'),
+	currencyCode: z.string().trim().min(1, 'Wajib diisi').max(10),
+	currencySymbol: z.string().trim().min(1, 'Wajib diisi').max(10),
 	receiptFooter: z.string().trim().max(1000).default(''),
 })
 
@@ -77,7 +79,8 @@ export function toCompanyInput(
 	return CompanySettingsUpdateDto.parse({ ...values, id: existing.id, logoUrl: existing.logoUrl })
 }
 
-export const COMPANY_UPDATE_DENIED = 'You do not have permission to edit company settings.'
+export const COMPANY_UPDATE_DENIED =
+	'Anda tidak memiliki izin untuk mengubah pengaturan perusahaan.'
 
 export function useCompanyForm({
 	settings,
@@ -107,7 +110,7 @@ export function useCompanyForm({
 				taxId: payload.taxId ?? null,
 				receiptFooter: payload.receiptFooter ?? null,
 			}),
-		successMessage: 'Company settings updated.',
+		successMessage: 'Pengaturan perusahaan berhasil diperbarui.',
 		onSaved,
 	})
 }
@@ -119,60 +122,56 @@ export function CompanyFormFields({ form }: { form: CompanyForm }) {
 	return (
 		<div className="grid gap-6">
 			<div className="grid gap-4 rounded-lg border p-4">
-				<h2 className="font-heading text-sm font-semibold tracking-tight">Company Info</h2>
+				<h2 className="font-heading text-sm font-semibold tracking-tight">Info Perusahaan</h2>
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Company Name" placeholder="PT. Example" />}
+					{(field) => <field.TextField label="Nama Perusahaan" placeholder="PT. Contoh" />}
 				</form.AppField>
 				<form.AppField name="email">
-					{(field) => <field.TextField label="Email" placeholder="info@company.com" />}
+					{(field) => <field.TextField label="Email" placeholder="info@perusahaan.com" />}
 				</form.AppField>
 				<form.AppField name="phone">
-					{(field) => <field.TextField label="Phone" placeholder="+62 812 3456 7890" />}
+					{(field) => <field.TextField label="Telepon" placeholder="+62 812 3456 7890" />}
 				</form.AppField>
 				<form.AppField name="address">
 					{(field) => (
-						<field.TextareaField
-							label="Address"
-							placeholder="Jl. Example No. 1, Jakarta"
-							rows={3}
-						/>
+						<field.TextareaField label="Alamat" placeholder="Jl. Contoh No. 1, Jakarta" rows={3} />
 					)}
 				</form.AppField>
 			</div>
 
 			<div className="grid gap-4 rounded-lg border p-4">
-				<h2 className="font-heading text-sm font-semibold tracking-tight">Tax & Currency</h2>
+				<h2 className="font-heading text-sm font-semibold tracking-tight">Pajak & Mata Uang</h2>
 				<form.AppField name="taxId">
-					{(field) => <field.TextField label="Tax ID (NPWP)" placeholder="00.000.000.0-000.000" />}
+					{(field) => <field.TextField label="NPWP" placeholder="00.000.000.0-000.000" />}
 				</form.AppField>
 				<form.AppField name="taxRate">
 					{(field) => (
 						<field.TextField
-							label="Tax Rate (%)"
+							label="Tarif Pajak (%)"
 							placeholder="11"
 							inputMode="decimal"
 							className="text-right font-mono tabular-nums"
-							description="Default tax rate applied to transactions"
+							description="Tarif pajak bawaan untuk transaksi"
 						/>
 					)}
 				</form.AppField>
 				<div className="grid grid-cols-2 gap-4">
 					<form.AppField name="currencyCode">
-						{(field) => <field.TextField label="Currency Code" placeholder="IDR" />}
+						{(field) => <field.TextField label="Kode Mata Uang" placeholder="IDR" />}
 					</form.AppField>
 					<form.AppField name="currencySymbol">
-						{(field) => <field.TextField label="Currency Symbol" placeholder="Rp" />}
+						{(field) => <field.TextField label="Simbol Mata Uang" placeholder="Rp" />}
 					</form.AppField>
 				</div>
 			</div>
 
 			<div className="grid gap-4 rounded-lg border p-4">
-				<h2 className="font-heading text-sm font-semibold tracking-tight">Receipt</h2>
+				<h2 className="font-heading text-sm font-semibold tracking-tight">Struk</h2>
 				<form.AppField name="receiptFooter">
 					{(field) => (
 						<field.TextareaField
-							label="Receipt Footer"
-							placeholder="Thank you for your purchase!"
+							label="Footer Struk"
+							placeholder="Terima kasih atas pembelian Anda!"
 							rows={3}
 						/>
 					)}

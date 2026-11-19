@@ -1,14 +1,17 @@
 # Number Input Group Implementation Summary
 
 ## Overview
+
 Implemented two reusable numeric input components for the Ikki ERP application following the existing Shadcn UI composition patterns and Tailwind CSS design tokens.
 
 ## Files Created
 
 ### 1. `apps/web/src/components/ui/number-input-group.tsx`
+
 Core component implementations:
 
 #### `NumberInputGroupAddon`
+
 - Numeric input with a **static** UOM label at the end
 - Use case: Fixed unit inputs (e.g., weight in kg, quantity in pcs)
 - Features:
@@ -19,6 +22,7 @@ Core component implementations:
   - Follows existing InputGroup styling patterns
 
 #### `NumberInputGroup`
+
 - Numeric input with an **editable** UOM dropdown at the end
 - Use case: Variable unit inputs where user selects both quantity and UOM
 - Features:
@@ -28,96 +32,104 @@ Core component implementations:
   - Consistent styling with InputGroup pattern
 
 ### 2. `apps/web/src/lib/form/fields/number-input-group-field.tsx`
+
 Form field wrappers for TanStack Form integration:
 
 #### `NumberInputGroupAddonField`
+
 - Single-field binding for simple numeric input with static UOM
 - Follows existing field wrapper pattern (`useFieldContext`)
 - Automatic label, description, and error display
 - Field value type: `number | null`
 
 #### `NumberInputGroupField`
+
 - Dual-field binding for quantity + UOM ID
 - **Important usage pattern**: Requires passing two separate field contexts
 - See usage example below
 - Field value types: `number | null` for both quantity and UOM ID
 
 ### 3. `apps/web/src/components/ui/number-input-group.README.md`
+
 Comprehensive usage documentation with examples
 
 ### 4. `apps/web/src/lib/form/index.ts`
+
 - Exported new field wrapper types
 
 ### 5. `apps/web/src/routes/design-system/forms.tsx`
+
 - Added live demo of `NumberInputGroupAddonField` component
 
 ## Usage Examples
 
 ### Simple: Static UOM (NumberInputGroupAddonField)
+
 ```tsx
 import { NumberInputGroupAddonField } from '@/lib/form/fields/number-input-group-field'
 
 function MyForm() {
-  const form = useAppForm({
-    defaultValues: {
-      quantity: null as number | null,
-    },
-  })
+	const form = useAppForm({
+		defaultValues: {
+			quantity: null as number | null,
+		},
+	})
 
-  return (
-    <form.AppForm>
-      <form.AppField name="quantity">
-        {(field) => (
-          <NumberInputGroupAddonField
-            label="Quantity"
-            uomLabel="kg"
-            description="Enter weight in kilograms."
-          />
-        )}
-      </form.AppField>
-    </form.AppForm>
-  )
+	return (
+		<form.AppForm>
+			<form.AppField name="quantity">
+				{(field) => (
+					<NumberInputGroupAddonField
+						label="Quantity"
+						uomLabel="kg"
+						description="Enter weight in kilograms."
+					/>
+				)}
+			</form.AppField>
+		</form.AppForm>
+	)
 }
 ```
 
 ### Advanced: Editable UOM (NumberInputGroupField)
+
 ```tsx
 import { NumberInputGroupField } from '@/lib/form/fields/number-input-group-field'
 import { useFieldContext } from '@/lib/form'
 
 function MyForm() {
-  const form = useAppForm({
-    defaultValues: {
-      quantity: null as number | null,
-      uomId: null as number | null,
-    },
-  })
+	const form = useAppForm({
+		defaultValues: {
+			quantity: null as number | null,
+			uomId: null as number | null,
+		},
+	})
 
-  const uomOptions = [
-    { id: 1, code: 'kg' },
-    { id: 2, code: 'pcs' },
-    { id: 3, code: 'L' },
-  ]
+	const uomOptions = [
+		{ id: 1, code: 'kg' },
+		{ id: 2, code: 'pcs' },
+		{ id: 3, code: 'L' },
+	]
 
-  return (
-    <form.AppForm>
-      {/* Must use TWO separate AppField contexts */}
-      <form.AppField name="quantity">
-        {(quantityField) => (
-          <form.AppField name="uomId">
-            {(uomField) => (
-              <NumberInputGroupField
-                label="Quantity"
-                uomOptions={uomOptions}
-                quantityField={quantityField}
-                uomField={uomField}
-              />
-            )}
-          </form.AppField>
-        )}
-      </form.AppField>
-    </form.AppForm>
-  )
+	return (
+		<form.AppForm>
+			{/* Must use TWO separate AppField contexts */}
+			<form.AppField name="quantity">
+				{(quantityField) => (
+					<form.AppField name="uomId">
+						{(uomField) => (
+							<NumberInputGroupField
+								label="Quantity"
+								uomOptions={uomOptions}
+								quantityField={quantityField}
+								uomField={uomField}
+							/>
+						)}
+					</form.AppField>
+				)}
+			</form.AppField>
+		</form.AppForm>
+	)
 }
 ```
 
@@ -140,7 +152,7 @@ function MyForm() {
 ✅ TypeScript compilation: No errors  
 ✅ Oxlint: No errors or warnings  
 ✅ Oxfmt: All files properly formatted  
-✅ Diagnostics: Clean  
+✅ Diagnostics: Clean
 
 ## Demo Location
 
@@ -161,51 +173,54 @@ Scroll to the "Form Components" section to see the `NumberInputGroupAddonField` 
 ## API Reference
 
 ### NumberInputGroupAddon Props
+
 ```typescript
 interface NumberInputGroupAddonProps {
-  uomLabel: string              // Static UOM label (e.g., "kg", "pcs")
-  value?: number               // Current numeric value
-  onChange?: (value: number | null) => void
-  disabled?: boolean
-  className?: string
-  // ... all other HTML input attributes except 'type'
+	uomLabel: string // Static UOM label (e.g., "kg", "pcs")
+	value?: number // Current numeric value
+	onChange?: (value: number | null) => void
+	disabled?: boolean
+	className?: string
+	// ... all other HTML input attributes except 'type'
 }
 ```
 
 ### NumberInputGroup Props
+
 ```typescript
 interface NumberInputGroupProps {
-  value: number | null | undefined
-  uomId: number | null | undefined
-  uomOptions: Array<{ id: number; code: string }>
-  onChange?: (value: number | null) => void
-  onUomChange?: (uomId: number) => void
-  disabled?: boolean
-  className?: string
-  // ... all other HTML input attributes except 'type', 'onChange', 'value'
+	value: number | null | undefined
+	uomId: number | null | undefined
+	uomOptions: Array<{ id: number; code: string }>
+	onChange?: (value: number | null) => void
+	onUomChange?: (uomId: number) => void
+	disabled?: boolean
+	className?: string
+	// ... all other HTML input attributes except 'type', 'onChange', 'value'
 }
 ```
 
 ### Form Field Props
+
 ```typescript
 interface NumberInputGroupAddonFieldProps {
-  label: string
-  uomLabel: string
-  description?: string
-  className?: string
-  disabled?: boolean
-  // ... NumberInputGroupAddon props (except value/onChange)
+	label: string
+	uomLabel: string
+	description?: string
+	className?: string
+	disabled?: boolean
+	// ... NumberInputGroupAddon props (except value/onChange)
 }
 
 interface NumberInputGroupFieldProps {
-  label: string
-  uomOptions: Array<{ id: number; code: string }>
-  description?: string
-  className?: string
-  disabled?: boolean
-  quantityField: FieldContext<number | null>
-  uomField: FieldContext<number | null>
-  // ... NumberInputGroup props (except value/uomId/onChange/onUomChange)
+	label: string
+	uomOptions: Array<{ id: number; code: string }>
+	description?: string
+	className?: string
+	disabled?: boolean
+	quantityField: FieldContext<number | null>
+	uomField: FieldContext<number | null>
+	// ... NumberInputGroup props (except value/uomId/onChange/onUomChange)
 }
 ```
 

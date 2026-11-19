@@ -6,7 +6,13 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 
 import { LockIcon, UnlockIcon } from 'lucide-react'
 
-import { CurrencyCell, listSearchSchema, NumericCell, rightAlignedHeader, useServerTable } from '@/components/data-table'
+import {
+	CurrencyCell,
+	listSearchSchema,
+	NumericCell,
+	rightAlignedHeader,
+	useServerTable,
+} from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -56,30 +62,30 @@ const baseColumns = [
 			const status = getValue()
 			return (
 				<StatusBadge variant={status === 'open' ? 'success' : 'default'}>
-					{status === 'open' ? 'Open' : 'Closed'}
+					{status === 'open' ? 'Buka' : 'Ditutup'}
 				</StatusBadge>
 			)
 		},
 	}),
 	col.accessor('openingCash', {
-		header: rightAlignedHeader('Opening Cash'),
+		header: rightAlignedHeader('Kas Pembukaan'),
 		size: 140,
 		// oxlint-disable-next-line react/no-unstable-nested-components
 		cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
 	}),
 	col.accessor('closingCash', {
-		header: rightAlignedHeader('Closing Cash'),
+		header: rightAlignedHeader('Kas Penutupan'),
 		size: 140,
 		// oxlint-disable-next-line react/no-unstable-nested-components
 		cell: ({ getValue }) => <CurrencyCell value={getValue()} />,
 	}),
 	col.accessor('openedAt', {
-		header: 'Opened',
+		header: 'Dibuka',
 		size: 160,
 		cell: ({ getValue }) => new Date(getValue()).toLocaleString('id-ID'),
 	}),
 	col.accessor('closedAt', {
-		header: 'Closed',
+		header: 'Ditutup',
 		size: 160,
 		cell: ({ getValue }) => {
 			const val = getValue()
@@ -129,8 +135,8 @@ function ShiftsPage() {
 		if (!locationId) return
 
 		const saved = await formDialog({
-			title: 'Open Shift',
-			description: 'Start a new cashier shift. Count your opening cash.',
+			title: 'Buka Shift',
+			description: 'Mulai shift kasir baru. Hitung kas pembukaan Anda.',
 			// oxlint-disable-next-line react/no-unstable-nested-components
 			content: ({ close }) => (
 				<ShiftOpenFormBody
@@ -147,7 +153,7 @@ function ShiftsPage() {
 		})
 
 		if (saved) {
-			toast.add({ title: 'Shift opened successfully.', type: 'success' })
+			toast.add({ title: 'Shift berhasil dibuka.', type: 'success' })
 		}
 	}, [openMut, locationId])
 
@@ -155,8 +161,8 @@ function ShiftsPage() {
 		if (!activeShift) return
 
 		const saved = await formDialog({
-			title: 'Close Shift',
-			description: 'End your current shift. Count the cash drawer.',
+			title: 'Tutup Shift',
+			description: 'Akhiri shift Anda saat ini. Hitung isi laci kas.',
 			// oxlint-disable-next-line react/no-unstable-nested-components
 			content: ({ close }) => (
 				<ShiftCloseFormBody
@@ -175,7 +181,7 @@ function ShiftsPage() {
 		})
 
 		if (saved) {
-			toast.add({ title: 'Shift closed successfully.', type: 'success' })
+			toast.add({ title: 'Shift berhasil ditutup.', type: 'success' })
 		}
 	}, [closeMut, activeShift])
 
@@ -194,10 +200,10 @@ function ShiftsPage() {
 	if (!locationId) {
 		return (
 			<div className="space-y-6">
-				<PageHeader title="Shifts" description="Manage cashier shifts for this location." />
+				<PageHeader title="Shift" description="Kelola shift kasir untuk lokasi ini." />
 				<EmptyState
-					title="No location selected"
-					description="Please select a location to manage shifts."
+					title="Belum ada lokasi dipilih"
+					description="Pilih lokasi untuk mengelola shift."
 				/>
 			</div>
 		)
@@ -206,27 +212,27 @@ function ShiftsPage() {
 	return (
 		<div className="space-y-6">
 			<PageHeader
-				title="Shifts"
-				description="Manage cashier shifts for this location."
+				title="Shift"
+				description="Kelola shift kasir untuk lokasi ini."
 				actions={
 					<div className="flex items-center gap-3">
 						{activeShift && (
 							<Badge variant="outline" className="gap-1.5 px-3 py-1">
 								<span className="size-2 rounded-full bg-success" />
-								Shift active
+								Shift aktif
 							</Badge>
 						)}
 						{activeShift
 							? canClose && (
 									<Button size="sm" variant="outline" onClick={handleCloseShift}>
 										<LockIcon className="size-4" />
-										Close Shift
+										Tutup Shift
 									</Button>
 								)
 							: canOpen && (
 									<Button size="sm" onClick={handleOpenShift}>
 										<UnlockIcon className="size-4" />
-										Open Shift
+										Buka Shift
 									</Button>
 								)}
 					</div>
@@ -235,13 +241,13 @@ function ShiftsPage() {
 
 			{data.length === 0 && !listQuery.isLoading && !search.status ? (
 				<EmptyState
-					title="No shifts yet"
-					description="Open your first shift to start tracking cash."
+					title="Belum ada shift"
+					description="Buka shift pertama Anda untuk mulai melacak kas."
 					action={
 						!activeShift && canOpen ? (
 							<Button size="sm" onClick={handleOpenShift}>
 								<UnlockIcon className="size-4" />
-								Open Shift
+								Buka Shift
 							</Button>
 						) : undefined
 					}
@@ -251,7 +257,7 @@ function ShiftsPage() {
 					table={table}
 					recordCount={totalCount}
 					isLoading={listQuery.isFetching}
-					emptyMessage="No shifts found."
+					emptyMessage="Tidak ada shift ditemukan."
 					toolbar={
 						<TableToolbar
 							filters={[
@@ -264,10 +270,10 @@ function ShiftsPage() {
 											search: { ...search, page: 1, status: v as ShiftStatusEnum | undefined },
 										}),
 									options: [
-										{ label: 'Open', value: 'open' },
-										{ label: 'Closed', value: 'closed' },
+										{ label: 'Buka', value: 'open' },
+										{ label: 'Ditutup', value: 'closed' },
 									],
-									allLabel: 'All status',
+									allLabel: 'Semua status',
 								},
 							]}
 						/>

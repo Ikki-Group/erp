@@ -7,10 +7,10 @@ import type { LocationDto } from '../dto/index.ts'
 const col = createEntityColumns<LocationDto>()
 
 export const locationColumns = [
-	col.code('code', { header: 'Code', size: 120 }),
-	col.text('name', { header: 'Name', size: 200 }),
+	col.code('code', { header: 'Kode', size: 120 }),
+	col.text('name', { header: 'Nama', size: 200 }),
 	col.text('type', {
-		header: 'Type',
+		header: 'Tipe',
 		size: 120,
 		cell: ({ getValue }) => {
 			const type = getValue()
@@ -23,9 +23,9 @@ export const locationColumns = [
 			)
 		},
 	}),
-	col.text('address', { header: 'Address', size: 250, cellProps: { muted: true } }),
+	col.text('address', { header: 'Alamat', size: 250, cellProps: { muted: true } }),
 	col.text('phone', {
-		header: 'Phone',
+		header: 'Telepon',
 		size: 150,
 		cellProps: { truncate: false, muted: true },
 	}),

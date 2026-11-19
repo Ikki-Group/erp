@@ -59,14 +59,14 @@ function OpnameRoute() {
 	const { id } = Route.useSearch()
 	if (!canRead)
 		return (
-			<PageError title="Tidak ada akses" message="Anda tidak memiliki izin melihat stock opname." />
+			<PageError title="Tidak ada akses" message="Anda tidak memiliki izin melihat stok opname." />
 		)
 	// An open record stays mounted through header changes, including All Locations.
 	if (id !== undefined) return <OpnameDetailPage key={id} id={id} />
 	if (!activeLocation)
 		return (
 			<LocationRequiredPage
-				title="Stock Opname"
+				title="Stok Opname"
 				description="Hitung fisik stok dan bandingkan dengan stok sistem."
 				message="Pilih lokasi aktif untuk memulai opname."
 			/>
@@ -120,7 +120,7 @@ function OpnameList({ location }: { location: AuthLocation }) {
 	})
 	return (
 		<EntityListPage
-			title="Stock Opname"
+			title="Stok Opname"
 			description={`Hitung fisik stok di ${location.name}`}
 			list={list}
 			createAction={
@@ -225,16 +225,16 @@ function OpnameActivity({ id }: { id: number }) {
 	})
 	const entries = query.data?.data
 	return (
-		<PageSection title="Activity" description="History of changes to this stock count.">
+		<PageSection title="Aktivitas" description="Riwayat perubahan pada hitungan stok ini.">
 			{query.isError && (
 				<InlineAlert
 					variant="warning"
-					title={entries ? 'Could not refresh activity' : 'Could not load activity'}
+					title={entries ? 'Gagal memuat ulang aktivitas' : 'Gagal memuat aktivitas'}
 				>
 					<p>
 						{entries
-							? 'Showing the last loaded history.'
-							: 'The history is unavailable, not empty.'}
+							? 'Menampilkan riwayat terakhir yang dimuat.'
+							: 'Riwayat tidak tersedia, bukan kosong.'}
 					</p>
 					<Button
 						size="sm"
@@ -242,7 +242,7 @@ function OpnameActivity({ id }: { id: number }) {
 						disabled={query.isFetching}
 						onClick={() => void query.refetch()}
 					>
-						Retry
+						Muat ulang
 					</Button>
 				</InlineAlert>
 			)}
@@ -250,7 +250,7 @@ function OpnameActivity({ id }: { id: number }) {
 				<AuditTrail
 					entries={entries ?? []}
 					isLoading={query.isLoading}
-					emptyMessage="No changes recorded for this opname yet."
+					emptyMessage="Belum ada perubahan yang tercatat untuk opname ini."
 				/>
 			)}
 		</PageSection>

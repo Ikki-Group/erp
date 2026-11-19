@@ -22,16 +22,16 @@ export const EMPTY_PASSWORD_VALUES: PasswordFormValues = {
 
 export const PasswordFormSchema = z
 	.object({
-		currentPassword: z.string().min(1, 'Enter your current password'),
+		currentPassword: z.string().min(1, 'Masukkan kata sandi saat ini'),
 		newPassword: z
 			.string()
-			.min(8, 'Password must be at least 8 characters')
-			.max(100, 'Password must be at most 100 characters'),
+			.min(8, 'Kata sandi minimal 8 karakter')
+			.max(100, 'Kata sandi maksimal 100 karakter'),
 		confirmPassword: z.string(),
 	})
 	.refine((values) => values.newPassword === values.confirmPassword, {
 		path: ['confirmPassword'],
-		message: 'Passwords do not match',
+		message: 'Kata sandi tidak cocok',
 	})
 
 export interface PasswordFieldError {
@@ -43,10 +43,10 @@ export interface PasswordFieldError {
 export function mapPasswordError(error: unknown): PasswordFieldError | undefined {
 	if (!isApiError(error)) return undefined
 	if (error.code === 'INVALID_CURRENT_PASSWORD') {
-		return { field: 'currentPassword', message: 'Current password is incorrect' }
+		return { field: 'currentPassword', message: 'Kata sandi saat ini salah' }
 	}
 	if (error.code === 'PASSWORD_UNCHANGED') {
-		return { field: 'newPassword', message: 'New password must differ from the current one' }
+		return { field: 'newPassword', message: 'Kata sandi baru harus berbeda dari yang sekarang' }
 	}
 	return undefined
 }
@@ -68,7 +68,7 @@ export function usePasswordForm({
 					currentPassword: value.currentPassword,
 					newPassword: value.newPassword,
 				})
-				toast.add({ title: 'Password changed.', type: 'success' })
+				toast.add({ title: 'Kata sandi berhasil diubah.', type: 'success' })
 				formApi.reset(EMPTY_PASSWORD_VALUES)
 				onChanged(result.data.revokedSessions)
 			} catch (error) {
@@ -81,7 +81,7 @@ export function usePasswordForm({
 					? error.friendlyMessage
 					: error instanceof Error
 						? error.message
-						: 'An unexpected error occurred.'
+						: 'Terjadi kesalahan tak terduga.'
 				formApi.setErrorMap({ onSubmit: { form: message, fields: {} } })
 			}
 		},

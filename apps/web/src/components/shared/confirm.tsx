@@ -41,8 +41,8 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 		call,
 		title,
 		description,
-		confirmLabel = 'Confirm',
-		cancelLabel = 'Cancel',
+		confirmLabel = 'Konfirmasi',
+		cancelLabel = 'Batal',
 		variant = 'default',
 		onConfirm,
 	}) => {
@@ -73,7 +73,7 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 				setLoading(false)
 				setTimeout(() => close(true), SUCCESS_DISPLAY_DURATION)
 			} catch (e) {
-				setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
+				setError(e instanceof Error ? e.message : 'Terjadi kesalahan. Silakan coba lagi.')
 				setLoading(false)
 			}
 		}, [onConfirm, close])
@@ -133,7 +133,7 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 								onClick={handleConfirm}
 							>
 								{loading && <Spinner className="mr-1.5 size-3.5" />}
-								{error ? 'Try Again' : confirmLabel}
+								{error ? 'Coba lagi' : confirmLabel}
 							</Button>
 						</DialogFooter>
 					)}
@@ -144,7 +144,7 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 								onClick={() => close(true)}
 								className="w-full animate-in fade-in-0 zoom-in-95 duration-200 sm:w-auto"
 							>
-								Done
+								Selesai
 							</Button>
 						</DialogFooter>
 					)}

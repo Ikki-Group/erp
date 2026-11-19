@@ -126,8 +126,8 @@ export function createEntityColumns<T extends object>() {
 			key: K,
 			{
 				labels = {
-					true: { label: 'Active', variant: 'success' },
-					false: { label: 'Inactive', variant: 'outline' },
+					true: { label: 'Aktif', variant: 'success' },
+					false: { label: 'Nonaktif', variant: 'outline' },
 				},
 				...options
 			}: Options<T, K> & { labels?: Record<'true' | 'false', StatusLabel> } = {},

@@ -11,13 +11,13 @@ export const SelectionTypeEnum = z.enum(['single', 'multiple'])
 export type SelectionTypeEnum = z.infer<typeof SelectionTypeEnum>
 
 export const MENU_ITEM_STATUS_OPTIONS = [
-	{ label: 'Active', value: 'active' },
-	{ label: 'Inactive', value: 'inactive' },
+	{ label: 'Aktif', value: 'active' },
+	{ label: 'Nonaktif', value: 'inactive' },
 ] as const
 
 export const SELECTION_TYPE_OPTIONS = [
-	{ label: 'Single', value: 'single' },
-	{ label: 'Multiple', value: 'multiple' },
+	{ label: 'Tunggal', value: 'single' },
+	{ label: 'Ganda', value: 'multiple' },
 ] as const
 
 // ─── Menu Category ───
@@ -84,7 +84,7 @@ export const MenuItemCreateDto = z.object({
 	sku: zc.strTrim.min(1).max(100),
 	name: zc.strTrim.min(2).max(255),
 	categoryId: z.number().int().positive().nullable().optional(),
-	basePrice: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a valid price'),
+	basePrice: z.string().regex(/^\d+(\.\d+)?$/u, 'Harus berupa harga yang valid'),
 	status: MenuItemStatusEnum.default('active'),
 	imageUrl: z.string().max(500).nullable().optional(),
 })
@@ -95,7 +95,7 @@ export const MenuItemUpdateDto = z.object({
 	sku: zc.strTrim.min(1).max(100),
 	name: zc.strTrim.min(2).max(255),
 	categoryId: z.number().int().positive().nullable().optional(),
-	basePrice: z.string().regex(/^\d+(\.\d+)?$/u, 'Must be a valid price'),
+	basePrice: z.string().regex(/^\d+(\.\d+)?$/u, 'Harus berupa harga yang valid'),
 	status: MenuItemStatusEnum.default('active'),
 	imageUrl: z.string().max(500).nullable().optional(),
 })
@@ -126,7 +126,7 @@ export const ModifierOptionInputDto = z.object({
 	name: zc.strTrim.min(1).max(100),
 	priceAdjustment: z
 		.string()
-		.regex(/^-?\d+(\.\d+)?$/u, 'Must be a valid number')
+		.regex(/^-?\d+(\.\d+)?$/u, 'Harus berupa angka yang valid')
 		.default('0'),
 	isDefault: zp.bool.default(false),
 	sortOrder: z.number().int().min(0).default(0),

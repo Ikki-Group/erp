@@ -31,7 +31,7 @@ function NewReceivingPage() {
 	if (!activeLocation) {
 		return (
 			<div className="space-y-6">
-				<PageHeader title="Buat Penerimaan" description="Catat penerimaan barang dari supplier." />
+				<PageHeader title="Buat Penerimaan" description="Catat penerimaan barang dari pemasok." />
 				<EmptyState
 					title="Pilih lokasi"
 					description="Pilih lokasi aktif untuk membuat penerimaan."
@@ -73,13 +73,13 @@ function NewReceivingWizard({ locationId }: { locationId: number }) {
 		<form.AppForm>
 			<WizardPage
 				title="Buat Penerimaan"
-				description="Catat penerimaan barang dari supplier."
+				description="Catat penerimaan barang dari pemasok."
 				form={form}
 				onCancel={() => navigate({ to: '/inventory/receiving' })}
 				submitLabel="Simpan Penerimaan"
 				steps={[
 					{
-						title: 'Supplier',
+						title: 'Pemasok',
 						content: <ReceivingStepSupplier form={form} />,
 						isValid: isReceivingStepValid(1, values),
 					},
@@ -89,7 +89,7 @@ function NewReceivingWizard({ locationId }: { locationId: number }) {
 						isValid: isReceivingStepValid(2, values),
 					},
 					{
-						title: 'Review',
+						title: 'Tinjau',
 						content: <ReceivingStepReview form={form} />,
 						isValid: true,
 					},

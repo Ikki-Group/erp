@@ -12,5 +12,5 @@ const roleLookup: ResourceLookupAdapter<RoleDto> = {
 }
 
 export function RoleLookupField(props: LookupFieldProps) {
-	return <ResourceLookupField adapter={roleLookup} placeholder="Search roles..." {...props} />
+	return <ResourceLookupField adapter={roleLookup} placeholder="Cari peran..." {...props} />
 }

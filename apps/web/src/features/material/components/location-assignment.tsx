@@ -16,7 +16,7 @@ export function LocationAssignment({ materialId, permissions }: LocationAssignme
 	if (!permissions.canRead) {
 		return (
 			<p className="py-4 text-sm text-muted-foreground">
-				You need material and location read access to view location assignments.
+				Anda memerlukan akses baca bahan dan lokasi untuk melihat penugasan lokasi.
 			</p>
 		)
 	}
@@ -39,13 +39,13 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 		<div className="space-y-3 py-4">
 			<p className="text-sm text-muted-foreground">
 				{canAssign || canUnassign
-					? 'Manage which active locations stock this material.'
-					: 'View which active locations stock this material. You have read-only access.'}
+					? 'Kelola lokasi aktif yang menyimpan bahan ini.'
+					: 'Lihat lokasi aktif yang menyimpan bahan ini. Anda hanya memiliki akses baca.'}
 			</p>
 			<TableToolbar
 				searchValue={workflow.search}
 				onSearchChange={workflow.setSearch}
-				searchPlaceholder="Search locations..."
+				searchPlaceholder="Cari lokasi..."
 				actions={
 					<Button
 						size="sm"
@@ -57,7 +57,7 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 						}}
 					>
 						{refreshing ? <Spinner /> : <RefreshCwIcon />}
-						Refresh
+						Muat ulang
 					</Button>
 				}
 			/>
@@ -69,8 +69,8 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 				>
 					<p>
 						{assignmentsKnown
-							? 'Could not refresh assignments. Showing the last loaded status; changes are disabled.'
-							: 'Could not load assignments. Status is unavailable and changes are disabled.'}
+							? 'Gagal memuat ulang penugasan. Menampilkan status terakhir yang dimuat; perubahan dinonaktifkan.'
+							: 'Gagal memuat penugasan. Status tidak tersedia dan perubahan dinonaktifkan.'}
 					</p>
 					<Button
 						size="sm"
@@ -78,17 +78,17 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 						disabled={workflow.isBusy || assignmentsQuery.isFetching}
 						onClick={() => void workflow.refreshAssignments()}
 					>
-						Retry assignments
+						Coba lagi penugasan
 					</Button>
 				</div>
 			) : !assignmentsKnown ? (
 				<div role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
-					<Spinner /> Loading assignments...
+					<Spinner /> Memuat penugasan...
 				</div>
 			) : workflow.isUncertain ? (
 				<p role="status" className="text-sm text-muted-foreground">
-					The last change could not be confirmed. Retry that action or refresh assignments before
-					making other changes.
+					Perubahan terakhir tidak dapat dikonfirmasi. Coba lagi tindakan itu atau muat ulang
+					penugasan sebelum melakukan perubahan lain.
 				</p>
 			) : undefined}
 
@@ -99,8 +99,8 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 				>
 					<p>
 						{locationsQuery.data
-							? 'Could not refresh locations. Showing the last loaded locations.'
-							: 'Could not load locations. Try again or change your search.'}
+							? 'Gagal memuat ulang lokasi. Menampilkan lokasi terakhir yang dimuat.'
+							: 'Gagal memuat lokasi. Coba lagi atau ubah pencarian Anda.'}
 					</p>
 					<Button
 						size="sm"
@@ -108,7 +108,7 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 						disabled={locationsQuery.isFetching}
 						onClick={() => void locationsQuery.refetch()}
 					>
-						Retry locations
+						Coba lagi lokasi
 					</Button>
 				</div>
 			)}
@@ -118,16 +118,16 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 					role="status"
 					className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground"
 				>
-					<Spinner /> Loading locations...
+					<Spinner /> Memuat lokasi...
 				</div>
 			) : !locationsQuery.isError && locationsQuery.data && locations.length === 0 ? (
 				<p className="py-6 text-sm text-muted-foreground">
 					{workflow.search
-						? 'No locations match your search. Try another name or code.'
-						: 'No active locations available.'}
+						? 'Tidak ada lokasi yang cocok dengan pencarian Anda. Coba nama atau kode lain.'
+						: 'Tidak ada lokasi aktif.'}
 				</p>
 			) : locations.length > 0 ? (
-				<ul aria-label="Location assignments" className="divide-y rounded-md border">
+				<ul aria-label="Penugasan lokasi" className="divide-y rounded-md border">
 					{locations.map((location) => {
 						const assigned = workflow.assignedLocationIds.has(location.id)
 						const canAct = assigned ? canUnassign : canAssign
@@ -145,10 +145,10 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 										<p className="flex items-center gap-1 text-xs text-muted-foreground">
 											{assignmentsKnown && assigned && <CheckIcon className="size-3" />}
 											{!assignmentsKnown
-												? 'Status unavailable'
+												? 'Status tidak tersedia'
 												: assigned
-													? 'Assigned'
-													: 'Not assigned'}
+													? 'Ditugaskan'
+													: 'Belum ditugaskan'}
 										</p>
 									</div>
 									{assignmentsKnown && canAct && !failure && (
@@ -156,7 +156,7 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 											size="sm"
 											variant="outline"
 											disabled={!workflow.canChange}
-											aria-label={`${assigned ? 'Unassign' : 'Assign'} ${location.name}`}
+											aria-label={`${assigned ? 'Lepas' : 'Tugaskan'} ${location.name}`}
 											onClick={() =>
 												void workflow.run({
 													locationId: location.id,
@@ -166,14 +166,14 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 											}
 										>
 											{pending && <Spinner />}
-											{pending ? 'Saving...' : assigned ? 'Unassign' : 'Assign'}
+											{pending ? 'Menyimpan...' : assigned ? 'Lepas' : 'Tugaskan'}
 										</Button>
 									)}
 								</div>
 								{failure && (
 									<div role="alert" className="space-y-2 text-sm text-destructive">
 										<p className="wrap-anywhere">
-											Could not {failure.assigned ? 'assign' : 'unassign'} {failure.locationName}.{' '}
+											Gagal {failure.assigned ? 'menugaskan' : 'melepas'} {failure.locationName}.{' '}
 											{failure.message}
 										</p>
 										{canRetry && (
@@ -181,11 +181,11 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 												size="sm"
 												variant="outline"
 												disabled={workflow.isBusy || assignmentsQuery.isFetching}
-												aria-label={`Retry ${failure.assigned ? 'assigning' : 'unassigning'} ${failure.locationName}`}
+												aria-label={`Coba lagi ${failure.assigned ? 'menugaskan' : 'melepas'} ${failure.locationName}`}
 												onClick={() => void workflow.run(failure, true)}
 											>
 												{pending && <Spinner />}
-												{pending ? 'Retrying...' : 'Retry'}
+												{pending ? 'Mencoba lagi...' : 'Coba lagi'}
 											</Button>
 										)}
 									</div>
@@ -200,32 +200,32 @@ function LocationAssignmentBody({ materialId, permissions }: LocationAssignmentP
 				<p aria-live="polite" className="text-xs text-muted-foreground">
 					{meta ? (
 						<>
-							<span className="font-mono tabular-nums">{meta.total}</span> locations · Page{' '}
-							<span className="font-mono tabular-nums">{workflow.page}</span> of{' '}
+							<span className="font-mono tabular-nums">{meta.total}</span> lokasi · Halaman{' '}
+							<span className="font-mono tabular-nums">{workflow.page}</span> dari{' '}
 							<span className="font-mono tabular-nums">{Math.max(1, meta.totalPages)}</span>
 						</>
 					) : (
-						`Page ${workflow.page}`
+						`Halaman ${workflow.page}`
 					)}
 				</p>
 				<div className="flex items-center gap-1">
 					<Button
 						size="sm"
 						variant="outline"
-						aria-label="Previous location page"
+						aria-label="Halaman lokasi sebelumnya"
 						disabled={workflow.page <= 1}
 						onClick={() => workflow.setPage(workflow.page - 1)}
 					>
-						<ChevronLeftIcon /> Previous
+						<ChevronLeftIcon /> Sebelumnya
 					</Button>
 					<Button
 						size="sm"
 						variant="outline"
-						aria-label="Next location page"
+						aria-label="Halaman lokasi berikutnya"
 						disabled={!meta || workflow.page >= meta.totalPages}
 						onClick={() => workflow.setPage(workflow.page + 1)}
 					>
-						Next <ChevronRightIcon />
+						Berikutnya <ChevronRightIcon />
 					</Button>
 				</div>
 			</div>

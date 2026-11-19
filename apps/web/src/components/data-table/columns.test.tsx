@@ -71,6 +71,6 @@ it('renders decimal-string quantities, mapped statuses, explicit false, and null
 	expect(screen.getByText('Quantity').className).toContain('text-right')
 	expect(screen.getByText('MAT-001').className).toContain('font-mono')
 	expect(screen.getByText('Posted')).toBeTruthy()
-	expect(screen.getByText('Inactive')).toBeTruthy()
+	expect(screen.getByText('Nonaktif')).toBeTruthy()
 	expect(screen.getAllByText('—')).toHaveLength(8)
 })

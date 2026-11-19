@@ -26,16 +26,16 @@ export interface AuditTrailProps {
 }
 
 const ACTION_LABELS: Record<string, string> = {
-	create: 'Created',
-	update: 'Updated',
-	delete: 'Deleted',
-	confirm: 'Confirmed',
-	complete: 'Completed',
-	ship: 'Shipped',
-	receive: 'Received',
-	void: 'Voided',
-	'close-other': 'Closed (by manager)',
-	'reset-password': 'Password Reset',
+	create: 'Dibuat',
+	update: 'Diperbarui',
+	delete: 'Dihapus',
+	confirm: 'Dikonfirmasi',
+	complete: 'Selesai',
+	ship: 'Dikirim',
+	receive: 'Diterima',
+	void: 'Dibatalkan',
+	'close-other': 'Ditutup (oleh manajer)',
+	'reset-password': 'Reset kata sandi',
 }
 
 function formatAction(action: string): string {
@@ -54,7 +54,7 @@ function formatAction(action: string): string {
 export function AuditTrail({
 	entries,
 	isLoading,
-	emptyMessage = 'No activity recorded yet.',
+	emptyMessage = 'Belum ada aktivitas tercatat.',
 	className,
 }: AuditTrailProps) {
 	if (isLoading) {
@@ -70,7 +70,7 @@ export function AuditTrail({
 	if (entries.length === 0) {
 		return (
 			<EmptyState
-				title="No activity yet"
+				title="Belum ada aktivitas"
 				description={emptyMessage}
 				icon={<HistoryIcon className="size-5" />}
 			/>

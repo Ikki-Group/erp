@@ -17,10 +17,10 @@ function NewUserPage() {
 
 	return (
 		<EntityEditorPage
-			title="Add User"
-			description="Create a new user account."
+			title="Tambah Pengguna"
+			description="Buat akun pengguna baru."
 			form={form}
-			submitLabel={mode === 'create' ? 'Create' : 'Save remaining changes'}
+			submitLabel={mode === 'create' ? 'Buat' : 'Simpan perubahan tersisa'}
 			onCancel={onDone}
 		>
 			<UserFormFields form={form} mode={mode} />

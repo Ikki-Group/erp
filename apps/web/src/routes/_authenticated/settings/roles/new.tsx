@@ -15,10 +15,10 @@ function NewRolePage() {
 
 	return (
 		<EntityEditorPage
-			title="Add Role"
-			description="Create a new role with specific permissions."
+			title="Tambah Peran"
+			description="Buat peran baru dengan izin tertentu."
 			form={form}
-			submitLabel="Create"
+			submitLabel="Buat"
 			onCancel={onDone}
 		>
 			<RoleFormFields form={form} />

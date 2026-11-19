@@ -36,9 +36,9 @@ export const Route = createFileRoute('/_authenticated/master/uom/')({
 const col = createEntityColumns<UomDto>()
 
 const baseColumns = [
-	col.code('code', { header: 'Code', size: 100 }),
-	col.text('name', { header: 'Name', size: 180 }),
-	col.text('category', { header: 'Category', size: 120, cellProps: { className: 'capitalize' } }),
+	col.code('code', { header: 'Kode', size: 100 }),
+	col.text('name', { header: 'Nama', size: 180 }),
+	col.text('category', { header: 'Kategori', size: 120, cellProps: { className: 'capitalize' } }),
 ]
 
 // ─── Page Component ───
@@ -73,19 +73,19 @@ function UomPage() {
 	const { run: handleDelete, isPending: deletingUnit } = useWorkflowAction<UomDto>({
 		availability: () => canDelete,
 		confirmation: (unit) => ({
-			title: 'Delete unit?',
-			description: `This will permanently delete "${unit.name}" (${unit.code}). This action cannot be undone.`,
-			confirmLabel: 'Delete',
+			title: 'Hapus satuan?',
+			description: `Satuan "${unit.name}" (${unit.code}) akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
+			confirmLabel: 'Hapus',
 			variant: 'destructive',
 		}),
 		execute: (unit) => removeMut.mutateAsync({ id: unit.id }),
-		successMessage: 'Unit deleted successfully.',
+		successMessage: 'Satuan berhasil dihapus.',
 	})
 
 	const handleAddConversion = useCallback(async () => {
 		await formDialog({
-			title: 'Add Conversion',
-			description: 'Define a conversion factor between two units.',
+			title: 'Tambah Konversi',
+			description: 'Tentukan faktor konversi antara dua satuan.',
 			// oxlint-disable-next-line react/no-unstable-nested-components
 			content: ({ close }) => (
 				<ConversionFormBody onSaved={() => close(true)} onCancel={() => close(false)} />
@@ -97,13 +97,13 @@ function UomPage() {
 		useWorkflowAction<UomConversionDto>({
 			availability: () => canDelete,
 			confirmation: () => ({
-				title: 'Delete conversion?',
-				description: 'Permanently delete this conversion? This action cannot be undone.',
-				confirmLabel: 'Delete',
+				title: 'Hapus konversi?',
+				description: 'Hapus konversi ini secara permanen? Tindakan ini tidak dapat dibatalkan.',
+				confirmLabel: 'Hapus',
 				variant: 'destructive',
 			}),
 			execute: (conversion) => convRemoveMut.mutateAsync({ id: conversion.id }),
-			successMessage: 'Conversion deleted successfully.',
+			successMessage: 'Konversi berhasil dihapus.',
 		})
 
 	// ─── Columns with actions ───
@@ -114,7 +114,7 @@ function UomPage() {
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (unit) => [
 					canEdit && {
-						label: 'Edit',
+						label: 'Ubah',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
@@ -123,7 +123,7 @@ function UomPage() {
 							}),
 					},
 					canDelete && {
-						label: 'Delete',
+						label: 'Hapus',
 						icon: <TrashIcon className="size-4" />,
 						onClick: () => handleDelete(unit),
 						variant: 'destructive' as const,
@@ -150,14 +150,14 @@ function UomPage() {
 	return (
 		<>
 			<EntityListPage
-				title="Units of Measure"
-				description="Manage units and conversion factors."
+				title="Satuan"
+				description="Kelola satuan dan faktor konversi."
 				list={list}
 				actions={
 					<PermissionGate permission="uom.create">
 						<Button size="sm" variant="outline" onClick={handleAddConversion}>
 							<ArrowRightIcon className="size-4" />
-							Add Conversion
+							Tambah Konversi
 						</Button>
 					</PermissionGate>
 				}
@@ -165,29 +165,29 @@ function UomPage() {
 					<PermissionGate permission="uom.create">
 						<Button size="sm" onClick={() => navigate({ to: '/master/uom/new' })}>
 							<PlusIcon className="size-4" />
-							Add Unit
+							Tambah Satuan
 						</Button>
 					</PermissionGate>
 				}
 				emptyState={{
-					title: 'No units yet',
-					description: 'Get started by creating your first unit of measure.',
+					title: 'Belum ada satuan',
+					description: 'Mulai dengan membuat satuan pertama Anda.',
 				}}
-				emptyMessage="No units match your search."
+				emptyMessage="Tidak ada satuan yang cocok dengan pencarian Anda."
 				toolbar={
 					<TableToolbar
 						searchValue={list.globalFilter}
 						onSearchChange={(value) => list.table.setGlobalFilter(value)}
-						searchPlaceholder="Search units..."
+						searchPlaceholder="Cari satuan..."
 						filters={[
 							{
 								key: 'category',
-								label: 'Category',
+								label: 'Kategori',
 								value: search.category,
 								onChange: (value) =>
 									list.setFilters({ category: value as UomCategoryEnum | undefined }),
 								options: UOM_CATEGORY_OPTIONS,
-								allLabel: 'All categories',
+								allLabel: 'Semua kategori',
 							},
 						]}
 					/>
@@ -195,29 +195,29 @@ function UomPage() {
 			/>
 
 			<div className="mt-6 space-y-3">
-				<h3 className="text-sm font-medium">Conversions</h3>
+				<h3 className="text-sm font-medium">Konversi</h3>
 				{conversionsQuery.isError && (
 					<div
 						role="alert"
 						className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 p-3 text-sm"
 					>
 						<p>
-							Could not load conversions.{' '}
-							{conversionsQuery.data ? 'Showing the last loaded conversions.' : ''}
+							Gagal memuat konversi.{' '}
+							{conversionsQuery.data ? 'Menampilkan konversi terakhir yang dimuat.' : ''}
 						</p>
 						<Button size="sm" variant="outline" onClick={() => void conversionsQuery.refetch()}>
-							Retry conversions
+							Coba lagi
 						</Button>
 					</div>
 				)}
 				{conversionsQuery.isLoading ? (
 					<div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
 						<LoaderIcon className="size-4 animate-spin" />
-						Loading conversions...
+						Memuat konversi...
 					</div>
 				) : conversionsQuery.isError && !conversionsQuery.data ? null : conversions.length === 0 ? (
 					<p className="py-4 text-sm text-muted-foreground">
-						No conversions defined yet. Add at least two units, then create a conversion.
+						Belum ada konversi. Tambahkan minimal dua satuan, lalu buat konversi.
 					</p>
 				) : (
 					<div className="divide-y rounded-md border">
@@ -239,7 +239,7 @@ function UomPage() {
 										size="icon"
 										variant="ghost"
 										className="shrink-0"
-										aria-label="Delete conversion"
+										aria-label="Hapus konversi"
 										disabled={deletingConversion}
 										onClick={() => handleDeleteConversion(conv)}
 									>

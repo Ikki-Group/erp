@@ -56,9 +56,7 @@ export function useModifierGroupEditor({
 			},
 		},
 		toPayload: (values) => ({ values }),
-		successMessage: group
-			? 'Modifier group berhasil diperbarui.'
-			: 'Modifier group berhasil dibuat.',
+		successMessage: group ? 'Grup modifier berhasil diperbarui.' : 'Grup modifier berhasil dibuat.',
 		onSaved,
 	})
 }

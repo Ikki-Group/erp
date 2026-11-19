@@ -109,11 +109,11 @@ afterEach(() => {
 it('shows initial failure rather than an empty list and keeps Add and retry available', async () => {
 	fixture.failList = true
 	renderPricing()
-	await screen.findByText('Could not load pricing')
-	expect(screen.queryByText('No pricing entries for this supplier.')).toBeNull()
-	expect(screen.getByRole('button', { name: 'Add Pricing' })).toBeTruthy()
+	await screen.findByText('Gagal memuat harga')
+	expect(screen.queryByText('Belum ada data harga untuk pemasok ini.')).toBeNull()
+	expect(screen.getByRole('button', { name: 'Tambah Harga' })).toBeTruthy()
 	fixture.failList = false
-	fireEvent.click(screen.getByRole('button', { name: /try again|retry/iu }))
+	fireEvent.click(screen.getByRole('button', { name: /coba lagi|muat ulang/iu }))
 	await screen.findByText('Rp 82.340,500125')
 	await screen.findByText('MAT-225')
 	await screen.findByText('UOM-125')
@@ -126,15 +126,15 @@ it('retains exact prices and navigation on a refresh failure, then retries', asy
 	await act(async () => {
 		await client.invalidateQueries({ queryKey: ['pricing'] })
 	})
-	await screen.findByText('Could not refresh pricing. Showing the last loaded results.')
+	await screen.findByText('Gagal memuat ulang harga. Menampilkan hasil terakhir yang dimuat.')
 	expect(screen.getByText('Rp 82.340,500125')).toBeTruthy()
 	expect(screen.getByText('0')).toBeTruthy()
-	expect(screen.getByRole('button', { name: 'Next' }).hasAttribute('disabled')).toBe(false)
+	expect(screen.getByRole('button', { name: 'Berikutnya' }).hasAttribute('disabled')).toBe(false)
 	fixture.failList = false
-	fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+	fireEvent.click(screen.getByRole('button', { name: 'Coba lagi' }))
 	await waitFor(() =>
 		expect(
-			screen.queryByText('Could not refresh pricing. Showing the last loaded results.'),
+			screen.queryByText('Gagal memuat ulang harga. Menampilkan hasil terakhir yang dimuat.'),
 		).toBeNull(),
 	)
 })
@@ -142,24 +142,24 @@ it('retains exact prices and navigation on a refresh failure, then retries', asy
 it('recovers to a valid page when the final last-page entry disappears, and resets for another supplier', async () => {
 	const { client, rerender } = renderPricing()
 	await screen.findByText('Rp 82.340,500125')
-	fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+	fireEvent.click(screen.getByRole('button', { name: 'Berikutnya' }))
 	await waitFor(() => expect(fixture.listCalls.some((query) => query.page === 2)).toBe(true))
-	await screen.findByText('Page 2 of 2')
+	await screen.findByText('Halaman 2 dari 2')
 	fixture.pages = 1
 	await act(async () => {
 		await client.invalidateQueries({ queryKey: ['pricing'] })
 	})
-	await screen.findByText('Page 1 of 1')
+	await screen.findByText('Halaman 1 dari 1')
 	expect(screen.getByText('Rp 82.340,500125')).toBeTruthy()
 	fixture.pages = 2
 	await act(async () => {
 		await client.invalidateQueries({ queryKey: ['pricing'] })
 	})
 	await waitFor(() =>
-		expect(screen.getByRole('button', { name: 'Next' }).hasAttribute('disabled')).toBe(false),
+		expect(screen.getByRole('button', { name: 'Berikutnya' }).hasAttribute('disabled')).toBe(false),
 	)
-	fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-	await screen.findByText('Page 2 of 2')
+	fireEvent.click(screen.getByRole('button', { name: 'Berikutnya' }))
+	await screen.findByText('Halaman 2 dari 2')
 	rerender(
 		<QueryClientProvider client={client}>
 			<PricingTable supplierId={8} permissions={fixture.permissions} />
@@ -170,17 +170,17 @@ it('recovers to a valid page when the final last-page entry disappears, and rese
 			true,
 		),
 	)
-	await screen.findByText('Page 1 of 2')
+	await screen.findByText('Halaman 1 dari 2')
 	expect(fixture.listCalls.every((query) => query.limit === 20)).toBe(true)
 })
 
 it('recovers unavailable canonical labels without replacing the price row', async () => {
 	fixture.failMaterial = true
 	renderPricing()
-	await screen.findByText('Material #225 — unavailable')
+	await screen.findByText('Bahan #225 — tidak tersedia')
 	expect(screen.getByText('Rp 82.340,500125')).toBeTruthy()
 	fixture.failMaterial = false
-	fireEvent.click(screen.getByRole('button', { name: 'Retry material #225' }))
+	fireEvent.click(screen.getByRole('button', { name: 'Coba lagi bahan #225' }))
 	await screen.findByText('MAT-225')
 })
 
@@ -188,8 +188,8 @@ it('does not offer write actions to read-only users or query pricing without rea
 	fixture.permissions = { read: true, create: false, update: false, delete: false }
 	const { rerender, client } = renderPricing()
 	await screen.findByText('Rp 82.340,500125')
-	expect(screen.queryByRole('button', { name: 'Add Pricing' })).toBeNull()
-	expect(screen.queryByRole('button', { name: 'Pricing actions' })).toBeNull()
+	expect(screen.queryByRole('button', { name: 'Tambah Harga' })).toBeNull()
+	expect(screen.queryByRole('button', { name: 'Tindakan harga' })).toBeNull()
 	fixture.permissions = { read: false, create: false, update: false, delete: false }
 	const calls = fixture.listCalls.length
 	rerender(
@@ -197,6 +197,6 @@ it('does not offer write actions to read-only users or query pricing without rea
 			<PricingTable supplierId={8} permissions={fixture.permissions} />
 		</QueryClientProvider>,
 	)
-	expect(screen.getByRole('alert').textContent).toContain('permission to view')
+	expect(screen.getByRole('alert').textContent).toContain('izin untuk melihat')
 	expect(fixture.listCalls).toHaveLength(calls)
 })

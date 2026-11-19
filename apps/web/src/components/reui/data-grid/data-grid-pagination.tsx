@@ -42,11 +42,11 @@ function DataGridPagination(props: DataGridPaginationProps): JSX.Element {
 		sizes: [5, 10, 25, 50, 100],
 		sizesSkeleton: <Skeleton className="h-8 w-44" />,
 		moreLimit: 5,
-		info: '{from} - {to} of {count}',
+		info: '{from} - {to} dari {count}',
 		infoSkeleton: <Skeleton className="h-8 w-60" />,
-		rowsPerPageLabel: 'Rows per page',
-		previousPageLabel: 'Go to previous page',
-		nextPageLabel: 'Go to next page',
+		rowsPerPageLabel: 'Baris per halaman',
+		previousPageLabel: 'Ke halaman sebelumnya',
+		nextPageLabel: 'Ke halaman berikutnya',
 		ellipsisText: '...',
 	}
 
@@ -66,7 +66,7 @@ function DataGridPagination(props: DataGridPaginationProps): JSX.Element {
 				.replaceAll('{from}', from.toString())
 				.replaceAll('{to}', to.toString())
 				.replaceAll('{count}', recordCount.toString())
-		: `${from} - ${to} of ${recordCount}`
+		: `${from} - ${to} dari ${recordCount}`
 
 	// Pagination limit logic
 	const paginationMoreLimit = mergedProps.moreLimit || 5
@@ -155,7 +155,7 @@ function DataGridPagination(props: DataGridPaginationProps): JSX.Element {
 								table.setPageSize(newPageSize)
 							}}
 						>
-							<SelectTrigger aria-label="Rows per page" className="w-16" size="sm">
+							<SelectTrigger aria-label="Baris per halaman" className="w-16" size="sm">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent

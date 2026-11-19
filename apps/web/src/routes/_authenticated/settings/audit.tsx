@@ -31,29 +31,29 @@ export const Route = createFileRoute('/_authenticated/settings/audit')({
 // (the `module:` field in each *.service.ts audit.record call). POS is split
 // per sub-entity (pos-order/shift/table/voucher); there is no bare 'pos'.
 const MODULE_OPTIONS = [
-	{ label: 'Location', value: 'location', description: 'Store and warehouse locations' },
-	{ label: 'Material', value: 'material', description: 'Raw materials and ingredients' },
-	{ label: 'Supplier', value: 'supplier', description: 'Vendor management' },
-	{ label: 'UoM', value: 'uom', description: 'Units of measurement' },
-	{ label: 'Menu', value: 'menu', description: 'Menu items and categories' },
-	{ label: 'Recipe', value: 'recipe', description: 'Recipe configurations' },
-	{ label: 'Inventory', value: 'inventory', description: 'Stock levels and adjustments' },
-	{ label: 'POS · Order', value: 'pos-order', description: 'Sales transactions' },
-	{ label: 'POS · Shift', value: 'pos-shift', description: 'Staff work sessions' },
-	{ label: 'POS · Table', value: 'pos-table', description: 'Table management' },
-	{ label: 'POS · Voucher', value: 'pos-voucher', description: 'Discount vouchers' },
-	{ label: 'Production', value: 'production', description: 'Manufacturing processes' },
-	{ label: 'IAM', value: 'iam', description: 'Users, roles, permissions' },
-	{ label: 'Company', value: 'company', description: 'Company settings' },
+	{ label: 'Lokasi', value: 'location', description: 'Lokasi toko dan gudang' },
+	{ label: 'Bahan', value: 'material', description: 'Bahan baku dan bahan tambahan' },
+	{ label: 'Pemasok', value: 'supplier', description: 'Manajemen vendor' },
+	{ label: 'Satuan', value: 'uom', description: 'Satuan ukur' },
+	{ label: 'Menu', value: 'menu', description: 'Item menu dan kategori' },
+	{ label: 'Resep', value: 'recipe', description: 'Konfigurasi resep' },
+	{ label: 'Inventori', value: 'inventory', description: 'Tingkat stok dan penyesuaian' },
+	{ label: 'POS · Pesanan', value: 'pos-order', description: 'Transaksi penjualan' },
+	{ label: 'POS · Shift', value: 'pos-shift', description: 'Sesi kerja staf' },
+	{ label: 'POS · Meja', value: 'pos-table', description: 'Manajemen meja' },
+	{ label: 'POS · Voucher', value: 'pos-voucher', description: 'Voucher diskon' },
+	{ label: 'Produksi', value: 'production', description: 'Proses produksi' },
+	{ label: 'IAM', value: 'iam', description: 'Pengguna, peran, izin' },
+	{ label: 'Perusahaan', value: 'company', description: 'Pengaturan perusahaan' },
 ]
 
 const ACTION_OPTIONS = [
-	{ label: 'Create', value: 'create' },
-	{ label: 'Update', value: 'update' },
-	{ label: 'Delete', value: 'delete' },
-	{ label: 'Void', value: 'void' },
-	{ label: 'Complete', value: 'complete' },
-	{ label: 'Confirm', value: 'confirm' },
+	{ label: 'Buat', value: 'create' },
+	{ label: 'Perbarui', value: 'update' },
+	{ label: 'Hapus', value: 'delete' },
+	{ label: 'Batalkan', value: 'void' },
+	{ label: 'Selesaikan', value: 'complete' },
+	{ label: 'Konfirmasi', value: 'confirm' },
 ]
 
 function AuditPage() {
@@ -103,7 +103,7 @@ function AuditList() {
 	return (
 		<>
 			<EntityListPage
-				title="Audit Log"
+				title="Log Audit"
 				description="Riwayat setiap perubahan yang tercatat di sistem."
 				list={list}
 				emptyState={{

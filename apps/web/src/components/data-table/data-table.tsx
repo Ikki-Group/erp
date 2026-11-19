@@ -32,7 +32,7 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 	table,
 	recordCount = 0,
 	isLoading = false,
-	emptyMessage = 'No records found.',
+	emptyMessage = 'Tidak ada data ditemukan.',
 	onRowClick,
 	showPagination = true,
 	toolbar,
@@ -86,7 +86,7 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 					<div
 						data-slot="data-table-scroll"
 						role="region"
-						aria-label="Scrollable table"
+						aria-label="Tabel dapat digulir"
 						tabIndex={0}
 						className="data-table-horizontal-scroll min-w-0 max-w-full touch-pan-x overscroll-x-contain overflow-x-scroll overflow-y-hidden"
 					>

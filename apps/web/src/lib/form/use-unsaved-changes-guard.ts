@@ -65,10 +65,10 @@ export function useUnsavedChangesGuard(form: AnyFormApi): void {
 			// `hasUnsavedChanges`'s doc comment for why this matters.
 			if (!hasUnsavedChanges(form.store.state, submittedValues.current)) return false
 			const leave = await confirm({
-				title: 'Unsaved changes',
-				description: 'You have unsaved changes. Leave this page without saving?',
-				confirmLabel: 'Leave',
-				cancelLabel: 'Stay',
+				title: 'Perubahan belum disimpan',
+				description: 'Ada perubahan yang belum disimpan. Tinggalkan halaman ini tanpa menyimpan?',
+				confirmLabel: 'Tinggalkan',
+				cancelLabel: 'Tetap di sini',
 				variant: 'destructive',
 			})
 			return !leave

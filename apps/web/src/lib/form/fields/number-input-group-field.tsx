@@ -184,7 +184,7 @@ export function NumberInputGroupField({
 				aria-invalid={!!error}
 				aria-describedby={describedBy}
 				uomTriggerProps={{
-					'aria-label': `${label}: unit of measure`,
+					'aria-label': `${label}: satuan`,
 					...uomTriggerProps,
 					id: uomId,
 					onBlur: (event) => {

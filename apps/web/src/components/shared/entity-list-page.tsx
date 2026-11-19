@@ -65,9 +65,9 @@ export function EntityListPage<TFeatures extends TableFeatures, TData extends ob
 						role="alert"
 						className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm"
 					>
-						<p>Could not refresh this list. Showing the last loaded results.</p>
+						<p>Gagal memuat ulang daftar ini. Menampilkan hasil terakhir yang dimuat.</p>
 						<Button size="sm" variant="outline" disabled={list.isRefreshing} onClick={list.retry}>
-							Retry
+							Coba lagi
 						</Button>
 					</div>
 				)}

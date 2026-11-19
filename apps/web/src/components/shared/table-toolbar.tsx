@@ -1,4 +1,4 @@
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import type { ReactNode } from 'react'
 
 import { format } from 'date-fns'
@@ -92,7 +92,7 @@ const NO_FILTERS: TableFilterDef[] = []
 export function TableToolbar<TData extends object = object>({
 	searchValue,
 	onSearchChange,
-	searchPlaceholder = 'Search...',
+	searchPlaceholder = 'Cari...',
 	filters = NO_FILTERS,
 	dateRange,
 	table,
@@ -101,20 +101,28 @@ export function TableToolbar<TData extends object = object>({
 }: TableToolbarProps<TData>) {
 	const [draftSearch, setDraftSearch] = useState(searchValue ?? '')
 	const [isPending, startTransition] = useTransition()
+	const inputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
+		// Don't clobber what the user is typing: an in-flight navigation from
+		// another control (or a late route commit) must not reset the draft
+		// while the search input still has focus.
+		if (document.activeElement === inputRef.current) return
 		setDraftSearch(searchValue ?? '')
 	}, [searchValue])
 
+	const onSearchChangeRef = useRef(onSearchChange)
+	onSearchChangeRef.current = onSearchChange
+
 	useEffect(() => {
-		if (!onSearchChange || draftSearch === (searchValue ?? '')) return
+		if (!onSearchChangeRef.current || draftSearch === (searchValue ?? '')) return
 
 		const timer = window.setTimeout(() => {
-			startTransition(() => onSearchChange(draftSearch.trim()))
+			startTransition(() => onSearchChangeRef.current?.(draftSearch.trim()))
 		}, 250)
 
 		return () => window.clearTimeout(timer)
-	}, [draftSearch, onSearchChange, searchValue])
+	}, [draftSearch, searchValue])
 
 	const activeFilters = filters.filter((f) =>
 		Array.isArray(f.value) ? f.value.length > 0 : f.value !== undefined,
@@ -129,6 +137,7 @@ export function TableToolbar<TData extends object = object>({
 						<Input
 							type="search"
 							inputMode="search"
+							ref={inputRef}
 							value={draftSearch}
 							onChange={(e) => setDraftSearch(e.target.value)}
 							placeholder={searchPlaceholder}
@@ -142,7 +151,7 @@ export function TableToolbar<TData extends object = object>({
 								size="icon-xs"
 								className="absolute right-1.5 top-1/2 -translate-y-1/2"
 								onClick={() => setDraftSearch('')}
-								aria-label="Clear search"
+								aria-label="Bersihkan pencarian"
 							>
 								{isPending ? (
 									<LoaderCircleIcon className="size-3 animate-spin" />
@@ -163,7 +172,7 @@ export function TableToolbar<TData extends object = object>({
 								value={filter.value}
 								onValueChange={filter.onChange}
 								options={filter.options}
-								placeholder={filter.allLabel ?? `All ${filter.label}`}
+								placeholder={filter.allLabel ?? `Semua ${filter.label}`}
 							/>
 						) : (
 							<TableFilterSelect

@@ -21,21 +21,21 @@ export function UomLabel({ id }: { id: number }) {
 				</Badge>
 			) : (
 				<span className="text-muted-foreground" role="status">
-					{query.isPending ? 'Loading unit…' : 'Unit label unavailable'}
+					{query.isPending ? 'Memuat satuan…' : 'Label satuan tidak tersedia'}
 				</span>
 			)}
 			{query.isError && (
 				<span className="inline-flex flex-wrap items-center gap-1.5" role="alert">
-					{unit && <span className="text-muted-foreground">Could not refresh label.</span>}
+					{unit && <span className="text-muted-foreground">Gagal memuat ulang label.</span>}
 					<Button
 						type="button"
 						size="sm"
 						variant="outline"
 						disabled={query.isFetching}
-						aria-label={`Retry label for unit ${id}`}
+						aria-label={`Coba lagi label untuk satuan ${id}`}
 						onClick={() => void query.refetch()}
 					>
-						Retry label
+						Muat ulang label
 					</Button>
 				</span>
 			)}

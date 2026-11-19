@@ -38,10 +38,10 @@ export const Route = createFileRoute('/_authenticated/master/payment-methods/')(
 const col = createEntityColumns<PaymentMethodDto>()
 
 const baseColumns = [
-	col.code('code', { header: 'Code', size: 120, enableSorting: false }),
-	col.text('name', { header: 'Name', size: 200, enableSorting: false }),
+	col.code('code', { header: 'Kode', size: 120, enableSorting: false }),
+	col.text('name', { header: 'Nama', size: 200, enableSorting: false }),
 	col.text('type', {
-		header: 'Type',
+		header: 'Tipe',
 		size: 120,
 		enableSorting: false,
 		// oxlint-disable-next-line react/no-unstable-nested-components
@@ -76,13 +76,13 @@ function PaymentMethodsPage() {
 	const { run: handleDelete, isPending: deleting } = useWorkflowAction<PaymentMethodDto>({
 		availability: () => canDelete,
 		confirmation: (item) => ({
-			title: 'Delete payment method?',
-			description: `This will permanently delete "${item.name}" (${item.code}). This action cannot be undone.`,
-			confirmLabel: 'Delete',
+			title: 'Hapus metode pembayaran?',
+			description: `Metode pembayaran "${item.name}" (${item.code}) akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
+			confirmLabel: 'Hapus',
 			variant: 'destructive',
 		}),
 		execute: (item) => removeMut.mutateAsync({ id: item.id }),
-		successMessage: 'Payment method deleted.',
+		successMessage: 'Metode pembayaran berhasil dihapus.',
 	})
 
 	// ─── Columns with actions ───
@@ -93,7 +93,7 @@ function PaymentMethodsPage() {
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (item) => [
 					canEdit && {
-						label: 'Edit',
+						label: 'Ubah',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
@@ -102,7 +102,7 @@ function PaymentMethodsPage() {
 							}),
 					},
 					canDelete && {
-						label: 'Delete',
+						label: 'Hapus',
 						icon: <TrashIcon className="size-4" />,
 						onClick: () => handleDelete(item),
 						variant: 'destructive' as const,
@@ -128,36 +128,36 @@ function PaymentMethodsPage() {
 
 	return (
 		<EntityListPage
-			title="Payment Methods"
-			description="Manage payment methods available for POS checkout."
+			title="Metode Pembayaran"
+			description="Kelola metode pembayaran yang tersedia untuk pembayaran POS."
 			createAction={
 				<PermissionGate permission="payment-method.create">
 					<Button size="sm" onClick={() => navigate({ to: '/master/payment-methods/new' })}>
 						<PlusIcon className="size-4" />
-						Add Payment Method
+						Tambah Metode Pembayaran
 					</Button>
 				</PermissionGate>
 			}
 			list={list}
 			emptyState={{
-				title: 'No payment methods yet',
-				description: 'Get started by creating your first payment method.',
+				title: 'Belum ada metode pembayaran',
+				description: 'Mulai dengan membuat metode pembayaran pertama Anda.',
 			}}
-			emptyMessage="No payment methods match your search."
+			emptyMessage="Tidak ada metode pembayaran yang cocok dengan pencarian Anda."
 			toolbar={
 				<TableToolbar
 					searchValue={list.globalFilter}
 					onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
-					searchPlaceholder="Search payment methods..."
+					searchPlaceholder="Cari metode pembayaran..."
 					filters={[
 						{
 							key: 'type',
-							label: 'Type',
+							label: 'Tipe',
 							value: search.type,
 							onChange: (value) =>
 								list.setFilters({ type: value as PaymentMethodTypeEnum | undefined }),
 							options: PAYMENT_METHOD_TYPE_OPTIONS,
-							allLabel: 'All Types',
+							allLabel: 'Semua Tipe',
 						},
 					]}
 				/>

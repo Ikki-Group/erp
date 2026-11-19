@@ -145,7 +145,9 @@ describe('user editor session', () => {
 			[2, null],
 		])
 
-		await expect(session.save(input)).rejects.toThrow('Account saved, access changes incomplete.')
+		await expect(session.save(input)).rejects.toThrow(
+			'Akun tersimpan, perubahan akses belum lengkap.',
+		)
 		expect(state.createCount).toBe(1)
 		expect(state.assignCount).toBe(2)
 		expect(assignmentPairs(state.user)).toEqual([[1, null]])
@@ -179,7 +181,9 @@ describe('user editor session', () => {
 		}
 		const session = createUserEditorSession(adapter, 7)
 
-		await expect(session.save(input)).rejects.toThrow('Account saved, access changes incomplete.')
+		await expect(session.save(input)).rejects.toThrow(
+			'Akun tersimpan, perubahan akses belum lengkap.',
+		)
 		expect(assignmentPairs(state.user)).toEqual([[3, 10]])
 		expect(state.updates).toHaveLength(1)
 		expect(state.updates[0]).not.toHaveProperty('password')
@@ -216,7 +220,7 @@ describe('user editor session', () => {
 		const { state, adapter } = accountStore()
 		state.failDetail = true
 		const session = createUserEditorSession(adapter)
-		await expect(session.save(values([[1, null]]))).rejects.toThrow('Account already created')
+		await expect(session.save(values([[1, null]]))).rejects.toThrow('Akun sudah dibuat')
 		expect(state.createCount).toBe(1)
 		expect(state.assignCount).toBe(0)
 		state.failDetail = false
@@ -241,7 +245,7 @@ describe('user editor session', () => {
 	it('rejects incomplete access before making any account request', async () => {
 		const { state, adapter } = accountStore()
 		const input = values([[1, null]], 'per_location')
-		await expect(createUserEditorSession(adapter).save(input)).rejects.toThrow('Select a location')
+		await expect(createUserEditorSession(adapter).save(input)).rejects.toThrow('Pilih lokasi')
 		expect(state.createCount).toBe(0)
 		expect(state.detailCount).toBe(0)
 	})

@@ -75,7 +75,7 @@ describe('AsyncCombobox', () => {
 		fireEvent.mouseDown(input, { button: 0 })
 		await screen.findByRole('alert')
 		expect(screen.queryByText('No results found.')).toBeNull()
-		fireEvent.click(screen.getByRole('button', { name: 'Retry search' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Muat ulang pencarian' }))
 		expect(retry).toHaveBeenCalledOnce()
 		fireEvent.blur(input)
 		await waitFor(() => expect(blur).toHaveBeenCalled())

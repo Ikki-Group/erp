@@ -16,6 +16,7 @@ function Calendar({
 	locale,
 	formatters,
 	components,
+	labels,
 	...props
 }: React.ComponentProps<typeof DayPicker> & {
 	buttonVariant?: React.ComponentProps<typeof Button>['variant']
@@ -33,6 +34,13 @@ function Calendar({
 			)}
 			captionLayout={captionLayout}
 			locale={locale}
+			labels={{
+				labelNext: () => 'Bulan berikutnya',
+				labelPrevious: () => 'Bulan sebelumnya',
+				labelMonthDropdown: () => 'Pilih bulan',
+				labelYearDropdown: () => 'Pilih tahun',
+				...labels,
+			}}
 			formatters={{
 				formatMonthDropdown: (date) => date.toLocaleString(locale?.code, { month: 'short' }),
 				...formatters,

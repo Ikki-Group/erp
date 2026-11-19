@@ -28,7 +28,7 @@ interface ResourceLookupFieldProps<TEntity extends { id: number }> extends Looku
 export function ResourceLookupField<TEntity extends { id: number }>({
 	adapter,
 	label,
-	placeholder = 'Search...',
+	placeholder = 'Cari...',
 	description,
 	disabled = false,
 	excludeIds,
@@ -73,7 +73,7 @@ export function ResourceLookupField<TEntity extends { id: number }>({
 						: lookup.options
 				}
 				isLoading={lookup.isLoading}
-				errorMessage={lookup.searchError ? 'Could not load results. Try again.' : undefined}
+				errorMessage={lookup.searchError ? 'Gagal memuat hasil. Coba lagi.' : undefined}
 				onRetry={lookup.retrySearch}
 				hasMore={lookup.hasMore}
 				isLoadingMore={lookup.isLoadingMore}
@@ -91,13 +91,13 @@ export function ResourceLookupField<TEntity extends { id: number }>({
 			)}
 			{lookup.isResolvingSelection && (
 				<p id={`${id}-selection-loading`} role="status" className="text-xs text-muted-foreground">
-					Loading selected record...
+					Memuat data terpilih...
 				</p>
 			)}
 			{lookup.selectionError && (
 				<div className="space-y-1.5">
 					<p id={`${id}-selection-error`} role="alert" className="text-xs text-destructive">
-						Could not load the selected record. Your selection has not changed.
+						Gagal memuat data terpilih. Pilihan Anda tidak berubah.
 					</p>
 					<Button
 						type="button"
@@ -106,7 +106,7 @@ export function ResourceLookupField<TEntity extends { id: number }>({
 						disabled={lookup.isRetryingSelection}
 						onClick={lookup.retrySelection}
 					>
-						{lookup.isRetryingSelection ? 'Retrying...' : 'Retry selected record'}
+						{lookup.isRetryingSelection ? 'Mencoba lagi...' : 'Muat ulang data terpilih'}
 					</Button>
 				</div>
 			)}

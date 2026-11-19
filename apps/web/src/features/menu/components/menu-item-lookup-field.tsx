@@ -22,5 +22,5 @@ interface MenuItemLookupFieldProps extends LookupFieldProps {
 
 export function MenuItemLookupField({ locationId, ...props }: MenuItemLookupFieldProps) {
 	const adapter = useMemo(() => createMenuItemLookup(locationId), [locationId])
-	return <ResourceLookupField adapter={adapter} placeholder="Search menu items..." {...props} />
+	return <ResourceLookupField adapter={adapter} placeholder="Cari item menu..." {...props} />
 }

@@ -28,7 +28,7 @@ registerRoute('get', endpoint.uom.list, (params) => {
 registerRoute('get', endpoint.uom.detail, (params) => {
 	const id = Number(params.get('id'))
 	const row = table.get(id)
-	if (!row) return mockError(404, 'Unit tidak ditemukan.', 'NOT_FOUND')
+	if (!row) return mockError(404, 'Satuan tidak ditemukan.', 'NOT_FOUND')
 	return mockSuccess(row)
 })
 
@@ -47,13 +47,13 @@ registerRoute('post', endpoint.uom.create, (_params, body) => {
 registerRoute('put', endpoint.uom.update, (_params, body) => {
 	const input = body as UomUpdateDto
 	const row = table.update(input.id, { ...input, updatedAt: new Date(), updatedBy: 1 })
-	if (!row) return mockError(404, 'Unit tidak ditemukan.', 'NOT_FOUND')
+	if (!row) return mockError(404, 'Satuan tidak ditemukan.', 'NOT_FOUND')
 	return mockSuccess({ id: row.id })
 })
 
 registerRoute('delete', endpoint.uom.remove, (params) => {
 	const id = Number(params.get('id'))
 	const removed = table.remove(id)
-	if (!removed) return mockError(404, 'Unit tidak ditemukan.', 'NOT_FOUND')
+	if (!removed) return mockError(404, 'Satuan tidak ditemukan.', 'NOT_FOUND')
 	return mockSuccess({ id })
 })

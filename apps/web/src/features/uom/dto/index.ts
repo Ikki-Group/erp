@@ -8,10 +8,10 @@ export const UomCategoryEnum = z.enum(['weight', 'volume', 'quantity', 'length']
 export type UomCategoryEnum = z.infer<typeof UomCategoryEnum>
 
 export const UOM_CATEGORY_OPTIONS = [
-	{ label: 'Weight', value: 'weight' },
+	{ label: 'Berat', value: 'weight' },
 	{ label: 'Volume', value: 'volume' },
-	{ label: 'Quantity', value: 'quantity' },
-	{ label: 'Length', value: 'length' },
+	{ label: 'Jumlah', value: 'quantity' },
+	{ label: 'Panjang', value: 'length' },
 ] as const
 
 // ─── Response ───
@@ -69,6 +69,6 @@ export type UomConversionDto = z.infer<typeof UomConversionDto>
 export const UomConversionCreateDto = z.object({
 	fromUomId: zp.id,
 	toUomId: zp.id,
-	factor: zc.strTrim.regex(/^\d+(\.\d+)?$/u, 'Must be a positive decimal'),
+	factor: zc.strTrim.regex(/^\d+(\.\d+)?$/u, 'Harus berupa angka desimal positif'),
 })
 export type UomConversionCreateDto = z.infer<typeof UomConversionCreateDto>

@@ -15,11 +15,11 @@ function NewLocationPage() {
 
 	return (
 		<EntityEditorPage
-			title="New Location"
-			description="Add a new store or warehouse location."
+			title="Lokasi Baru"
+			description="Tambahkan lokasi toko atau gudang baru."
 			form={form}
 			className="max-w-5xl"
-			submitLabel="Create Location"
+			submitLabel="Buat Lokasi"
 			onCancel={onDone}
 		>
 			<LocationFormFields form={form} />

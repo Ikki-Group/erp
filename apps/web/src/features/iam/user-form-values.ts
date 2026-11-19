@@ -30,7 +30,7 @@ const assignmentSchema = z.object({
 		.positive()
 		.nullable()
 		.refine((id) => id !== null, {
-			message: 'Select a role for this assignment.',
+			message: 'Pilih peran untuk penugasan ini.',
 		}),
 	locationId: z.number().int().positive().nullable(),
 })
@@ -49,14 +49,14 @@ const accessSchema = z
 				context.addIssue({
 					code: 'custom',
 					path: ['assignments', index, 'locationId'],
-					message: 'Global access cannot include a location.',
+					message: 'Akses global tidak boleh menyertakan lokasi.',
 				})
 			}
 			if (values.assignmentMode === 'per_location' && assignment.locationId === null) {
 				context.addIssue({
 					code: 'custom',
 					path: ['assignments', index, 'locationId'],
-					message: 'Select a location for this assignment.',
+					message: 'Pilih lokasi untuk penugasan ini.',
 				})
 			}
 			if (values.assignmentMode === 'global' && assignment.roleId !== null) {
@@ -64,7 +64,7 @@ const accessSchema = z
 					context.addIssue({
 						code: 'custom',
 						path: ['assignments', index, 'roleId'],
-						message: 'This role is already assigned globally.',
+						message: 'Peran ini sudah ditugaskan secara global.',
 					})
 				}
 				seenRoles.add(assignment.roleId)
@@ -73,7 +73,7 @@ const accessSchema = z
 					context.addIssue({
 						code: 'custom',
 						path: ['assignments', index, 'locationId'],
-						message: 'Each location can only be assigned once.',
+						message: 'Setiap lokasi hanya dapat ditugaskan sekali.',
 					})
 				}
 				seenLocations.add(assignment.locationId)
@@ -83,18 +83,18 @@ const accessSchema = z
 
 export function userFormSchema(mode: 'create' | 'edit') {
 	return accessSchema.safeExtend({
-		username: z.string().trim().min(3, 'Username must be at least 3 characters').max(100),
+		username: z.string().trim().min(3, 'Nama pengguna minimal 3 karakter').max(100),
 		email: z
 			.string()
 			.trim()
 			.max(255)
 			.refine((value) => z.email().safeParse(value).success, {
-				message: 'Invalid email address',
+				message: 'Alamat email tidak valid',
 			}),
-		name: z.string().trim().min(1, 'Name is required').max(255),
+		name: z.string().trim().min(1, 'Nama wajib diisi').max(255),
 		password:
 			mode === 'create'
-				? z.string().min(8, 'Password must be at least 8 characters').max(100)
+				? z.string().min(8, 'Kata sandi minimal 8 karakter').max(100)
 				: z.string().max(100),
 		isActive: z.boolean(),
 	})

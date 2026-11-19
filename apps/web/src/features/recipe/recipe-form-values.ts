@@ -41,16 +41,16 @@ const requiredId = (message: string) =>
 		.refine((v) => v !== null, { error: message })
 
 const RecipeLineSchema = z.object({
-	materialId: requiredId('Material wajib dipilih'),
+	materialId: requiredId('Bahan wajib dipilih'),
 	quantity: decimal('Jumlah harus angka positif'),
 	uomId: requiredId('Satuan wajib dipilih'),
 })
 
 /** Form-shape schema: incomplete inputs get field-level guidance rather than DTO errors. */
 export const RecipeFormSchema = z.object({
-	menuItemId: requiredId('Menu item wajib dipilih'),
+	menuItemId: requiredId('Item menu wajib dipilih'),
 	name: z.string().trim().min(2, 'Minimal 2 karakter').max(255),
-	yieldQty: decimal('Yield qty harus angka positif'),
+	yieldQty: decimal('Jumlah hasil harus angka positif'),
 	lines: z.array(RecipeLineSchema).min(1, 'Tambahkan minimal satu bahan'),
 })
 

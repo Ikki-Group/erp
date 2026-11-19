@@ -45,10 +45,10 @@ export const Route = createFileRoute('/_authenticated/master/materials/')({
 const col = createEntityColumns<MaterialDto>()
 
 const baseColumns = [
-	col.code('code', { header: 'Code', size: 100 }),
-	col.text('name', { header: 'Name', size: 200 }),
+	col.code('code', { header: 'Kode', size: 100 }),
+	col.text('name', { header: 'Nama', size: 200 }),
 	col.text('type', {
-		header: 'Type',
+		header: 'Tipe',
 		size: 120,
 		cell: ({ getValue }) => {
 			const type = getValue()
@@ -87,19 +87,21 @@ function CategoryDialogBody({
 	})
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault()
-				e.stopPropagation()
-				void form.handleSubmit()
-			}}
-		>
-			<CategoryFormFields form={form} />
-			<FormDialogFooter
-				onCancel={() => close(false)}
-				submitLabel={defaultValues ? 'Save Changes' : 'Create'}
-			/>
-		</form>
+		<form.AppForm>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					void form.handleSubmit()
+				}}
+			>
+				<CategoryFormFields form={form} />
+				<FormDialogFooter
+					onCancel={() => close(false)}
+					submitLabel={defaultValues ? 'Simpan Perubahan' : 'Buat'}
+				/>
+			</form>
+		</form.AppForm>
 	)
 }
 
@@ -140,19 +142,19 @@ function MaterialsPage() {
 	const { run: handleDelete, isPending: deletingMaterial } = useWorkflowAction<MaterialDto>({
 		availability: () => canDelete,
 		confirmation: (material) => ({
-			title: 'Delete material?',
-			description: `Remove "${material.name}" (${material.code}) from the material list? Existing records are retained.`,
-			confirmLabel: 'Delete',
+			title: 'Hapus bahan?',
+			description: `Hapus "${material.name}" (${material.code}) dari daftar bahan? Data yang sudah ada tetap disimpan.`,
+			confirmLabel: 'Hapus',
 			variant: 'destructive',
 		}),
 		execute: (material) => removeMut.mutateAsync({ id: material.id }),
-		successMessage: 'Material deleted successfully.',
+		successMessage: 'Bahan berhasil dihapus.',
 	})
 
 	const handleLocations = useCallback(
 		async (material: MaterialDto) => {
 			await formDialog({
-				title: 'Location Assignment',
+				title: 'Penugasan Lokasi',
 				description: `Locations stocking ${material.name}.`,
 				className: 'sm:max-w-2xl max-h-[90dvh] flex flex-col',
 				// oxlint-disable-next-line react/no-unstable-nested-components
@@ -170,7 +172,7 @@ function MaterialsPage() {
 						</div>
 						<DialogFooter>
 							<Button size="sm" onClick={() => close(true)}>
-								Done
+								Selesai
 							</Button>
 						</DialogFooter>
 					</>
@@ -184,35 +186,35 @@ function MaterialsPage() {
 
 	const handleCreateCategory = useCallback(async () => {
 		const saved = await formDialog({
-			title: 'Add Category',
-			description: 'Create a new material category.',
+			title: 'Tambah Kategori',
+			description: 'Buat kategori bahan baru.',
 			// oxlint-disable-next-line react/no-unstable-nested-components
 			content: ({ close }) => <CategoryDialogBody close={close} />,
 		})
-		if (saved) toast.add({ title: 'Category created successfully.', type: 'success' })
+		if (saved) toast.add({ title: 'Kategori berhasil dibuat.', type: 'success' })
 	}, [])
 
 	const handleEditCategory = useCallback(async (category: MaterialCategoryDto) => {
 		const saved = await formDialog({
-			title: 'Edit Category',
-			description: `Update "${category.name}".`,
+			title: 'Ubah Kategori',
+			description: `Perbarui "${category.name}".`,
 			// oxlint-disable-next-line react/no-unstable-nested-components
 			content: ({ close }) => <CategoryDialogBody close={close} defaultValues={category} />,
 		})
-		if (saved) toast.add({ title: 'Category updated successfully.', type: 'success' })
+		if (saved) toast.add({ title: 'Kategori berhasil diperbarui.', type: 'success' })
 	}, [])
 
 	const { run: handleDeleteCategory, isPending: deletingCategory } =
 		useWorkflowAction<MaterialCategoryDto>({
 			availability: () => canDelete,
 			confirmation: (category) => ({
-				title: 'Delete category?',
-				description: `Permanently delete "${category.name}"? Materials in this category will become uncategorized. This action cannot be undone.`,
-				confirmLabel: 'Delete',
+				title: 'Hapus kategori?',
+				description: `Hapus "${category.name}" secara permanen? Bahan dalam kategori ini akan menjadi tanpa kategori. Tindakan ini tidak dapat dibatalkan.`,
+				confirmLabel: 'Hapus',
 				variant: 'destructive',
 			}),
 			execute: (category) => catRemoveMut.mutateAsync({ id: category.id }),
-			successMessage: 'Category deleted successfully.',
+			successMessage: 'Kategori berhasil dihapus.',
 		})
 
 	// ─── Columns with actions ───
@@ -223,7 +225,7 @@ function MaterialsPage() {
 				// oxlint-disable-next-line react/no-unstable-nested-components
 				getItems: (material) => [
 					canEdit && {
-						label: 'Edit',
+						label: 'Ubah',
 						icon: <EditIcon className="size-4" />,
 						onClick: () =>
 							navigate({
@@ -232,12 +234,12 @@ function MaterialsPage() {
 							}),
 					},
 					canRead && {
-						label: 'Locations',
+						label: 'Lokasi',
 						icon: <MapPinIcon className="size-4" />,
 						onClick: () => handleLocations(material),
 					},
 					canDelete && {
-						label: 'Delete',
+						label: 'Hapus',
 						icon: <TrashIcon className="size-4" />,
 						onClick: () => handleDelete(material),
 						variant: 'destructive' as const,
@@ -264,14 +266,14 @@ function MaterialsPage() {
 	return (
 		<>
 			<EntityListPage
-				title="Materials"
-				description="Manage materials, categories, and location assignments."
+				title="Bahan"
+				description="Kelola bahan, kategori, dan penugasan lokasi."
 				list={list}
 				actions={
 					<PermissionGate permission="material.create">
 						<Button size="sm" variant="outline" onClick={handleCreateCategory}>
 							<TagIcon className="size-4" />
-							Add Category
+							Tambah Kategori
 						</Button>
 					</PermissionGate>
 				}
@@ -279,15 +281,15 @@ function MaterialsPage() {
 					<PermissionGate permission="material.create">
 						<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
 							<PlusIcon className="size-4" />
-							Add Material
+							Tambah Bahan
 						</Button>
 					</PermissionGate>
 				}
 				emptyState={{
-					title: 'No materials yet',
-					description: 'Get started by creating your first material.',
+					title: 'Belum ada bahan',
+					description: 'Mulai dengan membuat bahan pertama Anda.',
 				}}
-				emptyMessage="No materials match your filters."
+				emptyMessage="Tidak ada bahan yang cocok dengan filter Anda."
 				onRowClick={(row) =>
 					navigate({
 						to: '/master/materials/$materialId',
@@ -298,11 +300,11 @@ function MaterialsPage() {
 					<TableToolbar
 						searchValue={list.globalFilter}
 						onSearchChange={(q) => list.setFilters({ q: q.trim() || undefined })}
-						searchPlaceholder="Search materials..."
+						searchPlaceholder="Cari bahan..."
 						filters={[
 							{
 								key: 'categoryId',
-								label: 'Category',
+								label: 'Kategori',
 								value: search.categoryId?.toString(),
 								onChange: (value) =>
 									list.setFilters({ categoryId: value ? Number(value) : undefined }),
@@ -310,7 +312,7 @@ function MaterialsPage() {
 									label: cat.name,
 									value: cat.id.toString(),
 								})),
-								allLabel: 'All categories',
+								allLabel: 'Semua kategori',
 							},
 						]}
 					/>
@@ -325,8 +327,8 @@ function MaterialsPage() {
 					<p>
 						Could not load categories.{' '}
 						{categoriesQuery.data
-							? 'Showing the last loaded categories.'
-							: 'Retry to restore category filters.'}
+							? 'Menampilkan kategori terakhir yang dimuat.'
+							: 'Coba lagi untuk memulihkan filter kategori.'}
 					</p>
 					<Button size="sm" variant="outline" onClick={() => void categoriesQuery.refetch()}>
 						Retry categories
@@ -335,7 +337,7 @@ function MaterialsPage() {
 			)}
 			{categories.length > 0 && (
 				<div className="space-y-3">
-					<h3 className="font-heading text-sm font-semibold tracking-tight">Categories</h3>
+					<h3 className="font-heading text-sm font-semibold tracking-tight">Kategori</h3>
 					<div className="divide-y rounded-md border">
 						{categories.map((cat) => (
 							<div key={cat.id} className="flex items-center justify-between px-4 py-3">

@@ -97,7 +97,7 @@ function StockPage() {
 
 			{activeTab === 'movements' && !selectedMaterial && (
 				<EmptyState
-					title="Pilih material"
+					title="Pilih bahan"
 					description="Klik baris di tabel saldo stok untuk melihat riwayat pergerakan."
 					icon={<HistoryIcon className="size-5" />}
 				/>

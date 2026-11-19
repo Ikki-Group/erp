@@ -104,7 +104,7 @@ function AssignmentGroups({ assignments }: AssignmentGroupsProps) {
 				<div>
 					<div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
 						<DetailIcon icon={<Globe2Icon />} className="size-3.5" />
-						<span>Global · all locations</span>
+						<span>Global · semua lokasi</span>
 					</div>
 					<div className="grid gap-3 sm:grid-cols-2">
 						{globalAssignments.map((assignment) => (
@@ -177,12 +177,12 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 			breadcrumbs={
 				<Button variant="ghost" size="sm" className="-ml-2 gap-1.5" onClick={onBack}>
 					<ArrowLeftIcon className="size-3.5" />
-					Back to users
+					Kembali ke pengguna
 				</Button>
 			}
 			status={
 				<StatusBadge variant={user.isActive ? 'success' : 'default'}>
-					{user.isActive ? 'Active' : 'Inactive'}
+					{user.isActive ? 'Aktif' : 'Nonaktif'}
 				</StatusBadge>
 			}
 			actions={
@@ -190,22 +190,22 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 					<div className="flex gap-2">
 						<Button variant="outline" size="sm" onClick={handleResetPassword}>
 							<KeyRoundIcon className="size-4" />
-							Reset Password
+							Reset Kata Sandi
 						</Button>
 						<Button size="sm" onClick={onEdit}>
 							<EditIcon className="size-4" />
-							Edit User
+							Ubah Pengguna
 						</Button>
 					</div>
 				)
 			}
 		>
-			<DetailSection title="Profile" description="Basic account information and sign-in status.">
+			<DetailSection title="Profil" description="Informasi dasar akun dan status masuk.">
 				<DetailList
 					items={[
-						{ label: 'Full name', value: user.name },
+						{ label: 'Nama lengkap', value: user.name },
 						{
-							label: 'Username',
+							label: 'Nama pengguna',
 							value: <code className="font-mono text-sm">{user.username}</code>,
 						},
 						{ label: 'Email', value: user.email },
@@ -213,7 +213,7 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 							label: 'Status',
 							value: (
 								<StatusBadge variant={user.isActive ? 'success' : 'default'}>
-									{user.isActive ? 'Active' : 'Inactive'}
+									{user.isActive ? 'Aktif' : 'Nonaktif'}
 								</StatusBadge>
 							),
 						},
@@ -228,7 +228,7 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 			</DetailSection>
 
 			<DetailSection
-				title="Role assignments"
+				title="Penugasan peran"
 				description={
 					user.assignments.length === 0
 						? undefined
@@ -237,8 +237,8 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 			>
 				{user.assignments.length === 0 ? (
 					<EmptyState
-						title="No roles assigned"
-						description="This user cannot access any protected resources."
+						title="Belum ada peran ditugaskan"
+						description="Pengguna ini tidak dapat mengakses sumber daya yang dilindungi."
 					/>
 				) : (
 					<AssignmentGroups assignments={user.assignments} />
@@ -246,11 +246,11 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 			</DetailSection>
 
 			{canReadAudit && (
-				<DetailSection title="Activity" description="Recent changes to this account.">
+				<DetailSection title="Aktivitas" description="Perubahan terbaru pada akun ini.">
 					<AuditTrail
 						entries={auditQuery.data?.data ?? []}
 						isLoading={auditQuery.isLoading}
-						emptyMessage="No changes recorded for this user yet."
+						emptyMessage="Belum ada perubahan yang tercatat untuk pengguna ini."
 					/>
 				</DetailSection>
 			)}
@@ -268,10 +268,10 @@ function EditUserForm({ user, onDone }: EditUserFormProps) {
 
 	return (
 		<EntityEditorPage
-			title="Edit User"
-			description={`Update details and access assignments for ${user.name}.`}
+			title="Ubah Pengguna"
+			description={`Perbarui detail dan penugasan akses untuk ${user.name}.`}
 			form={form}
-			submitLabel="Save Changes"
+			submitLabel="Simpan Perubahan"
 			onCancel={onDone}
 		>
 			<UserFormFields form={form} mode={mode} />

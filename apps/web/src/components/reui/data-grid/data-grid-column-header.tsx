@@ -153,7 +153,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 					disabled={!canSort}
 				>
 					<ArrowUpIcon className="size-3.5!" />
-					<span className="grow">Asc</span>
+					<span className="grow">Naik</span>
 					{isSorted === 'asc' && <CheckIcon className="text-primary size-4 opacity-100!" />}
 				</DropdownMenuItem>,
 				<DropdownMenuItem
@@ -168,7 +168,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 					disabled={!canSort}
 				>
 					<ArrowDownIcon className="size-3.5!" />
-					<span className="grow">Desc</span>
+					<span className="grow">Turun</span>
 					{isSorted === 'desc' && <CheckIcon className="text-primary size-4 opacity-100!" />}
 				</DropdownMenuItem>,
 			)
@@ -186,7 +186,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 					onClick={() => column.pin(isPinned === 'start' ? false : 'start')}
 				>
 					<ArrowLeftToLineIcon className="size-3.5!" aria-hidden="true" />
-					<span className="grow">Pin to left</span>
+					<span className="grow">Sematkan ke kiri</span>
 					{isPinned === 'start' && <CheckIcon className="text-primary size-4 opacity-100!" />}
 				</DropdownMenuItem>,
 				<DropdownMenuItem
@@ -194,7 +194,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 					onClick={() => column.pin(isPinned === 'end' ? false : 'end')}
 				>
 					<ArrowRightToLineIcon className="size-3.5!" aria-hidden="true" />
-					<span className="grow">Pin to right</span>
+					<span className="grow">Sematkan ke kanan</span>
 					{isPinned === 'end' && <CheckIcon className="text-primary size-4 opacity-100!" />}
 				</DropdownMenuItem>,
 			)
@@ -222,7 +222,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 					disabled={!canMoveLeft || isPinned !== false}
 				>
 					<ArrowLeftIcon className="size-3.5!" aria-hidden="true" />
-					<span>Move to Left</span>
+					<span>Pindahkan ke kiri</span>
 				</DropdownMenuItem>,
 				<DropdownMenuItem
 					key="move-right"
@@ -239,7 +239,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 					disabled={!canMoveRight || isPinned !== false}
 				>
 					<ArrowRightIcon className="size-3.5!" aria-hidden="true" />
-					<span>Move to Right</span>
+					<span>Pindahkan ke kanan</span>
 				</DropdownMenuItem>,
 			)
 			hasPreviousSection = true
@@ -254,7 +254,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 				<DropdownMenuSub key="visibility">
 					<DropdownMenuSubTrigger>
 						<Settings2Icon className="size-3.5!" />
-						<span>Columns</span>
+						<span>Kolom</span>
 					</DropdownMenuSubTrigger>
 					<DropdownMenuSubContent side="right">
 						{table

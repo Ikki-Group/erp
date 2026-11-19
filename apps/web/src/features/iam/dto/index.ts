@@ -18,37 +18,37 @@ import { zc, zp, zq } from '@/lib/validation/index.ts'
 export const PERMISSION_GROUPS = [
 	{
 		module: 'company',
-		label: 'Company',
+		label: 'Perusahaan',
 		permissions: ['company.read', 'company.update'],
 	},
 	{
 		module: 'location',
-		label: 'Location',
+		label: 'Lokasi',
 		permissions: ['location.read', 'location.create', 'location.update', 'location.delete'],
 	},
 	{
 		module: 'location-staff',
-		label: 'Location Staff',
+		label: 'Staf Lokasi',
 		permissions: ['location-staff.read'],
 	},
 	{
 		module: 'iam',
-		label: 'Users & Roles',
+		label: 'Pengguna & Peran',
 		permissions: ['iam.read', 'iam.create', 'iam.update', 'iam.delete'],
 	},
 	{
 		module: 'uom',
-		label: 'Unit of Measure',
+		label: 'Satuan',
 		permissions: ['uom.read', 'uom.create', 'uom.update', 'uom.delete'],
 	},
 	{
 		module: 'material',
-		label: 'Material',
+		label: 'Bahan',
 		permissions: ['material.read', 'material.create', 'material.update', 'material.delete'],
 	},
 	{
 		module: 'supplier',
-		label: 'Supplier',
+		label: 'Pemasok',
 		permissions: ['supplier.read', 'supplier.create', 'supplier.update', 'supplier.delete'],
 	},
 	{
@@ -71,12 +71,12 @@ export const PERMISSION_GROUPS = [
 	},
 	{
 		module: 'recipe',
-		label: 'Recipe',
+		label: 'Resep',
 		permissions: ['recipe.read', 'recipe.create', 'recipe.update', 'recipe.delete'],
 	},
 	{
 		module: 'payment-method',
-		label: 'Payment Method',
+		label: 'Metode Pembayaran',
 		permissions: [
 			'payment-method.read',
 			'payment-method.create',
@@ -86,7 +86,7 @@ export const PERMISSION_GROUPS = [
 	},
 	{
 		module: 'pos',
-		label: 'Point of Sale',
+		label: 'Kasir',
 		permissions: [
 			'order.read',
 			'order.create',
@@ -104,7 +104,7 @@ export const PERMISSION_GROUPS = [
 	},
 	{
 		module: 'inventory',
-		label: 'Inventory',
+		label: 'Inventori',
 		permissions: [
 			'stock.read',
 			'stock.adjust',
@@ -124,7 +124,7 @@ export const PERMISSION_GROUPS = [
 	},
 	{
 		module: 'production',
-		label: 'Production',
+		label: 'Produksi',
 		permissions: [
 			'production.read',
 			'production.create',
@@ -135,14 +135,14 @@ export const PERMISSION_GROUPS = [
 	},
 	{
 		module: 'audit',
-		label: 'Audit Log',
+		label: 'Log Audit',
 		permissions: ['audit.read'],
 	},
 ] as const
 
 const permissionSet = new Set<string>(PERMISSION_GROUPS.flatMap((group) => group.permissions))
 const permissionValue = z.string().refine((value) => permissionSet.has(value), {
-	message: 'Unknown permission',
+	message: 'Izin tidak dikenal',
 })
 const rolePermissions = z.array(permissionValue).default([])
 

@@ -30,7 +30,7 @@ export interface ActionMenuProps {
 
 export function ActionMenu({
 	items,
-	label = 'Actions',
+	label = 'Tindakan',
 	align = 'end',
 	className,
 }: ActionMenuProps) {

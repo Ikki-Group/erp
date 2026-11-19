@@ -11,10 +11,9 @@ import { Spinner } from '@/components/ui/spinner'
 import { usePasswordForm } from './password-form.ts'
 
 export function passwordChangedMessage(revokedSessions: number): string {
-	if (revokedSessions === 0) return 'Your password was changed. No other sessions were signed in.'
-	return `Your password was changed. ${revokedSessions} other ${
-		revokedSessions === 1 ? 'session was' : 'sessions were'
-	} signed out.`
+	if (revokedSessions === 0)
+		return 'Kata sandi Anda telah diubah. Tidak ada sesi lain yang sedang masuk.'
+	return `Kata sandi Anda telah diubah. ${revokedSessions} sesi lain telah dikeluarkan.`
 }
 
 export function PasswordSection() {
@@ -27,7 +26,7 @@ export function PasswordSection() {
 				<form.AppField name="currentPassword">
 					{(field) => (
 						<field.TextField
-							label="Current password"
+							label="Kata sandi saat ini"
 							type="password"
 							autoComplete="current-password"
 						/>
@@ -36,17 +35,17 @@ export function PasswordSection() {
 				<form.AppField name="newPassword">
 					{(field) => (
 						<field.TextField
-							label="New password"
+							label="Kata sandi baru"
 							type="password"
 							autoComplete="new-password"
-							description="At least 8 characters."
+							description="Minimal 8 karakter."
 						/>
 					)}
 				</form.AppField>
 				<form.AppField name="confirmPassword">
 					{(field) => (
 						<field.TextField
-							label="Confirm new password"
+							label="Konfirmasi kata sandi baru"
 							type="password"
 							autoComplete="new-password"
 						/>
@@ -65,7 +64,7 @@ export function PasswordSection() {
 								onClick={() => setRevoked(null)}
 							>
 								{isSubmitting && <Spinner className="mr-1.5 size-3.5" />}
-								Change password
+								Ubah kata sandi
 							</Button>
 						)}
 					</form.Subscribe>

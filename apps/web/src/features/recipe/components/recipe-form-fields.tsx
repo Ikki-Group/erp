@@ -54,8 +54,8 @@ export function RecipeFormFields({ form, scope, menuItemLocked, readOnly }: Reci
 				<form.AppField name="menuItemId">
 					{() => (
 						<MenuItemLookupField
-							label="Menu Item"
-							placeholder="Pilih menu item..."
+							label="Item Menu"
+							placeholder="Pilih item menu..."
 							locationId={location.id}
 							disabled={menuItemLocked || frozen}
 							description={
@@ -68,14 +68,14 @@ export function RecipeFormFields({ form, scope, menuItemLocked, readOnly }: Reci
 				<div className="grid gap-4 sm:grid-cols-2">
 					<form.AppField name="name">
 						{(field) => (
-							<field.TextField label="Nama Resep" placeholder="e.g. Es Kopi Susu Standard" />
+							<field.TextField label="Nama Resep" placeholder="mis. Es Kopi Susu Standar" />
 						)}
 					</form.AppField>
 					<form.AppField name="yieldQty">
 						{(field) => (
 							<field.TextField
-								label="Yield Qty"
-								placeholder="e.g. 1"
+								label="Jumlah Hasil"
+								placeholder="mis. 1"
 								inputMode="decimal"
 								className="text-right font-mono tabular-nums"
 							/>
@@ -86,7 +86,7 @@ export function RecipeFormFields({ form, scope, menuItemLocked, readOnly }: Reci
 				<form.AppField name="lines" mode="array">
 					{(linesField) => (
 						<LineItemEditor
-							label="Bahan (Ingredients)"
+							label="Bahan"
 							addLabel="Tambah Bahan"
 							rows={linesField.state.value}
 							createRow={createRecipeLine}
@@ -101,8 +101,8 @@ export function RecipeFormFields({ form, scope, menuItemLocked, readOnly }: Reci
 									<form.AppField name={`lines[${index}].materialId`}>
 										{() => (
 											<MaterialLookupField
-												label="Material"
-												placeholder="Pilih material..."
+												label="Bahan"
+												placeholder="Pilih bahan..."
 												locationId={location.id}
 												disabled={frozen}
 											/>
@@ -111,7 +111,7 @@ export function RecipeFormFields({ form, scope, menuItemLocked, readOnly }: Reci
 									<form.AppField name={`lines[${index}].quantity`}>
 										{(field) => (
 											<field.TextField
-												label="Qty"
+												label="Jumlah"
 												placeholder="0.5"
 												inputMode="decimal"
 												className="text-right font-mono tabular-nums"
@@ -119,7 +119,9 @@ export function RecipeFormFields({ form, scope, menuItemLocked, readOnly }: Reci
 										)}
 									</form.AppField>
 									<form.AppField name={`lines[${index}].uomId`}>
-										{() => <UomLookupField label="UoM" placeholder="Satuan..." disabled={frozen} />}
+										{() => (
+											<UomLookupField label="Satuan" placeholder="Satuan..." disabled={frozen} />
+										)}
 									</form.AppField>
 								</>
 							)}

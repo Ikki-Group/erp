@@ -82,7 +82,7 @@ export function CategoryFormBody({ onCancel, canSave, ...session }: CategoryForm
 								{(field) => (
 									<field.TextField
 										label="Nama Kategori"
-										placeholder="e.g. Minuman, Makanan Berat"
+										placeholder="mis. Minuman, Makanan Berat"
 									/>
 								)}
 							</form.AppField>
@@ -110,7 +110,7 @@ export function CategoryFormBody({ onCancel, canSave, ...session }: CategoryForm
 							failed ? (
 								<DialogFooter>
 									<Button type="button" variant="outline" onClick={onCancel}>
-										Cancel
+										Batal
 									</Button>
 									<Button
 										type="button"

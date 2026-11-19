@@ -105,10 +105,10 @@ describe('user form mapping', () => {
 		expect(parsed.error.issues).toContainEqual(
 			expect.objectContaining({
 				path: ['assignments', 0, 'roleId'],
-				message: 'Select a role for this assignment.',
+				message: 'Pilih peran untuk penugasan ini.',
 			}),
 		)
-		expect(() => toUserAssignments(unresolved)).toThrow('Select a role')
+		expect(() => toUserAssignments(unresolved)).toThrow('Pilih peran')
 		expect(() =>
 			toUserAssignments({
 				...validValues,
@@ -123,9 +123,9 @@ describe('user form mapping', () => {
 				...validValues,
 				assignments: [{ clientKey: 'row-a', roleId: 1, locationId: 10 }],
 			}),
-		).toThrow('Global access cannot include a location')
+		).toThrow('Akses global tidak boleh menyertakan lokasi')
 		expect(() => toUserAssignments({ ...validValues, assignmentMode: 'per_location' })).toThrow(
-			'Select a location',
+			'Pilih lokasi',
 		)
 		expect(() =>
 			toUserAssignments({
@@ -135,7 +135,7 @@ describe('user form mapping', () => {
 					{ clientKey: 'row-b', roleId: 1, locationId: null },
 				],
 			}),
-		).toThrow('already assigned globally')
+		).toThrow('sudah ditugaskan secara global')
 		expect(() =>
 			toUserAssignments({
 				...validValues,
@@ -145,7 +145,7 @@ describe('user form mapping', () => {
 					{ clientKey: 'row-b', roleId: 2, locationId: 10 },
 				],
 			}),
-		).toThrow('Each location can only be assigned once')
+		).toThrow('Setiap lokasi hanya dapat ditugaskan sekali')
 	})
 
 	it('requires a password only for creation', () => {

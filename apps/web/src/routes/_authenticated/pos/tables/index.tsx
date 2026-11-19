@@ -36,11 +36,11 @@ const col = createColumnHelper<DataGridFeatures, TableDto>()
 
 const baseColumns = [
 	col.accessor('number', {
-		header: 'Number',
+		header: 'Nomor',
 		size: 120,
 	}),
 	col.accessor('capacity', {
-		header: 'Capacity',
+		header: 'Kapasitas',
 		size: 100,
 		cell: ({ getValue }) => `${getValue()} seats`,
 	}),
@@ -55,11 +55,11 @@ const baseColumns = [
 		},
 	}),
 	col.accessor('isActive', {
-		header: 'Active',
+		header: 'Aktif',
 		size: 80,
 		cell: ({ getValue }) => (
 			<StatusBadge variant={getValue() ? 'success' : 'default'}>
-				{getValue() ? 'Active' : 'Inactive'}
+				{getValue() ? 'Aktif' : 'Nonaktif'}
 			</StatusBadge>
 		),
 	}),
@@ -92,13 +92,13 @@ function TablesPage() {
 	const handleDelete = useCallback(
 		async (table: TableDto) => {
 			await confirm({
-				title: 'Delete table?',
-				description: `This will permanently delete table "${table.number}". This action cannot be undone.`,
-				confirmLabel: 'Delete',
+				title: 'Hapus meja?',
+				description: `Meja "${table.number}" akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
+				confirmLabel: 'Hapus',
 				variant: 'destructive',
 				onConfirm: async () => {
 					await removeMut.mutateAsync({ id: table.id })
-					toast.add({ title: 'Table deleted successfully.', type: 'success' })
+					toast.add({ title: 'Meja berhasil dihapus.', type: 'success' })
 				},
 			})
 		},
@@ -118,7 +118,7 @@ function TablesPage() {
 					<ActionMenu
 						items={[
 							{
-								label: 'Edit',
+								label: 'Ubah',
 								icon: <EditIcon className="size-4" />,
 								onClick: () =>
 									navigate({
@@ -127,7 +127,7 @@ function TablesPage() {
 									}),
 							},
 							{
-								label: 'Delete',
+								label: 'Hapus',
 								icon: <TrashIcon className="size-4" />,
 								onClick: () => handleDelete(row.original),
 								variant: 'destructive' as const,
@@ -157,10 +157,10 @@ function TablesPage() {
 	if (!locationId) {
 		return (
 			<div className="space-y-6">
-				<PageHeader title="Tables" description="Manage dine-in tables for this location." />
+				<PageHeader title="Meja" description="Kelola meja makan di tempat untuk lokasi ini." />
 				<EmptyState
-					title="No location selected"
-					description="Please select a location to manage tables."
+					title="Belum ada lokasi dipilih"
+					description="Pilih lokasi untuk mengelola meja."
 				/>
 			</div>
 		)
@@ -169,13 +169,13 @@ function TablesPage() {
 	return (
 		<div className="space-y-6">
 			<PageHeader
-				title="Tables"
-				description="Manage dine-in tables for this location."
+				title="Meja"
+				description="Kelola meja makan di tempat untuk lokasi ini."
 				actions={
 					canManage ? (
 						<Button size="sm" onClick={() => navigate({ to: '/pos/tables/new' })}>
 							<PlusIcon className="size-4" />
-							Add Table
+							Tambah Meja
 						</Button>
 					) : undefined
 				}
@@ -183,13 +183,13 @@ function TablesPage() {
 
 			{isEmpty ? (
 				<EmptyState
-					title="No tables yet"
-					description="Get started by creating your first table."
+					title="Belum ada meja"
+					description="Mulai dengan membuat meja pertama Anda."
 					action={
 						canManage ? (
 							<Button size="sm" onClick={() => navigate({ to: '/pos/tables/new' })}>
 								<PlusIcon className="size-4" />
-								Add Table
+								Tambah Meja
 							</Button>
 						) : undefined
 					}
@@ -199,12 +199,12 @@ function TablesPage() {
 					table={table}
 					recordCount={totalCount}
 					isLoading={listQuery.isFetching}
-					emptyMessage="No tables match your search."
+					emptyMessage="Tidak ada meja yang cocok dengan pencarian Anda."
 					toolbar={
 						<TableToolbar
 							searchValue={globalFilter}
 							onSearchChange={(value) => table.setGlobalFilter(value)}
-							searchPlaceholder="Search tables..."
+							searchPlaceholder="Cari meja..."
 						/>
 					}
 				/>

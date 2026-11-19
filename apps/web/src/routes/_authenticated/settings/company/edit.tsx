@@ -28,7 +28,10 @@ function CompanySettingsPage() {
 
 	if (!canRead) {
 		return (
-			<PageError title="No access" message="You don't have permission to view company settings." />
+			<PageError
+				title="Tidak ada akses"
+				message="Anda tidak memiliki izin untuk melihat pengaturan perusahaan."
+			/>
 		)
 	}
 
@@ -38,8 +41,8 @@ function CompanySettingsPage() {
 			error={renderCompanyError}
 			notFound={
 				<PageError
-					title="Company settings not found"
-					message="This workspace has no company profile to edit."
+					title="Pengaturan perusahaan tidak ditemukan"
+					message="Ruang kerja ini belum memiliki profil perusahaan untuk diubah."
 				/>
 			}
 		>
@@ -54,11 +57,13 @@ function renderCompanyError(error: Error, retry: () => void) {
 	const missing = isApiError(error) && error.isNotFound
 	return (
 		<PageError
-			title={missing ? 'Company settings not found' : 'Could not load company settings'}
+			title={
+				missing ? 'Pengaturan perusahaan tidak ditemukan' : 'Gagal memuat pengaturan perusahaan'
+			}
 			message={
 				missing
-					? 'This workspace has no company profile to edit.'
-					: 'Try loading the company profile again.'
+					? 'Ruang kerja ini belum memiliki profil perusahaan untuk diubah.'
+					: 'Coba muat profil perusahaan lagi.'
 			}
 			onRetry={retry}
 		/>
@@ -83,16 +88,16 @@ function CompanySettingsForm({
 
 	return (
 		<EntityEditorPage
-			title="Company Settings"
-			description="Manage your company profile and tax configuration."
+			title="Pengaturan Perusahaan"
+			description="Kelola profil perusahaan dan konfigurasi pajak Anda."
 			form={form}
-			submitLabel="Save Changes"
+			submitLabel="Simpan Perubahan"
 			onCancel={() => window.history.back()}
 			readOnly={!canWrite}
 			actions={
 				!canWrite ? (
 					<p className="text-xs text-muted-foreground">
-						You don&apos;t have permission to edit company settings.
+						Anda tidak memiliki izin untuk mengubah pengaturan perusahaan.
 					</p>
 				) : saveFailed ? (
 					// A failed save blocks the submit button until the next edit; retrying the same values must stay possible.
@@ -102,7 +107,7 @@ function CompanySettingsForm({
 						disabled={isSubmitting}
 						onClick={() => void form.handleSubmit()}
 					>
-						Retry save
+						Coba lagi simpan
 					</Button>
 				) : undefined
 			}
