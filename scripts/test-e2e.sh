@@ -28,8 +28,8 @@ cleanup() {
 	echo "🧹 Cleaning up..."
 	[ -n "$WEB_PID" ] && kill "$WEB_PID" 2>/dev/null && echo "   Stopped web (PID $WEB_PID)"
 	[ -n "$SERVER_PID" ] && kill "$SERVER_PID" 2>/dev/null && echo "   Stopped server (PID $SERVER_PID)"
-	wait "$WEB_PID" 2>/dev/null
-	wait "$SERVER_PID" 2>/dev/null
+	wait "$WEB_PID" 2>/dev/null || true
+	wait "$SERVER_PID" 2>/dev/null || true
 	echo "✅ Cleanup done."
 }
 trap cleanup EXIT
@@ -63,10 +63,11 @@ echo "⏳ Waiting for services to be ready..."
 wait_for_port() {
 	local port=$1
 	local name=$2
+	local path=${3:-/}
 	local max_attempts=30
 	local attempt=0
 
-	while ! curl -sf "http://localhost:$port" >/dev/null 2>&1; do
+	while ! curl -sf "http://localhost:$port$path" >/dev/null 2>&1; do
 		attempt=$((attempt + 1))
 		if [ "$attempt" -ge "$max_attempts" ]; then
 			echo "❌ $name (port $port) failed to start after ${max_attempts}s"
@@ -77,7 +78,7 @@ wait_for_port() {
 	echo "   ✓ $name ready (port $port)"
 }
 
-wait_for_port "$TEST_SERVER_PORT" "Server"
+wait_for_port "$TEST_SERVER_PORT" "Server" /health
 wait_for_port "$TEST_WEB_PORT" "Web"
 echo ""
 
@@ -86,8 +87,8 @@ echo ""
 echo "🎭 Running Playwright tests..."
 echo ""
 cd "$E2E_DIR"
-BASE_URL="http://localhost:$TEST_WEB_PORT" bunx playwright test "$@"
-TEST_EXIT=$?
+TEST_EXIT=0
+BASE_URL="http://localhost:$TEST_WEB_PORT" bunx playwright test "$@" || TEST_EXIT=$?
 
 echo ""
 if [ $TEST_EXIT -eq 0 ]; then

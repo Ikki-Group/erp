@@ -2,7 +2,7 @@ This folder contains GitHub Actions for CI and deploying the monorepo apps.
 
 Workflows
 
-- **`ci.yml`** — on pull requests and pushes to `dev`/`main`: installs with `bun install --frozen-lockfile`, then for `apps/server` runs the format check, `verify` (lint, typecheck, knip, circular deps), migrates + seeds a `postgres:17` service container (`test:db:reset`), runs the test suite and builds the binaries. Root `bun run check` is not gated yet (web/e2e/web-archive do not pass it).
+- **`ci.yml`** — on pull requests and pushes to `dev`/`main`: installs with `bun install --frozen-lockfile`, runs root `bun run check` (lint, format, knip), then for `apps/server` runs the format check, `verify` (lint, typecheck, knip, circular deps), migrates + seeds a `postgres:17` service container (`test:db:reset`), runs the test suite and builds the binaries; for `apps/web` runs `verify` (lint, typecheck, vitest) and builds; and finally runs the Playwright suite against `postgres:17`.
 - **`deploy-server.yml`** — deploys `apps/server` to Fly.io after `CI` succeeds for a push to `main` (or via manual dispatch). `fly.toml`'s `release_command` (`/app/migrate`) applies DB migrations before the new version starts.
 - **`deploy-web.yml`** — deploys `apps/web` to Cloudflare Pages when files under `apps/web` change on `main`.
 
