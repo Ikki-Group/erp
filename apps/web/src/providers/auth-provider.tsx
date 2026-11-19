@@ -176,13 +176,3 @@ export function useAuth() {
 	}
 	return context
 }
-
-/**
- * Check if the current user has a specific permission.
- * Owners bypass all permission checks.
- */
-export function useHasPermission(permission: string): boolean {
-	const { permissions, isOwner } = useAuth()
-	if (isOwner) return true
-	return permissions.includes(permission)
-}

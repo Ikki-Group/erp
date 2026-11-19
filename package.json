@@ -6,13 +6,7 @@
 		"packages": [
 			"apps/*",
 			"packages/*"
-		],
-		"catalog": {
-			"oxfmt": "^0.62.0",
-			"oxlint": "^1.77.0",
-			"typescript": "^7.0.2",
-			"zod": "^4.4.3"
-		}
+		]
 	},
 	"scripts": {
 		"dev": "bun --elide-lines=0 --filter @ikki/* dev",
@@ -27,13 +21,12 @@
 		"lint:fix": "oxlint --fix",
 		"format": "oxfmt .",
 		"format:check": "oxfmt --check .",
-		"knip": "bunx knip",
+		"knip": "bunx --bun knip",
 		"check-deps": "bun --filter @ikki/server check-deps",
 		"check": "bun run lint && bun run format:check && bun run knip",
 		"clean": "rm -rf node_modules apps/web/node_modules apps/server/node_modules"
 	},
 	"devDependencies": {
-		"dpdm": "^4.3.0",
 		"knip": "^6.32.0",
 		"oxfmt": "^0.53.0",
 		"oxlint": "^1.77.0",

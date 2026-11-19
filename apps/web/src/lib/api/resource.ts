@@ -1,5 +1,3 @@
-import { z } from 'zod'
-
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
@@ -151,5 +149,3 @@ export function defineResource<
 		remove,
 	}
 }
-
-export { z }

@@ -11,7 +11,6 @@ import type {
 	Args,
 	EndpointArgs,
 	HttpMethod,
-	Input,
 	MaybeSchema,
 	QueryKey,
 	TaggedQueryKey,
@@ -366,5 +365,3 @@ export function defineMutation<
 ): MutationEndpoint<TQuery, TBody, TResult> {
 	return createMutationEndpoint({ ...config, type: 'mutation' })
 }
-
-export type { Input }

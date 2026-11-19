@@ -99,5 +99,13 @@
 			}
 		}
 	],
-	"ignorePatterns": ["dist/**", "node_modules/**", "drizzle/**", "**/*.lock", ".agents/**"]
+	"ignorePatterns": [
+		"dist/**",
+		"node_modules/**",
+		"drizzle/**",
+		"**/*.lock",
+		".agents/**",
+		".kiro/**",
+		".scratch/**"
+	]
 }
