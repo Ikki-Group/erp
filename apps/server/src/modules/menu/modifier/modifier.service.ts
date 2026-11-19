@@ -85,6 +85,7 @@ export class ModifierService {
 				pkColumn: modifierGroups.id,
 				fields: uniqueFields,
 				input: groupData,
+				scope: { column: modifierGroups.locationId, value: groupData.locationId },
 			})
 
 			const created = await this.repo.insert({ ...groupData, ...stampCreate(actor.id) }, tx)
@@ -121,6 +122,7 @@ export class ModifierService {
 				fields: uniqueFields,
 				input: updateData,
 				excludeId: id,
+				scope: { column: modifierGroups.locationId, value: existing.locationId },
 			})
 
 			const updated = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)

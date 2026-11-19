@@ -80,6 +80,7 @@ export class CategoryService {
 				pkColumn: menuCategories.id,
 				fields: uniqueFields,
 				input: data,
+				scope: { column: menuCategories.locationId, value: data.locationId },
 			})
 
 			const written = await this.repo.insert({ ...data, ...stampCreate(actor.id) }, tx)
@@ -116,6 +117,7 @@ export class CategoryService {
 				fields: uniqueFields,
 				input: updateData,
 				excludeId: id,
+				scope: { column: menuCategories.locationId, value: existing.locationId },
 			})
 
 			const written = await this.repo.update(id, { ...updateData, ...stampUpdate(actor.id) }, tx)

@@ -39,7 +39,7 @@ import type {
 	OrderRemoveVoucherDto,
 	OrderVoidDto,
 } from './order.contract.ts'
-import { deductStockForOrder } from './order.deduction.ts'
+import { deductStockForOrder, reverseStockForOrder } from './order.deduction.ts'
 import { OrderError } from './order.internal.ts'
 import type { IOrderRepo } from './order.repo.ts'
 
@@ -449,16 +449,21 @@ export class OrderService {
 		const method = methods.find((m) => m.id === paymentMethodId)
 		if (!method) throw OrderError.paymentMethodNotAvailable(paymentMethodId, order.locationId)
 
-		// 3. Validate amount doesn't exceed remaining
-		const totalPaid = Money.of(await this.repo.sumPaymentsByOrderId(orderId))
-		const remaining = Money.of(order.total).sub(totalPaid)
-		const paymentAmount = Money.of(String(amount))
-		if (paymentAmount.gt(remaining)) {
-			throw OrderError.paymentExceedsTotal(orderId, paymentAmount.sub(remaining).toString())
-		}
-
-		// 4. Insert payment and audit atomically
+		// 3. Insert payment and audit atomically. The order row is locked first so
+		// concurrent payments cannot both pass the "exceeds remaining" check.
 		const result = await this.deps.uow.run(async (tx) => {
+			const current = assertFound(await this.repo.findByIdForUpdate(orderId, tx), () =>
+				OrderError.notFound(orderId),
+			)
+			if (current.status !== 'open') throw OrderError.notOpen(orderId)
+
+			const totalPaid = Money.of(await this.repo.sumPaymentsByOrderId(orderId, tx))
+			const remaining = Money.of(current.total).sub(totalPaid)
+			const paymentAmount = Money.of(String(amount))
+			if (paymentAmount.gt(remaining)) {
+				throw OrderError.paymentExceedsTotal(orderId, paymentAmount.sub(remaining).toString())
+			}
+
 			const written = await this.repo.insertPayment(
 				{
 					orderId,
@@ -572,12 +577,22 @@ export class OrderService {
 	async handleVoid(data: OrderVoidDto, actor: Actor): Promise<EntityRef> {
 		const { orderId, reason } = data
 
-		// 1. Validate order exists and is open
+		// 1. Validate order exists and is voidable (open or completed)
 		const order = await this.handleGetById(orderId, actor)
-		if (order.status !== 'open') throw OrderError.notOpen(orderId)
+		if (order.status !== 'open' && order.status !== 'completed') {
+			throw OrderError.notVoidable(orderId, order.status)
+		}
 
-		// 2. Update order status and audit atomically
+		// 2. Update status, reverse stock for completed orders, and audit atomically
 		const result = await this.deps.uow.run(async (tx) => {
+			// Row lock serializes concurrent voids so stock is reversed only once.
+			const current = assertFound(await this.repo.findByIdForUpdate(orderId, tx), () =>
+				OrderError.notFound(orderId),
+			)
+			if (current.status !== 'open' && current.status !== 'completed') {
+				throw OrderError.notVoidable(orderId, current.status)
+			}
+
 			const written = await this.repo.update(
 				orderId,
 				{
@@ -589,6 +604,23 @@ export class OrderService {
 			)
 			if (!written) throw OrderError.updateFailed(orderId)
 
+			if (current.status === 'completed') {
+				const lines = await this.repo.findLinesByOrderId(orderId, tx)
+				await reverseStockForOrder(
+					orderId,
+					current.locationId,
+					lines,
+					actor.id,
+					{
+						recipeService: this.deps.recipeService,
+						inventoryApi: this.deps.inventoryApi,
+						uomService: this.deps.uomService,
+						materialService: this.deps.materialService,
+					},
+					tx,
+				)
+			}
+
 			await this.deps.audit.record(
 				auditEntryOf(actor, {
 					module: 'pos-order',
@@ -596,7 +628,7 @@ export class OrderService {
 					entityId: orderId,
 					action: 'update',
 					summary: `Voided order #${orderId} (${order.orderNo}): ${reason}`,
-					oldValues: { status: 'open' },
+					oldValues: { status: current.status },
 					newValues: { status: 'voided', reason },
 				}),
 				tx,
@@ -605,6 +637,7 @@ export class OrderService {
 		})
 
 		// 3. Update table status and invalidate cache after commit
+		if (order.status === 'completed') await this.deps.inventoryApi.invalidateCache()
 		if (order.tableId) {
 			await this.deps.tableService.updateStatus(order.tableId, 'available')
 		}

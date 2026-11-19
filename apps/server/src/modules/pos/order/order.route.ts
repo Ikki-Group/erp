@@ -121,7 +121,7 @@ export function createOrderRoute(service: OrderService) {
 					detail: {
 						summary: 'Void an order',
 						description:
-							'Only an open order can be voided; the reason is stored as the order notes and the table is freed. Stock is not deducted.',
+							'An open or completed order can be voided; the reason is stored as the order notes and the table is freed. Voiding a completed order adds the deducted stock back.',
 					},
 				},
 			)

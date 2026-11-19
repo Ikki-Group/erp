@@ -34,7 +34,7 @@ export async function seedSampleOrder(sql: Sql, ctx: SeedOrderContext): Promise<
 	console.log('    • Opening cashier shift...')
 	const [shift] = await sql`
 		INSERT INTO cashier_shifts (location_id, user_id, status, opening_cash)
-		VALUES (${locationIds.store}, ${userIds.cashier}, 'open', '500000.00')
+		VALUES (${locationIds.store}, ${userIds.cashier}, 'open', '500000')
 		RETURNING id
 	`
 	const shiftId = shift!.id as number
@@ -47,9 +47,9 @@ export async function seedSampleOrder(sql: Sql, ctx: SeedOrderContext): Promise<
 	// Line 2: Hot Americano (22000) = 22000
 	// Line 3: Croissant (18000) = 18000
 	// subtotal = 33000 + 22000 + 18000 = 73000
-	const actualSubtotal = '73000.00'
-	const taxAmount = '8030.00' // 11% of 73000
-	const total = '81030.00'
+	const actualSubtotal = '73000'
+	const taxAmount = '8030' // 11% of 73000
+	const total = '81030'
 
 	const [order] = await sql`
 		INSERT INTO orders (order_no, location_id, table_id, shift_id, type, status, subtotal, discount_amount, tax_amount, total, source, ordered_at, completed_at, created_by, updated_by)
@@ -61,7 +61,7 @@ export async function seedSampleOrder(sql: Sql, ctx: SeedOrderContext): Promise<
 			'dine_in',
 			'completed',
 			${actualSubtotal},
-			'0.00',
+			'0',
 			${taxAmount},
 			${total},
 			'internal',
@@ -100,9 +100,9 @@ export async function seedSampleOrder(sql: Sql, ctx: SeedOrderContext): Promise<
 	await sql`
 		INSERT INTO order_lines (order_id, menu_item_id, menu_item_name, quantity, unit_price, modifiers, modifier_total, discount_amount, line_total, status)
 		VALUES
-			(${orderId}, ${menuItemIds.icedLatte}, 'Iced Latte', '1.000000', '28000.00', ${modifiersJson}::jsonb, '5000.00', '0.00', '33000.00', 'active'),
-			(${orderId}, ${menuItemIds.hotAmericano}, 'Hot Americano', '1.000000', '22000.00', NULL, '0.00', '0.00', '22000.00', 'active'),
-			(${orderId}, ${menuItemIds.croissant}, 'Croissant', '1.000000', '18000.00', NULL, '0.00', '0.00', '18000.00', 'active')
+			(${orderId}, ${menuItemIds.icedLatte}, 'Iced Latte', '1.000000', '28000', ${modifiersJson}::jsonb, '5000', '0', '33000', 'active'),
+			(${orderId}, ${menuItemIds.hotAmericano}, 'Hot Americano', '1.000000', '22000', NULL, '0', '0', '22000', 'active'),
+			(${orderId}, ${menuItemIds.croissant}, 'Croissant', '1.000000', '18000', NULL, '0', '0', '18000', 'active')
 	`
 
 	// 5. Payment (cash — full amount)

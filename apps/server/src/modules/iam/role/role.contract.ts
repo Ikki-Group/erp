@@ -30,7 +30,7 @@ export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 const RoleMutationDto = z.object({
 	code: zc.strTrim.min(2).max(50),
 	name: zc.strTrim.min(2).max(255),
-	description: zc.strTrim.max(500).default(''),
+	description: z.string().trim().max(500).default(''),
 	permissions: permissionsSchema,
 })
 

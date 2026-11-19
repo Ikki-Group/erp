@@ -43,7 +43,7 @@ export const supplierMaterials = pgTable(
 		materialId: integer('material_id')
 			.notNull()
 			.references(() => materials.id, { onDelete: 'restrict' }),
-		unitPrice: numeric('unit_price', { precision: 18, scale: 2 }).notNull(),
+		unitPrice: numeric('unit_price', { precision: 18, scale: 4 }).notNull(),
 		uomId: integer('uom_id')
 			.notNull()
 			.references(() => uoms.id, { onDelete: 'restrict' }),

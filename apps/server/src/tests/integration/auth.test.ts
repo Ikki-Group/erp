@@ -1,3 +1,10 @@
+import { eq } from 'drizzle-orm'
+
+import { sessions } from '@/db/schema/iam.ts'
+
+import { db } from '@/infra/database/index.ts'
+import { sessionStore } from '@/infra/session/index.ts'
+
 import { loginAs } from '../helpers/auth.ts'
 import { uniqueSuffix } from '../helpers/fixtures.ts'
 import { DELETE, POST, GET, json } from '../helpers/request.ts'
@@ -219,9 +226,68 @@ describe('auth', () => {
 		})
 	})
 
-	// ─── Known Gaps (future tests) ───
+	// ─── Session Lifecycle ───
 
-	test.todo('session expiration after TTL', () => {})
-	test.todo('concurrent logins create separate sessions', () => {})
-	test.todo('deactivated user cannot login', () => {})
+	test('concurrent logins create separate sessions', async () => {
+		const first = await loginAs(SEED_USERS.multiLocation.username)
+		const second = await loginAs(SEED_USERS.multiLocation.username)
+		expect(first).not.toBe(second)
+
+		expect((await GET('/auth/me', { token: first })).status).toBe(200)
+		expect((await GET('/auth/me', { token: second })).status).toBe(200)
+
+		// Logging out one device leaves the other signed in.
+		expect((await POST('/auth/logout', { token: first })).status).toBe(200)
+		expect((await GET('/auth/me', { token: first })).status).toBe(401)
+		expect((await GET('/auth/me', { token: second })).status).toBe(200)
+
+		await POST('/auth/logout', { token: second })
+	})
+
+	test('an expired session is rejected', async () => {
+		const token = await loginAs(SEED_USERS.multiLocation.username)
+		expect((await GET('/auth/me', { token })).status).toBe(200)
+
+		// Expire the DB row and drop the cache entry so the plugin falls back to
+		// the (now expired) source of truth.
+		await db
+			.update(sessions)
+			.set({ expiresAt: new Date(Date.now() - 1000) })
+			.where(eq(sessions.id, token))
+		await sessionStore.delete(token)
+
+		const res = await GET('/auth/me', { token })
+		expect(res.status).toBe(401)
+		expect((await json(res)).error.code).toBe('SESSION_EXPIRED')
+	})
+
+	test('a deactivated user cannot log in again', async () => {
+		const ownerToken = await loginAs(SEED_USERS.owner.username)
+		const username = `deactivated-${uniqueSuffix()}`
+		const created = await json<{ data: { id: number } }>(
+			await POST('/iam/user/create', {
+				token: ownerToken,
+				body: {
+					username,
+					email: `${username}@example.com`,
+					name: 'Deactivated User',
+					password: 'password123',
+					isActive: true,
+				},
+			}),
+		)
+		expect(await loginAs(username)).toBeTruthy()
+
+		const deactivated = await DELETE('/iam/user/deactivate', {
+			token: ownerToken,
+			query: { id: String(created.data.id) },
+		})
+		expect(deactivated.status).toBe(200)
+
+		const res = await POST('/auth/login', {
+			body: { username, password: 'password123' },
+		})
+		expect(res.status).toBe(401)
+		expect((await json(res)).error.code).toBe('USER_DEACTIVATED')
+	})
 })

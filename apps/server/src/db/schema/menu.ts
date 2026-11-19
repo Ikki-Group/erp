@@ -34,6 +34,7 @@ export const menuCategories = pgTable(
 		...auditBasicColumns,
 	},
 	(t) => [
+		uniqueIndex('menu_categories_location_name_uniq').on(t.locationId, t.name),
 		index('menu_categories_location_id_idx').on(t.locationId),
 		index('menu_categories_parent_id_idx').on(t.parentId),
 	],
@@ -53,7 +54,7 @@ export const menuItems = pgTable(
 		categoryId: integer('category_id').references(() => menuCategories.id, {
 			onDelete: 'set null',
 		}),
-		basePrice: numeric('base_price', { precision: 18, scale: 2 }).notNull(),
+		basePrice: numeric('base_price', { precision: 18, scale: 0 }).notNull(),
 		status: menuItemStatusEnum('status').notNull().default('active'),
 		imageUrl: varchar('image_url', { length: 500 }),
 		...auditBasicColumns,
@@ -82,7 +83,10 @@ export const modifierGroups = pgTable(
 		maxSelect: integer('max_select'),
 		...auditBasicColumns,
 	},
-	(t) => [index('modifier_groups_location_id_idx').on(t.locationId)],
+	(t) => [
+		uniqueIndex('modifier_groups_location_name_uniq').on(t.locationId, t.name),
+		index('modifier_groups_location_id_idx').on(t.locationId),
+	],
 )
 
 // ─── Modifier Options ───
@@ -95,7 +99,7 @@ export const modifierOptions = pgTable(
 			.notNull()
 			.references(() => modifierGroups.id, { onDelete: 'cascade' }),
 		name: varchar('name', { length: 255 }).notNull(),
-		priceAdjustment: numeric('price_adjustment', { precision: 18, scale: 2 })
+		priceAdjustment: numeric('price_adjustment', { precision: 18, scale: 0 })
 			.notNull()
 			.default('0'),
 		isDefault: boolean('is_default').notNull().default(false),

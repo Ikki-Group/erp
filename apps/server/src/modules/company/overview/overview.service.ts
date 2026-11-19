@@ -31,7 +31,7 @@ export class OverviewService {
 				openOpnames: metrics.openOpnames.get(s.id) ?? 0,
 				lowStock: metrics.lowStock.get(s.id) ?? 0,
 				openShifts: metrics.openShifts.get(s.id) ?? 0,
-				salesToday: metrics.sales.get(s.id) ?? { orders: 0, revenue: '0.00' },
+				salesToday: metrics.sales.get(s.id) ?? { orders: 0, revenue: '0' },
 			})),
 		}
 	}

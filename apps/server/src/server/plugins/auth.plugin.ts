@@ -111,7 +111,9 @@ async function resolveSession(sessionId: string): Promise<SessionData> {
 
 	const row = await sessionRepo.findById(sessionId)
 	const isValid = row !== undefined && row.revokedAt === null && row.expiresAt > new Date()
-	if (!row || !isValid) throw new UnauthorizedError('Session expired or invalid')
+	if (!row || !isValid) {
+		throw new UnauthorizedError('Session expired or invalid', { code: 'SESSION_EXPIRED' })
+	}
 
 	const session: SessionData = { id: row.id, userId: row.userId, expiresAt: row.expiresAt }
 	await sessionStore.create(session)

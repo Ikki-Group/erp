@@ -47,7 +47,7 @@ export const VoucherFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	type: VoucherTypeEnum.optional(),
-	isActive: z.coerce.boolean().optional(),
+	isActive: z.stringbool().optional(),
 })
 export type VoucherFilterDto = z.infer<typeof VoucherFilterDto>
 

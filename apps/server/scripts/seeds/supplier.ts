@@ -72,7 +72,7 @@ export async function seedSupplierMaterials(
 	// CV Sejahtera Food: milk, sugar, ice, chocolate sauce, vanilla syrup, cups
 	const pricing = [
 		// supplier_id, material_id, unit_price, uom_id, min_order_qty
-		[supplierIds.ptKopiNusantara, materialIds.coffeeBeans, '185000.00', uomIds.kg, '5.000000'],
+		[supplierIds.ptKopiNusantara, materialIds.coffeeBeans, '185000.0000', uomIds.kg, '5.000000'],
 		[supplierIds.ptKopiNusantara, materialIds.matchaPowder, '350000.00', uomIds.kg, '0.500000'],
 		[supplierIds.ptKopiNusantara, materialIds.greenTeaPowder, '120000.00', uomIds.kg, '0.500000'],
 		[supplierIds.cvSejahteraFood, materialIds.freshMilk, '18000.00', uomIds.L, '5.000000'],

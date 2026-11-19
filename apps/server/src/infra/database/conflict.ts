@@ -14,6 +14,8 @@ interface CheckConflictOptions<T> {
 	fields: ConflictField<T>[]
 	input: Partial<T>
 	excludeId?: number
+	/** Narrows every field check to one scope (e.g. uniqueness per location). */
+	scope?: { column: PgColumn; value: unknown }
 }
 
 /**
@@ -21,13 +23,18 @@ interface CheckConflictOptions<T> {
  * Throws ConflictError on first duplicate found.
  */
 export async function checkConflict<T>(options: CheckConflictOptions<T>): Promise<void> {
-	const { db, table, pkColumn, fields, input, excludeId } = options
+	const { db, table, pkColumn, fields, input, excludeId, scope } = options
 
 	for (const field of fields) {
 		const value = input[field.field]
 		if (value === undefined || value === null) continue
+		if (scope && (scope.value === undefined || scope.value === null)) continue
 
 		const conditions: SQL[] = [eq(field.column, value as Parameters<typeof eq>[1])]
+
+		if (scope) {
+			conditions.push(eq(scope.column, scope.value))
+		}
 
 		if (excludeId !== undefined) {
 			conditions.push(ne(pkColumn, excludeId))

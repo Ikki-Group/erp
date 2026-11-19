@@ -34,7 +34,7 @@ describe('company overview', () => {
 		expect(data.locations.stores + data.locations.warehouses).toBe(data.locations.total)
 		expect(data.sites.length).toBeGreaterThan(0)
 		for (const site of data.sites as Site[]) {
-			expect(site.salesToday.revenue).toMatch(/^\d+\.\d{2}$/u)
+			expect(site.salesToday.revenue).toMatch(/^\d+$/u)
 		}
 	})
 
@@ -63,7 +63,7 @@ describe('company overview', () => {
 			type: 'warehouse',
 			draftReceivings: 1,
 			staff: 0,
-			salesToday: { orders: 0, revenue: '0.00' },
+			salesToday: { orders: 0, revenue: '0' },
 		})
 	})
 

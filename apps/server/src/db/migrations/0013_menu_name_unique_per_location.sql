@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "menu_categories_location_name_uniq" ON "menu_categories" USING btree ("location_id","name");--> statement-breakpoint
+CREATE UNIQUE INDEX "modifier_groups_location_name_uniq" ON "modifier_groups" USING btree ("location_id","name");

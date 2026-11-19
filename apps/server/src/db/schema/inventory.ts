@@ -48,7 +48,7 @@ export const stockBalances = pgTable(
 			.notNull()
 			.references(() => locations.id, { onDelete: 'restrict' }),
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull().default('0'),
-		costPrice: numeric('cost_price', { precision: 18, scale: 6 }).notNull().default('0'),
+		costPrice: numeric('cost_price', { precision: 18, scale: 4 }).notNull().default('0'),
 	},
 	(t) => [
 		uniqueIndex('stock_balances_material_location_uniq').on(t.materialId, t.locationId),
@@ -73,7 +73,7 @@ export const stockMovements = pgTable(
 		type: varchar('type', { length: 50 }).notNull(),
 		direction: movementDirectionEnum('direction').notNull(),
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull(),
-		costPrice: numeric('cost_price', { precision: 18, scale: 6 }).notNull(),
+		costPrice: numeric('cost_price', { precision: 18, scale: 4 }).notNull(),
 		referenceType: varchar('reference_type', { length: 50 }),
 		referenceId: integer('reference_id'),
 		notes: varchar('notes', { length: 1000 }),
@@ -137,7 +137,7 @@ export const transferLines = pgTable(
 			.references(() => materials.id, { onDelete: 'restrict' }),
 		requestedQty: numeric('requested_qty', { precision: 18, scale: 6 }).notNull(),
 		shippedQty: numeric('shipped_qty', { precision: 18, scale: 6 }),
-		shippedCostPrice: numeric('shipped_cost_price', { precision: 18, scale: 6 }),
+		shippedCostPrice: numeric('shipped_cost_price', { precision: 18, scale: 4 }),
 		receivedQty: numeric('received_qty', { precision: 18, scale: 6 }),
 		uomId: integer('uom_id')
 			.notNull()
@@ -241,7 +241,7 @@ export const receivingLines = pgTable(
 			.notNull()
 			.references(() => materials.id, { onDelete: 'restrict' }),
 		quantity: numeric('quantity', { precision: 18, scale: 6 }).notNull(),
-		unitCost: numeric('unit_cost', { precision: 18, scale: 6 }).notNull(),
+		unitCost: numeric('unit_cost', { precision: 18, scale: 4 }).notNull(),
 		uomId: integer('uom_id')
 			.notNull()
 			.references(() => uoms.id, { onDelete: 'restrict' }),

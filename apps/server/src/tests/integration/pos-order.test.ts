@@ -1,5 +1,6 @@
 import { loginAs } from '../helpers/auth.ts'
-import { GET, POST } from '../helpers/request.ts'
+import { createOrderWithLines, createStoreFixture, uniqueSuffix } from '../helpers/fixtures.ts'
+import { GET, POST, json } from '../helpers/request.ts'
 import {
 	SEED_LOCATION_ID,
 	SEED_MENU_ITEM_ID,
@@ -13,9 +14,12 @@ type Json = any
 
 describe('pos/order lifecycle', () => {
 	let token: string
+	// Owner token for the fixtures that create their own location and menu item.
+	let ownerToken: string
 
 	beforeAll(async () => {
 		token = await loginAs(SEED_USERS.cashier.username)
+		ownerToken = await loginAs(SEED_USERS.owner.username)
 
 		// Ensure shift is open (ignore error if already open)
 		await POST('/pos/shift/open', {
@@ -206,11 +210,127 @@ describe('pos/order lifecycle', () => {
 		}
 	})
 
-	// ─── Known Gaps (future tests) ───
+	// ─── Payments ───
 
-	test.todo('void order reverses stock deductions', () => {})
-	test.todo('partial payment prevents order completion', () => {})
-	test.todo('order with modifiers calculates correct total', () => {})
-	test.todo('voucher discount applies to order total', () => {})
-	test.todo('concurrent order payments are serialized correctly', () => {})
+	test('partial payment prevents order completion', async () => {
+		const store = await createStoreFixture(ownerToken, { basePrice: '10000' })
+		const { orderId, total } = await createOrderWithLines(ownerToken, {
+			locationId: store.locationId,
+			lines: [{ menuItemId: store.menuItemId, qty: 1 }],
+		})
+
+		const partial = await POST('/pos/order/payment', {
+			token: ownerToken,
+			locationId: store.locationId,
+			body: { orderId, paymentMethodId: SEED_PAYMENT_METHOD_ID, amount: total / 2 },
+		})
+		expect(partial.status).toBe(200)
+
+		const blocked = await POST('/pos/order/complete', {
+			token: ownerToken,
+			locationId: store.locationId,
+			body: { orderId },
+		})
+		expect(blocked.status).toBe(400)
+		expect((await json(blocked)).error.code).toBe('ORDER_NOT_FULLY_PAID')
+
+		const rest = await POST('/pos/order/payment', {
+			token: ownerToken,
+			locationId: store.locationId,
+			body: { orderId, paymentMethodId: SEED_PAYMENT_METHOD_ID, amount: total - total / 2 },
+		})
+		expect(rest.status).toBe(200)
+		const completed = await POST('/pos/order/complete', {
+			token: ownerToken,
+			locationId: store.locationId,
+			body: { orderId },
+		})
+		expect(completed.status).toBe(200)
+	})
+
+	test('concurrent payments are serialized so the total is never overpaid', async () => {
+		const store = await createStoreFixture(ownerToken, { basePrice: '10000' })
+		const { orderId, total } = await createOrderWithLines(ownerToken, {
+			locationId: store.locationId,
+			lines: [{ menuItemId: store.menuItemId, qty: 1 }],
+		})
+
+		const pay = () =>
+			POST('/pos/order/payment', {
+				token: ownerToken,
+				locationId: store.locationId,
+				body: { orderId, paymentMethodId: SEED_PAYMENT_METHOD_ID, amount: total },
+			})
+		const statuses = (await Promise.all([pay(), pay()]))
+			.map((res) => res.status)
+			.sort((a, b) => a - b)
+		expect(statuses).toEqual([200, 400])
+
+		const detail = await GET('/pos/order/detail', {
+			token: ownerToken,
+			locationId: store.locationId,
+			query: { id: String(orderId) },
+		})
+		const data = (await json(detail)).data
+		expect(data.payments).toHaveLength(1)
+		const completed = await POST('/pos/order/complete', {
+			token: ownerToken,
+			locationId: store.locationId,
+			body: { orderId },
+		})
+		expect(completed.status).toBe(200)
+	})
+
+	test('order lines with modifiers add the price adjustment to the line total', async () => {
+		const store = await createStoreFixture(ownerToken, { basePrice: '20000' })
+		const group = await POST('/menu/modifier/create', {
+			token: ownerToken,
+			body: {
+				locationId: store.locationId,
+				name: `Ukuran ${uniqueSuffix()}`,
+				selectionType: 'single',
+				isRequired: false,
+				minSelect: 0,
+				maxSelect: 1,
+				options: [{ name: 'Large', priceAdjustment: '5000' }],
+			},
+		})
+		const groupId = (await json(group)).data.id as number
+		const detail = await GET('/menu/modifier/detail', {
+			token: ownerToken,
+			query: { id: String(groupId) },
+		})
+		const optionId = (await json(detail)).data.options[0].id as number
+
+		await POST('/menu/item/modifiers/sync', {
+			token: ownerToken,
+			body: { menuItemId: store.menuItemId, groups: [{ groupId }] },
+		})
+
+		const created = await POST('/pos/order/create', {
+			token: ownerToken,
+			locationId: store.locationId,
+			body: { locationId: store.locationId, type: 'takeaway' },
+		})
+		const orderId = (await json(created)).data.id as number
+		await POST('/pos/order/lines/sync', {
+			token: ownerToken,
+			locationId: store.locationId,
+			body: {
+				orderId,
+				lines: [{ menuItemId: store.menuItemId, qty: 2, modifierOptionIds: [optionId] }],
+			},
+		})
+
+		const order = await GET('/pos/order/detail', {
+			token: ownerToken,
+			locationId: store.locationId,
+			query: { id: String(orderId) },
+		})
+		const line = (await json(order)).data.lines[0]
+		expect({ modifierTotal: line.modifierTotal, lineTotal: line.lineTotal }).toEqual({
+			modifierTotal: '10000',
+			lineTotal: '50000',
+		})
+	})
 })

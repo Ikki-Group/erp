@@ -156,7 +156,7 @@ export function createOverviewRepo(db: DbContext, timeZone: string): IOverviewRe
 						.select({
 							locationId: orders.locationId,
 							orders: count,
-							revenue: sql<string>`coalesce(sum(${orders.total}), 0)::numeric(18,2)::text`,
+							revenue: sql<string>`coalesce(sum(${orders.total}), 0)::numeric(18,0)::text`,
 						})
 						.from(orders)
 						.where(

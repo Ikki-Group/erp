@@ -28,6 +28,11 @@ export const OrderError = {
 			code: 'ORDER_NOT_OPEN',
 			context: { id },
 		}),
+	notVoidable: (id: number, status: string) =>
+		new BadRequestError('Order cannot be voided in its current status', {
+			code: 'ORDER_NOT_VOIDABLE',
+			context: { id, status },
+		}),
 	externalRefLocationMismatch: (externalRef: string, orderId: number, locationId: number) =>
 		new ConflictError('External reference already used by an order at another location', {
 			code: 'ORDER_EXTERNAL_REF_CONFLICT',

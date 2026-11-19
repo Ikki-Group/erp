@@ -129,6 +129,52 @@ describe('recipe', () => {
 		})
 	})
 
+	test('voiding a completed order adds the deducted stock back', async () => {
+		const { store, coffeeId, cupId } = await recipeSetup()
+		const { orderId } = await createOrderWithLines(token, {
+			locationId: store.locationId,
+			lines: [{ menuItemId: store.menuItemId, qty: 2 }],
+		})
+		await payAndComplete(token, store.locationId, orderId)
+		expect((await stockBalance(token, coffeeId, store.locationId))?.quantity).toBe(1500)
+
+		const voided = await POST('/pos/order/void', {
+			token,
+			locationId: store.locationId,
+			body: { orderId, reason: 'Salah input pesanan' },
+		})
+		expect(voided.status).toBe(200)
+
+		expect((await stockBalance(token, coffeeId, store.locationId))?.quantity).toBe(2000)
+		expect((await stockBalance(token, cupId, store.locationId))?.quantity).toBe(10)
+
+		const movements = await GET('/inventory/stock/movements', {
+			token,
+			query: {
+				materialId: String(coffeeId),
+				locationId: String(store.locationId),
+				type: 'return_in',
+				page: '1',
+				limit: '100',
+			},
+		})
+		const reversal = (await json<{ data: StockMovement[] }>(movements)).data.find(
+			(m) => m.referenceId === orderId,
+		)
+		expect({ direction: reversal?.direction, quantity: Number(reversal?.quantity) }).toEqual({
+			direction: 'in',
+			quantity: 500,
+		})
+
+		const again = await POST('/pos/order/void', {
+			token,
+			locationId: store.locationId,
+			body: { orderId, reason: 'Salah input pesanan' },
+		})
+		await expectError(again, 400, 'ORDER_NOT_VOIDABLE')
+		expect((await stockBalance(token, coffeeId, store.locationId))?.quantity).toBe(2000)
+	})
+
 	test('a new recipe replaces the active one for its menu item', async () => {
 		const { store, coffeeId, recipeId } = await recipeSetup()
 		const replacementId = await createRecipe(store, '1', [

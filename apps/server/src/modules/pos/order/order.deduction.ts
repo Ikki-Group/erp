@@ -44,24 +44,9 @@ export async function deductStockForOrder(
 	db?: DbContext,
 ): Promise<void> {
 	return record('order.deductStock', async () => {
-		const { recipeService, inventoryApi, uomService, materialService } = deps
-		const conversions = await uomService.getAllConversions()
-		const planned: PlannedDeduction[] = []
-
-		for (const line of orderLines) {
-			await planOrderLine(
-				orderId,
-				line,
-				{ recipeService, materialService, conversions, db },
-				planned,
-			)
-		}
-
-		// Array.prototype.sort is stable: same-material deductions keep line order.
-		planned.sort((a, b) => a.materialId - b.materialId)
-
+		const planned = await planDeductions(orderId, orderLines, deps, db)
 		for (const deduction of planned) {
-			await inventoryApi.recordMovement(
+			await deps.inventoryApi.recordMovement(
 				{
 					materialId: deduction.materialId,
 					locationId,
@@ -76,6 +61,59 @@ export async function deductStockForOrder(
 			)
 		}
 	})
+}
+
+/**
+ * Adds back the stock deducted when a completed order is voided. Mirrors
+ * `deductStockForOrder` so the same recipe quantities are reversed; the
+ * movement is typed `return_in` so reports can tell it apart from a purchase.
+ */
+export async function reverseStockForOrder(
+	orderId: number,
+	locationId: number,
+	orderLines: OrderLineDto[],
+	actorId: number,
+	deps: DeductionDeps,
+	db?: DbContext,
+): Promise<void> {
+	return record('order.reverseStock', async () => {
+		const planned = await planDeductions(orderId, orderLines, deps, db)
+		for (const reversal of planned) {
+			await deps.inventoryApi.recordMovement(
+				{
+					materialId: reversal.materialId,
+					locationId,
+					type: 'return_in',
+					direction: 'in',
+					qty: reversal.qty.toNumeric(),
+					referenceType: 'order',
+					referenceId: orderId,
+					notes: `Void reversal for order #${orderId}`,
+					actorId,
+				},
+				db,
+			)
+		}
+	})
+}
+
+async function planDeductions(
+	orderId: number,
+	orderLines: OrderLineDto[],
+	deps: DeductionDeps,
+	db?: DbContext,
+): Promise<PlannedDeduction[]> {
+	const { recipeService, materialService, uomService } = deps
+	const conversions = await uomService.getAllConversions()
+	const planned: PlannedDeduction[] = []
+
+	for (const line of orderLines) {
+		await planOrderLine(orderId, line, { recipeService, materialService, conversions, db }, planned)
+	}
+
+	// Array.prototype.sort is stable: same-material deductions keep line order.
+	planned.sort((a, b) => a.materialId - b.materialId)
+	return planned
 }
 
 // ─── Planning ───

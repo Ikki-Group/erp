@@ -85,6 +85,20 @@
       "when": 1792085817003,
       "tag": "0011_keyset_pagination_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795053655072,
+      "tag": "0012_align_money_precision",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795059519162,
+      "tag": "0013_menu_name_unique_per_location",
+      "breakpoints": true
     }
   ]
 }
