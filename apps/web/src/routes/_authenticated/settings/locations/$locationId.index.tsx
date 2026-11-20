@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { ArrowLeftIcon, MapPinIcon, PencilIcon, TrashIcon } from 'lucide-react'
+import { ArrowLeftIcon, MapPinIcon, PencilIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
 import { DataTable, useResourceList } from '@/components/data-table'
 import {
@@ -20,6 +20,7 @@ import { TableToolbar } from '@/components/shared/table-toolbar'
 import { Button } from '@/components/ui/button'
 
 import { userResource } from '@/features/iam/api'
+import { assignUserToLocation } from '@/features/iam/components/assign-user-dialog'
 import {
 	LOCATION_STAFF_STATUS_OPTIONS,
 	locationStaffColumns,
@@ -159,17 +160,38 @@ function LocationDetail({ location }: { location: LocationDto }) {
 				/>
 			</DetailSection>
 
-			<AssignedUsersSection locationId={location.id} />
+			<AssignedUsersSection locationId={location.id} locationName={location.name} />
 		</DetailPage>
 	)
 }
 
 /** Reads staff for this route's location explicitly; the header location is irrelevant here. */
-function AssignedUsersSection({ locationId }: { locationId: number }) {
+function AssignedUsersSection({
+	locationId,
+	locationName,
+}: {
+	locationId: number
+	locationName: string
+}) {
 	const canReadUsers = usePermissionCheck({ permission: 'iam.read' })
+	const canAssign = usePermissionCheck({ permission: 'iam.create' })
 
 	return (
-		<DetailSection title="Pengguna Ditugaskan">
+		<DetailSection
+			title="Pengguna Ditugaskan"
+			actions={
+				canAssign ? (
+					<Button
+						size="sm"
+						variant="outline"
+						onClick={() => void assignUserToLocation({ id: locationId, name: locationName })}
+					>
+						<PlusIcon />
+						Tambah pengguna
+					</Button>
+				) : undefined
+			}
+		>
 			{canReadUsers ? (
 				<AssignedUsersTable key={locationId} locationId={locationId} />
 			) : (
