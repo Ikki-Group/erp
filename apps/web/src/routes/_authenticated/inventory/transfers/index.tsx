@@ -160,18 +160,18 @@ function TransfersPage({ location }: { location: AuthLocation }) {
 					getItems: (transfer) => [
 						{
 							label: 'Detail',
-							icon: <EyeIcon className="size-4" />,
+							icon: <EyeIcon />,
 							onClick: () => navigate({ search: { ...search, id: transfer.id } }),
 						},
 						actions.canShipTransfer(transfer) && {
 							label: 'Kirim',
-							icon: <SendIcon className="size-4" />,
+							icon: <SendIcon />,
 							onClick: () => actions.ship(transfer),
 							disabled: actions.isPending,
 						},
 						actions.canReceiveTransfer(transfer) && {
 							label: 'Terima',
-							icon: <TruckIcon className="size-4" />,
+							icon: <TruckIcon />,
 							onClick: () => actions.receive(transfer),
 							disabled: actions.isPending,
 						},
@@ -191,7 +191,7 @@ function TransfersPage({ location }: { location: AuthLocation }) {
 
 	const createAction = canCreate ? (
 		<Button onClick={() => navigate({ to: '/inventory/transfers/new' })}>
-			<PlusIcon className="size-4" />
+			<PlusIcon />
 			Buat Transfer
 		</Button>
 	) : undefined
@@ -253,7 +253,7 @@ function TransferDetailPage({ location, id }: { location: AuthLocation; id: numb
 			variant="ghost"
 			onClick={() => navigate({ search: (prev) => ({ ...prev, id: undefined }) })}
 		>
-			<ArrowLeftIcon className="size-3.5" />
+			<ArrowLeftIcon />
 			Kembali ke daftar
 		</Button>
 	)
@@ -310,7 +310,7 @@ function TransferDetail({
 					{back}
 					{actions.canShipTransfer(transfer) && (
 						<Button size="sm" disabled={actions.isPending} onClick={() => actions.ship(transfer)}>
-							<SendIcon className="size-4" />
+							<SendIcon />
 							Kirim
 						</Button>
 					)}
@@ -320,7 +320,7 @@ function TransferDetail({
 							disabled={actions.isPending}
 							onClick={() => actions.receive(transfer)}
 						>
-							<TruckIcon className="size-4" />
+							<TruckIcon />
 							Terima
 						</Button>
 					)}

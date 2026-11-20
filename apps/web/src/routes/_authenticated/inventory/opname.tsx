@@ -126,7 +126,7 @@ function OpnameList({ location }: { location: AuthLocation }) {
 			createAction={
 				canCreate ? (
 					<Button disabled={actions.creating} onClick={() => actions.create(location)}>
-						<PlusIcon className="size-4" />
+						<PlusIcon />
 						Buat Opname
 					</Button>
 				) : undefined
@@ -182,7 +182,7 @@ function OpnameDetailPage({ id }: { id: number }) {
 				size="sm"
 				onClick={() => navigate({ search: (prev) => ({ ...prev, id: undefined }) })}
 			>
-				<ArrowLeftIcon className="size-4" />
+				<ArrowLeftIcon />
 				Kembali ke daftar
 			</Button>
 			<DetailBoundary query={query}>

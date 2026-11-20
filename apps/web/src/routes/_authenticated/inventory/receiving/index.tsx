@@ -184,7 +184,7 @@ function ReceivingListPage({ location }: { location: AuthLocation }) {
 
 	const createAction = canCreate ? (
 		<Button onClick={() => navigate({ to: '/inventory/receiving/new' })}>
-			<PlusIcon className="size-4" />
+			<PlusIcon />
 			Buat Penerimaan
 		</Button>
 	) : undefined
@@ -257,7 +257,7 @@ function ReceivingDetailPage({ id, location }: { id: number; location: AuthLocat
 						disabled={confirmation.isPending}
 						onClick={() => void confirmation.run(receiving)}
 					>
-						<CheckCircleIcon className="size-4" />
+						<CheckCircleIcon />
 						Konfirmasi
 					</Button>
 				) : undefined
@@ -269,7 +269,7 @@ function ReceivingDetailPage({ id, location }: { id: number; location: AuthLocat
 					variant="ghost"
 					onClick={() => navigate({ search: (prev) => ({ ...prev, id: undefined }) })}
 				>
-					<ArrowLeftIcon className="size-3.5" />
+					<ArrowLeftIcon />
 					Kembali ke daftar
 				</Button>
 				<DetailBoundary

@@ -324,7 +324,7 @@ function OpnameCountSession({
 											: undefined
 									}
 								>
-									<CheckIcon className="size-4" />
+									<CheckIcon />
 									{saveFailed ? 'Coba simpan lagi' : 'Simpan Hitungan'}
 								</Button>
 							)}
@@ -337,7 +337,7 @@ function OpnameCountSession({
 										void onComplete(baseline)
 									}}
 								>
-									<ClipboardCheckIcon className="size-4" />
+									<ClipboardCheckIcon />
 									Selesaikan Opname
 								</Button>
 							)}
