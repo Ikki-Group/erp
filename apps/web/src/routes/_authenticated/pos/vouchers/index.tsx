@@ -212,7 +212,7 @@ function VouchersPage() {
 			description="Kelola voucher diskon untuk pembayaran POS."
 			createAction={
 				canManage ? (
-					<Button size="sm" onClick={() => navigate({ to: '/pos/vouchers/new' })}>
+					<Button onClick={() => navigate({ to: '/pos/vouchers/new' })}>
 						<PlusIcon className="size-4" />
 						Tambah Voucher
 					</Button>

@@ -125,7 +125,7 @@ function OpnameList({ location }: { location: AuthLocation }) {
 			list={list}
 			createAction={
 				canCreate ? (
-					<Button size="sm" disabled={actions.creating} onClick={() => actions.create(location)}>
+					<Button disabled={actions.creating} onClick={() => actions.create(location)}>
 						<PlusIcon className="size-4" />
 						Buat Opname
 					</Button>

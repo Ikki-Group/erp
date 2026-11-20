@@ -132,7 +132,7 @@ function PaymentMethodsPage() {
 			description="Kelola metode pembayaran yang tersedia untuk pembayaran POS."
 			createAction={
 				<PermissionGate permission="payment-method.create">
-					<Button size="sm" onClick={() => navigate({ to: '/master/payment-methods/new' })}>
+					<Button onClick={() => navigate({ to: '/master/payment-methods/new' })}>
 						<PlusIcon className="size-4" />
 						Tambah Metode Pembayaran
 					</Button>

@@ -173,7 +173,7 @@ function TablesPage() {
 				description="Kelola meja makan di tempat untuk lokasi ini."
 				actions={
 					canManage ? (
-						<Button size="sm" onClick={() => navigate({ to: '/pos/tables/new' })}>
+						<Button onClick={() => navigate({ to: '/pos/tables/new' })}>
 							<PlusIcon className="size-4" />
 							Tambah Meja
 						</Button>
@@ -187,7 +187,7 @@ function TablesPage() {
 					description="Mulai dengan membuat meja pertama Anda."
 					action={
 						canManage ? (
-							<Button size="sm" onClick={() => navigate({ to: '/pos/tables/new' })}>
+							<Button onClick={() => navigate({ to: '/pos/tables/new' })}>
 								<PlusIcon className="size-4" />
 								Tambah Meja
 							</Button>

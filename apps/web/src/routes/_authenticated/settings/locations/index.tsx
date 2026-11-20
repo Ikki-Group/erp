@@ -92,7 +92,7 @@ function LocationsPage() {
 			list={list}
 			createAction={
 				canCreate && (
-					<Button size="sm" onClick={() => navigate({ to: '/settings/locations/new' })}>
+					<Button onClick={() => navigate({ to: '/settings/locations/new' })}>
 						<PlusIcon />
 						Tambah Lokasi
 					</Button>

@@ -163,7 +163,7 @@ function UomPage() {
 				}
 				createAction={
 					<PermissionGate permission="uom.create">
-						<Button size="sm" onClick={() => navigate({ to: '/master/uom/new' })}>
+						<Button onClick={() => navigate({ to: '/master/uom/new' })}>
 							<PlusIcon className="size-4" />
 							Tambah Satuan
 						</Button>

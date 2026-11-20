@@ -153,7 +153,7 @@ function SuppliersPage() {
 			description="Kelola pemasok dan harga bahannya."
 			createAction={
 				<PermissionGate permission="supplier.create">
-					<Button size="sm" onClick={() => navigate({ to: '/master/suppliers/new' })}>
+					<Button onClick={() => navigate({ to: '/master/suppliers/new' })}>
 						<PlusIcon className="size-4" />
 						Tambah Pemasok
 					</Button>

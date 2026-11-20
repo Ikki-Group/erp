@@ -183,7 +183,7 @@ function ReceivingListPage({ location }: { location: AuthLocation }) {
 			: undefined
 
 	const createAction = canCreate ? (
-		<Button size="sm" onClick={() => navigate({ to: '/inventory/receiving/new' })}>
+		<Button onClick={() => navigate({ to: '/inventory/receiving/new' })}>
 			<PlusIcon className="size-4" />
 			Buat Penerimaan
 		</Button>

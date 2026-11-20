@@ -279,7 +279,7 @@ function MaterialsPage() {
 				}
 				createAction={
 					<PermissionGate permission="material.create">
-						<Button size="sm" onClick={() => navigate({ to: '/master/materials/new' })}>
+						<Button onClick={() => navigate({ to: '/master/materials/new' })}>
 							<PlusIcon className="size-4" />
 							Tambah Bahan
 						</Button>

@@ -145,7 +145,7 @@ function RecipesPage({ location }: { location: AuthLocation }) {
 			list={list}
 			createAction={
 				<PermissionGate permission="recipe.create">
-					<Button size="sm" onClick={() => navigate({ to: '/master/recipes/new' })}>
+					<Button onClick={() => navigate({ to: '/master/recipes/new' })}>
 						<PlusIcon className="size-4" />
 						Tambah Resep
 					</Button>

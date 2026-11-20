@@ -190,7 +190,7 @@ function TransfersPage({ location }: { location: AuthLocation }) {
 	})
 
 	const createAction = canCreate ? (
-		<Button size="sm" onClick={() => navigate({ to: '/inventory/transfers/new' })}>
+		<Button onClick={() => navigate({ to: '/inventory/transfers/new' })}>
 			<PlusIcon className="size-4" />
 			Buat Transfer
 		</Button>

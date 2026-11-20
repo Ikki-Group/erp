@@ -168,7 +168,7 @@ function MenuItems({ location, navigation }: ListProps) {
 					list={list}
 					createAction={
 						canCreate ? (
-							<Button size="sm" onClick={() => navigate({ to: '/master/menu/items/new' })}>
+							<Button onClick={() => navigate({ to: '/master/menu/items/new' })}>
 								<PlusIcon className="size-4" />
 								Item Menu
 							</Button>
@@ -467,7 +467,7 @@ function ModifierList({ location, navigation }: ListProps) {
 			list={list}
 			createAction={
 				canCreate ? (
-					<Button size="sm" onClick={() => navigate({ to: '/master/menu/modifiers/new' })}>
+					<Button onClick={() => navigate({ to: '/master/menu/modifiers/new' })}>
 						<LayersIcon className="size-4" />
 						Tambah Grup Modifier
 					</Button>

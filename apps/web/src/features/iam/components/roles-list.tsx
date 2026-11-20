@@ -143,7 +143,7 @@ export function RolesList({ searchParams }: RolesListProps) {
 
 	const addRoleAction = (
 		<PermissionGate permission="iam.create">
-			<Button size="sm" onClick={handleAdd}>
+			<Button onClick={handleAdd}>
 				<PlusIcon />
 				Tambah Peran
 			</Button>

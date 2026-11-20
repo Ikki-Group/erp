@@ -165,7 +165,7 @@ export function UsersList({ searchParams }: UsersListProps) {
 			description="Kelola akun pengguna dan penugasan perannya."
 			createAction={
 				<PermissionGate permission="iam.create">
-					<Button size="sm" onClick={handleAdd}>
+					<Button onClick={handleAdd}>
 						<PlusIcon />
 						Tambah Pengguna
 					</Button>
