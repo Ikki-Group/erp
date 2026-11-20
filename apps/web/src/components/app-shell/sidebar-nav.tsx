@@ -13,6 +13,7 @@ import {
 	PackageIcon,
 	ReceiptTextIcon,
 	RulerIcon,
+	SearchIcon,
 	ShoppingCartIcon,
 	ShieldCheckIcon,
 	StoreIcon,
@@ -25,6 +26,7 @@ import {
 
 import { Logo } from '@/components/brand'
 
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import {
 	Sidebar,
 	SidebarContent,
@@ -166,7 +168,7 @@ export function useVisibleNavGroups(): readonly NavGroup[] {
 		.filter((group) => group.items.length > 0)
 }
 
-export function SidebarNav() {
+export function SidebarNav({ onOpenCommand }: { onOpenCommand: () => void }) {
 	const location = useLocation()
 	const visibleGroups = useVisibleNavGroups()
 
@@ -182,6 +184,22 @@ export function SidebarNav() {
 					<Logo showText={false} />
 					<span className="truncate text-sm font-semibold">Ikki ERP</span>
 				</div>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<SidebarMenuButton
+							onClick={onOpenCommand}
+							aria-keyshortcuts="Meta+K Control+K"
+							className="h-10 text-sm md:h-8 md:text-xs"
+						>
+							<SearchIcon />
+							<span>Cari</span>
+							<KbdGroup className="ml-auto hidden group-data-[collapsible=icon]:hidden md:inline-flex">
+								<Kbd>⌘</Kbd>
+								<Kbd>K</Kbd>
+							</KbdGroup>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>
 				{visibleGroups.map((group) => (

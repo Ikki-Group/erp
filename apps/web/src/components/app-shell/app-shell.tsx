@@ -49,10 +49,10 @@ export function AppShell({ children }: AppShellProps) {
 			>
 				Lewati ke konten
 			</a>
-			<SidebarNav />
+			<SidebarNav onOpenCommand={() => setCommandOpen(true)} />
 			<SidebarInset className="min-h-0 overflow-hidden contain-inline-size">
 				<ShellBackdrop />
-				<AppHeader onOpenCommand={() => setCommandOpen(true)} />
+				<AppHeader />
 				<main
 					id="main-content"
 					tabIndex={-1}

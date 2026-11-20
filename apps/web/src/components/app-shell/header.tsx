@@ -1,30 +1,37 @@
 import { Link } from '@tanstack/react-router'
 
-import { CheckIcon, ChevronsUpDownIcon, LogOutIcon, MapPinIcon, UserIcon } from 'lucide-react'
-
-import { ThemeToggle } from '@/components/shared/theme-toggle'
+import {
+	CheckIcon,
+	ChevronsUpDownIcon,
+	LogOutIcon,
+	MapPinIcon,
+	MonitorIcon,
+	MoonIcon,
+	SunIcon,
+	UserIcon,
+} from 'lucide-react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 
-import { CommandTrigger } from './command-menu'
 import { useAuth } from '@/providers/auth-provider.tsx'
 import { useLocationContext } from '@/providers/location-provider.tsx'
+import { useTheme } from '@/providers/theme-provider'
 
-interface AppHeaderProps {
-	onOpenCommand: () => void
-}
-
-export function AppHeader({ onOpenCommand }: AppHeaderProps) {
+export function AppHeader() {
 	const { user, logout } = useAuth()
+	const { theme, setTheme } = useTheme()
 	const { activeLocation, locations, isConsolidated, switchLocation } = useLocationContext()
 
 	const initials = user?.name
@@ -72,10 +79,6 @@ export function AppHeader({ onOpenCommand }: AppHeaderProps) {
 
 			<div className="flex-1" />
 
-			<CommandTrigger onClick={onOpenCommand} />
-
-			<ThemeToggle />
-
 			{/* User menu */}
 			<DropdownMenu>
 				<DropdownMenuTrigger
@@ -88,6 +91,25 @@ export function AppHeader({ onOpenCommand }: AppHeaderProps) {
 					<span className="hidden md:inline">{user?.name ?? 'Pengguna'}</span>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" sideOffset={8}>
+					<DropdownMenuRadioGroup
+						value={theme ?? 'system'}
+						onValueChange={(value) => setTheme(value)}
+					>
+						<DropdownMenuLabel>Tema</DropdownMenuLabel>
+						<DropdownMenuRadioItem value="light">
+							<SunIcon />
+							Terang
+						</DropdownMenuRadioItem>
+						<DropdownMenuRadioItem value="dark">
+							<MoonIcon />
+							Gelap
+						</DropdownMenuRadioItem>
+						<DropdownMenuRadioItem value="system">
+							<MonitorIcon />
+							Sistem
+						</DropdownMenuRadioItem>
+					</DropdownMenuRadioGroup>
+					<DropdownMenuSeparator />
 					<DropdownMenuItem render={<Link to="/account" />}>
 						<UserIcon />
 						Profil

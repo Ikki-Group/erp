@@ -2,12 +2,8 @@ import { useCallback } from 'react'
 
 import { useNavigate } from '@tanstack/react-router'
 
-import { SearchIcon } from 'lucide-react'
-
 import { CommandPalette, useCommandPaletteShortcut } from '@/components/shared'
 import type { CommandAction } from '@/components/shared'
-
-import { Kbd, KbdGroup } from '@/components/ui/kbd'
 
 import { useVisibleNavGroups } from './sidebar-nav'
 
@@ -43,25 +39,5 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 			actions={actions}
 			placeholder="Cari halaman…"
 		/>
-	)
-}
-
-/** Header affordance that opens the palette — the only entry point on touch devices. */
-export function CommandTrigger({ onClick }: { onClick: () => void }) {
-	return (
-		<button
-			type="button"
-			aria-label="Cari halaman"
-			aria-keyshortcuts="Meta+K Control+K"
-			onClick={onClick}
-			className="inline-flex min-h-9 items-center gap-2 rounded-md border border-input bg-background px-2.5 text-sm text-muted-foreground hover:bg-accent"
-		>
-			<SearchIcon className="size-4" />
-			<span className="hidden sm:inline">Cari</span>
-			<KbdGroup className="hidden sm:flex">
-				<Kbd>⌘</Kbd>
-				<Kbd>K</Kbd>
-			</KbdGroup>
-		</button>
 	)
 }
