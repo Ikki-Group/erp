@@ -1,7 +1,6 @@
-import { Building2Icon, WarehouseIcon } from 'lucide-react'
+import { createEntityColumns, TextCell } from '@/components/data-table'
 
-import { createEntityColumns } from '@/components/data-table'
-
+import { LOCATION_TYPE_OPTIONS } from '../dto/index.ts'
 import type { LocationDto } from '../dto/index.ts'
 
 const col = createEntityColumns<LocationDto>()
@@ -12,16 +11,13 @@ export const locationColumns = [
 	col.text('type', {
 		header: 'Tipe',
 		size: 120,
-		cell: ({ getValue }) => {
-			const type = getValue()
-			const Icon = type === 'store' ? Building2Icon : WarehouseIcon
-			return (
-				<div className="flex items-center gap-1.5">
-					<Icon className="size-3.5 text-muted-foreground" />
-					<span className="text-sm">{type === 'store' ? 'Store' : 'Warehouse'}</span>
-				</div>
-			)
-		},
+		cell: ({ getValue }) => (
+			<TextCell
+				value={
+					LOCATION_TYPE_OPTIONS.find((option) => option.value === getValue())?.label ?? getValue()
+				}
+			/>
+		),
 	}),
 	col.text('address', { header: 'Alamat', size: 250, cellProps: { muted: true } }),
 	col.text('phone', {

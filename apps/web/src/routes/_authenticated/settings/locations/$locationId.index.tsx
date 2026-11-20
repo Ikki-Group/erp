@@ -27,6 +27,7 @@ import {
 	parseLocationStaffStatus,
 } from '@/features/iam/components/location-staff-columns'
 import { locationResource } from '@/features/location/api'
+import { LOCATION_TYPE_OPTIONS } from '@/features/location/dto'
 import type { LocationDto } from '@/features/location/dto'
 import { useLocationDelete } from '@/features/location/use-location-delete'
 
@@ -64,8 +65,12 @@ function LocationDetailRoute() {
 				<div className="flex h-96 flex-col items-center justify-center gap-4">
 					<MapPinIcon className="size-12 text-muted-foreground" />
 					<p className="text-muted-foreground">Lokasi tidak ditemukan</p>
-					<Button variant="outline" onClick={() => navigate({ to: '/settings/locations' })}>
-						<ArrowLeftIcon className="size-4" />
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => navigate({ to: '/settings/locations' })}
+					>
+						<ArrowLeftIcon />
 						Kembali ke Lokasi
 					</Button>
 				</div>
@@ -101,17 +106,17 @@ function LocationDetail({ location }: { location: LocationDto }) {
 						size="sm"
 						onClick={() => navigate({ to: '/settings/locations' })}
 					>
-						<ArrowLeftIcon className="size-4" />
+						<ArrowLeftIcon />
 						Kembali
 					</Button>
 					{deletion.canDelete && (
 						<Button
-							variant="outline"
+							variant="destructive"
 							size="sm"
 							disabled={deletion.isPending}
 							onClick={() => void deletion.run(location)}
 						>
-							<TrashIcon className="size-4" />
+							<TrashIcon />
 							Nonaktifkan
 						</Button>
 					)}
@@ -125,7 +130,7 @@ function LocationDetail({ location }: { location: LocationDto }) {
 								})
 							}
 						>
-							<PencilIcon className="size-4" />
+							<PencilIcon />
 							Ubah
 						</Button>
 					)}
@@ -135,7 +140,12 @@ function LocationDetail({ location }: { location: LocationDto }) {
 			<DetailSection title="Detail Lokasi">
 				<DetailList
 					items={[
-						{ label: 'Tipe', value: location.type === 'store' ? 'Toko' : 'Gudang' },
+						{
+							label: 'Tipe',
+							value:
+								LOCATION_TYPE_OPTIONS.find((option) => option.value === location.type)?.label ??
+								location.type,
+						},
 						{ label: 'Alamat', value: location.address || '-' },
 						{ label: 'Telepon', value: location.phone || '-' },
 					]}

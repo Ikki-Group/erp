@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { ArrowLeftIcon } from 'lucide-react'
+
 import { DetailBoundary } from '@/components/shared/detail-boundary.tsx'
 import { DetailPage } from '@/components/shared/detail-page'
 import { EntityEditorPage } from '@/components/shared/entity-editor-page'
@@ -55,7 +57,8 @@ function SystemRoleDetail({ role, onDone }: RolePageProps) {
 			title="Detail Peran Sistem"
 			description={`${role.name} dikelola oleh sistem dan tidak dapat diubah.`}
 			actions={
-				<Button variant="outline" onClick={onDone}>
+				<Button variant="outline" size="sm" onClick={onDone}>
+					<ArrowLeftIcon />
 					Kembali
 				</Button>
 			}
