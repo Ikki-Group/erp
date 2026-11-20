@@ -12,6 +12,7 @@ import {
 	AuditLogDetailDto,
 	AuditLogDto,
 	AuditLogFilterDto,
+	AuditOptionsDto,
 } from './audit.contract.ts'
 import type { AuditService } from './audit.service.ts'
 
@@ -60,6 +61,21 @@ export function createAuditRoute(service: AuditService) {
 				response: zRes.ok(AuditLogDetailDto),
 				permission: 'audit.read',
 				detail: { summary: 'Get an audit entry' },
+			},
+		)
+		.get(
+			'/options',
+			async () => {
+				const result = await service.handleOptions()
+				return res.ok(result)
+			},
+			{
+				response: zRes.ok(AuditOptionsDto),
+				permission: 'audit.read',
+				detail: {
+					summary: 'List audit filter options',
+					description: 'Distinct module and action values present in the log.',
+				},
 			},
 		)
 		.get(

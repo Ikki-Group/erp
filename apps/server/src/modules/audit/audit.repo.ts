@@ -21,6 +21,7 @@ import type {
 	AuditLogDetailDto,
 	AuditLogDto,
 	AuditLogFilterDto,
+	AuditOptionsDto,
 } from './audit.contract.ts'
 
 // ─── Projection ───
@@ -83,6 +84,7 @@ export interface IAuditRepo {
 		db?: DbContext,
 	): Promise<WithCursorResult<AuditLogDto>>
 	findByEntity(entity: string, entityId: number, db?: DbContext): Promise<AuditLogDto[]>
+	findOptions(db?: DbContext): Promise<AuditOptionsDto>
 }
 
 // ─── Implementation ───
@@ -148,6 +150,17 @@ export class AuditRepo implements IAuditRepo {
 			.orderBy(desc(auditLogs.timestamp))
 
 		return rows.map(toDto)
+	}
+
+	async findOptions(db: DbContext = this.db): Promise<AuditOptionsDto> {
+		const [modules, actions] = await Promise.all([
+			db.selectDistinct({ value: auditLogs.module }).from(auditLogs).orderBy(auditLogs.module),
+			db.selectDistinct({ value: auditLogs.action }).from(auditLogs).orderBy(auditLogs.action),
+		])
+		return {
+			modules: modules.map((row) => row.value),
+			actions: actions.map((row) => row.value),
+		}
 	}
 
 	// ─── Private ───

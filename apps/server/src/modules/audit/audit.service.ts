@@ -5,6 +5,7 @@ import type {
 	AuditLogDetailDto,
 	AuditLogDto,
 	AuditLogFilterDto,
+	AuditOptionsDto,
 } from './audit.contract.ts'
 import { AuditError } from './audit.internal.ts'
 import type { IAuditRepo } from './audit.repo.ts'
@@ -31,5 +32,9 @@ export class AuditService {
 
 	handleByEntity(entity: string, entityId: number): Promise<AuditLogDto[]> {
 		return this.repo.findByEntity(entity, entityId)
+	}
+
+	handleOptions(): Promise<AuditOptionsDto> {
+		return this.repo.findOptions()
 	}
 }

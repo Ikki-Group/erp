@@ -26,6 +26,13 @@ export const AuditLogDetailDto = z.object({
 })
 export type AuditLogDetailDto = z.infer<typeof AuditLogDetailDto>
 
+/** Distinct module/action values present in the log; rendered raw, never translated. */
+export const AuditOptionsDto = z.object({
+	modules: z.array(z.string()),
+	actions: z.array(z.string()),
+})
+export type AuditOptionsDto = z.infer<typeof AuditOptionsDto>
+
 // ─── Filters ───
 
 export const AuditLogFilterDto = z.object({

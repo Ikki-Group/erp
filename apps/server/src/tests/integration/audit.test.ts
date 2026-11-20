@@ -61,4 +61,26 @@ describe('audit', () => {
 		expect(body.data.length).toBe(0)
 		expect(body.meta.total).toBe(0)
 	})
+
+	test('options return the distinct module/action values in the log', async () => {
+		const response = await GET('/audit/options', {
+			token: await loginAs(SEED_USERS.owner.username),
+		})
+		expect(response.status).toBe(200)
+		const body = await json(response)
+		expect(body.data.modules).toBeInstanceOf(Array)
+		expect(body.data.actions).toBeInstanceOf(Array)
+
+		// Whatever the log holds, the options must cover every value it lists.
+		const list = await json(
+			await GET('/audit/list', {
+				token: await loginAs(SEED_USERS.owner.username),
+				query: { limit: '100' },
+			}),
+		)
+		for (const row of list.data as Array<{ module: string; action: string }>) {
+			expect(body.data.modules).toContain(row.module)
+			expect(body.data.actions).toContain(row.action)
+		}
+	})
 })

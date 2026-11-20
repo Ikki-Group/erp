@@ -30,6 +30,13 @@ export const AuditLogDetailDto = z.object({
 })
 export type AuditLogDetailDto = z.infer<typeof AuditLogDetailDto>
 
+/** Distinct values already present in the log — the raw vocabulary, no labels. */
+export const AuditOptionsDto = z.object({
+	modules: z.array(z.string()),
+	actions: z.array(z.string()),
+})
+export type AuditOptionsDto = z.infer<typeof AuditOptionsDto>
+
 // ─── Filters ───
 
 export const AuditLogFilterDto = z.object({

@@ -8,7 +8,13 @@ import {
 	createSuccessResponseSchema,
 } from '@/lib/validation/index.ts'
 
-import { AuditByEntityDto, AuditLogDetailDto, AuditLogDto, AuditLogFilterDto } from './dto/index.ts'
+import {
+	AuditByEntityDto,
+	AuditLogDetailDto,
+	AuditLogDto,
+	AuditLogFilterDto,
+	AuditOptionsDto,
+} from './dto/index.ts'
 
 // ─── Queries ───
 
@@ -37,8 +43,17 @@ const auditByEntity = defineQuery({
 	queryKey: (query) => [endpoint.audit.byEntity, query ?? null],
 })
 
+/** Distinct module/action values already in the log — filter options rendered raw. */
+const auditOptions = defineQuery({
+	method: 'get',
+	url: endpoint.audit.options,
+	result: createSuccessResponseSchema(AuditOptionsDto),
+	queryKey: () => [endpoint.audit.options],
+})
+
 export const auditResource = {
 	list: auditList,
 	detail: auditDetail,
 	byEntity: auditByEntity,
+	options: auditOptions,
 }

@@ -139,6 +139,7 @@ const company = {
 const audit = {
 	list: 'audit/list',
 	detail: 'audit/detail',
+	options: 'audit/options',
 	byEntity: 'audit/by-entity',
 }
 

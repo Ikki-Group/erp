@@ -22,39 +22,10 @@ export const Route = createFileRoute('/_authenticated/settings/audit')({
 	component: AuditPage,
 })
 
-// Modules/actions that record audit entries. Hand-maintained to mirror the
-// server vocabulary (apps/server/src/modules/* and the audit `action` verbs) —
-// keep in sync when a module or domain verb is added server-side. Unknown values
-// still render fine (the badge/label degrade gracefully); they just aren't
-// filterable here until added.
-// Values MUST match the `module` strings the server writes in audit records
-// (the `module:` field in each *.service.ts audit.record call). POS is split
-// per sub-entity (pos-order/shift/table/voucher); there is no bare 'pos'.
-const MODULE_OPTIONS = [
-	{ label: 'Lokasi', value: 'location', description: 'Lokasi toko dan gudang' },
-	{ label: 'Bahan', value: 'material', description: 'Bahan baku dan bahan tambahan' },
-	{ label: 'Pemasok', value: 'supplier', description: 'Manajemen vendor' },
-	{ label: 'Satuan', value: 'uom', description: 'Satuan ukur' },
-	{ label: 'Menu', value: 'menu', description: 'Item menu dan kategori' },
-	{ label: 'Resep', value: 'recipe', description: 'Konfigurasi resep' },
-	{ label: 'Inventori', value: 'inventory', description: 'Tingkat stok dan penyesuaian' },
-	{ label: 'POS · Pesanan', value: 'pos-order', description: 'Transaksi penjualan' },
-	{ label: 'POS · Shift', value: 'pos-shift', description: 'Sesi kerja staf' },
-	{ label: 'POS · Meja', value: 'pos-table', description: 'Manajemen meja' },
-	{ label: 'POS · Voucher', value: 'pos-voucher', description: 'Voucher diskon' },
-	{ label: 'Produksi', value: 'production', description: 'Proses produksi' },
-	{ label: 'IAM', value: 'iam', description: 'Pengguna, peran, izin' },
-	{ label: 'Perusahaan', value: 'company', description: 'Pengaturan perusahaan' },
-]
-
-const ACTION_OPTIONS = [
-	{ label: 'Buat', value: 'create' },
-	{ label: 'Perbarui', value: 'update' },
-	{ label: 'Hapus', value: 'delete' },
-	{ label: 'Batalkan', value: 'void' },
-	{ label: 'Selesaikan', value: 'complete' },
-	{ label: 'Konfirmasi', value: 'confirm' },
-]
+// Actions/modules come from the log itself (`GET /audit/options`, distinct DB
+// values) and render raw — no labels, no translation.
+const toFilterOptions = (values: string[] | undefined) =>
+	(values ?? []).map((value) => ({ label: value, value }))
 
 function AuditPage() {
 	const canRead = usePermissionCheck({ permission: 'audit.read' })
@@ -75,6 +46,10 @@ function AuditList() {
 	const search = Route.useSearch()
 	const listQuery = useQuery({
 		...auditResource.list.queryOptions(toAuditListQuery(search)),
+		throwOnError: false,
+	})
+	const optionsQuery = useQuery({
+		...auditResource.options.queryOptions(),
 		throwOnError: false,
 	})
 	const columns = useMemo(
@@ -123,7 +98,7 @@ function AuditList() {
 								label: 'Modul',
 								value: search.module,
 								onChange: (module) => list.setFilters({ module }),
-								options: MODULE_OPTIONS,
+								options: toFilterOptions(optionsQuery.data?.data.modules),
 								allLabel: 'Semua modul',
 							},
 							{
@@ -131,7 +106,7 @@ function AuditList() {
 								label: 'Aksi',
 								value: search.action,
 								onChange: (action) => list.setFilters({ action }),
-								options: ACTION_OPTIONS,
+								options: toFilterOptions(optionsQuery.data?.data.actions),
 								allLabel: 'Semua aksi',
 							},
 						]}
