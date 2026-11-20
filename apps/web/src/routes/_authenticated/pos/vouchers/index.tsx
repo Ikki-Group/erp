@@ -175,7 +175,7 @@ function VouchersPage() {
 				getItems: (voucher) => [
 					canManage && {
 						label: 'Ubah',
-						icon: <EditIcon className="size-4" />,
+						icon: <EditIcon />,
 						onClick: () =>
 							navigate({
 								to: '/pos/vouchers/$voucherId',
@@ -184,7 +184,7 @@ function VouchersPage() {
 					},
 					canManage && {
 						label: 'Hapus',
-						icon: <TrashIcon className="size-4" />,
+						icon: <TrashIcon />,
 						onClick: () => handleDelete(voucher),
 						variant: 'destructive' as const,
 					},
@@ -213,7 +213,7 @@ function VouchersPage() {
 			createAction={
 				canManage ? (
 					<Button onClick={() => navigate({ to: '/pos/vouchers/new' })}>
-						<PlusIcon className="size-4" />
+						<PlusIcon />
 						Tambah Voucher
 					</Button>
 				) : undefined

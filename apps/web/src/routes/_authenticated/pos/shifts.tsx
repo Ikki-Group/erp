@@ -225,13 +225,13 @@ function ShiftsPage() {
 						{activeShift
 							? canClose && (
 									<Button size="sm" variant="outline" onClick={handleCloseShift}>
-										<LockIcon className="size-4" />
+										<LockIcon />
 										Tutup Shift
 									</Button>
 								)
 							: canOpen && (
 									<Button size="sm" onClick={handleOpenShift}>
-										<UnlockIcon className="size-4" />
+										<UnlockIcon />
 										Buka Shift
 									</Button>
 								)}
@@ -246,7 +246,7 @@ function ShiftsPage() {
 					action={
 						!activeShift && canOpen ? (
 							<Button size="sm" onClick={handleOpenShift}>
-								<UnlockIcon className="size-4" />
+								<UnlockIcon />
 								Buka Shift
 							</Button>
 						) : undefined

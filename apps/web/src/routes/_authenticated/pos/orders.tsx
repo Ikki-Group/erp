@@ -104,11 +104,11 @@ function OrderActions({
 	return (
 		<div className="flex items-center gap-1">
 			<Button variant="ghost" size="icon-sm" onClick={() => onView(order)}>
-				<EyeIcon className="size-3.5" />
+				<EyeIcon />
 			</Button>
 			{order.status === 'completed' && canVoid && (
 				<Button variant="ghost" size="icon-sm" onClick={() => onVoid(order)}>
-					<BanIcon className="size-3.5 text-destructive" />
+					<BanIcon className="text-destructive" />
 				</Button>
 			)}
 		</div>

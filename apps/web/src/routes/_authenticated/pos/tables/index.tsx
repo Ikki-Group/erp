@@ -119,7 +119,7 @@ function TablesPage() {
 						items={[
 							{
 								label: 'Ubah',
-								icon: <EditIcon className="size-4" />,
+								icon: <EditIcon />,
 								onClick: () =>
 									navigate({
 										to: '/pos/tables/$tableId',
@@ -128,7 +128,7 @@ function TablesPage() {
 							},
 							{
 								label: 'Hapus',
-								icon: <TrashIcon className="size-4" />,
+								icon: <TrashIcon />,
 								onClick: () => handleDelete(row.original),
 								variant: 'destructive' as const,
 							},
@@ -174,7 +174,7 @@ function TablesPage() {
 				actions={
 					canManage ? (
 						<Button onClick={() => navigate({ to: '/pos/tables/new' })}>
-							<PlusIcon className="size-4" />
+							<PlusIcon />
 							Tambah Meja
 						</Button>
 					) : undefined
@@ -188,7 +188,7 @@ function TablesPage() {
 					action={
 						canManage ? (
 							<Button onClick={() => navigate({ to: '/pos/tables/new' })}>
-								<PlusIcon className="size-4" />
+								<PlusIcon />
 								Tambah Meja
 							</Button>
 						) : undefined

@@ -91,7 +91,7 @@ export function OrderCart({
 											onClick={() => onUpdateQty(line.menuItemId, key, line.qty - 1)}
 											disabled={disabled}
 										>
-											<MinusIcon className="size-3" />
+											<MinusIcon />
 										</Button>
 										<span className="w-6 text-center font-mono text-xs font-medium tabular-nums">
 											{line.qty}
@@ -102,7 +102,7 @@ export function OrderCart({
 											onClick={() => onUpdateQty(line.menuItemId, key, line.qty + 1)}
 											disabled={disabled}
 										>
-											<PlusIcon className="size-3" />
+											<PlusIcon />
 										</Button>
 										<Button
 											variant="ghost"
@@ -110,7 +110,7 @@ export function OrderCart({
 											onClick={() => onRemoveLine(line.menuItemId, key)}
 											disabled={disabled}
 										>
-											<Trash2Icon className="size-3 text-destructive" />
+											<Trash2Icon className="text-destructive" />
 										</Button>
 									</div>
 									<span className="w-20 text-right font-mono text-xs font-medium tabular-nums">

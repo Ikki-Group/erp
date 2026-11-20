@@ -134,7 +134,7 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 										)}
 									</div>
 									<Button variant="ghost" size="icon-sm" onClick={() => removeEntry(index)}>
-										<Trash2Icon className="size-3.5 text-destructive" />
+										<Trash2Icon className="text-destructive" />
 									</Button>
 								</div>
 							))}
@@ -153,7 +153,7 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 										size="sm"
 										onClick={() => addEntry(method)}
 									>
-										<PlusIcon className="mr-1 size-3" />
+										<PlusIcon />
 										{method.name}
 									</Button>
 								))}

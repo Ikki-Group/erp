@@ -123,7 +123,7 @@ export function OrderReceipt({ open, onOpenChange, order, locationName }: OrderR
 						Tutup
 					</Button>
 					<Button size="sm" onClick={handlePrint}>
-						<PrinterIcon className="mr-1.5 size-3.5" />
+						<PrinterIcon />
 						Cetak
 					</Button>
 				</DialogFooter>
