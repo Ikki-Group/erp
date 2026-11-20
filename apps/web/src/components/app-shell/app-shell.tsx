@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
+import { CommandMenu } from './command-menu'
 import { AppHeader } from './header'
 import { SidebarNav } from './sidebar-nav'
 
@@ -37,16 +39,19 @@ function ShellBackdrop() {
 }
 
 export function AppShell({ children }: AppShellProps) {
+	const [commandOpen, setCommandOpen] = useState(false)
+
 	return (
 		<SidebarProvider className="h-svh min-h-0 overflow-hidden">
 			<SidebarNav />
 			<SidebarInset className="min-h-0 overflow-hidden contain-inline-size">
 				<ShellBackdrop />
-				<AppHeader />
+				<AppHeader onOpenCommand={() => setCommandOpen(true)} />
 				<main className="min-h-0 flex-1 overflow-y-auto p-4 contain-inline-size sm:p-6">
 					{children}
 				</main>
 			</SidebarInset>
+			<CommandMenu open={commandOpen} onOpenChange={setCommandOpen} />
 		</SidebarProvider>
 	)
 }

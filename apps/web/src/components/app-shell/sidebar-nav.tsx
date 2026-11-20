@@ -40,14 +40,14 @@ import {
 import { useAuth } from '@/providers/auth-provider.tsx'
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
-type NavItem = {
+export type NavItem = {
 	title: string
 	icon: LucideIcon
 	href: string
 	anyOf?: readonly string[]
 }
 
-type NavGroup = {
+export type NavGroup = {
 	label: string
 	items: readonly NavItem[]
 }
@@ -138,8 +138,12 @@ const navGroups: readonly NavGroup[] = [
 	},
 ]
 
-export function SidebarNav() {
-	const location = useLocation()
+/**
+ * The sidebar's own navigation tree, filtered to what the signed-in user can
+ * reach. Shared with the command palette so both stay consistent — one source
+ * of truth for "where can I go".
+ */
+export function useVisibleNavGroups(): readonly NavGroup[] {
 	const { access, globalPermissions, isOwner, permissions } = useAuth()
 	const { activeLocation } = useLocationContext()
 
@@ -149,7 +153,7 @@ export function SidebarNav() {
 		...(activeLocation ? (access[String(activeLocation.id)] ?? []) : []),
 	])
 
-	const visibleGroups = navGroups
+	return navGroups
 		.map((group) => ({
 			...group,
 			items: group.items.filter(
@@ -160,6 +164,11 @@ export function SidebarNav() {
 			),
 		}))
 		.filter((group) => group.items.length > 0)
+}
+
+export function SidebarNav() {
+	const location = useLocation()
+	const visibleGroups = useVisibleNavGroups()
 
 	return (
 		<Sidebar>

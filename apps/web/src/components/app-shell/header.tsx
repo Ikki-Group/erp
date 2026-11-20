@@ -15,10 +15,15 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 
+import { CommandTrigger } from './command-menu'
 import { useAuth } from '@/providers/auth-provider.tsx'
 import { useLocationContext } from '@/providers/location-provider.tsx'
 
-export function AppHeader() {
+interface AppHeaderProps {
+	onOpenCommand: () => void
+}
+
+export function AppHeader({ onOpenCommand }: AppHeaderProps) {
 	const { user, logout } = useAuth()
 	const { activeLocation, locations, isConsolidated, switchLocation } = useLocationContext()
 
@@ -66,6 +71,8 @@ export function AppHeader() {
 			</div>
 
 			<div className="flex-1" />
+
+			<CommandTrigger onClick={onOpenCommand} />
 
 			<ThemeToggle />
 
