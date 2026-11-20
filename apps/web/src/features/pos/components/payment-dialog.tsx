@@ -133,7 +133,12 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 											/>
 										)}
 									</div>
-									<Button variant="ghost" size="icon-sm" onClick={() => removeEntry(index)}>
+									<Button
+										variant="ghost"
+										size="icon-sm"
+										aria-label={`Hapus pembayaran ${entry.paymentMethodName}`}
+										onClick={() => removeEntry(index)}
+									>
 										<Trash2Icon className="text-destructive" />
 									</Button>
 								</div>

@@ -103,11 +103,21 @@ function OrderActions({
 }) {
 	return (
 		<div className="flex items-center gap-1">
-			<Button variant="ghost" size="icon-sm" onClick={() => onView(order)}>
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				aria-label={`Lihat pesanan ${order.orderNo}`}
+				onClick={() => onView(order)}
+			>
 				<EyeIcon />
 			</Button>
 			{order.status === 'completed' && canVoid && (
-				<Button variant="ghost" size="icon-sm" onClick={() => onVoid(order)}>
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					aria-label={`Batalkan pesanan ${order.orderNo}`}
+					onClick={() => onVoid(order)}
+				>
 					<BanIcon className="text-destructive" />
 				</Button>
 			)}

@@ -349,6 +349,7 @@ function MaterialsPage() {
 												size="icon"
 												variant="ghost"
 												className="size-7"
+												aria-label={`Edit kategori ${cat.name}`}
 												onClick={() => handleEditCategory(cat)}
 											>
 												<EditIcon />
@@ -359,6 +360,7 @@ function MaterialsPage() {
 												size="icon"
 												variant="ghost"
 												className="size-7"
+												aria-label={`Hapus kategori ${cat.name}`}
 												onClick={() => handleDeleteCategory(cat)}
 												disabled={deletingCategory}
 											>

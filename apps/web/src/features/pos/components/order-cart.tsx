@@ -88,6 +88,7 @@ export function OrderCart({
 										<Button
 											variant="outline"
 											size="icon-sm"
+											aria-label={`Kurangi jumlah ${line.menuItemName}`}
 											onClick={() => onUpdateQty(line.menuItemId, key, line.qty - 1)}
 											disabled={disabled}
 										>
@@ -99,6 +100,7 @@ export function OrderCart({
 										<Button
 											variant="outline"
 											size="icon-sm"
+											aria-label={`Tambah jumlah ${line.menuItemName}`}
 											onClick={() => onUpdateQty(line.menuItemId, key, line.qty + 1)}
 											disabled={disabled}
 										>
@@ -107,6 +109,7 @@ export function OrderCart({
 										<Button
 											variant="ghost"
 											size="icon-sm"
+											aria-label={`Hapus ${line.menuItemName}`}
 											onClick={() => onRemoveLine(line.menuItemId, key)}
 											disabled={disabled}
 										>
