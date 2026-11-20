@@ -8,7 +8,7 @@ import { z } from 'zod'
 
 import { listSearchSchema } from '@/components/data-table'
 import { PageHeader } from '@/components/shared'
-import { PageTabs } from '@/components/shared/page-tabs'
+import { PageTabs, pageTabPanelId } from '@/components/shared/page-tabs'
 import type { PageTab } from '@/components/shared/page-tabs'
 
 import { roleResource, userResource } from '@/features/iam/api.ts'
@@ -92,8 +92,10 @@ function AccessControlPage() {
 
 			<PageTabs tabs={tabs} activeTab={tab} onTabChange={handleTabChange} />
 
-			{tab === 'users' && <UsersList searchParams={search} />}
-			{tab === 'roles' && <RolesList searchParams={search} />}
+			<div role="tabpanel" id={pageTabPanelId(tab)} aria-labelledby={`tab-${tab}`}>
+				{tab === 'users' && <UsersList searchParams={search} />}
+				{tab === 'roles' && <RolesList searchParams={search} />}
+			</div>
 		</div>
 	)
 }

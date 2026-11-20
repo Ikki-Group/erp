@@ -6,7 +6,7 @@ import { ArrowLeftIcon, BoxesIcon, HistoryIcon, PackageIcon } from 'lucide-react
 
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
-import { PageTabs } from '@/components/shared/page-tabs'
+import { PageTabs, pageTabPanelId } from '@/components/shared/page-tabs'
 import type { PageTab } from '@/components/shared/page-tabs'
 
 import { Button } from '@/components/ui/button'
@@ -69,39 +69,41 @@ function StockPage() {
 
 			<PageTabs tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
-			{activeTab === 'balances' && (
-				<StockTable locationId={activeLocation.id} onRowClick={handleRowClick} />
-			)}
+			<div role="tabpanel" id={pageTabPanelId(activeTab)} aria-labelledby={`tab-${activeTab}`}>
+				{activeTab === 'balances' && (
+					<StockTable locationId={activeLocation.id} onRowClick={handleRowClick} />
+				)}
 
-			{activeTab === 'movements' && selectedMaterial && (
-				<div className="space-y-3">
-					<div className="flex items-center gap-3">
-						<Button size="sm" variant="ghost" onClick={() => handleTabChange('balances')}>
-							<ArrowLeftIcon className="size-3.5" />
-							Kembali
-						</Button>
-						<p className="text-sm text-muted-foreground">
-							Riwayat pergerakan —{' '}
-							<span className="font-medium text-foreground">
-								{selectedMaterial.materialName}
-							</span> (
-							{selectedMaterial.materialCode})
-						</p>
+				{activeTab === 'movements' && selectedMaterial && (
+					<div className="space-y-3">
+						<div className="flex items-center gap-3">
+							<Button size="sm" variant="ghost" onClick={() => handleTabChange('balances')}>
+								<ArrowLeftIcon />
+								Kembali
+							</Button>
+							<p className="text-sm text-muted-foreground">
+								Riwayat pergerakan —{' '}
+								<span className="font-medium text-foreground">
+									{selectedMaterial.materialName}
+								</span>{' '}
+								({selectedMaterial.materialCode})
+							</p>
+						</div>
+						<MovementHistory
+							materialId={selectedMaterial.materialId}
+							locationId={activeLocation.id}
+						/>
 					</div>
-					<MovementHistory
-						materialId={selectedMaterial.materialId}
-						locationId={activeLocation.id}
-					/>
-				</div>
-			)}
+				)}
 
-			{activeTab === 'movements' && !selectedMaterial && (
-				<EmptyState
-					title="Pilih bahan"
-					description="Klik baris di tabel saldo stok untuk melihat riwayat pergerakan."
-					icon={<HistoryIcon className="size-5" />}
-				/>
-			)}
+				{activeTab === 'movements' && !selectedMaterial && (
+					<EmptyState
+						title="Pilih bahan"
+						description="Klik baris di tabel saldo stok untuk melihat riwayat pergerakan."
+						icon={<HistoryIcon className="size-5" />}
+					/>
+				)}
+			</div>
 		</div>
 	)
 }

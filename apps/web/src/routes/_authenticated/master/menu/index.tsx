@@ -14,7 +14,7 @@ import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EntityListPage } from '@/components/shared/entity-list-page'
 import { formDialog } from '@/components/shared/form-dialog'
 import { LocationRequiredPage } from '@/components/shared/location-required-page'
-import { PageTabs } from '@/components/shared/page-tabs'
+import { PageTabs, pageTabPanelId } from '@/components/shared/page-tabs'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { TableToolbar } from '@/components/shared/table-toolbar'
 import { useWorkflowAction } from '@/components/shared/workflow-action'
@@ -136,13 +136,13 @@ function MenuItems({ location, navigation }: ListProps) {
 					getItems: (item) => [
 						canEdit && {
 							label: 'Ubah',
-							icon: <EditIcon className="size-4" />,
+							icon: <EditIcon />,
 							onClick: () =>
 								navigate({ to: '/master/menu/items/$itemId', params: { itemId: String(item.id) } }),
 						},
 						canDelete && {
 							label: 'Hapus',
-							icon: <TrashIcon className="size-4" />,
+							icon: <TrashIcon />,
 							onClick: () => remove(item),
 							variant: 'destructive',
 							disabled: deleting,
@@ -160,7 +160,12 @@ function MenuItems({ location, navigation }: ListProps) {
 		hasFilters: (value) => value.categoryId !== undefined || value.status !== undefined,
 	})
 	return (
-		<div className="space-y-6">
+		<div
+			role="tabpanel"
+			id={pageTabPanelId('items')}
+			aria-labelledby="tab-items"
+			className="space-y-6"
+		>
 			{canRead ? (
 				<EntityListPage
 					title="Menu"
@@ -169,7 +174,7 @@ function MenuItems({ location, navigation }: ListProps) {
 					createAction={
 						canCreate ? (
 							<Button onClick={() => navigate({ to: '/master/menu/items/new' })}>
-								<PlusIcon className="size-4" />
+								<PlusIcon />
 								Item Menu
 							</Button>
 						) : undefined
@@ -296,7 +301,7 @@ function CategoryManagement({ location }: { location: AuthLocation }) {
 				<h2 className="text-sm font-medium">Kategori</h2>
 				{canCreate && (
 					<Button size="sm" variant="outline" onClick={() => openCategory()}>
-						<TagIcon className="size-4" />
+						<TagIcon />
 						Tambah Kategori
 					</Button>
 				)}
@@ -347,7 +352,7 @@ function CategoryManagement({ location }: { location: AuthLocation }) {
 												aria-label={`Edit kategori ${category.name}`}
 												onClick={() => openCategory(category)}
 											>
-												<EditIcon className="size-4" />
+												<EditIcon />
 											</Button>
 										)}
 										{canDelete && (
@@ -358,7 +363,7 @@ function CategoryManagement({ location }: { location: AuthLocation }) {
 												disabled={deleting}
 												onClick={() => remove(category)}
 											>
-												<TrashIcon className="size-4" />
+												<TrashIcon />
 											</Button>
 										)}
 									</div>
@@ -435,7 +440,7 @@ function ModifierList({ location, navigation }: ListProps) {
 					getItems: (group) => [
 						canRead && {
 							label: canEdit ? 'Ubah' : 'Lihat',
-							icon: <EditIcon className="size-4" />,
+							icon: <EditIcon />,
 							onClick: () =>
 								navigate({
 									to: '/master/menu/modifiers/$groupId',
@@ -444,7 +449,7 @@ function ModifierList({ location, navigation }: ListProps) {
 						},
 						canDelete && {
 							label: 'Hapus',
-							icon: <TrashIcon className="size-4" />,
+							icon: <TrashIcon />,
 							disabled: deleting,
 							variant: 'destructive',
 							onClick: () => remove(group),
@@ -460,7 +465,7 @@ function ModifierList({ location, navigation }: ListProps) {
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
 	})
-	return canRead ? (
+	const content = canRead ? (
 		<EntityListPage
 			title="Grup Modifier"
 			description={`Kelola pilihan tambahan di ${location.name}. Max kosong berarti tanpa batas.`}
@@ -468,7 +473,7 @@ function ModifierList({ location, navigation }: ListProps) {
 			createAction={
 				canCreate ? (
 					<Button onClick={() => navigate({ to: '/master/menu/modifiers/new' })}>
-						<LayersIcon className="size-4" />
+						<LayersIcon />
 						Tambah Grup Modifier
 					</Button>
 				) : undefined
@@ -493,6 +498,12 @@ function ModifierList({ location, navigation }: ListProps) {
 		<div className="space-y-4">
 			{navigation}
 			<p role="status">Anda tidak memiliki izin melihat modifier group.</p>
+		</div>
+	)
+
+	return (
+		<div role="tabpanel" id={pageTabPanelId('modifiers')} aria-labelledby="tab-modifiers">
+			{content}
 		</div>
 	)
 }

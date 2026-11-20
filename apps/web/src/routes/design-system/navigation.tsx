@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { BoxesIcon, LayoutDashboardIcon, SettingsIcon, StoreIcon, TruckIcon } from 'lucide-react'
 
-import { PageHeader, PageSection, PageTabs } from '@/components/shared'
+import { PageHeader, PageSection, PageTabs, pageTabPanelId } from '@/components/shared'
 
 import {
 	Breadcrumb,
@@ -161,9 +161,11 @@ function PageTabsDemo() {
 				activeTab={activeTab}
 				onTabChange={setActiveTab}
 			/>
-			<p className="text-sm text-muted-foreground">
-				Active tab: <span className="font-medium text-foreground">{activeTab}</span>
-			</p>
+			<div role="tabpanel" id={pageTabPanelId(activeTab)} aria-labelledby={`tab-${activeTab}`}>
+				<p className="text-sm text-muted-foreground">
+					Active tab: <span className="font-medium text-foreground">{activeTab}</span>
+				</p>
+			</div>
 		</div>
 	)
 }
