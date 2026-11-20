@@ -91,7 +91,7 @@ export function LineItemEditor<T extends LineItem>({
 						variant="outline"
 						onClick={() => onAdd(createRow())}
 					>
-						<PlusIcon className="size-3.5" />
+						<PlusIcon />
 						{addLabel}
 					</Button>
 				</div>
@@ -133,7 +133,7 @@ export function LineItemEditor<T extends LineItem>({
 								}}
 								disabled={rows.length <= minRows}
 							>
-								<Trash2Icon className="size-4" />
+								<Trash2Icon />
 							</Button>
 						</div>
 					</fieldset>

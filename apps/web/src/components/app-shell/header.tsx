@@ -48,13 +48,13 @@ export function AppHeader() {
 				<DropdownMenuContent align="start" sideOffset={8}>
 					<DropdownMenuItem onClick={() => switchLocation(null)}>
 						<span className="flex-1">Semua Lokasi</span>
-						{isConsolidated && <CheckIcon className="ml-2 size-3.5" />}
+						{isConsolidated && <CheckIcon className="ml-2" />}
 					</DropdownMenuItem>
 					{locations.length > 0 && <DropdownMenuSeparator />}
 					{locations.map((loc) => (
 						<DropdownMenuItem key={loc.id} onClick={() => switchLocation(loc.id)}>
 							<span className="flex-1">{loc.name}</span>
-							{activeLocation?.id === loc.id && <CheckIcon className="ml-2 size-3.5" />}
+							{activeLocation?.id === loc.id && <CheckIcon className="ml-2" />}
 						</DropdownMenuItem>
 					))}
 				</DropdownMenuContent>
@@ -82,12 +82,12 @@ export function AppHeader() {
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" sideOffset={8}>
 					<DropdownMenuItem render={<Link to="/account" />}>
-						<UserIcon className="mr-2 size-4" />
+						<UserIcon />
 						Profil
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem onClick={() => logout()}>
-						<LogOutIcon className="mr-2 size-4" />
+						<LogOutIcon />
 						Keluar
 					</DropdownMenuItem>
 				</DropdownMenuContent>

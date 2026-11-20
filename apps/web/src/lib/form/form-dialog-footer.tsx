@@ -34,7 +34,7 @@ export function FormDialogFooter({
 						{cancelLabel}
 					</Button>
 					<Button type="submit" disabled={isSubmitting || !canSubmit}>
-						{isSubmitting && <Spinner className="mr-1.5 size-3.5" />}
+						{isSubmitting && <Spinner className="size-3.5" />}
 						{submitLabel}
 					</Button>
 				</DialogFooter>

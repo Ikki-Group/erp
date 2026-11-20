@@ -42,7 +42,7 @@ export function ActionMenu({
 			<DropdownMenuTrigger
 				render={<Button variant="ghost" size="icon-sm" aria-label={label} className={className} />}
 			>
-				<MoreHorizontalIcon className="size-4" />
+				<MoreHorizontalIcon />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align={align}>
 				{regularItems.map((item) => (

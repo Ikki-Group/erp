@@ -41,7 +41,7 @@ export function MasterDetailPage({
 								className="-ml-2 gap-1.5"
 								onClick={() => onSelectedIdChange(null)}
 							>
-								<ArrowLeftIcon className="size-3.5" />
+								<ArrowLeftIcon />
 								{backLabel}
 							</Button>
 						</div>

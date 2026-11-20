@@ -1440,7 +1440,7 @@ function DataGridTableError() {
 					</p>
 					{props.onRetry && (
 						<Button variant="outline" size="sm" className="mt-1 gap-1.5" onClick={props.onRetry}>
-							<RefreshCwIcon className="size-3.5" />
+							<RefreshCwIcon />
 							Coba lagi
 						</Button>
 					)}

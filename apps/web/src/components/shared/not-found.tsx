@@ -39,7 +39,7 @@ export function NotFound({
 			{showHomeLink && (
 				<Link to="/" className="mt-6">
 					<Button variant="outline" size="sm" className="gap-1.5">
-						<HomeIcon className="size-3.5" />
+						<HomeIcon />
 						Kembali ke Beranda
 					</Button>
 				</Link>

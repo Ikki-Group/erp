@@ -154,7 +154,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 				>
 					<ArrowUpIcon className="size-3.5!" />
 					<span className="grow">Naik</span>
-					{isSorted === 'asc' && <CheckIcon className="text-primary size-4 opacity-100!" />}
+					{isSorted === 'asc' && <CheckIcon className="text-primary opacity-100!" />}
 				</DropdownMenuItem>,
 				<DropdownMenuItem
 					key="sort-desc"
@@ -169,7 +169,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 				>
 					<ArrowDownIcon className="size-3.5!" />
 					<span className="grow">Turun</span>
-					{isSorted === 'desc' && <CheckIcon className="text-primary size-4 opacity-100!" />}
+					{isSorted === 'desc' && <CheckIcon className="text-primary opacity-100!" />}
 				</DropdownMenuItem>,
 			)
 			hasPreviousSection = true
@@ -187,7 +187,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 				>
 					<ArrowLeftToLineIcon className="size-3.5!" aria-hidden="true" />
 					<span className="grow">Sematkan ke kiri</span>
-					{isPinned === 'start' && <CheckIcon className="text-primary size-4 opacity-100!" />}
+					{isPinned === 'start' && <CheckIcon className="text-primary opacity-100!" />}
 				</DropdownMenuItem>,
 				<DropdownMenuItem
 					key="pin-right"
@@ -195,7 +195,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
 				>
 					<ArrowRightToLineIcon className="size-3.5!" aria-hidden="true" />
 					<span className="grow">Sematkan ke kanan</span>
-					{isPinned === 'end' && <CheckIcon className="text-primary size-4 opacity-100!" />}
+					{isPinned === 'end' && <CheckIcon className="text-primary opacity-100!" />}
 				</DropdownMenuItem>,
 			)
 			hasPreviousSection = true

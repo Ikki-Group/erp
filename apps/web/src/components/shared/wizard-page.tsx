@@ -117,7 +117,7 @@ export function WizardPage({
 		<div className={cn('mx-auto max-w-3xl space-y-6 pb-20', className)}>
 			<div className="space-y-1">
 				<Button variant="ghost" size="sm" className="-ml-2 gap-1.5" onClick={handleCancel}>
-					<ArrowLeftIcon className="size-3.5" />
+					<ArrowLeftIcon />
 					{cancelLabel}
 				</Button>
 				<h1 className="font-heading text-lg font-semibold tracking-tight">{title}</h1>

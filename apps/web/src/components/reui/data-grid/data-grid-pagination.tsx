@@ -191,7 +191,7 @@ function DataGridPagination(props: DataGridPaginationProps): JSX.Element {
 									disabled={!table.getCanPreviousPage()}
 								>
 									<span className="sr-only">{mergedProps.previousPageLabel}</span>
-									<ChevronLeftIcon className="size-4" />
+									<ChevronLeftIcon />
 								</Button>
 
 								{renderEllipsisPrevButton()}
@@ -208,7 +208,7 @@ function DataGridPagination(props: DataGridPaginationProps): JSX.Element {
 									disabled={!table.getCanNextPage()}
 								>
 									<span className="sr-only">{mergedProps.nextPageLabel}</span>
-									<ChevronRightIcon className="size-4" />
+									<ChevronRightIcon />
 								</Button>
 							</div>
 						)}
