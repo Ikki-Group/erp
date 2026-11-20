@@ -1,4 +1,4 @@
-import { createEntityColumns, TextCell } from '@/components/data-table'
+import { createEntityColumns } from '@/components/data-table'
 import { StatusBadge } from '@/components/shared/status-badge'
 
 import type { AuditLogDto } from '../dto/index.ts'
@@ -21,22 +21,8 @@ export const auditColumns = [
 		cellProps: { withTime: true },
 	}),
 	col.text('userName', { header: 'Aktor', size: 140, enableSorting: false }),
-	col.text('module', {
-		header: 'Modul',
-		size: 130,
-		enableSorting: false,
-		cell: ({ row }) => (
-			<TextCell
-				value={
-					<>
-						{row.original.module}
-						<span className="text-muted-foreground"> / {row.original.entity}</span>
-					</>
-				}
-				truncate
-			/>
-		),
-	}),
+	col.text('module', { header: 'Modul', size: 110, enableSorting: false }),
+	col.text('entity', { header: 'Entitas', size: 130, enableSorting: false }),
 	col.text('action', {
 		header: 'Aksi',
 		size: 110,

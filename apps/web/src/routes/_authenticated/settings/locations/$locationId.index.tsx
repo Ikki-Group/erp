@@ -151,7 +151,12 @@ function LocationDetail({ location }: { location: LocationDto }) {
 					]}
 					columns={2}
 				/>
-				<AuditInfo createdAt={location.createdAt} createdBy={location.createdBy} />
+				<AuditInfo
+					createdAt={location.createdAt}
+					createdBy={location.createdBy}
+					updatedAt={location.updatedAt}
+					updatedBy={location.updatedBy}
+				/>
 			</DetailSection>
 
 			<AssignedUsersSection locationId={location.id} />
