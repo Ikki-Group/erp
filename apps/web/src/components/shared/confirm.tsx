@@ -3,6 +3,8 @@ import { useCallback, useRef, useState } from 'react'
 import { AlertTriangleIcon, CheckCircle2Icon } from 'lucide-react'
 import { createCallable } from 'react-call'
 
+import { LoadingButton } from '@/components/shared/loading-button'
+
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -12,7 +14,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog'
-import { Spinner } from '@/components/ui/spinner'
 
 interface ConfirmProps {
 	title: string
@@ -127,14 +128,13 @@ export const Confirm = createCallable<ConfirmProps, ConfirmResponse>(
 							<Button variant="outline" onClick={handleCancel} disabled={loading}>
 								{cancelLabel}
 							</Button>
-							<Button
+							<LoadingButton
 								variant={variant === 'destructive' ? 'destructive' : 'default'}
-								disabled={loading}
+								loading={loading}
 								onClick={handleConfirm}
 							>
-								{loading && <Spinner className="mr-1.5 size-3.5" />}
 								{error ? 'Coba lagi' : confirmLabel}
-							</Button>
+							</LoadingButton>
 						</DialogFooter>
 					)}
 

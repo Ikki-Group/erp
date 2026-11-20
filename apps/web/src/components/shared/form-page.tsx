@@ -8,8 +8,9 @@ import { ArrowLeftIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+import { LoadingButton } from '@/components/shared/loading-button'
+
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
 
 export interface FormPageProps {
 	title: string
@@ -57,7 +58,7 @@ export function FormPage({
 		<div className={cn('mx-auto max-w-2xl space-y-6 pb-20', className)}>
 			<div className="space-y-1">
 				<Button variant="ghost" size="sm" className="-ml-2 gap-1.5" onClick={handleCancel}>
-					<ArrowLeftIcon className="size-3.5" />
+					<ArrowLeftIcon />
 					{cancelLabel}
 				</Button>
 				<h1 className="font-heading text-lg font-semibold tracking-tight">{title}</h1>
@@ -80,10 +81,9 @@ export function FormPage({
 						{cancelLabel}
 					</Button>
 					{!readOnly && (
-						<Button type="submit" disabled={isSubmitting || !canSubmit}>
-							{isSubmitting && <Spinner className="mr-1.5 size-3.5" />}
+						<LoadingButton type="submit" loading={isSubmitting} disabled={!canSubmit}>
 							{submitLabel}
-						</Button>
+						</LoadingButton>
 					)}
 				</div>
 			</form>
