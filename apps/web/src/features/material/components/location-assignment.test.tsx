@@ -177,7 +177,12 @@ describe('LocationAssignment', () => {
 
 		fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Location 125' } })
 		await waitFor(() =>
-			expect(fixture.listRead).toHaveBeenLastCalledWith({ page: 1, limit: 25, q: 'Location 125' }),
+			expect(fixture.listRead).toHaveBeenLastCalledWith({
+				page: 1,
+				limit: 25,
+				q: 'Location 125',
+				isActive: 1,
+			}),
 		)
 		expect(screen.getByRole('button', { name: 'Lepas Location 125' })).toBeTruthy()
 		expect(

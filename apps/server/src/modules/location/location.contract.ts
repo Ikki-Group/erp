@@ -38,6 +38,7 @@ export const LocationFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	type: LocationTypeEnum.optional(),
+	isActive: z.coerce.number().int().min(0).max(1).optional(),
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>
 

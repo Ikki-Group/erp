@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import { EditIcon, PlusIcon, RotateCcwIcon, TrashIcon } from 'lucide-react'
+import { z } from 'zod'
 
 import { listSearchSchema, useResourceList } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
@@ -17,12 +18,19 @@ import { Button } from '@/components/ui/button'
 
 import { locationResource } from '@/features/location/api'
 import { locationColumns } from '@/features/location/components/location-table'
-import { LOCATION_TYPE_OPTIONS, LocationTypeEnum } from '@/features/location/dto'
+import {
+	LOCATION_STATUS_OPTIONS,
+	LOCATION_TYPE_OPTIONS,
+	LocationTypeEnum,
+	parseLocationStatus,
+} from '@/features/location/dto'
 import type { LocationDto } from '@/features/location/dto'
 import { useLocationDelete } from '@/features/location/use-location-delete'
+import { useLocationReactivate } from '@/features/location/use-location-reactivate'
 
 const searchSchema = listSearchSchema.extend({
 	type: LocationTypeEnum.optional(),
+	isActive: z.coerce.number().int().min(0).max(1).optional(),
 })
 
 export const Route = createFileRoute('/_authenticated/settings/locations/')({
@@ -36,6 +44,11 @@ function LocationsPage() {
 	const canCreate = usePermissionCheck({ permission: 'location.create' })
 	const canEdit = usePermissionCheck({ permission: 'location.update' })
 	const { run: handleDelete, isPending: deleting, canDelete } = useLocationDelete()
+	const {
+		run: handleReactivate,
+		isPending: reactivating,
+		canUpdate: canReactivate,
+	} = useLocationReactivate()
 
 	const listQuery = useQuery({
 		...locationResource.list.queryOptions({
@@ -43,6 +56,7 @@ function LocationsPage() {
 			limit: search.pageSize,
 			q: search.q,
 			type: search.type,
+			isActive: search.isActive,
 		}),
 		throwOnError: false,
 	})
@@ -61,16 +75,33 @@ function LocationsPage() {
 								params: { locationId: String(location.id) },
 							}),
 					},
-					canDelete && {
-						label: 'Nonaktifkan',
-						icon: <TrashIcon />,
-						onClick: () => handleDelete(location),
-						variant: 'destructive' as const,
-						disabled: deleting,
-					},
+					canReactivate &&
+						!location.isActive && {
+							label: 'Aktifkan kembali',
+							icon: <RotateCcwIcon />,
+							onClick: () => handleReactivate(location),
+							disabled: reactivating,
+						},
+					canDelete &&
+						location.isActive && {
+							label: 'Nonaktifkan',
+							icon: <TrashIcon />,
+							onClick: () => handleDelete(location),
+							variant: 'destructive' as const,
+							disabled: deleting,
+						},
 				],
 			}),
-		[canEdit, canDelete, deleting, handleDelete, navigate],
+		[
+			canEdit,
+			canDelete,
+			canReactivate,
+			deleting,
+			reactivating,
+			handleDelete,
+			handleReactivate,
+			navigate,
+		],
 	)
 
 	const columns = useMemo(
@@ -82,13 +113,13 @@ function LocationsPage() {
 		columns,
 		search,
 		onSearchChange: (next) => navigate({ search: next }),
-		hasFilters: (value) => value.type !== undefined,
+		hasFilters: (value) => value.type !== undefined || value.isActive !== undefined,
 	})
 
 	return (
 		<EntityListPage
 			title="Lokasi"
-			description="Kelola toko dan gudang aktif."
+			description="Kelola toko dan gudang."
 			list={list}
 			createAction={
 				canCreate && (
@@ -99,7 +130,7 @@ function LocationsPage() {
 				)
 			}
 			emptyState={{
-				title: 'Belum ada lokasi aktif',
+				title: 'Belum ada lokasi',
 				description: 'Tambahkan toko atau gudang untuk digunakan tim Anda.',
 			}}
 			emptyMessage="Tidak ada lokasi yang cocok dengan filter Anda."
@@ -123,6 +154,14 @@ function LocationsPage() {
 								list.setFilters({ type: value ? LocationTypeEnum.parse(value) : undefined }),
 							options: LOCATION_TYPE_OPTIONS,
 							allLabel: 'Semua tipe',
+						},
+						{
+							key: 'isActive',
+							label: 'Status',
+							value: search.isActive === undefined ? undefined : String(search.isActive),
+							onChange: (value) => list.setFilters({ isActive: parseLocationStatus(value) }),
+							options: LOCATION_STATUS_OPTIONS,
+							allLabel: 'Semua status',
 						},
 					]}
 				/>

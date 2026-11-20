@@ -53,17 +53,19 @@ export function createLocationRepo(baseDb: DbContext): ILocationRepo {
 	return {
 		...crud,
 
-		// Soft-deleted locations are hidden from single and full-list reads.
+		// Inactive locations stay readable by id (and by update) so an administrator can
+		// open one and reactivate it; the company overview already links to inactive sites.
 		async findById(id, db = baseDb) {
 			const row = await db
 				.select()
 				.from(locations)
-				.where(and(eq(locations.id, id), isActive))
+				.where(eq(locations.id, id))
 				.limit(1)
 				.then(takeFirst)
 			return row ? toDto(row) : undefined
 		},
 
+		// The selectable-location list (header switcher, form selects) stays active-only.
 		async findMany(db = baseDb) {
 			const rows = await db.select().from(locations).where(isActive)
 			return rows.map(toDto)
@@ -74,7 +76,7 @@ export function createLocationRepo(baseDb: DbContext): ILocationRepo {
 				filter,
 				{
 					where: allOf(
-						isActive,
+						eqIf(locations.isActive, filter.isActive),
 						searchAcross(filter.q, [locations.code, locations.name]),
 						eqIf(locations.type, filter.type),
 					),

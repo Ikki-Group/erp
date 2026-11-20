@@ -60,7 +60,8 @@ export class AssignmentService {
 		// 1. Validate locationId exists (if not null)
 		if (data.locationId !== null) {
 			const location = await this.deps.locationService.getById(data.locationId)
-			if (!location) {
+			// A deactivated location exists but takes no new assignments.
+			if (!location || !location.isActive) {
 				throw new NotFoundError('Location not found', {
 					code: 'LOCATION_NOT_FOUND',
 					context: { locationId: data.locationId },

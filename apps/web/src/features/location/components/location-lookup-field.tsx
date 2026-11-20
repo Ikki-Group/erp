@@ -6,7 +6,8 @@ import { locationResource } from '../api'
 import type { LocationDto } from '../dto'
 
 const locationLookup: ResourceLookupAdapter<LocationDto> = {
-	listOptions: (query) => locationResource.list.queryOptions(query),
+	// Lookups only ever offer selectable (active) locations.
+	listOptions: (query) => locationResource.list.queryOptions({ ...query, isActive: 1 }),
 	detailOptions: (id) => locationResource.detail.queryOptions({ id }),
 	label: (location) => `${location.code} — ${location.name}`,
 }

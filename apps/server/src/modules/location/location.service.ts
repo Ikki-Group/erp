@@ -63,6 +63,15 @@ export class LocationService {
 	}
 
 	async handleGetById(id: number): Promise<LocationDto> {
+		// Existence guard for writes at a location: a deactivated site exists but must not
+		// accept new records (orders, receivings, transfers, opnames), so it reads as absent.
+		const location = await this.getById(id)
+		if (!location?.isActive) throw LocationError.notFound(id)
+		return location
+	}
+
+	/** Admin read: an inactive location stays openable so it can be reactivated. */
+	async handleGetDetail(id: number): Promise<LocationDto> {
 		const location = await this.getById(id)
 		if (!location) throw LocationError.notFound(id)
 		return location

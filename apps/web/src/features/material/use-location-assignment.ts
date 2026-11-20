@@ -41,6 +41,7 @@ export function useLocationAssignment(materialId: number, permissions: Assignmen
 			page: search.page,
 			limit: PAGE_SIZE,
 			q: search.q || undefined,
+			isActive: 1,
 		}),
 		throwOnError: false,
 	})

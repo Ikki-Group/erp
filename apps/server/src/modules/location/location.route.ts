@@ -15,6 +15,11 @@ export function createLocationRoute(service: LocationService) {
 		tag: 'Locations',
 		entity: 'location',
 		service,
+		// `/detail` opens inactive locations too (the company overview links to them).
+		detail: {
+			response: LocationDto,
+			handle: (id) => service.handleGetDetail(id),
+		},
 		schemas: {
 			filter: LocationFilterDto,
 			dto: LocationDto,

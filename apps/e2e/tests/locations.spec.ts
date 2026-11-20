@@ -19,7 +19,7 @@ test.describe('Locations - CRUD', () => {
 		await page.goto('/settings/locations')
 
 		await expect(page.getByRole('heading', { name: 'Lokasi' })).toBeVisible()
-		await expect(page.getByText('Kelola toko dan gudang aktif.')).toBeVisible()
+		await expect(page.getByText('Kelola toko dan gudang.')).toBeVisible()
 	})
 
 	/** Add Location button is visible for authorized users */

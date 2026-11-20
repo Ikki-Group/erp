@@ -12,6 +12,15 @@ export const LOCATION_TYPE_OPTIONS = [
 	{ label: 'Gudang', value: 'warehouse' },
 ] as const
 
+export const LOCATION_STATUS_OPTIONS = [
+	{ label: 'Aktif', value: '1' },
+	{ label: 'Nonaktif', value: '0' },
+] as const
+
+export function parseLocationStatus(value: string | undefined): 0 | 1 | undefined {
+	return value === '1' ? 1 : value === '0' ? 0 : undefined
+}
+
 // ─── Response ───
 
 export const LocationDto = z.object({
@@ -32,6 +41,7 @@ export const LocationFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	type: LocationTypeEnum.optional(),
+	isActive: z.coerce.number().int().min(0).max(1).optional(),
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>
 
