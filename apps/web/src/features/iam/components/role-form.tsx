@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 
-import { SearchIcon, XIcon } from 'lucide-react'
+import { ChevronRightIcon, SearchIcon, XIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { formatFieldError } from '@/lib/form/field-error'
 import { useEntityEditor } from '@/lib/form/use-entity-editor'
+import { cn } from '@/lib/utils'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -92,7 +93,9 @@ type PermissionsPickerProps = { value: string[] } & (
 
 function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps) {
 	const [query, setQuery] = useState('')
+	const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set())
 	const normalizedQuery = query.trim().toLowerCase()
+	const searching = normalizedQuery.length > 0
 	const totalPermissions = PERMISSION_GROUPS.reduce(
 		(total, group) => total + group.permissions.length,
 		0,
@@ -133,6 +136,15 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 		if (!readOnly) onChange(PERMISSION_GROUPS.flatMap((group) => group.permissions))
 	}
 
+	const toggleGroupOpen = (module: string) => {
+		setExpandedGroups((previous) => {
+			const next = new Set(previous)
+			if (next.has(module)) next.delete(module)
+			else next.add(module)
+			return next
+		})
+	}
+
 	return (
 		<div className="space-y-2">
 			<div className="flex flex-wrap items-center justify-between gap-2">
@@ -161,7 +173,7 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 						<Button
 							type="button"
 							variant="ghost"
-							size="icon-xs"
+							size="icon-sm"
 							className="absolute right-1 top-1/2 -translate-y-1/2"
 							onClick={() => setQuery('')}
 							aria-label="Bersihkan pencarian izin"
@@ -172,13 +184,13 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 				</div>
 				{!readOnly && (
 					<>
-						<Button type="button" variant="outline" size="xs" onClick={selectAll}>
+						<Button type="button" variant="outline" size="sm" onClick={selectAll}>
 							Pilih semua
 						</Button>
 						<Button
 							type="button"
 							variant="ghost"
-							size="xs"
+							size="sm"
 							onClick={() => onChange([])}
 							disabled={selectedCount === 0}
 						>
@@ -200,41 +212,57 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 						).length
 						const allChecked = selectedInGroup === group.permissions.length
 						const someChecked = selectedInGroup > 0 && !allChecked
+						const open = searching || expandedGroups.has(group.module)
 
 						return (
 							<div key={group.module} className="rounded-md border bg-muted/30 p-3">
-								<div className="flex items-center justify-between gap-2">
-									<label className="flex items-center gap-2">
-										<Checkbox
-											checked={allChecked}
-											indeterminate={someChecked}
-											disabled={readOnly}
-											onCheckedChange={() => toggleGroup(group.permissions)}
+								<div className="flex items-center gap-2">
+									<Checkbox
+										className="min-h-6 min-w-6"
+										aria-label={`Pilih semua izin ${group.label}`}
+										checked={allChecked}
+										indeterminate={someChecked}
+										disabled={readOnly}
+										onCheckedChange={() => toggleGroup(group.permissions)}
+									/>
+									<button
+										type="button"
+										aria-expanded={open}
+										onClick={() => toggleGroupOpen(group.module)}
+										className="flex min-h-6 flex-1 items-center gap-1.5 rounded text-left"
+									>
+										<ChevronRightIcon
+											className={cn(
+												'size-3.5 shrink-0 text-muted-foreground transition-transform',
+												open && 'rotate-90',
+											)}
 										/>
 										<span className="text-sm font-medium">{group.label}</span>
-									</label>
-									<span className="text-xs text-muted-foreground">
+									</button>
+									<span className="text-xs tabular-nums text-muted-foreground">
 										{selectedInGroup}/{group.permissions.length}
 									</span>
 								</div>
-								<div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-									{group.permissions.map((permission) => (
-										<label
-											key={permission}
-											className="flex items-center gap-2 rounded px-1.5 py-1 text-xs hover:bg-muted/50"
-										>
-											<Checkbox
-												checked={value.includes(permission)}
-												disabled={readOnly}
-												onCheckedChange={() => togglePermission(permission)}
-												className="size-3.5"
-											/>
-											<span className="truncate" title={permission}>
-												{permissionLabel(permission)}
-											</span>
-										</label>
-									))}
-								</div>
+								{open && (
+									<div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+										{group.permissions.map((permission) => (
+											<label
+												key={permission}
+												className="flex min-h-6 items-center gap-2 rounded px-1.5 text-xs hover:bg-muted/50"
+											>
+												<Checkbox
+													checked={value.includes(permission)}
+													disabled={readOnly}
+													onCheckedChange={() => togglePermission(permission)}
+													className="size-3.5"
+												/>
+												<span className="truncate" title={permission}>
+													{permissionLabel(permission)}
+												</span>
+											</label>
+										))}
+									</div>
+								)}
 							</div>
 						)
 					})
