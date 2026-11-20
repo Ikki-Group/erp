@@ -112,23 +112,23 @@ export function UsersList({ searchParams }: UsersListProps) {
 				getItems: (user) => [
 					{
 						label: 'Lihat',
-						icon: <EyeIcon className="size-4" />,
+						icon: <EyeIcon />,
 						onClick: () => handleView(user.id),
 					},
 					canEdit && {
 						label: 'Ubah',
-						icon: <EditIcon className="size-4" />,
+						icon: <EditIcon />,
 						onClick: () => handleEdit(user.id),
 					},
 					canEdit && {
 						label: 'Reset Kata Sandi',
-						icon: <KeyRoundIcon className="size-4" />,
+						icon: <KeyRoundIcon />,
 						onClick: () => handleResetPassword(user),
 					},
 					canDeactivate &&
 						user.isActive && {
 							label: 'Nonaktifkan',
-							icon: <UserXIcon className="size-4" />,
+							icon: <UserXIcon />,
 							onClick: () => handleDeactivate(user),
 							variant: 'destructive' as const,
 							disabled: deactivating,
@@ -166,7 +166,7 @@ export function UsersList({ searchParams }: UsersListProps) {
 			createAction={
 				<PermissionGate permission="iam.create">
 					<Button size="sm" onClick={handleAdd}>
-						<PlusIcon className="size-4" />
+						<PlusIcon />
 						Tambah Pengguna
 					</Button>
 				</PermissionGate>

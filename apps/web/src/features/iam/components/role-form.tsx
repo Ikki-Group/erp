@@ -166,7 +166,7 @@ function PermissionsPicker({ value, onChange, readOnly }: PermissionsPickerProps
 							onClick={() => setQuery('')}
 							aria-label="Bersihkan pencarian izin"
 						>
-							<XIcon className="size-3" />
+							<XIcon />
 						</Button>
 					)}
 				</div>

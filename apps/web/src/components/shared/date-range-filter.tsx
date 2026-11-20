@@ -116,7 +116,7 @@ export function DateRangeFilter({
 					/>
 				}
 			>
-				<CalendarIcon className="mr-1.5 size-3.5" />
+				<CalendarIcon />
 				<span className="truncate">{displayValue ?? placeholder}</span>
 			</PopoverTrigger>
 			<PopoverContent className="flex w-auto flex-col p-0 sm:flex-row" align="start">

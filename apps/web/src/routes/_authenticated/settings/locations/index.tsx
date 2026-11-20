@@ -54,7 +54,7 @@ function LocationsPage() {
 				getItems: (location) => [
 					canEdit && {
 						label: 'Ubah',
-						icon: <EditIcon className="size-4" />,
+						icon: <EditIcon />,
 						onClick: () =>
 							navigate({
 								to: '/settings/locations/$locationId/edit',
@@ -63,7 +63,7 @@ function LocationsPage() {
 					},
 					canDelete && {
 						label: 'Nonaktifkan',
-						icon: <TrashIcon className="size-4" />,
+						icon: <TrashIcon />,
 						onClick: () => handleDelete(location),
 						variant: 'destructive' as const,
 						disabled: deleting,
@@ -93,7 +93,7 @@ function LocationsPage() {
 			createAction={
 				canCreate && (
 					<Button size="sm" onClick={() => navigate({ to: '/settings/locations/new' })}>
-						<PlusIcon className="size-4" />
+						<PlusIcon />
 						Tambah Lokasi
 					</Button>
 				)

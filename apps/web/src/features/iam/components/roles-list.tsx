@@ -106,19 +106,19 @@ export function RolesList({ searchParams }: RolesListProps) {
 				getItems: (role) => [
 					role.isSystem && {
 						label: 'Lihat',
-						icon: <EyeIcon className="size-4" />,
+						icon: <EyeIcon />,
 						onClick: () => handleView(role.id),
 					},
 					!role.isSystem &&
 						canEdit && {
 							label: 'Ubah',
-							icon: <EditIcon className="size-4" />,
+							icon: <EditIcon />,
 							onClick: () => handleEdit(role.id),
 						},
 					!role.isSystem &&
 						canDelete && {
 							label: 'Hapus',
-							icon: <TrashIcon className="size-4" />,
+							icon: <TrashIcon />,
 							onClick: () => handleDelete(role),
 							variant: 'destructive' as const,
 							disabled: deletingRole,
@@ -144,7 +144,7 @@ export function RolesList({ searchParams }: RolesListProps) {
 	const addRoleAction = (
 		<PermissionGate permission="iam.create">
 			<Button size="sm" onClick={handleAdd}>
-				<PlusIcon className="size-4" />
+				<PlusIcon />
 				Tambah Peran
 			</Button>
 		</PermissionGate>

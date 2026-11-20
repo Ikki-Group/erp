@@ -151,7 +151,7 @@ export const UserFormFields = withForm({
 														</p>
 													</div>
 													<Button type="button" size="sm" variant="outline" onClick={addAssignment}>
-														<PlusIcon className="size-3.5" />
+														<PlusIcon />
 														Tambah {isGlobal ? 'peran' : 'lokasi'}
 													</Button>
 												</div>

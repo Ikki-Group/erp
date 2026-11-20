@@ -78,7 +78,7 @@ function EditButton() {
 	const navigate = useNavigate()
 	return (
 		<Button size="sm" onClick={() => navigate({ to: '/settings/company/edit' })}>
-			<PencilIcon className="size-4" />
+			<PencilIcon />
 			Ubah
 		</Button>
 	)

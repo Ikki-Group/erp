@@ -36,7 +36,7 @@ function ButtonsPage() {
 			{/* ─── BUTTONS ─── */}
 			<PageSection
 				title="Buttons"
-				description="Variant × size. Icon-only buttons use the icon-* size scale (icon-xs/sm/default/lg)."
+				description="Variant × size. Icon-only buttons use the icon-* size scale (icon-xs/sm/default/lg). Inline icons inherit the button size via --btn-icon, so leave them without a size class."
 			>
 				<div className="space-y-6">
 					<p className="max-w-2xl text-sm text-muted-foreground">
@@ -106,15 +106,15 @@ function ButtonsPage() {
 						<p className="mb-2 text-xs font-medium text-muted-foreground">With icon + label</p>
 						<div className="flex flex-wrap gap-3">
 							<Button size="sm">
-								<PlusIcon className="size-3.5" />
+								<PlusIcon />
 								Add Material
 							</Button>
 							<Button size="sm" variant="outline">
-								<DownloadIcon className="size-3.5" />
+								<DownloadIcon />
 								Export
 							</Button>
 							<Button size="sm" variant="destructive">
-								<TrashIcon className="size-3.5" />
+								<TrashIcon />
 								Delete
 							</Button>
 						</div>
@@ -266,7 +266,7 @@ function PermissionGateDemo() {
 				<span className="text-xs text-muted-foreground">Materials list toolbar →</span>
 				{granted ? (
 					<Button size="sm">
-						<PlusIcon className="size-3.5" />
+						<PlusIcon />
 						Add Material
 					</Button>
 				) : (

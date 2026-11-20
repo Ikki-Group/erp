@@ -28,7 +28,7 @@ export function PageError({
 			<p className="mt-1 max-w-sm text-xs text-muted-foreground">{message}</p>
 			{onRetry && (
 				<Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={onRetry}>
-					<RefreshCwIcon className="size-3.5" />
+					<RefreshCwIcon />
 					Coba lagi
 				</Button>
 			)}
