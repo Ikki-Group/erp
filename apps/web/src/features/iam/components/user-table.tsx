@@ -4,6 +4,7 @@ import { createEntityColumns } from '@/components/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 import type { UserListItemDto } from '../dto/index.ts'
 
@@ -20,19 +21,26 @@ export const userColumns = [
 		cell: ({ getValue }) => {
 			const roles = getValue()
 			if (!roles.length) return <span className="text-muted-foreground">Tidak ada peran</span>
+			// One line, never wrapping: the first role plus a `+N` count. The
+			// tooltip carries the full set so extra roles never break the row.
 			return (
-				<div className="flex flex-wrap gap-1">
-					{roles.slice(0, 3).map((role) => (
-						<Badge key={role} variant="outline" className="font-normal">
-							{role}
+				<Tooltip>
+					<TooltipTrigger
+						render={<div className="flex min-w-0 max-w-full items-center gap-1" tabIndex={0} />}
+					>
+						<Badge variant="outline" className="min-w-0 shrink font-normal">
+							<span className="truncate">{roles[0]}</span>
 						</Badge>
-					))}
-					{roles.length > 3 && (
-						<Badge variant="secondary" className="font-normal">
-							+{roles.length - 3}
-						</Badge>
-					)}
-				</div>
+						{roles.length > 1 && (
+							<Badge variant="secondary" className="font-normal">
+								+{roles.length - 1}
+							</Badge>
+						)}
+					</TooltipTrigger>
+					<TooltipContent side="top" className="max-w-sm">
+						{roles.join(', ')}
+					</TooltipContent>
+				</Tooltip>
 			)
 		},
 	}),
