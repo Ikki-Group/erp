@@ -34,7 +34,7 @@ interface OrderCartProps {
 }
 
 export function getModifierKey(line: CartLine): string {
-	return `${line.menuItemId}:${line.modifierOptionIds.sort().join(',')}`
+	return `${line.menuItemId}:${[...line.modifierOptionIds].sort().join(',')}`
 }
 
 export function OrderCart({
