@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 
 import { SearchIcon } from 'lucide-react'
 
+import { EmptyState } from '@/components/shared/empty-state.tsx'
+
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -64,7 +66,13 @@ export function MenuGrid({ onSelectItem }: MenuGridProps) {
 				<Badge
 					variant={selectedCategoryId === null ? 'default' : 'outline'}
 					className="cursor-pointer"
-					onClick={() => setSelectedCategoryId(null)}
+					render={
+						<button
+							type="button"
+							aria-pressed={selectedCategoryId === null}
+							onClick={() => setSelectedCategoryId(null)}
+						/>
+					}
 				>
 					Semua
 				</Badge>
@@ -73,7 +81,13 @@ export function MenuGrid({ onSelectItem }: MenuGridProps) {
 						key={cat.id}
 						variant={selectedCategoryId === cat.id ? 'default' : 'outline'}
 						className="cursor-pointer"
-						onClick={() => setSelectedCategoryId(cat.id)}
+						render={
+							<button
+								type="button"
+								aria-pressed={selectedCategoryId === cat.id}
+								onClick={() => setSelectedCategoryId(cat.id)}
+							/>
+						}
 					>
 						{cat.name}
 					</Badge>
@@ -88,9 +102,7 @@ export function MenuGrid({ onSelectItem }: MenuGridProps) {
 						))}
 					</div>
 				) : items.length === 0 ? (
-					<div className="flex h-32 items-center justify-center text-muted-foreground">
-						Tidak ada menu ditemukan
-					</div>
+					<EmptyState title="Tidak ada menu ditemukan" />
 				) : (
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
 						{items.map((item) => (
