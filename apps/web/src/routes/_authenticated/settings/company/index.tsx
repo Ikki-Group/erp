@@ -169,7 +169,7 @@ function SiteRow({
 				<Link
 					to="/settings/locations/$locationId"
 					params={{ locationId: String(site.id) }}
-					className="text-sm font-medium hover:underline"
+					className="inline-flex min-h-6 items-center text-sm font-medium hover:underline"
 				>
 					{site.name}
 				</Link>

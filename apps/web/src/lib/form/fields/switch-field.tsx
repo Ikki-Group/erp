@@ -50,6 +50,7 @@ export function SwitchField({ id, label, description, disabled, className }: Swi
 				checked={field.state.value ?? false}
 				onCheckedChange={(checked) => field.handleChange(checked)}
 				disabled={disabled}
+				className="min-h-6"
 			/>
 		</div>
 	)
