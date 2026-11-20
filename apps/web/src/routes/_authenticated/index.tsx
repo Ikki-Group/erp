@@ -57,6 +57,8 @@ function DashboardPage() {
 	// Real-time query configuration
 	const REFETCH_INTERVAL_MS = 30000 // 30 seconds
 	const STALE_TIME_MS = 20000 // 20 seconds
+	// `zq.pagination` caps `limit` at 100, so 100 is the most the scan can read.
+	const STOCK_SCAN_LIMIT = 100
 
 	// ─── Aggregate counts across every accessible location ───
 	// `/company/overview` already returns per-site counts, so consolidated mode
@@ -75,11 +77,12 @@ function DashboardPage() {
 		scopedSites.reduce((total, site) => total + pick(site), 0)
 
 	// ─── Low stock (materials below their minimum at the active location) ───
-	// ponytail: reads only the first 200 balances and filters client-side; a
-	// location with >200 materials under-reports. Fine for a dashboard glance —
-	// a server-side "low stock" count endpoint is the upgrade path.
+	// ponytail: reads only the first STOCK_SCAN_LIMIT balances and filters
+	// client-side; a location with more balances under-reports. Fine for a
+	// dashboard glance — a server-side "low stock" count endpoint is the upgrade
+	// path. The card labels the list "sebagian" when the cap is hit.
 	const stockQuery = useQuery({
-		...stockBalanceList.queryOptions({ page: 1, limit: 200, locationId: locationId! }),
+		...stockBalanceList.queryOptions({ page: 1, limit: STOCK_SCAN_LIMIT, locationId: locationId! }),
 		enabled: locationId !== undefined,
 		refetchInterval: REFETCH_INTERVAL_MS,
 		staleTime: STALE_TIME_MS,
@@ -87,6 +90,7 @@ function DashboardPage() {
 	const lowStockItems = (stockQuery.data?.data ?? []).filter(
 		(b) => b.minStock !== null && Number(b.quantity) < Number(b.minStock),
 	)
+	const lowStockTruncated = (stockQuery.data?.meta?.total ?? 0) > STOCK_SCAN_LIMIT
 
 	// ─── Transfers in transit (either direction) at the active location ───
 	const transfersQuery = useQuery({
@@ -325,6 +329,11 @@ function DashboardPage() {
 									</div>
 								))}
 							</div>
+							{lowStockTruncated && (
+								<p className="px-4 pt-3 text-xs text-muted-foreground">
+									Menampilkan sebagian bahan — daftar dibatasi {STOCK_SCAN_LIMIT} baris.
+								</p>
+							)}
 							<div className="border-t px-4 py-3">
 								<Button
 									variant="ghost"
