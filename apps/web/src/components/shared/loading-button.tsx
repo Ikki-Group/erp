@@ -10,7 +10,7 @@ export interface LoadingButtonProps extends ComponentProps<typeof Button> {
 export function LoadingButton({ loading, disabled, children, ...props }: LoadingButtonProps) {
 	return (
 		<Button disabled={loading || disabled} aria-busy={loading} {...props}>
-			{loading && <Spinner className="mr-1.5 size-3.5" />}
+			{loading && <Spinner className="size-3.5" />}
 			{children}
 		</Button>
 	)

@@ -155,7 +155,7 @@ export function WizardPage({
 						{activeStep === 1 ? cancelLabel : 'Kembali'}
 					</Button>
 					<Button type="button" onClick={handleNext} disabled={isSubmitting || !canAdvance}>
-						{isSubmitting && <Spinner className="mr-1.5 size-3.5" />}
+						{isSubmitting && <Spinner className="size-3.5" />}
 						{isLastStep ? submitLabel : 'Lanjut'}
 					</Button>
 				</div>

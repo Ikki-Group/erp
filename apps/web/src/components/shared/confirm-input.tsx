@@ -137,7 +137,7 @@ export const ConfirmInput = createCallable<ConfirmInputProps, ConfirmInputRespon
 							{cancelLabel}
 						</Button>
 						<Button variant="destructive" disabled={!isMatch || loading} onClick={handleConfirm}>
-							{loading && <Spinner className="mr-1.5 size-3.5" />}
+							{loading && <Spinner className="size-3.5" />}
 							{confirmLabel}
 						</Button>
 					</DialogFooter>

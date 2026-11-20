@@ -136,7 +136,7 @@ export const FormDialog = createCallable<FormDialogProps, FormDialogResponse>(
 									{cancelLabel ?? 'Batal'}
 								</Button>
 								<Button onClick={handleLegacySubmit} disabled={loading}>
-									{loading && <Spinner className="mr-1.5 size-3.5" />}
+									{loading && <Spinner className="size-3.5" />}
 									{submitLabel ?? 'Simpan'}
 								</Button>
 							</DialogFooter>
