@@ -108,7 +108,7 @@ function SessionList({ sessions }: { sessions: SessionDto[] }) {
 								disabled={pendingId !== null}
 								onClick={() => void handleRevoke(session)}
 							>
-								Keluar
+								Keluarkan
 							</Button>
 						)}
 					</li>
