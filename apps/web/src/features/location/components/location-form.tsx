@@ -84,7 +84,7 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 	return (
 		<div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start">
 			<div className="grid gap-6">
-				<section className="rounded-xl border bg-card p-5 shadow-sm shadow-slate-950/3 sm:p-6">
+				<section className="rounded-xl border bg-card p-5 sm:p-6">
 					<div className="mb-5 flex items-start gap-3 border-b pb-4">
 						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
 							<MapPinIcon className="size-4" />
@@ -133,7 +133,7 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 					</div>
 				</section>
 
-				<section className="rounded-xl border bg-card p-5 shadow-sm shadow-slate-950/3 sm:p-6">
+				<section className="rounded-xl border bg-card p-5 sm:p-6">
 					<div className="mb-5 flex items-start gap-3 border-b pb-4">
 						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
 							<PhoneIcon className="size-4" />
@@ -169,7 +169,7 @@ export function LocationFormFields({ form }: { form: LocationForm }) {
 			</div>
 
 			<aside className="hidden space-y-5 lg:block">
-				<div className="rounded-xl border bg-primary/4.5 p-5">
+				<div className="rounded-xl border bg-primary/5 p-5">
 					<Building2Icon className="mb-4 size-5 text-primary" />
 					<h2 className="font-heading text-sm font-semibold tracking-tight">
 						Lokasi adalah tempat kerja

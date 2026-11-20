@@ -81,7 +81,7 @@ export const UserFormFields = withForm({
 								const addAssignment = () => assignmentsField.pushValue(createUserAssignment())
 
 								return (
-									<section className="overflow-hidden rounded-xl border bg-card shadow-sm">
+									<section className="overflow-hidden rounded-xl border bg-card">
 										<div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
 											<div className="flex gap-3">
 												<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
