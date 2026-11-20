@@ -94,7 +94,7 @@ function PaymentMethodsPage() {
 				getItems: (item) => [
 					canEdit && {
 						label: 'Ubah',
-						icon: <EditIcon className="size-4" />,
+						icon: <EditIcon />,
 						onClick: () =>
 							navigate({
 								to: '/master/payment-methods/$paymentMethodId',
@@ -103,7 +103,7 @@ function PaymentMethodsPage() {
 					},
 					canDelete && {
 						label: 'Hapus',
-						icon: <TrashIcon className="size-4" />,
+						icon: <TrashIcon />,
 						onClick: () => handleDelete(item),
 						variant: 'destructive' as const,
 						disabled: deleting,
@@ -133,7 +133,7 @@ function PaymentMethodsPage() {
 			createAction={
 				<PermissionGate permission="payment-method.create">
 					<Button onClick={() => navigate({ to: '/master/payment-methods/new' })}>
-						<PlusIcon className="size-4" />
+						<PlusIcon />
 						Tambah Metode Pembayaran
 					</Button>
 				</PermissionGate>

@@ -115,7 +115,7 @@ function UomPage() {
 				getItems: (unit) => [
 					canEdit && {
 						label: 'Ubah',
-						icon: <EditIcon className="size-4" />,
+						icon: <EditIcon />,
 						onClick: () =>
 							navigate({
 								to: '/master/uom/$uomId',
@@ -124,7 +124,7 @@ function UomPage() {
 					},
 					canDelete && {
 						label: 'Hapus',
-						icon: <TrashIcon className="size-4" />,
+						icon: <TrashIcon />,
 						onClick: () => handleDelete(unit),
 						variant: 'destructive' as const,
 						disabled: deletingUnit,
@@ -156,7 +156,7 @@ function UomPage() {
 				actions={
 					<PermissionGate permission="uom.create">
 						<Button size="sm" variant="outline" onClick={handleAddConversion}>
-							<ArrowRightIcon className="size-4" />
+							<ArrowRightIcon />
 							Tambah Konversi
 						</Button>
 					</PermissionGate>
@@ -164,7 +164,7 @@ function UomPage() {
 				createAction={
 					<PermissionGate permission="uom.create">
 						<Button onClick={() => navigate({ to: '/master/uom/new' })}>
-							<PlusIcon className="size-4" />
+							<PlusIcon />
 							Tambah Satuan
 						</Button>
 					</PermissionGate>
@@ -243,7 +243,7 @@ function UomPage() {
 										disabled={deletingConversion}
 										onClick={() => handleDeleteConversion(conv)}
 									>
-										<TrashIcon className="size-3.5" />
+										<TrashIcon />
 									</Button>
 								</PermissionGate>
 							</div>

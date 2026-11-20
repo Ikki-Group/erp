@@ -110,7 +110,7 @@ function SuppliersPage() {
 				getItems: (supplier) => [
 					canEdit && {
 						label: 'Ubah',
-						icon: <EditIcon className="size-4" />,
+						icon: <EditIcon />,
 						onClick: () =>
 							navigate({
 								to: '/master/suppliers/$supplierId',
@@ -119,12 +119,12 @@ function SuppliersPage() {
 					},
 					canRead && {
 						label: 'Harga',
-						icon: <PackageIcon className="size-4" />,
+						icon: <PackageIcon />,
 						onClick: () => handlePricing(supplier),
 					},
 					canDelete && {
 						label: 'Hapus',
-						icon: <TrashIcon className="size-4" />,
+						icon: <TrashIcon />,
 						onClick: () => handleDelete(supplier),
 						variant: 'destructive' as const,
 						disabled: deletingSupplier,
@@ -154,7 +154,7 @@ function SuppliersPage() {
 			createAction={
 				<PermissionGate permission="supplier.create">
 					<Button onClick={() => navigate({ to: '/master/suppliers/new' })}>
-						<PlusIcon className="size-4" />
+						<PlusIcon />
 						Tambah Pemasok
 					</Button>
 				</PermissionGate>

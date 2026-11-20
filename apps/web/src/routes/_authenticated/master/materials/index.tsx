@@ -226,7 +226,7 @@ function MaterialsPage() {
 				getItems: (material) => [
 					canEdit && {
 						label: 'Ubah',
-						icon: <EditIcon className="size-4" />,
+						icon: <EditIcon />,
 						onClick: () =>
 							navigate({
 								to: '/master/materials/$materialId',
@@ -235,12 +235,12 @@ function MaterialsPage() {
 					},
 					canRead && {
 						label: 'Lokasi',
-						icon: <MapPinIcon className="size-4" />,
+						icon: <MapPinIcon />,
 						onClick: () => handleLocations(material),
 					},
 					canDelete && {
 						label: 'Hapus',
-						icon: <TrashIcon className="size-4" />,
+						icon: <TrashIcon />,
 						onClick: () => handleDelete(material),
 						variant: 'destructive' as const,
 						disabled: deletingMaterial,
@@ -272,7 +272,7 @@ function MaterialsPage() {
 				actions={
 					<PermissionGate permission="material.create">
 						<Button size="sm" variant="outline" onClick={handleCreateCategory}>
-							<TagIcon className="size-4" />
+							<TagIcon />
 							Tambah Kategori
 						</Button>
 					</PermissionGate>
@@ -280,7 +280,7 @@ function MaterialsPage() {
 				createAction={
 					<PermissionGate permission="material.create">
 						<Button onClick={() => navigate({ to: '/master/materials/new' })}>
-							<PlusIcon className="size-4" />
+							<PlusIcon />
 							Tambah Bahan
 						</Button>
 					</PermissionGate>
@@ -351,7 +351,7 @@ function MaterialsPage() {
 												className="size-7"
 												onClick={() => handleEditCategory(cat)}
 											>
-												<EditIcon className="size-3.5" />
+												<EditIcon />
 											</Button>
 										)}
 										{canDelete && (
@@ -362,7 +362,7 @@ function MaterialsPage() {
 												onClick={() => handleDeleteCategory(cat)}
 												disabled={deletingCategory}
 											>
-												<TrashIcon className="size-3.5" />
+												<TrashIcon />
 											</Button>
 										)}
 									</div>

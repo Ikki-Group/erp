@@ -111,7 +111,7 @@ function RecipesPage({ location }: { location: AuthLocation }) {
 					getItems: (recipe) => [
 						canEdit && {
 							label: 'Ubah',
-							icon: <EditIcon className="size-4" />,
+							icon: <EditIcon />,
 							onClick: () =>
 								navigate({
 									to: '/master/recipes/$recipeId',
@@ -120,7 +120,7 @@ function RecipesPage({ location }: { location: AuthLocation }) {
 						},
 						canDelete && {
 							label: 'Hapus',
-							icon: <TrashIcon className="size-4" />,
+							icon: <TrashIcon />,
 							onClick: () => handleDelete(recipe),
 							variant: 'destructive' as const,
 							disabled: deleting,
@@ -146,7 +146,7 @@ function RecipesPage({ location }: { location: AuthLocation }) {
 			createAction={
 				<PermissionGate permission="recipe.create">
 					<Button onClick={() => navigate({ to: '/master/recipes/new' })}>
-						<PlusIcon className="size-4" />
+						<PlusIcon />
 						Tambah Resep
 					</Button>
 				</PermissionGate>
