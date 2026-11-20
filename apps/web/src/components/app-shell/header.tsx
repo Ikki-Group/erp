@@ -40,14 +40,14 @@ export function AppHeader({ onOpenCommand }: AppHeaderProps) {
 
 	return (
 		<header className="z-10 flex h-14 min-w-0 shrink-0 items-center gap-2 border-b bg-background px-3 sm:px-4">
-			<SidebarTrigger className="-ml-1" />
+			<SidebarTrigger size="icon-lg" className="-ml-1" />
 			<Separator orientation="vertical" className="mx-2" aria-hidden="true" />
 
 			{/* Location switcher with accessible indicator */}
 			<DropdownMenu>
-				<DropdownMenuTrigger className="inline-flex min-h-9 min-w-0 max-w-[min(18rem,calc(100vw-9rem))] items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-sm font-normal hover:bg-accent disabled:pointer-events-none disabled:opacity-50">
-					<MapPinIcon className="size-4 text-muted-foreground" />
-					<span className="truncate">{displayLocation}</span>
+				<DropdownMenuTrigger className="inline-flex min-h-9 w-56 min-w-0 max-w-[min(18rem,calc(100vw-9rem))] items-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-sm font-normal hover:bg-accent disabled:pointer-events-none disabled:opacity-50">
+					<MapPinIcon className="size-4 shrink-0 text-muted-foreground" />
+					<span className="flex-1 truncate">{displayLocation}</span>
 					<ChevronsUpDownIcon className="size-3.5 text-muted-foreground" />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start" sideOffset={8}>
