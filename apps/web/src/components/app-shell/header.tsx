@@ -41,7 +41,7 @@ export function AppHeader({ onOpenCommand }: AppHeaderProps) {
 	return (
 		<header className="z-10 flex h-14 min-w-0 shrink-0 items-center gap-2 border-b bg-background px-3 sm:px-4">
 			<SidebarTrigger className="-ml-1" />
-			<Separator orientation="vertical" className="mx-2" />
+			<Separator orientation="vertical" className="mx-2" aria-hidden="true" />
 
 			{/* Location switcher with accessible indicator */}
 			<DropdownMenu>
