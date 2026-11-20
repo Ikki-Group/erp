@@ -290,7 +290,7 @@ function NewOrderPage() {
 	}
 
 	return (
-		<div className="flex h-[calc(100vh-4rem)] flex-col gap-4 p-4 lg:flex-row">
+		<div className="flex h-[calc(100dvh-4rem)] flex-col gap-4 p-4 lg:flex-row">
 			{/* Left: Menu Grid */}
 			<div className="flex-1 overflow-hidden">
 				<MenuGrid onSelectItem={handleSelectItem} />
