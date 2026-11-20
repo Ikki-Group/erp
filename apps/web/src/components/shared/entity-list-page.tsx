@@ -73,7 +73,7 @@ export function EntityListPage<TFeatures extends TableFeatures, TData extends ob
 				)}
 				{list.isRefreshing && (
 					<p role="status" className="text-xs text-muted-foreground">
-						Refreshing results…
+						Memuat ulang…
 					</p>
 				)}
 				{showRecordEmpty || list.state === 'initial-error' ? (

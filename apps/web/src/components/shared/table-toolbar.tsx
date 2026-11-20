@@ -73,7 +73,7 @@ interface TableToolbarProps<TData extends object = object> {
 	filters?: TableFilterDef[]
 	/** Optional date-range filter, rendered alongside the dropdown filters. */
 	dateRange?: TableDateRangeFilterDef
-	/** Renders a "Columns" button that toggles which columns are visible. Pass the same `table` given to `DataTable`. */
+	/** Renders a "Kolom" button that toggles which columns are visible. Pass the same `table` given to `DataTable`. */
 	table?: DataGridTableInstance<TData>
 	actions?: ReactNode
 	className?: string
@@ -84,7 +84,7 @@ const NO_FILTERS: TableFilterDef[] = []
 
 /**
  * Standard list-page toolbar: search input (with clear button), one or more
- * filter dropdowns, and a chips row + "Clear filters" button once any
+ * filter dropdowns, and a chips row + "Bersihkan filter" button once any
  * non-search filter is active. This is the single toolbar pattern for all
  * `DataTable` list pages — search alone, search+filter, or search+multiple
  * filters all use this same component.
@@ -153,11 +153,7 @@ export function TableToolbar<TData extends object = object>({
 								onClick={() => setDraftSearch('')}
 								aria-label="Bersihkan pencarian"
 							>
-								{isPending ? (
-									<LoaderCircleIcon className="size-3 animate-spin" />
-								) : (
-									<XIcon className="size-3" />
-								)}
+								{isPending ? <LoaderCircleIcon className="animate-spin" /> : <XIcon />}
 							</Button>
 						)}
 					</div>
@@ -182,7 +178,7 @@ export function TableToolbar<TData extends object = object>({
 								value={filter.value}
 								onValueChange={filter.onChange}
 								options={filter.options}
-								allLabel={filter.allLabel ?? `All ${filter.label}`}
+								allLabel={filter.allLabel ?? `Semua ${filter.label}`}
 							/>
 						)
 					) : (
@@ -192,7 +188,7 @@ export function TableToolbar<TData extends object = object>({
 							value={filter.value}
 							onValueChange={filter.onChange}
 							options={filter.options}
-							allLabel={filter.allLabel ?? `All ${filter.label}`}
+							allLabel={filter.allLabel ?? `Semua ${filter.label}`}
 						/>
 					),
 				)}
@@ -213,8 +209,8 @@ export function TableToolbar<TData extends object = object>({
 								table={table}
 								trigger={
 									<Button variant="outline" size="sm" className="gap-1.5">
-										<ColumnsSettingsIcon className="size-3.5" />
-										Columns
+										<ColumnsSettingsIcon />
+										Kolom
 									</Button>
 								}
 							/>
@@ -232,14 +228,15 @@ export function TableToolbar<TData extends object = object>({
 						return (
 							<Badge key={filter.key} variant="outline" className="gap-1 pr-1">
 								{filter.label}: {labels.join(', ')}
-								<button
-									type="button"
+								<Button
+									variant="ghost"
+									size="icon-xs"
+									className="size-4 shrink-0 rounded-full focus-visible:ring-offset-0"
 									onClick={() => filter.onChange(undefined)}
-									aria-label={`Remove ${filter.label} filter`}
-									className="rounded-full p-0.5 hover:bg-muted"
+									aria-label={`Hapus filter ${filter.label}`}
 								>
-									<XIcon className="size-2.5" />
-								</button>
+									<XIcon />
+								</Button>
 							</Badge>
 						)
 					})}
@@ -247,14 +244,15 @@ export function TableToolbar<TData extends object = object>({
 						<Badge key={dateRange.key} variant="outline" className="gap-1 pr-1">
 							{dateRange.label}: {format(dateRange.value.from, 'dd MMM')} –{' '}
 							{format(dateRange.value.to, 'dd MMM yyyy')}
-							<button
-								type="button"
+							<Button
+								variant="ghost"
+								size="icon-xs"
+								className="size-4 shrink-0 rounded-full focus-visible:ring-offset-0"
 								onClick={() => dateRange.onChange(undefined)}
-								aria-label={`Remove ${dateRange.label} filter`}
-								className="rounded-full p-0.5 hover:bg-muted"
+								aria-label={`Hapus filter ${dateRange.label}`}
 							>
-								<XIcon className="size-2.5" />
-							</button>
+								<XIcon />
+							</Button>
 						</Badge>
 					)}
 					<Button
@@ -266,7 +264,7 @@ export function TableToolbar<TData extends object = object>({
 							dateRange?.onChange(undefined)
 						}}
 					>
-						Clear filters
+						Bersihkan filter
 					</Button>
 				</div>
 			)}
