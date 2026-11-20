@@ -23,6 +23,7 @@ export const auditColumns = [
 	col.text('userName', { header: 'Aktor', size: 140, enableSorting: false }),
 	col.text('module', { header: 'Modul', size: 110, enableSorting: false }),
 	col.text('entity', { header: 'Entitas', size: 130, enableSorting: false }),
+	col.code('entityId', { header: 'ID', size: 80, enableSorting: false }),
 	col.text('action', {
 		header: 'Aksi',
 		size: 110,
