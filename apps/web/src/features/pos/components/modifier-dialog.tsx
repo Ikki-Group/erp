@@ -12,7 +12,7 @@ import {
 	DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { menuItemExtras } from '@/features/menu/api.ts'
@@ -146,14 +146,7 @@ export function ModifierDialog({ open, onOpenChange, menuItem, onConfirm }: Modi
 													className="flex cursor-pointer items-center justify-between rounded-md border px-3 py-2 text-xs hover:bg-accent"
 												>
 													<div className="flex items-center gap-2">
-														<input
-															type="radio"
-															name={`group-${group.id}`}
-															value={String(option.id)}
-															checked={selections[group.id]?.[0] === option.id}
-															onChange={() => handleToggleOption(group, option)}
-															className="accent-primary"
-														/>
+														<RadioGroupItem value={String(option.id)} aria-label={option.name} />
 														<span>{option.name}</span>
 													</div>
 													{Number(option.priceAdjustment) !== 0 && (
