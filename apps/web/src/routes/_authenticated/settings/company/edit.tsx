@@ -19,6 +19,11 @@ export const Route = createFileRoute('/_authenticated/settings/company/edit')({
 	component: CompanySettingsPage,
 })
 
+const COMPANY_NOT_FOUND = {
+	title: 'Pengaturan perusahaan tidak ditemukan',
+	message: 'Ruang kerja ini belum memiliki profil perusahaan untuk diubah.',
+}
+
 function CompanySettingsPage() {
 	const canRead = usePermissionCheck({ permission: 'company.read' })
 	const canUpdate = usePermissionCheck({ permission: 'company.update' })
@@ -39,12 +44,7 @@ function CompanySettingsPage() {
 		<DetailBoundary
 			query={detailQuery}
 			error={renderCompanyError}
-			notFound={
-				<PageError
-					title="Pengaturan perusahaan tidak ditemukan"
-					message="Ruang kerja ini belum memiliki profil perusahaan untuk diubah."
-				/>
-			}
+			notFound={<PageError {...COMPANY_NOT_FOUND} />}
 		>
 			{(response) => (
 				<CompanySettingsForm key={response.data.id} settings={response.data} canWrite={canUpdate} />
@@ -57,14 +57,8 @@ function renderCompanyError(error: Error, retry: () => void) {
 	const missing = isApiError(error) && error.isNotFound
 	return (
 		<PageError
-			title={
-				missing ? 'Pengaturan perusahaan tidak ditemukan' : 'Gagal memuat pengaturan perusahaan'
-			}
-			message={
-				missing
-					? 'Ruang kerja ini belum memiliki profil perusahaan untuk diubah.'
-					: 'Coba muat profil perusahaan lagi.'
-			}
+			title={missing ? COMPANY_NOT_FOUND.title : 'Gagal memuat pengaturan perusahaan'}
+			message={missing ? COMPANY_NOT_FOUND.message : 'Coba muat profil perusahaan lagi.'}
 			onRetry={retry}
 		/>
 	)
