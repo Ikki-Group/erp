@@ -17,6 +17,7 @@ import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import type { DateRange } from '@/components/shared/date-range-filter'
 import { EmptyState } from '@/components/shared/empty-state'
+import { PageError } from '@/components/shared/page-error'
 import { PageHeader } from '@/components/shared/page-header'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { StatusBadge } from '@/components/shared/status-badge'
@@ -241,7 +242,13 @@ function OrdersPage() {
 		<div className="space-y-6">
 			<PageHeader title="Riwayat Pesanan" description="Daftar pesanan POS untuk lokasi ini." />
 
-			{data.length === 0 && !listQuery.isLoading && !globalFilter && !search.status ? (
+			{listQuery.isError ? (
+				<PageError
+					title="Gagal memuat riwayat pesanan"
+					message="Tidak dapat terhubung ke server. Periksa koneksi Anda dan coba lagi."
+					onRetry={() => listQuery.refetch()}
+				/>
+			) : data.length === 0 && !listQuery.isLoading && !globalFilter && !search.status ? (
 				<EmptyState title="Belum ada order" description="Order yang dibuat akan muncul di sini." />
 			) : (
 				<DataTable

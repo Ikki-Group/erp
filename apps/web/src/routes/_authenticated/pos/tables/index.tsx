@@ -12,6 +12,7 @@ import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { ActionMenu } from '@/components/shared/action-menu'
 import { confirm } from '@/components/shared/confirm'
 import { EmptyState } from '@/components/shared/empty-state'
+import { PageError } from '@/components/shared/page-error'
 import { PageHeader } from '@/components/shared/page-header'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { StatusBadge } from '@/components/shared/status-badge'
@@ -181,7 +182,13 @@ function TablesPage() {
 				}
 			/>
 
-			{isEmpty ? (
+			{listQuery.isError ? (
+				<PageError
+					title="Gagal memuat meja"
+					message="Tidak dapat terhubung ke server. Periksa koneksi Anda dan coba lagi."
+					onRetry={() => listQuery.refetch()}
+				/>
+			) : isEmpty ? (
 				<EmptyState
 					title="Belum ada meja"
 					description="Mulai dengan membuat meja pertama Anda."

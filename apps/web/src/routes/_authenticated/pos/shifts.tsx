@@ -17,6 +17,7 @@ import { DataTable } from '@/components/data-table/data-table'
 import type { DataGridFeatures } from '@/components/reui/data-grid/data-grid'
 import { EmptyState } from '@/components/shared/empty-state'
 import { formDialog } from '@/components/shared/form-dialog'
+import { PageError } from '@/components/shared/page-error'
 import { PageHeader } from '@/components/shared/page-header'
 import { usePermissionCheck } from '@/components/shared/permission-gate'
 import { StatusBadge } from '@/components/shared/status-badge'
@@ -239,7 +240,13 @@ function ShiftsPage() {
 				}
 			/>
 
-			{data.length === 0 && !listQuery.isLoading && !search.status ? (
+			{listQuery.isError ? (
+				<PageError
+					title="Gagal memuat shift"
+					message="Tidak dapat terhubung ke server. Periksa koneksi Anda dan coba lagi."
+					onRetry={() => listQuery.refetch()}
+				/>
+			) : data.length === 0 && !listQuery.isLoading && !search.status ? (
 				<EmptyState
 					title="Belum ada shift"
 					description="Buka shift pertama Anda untuk mulai melacak kas."
