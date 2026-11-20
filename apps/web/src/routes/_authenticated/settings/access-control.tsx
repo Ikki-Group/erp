@@ -7,11 +7,9 @@ import { ShieldCheckIcon, UserIcon } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema } from '@/components/data-table'
-import { PageHeader, StatCard } from '@/components/shared'
+import { PageHeader } from '@/components/shared'
 import { PageTabs } from '@/components/shared/page-tabs'
 import type { PageTab } from '@/components/shared/page-tabs'
-
-import { Button } from '@/components/ui/button'
 
 import { roleResource, userResource } from '@/features/iam/api.ts'
 import { RolesList } from '@/features/iam/components/roles-list.tsx'
@@ -46,8 +44,8 @@ function AccessControlPage() {
 		throwOnError: false,
 	})
 
-	const totalUsers = usersQuery.data?.meta?.total ?? 0
-	const totalRoles = rolesQuery.data?.meta?.total ?? 0
+	const totalUsers = usersQuery.data?.meta?.total
+	const totalRoles = rolesQuery.data?.meta?.total
 
 	const handleTabChange = (tabId: string) => {
 		// Preserve common filters (search query) when switching tabs
@@ -64,37 +62,9 @@ function AccessControlPage() {
 		})
 	}
 
-	const stats = useMemo(
-		() => (
-			<div className="grid gap-4 sm:grid-cols-2">
-				<StatCard
-					title="Pengguna"
-					value={usersQuery.isError && !usersQuery.data ? '—' : totalUsers}
-					icon={<UserIcon className="size-4" />}
-					description="Total terdaftar"
-					isLoading={usersQuery.isLoading}
-				/>
-				<StatCard
-					title="Peran"
-					value={rolesQuery.isError && !rolesQuery.data ? '—' : totalRoles}
-					icon={<ShieldCheckIcon className="size-4" />}
-					description="Kontrol akses"
-					isLoading={rolesQuery.isLoading}
-				/>
-			</div>
-		),
-		[
-			totalUsers,
-			totalRoles,
-			usersQuery.isLoading,
-			rolesQuery.isLoading,
-			usersQuery.isError,
-			rolesQuery.isError,
-			usersQuery.data,
-			rolesQuery.data,
-		],
-	)
-
+	// Totals only feed the tab counters. They used to render as two big stat
+	// tiles, which duplicated the counters and left a half-empty band above the
+	// tabs — the tabs alone say how much is here.
 	const tabs: PageTab[] = useMemo(
 		() => [
 			{
@@ -119,26 +89,6 @@ function AccessControlPage() {
 				title="Kontrol Akses"
 				description="Kelola pengguna dan peran untuk kontrol akses."
 			/>
-
-			{stats}
-			{(usersQuery.isError || rolesQuery.isError) && (
-				<div
-					role="alert"
-					className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-destructive/20 p-3 text-sm"
-				>
-					<p>Gagal memuat ulang total kontrol akses.</p>
-					<Button
-						size="sm"
-						variant="outline"
-						onClick={() => {
-							void usersQuery.refetch()
-							void rolesQuery.refetch()
-						}}
-					>
-						Retry totals
-					</Button>
-				</div>
-			)}
 
 			<PageTabs tabs={tabs} activeTab={tab} onTabChange={handleTabChange} />
 
