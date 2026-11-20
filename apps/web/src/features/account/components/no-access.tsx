@@ -23,11 +23,11 @@ export function NoAccessLayout({ children }: { children: ReactNode }) {
 				</Link>
 				<div className="flex-1" />
 				<Button variant="ghost" size="sm" nativeButton={false} render={<Link to="/account" />}>
-					<UserIcon className="size-4" />
+					<UserIcon />
 					Akun saya
 				</Button>
 				<Button variant="ghost" size="sm" onClick={() => void logout()}>
-					<LogOutIcon className="size-4" />
+					<LogOutIcon />
 					Keluar
 				</Button>
 			</header>

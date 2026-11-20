@@ -247,13 +247,13 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 					getItems: (pricing) => [
 						canUpdate && {
 							label: 'Ubah',
-							icon: <EditIcon className="size-4" />,
+							icon: <EditIcon />,
 							onClick: () => handleEdit(pricing),
 							disabled: editing || removing,
 						},
 						canDelete && {
 							label: 'Hapus',
-							icon: <TrashIcon className="size-4" />,
+							icon: <TrashIcon />,
 							onClick: () => handleRemove(pricing),
 							variant: 'destructive' as const,
 							disabled: editing || removing,
@@ -276,7 +276,7 @@ function SupplierPricingList({ supplierId, permissions }: PricingTableProps) {
 				<p className="text-xs text-muted-foreground">Harga dan jumlah minimum per bahan.</p>
 				{canCreate && (
 					<Button size="sm" onClick={() => handleEdit()} disabled={editing || removing}>
-						<PlusIcon className="size-4" />
+						<PlusIcon />
 						Tambah Harga
 					</Button>
 				)}

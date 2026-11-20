@@ -65,7 +65,7 @@ export function ProfileForm({
 					>
 						{([isSubmitting, canSubmit, isDirty]) => (
 							<Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
-								{isSubmitting && <Spinner className="mr-1.5 size-3.5" />}
+								{isSubmitting && <Spinner className="size-3.5" />}
 								Simpan profil
 							</Button>
 						)}

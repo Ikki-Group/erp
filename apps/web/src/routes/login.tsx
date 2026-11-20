@@ -196,9 +196,9 @@ function LoginPage() {
 							disabled={isSubmitting}
 						>
 							{isSubmitting ? (
-								<LoaderIcon aria-hidden="true" className="size-4 animate-spin" />
+								<LoaderIcon aria-hidden="true" className="animate-spin" />
 							) : (
-								<ArrowRightIcon aria-hidden="true" className="size-4" />
+								<ArrowRightIcon aria-hidden="true" />
 							)}
 							{isSubmitting ? 'Memproses...' : 'Masuk ke ruang kerja'}
 						</Button>

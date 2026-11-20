@@ -64,7 +64,7 @@ function DemoPage() {
 					description="Kelola bahan baku, kemasan, dan perlengkapan."
 					actions={
 						<Button size="sm">
-							<PlusIcon className="mr-1.5 size-3.5" />
+							<PlusIcon />
 							Tambah Bahan
 						</Button>
 					}
@@ -97,7 +97,7 @@ function DemoPage() {
 					description="Tambahkan bahan pertama Anda untuk memulai."
 					action={
 						<Button size="sm">
-							<PlusIcon className="mr-1.5 size-3.5" />
+							<PlusIcon />
 							Tambah Bahan
 						</Button>
 					}

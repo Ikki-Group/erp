@@ -176,7 +176,7 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 			description={`Username: ${user.username}`}
 			breadcrumbs={
 				<Button variant="ghost" size="sm" className="-ml-2 gap-1.5" onClick={onBack}>
-					<ArrowLeftIcon className="size-3.5" />
+					<ArrowLeftIcon />
 					Kembali ke pengguna
 				</Button>
 			}
@@ -189,11 +189,11 @@ function UserDetailView({ user, onBack, onEdit }: UserDetailViewProps) {
 				canEdit && (
 					<div className="flex gap-2">
 						<Button variant="outline" size="sm" onClick={handleResetPassword}>
-							<KeyRoundIcon className="size-4" />
+							<KeyRoundIcon />
 							Reset Kata Sandi
 						</Button>
 						<Button size="sm" onClick={onEdit}>
-							<EditIcon className="size-4" />
+							<EditIcon />
 							Ubah Pengguna
 						</Button>
 					</div>

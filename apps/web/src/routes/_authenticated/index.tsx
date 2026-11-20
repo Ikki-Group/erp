@@ -231,7 +231,7 @@ function DashboardPage() {
 						<div className="space-y-2 p-4">
 							<p className="text-xs text-destructive">Gagal memuat data transfer.</p>
 							<Button variant="ghost" size="sm" onClick={() => transfersQuery.refetch()}>
-								<RefreshCwIcon className="mr-1.5 size-3" />
+								<RefreshCwIcon />
 								Coba lagi
 							</Button>
 						</div>
@@ -268,7 +268,7 @@ function DashboardPage() {
 									render={<Link to="/inventory/transfers" />}
 								>
 									Lihat semua transfer
-									<ArrowRightIcon className="size-3.5" />
+									<ArrowRightIcon />
 								</Button>
 							</div>
 						</>
@@ -299,7 +299,7 @@ function DashboardPage() {
 						<div className="space-y-2 p-4">
 							<p className="text-xs text-destructive">Gagal memuat data stok.</p>
 							<Button variant="ghost" size="sm" onClick={() => stockQuery.refetch()}>
-								<RefreshCwIcon className="mr-1.5 size-3" />
+								<RefreshCwIcon />
 								Coba lagi
 							</Button>
 						</div>
@@ -334,7 +334,7 @@ function DashboardPage() {
 									render={<Link to="/inventory/stock" />}
 								>
 									Lihat semua stok
-									<ArrowRightIcon className="size-3.5" />
+									<ArrowRightIcon />
 								</Button>
 							</div>
 						</>
@@ -367,7 +367,7 @@ function DashboardPage() {
 						<div className="space-y-2 p-4">
 							<p className="text-xs text-destructive">Gagal memuat data penerimaan.</p>
 							<Button variant="ghost" size="sm" onClick={() => receivingQuery.refetch()}>
-								<RefreshCwIcon className="mr-1.5 size-3" />
+								<RefreshCwIcon />
 								Coba lagi
 							</Button>
 						</div>
@@ -402,7 +402,7 @@ function DashboardPage() {
 									render={<Link to="/inventory/receiving" />}
 								>
 									Lihat semua penerimaan
-									<ArrowRightIcon className="size-3.5" />
+									<ArrowRightIcon />
 								</Button>
 							</div>
 						</>
@@ -414,7 +414,7 @@ function DashboardPage() {
 						<div className="space-y-2">
 							<p className="text-xs text-destructive">Gagal memuat aktivitas.</p>
 							<Button variant="ghost" size="sm" onClick={() => activityQuery.refetch()}>
-								<RefreshCwIcon className="mr-1.5 size-3" />
+								<RefreshCwIcon />
 								Coba lagi
 							</Button>
 						</div>
