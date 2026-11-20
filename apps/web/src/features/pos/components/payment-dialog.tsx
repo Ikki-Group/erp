@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 
@@ -30,6 +30,9 @@ export interface PaymentEntry {
 	reference: string | null
 }
 
+/** `PaymentEntry` with a stable client key so repeated method IDs stay distinct. */
+type Entry = PaymentEntry & { id: number }
+
 interface PaymentDialogProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -41,7 +44,8 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 	const { activeLocation } = useLocationContext()
 	const locationId = activeLocation?.id ?? 0
 
-	const [entries, setEntries] = useState<PaymentEntry[]>([])
+	const [entries, setEntries] = useState<Entry[]>([])
+	const nextEntryId = useRef(0)
 
 	const methodsQuery = useQuery({
 		...paymentMethodByLocation.query.queryOptions({ locationId }),
@@ -60,6 +64,7 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 			setEntries((prev) => [
 				...prev,
 				{
+					id: ++nextEntryId.current,
 					paymentMethodId: method.id,
 					paymentMethodName: method.name,
 					amount: remaining > 0 ? remaining : 0,
@@ -114,7 +119,7 @@ export function PaymentDialog({ open, onOpenChange, orderTotal, onConfirm }: Pay
 					{entries.length > 0 && (
 						<div className="space-y-2">
 							{entries.map((entry, index) => (
-								<div key={index} className="flex items-center gap-2 rounded-md border p-2">
+								<div key={entry.id} className="flex items-center gap-2 rounded-md border p-2">
 									<div className="flex-1 space-y-1">
 										<p className="text-xs font-medium">{entry.paymentMethodName}</p>
 										<CurrencyInput
