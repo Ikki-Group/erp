@@ -47,7 +47,7 @@ export function ActionMenu({
 			<DropdownMenuContent align={align}>
 				{regularItems.map((item) => (
 					<DropdownMenuItem key={item.label} onClick={item.onClick} disabled={item.disabled}>
-						{item.icon && <span className="mr-2 [&_svg]:size-4">{item.icon}</span>}
+						{item.icon}
 						{item.label}
 					</DropdownMenuItem>
 				))}
@@ -57,9 +57,9 @@ export function ActionMenu({
 						key={item.label}
 						onClick={item.onClick}
 						disabled={item.disabled}
-						className="text-destructive focus:text-destructive"
+						variant="destructive"
 					>
-						{item.icon && <span className="mr-2 [&_svg]:size-4">{item.icon}</span>}
+						{item.icon}
 						{item.label}
 					</DropdownMenuItem>
 				))}
