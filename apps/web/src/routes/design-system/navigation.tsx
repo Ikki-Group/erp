@@ -3,10 +3,16 @@ import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { BoxesIcon, LayoutDashboardIcon, SettingsIcon, StoreIcon, TruckIcon } from 'lucide-react'
+import { z } from 'zod'
 
 import { usePageTabs } from '@/hooks/use-page-tabs'
 
 import { PageHeader, PageSection, PageTabs, pageTabPanelId } from '@/components/shared'
+
+export const Route = createFileRoute('/design-system/navigation')({
+	component: NavigationPage,
+	validateSearch: z.object({ tab: z.string().default('info').optional() }),
+})
 
 import {
 	Breadcrumb,
@@ -30,10 +36,6 @@ import {
 	SidebarMenuItem,
 	SidebarProvider,
 } from '@/components/ui/sidebar'
-
-export const Route = createFileRoute('/design-system/navigation')({
-	component: NavigationPage,
-})
 
 function NavigationPage() {
 	return (
@@ -150,7 +152,9 @@ function SidebarNavDemo() {
 
 function PageTabsDemo() {
 	const TABS = ['info', 'stock', 'history', 'pricing'] as const
-	const [activeTab, setActiveTab] = usePageTabs('tab', 'info', TABS)
+	const search = Route.useSearch()
+	const navigate = Route.useNavigate()
+	const [activeTab, setActiveTab] = usePageTabs(search, navigate, 'tab', 'info', TABS)
 
 	return (
 		<div className="space-y-4">
