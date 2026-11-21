@@ -66,4 +66,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
+          # npx install of wrangler fails on the runner (npm "edgesOut" crash); use Bun.
+          packageManager: bun
+          wranglerVersion: 4.166.0
           command: pages deploy dist --project-name=${{ steps.cf.outputs.project }}
