@@ -63,7 +63,7 @@ export function NumericCell({
 	return (
 		<div
 			className={cn(
-				'text-right font-mono text-sm tabular-nums',
+				'text-right font-mono text-sm whitespace-nowrap tabular-nums',
 				muted && 'text-muted-foreground',
 				className,
 			)}
@@ -88,7 +88,7 @@ export function CurrencyCell({ value, currency, locale, className }: CurrencyCel
 	}
 
 	return (
-		<div className={cn('text-right font-mono text-sm', className)}>
+		<div className={cn('text-right font-mono text-sm whitespace-nowrap', className)}>
 			<CurrencyDisplay value={value} currency={currency} locale={locale} />
 		</div>
 	)
@@ -192,5 +192,5 @@ export function DateCell({ value, withTime = false, locale = 'id-ID', className 
 		timeStyle: withTime ? 'short' : undefined,
 	}).format(date)
 
-	return <span className={cn('text-sm', className)}>{formatted}</span>
+	return <span className={cn('whitespace-nowrap text-sm', className)}>{formatted}</span>
 }

@@ -234,7 +234,7 @@ function TablesPage() {
 					role="region"
 					aria-label="Cell template examples"
 					tabIndex={0}
-					className="data-table-horizontal-scroll max-w-xl overflow-x-auto rounded-lg border focus-visible:outline-2 focus-visible:outline-ring"
+					className="data-table-horizontal-scroll max-w-3xl overflow-x-auto rounded-lg border focus-visible:outline-2 focus-visible:outline-ring"
 				>
 					<table className="w-full text-sm">
 						<thead className="bg-muted/50">
