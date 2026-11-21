@@ -67,7 +67,7 @@ export function TableFilterSelect({
 				value={selected}
 				onValueChange={(next: string[]) => onValueChange(next.length > 0 ? next : undefined)}
 			>
-				<SelectTrigger aria-label={ariaLabel} className={cn('w-37.5', className)}>
+				<SelectTrigger aria-label={ariaLabel} size="sm" className={cn('w-37.5', className)}>
 					<SelectValue placeholder={allLabel}>
 						{(val: string[] | null) => {
 							const selectedValues = val ?? []
@@ -98,7 +98,7 @@ export function TableFilterSelect({
 			value={value ?? ALL_VALUE}
 			onValueChange={(v: string | null) => onValueChange(!v || v === ALL_VALUE ? undefined : v)}
 		>
-			<SelectTrigger aria-label={ariaLabel} className={cn('w-37.5', className)}>
+			<SelectTrigger aria-label={ariaLabel} size="sm" className={cn('w-37.5', className)}>
 				<SelectValue placeholder={allLabel}>
 					{(val: string | null) => {
 						if (!val || val === ALL_VALUE) return allLabel

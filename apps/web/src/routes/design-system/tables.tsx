@@ -632,6 +632,7 @@ function EntityListPagePattern() {
 				list={list}
 				createAction={
 					<Button
+						size="sm"
 						onClick={() => {
 							setSearch({ page: 1, pageSize: 5 })
 							setPreview('ready')
