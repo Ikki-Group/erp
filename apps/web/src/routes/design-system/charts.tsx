@@ -45,7 +45,7 @@ const stockData = [
 
 const revenueChartConfig: ChartConfig = {
 	revenue: { label: 'Revenue', color: 'var(--primary)' },
-	orders: { label: 'Orders', color: 'var(--chart-2)' },
+	orders: { label: 'Orders', color: 'var(--primary)' },
 }
 
 /** Compact Rp axis label (e.g. "Rp 42jt") -- full precision stays in the tooltip. */
