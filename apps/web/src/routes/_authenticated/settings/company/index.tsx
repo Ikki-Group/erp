@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
-import { PencilIcon } from 'lucide-react'
+import { Building2Icon, PencilIcon, ShieldIcon, UserCheckIcon, UserXIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -77,7 +77,7 @@ function renderError(_error: Error, retry: () => void) {
 function EditButton() {
 	const navigate = useNavigate()
 	return (
-		<Button size="sm" onClick={() => navigate({ to: '/settings/company/edit' })}>
+		<Button onClick={() => navigate({ to: '/settings/company/edit' })}>
 			<PencilIcon />
 			Ubah
 		</Button>
@@ -89,14 +89,29 @@ function ProfileDetails({ settings }: { settings: CompanySettingsDto }) {
 		<DetailList
 			columns={3}
 			items={[
-				{ label: 'Nama', value: settings.name },
-				{ label: 'Alamat', value: settings.address || '-' },
-				{ label: 'Telepon', value: settings.phone || '-' },
-				{ label: 'Email', value: settings.email || '-' },
-				{ label: 'NPWP', value: settings.taxId || '-' },
+				{ label: 'Nama', value: <span className="font-medium">{settings.name}</span> },
+				{
+					label: 'Alamat',
+					value: settings.address || <span className="text-muted-foreground">—</span>,
+				},
+				{
+					label: 'Telepon',
+					value: settings.phone || <span className="text-muted-foreground">—</span>,
+				},
+				{
+					label: 'Email',
+					value: settings.email || <span className="text-muted-foreground">—</span>,
+				},
+				{
+					label: 'NPWP',
+					value: settings.taxId || <span className="text-muted-foreground">—</span>,
+				},
 				{ label: 'Tarif pajak', value: `${settings.taxRate}%` },
 				{ label: 'Mata uang', value: `${settings.currencyCode} (${settings.currencySymbol})` },
-				{ label: 'Footer struk', value: settings.receiptFooter || '-' },
+				{
+					label: 'Footer struk',
+					value: settings.receiptFooter || <span className="text-muted-foreground">—</span>,
+				},
 			]}
 		/>
 	)
@@ -118,6 +133,7 @@ function OverviewBody({
 					title="Lokasi"
 					value={locations.total}
 					description={`${plural(locations.stores, 'toko')}, ${plural(locations.warehouses, 'gudang')}, ${locations.inactive} nonaktif`}
+					icon={<Building2Icon />}
 				/>
 				{people && (
 					<>
@@ -125,17 +141,20 @@ function OverviewBody({
 							title="Orang"
 							value={people.activeUsers}
 							description={`Pengguna aktif, ${people.inactiveUsers} nonaktif`}
+							icon={<UserCheckIcon />}
 							onClick={() => navigate({ to: '/settings/access-control', search: { tab: 'users' } })}
 						/>
 						<StatCard
 							title="Tanpa akses"
 							value={people.usersWithoutAccess}
 							description="Pengguna aktif tanpa penugasan"
+							icon={<UserXIcon />}
 							tone={people.usersWithoutAccess > 0 ? 'warning' : 'default'}
 						/>
 						<StatCard
 							title="Peran"
 							value={people.roles}
+							icon={<ShieldIcon />}
 							onClick={() => navigate({ to: '/settings/access-control', search: { tab: 'roles' } })}
 						/>
 					</>
@@ -164,8 +183,8 @@ function SiteRow({
 	currencySymbol: string
 }) {
 	return (
-		<li className="rounded-xl border border-border bg-card p-4">
-			<div className="flex flex-wrap items-center gap-2">
+		<article className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-foreground/10">
+			<div className="flex flex-wrap items-center gap-2 mb-3">
 				<Link
 					to="/settings/locations/$locationId"
 					params={{ locationId: String(site.id) }}
@@ -177,7 +196,7 @@ function SiteRow({
 				<StatusBadge variant="outline">{site.type === 'store' ? 'Toko' : 'Gudang'}</StatusBadge>
 				{!site.isActive && <StatusBadge>Nonaktif</StatusBadge>}
 			</div>
-			<dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4 lg:grid-cols-8">
+			<div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4 lg:grid-cols-8">
 				<Metric label="Staf" value={site.staff} />
 				<Metric label="Dalam perjalanan" value={site.transfersInTransit} />
 				<Metric label="Penerimaan draf" value={site.draftReceivings} />
@@ -185,22 +204,33 @@ function SiteRow({
 				<Metric label="Stok menipis" value={site.lowStock} warn={site.lowStock > 0} />
 				<Metric label="Shift terbuka" value={site.openShifts} />
 				<Metric label="Pesanan hari ini" value={site.salesToday.orders} />
-				<div className="space-y-0.5 text-right">
-					<dt className="text-xs text-muted-foreground">Pendapatan hari ini</dt>
-					<dd className="font-mono text-sm font-medium tabular-nums">
-						<CurrencyDisplay value={site.salesToday.revenue} currency={currencySymbol} />
-					</dd>
-				</div>
-			</dl>
-		</li>
+				<Metric
+					label="Pendapatan hari ini"
+					value={<CurrencyDisplay value={site.salesToday.revenue} currency={currencySymbol} />}
+				/>
+			</div>
+		</article>
 	)
 }
 
-function Metric({ label, value, warn = false }: { label: string; value: number; warn?: boolean }) {
+function Metric({
+	label,
+	value,
+	warn = false,
+}: {
+	label: string
+	value: ReactNode
+	warn?: boolean
+}) {
 	return (
-		<div className="space-y-0.5 text-right">
+		<div className="space-y-0.5">
 			<dt className="text-xs text-muted-foreground">{label}</dt>
-			<dd className={cn('font-mono text-sm font-medium tabular-nums', warn && 'text-warning')}>
+			<dd
+				className={cn(
+					'font-mono text-sm font-medium tabular-nums text-right',
+					warn && 'text-warning',
+				)}
+			>
 				{value}
 			</dd>
 		</div>
