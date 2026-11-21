@@ -1,10 +1,10 @@
 import { useCallback } from 'react'
 
-import type { SearchOptions } from '@tanstack/react-router'
 import { useSearch } from '@tanstack/react-router'
 
 /**
  * Hook to sync PageTabs activeTab with URL search params.
+ * Works on any route — no search schema required.
  *
  * @param tabKey - The search param key to use (default: "tab")
  * @param defaultTab - Fallback tab ID when param is missing/invalid
@@ -23,12 +23,9 @@ export function usePageTabs<T extends string>(
 	defaultTab: T = 'info' as T,
 	validTabs?: readonly T[],
 ): [T, (tabId: T) => void] {
-	const { search, navigate } = useSearch({
-		from: tabKey as any,
-		select: (s) => s[tabKey] as T | undefined,
-	} as SearchOptions)
+	const { search, navigate } = useSearch()
 
-	const activeTab = (search as T | undefined) ?? defaultTab
+	const activeTab = (search[tabKey] as T | undefined) ?? defaultTab
 
 	const setActiveTab = useCallback(
 		(tabId: T) => {
