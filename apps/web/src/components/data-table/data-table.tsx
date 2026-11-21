@@ -12,6 +12,36 @@ import {
 import { DataGridPagination } from '@/components/reui/data-grid/data-grid-pagination'
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
 
+export type DataTableVariant = 'default' | 'compact' | 'bordered' | 'striped' | 'minimal'
+
+function getTableLayout(variant: DataTableVariant) {
+	const base = {
+		headerSticky: true,
+		rowBorder: true,
+		headerBackground: false,
+		width: 'fixed' as const,
+	}
+	switch (variant) {
+		case 'compact':
+			return { ...base, dense: true, cellBorder: false, rowBorder: true, stripped: false }
+		case 'bordered':
+			return { ...base, dense: false, cellBorder: true, rowBorder: true, stripped: false }
+		case 'striped':
+			return { ...base, dense: false, cellBorder: false, rowBorder: true, stripped: true }
+		case 'minimal':
+			return {
+				...base,
+				dense: false,
+				cellBorder: false,
+				rowBorder: false,
+				stripped: false,
+				headerBorder: false,
+			}
+		default:
+			return { ...base, dense: false, cellBorder: false, rowBorder: true, stripped: false }
+	}
+}
+
 interface DataTableProps<TFeatures extends TableFeatures, TData extends object> {
 	table: Table<TFeatures, TData>
 	recordCount?: number
@@ -26,6 +56,10 @@ interface DataTableProps<TFeatures extends TableFeatures, TData extends object> 
 	errorTitle?: string
 	errorMessage?: string
 	onRetry?: () => void
+	/** Visual variant: 'default' | 'compact' | 'bordered' | 'striped' | 'minimal' */
+	variant?: DataTableVariant
+	/** Override individual tableLayout options (merged with variant defaults) */
+	tableLayout?: Partial<DataGridLayoutProps<any>['tableLayout']>
 }
 
 export function DataTable<TFeatures extends TableFeatures, TData extends object>({
@@ -41,6 +75,8 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 	errorTitle,
 	errorMessage,
 	onRetry,
+	variant = 'default',
+	tableLayout,
 }: DataTableProps<TFeatures, TData>) {
 	const layoutProps: DataGridLayoutProps<TData> = {
 		recordCount,
@@ -53,10 +89,8 @@ export function DataTable<TFeatures extends TableFeatures, TData extends object>
 		onRetry,
 		loadingMode: 'skeleton',
 		tableLayout: {
-			headerSticky: true,
-			rowBorder: true,
-			headerBackground: false,
-			width: 'fixed',
+			...getTableLayout(variant),
+			...tableLayout,
 		},
 	}
 

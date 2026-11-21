@@ -288,6 +288,16 @@ function TablesPage() {
 
 			<Separator />
 
+			{/* ─── TABLE VARIANTS ─── */}
+			<PageSection
+				title="Table Variants"
+				description="Visual variants via the \`variant\` prop: <code>default</code> (row borders), <code>compact</code> (dense rows), <code>bordered</code> (cell + row borders), <code>striped</code> (zebra striping), <code>minimal</code> (no borders). Use <code>tableLayout</code> to override individual options."
+			>
+				<TableVariantsDemo />
+			</PageSection>
+
+			<Separator />
+
 			{/* ─── TABLE TOOLBAR ─── */}
 			<PageSection
 				title="Table Toolbar"
@@ -464,6 +474,64 @@ function TableToolbarDemo() {
 	)
 }
 
+function TableVariantsDemo() {
+	const demoData = mockMaterials.slice(0, 5)
+	const defaultTable = useClientTable({ data: demoData, columns: mockColumns, pageSize: 5 })
+	const compactTable = useClientTable({ data: demoData, columns: mockColumns, pageSize: 5 })
+	const borderedTable = useClientTable({ data: demoData, columns: mockColumns, pageSize: 5 })
+	const stripedTable = useClientTable({ data: demoData, columns: mockColumns, pageSize: 5 })
+	const minimalTable = useClientTable({ data: demoData, columns: mockColumns, pageSize: 5 })
+
+	return (
+		<div className="space-y-6">
+			<div>
+				<h4 className="mb-2 text-sm font-medium capitalize">default</h4>
+				<DataTable
+					table={defaultTable.table}
+					recordCount={5}
+					variant="default"
+					showPagination={false}
+				/>
+			</div>
+			<div>
+				<h4 className="mb-2 text-sm font-medium capitalize">compact</h4>
+				<DataTable
+					table={compactTable.table}
+					recordCount={5}
+					variant="compact"
+					showPagination={false}
+				/>
+			</div>
+			<div>
+				<h4 className="mb-2 text-sm font-medium capitalize">bordered</h4>
+				<DataTable
+					table={borderedTable.table}
+					recordCount={5}
+					variant="bordered"
+					showPagination={false}
+				/>
+			</div>
+			<div>
+				<h4 className="mb-2 text-sm font-medium capitalize">striped</h4>
+				<DataTable
+					table={stripedTable.table}
+					recordCount={5}
+					variant="striped"
+					showPagination={false}
+				/>
+			</div>
+			<div>
+				<h4 className="mb-2 text-sm font-medium capitalize">minimal</h4>
+				<DataTable
+					table={minimalTable.table}
+					recordCount={5}
+					variant="minimal"
+					showPagination={false}
+				/>
+			</div>
+		</div>
+	)
+}
 function AdvancedFiltersDemo() {
 	const [filters, setFilters] = useState<Filter[]>([createFilter('status', 'is', ['completed'])])
 
