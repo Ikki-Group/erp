@@ -1,48 +1,276 @@
 # Ikki ERP Server
 
-Backend API server for Ikki ERP system.
+Backend API server for Ikki ERP system built with **Bun + Elysia + Drizzle + Zod**.
 
-## Tech Stack
+Optimized for solo developer productivity with AI-assisted development.
 
-- **Runtime**: Bun
-- **Framework**: Elysia
-- **Database**: PostgreSQL with Drizzle ORM
-- **Caching**: BentoCache
-- **Logging**: LogTape with OpenTelemetry
-- **Validation**: Zod
+---
 
-## Development
+## 🚀 Quick Start
 
 ```bash
 # Install dependencies
 bun install
 
-# Run in development mode
-bun run --watch src/server.ts
+# Setup environment
+cp .env.example .env.development
 
-# Build
-bun run build
+# Run database migrations
+bun run db:migrate
 
-# Type check
-bun run typecheck
+# Start dev server
+bun run dev:server
 
 # Run tests
 bun test
 ```
 
-## Environment Variables
+---
 
-See `.env.example` for required environment variables.
+## 🛠️ Tech Stack
 
-## Project Structure
+| Layer             | Technology                                              |
+| ----------------- | ------------------------------------------------------- |
+| **Runtime**       | [Bun](https://bun.sh)                                   |
+| **Framework**     | [Elysia](https://elysiajs.com)                          |
+| **Database**      | PostgreSQL with [Drizzle ORM](https://orm.drizzle.team) |
+| **Caching**       | [BentoCache](https://bentocache.dev)                    |
+| **Validation**    | [Zod](https://zod.dev) v4                               |
+| **Logging**       | [LogTape](https://logtape.org)                          |
+| **Observability** | OpenTelemetry                                           |
 
-- `src/core/` - Core infrastructure (database, http, cache, logger, otel)
-- `src/lib/` - Shared utilities (utils, auth, validation)
-- `src/modules/` - Feature-based modules
-- `src/config/` - Configuration
-- `src/db/` - Database schema
-- `src/tests/` - Tests
+---
 
-## Documentation
+## 📁 Project Structure
 
-See `/docs/technical` for technical documentation.
+```
+apps/server/
+├── src/
+│   ├── server.ts          # Entry point
+│   ├── app.ts             # Elysia app
+│   │
+│   ├── config/            # Environment & constants
+│   ├── db/                # Database schemas (Drizzle)
+│   ├── infra/             # Infrastructure (DB, cache, logger)
+│   ├── shared/            # Shared utilities
+│   ├── types/             # Global types
+│   │
+│   ├── modules/           # Feature modules (vertical slices)
+│   │   ├── _registry.ts   # DI container
+│   │   ├── _routes.ts     # Route aggregator
+│   │   ├── iam/           # IAM module (user, role, assignment)
+│   │   ├── location/      # Location module
+│   │   ├── auth/          # Authentication
+│   │   └── ...            # Other modules
+│   │
+│   └── tests/             # Test setup & helpers
+│
+├── scripts/               # Utility scripts (seed, helpers, codegen)
+└── drizzle/               # Generated migrations
+```
+
+**Conventions & commands:** [`AGENTS.md`](../../AGENTS.md) at the repo root is the single source of truth. The backend architecture/module standard is currently being re-established via the aihero.dev planning workflow — see [`docs/`](../../docs/README.md).
+
+---
+
+## 📚 Essential Commands
+
+### Development
+
+```bash
+bun run dev               # Start dev server (with --watch)
+bun run build             # Compile dist/server + dist/migrate binaries (+ dist/migrations)
+bun run start             # Run the compiled server (./dist/server)
+```
+
+### Database
+
+```bash
+bun run db:generate       # Generate migration from schema (drizzle-kit)
+bun run db:migrate        # Apply migrations (drizzle-kit, dev)
+bun run db:migrate:prod   # Apply migrations with the production runner (scripts/migrate.ts)
+bun run db:studio         # Open Drizzle Studio
+bun run db:seed           # Seed database
+```
+
+### Deployment (Fly.io)
+
+`apps/server/Dockerfile` (build context: repo root) compiles two binaries and ships them in a
+distroless image: `/app/server` (CMD) and `/app/migrate` (with migrations in `/app/migrations`).
+`fly.toml` runs `release_command = "/app/migrate"` so migrations are applied before each new
+release starts; Fly health-checks `GET /health`. Deploys run from
+`.github/workflows/deploy-server.yml` after CI passes on `main`.
+
+`./dist/migrate` reads `DATABASE_URL` and optional `MIGRATIONS_DIR` (default: `migrations/` next
+to the binary), and exits non-zero on failure. Production requires `CORS_ORIGINS` to be set
+(`fly secrets set CORS_ORIGINS=https://…`).
+
+### Code Quality
+
+```bash
+bun test                  # Run tests
+bun run typecheck         # Type checking
+bun run lint              # Lint code
+bun run verify            # Full verification (lint + typecheck + knip + check-deps)
+bun run check-deps        # Check circular dependencies
+```
+
+---
+
+## 📖 Documentation
+
+Conventions, commands, and architecture rules live in [`AGENTS.md`](../../AGENTS.md) at the repo root. Broader docs are centralized at [`docs/`](../../docs/README.md).
+
+> The backend module standard is being re-established from scratch via the aihero.dev planning workflow. The retired standard is archived at [`docs/_archive/server-redesign/`](../../docs/_archive/README.md) for historical reference only — do not follow it.
+
+**Project instructions:** See [/CLAUDE.md](../../CLAUDE.md) at repo root.
+
+---
+
+## 🏗️ Module Structure
+
+Each module follows a **vertical slice architecture**:
+
+```
+modules/{module}/
+├── {module}.module.ts    # Module factory (DI)
+├── {module}.contract.ts  # Zod schemas (validation)
+├── {module}.repo.ts      # Data access (Drizzle)
+├── {module}.service.ts   # Business logic
+├── {module}.route.ts     # HTTP routes (Elysia)
+├── {module}.internal.ts  # Internal errors/types
+└── index.ts              # Public API
+```
+
+**Complex modules** may have submodules:
+
+```
+modules/iam/
+├── iam.module.ts         # Aggregate factory
+├── iam.route.ts          # Aggregate routes
+├── user/                 # User submodule
+├── role/                 # Role submodule
+├── assignment/           # Assignment submodule
+└── composed/             # Cross-submodule queries
+```
+
+---
+
+## 🎯 Code Style
+
+### Key Principles
+
+- **ES Modules only** (import/export, not CommonJS)
+- **Serial integer IDs** (not UUIDs)
+- **Zod for validation** (with spread-shape pattern, NOT `.extend()`)
+- **Service pattern** (handleCreate, handleUpdate, etc.)
+- **Repository pattern** (pure data access, return `null` for not found)
+- **Audit trail** (all mutations include createdBy/updatedBy)
+- **Cache invalidation** (on all writes)
+- **Batch operations** (use `inArray()` + RelationMap, avoid N+1 queries)
+
+### Naming Conventions
+
+| Type      | Convention | Example                               |
+| --------- | ---------- | ------------------------------------- |
+| Functions | camelCase  | `handleCreate`, `findById`            |
+| Classes   | PascalCase | `UserService`, `LocationRepo`         |
+| Constants | UPPERCASE  | `MAX_RETRIES`, `DEFAULT_LIMIT`        |
+| Files     | kebab-case | `user.service.ts`, `location.repo.ts` |
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+bun test
+
+# Run specific test file
+bun test src/modules/location/location.test.ts
+
+# Run with coverage
+bun test --coverage
+```
+
+### Test Types
+
+1. **Unit Tests** (`*.test.ts`) - Service logic with mocked repo
+2. **Integration Tests** (`*.integration.test.ts`) - Full HTTP flow with real DB
+
+---
+
+## 🚦 Pre-Commit Checklist
+
+Before committing:
+
+- [ ] `bun run verify` passes (lint + typecheck + test)
+- [ ] `bun run check-deps` passes (no circular dependencies)
+- [ ] All mutations have audit stamps
+- [ ] All mutations invalidate cache
+- [ ] All unique fields have conflict checks
+- [ ] No N+1 queries (use batch operations)
+
+---
+
+## 🌍 Environment Variables
+
+Copy `.env.example` to `.env.development`:
+
+```bash
+cp .env.example .env.development
+```
+
+Required variables:
+
+- `DATABASE_URL` - PostgreSQL connection string
+- `CORS_ORIGINS` - Comma-separated allowed origins (required in production)
+
+Optional: `PORT` (default 4001, also in the Docker image), `DB_POOL_MAX`, `REDIS_URL`
+(L2 cache/session store; memory-only when unset), `AUTH_RATE_LIMIT_*`, `AXIOM_*`. See
+`.env.example`.
+
+---
+
+## 🐛 Troubleshooting
+
+### Database Issues
+
+```bash
+# Drop, migrate and seed the database (development/test only, guarded)
+bun run dev:db:reset
+```
+
+### Cache Issues
+
+```bash
+# Clear all cache
+redis-cli FLUSHALL
+```
+
+### Type Errors
+
+```bash
+# Regenerate Drizzle types
+bun run db:generate
+```
+
+---
+
+## 🤝 Contributing
+
+1. Read [`AGENTS.md`](../../AGENTS.md) — conventions and commands
+2. Copy from the reference modules (`location/`, `iam/`)
+3. Run `bun run verify` before committing (from `apps/server`)
+
+> Note: the module standard is being re-defined. Until the new standard lands, treat `location/` as the closest working reference and confirm the shape before starting new module work.
+
+---
+
+## 📄 License
+
+Proprietary - Ikki ERP System
+
+---
+
+**Need help?** Check the docs/ directory or ask Claude Code! 🤖

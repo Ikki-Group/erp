@@ -1,0 +1,291 @@
+import { Globe2Icon, MapPinIcon, PlusIcon, ShieldCheckIcon, TrashIcon } from 'lucide-react'
+
+import { withForm } from '@/lib/form/app-form'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Separator } from '@/components/ui/separator'
+
+import { LocationLookupField } from '@/features/location/components/location-lookup-field'
+
+import { createUserAssignment, emptyUserFormValues } from '../user-form-values'
+import type { AssignmentMode } from '../user-form-values'
+import { RoleLookupField } from './role-lookup-field'
+
+const scopeOptions = [
+	{
+		value: 'global' as const,
+		label: 'Semua lokasi',
+		description: 'Gunakan ini untuk tanggung jawab pusat atau seluruh perusahaan.',
+		Icon: Globe2Icon,
+	},
+	{
+		value: 'per_location' as const,
+		label: 'Lokasi terpilih',
+		description: 'Pilih satu lokasi untuk setiap penugasan.',
+		Icon: MapPinIcon,
+	},
+]
+
+export const UserFormFields = withForm({
+	defaultValues: emptyUserFormValues(),
+	props: { mode: 'create' as 'create' | 'edit' },
+	render: function UserFormFields({ form, mode }) {
+		return (
+			<div className="grid gap-6">
+				<div className="grid gap-4 md:grid-cols-2">
+					<form.AppField name="username">
+						{(field) => (
+							<field.TextField
+								label="Nama pengguna"
+								placeholder="mis. john_doe"
+								disabled={mode === 'edit'}
+							/>
+						)}
+					</form.AppField>
+					<form.AppField name="email">
+						{(field) => <field.TextField label="Email" placeholder="pengguna@contoh.com" />}
+					</form.AppField>
+				</div>
+
+				<form.AppField name="name">
+					{(field) => <field.TextField label="Nama lengkap" placeholder="Nama lengkap" />}
+				</form.AppField>
+
+				{mode === 'create' && (
+					<form.AppField name="password">
+						{(field) => (
+							<field.TextField
+								label="Kata sandi"
+								type="password"
+								placeholder="Minimal 8 karakter"
+							/>
+						)}
+					</form.AppField>
+				)}
+
+				<form.AppField name="assignmentMode">
+					{(modeField) => (
+						<form.AppField name="assignments">
+							{(assignmentsField) => {
+								const selectedMode = modeField.state.value
+								const assignments = assignmentsField.state.value
+								const isGlobal = selectedMode === 'global'
+								const changeMode = (nextMode: AssignmentMode) => {
+									if (nextMode === selectedMode) return
+									modeField.handleChange(nextMode)
+									form.setFieldValue('assignments', [])
+								}
+
+								const addAssignment = () => assignmentsField.pushValue(createUserAssignment())
+
+								return (
+									<section className="overflow-hidden rounded-xl border bg-card">
+										<div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
+											<div className="flex gap-3">
+												<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+													<ShieldCheckIcon className="size-4" />
+												</div>
+												<div>
+													<h3 className="font-medium tracking-tight">Akses dan peran</h3>
+													<p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
+														Pilih bagaimana pengguna ini menerima akses, lalu tambahkan peran yang
+														dibutuhkan.
+													</p>
+												</div>
+											</div>
+											<Badge variant={assignments.length > 0 ? 'secondary' : 'outline'}>
+												{assignments.length === 0
+													? 'Belum ada akses'
+													: `${assignments.length} ${isGlobal ? 'peran' : 'lokasi'}`}
+											</Badge>
+										</div>
+
+										<Separator />
+
+										<div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+											<div className="min-w-0">
+												<fieldset>
+													<legend className="text-sm font-medium">Cakupan akses</legend>
+													<p className="mt-1 text-xs text-muted-foreground">
+														Pengguna dapat memiliki akses seluruh perusahaan atau akses per lokasi.
+													</p>
+													<RadioGroup
+														value={selectedMode}
+														onValueChange={(value) => changeMode(value as AssignmentMode)}
+														aria-label="Cakupan akses"
+														className="mt-3 grid gap-2 sm:grid-cols-2"
+													>
+														{scopeOptions.map(({ value, label, description, Icon }) => (
+															<label
+																key={value}
+																className="group flex min-h-20 cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 has-data-checked:border-primary has-data-checked:bg-primary/5"
+															>
+																<RadioGroupItem
+																	value={value}
+																	aria-label={label}
+																	className="mt-0.5"
+																/>
+																<Icon className="mt-0.5 size-4 text-muted-foreground group-has-data-checked:text-primary" />
+																<span className="grid gap-1">
+																	<span className="text-sm font-medium">{label}</span>
+																	<span className="text-xs leading-relaxed text-muted-foreground">
+																		{description}
+																	</span>
+																</span>
+															</label>
+														))}
+													</RadioGroup>
+												</fieldset>
+
+												<div className="mt-6 flex items-end justify-between gap-3">
+													<div>
+														<h4 className="font-medium tracking-tight">
+															{isGlobal ? 'Peran global' : 'Akses lokasi'}
+														</h4>
+														<p className="mt-1 text-xs text-muted-foreground">
+															{isGlobal
+																? 'Setiap peran berlaku di semua lokasi.'
+																: 'Setiap lokasi hanya dapat muncul sekali.'}
+														</p>
+													</div>
+													<Button type="button" size="sm" variant="outline" onClick={addAssignment}>
+														<PlusIcon />
+														Tambah {isGlobal ? 'peran' : 'lokasi'}
+													</Button>
+												</div>
+
+												{assignments.length === 0 ? (
+													<div className="mt-3 rounded-lg border border-dashed bg-muted/30 px-4 py-7 text-center">
+														<p className="text-sm font-medium">Belum ada akses ditugaskan</p>
+														<p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
+															Tambah {isGlobal ? 'peran' : 'lokasi'} agar pengguna ini dapat
+															mengakses sumber daya yang dilindungi.
+														</p>
+													</div>
+												) : (
+													<div className="mt-3 grid gap-2">
+														{assignments.map((assignment, index) => (
+															<div
+																key={assignment.clientKey}
+																className="grid gap-3 rounded-lg border bg-background p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-start"
+															>
+																{!isGlobal && (
+																	<form.AppField name={`assignments[${index}].locationId`}>
+																		{() => (
+																			<LocationLookupField
+																				label="Lokasi"
+																				excludeIds={assignments.flatMap((other) =>
+																					other.clientKey !== assignment.clientKey &&
+																					other.locationId !== null
+																						? [other.locationId]
+																						: [],
+																				)}
+																			/>
+																		)}
+																	</form.AppField>
+																)}
+
+																<form.AppField name={`assignments[${index}].roleId`}>
+																	{() => (
+																		<RoleLookupField
+																			label="Peran"
+																			excludeIds={
+																				isGlobal
+																					? assignments.flatMap((other) =>
+																							other.clientKey !== assignment.clientKey &&
+																							other.roleId !== null
+																								? [other.roleId]
+																								: [],
+																						)
+																					: undefined
+																			}
+																		/>
+																	)}
+																</form.AppField>
+
+																<Button
+																	type="button"
+																	size="icon-sm"
+																	variant="ghost"
+																	className="mt-6 justify-self-end text-muted-foreground hover:text-destructive"
+																	onClick={() => assignmentsField.removeValue(index)}
+																	aria-label={`Hapus penugasan ${isGlobal ? 'peran' : 'lokasi'} ${index + 1}`}
+																>
+																	<TrashIcon />
+																</Button>
+															</div>
+														))}
+													</div>
+												)}
+											</div>
+
+											<aside className="h-fit rounded-lg bg-muted/40 p-4 lg:mt-6">
+												<p className="text-xs font-medium text-muted-foreground">Ringkasan akses</p>
+												<div className="mt-3 flex items-center gap-2">
+													{isGlobal ? (
+														<Globe2Icon className="size-4 text-primary" />
+													) : (
+														<MapPinIcon className="size-4 text-primary" />
+													)}
+													<span className="text-sm font-medium">
+														{isGlobal ? 'Seluruh perusahaan' : 'Khusus lokasi'}
+													</span>
+												</div>
+												<p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+													{isGlobal
+														? 'Setiap peran terpilih berlaku di semua lokasi.'
+														: 'Setiap lokasi terpilih mendapat peran yang tampil di barisnya.'}
+												</p>
+												<Separator className="my-4" />
+												<div className="grid gap-2 text-xs">
+													<div className="flex items-center justify-between gap-2">
+														<span className="text-muted-foreground">Penugasan</span>
+														<span className="font-medium tabular-nums">{assignments.length}</span>
+													</div>
+													<div className="flex items-center justify-between gap-2">
+														<span className="text-muted-foreground">Cakupan</span>
+														<span className="font-medium">
+															{isGlobal ? 'Global' : 'Per lokasi'}
+														</span>
+													</div>
+												</div>
+											</aside>
+										</div>
+									</section>
+								)
+							}}
+						</form.AppField>
+					)}
+				</form.AppField>
+
+				<form.AppField name="isActive">
+					{(field) => (
+						<field.SwitchField label="Aktif" description="Pengguna nonaktif tidak dapat masuk." />
+					)}
+				</form.AppField>
+				<form.Subscribe
+					selector={(state) => ({ error: state.errorMap.onSubmit, submitting: state.isSubmitting })}
+				>
+					{({ error, submitting }) =>
+						typeof error === 'string' ? (
+							<Button
+								type="button"
+								variant="outline"
+								className="justify-self-start"
+								disabled={submitting}
+								onClick={() => {
+									form.setErrorMap({ onSubmit: undefined })
+									void form.handleSubmit()
+								}}
+							>
+								Coba lagi simpan
+							</Button>
+						) : null
+					}
+				</form.Subscribe>
+			</div>
+		)
+	},
+})

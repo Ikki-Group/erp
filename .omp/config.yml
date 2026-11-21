@@ -1,0 +1,18 @@
+# omp project settings for Ikki ERP. Merged over ~/.omp/agent/config.yml when omp starts at the repo root.
+# Model roles stay per-user (~/.omp/agent/config.yml); this file holds team-wide behavior only.
+lsp:
+  # Type/lint errors come back in the edit result, so the agent fixes them in the same turn
+  # instead of discovering them later at `bun run verify`.
+  diagnosticsOnEdit: true
+skills:
+  # Off-domain user-level skills: their descriptions ride every prompt and invite mis-routing in an ERP repo.
+  ignoredSkills:
+    - hyperframes*
+    - product-launch-video
+    - media-use
+    - drawio-skill
+    - writing-beats
+    - writing-fragments
+    - writing-shape
+    - teach
+    - setup-matt-pocock-skills

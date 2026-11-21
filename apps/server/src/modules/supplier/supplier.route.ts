@@ -1,66 +1,73 @@
-import Elysia from 'elysia'
+import { crudRoutes } from '@/server/crud-route.ts'
+import { zRes } from '@/shared/http/response.schema.ts'
+import { res } from '@/shared/http/response.ts'
+import { EntityRefDto, zq } from '@/shared/schema/index.ts'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
-import { res } from '@/core/http/response'
+import {
+	SupplierCreateDto,
+	SupplierDto,
+	SupplierFilterDto,
+	SupplierMaterialCreateDto,
+	SupplierMaterialDto,
+	SupplierMaterialFilterDto,
+	SupplierMaterialUpdateDto,
+	SupplierUpdateDto,
+} from './supplier.contract.ts'
+import type { SupplierService } from './supplier.service.ts'
 
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@ikki/api-contract/validation'
-
-import * as dto from './supplier.dto'
-import type { SupplierService } from './supplier.service'
-
-export function initSupplierRoute(service: SupplierService) {
-	return new Elysia({ prefix: '/supplier' })
-		.use(authPluginMacro)
-		.get(
-			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
-				return res.paginated(result)
-			},
-			{
-				query: dto.SupplierFilterDto,
-				response: createPaginatedResponseSchema(dto.SupplierDto),
-				auth: true,
-			},
-		)
-		.get(
-			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
-				return res.ok(result)
-			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(dto.SupplierDto), auth: true },
-		)
+export function createSupplierRoute(svc: SupplierService) {
+	return crudRoutes({
+		prefix: '/supplier',
+		resource: 'supplier',
+		tag: 'Suppliers',
+		entity: 'supplier',
+		service: svc,
+		schemas: {
+			filter: SupplierFilterDto,
+			dto: SupplierDto,
+			create: SupplierCreateDto,
+			update: SupplierUpdateDto,
+		},
+	})
+		.get('/material/list', async ({ query }) => res.paginated(await svc.handlePricingList(query)), {
+			query: SupplierMaterialFilterDto,
+			response: zRes.paginated(SupplierMaterialDto),
+			permission: 'supplier.read',
+			detail: { tags: ['Supplier Pricing'], summary: 'List supplier material pricing' },
+		})
 		.post(
-			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
-				return res.created(result)
-			},
+			'/material/create',
+			async ({ body, actor }) => res.created(await svc.handlePricingCreate(body, actor)),
 			{
-				body: dto.SupplierCreateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
-				auth: true,
+				body: SupplierMaterialCreateDto,
+				response: zRes.created(EntityRefDto),
+				permission: 'supplier.create',
+				detail: {
+					tags: ['Supplier Pricing'],
+					summary: 'Create supplier material pricing',
+					description:
+						'One price per supplier and material pair; fails if the pair already exists.',
+				},
 			},
 		)
-		.patch(
-			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body, auth.userId)
-				return res.ok(result)
-			},
+		.put(
+			'/material/update',
+			async ({ body, actor }) => res.ok(await svc.handlePricingUpdate(body, actor)),
 			{
-				body: dto.SupplierUpdateDto,
-				response: createSuccessResponseSchema(zc.RecordId),
-				auth: true,
+				body: SupplierMaterialUpdateDto,
+				response: zRes.ok(EntityRefDto),
+				permission: 'supplier.update',
+				detail: { tags: ['Supplier Pricing'], summary: 'Update supplier material pricing' },
 			},
 		)
 		.delete(
-			'/remove',
-			async function remove({ query, auth }) {
-				const result = await service.handleRemove(query.id, auth.userId)
-				return res.ok(result)
+			'/material/remove',
+			async ({ query, actor }) => res.ok(await svc.handlePricingDelete(query.id, actor)),
+			{
+				query: zq.recordId,
+				response: zRes.ok(EntityRefDto),
+				permission: 'supplier.delete',
+				detail: { tags: ['Supplier Pricing'], summary: 'Delete supplier material pricing' },
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

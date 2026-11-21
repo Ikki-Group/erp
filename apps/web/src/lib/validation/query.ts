@@ -12,7 +12,12 @@ const search = z
 	.optional()
 	.transform((val) => (val?.length === 0 ? undefined : val))
 
-const boolean = z.coerce.boolean().optional()
+// Query booleans arrive as strings ("true"/"1"). Match the server's parsing
+// so 'false' → false (z.coerce.boolean would make any non-empty string true).
+const boolean = z
+	.string()
+	.optional()
+	.transform((val) => val === 'true' || val === '1')
 
 const recordId = z.object({ id: id })
 
@@ -21,6 +26,13 @@ const pagination = z.object({
 	limit: z.coerce.number().int().positive().max(100).default(10).catch(10),
 })
 
+function withPagination<T extends z.ZodRawShape>(shape: T) {
+	return z.object({
+		...shape,
+		...pagination.shape,
+	})
+}
+
 export const zq = {
 	id,
 	ids,
@@ -28,4 +40,5 @@ export const zq = {
 	boolean,
 	recordId,
 	pagination,
+	withPagination,
 }

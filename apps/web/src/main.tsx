@@ -1,21 +1,16 @@
-// oxlint-disable import/no-unassigned-import
-// oxlint-disable unicorn/prefer-query-selector
-import './styles/main.css'
-import React from 'react'
+// oxlint-disable-next-line import/no-unassigned-import
+import './styles.css'
 import ReactDOM from 'react-dom/client'
 
-import { z } from 'zod'
+import { RouterProvider } from '@tanstack/react-router'
 
-import { App } from './app'
+import { getRouter } from './router'
 
-z.config(z.locales.id())
+const router = getRouter()
 
-const rootElement = document.getElementById('root')!
+const rootElement = document.getElementById('app')!
+
 if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement)
-	root.render(
-		<React.StrictMode>
-			<App />
-		</React.StrictMode>,
-	)
+	root.render(<RouterProvider router={router} />)
 }

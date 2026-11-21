@@ -1,41 +1,56 @@
-// oxlint-disable import/no-unassigned-import
+import { app } from './app.ts'
+import { closeCache } from './infra/cache/index.ts'
+import { pool } from './infra/database/client.ts'
+import { getLogger, setupLogger } from './infra/logger/index.ts'
+import { otelExportsToAxiom, otelPlugin } from './infra/otel/otel.ts'
+import { closeRedis } from './infra/redis/index.ts'
+import { env } from './shared/config/env.ts'
 
-import '@total-typescript/ts-reset'
-import '@elysiajs/opentelemetry'
-import { logger, setupLogger } from '@/core/logger'
-
-import { initModules } from '@/modules/_registry'
-import { initRoutes } from '@/modules/_routes'
-
-import { db } from './db'
-import { createApp } from '@/app'
-import { env } from '@/config/env'
+const port = env.PORT
 
 await setupLogger()
 
-const modules = initModules(db)
-const routes = initRoutes(modules)
+const logger = getLogger(['server'])
 
-const app = createApp(modules)
-routes.register(app)
+if (otelPlugin) {
+	logger.info(
+		otelExportsToAxiom
+			? 'OpenTelemetry initialized, exporting to Axiom'
+			: 'OpenTelemetry initialized (no Axiom config, spans dropped)',
+	)
+}
 
-app.listen({ port: env.PORT })
-
-logger.info(`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`, {
-	port: env.PORT,
-	host: env.HOST,
-	env: env.NODE_ENV,
+app.listen(port, () => {
+	logger.info('Server running on port {port}', { port })
 })
 
-// async function shutdown() {
-//   logger.info('Shutting down')
+// ─── Graceful shutdown ───
 
-//   await server.stop()
-//   await closeDatabase()
-//   logger.info('Shutdown complete')
+const SHUTDOWN_TIMEOUT_MS = 10_000
+let shuttingDown = false
 
-//   process.exit(0)
-// }
+async function shutdown(signal: string): Promise<void> {
+	if (shuttingDown) return
+	shuttingDown = true
+	logger.info('Received {signal}, shutting down', { signal })
+	setTimeout(() => {
+		logger.error('Shutdown timed out, forcing exit')
+		process.exit(1)
+	}, SHUTDOWN_TIMEOUT_MS).unref()
+	try {
+		await app.stop() // stops accepting connections, waits for in-flight requests
+		await closeCache()
+		await closeRedis()
+		await pool.end()
+		logger.info('Shutdown complete')
+		process.exit(0)
+	} catch (error) {
+		logger.error('Shutdown failed', { error })
+		process.exit(1)
+	}
+}
 
-// process.on('SIGINT', shutdown)
-// process.on('SIGTERM', shutdown)
+process.on('SIGTERM', () => void shutdown('SIGTERM'))
+process.on('SIGINT', () => void shutdown('SIGINT'))
+
+export type App = typeof app

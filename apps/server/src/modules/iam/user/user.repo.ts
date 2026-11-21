@@ -1,210 +1,149 @@
-import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, exists, or } from 'drizzle-orm'
-import { omit } from 'es-toolkit'
+import { users } from '@/db/schema/iam.ts'
 
 import {
-	paginate,
-	searchFilter,
-	sortBy,
-	stampCreate,
-	stampUpdate,
+	allOf,
+	eq,
+	eqIf,
+	inArray,
+	searchAcross,
+	sql,
 	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/core/database'
+	toLimitOffset,
+	buildPaginationMeta,
+} from '@/infra/database/index.ts'
+import type { DbContext } from '@/infra/database/index.ts'
+import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
 
-import { userAssignmentsTable, usersTable } from '@/db/schema'
+import type { UserDto, UserFilterDto } from './user.contract.ts'
 
-import * as dto from './user.dto'
+// ─── Types ───
 
-export class UserRepo {
-	constructor(private readonly db: DbClient) {}
+type UserInsert = typeof users.$inferInsert
+type UserUpdate = Partial<Omit<UserInsert, 'id'>>
+type UserRow = typeof users.$inferSelect
 
-	/* ---------------------------------- QUERY --------------------------------- */
+/** Maps a raw DB row to the DTO shape (excludes passwordHash). */
+function toDto(row: UserRow): UserDto {
+	return {
+		id: row.id,
+		username: row.username,
+		email: row.email,
+		name: row.name,
+		isActive: row.isActive,
+		createdAt: row.createdAt,
+		updatedAt: row.updatedAt,
+		createdBy: row.createdBy,
+		updatedBy: row.updatedBy,
+	}
+}
 
-	async getListPaginated(filter: dto.UserFilterDto): Promise<WithPaginationResult<dto.UserDto>> {
-		return record('UserRepo.getListPaginated', async () => {
-			const { q, page, limit, isActive, isRoot } = filter
-			const where = and(
-				q === undefined
-					? undefined
-					: or(
-							searchFilter(usersTable.fullname, q),
-							searchFilter(usersTable.username, q),
-							searchFilter(usersTable.email, q),
-						),
-				isActive === undefined ? undefined : eq(usersTable.isActive, isActive),
-				isRoot === undefined ? undefined : eq(usersTable.isRoot, isRoot),
-				filter.locationId === undefined
-					? undefined
-					: exists(
-							this.db
-								.select()
-								.from(userAssignmentsTable)
-								.where(
-									and(
-										eq(userAssignmentsTable.userId, usersTable.id),
-										eq(userAssignmentsTable.locationId, filter.locationId),
-									),
-								),
-						),
-			)
+// ─── Interface ───
 
-			return paginate({
-				data: ({ limit, offset }) =>
-					this.db
-						.select()
-						.from(usersTable)
-						.where(where)
-						.orderBy(sortBy(usersTable.updatedAt, 'desc'))
-						.limit(limit)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(usersTable).where(where),
+export interface IUserRepo {
+	readonly db: DbContext
+	findById(id: number, db?: DbContext): Promise<UserDto | undefined>
+	findByIds(ids: number[], db?: DbContext): Promise<UserDto[]>
+	findPage(filter: UserFilterDto, db?: DbContext): Promise<WithPaginationResult<UserDto>>
+	findByUsername(username: string, db?: DbContext): Promise<UserRow | undefined>
+	findByIdRaw(id: number, db?: DbContext): Promise<UserRow | undefined>
+	insert(data: UserInsert, db?: DbContext): Promise<EntityRef | undefined>
+	update(id: number, data: UserUpdate, db?: DbContext): Promise<EntityRef | undefined>
+}
+
+// ─── Implementation ───
+
+export class UserRepo implements IUserRepo {
+	constructor(readonly db: DbContext) {}
+
+	async findById(id: number, db: DbContext = this.db): Promise<UserDto | undefined> {
+		const row = await db.select().from(users).where(eq(users.id, id)).limit(1).then(takeFirst)
+		return row ? toDto(row) : undefined
+	}
+
+	async findByIds(ids: number[], db: DbContext = this.db): Promise<UserDto[]> {
+		if (ids.length === 0) return []
+		const rows = await db.select().from(users).where(inArray(users.id, ids))
+		return rows.map(toDto)
+	}
+
+	async findPage(
+		filter: UserFilterDto,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<UserDto>> {
+		const where = this.#buildWhere(filter)
+		const { limit, offset } = toLimitOffset(filter)
+
+		const rows = await db
+			.select({
+				id: users.id,
+				username: users.username,
+				email: users.email,
+				name: users.name,
+				isActive: users.isActive,
+				createdAt: users.createdAt,
+				updatedAt: users.updatedAt,
+				createdBy: users.createdBy,
+				updatedBy: users.updatedBy,
+				rowCount: sql<number>`count(*) over()`.as('row_count'),
 			})
-		})
+			.from(users)
+			.where(where)
+			.orderBy(sql`${users.id} desc`)
+			.limit(limit)
+			.offset(offset)
+
+		const total = rows[0]?.rowCount ?? 0
+		return {
+			data: rows.map((row) => ({
+				id: row.id,
+				username: row.username,
+				email: row.email,
+				name: row.name,
+				isActive: row.isActive,
+				createdAt: row.createdAt,
+				updatedAt: row.updatedAt,
+				createdBy: row.createdBy,
+				updatedBy: row.updatedBy,
+			})),
+			meta: buildPaginationMeta(filter.page, filter.limit, total),
+		}
 	}
 
-	async getList(): Promise<dto.UserDto[]> {
-		return record('UserRepo.getList', async () =>
-			this.db.select().from(usersTable).orderBy(usersTable.id),
-		)
+	/** Returns full row including passwordHash — for auth/login use only. */
+	async findByUsername(username: string, db: DbContext = this.db): Promise<UserRow | undefined> {
+		return db.select().from(users).where(eq(users.username, username)).limit(1).then(takeFirst)
 	}
 
-	async getById(id: number): Promise<dto.UserDto | undefined> {
-		return record('UserRepo.getById', async () => {
-			return this.db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1).then(takeFirst)
-		})
+	/** Returns full row including passwordHash — for password verification. */
+	async findByIdRaw(id: number, db: DbContext = this.db): Promise<UserRow | undefined> {
+		return db.select().from(users).where(eq(users.id, id)).limit(1).then(takeFirst)
 	}
 
-	async getByIdentifier(
-		identifier: string,
-	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
-		return record('UserRepo.findByIdentifier', async () => {
-			const user = await this.db
-				.select()
-				.from(usersTable)
-				.where(or(eq(usersTable.username, identifier), eq(usersTable.email, identifier)))
-				.limit(1)
-				.then(takeFirst)
-
-			if (!user) return null
-			return user
-		})
-	}
-
-	async getPasswordHash(id: number): Promise<string | null> {
-		return record('UserRepo.getPasswordHash', async () => {
-			const res = await this.db
-				.select({ passwordHash: usersTable.passwordHash })
-				.from(usersTable)
-				.where(eq(usersTable.id, id))
-				.limit(1)
-				.then(takeFirst)
-			return res?.passwordHash ?? null
-		})
-	}
-
-	async count(): Promise<number> {
-		return record('UserRepo.count', async () => {
-			return this.db
-				.select({ count: count() })
-				.from(usersTable)
-				.then((rows) => rows[0]?.count ?? 0)
-		})
-	}
-
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async seed(
-		data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
-	) {
-		return record('UserRepo.seed', async () => {
-			const insertedIds: number[] = []
-			// oxlint-disable-next-line no-unused-vars
-			for (const { assignments, ...d } of data) {
-				const metadata = stampCreate(d.createdBy)
-				const [inserted] = await this.db
-					.insert(usersTable)
-					.values({ ...d, ...metadata })
-					.onConflictDoUpdate({
-						target: usersTable.username,
-						set: {
-							email: d.email,
-							fullname: d.fullname,
-							isActive: d.isActive,
-							isRoot: d.isRoot,
-							updatedAt: metadata.updatedAt,
-							updatedBy: metadata.updatedBy,
-						},
-					})
-					.returning({ id: usersTable.id })
-
-				if (inserted) insertedIds.push(inserted.id)
-			}
-
-			return insertedIds
-		})
-	}
-
-	async create(
-		data: dto.UserCreateDto & { passwordHash: string },
-		actorId: number,
-	): Promise<number | undefined> {
-		return record('UserRepo.create', async () => {
-			const userData = omit(data, ['assignments'])
-			const metadata = stampCreate(actorId)
-			const [res] = await this.db
-				.insert(usersTable)
-				.values({ ...userData, ...metadata })
-				.returning({ id: usersTable.id })
-
-			return res?.id
-		})
+	async insert(data: UserInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [result] = await db.insert(users).values(data).returning({ id: users.id })
+		return result
 	}
 
 	async update(
-		data: dto.UserUpdateDto & { passwordHash?: string },
-		actorId: number,
-	): Promise<number | undefined> {
-		return record('UserRepo.update', async () => {
-			const userData = omit(data, ['assignments'])
-			const metadata = stampUpdate(actorId)
-			const [res] = await this.db
-				.update(usersTable)
-				.set({ ...userData, ...metadata })
-				.where(eq(usersTable.id, data.id))
-				.returning({ id: usersTable.id })
-
-			return res?.id
-		})
-	}
-
-	async updatePassword(
 		id: number,
-		passwordHash: string,
-		actorId: number,
-	): Promise<number | undefined> {
-		return record('UserRepo.updatePassword', async () => {
-			const metadata = stampUpdate(actorId)
-			const [res] = await this.db
-				.update(usersTable)
-				.set({ passwordHash, ...metadata })
-				.where(eq(usersTable.id, id))
-				.returning({ id: usersTable.id })
-
-			return res?.id
-		})
+		data: UserUpdate,
+		db: DbContext = this.db,
+	): Promise<EntityRef | undefined> {
+		const [result] = await db
+			.update(users)
+			.set(data)
+			.where(eq(users.id, id))
+			.returning({ id: users.id })
+		return result
 	}
 
-	async remove(id: number): Promise<number | undefined> {
-		return record('UserRepo.remove', async () => {
-			const [res] = await this.db
-				.delete(usersTable)
-				.where(eq(usersTable.id, id))
-				.returning({ id: usersTable.id })
+	// ─── Private ───
 
-			return res?.id
-		})
+	#buildWhere(filter: UserFilterDto) {
+		return allOf(
+			searchAcross(filter.q, [users.username, users.email, users.name]),
+			eqIf(users.isActive, filter.isActive),
+		)
 	}
 }

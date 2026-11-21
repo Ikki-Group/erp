@@ -1,0 +1,273 @@
+import { useEffect, useRef, useState, useTransition } from 'react'
+import type { ReactNode } from 'react'
+
+import { format } from 'date-fns'
+import { ColumnsSettingsIcon, LoaderCircleIcon, SearchIcon, XIcon } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+
+import type { DataGridTableInstance } from '@/components/reui/data-grid/data-grid'
+import { DataGridColumnVisibility } from '@/components/reui/data-grid/data-grid-column-visibility'
+import { DateRangeFilter } from '@/components/shared/date-range-filter'
+import type { DateRange, DateRangePreset } from '@/components/shared/date-range-filter'
+import { TableFilterCombobox } from '@/components/shared/table-filter-combobox'
+import { TableFilterSelect } from '@/components/shared/table-filter-select'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+
+interface TableFilterDefBase {
+	/** Unique key, also used as the chip/select key. */
+	key: string
+	/** Human label used for the "All X" placeholder and the active-filter chip. */
+	label: string
+	options: readonly { label: string; value: string }[]
+	/** Override the default "All {label}" placeholder. */
+	allLabel?: string
+}
+
+export interface SingleTableFilterDef extends TableFilterDefBase {
+	value: string | undefined
+	onChange: (value: string | undefined) => void
+	multiple?: false
+}
+
+export interface MultiTableFilterDef extends TableFilterDefBase {
+	value: string[] | undefined
+	onChange: (value: string[] | undefined) => void
+	multiple: true
+	/**
+	 * Renders a searchable combobox (type-to-filter + removable chips) instead
+	 * of the checkbox-style dropdown. Reach for this once an option list is
+	 * long enough that scanning a plain checklist stops being faster than
+	 * typing (suppliers, materials, users — anything not a short fixed enum).
+	 */
+	searchable?: boolean
+}
+
+/**
+ * A single filter's config for `TableToolbar`. Defaults to a single-select
+ * dropdown (`value`/`onChange` deal in `string | undefined`); set
+ * `multiple: true` to get a checkbox-style multi-select instead (`value`/
+ * `onChange` deal in `string[] | undefined`).
+ */
+export type TableFilterDef = SingleTableFilterDef | MultiTableFilterDef
+
+export interface TableDateRangeFilterDef {
+	/** Unique key, also used as the active-filter chip key. */
+	key: string
+	/** Human label used in the active-filter chip. */
+	label: string
+	value: DateRange | undefined
+	onChange: (value: DateRange | undefined) => void
+	placeholder?: string
+	/** Override the default preset templates (Today, Last 7 days, ...). */
+	presets?: DateRangePreset[]
+}
+
+interface TableToolbarProps<TData extends object = object> {
+	searchValue?: string
+	onSearchChange?: (value: string) => void
+	searchPlaceholder?: string
+	filters?: TableFilterDef[]
+	/** Optional date-range filter, rendered alongside the dropdown filters. */
+	dateRange?: TableDateRangeFilterDef
+	/** Renders a "Kolom" button that toggles which columns are visible. Pass the same `table` given to `DataTable`. */
+	table?: DataGridTableInstance<TData>
+	actions?: ReactNode
+	className?: string
+}
+
+/** Stable empty-array reference so the `filters` default prop doesn't break referential equality on every render. */
+const NO_FILTERS: TableFilterDef[] = []
+
+/**
+ * Standard list-page toolbar: search input (with clear button), one or more
+ * filter dropdowns, and a chips row + "Bersihkan filter" button once any
+ * non-search filter is active. This is the single toolbar pattern for all
+ * `DataTable` list pages — search alone, search+filter, or search+multiple
+ * filters all use this same component.
+ */
+export function TableToolbar<TData extends object = object>({
+	searchValue,
+	onSearchChange,
+	searchPlaceholder = 'Cari...',
+	filters = NO_FILTERS,
+	dateRange,
+	table,
+	actions,
+	className,
+}: TableToolbarProps<TData>) {
+	const [draftSearch, setDraftSearch] = useState(searchValue ?? '')
+	const [isPending, startTransition] = useTransition()
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	useEffect(() => {
+		// Don't clobber what the user is typing: an in-flight navigation from
+		// another control (or a late route commit) must not reset the draft
+		// while the search input still has focus.
+		if (document.activeElement === inputRef.current) return
+		setDraftSearch(searchValue ?? '')
+	}, [searchValue])
+
+	const onSearchChangeRef = useRef(onSearchChange)
+	onSearchChangeRef.current = onSearchChange
+
+	useEffect(() => {
+		if (!onSearchChangeRef.current || draftSearch === (searchValue ?? '')) return
+
+		const timer = window.setTimeout(() => {
+			startTransition(() => onSearchChangeRef.current?.(draftSearch.trim()))
+		}, 250)
+
+		return () => window.clearTimeout(timer)
+	}, [draftSearch, searchValue])
+
+	const activeFilters = filters.filter((f) =>
+		Array.isArray(f.value) ? f.value.length > 0 : f.value !== undefined,
+	)
+
+	return (
+		<div className={cn('space-y-2', className)}>
+			<div className="flex flex-wrap items-center gap-2">
+				{onSearchChange && (
+					<div className="relative min-w-48 flex-1 basis-full sm:max-w-xs sm:basis-0">
+						<SearchIcon className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+						<Input
+							type="search"
+							inputMode="search"
+							ref={inputRef}
+							value={draftSearch}
+							onChange={(e) => setDraftSearch(e.target.value)}
+							placeholder={searchPlaceholder}
+							aria-label={searchPlaceholder}
+							aria-busy={isPending || draftSearch !== (searchValue ?? '')}
+							className="pl-7 pr-7 pointer-coarse:pr-14"
+						/>
+						{draftSearch && (
+							<Button
+								variant="ghost"
+								size="icon-xs"
+								className="absolute right-1.5 top-1/2 -translate-y-1/2"
+								onClick={() => setDraftSearch('')}
+								aria-label="Bersihkan pencarian"
+							>
+								{isPending ? <LoaderCircleIcon className="animate-spin" /> : <XIcon />}
+							</Button>
+						)}
+					</div>
+				)}
+
+				{filters.map((filter) =>
+					filter.multiple ? (
+						filter.searchable ? (
+							<TableFilterCombobox
+								key={filter.key}
+								aria-label={filter.label}
+								value={filter.value}
+								onValueChange={filter.onChange}
+								options={filter.options}
+								placeholder={filter.allLabel ?? `Semua ${filter.label}`}
+							/>
+						) : (
+							<TableFilterSelect
+								key={filter.key}
+								aria-label={filter.label}
+								multiple
+								value={filter.value}
+								onValueChange={filter.onChange}
+								options={filter.options}
+								allLabel={filter.allLabel ?? `Semua ${filter.label}`}
+							/>
+						)
+					) : (
+						<TableFilterSelect
+							key={filter.key}
+							aria-label={filter.label}
+							value={filter.value}
+							onValueChange={filter.onChange}
+							options={filter.options}
+							allLabel={filter.allLabel ?? `Semua ${filter.label}`}
+						/>
+					),
+				)}
+
+				{dateRange && (
+					<DateRangeFilter
+						value={dateRange.value}
+						onChange={dateRange.onChange}
+						placeholder={dateRange.placeholder}
+						presets={dateRange.presets}
+					/>
+				)}
+
+				{(table || actions) && (
+					<div className="ml-auto flex items-center gap-2">
+						{table && (
+							<DataGridColumnVisibility
+								table={table}
+								trigger={
+									<Button variant="outline" size="sm" className="gap-1.5">
+										<ColumnsSettingsIcon />
+										Kolom
+									</Button>
+								}
+							/>
+						)}
+						{actions}
+					</div>
+				)}
+			</div>
+
+			{(activeFilters.length > 0 || dateRange?.value) && (
+				<div className="flex flex-wrap items-center gap-1.5">
+					{activeFilters.map((filter) => {
+						const values = Array.isArray(filter.value) ? filter.value : [filter.value]
+						const labels = values.map((v) => filter.options.find((o) => o.value === v)?.label ?? v)
+						return (
+							<Badge key={filter.key} variant="outline" className="gap-1 pr-1">
+								{filter.label}: {labels.join(', ')}
+								<Button
+									variant="ghost"
+									size="icon-xs"
+									className="size-4 shrink-0 rounded-full focus-visible:ring-offset-0"
+									onClick={() => filter.onChange(undefined)}
+									aria-label={`Hapus filter ${filter.label}`}
+								>
+									<XIcon />
+								</Button>
+							</Badge>
+						)
+					})}
+					{dateRange?.value && (
+						<Badge key={dateRange.key} variant="outline" className="gap-1 pr-1">
+							{dateRange.label}: {format(dateRange.value.from, 'dd MMM')} –{' '}
+							{format(dateRange.value.to, 'dd MMM yyyy')}
+							<Button
+								variant="ghost"
+								size="icon-xs"
+								className="size-4 shrink-0 rounded-full focus-visible:ring-offset-0"
+								onClick={() => dateRange.onChange(undefined)}
+								aria-label={`Hapus filter ${dateRange.label}`}
+							>
+								<XIcon />
+							</Button>
+						</Badge>
+					)}
+					<Button
+						variant="ghost"
+						size="xs"
+						className="text-muted-foreground"
+						onClick={() => {
+							filters.forEach((f) => f.onChange(undefined))
+							dateRange?.onChange(undefined)
+						}}
+					>
+						Bersihkan filter
+					</Button>
+				</div>
+			)}
+		</div>
+	)
+}

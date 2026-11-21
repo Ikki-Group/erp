@@ -1,124 +1,69 @@
-import { record } from '@elysiajs/opentelemetry'
-import { count, eq } from 'drizzle-orm'
+import { roles, userAssignments } from '@/db/schema/iam.ts'
 
-import {
-	paginate,
-	searchFilter,
-	stampCreate,
-	stampUpdate,
-	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/core/database'
+import { createCrudRepo } from '@/infra/database/crud.repo.ts'
+import type { CrudRepo } from '@/infra/database/crud.repo.ts'
+import { allOf, eq, eqIf, searchAcross } from '@/infra/database/index.ts'
+import type { DbContext } from '@/infra/database/index.ts'
+import type { WithPaginationResult } from '@/shared/types/pagination.ts'
 
-import { rolesTable } from '@/db/schema'
+import type { RoleDto, RoleFilterDto } from './role.contract.ts'
 
-import * as dto from './role.dto'
+// ─── Types ───
 
-export class RoleRepo {
-	constructor(private readonly db: DbClient) {}
+type RoleInsert = typeof roles.$inferInsert
+type RoleRow = typeof roles.$inferSelect
 
-	/* ---------------------------------- QUERY --------------------------------- */
+/** Maps a raw DB row to the DTO shape. */
+function toDto(row: RoleRow): RoleDto {
+	return {
+		id: row.id,
+		code: row.code,
+		name: row.name,
+		description: row.description,
+		isSystem: row.isSystem,
+		permissions: Array.isArray(row.permissions)
+			? row.permissions.filter((p): p is string => typeof p === 'string')
+			: [],
+		createdAt: row.createdAt,
+		updatedAt: row.updatedAt,
+		createdBy: row.createdBy,
+		updatedBy: row.updatedBy,
+	}
+}
 
-	async getListPaginated(filter: dto.RoleFilterDto): Promise<WithPaginationResult<dto.RoleDto>> {
-		return record('RoleRepo.getListPaginated', async () => {
-			const { q, page, limit } = filter
-			const where = q === undefined ? undefined : searchFilter(rolesTable.name, q)
+// ─── Interface ───
 
-			return paginate<dto.RoleDto>({
-				data: ({ limit: l, offset }) => {
-					const rows = this.db
-						.select()
-						.from(rolesTable)
-						.where(where)
-						.orderBy(rolesTable.name)
-						.limit(l)
-						.offset(offset)
-					return rows
+export interface IRoleRepo extends CrudRepo<RoleDto, RoleInsert> {
+	findPage(filter: RoleFilterDto, db?: DbContext): Promise<WithPaginationResult<RoleDto>>
+	countAssignments(roleId: number, db?: DbContext): Promise<number>
+}
+
+// ─── Implementation ───
+
+export function createRoleRepo(baseDb: DbContext): IRoleRepo {
+	const crud = createCrudRepo({ db: baseDb, table: roles, toDto })
+
+	return {
+		...crud,
+
+		findPage: (filter, db) =>
+			crud.paginate(
+				filter,
+				{
+					where: allOf(
+						searchAcross(filter.q, [roles.code, roles.name]),
+						eqIf(roles.isSystem, filter.isSystem === undefined ? undefined : filter.isSystem === 1),
+					),
 				},
-				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(rolesTable).where(where),
-			})
-		})
-	}
+				db,
+			),
 
-	async getList(): Promise<dto.RoleDto[]> {
-		return record('RoleRepo.getList', async () => {
-			return this.db.select().from(rolesTable)
-		})
-	}
-
-	async getById(id: number): Promise<dto.RoleDto | undefined> {
-		return record('RoleRepo.getById', async () => {
-			return this.db.select().from(rolesTable).where(eq(rolesTable.id, id)).limit(1).then(takeFirst)
-		})
-	}
-
-	async count(): Promise<number> {
-		return record('RoleRepo.count', async () => {
-			return this.db
-				.select({ count: count() })
-				.from(rolesTable)
-				.then((rows) => rows[0]?.count ?? 0)
-		})
-	}
-
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: dto.RoleCreateDto, actorId: number): Promise<number | undefined> {
-		return record('RoleRepo.create', async () => {
-			const metadata = stampCreate(actorId)
-			const [res] = await this.db
-				.insert(rolesTable)
-				.values({ ...data, ...metadata })
-				.returning({ id: rolesTable.id })
-
-			return res?.id
-		})
-	}
-
-	async update(data: dto.RoleUpdateDto, actorId: number): Promise<number | undefined> {
-		return record('RoleRepo.update', async () => {
-			const metadata = stampUpdate(actorId)
-			const [res] = await this.db
-				.update(rolesTable)
-				.set({ ...data, ...metadata })
-				.where(eq(rolesTable.id, data.id))
-				.returning({ id: rolesTable.id })
-
-			return res?.id
-		})
-	}
-
-	async remove(id: number): Promise<number | undefined> {
-		return record('RoleRepo.remove', async () => {
-			const [res] = await this.db
-				.delete(rolesTable)
-				.where(eq(rolesTable.id, id))
-				.returning({ id: rolesTable.id })
-			return res?.id
-		})
-	}
-
-	async seed(data: (dto.RoleCreateDto & { createdBy: number })[]): Promise<void> {
-		return record('RoleRepo.seed', async () => {
-			for (const d of data) {
-				const metadata = stampCreate(d.createdBy)
-				await this.db
-					.insert(rolesTable)
-					.values({ ...d, ...metadata })
-					.onConflictDoUpdate({
-						target: rolesTable.code,
-						set: {
-							name: d.name,
-							description: d.description,
-							permissions: d.permissions,
-							isSystem: d.isSystem,
-							updatedAt: metadata.updatedAt,
-							updatedBy: metadata.updatedBy,
-						},
-					})
-			}
-		})
+		async countAssignments(roleId, db = baseDb) {
+			const rows = await db
+				.select({ id: userAssignments.id })
+				.from(userAssignments)
+				.where(eq(userAssignments.roleId, roleId))
+			return rows.length
+		},
 	}
 }

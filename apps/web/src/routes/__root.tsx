@@ -1,49 +1,80 @@
+import { TanStackDevtools } from '@tanstack/react-devtools'
+import type { QueryClient } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
-import { ThemeProvider } from 'next-themes'
+import { Confirm } from '@/components/shared/confirm'
+import { ConfirmInput } from '@/components/shared/confirm-input'
+import { FormDialog } from '@/components/shared/form-dialog'
+import { NotFound } from '@/components/shared/not-found'
 
-import { useAppState } from '@/hooks/use-app-state'
-
-import { ApiError } from '@/lib/api'
-import type { RouteContext } from '@/lib/tanstack-router'
-
-import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
-
-import { Toaster } from '@/components/ui/sonner'
+import { Toaster } from '@/components/ui/toast'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
-import { authApi } from '@/features/auth'
+import appCss from '../styles.css?url'
+import { AuthProvider } from '@/providers/auth-provider.tsx'
+import { ThemeProvider } from '@/providers/theme-provider'
 
-export const Route = createRootRouteWithContext<RouteContext>()({
-	beforeLoad: async ({ context }) => {
-		const token = useAppState.getState().token
+interface RouterContext {
+	queryClient: QueryClient
+}
 
-		if (token) {
-			const data = await context.qc
-				.ensureQueryData(authApi.me.query({}))
-				.then((res) => res.data)
-				.catch((err) => {
-					if (err instanceof ApiError && err.status === 401) {
-						useAppState.getState().clearToken()
-					}
-				})
-
-			if (data) {
-				useAppState.getState().invalidateSessionData(data)
-			}
-		}
-	},
+export const Route = createRootRouteWithContext<RouterContext>()({
+	head: () => ({
+		meta: [
+			{
+				charSet: 'utf-8',
+			},
+			{
+				name: 'viewport',
+				content: 'width=device-width, initial-scale=1',
+			},
+			{
+				title: 'Ikki ERP',
+			},
+		],
+		links: [
+			{
+				rel: 'stylesheet',
+				href: appCss,
+			},
+		],
+	}),
+	notFoundComponent: () => <NotFound className="min-h-svh" />,
 	component: RootComponent,
 })
 
 function RootComponent() {
+	const { queryClient } = Route.useRouteContext()
+
 	return (
-		<ThemeProvider attribute="class">
-			<TooltipProvider>
-				<Outlet />
-				<ConfirmDialog.Root />
-				<Toaster position="top-right" />
-			</TooltipProvider>
-		</ThemeProvider>
+		<QueryClientProvider client={queryClient}>
+			<ThemeProvider>
+				<Toaster>
+					<TooltipProvider>
+						<AuthProvider>
+							<Outlet />
+						</AuthProvider>
+						<Confirm />
+						<ConfirmInput />
+						<FormDialog />
+						<TanStackDevtools
+							config={{
+								position: 'bottom-right',
+							}}
+							plugins={[
+								{
+									name: 'TanStack Router',
+									render: <TanStackRouterDevtoolsPanel />,
+								},
+							]}
+						/>
+						<ReactQueryDevtools buttonPosition="bottom-left" />
+					</TooltipProvider>
+				</Toaster>
+			</ThemeProvider>
+		</QueryClientProvider>
 	)
 }

@@ -1,0 +1,342 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@utility animate-shimmer {
+	position: relative;
+	overflow: hidden;
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		transform: translateX(-100%);
+		background-image: linear-gradient(
+			90deg,
+			transparent,
+			color-mix(in oklch, var(--foreground) 6%, transparent),
+			transparent
+		);
+		animation: shimmer 1.8s infinite;
+	}
+}
+
+@keyframes shimmer {
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+@theme inline {
+	--font-heading: var(--font-sans);
+	--font-sans: 'Geist Variable', sans-serif;
+	--color-sidebar-ring: var(--sidebar-ring);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar: var(--sidebar);
+	--color-chart-5: var(--chart-5);
+	--color-chart-4: var(--chart-4);
+	--color-chart-3: var(--chart-3);
+	--color-chart-2: var(--chart-2);
+	--color-chart-1: var(--chart-1);
+	--color-ring: var(--ring);
+	--color-input: var(--input);
+	--color-border: var(--border);
+	--color-destructive: var(--destructive);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-foreground: var(--foreground);
+	--color-background: var(--background);
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--color-invert-foreground: var(--invert-foreground);
+	--color-invert: var(--invert);
+	--color-accent-warm-foreground: var(--accent-warm-foreground);
+	--color-accent-warm: var(--accent-warm);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-warning: var(--warning);
+	--color-info-foreground: var(--info-foreground);
+	--color-info: var(--info);
+	--color-success-foreground: var(--success-foreground);
+	--color-success: var(--success);
+	--color-destructive-foreground: var(--destructive-foreground);
+}
+
+/*
+ * "Warm Precision" palette — an understated, information-dense operations
+ * theme built for Ikki Coffee & Resto's ERP.
+ *
+ * Hue map (OKLCH):
+ *   ~85   warm neutral   backgrounds, borders, body text (paper/charcoal, not gray)
+ *   ~148  forest green   brand primary, active states, focus ring
+ *   ~155  charcoal-green sidebar surface in LIGHT mode only — same family as
+ *                        primary, pushed dark & desaturated for deliberate
+ *                        contrast against the light warm-neutral background
+ *   ~70   amber          warning
+ *   ~258  blue-violet    info — deliberately cool, so it reads as neutral/informational
+ *                        against the warm operational palette instead of competing with success
+ *   ~25   warm red       destructive
+ *   ~50   clay/terracotta accent-warm — decorative highlight, not a status color
+ *
+ * Sidebar in DARK mode intentionally switches to the ~85 warm-neutral hue
+ * (not ~155 green) — once the page background is itself dark, a differently
+ * -hued dark sidebar reads as a color clash rather than a deliberate surface.
+ * Matching the hue (sidebar just a touch darker than the background) keeps
+ * them reading as the same material; `sidebar-primary`/`sidebar-ring` still
+ * carry the ~148 green brand accent for the active nav item and focus ring.
+ * `invert` follows the same rule, for the same reason (login hero panel).
+ *
+ * `-foreground` tokens follow one rule everywhere (status colors included):
+ * they are the text/icon color for when the *base* token is the solid
+ * background. Soft 5–10%-opacity treatments (badges, inline tips, alerts)
+ * use the base color directly as text (e.g. `text-success`), not
+ * `-foreground` — see status-badge.tsx / inline-tip.tsx / inline-alert.tsx.
+ */
+
+:root {
+	/* Elevation vocabulary — shadows for floating surfaces only */
+	--shadow-floating-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--shadow-floating-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+	--shadow-floating-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+	--shadow-tooltip-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+	--background: oklch(0.975 0.006 85);
+	--foreground: oklch(0.24 0.016 85);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.24 0.016 85);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.24 0.016 85);
+	--primary: oklch(0.4 0.075 148);
+	--primary-foreground: oklch(0.98 0.01 148);
+	--secondary: oklch(0.94 0.009 85);
+	--secondary-foreground: oklch(0.28 0.016 85);
+	--muted: oklch(0.945 0.008 85);
+	--muted-foreground: oklch(0.5 0.014 85);
+	--accent: oklch(0.93 0.016 148);
+	--accent-foreground: oklch(0.26 0.03 148);
+	--destructive: oklch(0.5 0.19 25);
+	--destructive-foreground: oklch(0.98 0.015 25);
+	--border: oklch(0.885 0.009 85);
+	--input: oklch(0.885 0.009 85);
+	--ring: oklch(0.55 0.09 148);
+	--chart-1: oklch(0.5 0.09 148);
+	--chart-2: oklch(0.72 0.13 75);
+	--chart-3: oklch(0.62 0.14 45);
+	--chart-4: oklch(0.4 0.03 148);
+	--chart-5: oklch(0.78 0.025 85);
+	--radius: 0.5rem;
+	--sidebar: oklch(0.22 0.025 155);
+	--sidebar-foreground: oklch(0.9 0.012 90);
+	--sidebar-primary: oklch(0.52 0.1 150);
+	--sidebar-primary-foreground: oklch(0.98 0.01 150);
+	--sidebar-accent: oklch(0.28 0.028 155);
+	--sidebar-accent-foreground: oklch(0.95 0.012 90);
+	--sidebar-border: oklch(0.3 0.03 155);
+	--sidebar-ring: oklch(0.62 0.11 150);
+	--success: oklch(0.47 0.135 150);
+	--success-foreground: oklch(0.98 0.02 150);
+	--info: oklch(0.48 0.12 258);
+	--info-foreground: oklch(0.98 0.015 258);
+	--warning: oklch(0.5 0.14 70);
+	--warning-foreground: oklch(0.98 0.02 70);
+	--invert: oklch(0.22 0.025 155);
+	--invert-foreground: oklch(0.95 0.012 90);
+	--accent-warm: oklch(0.68 0.14 50);
+	--accent-warm-foreground: oklch(0.26 0.07 50);
+}
+
+.dark {
+	/* Elevation vocabulary — shadows for floating surfaces only */
+	--shadow-floating-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+	--shadow-floating-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+	--shadow-floating-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+	--shadow-tooltip-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+
+	--background: oklch(0.19 0.012 85);
+	--foreground: oklch(0.94 0.01 85);
+	--card: oklch(0.23 0.013 85);
+	--card-foreground: oklch(0.94 0.01 85);
+	--popover: oklch(0.23 0.013 85);
+	--popover-foreground: oklch(0.94 0.01 85);
+	--primary: oklch(0.62 0.13 150);
+	--primary-foreground: oklch(0.14 0.02 150);
+	--secondary: oklch(0.29 0.014 85);
+	--secondary-foreground: oklch(0.92 0.01 85);
+	--muted: oklch(0.27 0.013 85);
+	--muted-foreground: oklch(0.68 0.014 85);
+	--accent: oklch(0.3 0.02 150);
+	--accent-foreground: oklch(0.92 0.015 150);
+	--destructive: oklch(0.68 0.19 25);
+	--destructive-foreground: oklch(0.16 0.02 25);
+	--border: oklch(1 0 0 / 10%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.62 0.11 150);
+	--chart-1: oklch(0.62 0.11 150);
+	--chart-2: oklch(0.75 0.12 75);
+	--chart-3: oklch(0.68 0.13 45);
+	--chart-4: oklch(0.5 0.04 150);
+	--chart-5: oklch(0.4 0.02 85);
+	--sidebar: var(--background);
+	--sidebar-foreground: oklch(0.92 0.012 88);
+	--sidebar-primary: oklch(0.62 0.13 150);
+	--sidebar-primary-foreground: oklch(0.14 0.02 150);
+	--sidebar-accent: oklch(0.26 0.016 85);
+	--sidebar-accent-foreground: oklch(0.94 0.012 88);
+	--sidebar-border: oklch(1 0 0 / 8%);
+	--sidebar-ring: oklch(0.62 0.11 150);
+	--success: oklch(0.68 0.15 150);
+	--success-foreground: oklch(0.16 0.03 150);
+	--info: oklch(0.68 0.12 258);
+	--info-foreground: oklch(0.16 0.03 258);
+	--warning: oklch(0.74 0.14 75);
+	--warning-foreground: oklch(0.18 0.03 75);
+	--invert: oklch(0.17 0.014 85);
+	--invert-foreground: oklch(0.95 0.012 88);
+	--accent-warm: oklch(0.72 0.15 50);
+	--accent-warm-foreground: oklch(0.95 0.02 55);
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
+
+	/*
+	 * Elevation enforcement: inline surfaces (cards, panels) must never
+	 * carry a shadow. Shadow is reserved for floating overlays only.
+	 * See DESIGN.md "Elevation & Depth" for usage rules.
+	 */
+	[data-slot='card'],
+	[data-slot='stat-card'],
+	[data-slot='data-card'] {
+		@apply shadow-none;
+	}
+	button:not(:disabled),
+	[role='button']:not(:disabled) {
+		cursor: pointer;
+	}
+	html {
+		@apply font-sans;
+		/*
+		 * Precision-instrument digit rendering: slashed zero disambiguates
+		 * 0 from O in codes/amounts, tabular figures via feature settings as
+		 * a belt-and-suspenders complement to the `tabular-nums` utility
+		 * class already used on numeric cells. Harmless no-op if Geist
+		 * Variable's build doesn't carry these particular glyphs/features.
+		 */
+		font-feature-settings:
+			'zero' 1,
+			'tnum' 1;
+	}
+
+	/*
+	 * Browser surfaces we didn't explicitly draw still carry the design:
+	 * text selection and scrollbars default to the OS/browser's own blue and
+	 * gray, which clashes with the warm-neutral + forest-green palette. Themed
+	 * once, globally, from the same tokens as everything else.
+	 */
+	::selection {
+		background-color: var(--primary);
+		color: var(--primary-foreground);
+	}
+
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: var(--border) transparent;
+	}
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	::-webkit-scrollbar-thumb {
+		background-color: var(--border);
+		border-radius: 9999px;
+		border: 2px solid transparent;
+		background-clip: content-box;
+	}
+	::-webkit-scrollbar-thumb:hover {
+		background-color: var(--muted-foreground);
+		background-clip: content-box;
+	}
+}
+
+/* Menu rows reserve touch space in layout rather than overlapping hit areas. */
+@media (pointer: coarse) {
+	:is(
+		[data-slot='dropdown-menu-item'],
+		[data-slot='dropdown-menu-checkbox-item'],
+		[data-slot='dropdown-menu-radio-item'],
+		[data-slot='dropdown-menu-sub-trigger'],
+		[data-slot='context-menu-item'],
+		[data-slot='context-menu-checkbox-item'],
+		[data-slot='context-menu-radio-item'],
+		[data-slot='context-menu-sub-trigger'],
+		[data-slot='menubar-trigger'],
+		[data-slot='menubar-item'],
+		[data-slot='menubar-checkbox-item'],
+		[data-slot='menubar-sub-trigger'],
+		[data-slot='menubar-radio-item']
+	) {
+		min-height: 2.75rem;
+		min-width: 2.75rem;
+	}
+
+	[data-slot='menubar'] {
+		height: auto;
+		min-height: 3.375rem;
+	}
+}
+
+/*
+ * Edge-fade "scroll shadow" for horizontally-scrollable regions (DataTable's
+ * `.data-table-horizontal-scroll` on narrow viewports) — a shadow only
+ * appears on the side that still has unscrolled content, so a mobile user
+ * gets a visual cue that there's more to see instead of a dead-end cutoff.
+ * Classic background-attachment trick: the `local` layers scroll with the
+ * content and mask the `scroll` shadow layers except right at an edge that
+ * still has content past it.
+ */
+.data-table-horizontal-scroll {
+	background-repeat: no-repeat;
+	background-size:
+		24px 100%,
+		24px 100%,
+		10px 100%,
+		10px 100%;
+	background-position:
+		left center,
+		right center,
+		left center,
+		right center;
+	background-image:
+		linear-gradient(to right, var(--card), transparent),
+		linear-gradient(to left, var(--card), transparent),
+		linear-gradient(to right, rgba(0, 0, 0, 0.1), transparent),
+		linear-gradient(to left, rgba(0, 0, 0, 0.1), transparent);
+	background-attachment: local, local, scroll, scroll;
+}

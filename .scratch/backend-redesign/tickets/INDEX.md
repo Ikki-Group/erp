@@ -1,0 +1,41 @@
+# Ticket Index & Frontier
+
+Local tracker has no native blocking, so the frontier is rendered here by convention. A ticket is **takeable** when every ticket in its `blocked-by` is closed. Claim a ticket by setting `claimed-by` in its body before any work. Resolve one ticket per session (except research).
+
+## Foundation tickets — ALL DONE ✅
+
+| Ticket | Type | blocked-by | Status |
+| --- | --- | --- | --- |
+| [F1 · Canonical module standard](./F1-module-standard.md) | grilling | — | ✅ done |
+| [F2 · Transaction & atomic-effect model](./F2-transaction-atomicity.md) | grilling | F1 | ✅ done |
+| [F3 · Money & quantity precision](./F3-money-precision.md) | grilling | F1 | ✅ done |
+| [F4 · Concurrency & permissive stock](./F4-concurrency.md) | grilling | F2 | ✅ done |
+| [F5 · RBAC & permissions](./F5-rbac-permissions.md) | grilling | F1 | ✅ done |
+| [F6 · Audit trail](./F6-audit.md) | grilling | F2 | ✅ done |
+
+ADRs produced: `docs/adr/0001`–`0006`. Structural + value + access + audit + concurrency glossary in `CONTEXT.md`.
+
+## Domain tickets
+
+| Ticket | Type | blocked-by | Status | Takeable? |
+| --- | --- | --- | --- | --- |
+| [D0 · Auth & IAM (session, access map, scoping)](./D0-auth-iam.md) | grilling | foundation ✅ | ✅ done | — |
+| [D1 · Core (Location, Company, Numbering)](./D1-core.md) | grilling | D0 ✅ | ✅ done | — |
+| [D2 · Master Data (Material, UoM, Supplier)](./D2-master-data.md) | grilling | D1 ✅ | ✅ done | — |
+| [D3 · Costing (weighted avg, transfer cost, HPP)](./D3-costing.md) | grilling | D2 ✅ | ✅ done | — |
+| [D4 · Menu & Recipe](./D4-menu-recipe.md) | grilling | D2 ✅ | ✅ done | — |
+| [D5 · Inventory (stock, transfer, opname, receiving)](./D5-inventory.md) | grilling | D3 ✅ | ✅ done | — |
+| [D6 · POS (order, split, void, shift, table)](./D6-pos.md) | grilling | D4 ✅, D5 ✅ | ✅ done | — |
+| [D7 · Production (semi-finished)](./D7-production.md) | grilling | D5 ✅ | ✅ done | — |
+
+### Domain dependency shape
+
+```
+D0 (auth/iam) ─▶ D1 (core) ─▶ D2 (master data) ─┬─▶ D3 (costing) ─▶ D5 (inventory) ─┬─▶ D6 (POS)
+                                                └─▶ D4 (menu/recipe) ────────────────┘
+                                                        D5 ─▶ D7 (production)
+```
+
+## Current frontier (takeable now)
+
+**■ ALL TICKETS DONE (F1–F6, D0–D7).** The map has reached its destination: 14 grilled ADRs + a domain glossary. Next phase is consolidation into a handoff spec for `/to-tickets` — no more grilling tickets remain.

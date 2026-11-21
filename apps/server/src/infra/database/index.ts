@@ -1,0 +1,114 @@
+import { sql, eq, and, or, ilike, inArray, asc, desc, gte, lte } from 'drizzle-orm'
+
+import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination.ts'
+
+import type { SQL } from 'drizzle-orm'
+import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
+
+export { db } from './client.ts'
+export { uow } from './uow.drizzle.ts'
+export type { DbContext, Tx } from './client.ts'
+
+// ─── Query Helpers ───
+
+export function takeFirst<T>(rows: T[]): T | undefined {
+	return rows[0]
+}
+
+export function toLimitOffset(pq: PaginationQuery) {
+	return {
+		limit: pq.limit,
+		offset: (pq.page - 1) * pq.limit,
+	}
+}
+
+export function paginateWindow<T extends { rowCount: number }>(
+	rows: T[],
+	pq: PaginationQuery,
+): WithPaginationResult<Omit<T, 'rowCount'>> {
+	const total = Number(rows[0]?.rowCount ?? 0)
+	const data = rows.map(({ rowCount: _, ...rest }) => rest)
+	return {
+		data,
+		meta: {
+			page: pq.page,
+			limit: pq.limit,
+			total,
+			totalPages: Math.ceil(total / pq.limit),
+		},
+	}
+}
+
+export function sortBy(column: PgColumn, dir: 'asc' | 'desc' = 'desc') {
+	return dir === 'asc' ? asc(column) : desc(column)
+}
+
+export function buildPaginationMeta(page: number, limit: number, total: number | string) {
+	const t = Number(total)
+	return { page, limit, total: t, totalPages: Math.ceil(t / limit) }
+}
+
+// ─── WHERE Composition ───
+
+export function allOf(...conditions: (SQL | undefined)[]): SQL | undefined {
+	const valid = conditions.filter((c): c is SQL => Boolean(c))
+	if (valid.length === 0) return undefined
+	if (valid.length === 1) return valid[0]
+	return and(...valid)
+}
+
+export function anyOf(...conditions: (SQL | undefined)[]): SQL | undefined {
+	const valid = conditions.filter((c): c is SQL => Boolean(c))
+	if (valid.length === 0) return undefined
+	if (valid.length === 1) return valid[0]
+	return or(...valid)
+}
+
+export function eqIf<T>(column: PgColumn, value: T | undefined): SQL | undefined {
+	if (value === undefined || value === null) return undefined
+	return eq(column, value as Parameters<typeof eq>[1])
+}
+
+// ─── Location Scope ───
+
+/** Locations a query may touch; null = every location (global grant). */
+export type LocationScope = number[] | null
+
+/**
+ * Restricts `columns` to the scope. With several columns (e.g. a transfer's
+ * source and destination) a row matches when any of them is in scope. An empty
+ * scope matches nothing.
+ */
+export function inScope(scope: LocationScope, ...columns: PgColumn[]): SQL | undefined {
+	if (scope === null) return undefined
+	if (scope.length === 0) return sql`false`
+	return anyOf(...columns.map((column) => inArray(column, scope)))
+}
+
+export function searchFilter(column: PgColumn, term: string | undefined): SQL | undefined {
+	if (!term || term.trim() === '') return undefined
+	// Escape ILIKE's metacharacters, including its escape character (backslash).
+	const escaped = term.replace(/[\\%_]/gu, (char) => `\\${char}`)
+	return ilike(column, `%${escaped}%`)
+}
+
+export function searchAcross(term: string | undefined, columns: PgColumn[]): SQL | undefined {
+	if (!term || term.trim() === '') return undefined
+	return anyOf(...columns.map((col) => searchFilter(col, term)))
+}
+
+// ─── Conflict Check ───
+
+export interface ConflictField<T> {
+	field: keyof T
+	column: PgColumn
+	message: string
+	code: string
+}
+
+export function defineConflictFields<T>() {
+	return <F extends ConflictField<T>[]>(fields: F) => fields
+}
+
+export { sql, eq, and, or, ilike, inArray, asc, desc, gte, lte }
+export type { PgTable, PgColumn, SQL }

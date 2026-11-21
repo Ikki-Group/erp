@@ -1,177 +1,404 @@
-import { record } from '@elysiajs/opentelemetry'
-import Decimal from 'decimal.js'
+import { stockBalances } from '@/db/schema/inventory.ts'
 
-import { CacheService, type CacheClient } from '@/core/cache'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
+import { CacheService } from '@/infra/cache/index.ts'
+import type { CacheClient } from '@/infra/cache/index.ts'
+import { eq, and } from '@/infra/database/index.ts'
+import type { DbContext } from '@/infra/database/index.ts'
+import { auditEntryOf } from '@/shared/audit/audit.port.ts'
+import type { AuditPort } from '@/shared/audit/audit.port.ts'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp.ts'
+import type { Actor } from '@/shared/auth/actor.ts'
+import { Money } from '@/shared/domain/money.ts'
+import { Qty } from '@/shared/domain/qty.ts'
+import { NotFoundError } from '@/shared/errors/http-error.ts'
+import type { WithPaginationResult } from '@/shared/types/pagination.ts'
+import type { EntityRef } from '@/shared/types/utils.ts'
+import type { UnitOfWork } from '@/shared/uow/uow.port.ts'
+import { assertFound } from '@/shared/utils/index.ts'
 
-import type { WithPaginationResult } from '@/lib/utils/pagination'
+import type { MaterialService } from '@/modules/material/material.service.ts'
+import type { MenuItemDto } from '@/modules/menu/item/item.contract.ts'
+import { resolveConversion } from '@/modules/uom/domain/uom.resolver.ts'
+import type { UomService } from '@/modules/uom/uom.service.ts'
 
 import type {
-	RecipeCostDto,
+	HppResponseDto,
 	RecipeCreateDto,
+	RecipeDetailDto,
 	RecipeDto,
 	RecipeFilterDto,
-	RecipeSelectDto,
+	RecipeLineDto,
 	RecipeUpdateDto,
-} from './recipe.dto'
-import { RecipeRepo } from './recipe.repo'
+} from './recipe.contract.ts'
+import { RecipeError } from './recipe.internal.ts'
+import type { IRecipeRepo } from './recipe.repo.ts'
 
-const err = {
-	notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND'),
-	targetMissing: () =>
-		new ConflictError('Recipe must have exactly one target', 'RECIPE_MISSING_TARGET'),
-	targetExists: () =>
-		new ConflictError('A recipe already exists for this target', 'RECIPE_TARGET_ALREADY_EXISTS'),
-}
+// ─── Service ───
 
 export class RecipeService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly repo: RecipeRepo,
+		private readonly repo: IRecipeRepo,
 		cacheClient: CacheClient,
+		private readonly materialService: MaterialService,
+		private readonly uomService: UomService,
+		private readonly itemGetById: (id: number, actor: Actor) => Promise<MenuItemDto>,
+		private readonly uow: UnitOfWork,
+		private readonly audit: AuditPort,
 	) {
-		this.cache = new CacheService({ ns: 'recipe', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'recipe')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
+	// ─── Cached Reads ───
 
-	async getById(id: number): Promise<RecipeDto> {
-		return record('RecipeService.getById', async () => {
-			const key = `byId:${id}`
-			const recipe = await this.cache.getOrSetSkipUndefined({
-				key,
-				factory: () => this.repo.getById(id),
-			})
-			if (!recipe) throw err.notFound(id)
-			return recipe
+	async getById(id: number): Promise<RecipeDto | undefined> {
+		return this.cache.getOrSetWithSkip({
+			key: this.cache.keys.byId(id),
+			factory: () => this.repo.findById(id),
 		})
 	}
 
-	async count(): Promise<number> {
-		return record('RecipeService.count', async () => {
-			const key = 'count'
-			return this.cache.getOrSet({
-				key,
-				factory: () => this.repo.count(),
-			})
+	async getActiveByMenuItemId(menuItemId: number, db?: DbContext): Promise<RecipeDto | undefined> {
+		if (db) return this.repo.findActiveByMenuItemId(menuItemId, db)
+		return this.cache.getOrSetWithSkip({
+			key: `recipe:byMenuItemId:${menuItemId}`,
+			factory: () => this.repo.findActiveByMenuItemId(menuItemId),
 		})
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
-
-	async handleList(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeSelectDto>> {
-		return record('RecipeService.handleList', async () => {
-			const key = `list.${JSON.stringify(filter)}`
-			return this.cache.getOrSet({
-				key,
-				factory: () => this.repo.getListPaginated(filter),
-			})
-		})
+	async getLinesByRecipeId(recipeId: number, db?: DbContext): Promise<RecipeLineDto[]> {
+		return this.repo.findLinesByRecipeId(recipeId, db)
 	}
 
-	async handleDetail(id: number): Promise<RecipeSelectDto> {
-		return record('RecipeService.handleDetail', async () => {
-			return this.getById(id)
-		})
+	// ─── Handlers ───
+
+	/** Loads the recipe and asserts the actor may act at its menu item's location. */
+	async handleGetById(id: number, actor: Actor): Promise<RecipeDto> {
+		const recipe = assertFound(await this.getById(id), () => RecipeError.notFound(id))
+		await this.itemGetById(recipe.menuItemId, actor)
+		return recipe
 	}
 
-	async handleCreate(data: RecipeCreateDto, actorId: number): Promise<{ id: number }> {
-		return record('RecipeService.handleCreate', async () => {
-			const hasConflict = await this.repo.checkTargetConflict({
-				materialId: data.materialId,
-				productId: data.productId,
-				productVariantId: data.productVariantId,
-			})
-
-			if (!hasConflict && !data.materialId && !data.productId && !data.productVariantId) {
-				throw err.targetMissing()
-			}
-
-			if (hasConflict) {
-				throw err.targetExists()
-			}
-
-			const result = await this.repo.create(data, actorId)
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
-			return result
-		})
+	async handleDetail(id: number, actor: Actor): Promise<RecipeDetailDto> {
+		const recipe = await this.handleGetById(id, actor)
+		const lines = await this.repo.findLinesByRecipeId(id)
+		const enrichedLines = await this.enrichLines(lines)
+		return { ...recipe, lines: enrichedLines }
 	}
 
-	async handleUpdate(data: RecipeUpdateDto, actorId: number): Promise<{ id: number }> {
-		return record('RecipeService.handleUpdate', async () => {
-			const existing = await this.getById(data.id)
-
-			const target = {
-				materialId: data.materialId === undefined ? existing.materialId : data.materialId,
-				productId: data.productId === undefined ? existing.productId : data.productId,
-				productVariantId:
-					data.productVariantId === undefined ? existing.productVariantId : data.productVariantId,
-			}
-
-			const hasConflict = await this.repo.checkTargetConflict(target, data.id)
-			if (hasConflict) {
-				throw err.targetExists()
-			}
-
-			const result = await this.repo.update(data, actorId)
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${data.id}`] })
-			return result
-		})
+	async handleDetailByMenuItem(menuItemId: number, actor: Actor): Promise<RecipeDetailDto> {
+		await this.requireMenuItem(menuItemId, actor)
+		const recipe = await this.getActiveByMenuItemId(menuItemId)
+		if (!recipe) throw RecipeError.activeNotFound(menuItemId)
+		const lines = await this.repo.findLinesByRecipeId(recipe.id)
+		const enrichedLines = await this.enrichLines(lines)
+		return { ...recipe, lines: enrichedLines }
 	}
 
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
-		return record('RecipeService.handleRemove', async () => {
-			const result = await this.repo.softDelete(id, actorId)
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-			return result
-		})
+	async handleList(
+		filter: RecipeFilterDto,
+		actor: Actor,
+	): Promise<WithPaginationResult<RecipeDto>> {
+		return this.repo.findPage(filter, actor.allowedLocations())
 	}
 
-	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('RecipeService.handleHardRemove', async () => {
-			const result = await this.repo.hardDelete(id)
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-			return result
+	async handleCreate(data: RecipeCreateDto, actor: Actor): Promise<EntityRef> {
+		// 1. Validate menu item exists and is writable by the actor
+		await this.requireMenuItem(data.menuItemId, actor)
+
+		// 2. Validate lines
+		await this.validateLines(data.lines)
+
+		// 3. Write recipe, lines, and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			await this.repo.deactivateByMenuItemId(data.menuItemId, tx)
+
+			const written = await this.repo.insert(
+				{
+					menuItemId: data.menuItemId,
+					name: data.name,
+					yieldQty: data.yieldQty,
+					isActive: true,
+					...stampCreate(actor.id),
+				},
+				tx,
+			)
+			if (!written) throw RecipeError.createFailed()
+
+			await this.repo.replaceLines(
+				written.id,
+				data.lines.map((line) => ({
+					materialId: line.materialId,
+					quantity: line.quantity,
+					uomId: line.uomId,
+				})),
+				tx,
+			)
+
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'recipe',
+					entity: 'recipe',
+					entityId: written.id,
+					action: 'create',
+					summary: `Created recipe "${data.name}" for menu item #${data.menuItemId}`,
+					newValues: {
+						name: data.name,
+						menuItemId: data.menuItemId,
+						yieldQty: data.yieldQty,
+						linesCount: data.lines.length,
+					},
+				}),
+				tx,
+			)
+			return written
 		})
+
+		await this.cache.invalidateStandard()
+		await this.invalidateMenuItemCache(data.menuItemId)
+		return result
 	}
 
-	/* ──────────────────── HANDLER: COSTING SIMULATION ──────────────────── */
+	async handleUpdate(data: RecipeUpdateDto, actor: Actor): Promise<EntityRef> {
+		const { id, ...updateData } = data
 
-	async handleCalculateCost(recipeId: number): Promise<RecipeCostDto> {
-		return record('RecipeService.handleCalculateCost', async () => {
-			const recipe = await this.getById(recipeId)
-			const items = recipe.items ?? []
+		// 1. Verify recipe exists
+		const existing = await this.handleGetById(id, actor)
 
-			let totalCost = new Decimal(0)
-			const detailedItems = []
+		// 2. Validate lines
+		await this.validateLines(updateData.lines)
 
-			for (const item of items) {
-				const avgCost = new Decimal(await this.repo.getAvgCostForMaterial(item.materialId))
-				const qty = new Decimal(item.qty)
-				const scrap = new Decimal(item.scrapPercentage)
+		// 3. Update recipe, lines, and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			const written = await this.repo.update(
+				id,
+				{
+					name: updateData.name,
+					yieldQty: updateData.yieldQty,
+					...stampUpdate(actor.id),
+				},
+				tx,
+			)
+			if (!written) throw RecipeError.updateFailed(id)
 
-				const scrapFactor = new Decimal(1).plus(scrap.div(100))
-				const itemCost = qty.mul(scrapFactor).mul(avgCost)
+			await this.repo.replaceLines(
+				id,
+				updateData.lines.map((line) => ({
+					materialId: line.materialId,
+					quantity: line.quantity,
+					uomId: line.uomId,
+				})),
+				tx,
+			)
 
-				totalCost = totalCost.plus(itemCost)
-				detailedItems.push({
-					...item,
-					unitCost: avgCost.toString(),
-					extendedCost: itemCost.toString(),
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'recipe',
+					entity: 'recipe',
+					entityId: id,
+					action: 'update',
+					summary: `Updated recipe "${updateData.name}"`,
+					newValues: {
+						name: updateData.name,
+						yieldQty: updateData.yieldQty,
+						linesCount: updateData.lines.length,
+					},
+				}),
+				tx,
+			)
+			return written
+		})
+
+		await this.cache.invalidateStandard(id)
+		await this.invalidateMenuItemCache(existing.menuItemId)
+		return result
+	}
+
+	async handleDelete(id: number, actor: Actor): Promise<EntityRef> {
+		// 1. Verify recipe exists
+		const existing = await this.handleGetById(id, actor)
+
+		// 2. Delete and audit in one transaction
+		const result = await this.uow.run(async (tx) => {
+			const written = await this.repo.remove(id, tx)
+			if (!written) throw RecipeError.deleteFailed(id)
+
+			await this.audit.record(
+				auditEntryOf(actor, {
+					module: 'recipe',
+					entity: 'recipe',
+					entityId: id,
+					action: 'delete',
+					summary: `Deleted recipe "${existing.name}"`,
+				}),
+				tx,
+			)
+			return written
+		})
+
+		await this.cache.invalidateStandard(id)
+		await this.invalidateMenuItemCache(existing.menuItemId)
+		return result
+	}
+
+	async handleCalculateHpp(
+		menuItemId: number,
+		locationId: number,
+		actor: Actor,
+	): Promise<HppResponseDto> {
+		await this.requireMenuItem(menuItemId, actor)
+
+		// 1. Get active recipe
+		const recipe = await this.getActiveByMenuItemId(menuItemId)
+		if (!recipe) throw RecipeError.activeNotFound(menuItemId)
+
+		// 2. Get lines
+		const lines = await this.repo.findLinesByRecipeId(recipe.id)
+
+		// 3. Get all conversions for UoM resolution
+		const conversions = await this.uomService.getAllConversions()
+
+		// 4. Calculate cost per line
+		const breakdown: HppResponseDto['breakdown'] = []
+		let totalCost = Money.zero()
+
+		for (const line of lines) {
+			// Get material for base UoM and name
+			const material = await this.materialService.getById(line.materialId)
+			if (!material) {
+				breakdown.push({
+					materialId: line.materialId,
+					materialName: `Unknown Material #${line.materialId}`,
+					quantity: line.quantity,
+					uomCode: '',
+					unitCost: '0',
+					lineCost: '0',
 				})
+				continue
 			}
 
-			const targetQty = new Decimal(recipe.targetQty)
-			const unitCost = targetQty.isPositive() ? totalCost.div(targetQty) : totalCost
+			// Get UoM code
+			const uom = await this.uomService.getById(line.uomId)
+			const uomCode = uom?.code ?? ''
 
-			return {
-				recipeId,
-				targetQty: targetQty.toString(),
-				totalCost: totalCost.toString(),
-				unitCost: unitCost.toString(),
-				items: detailedItems,
+			// Get cost price from stock_balances
+			const costPrice = await this.getCostPrice(line.materialId, locationId)
+
+			// Convert quantity to material base UoM
+			let convertedQty = Qty.of(line.quantity)
+			if (line.uomId !== material.baseUomId) {
+				const conversion = resolveConversion(
+					line.uomId,
+					material.baseUomId,
+					Qty.of(line.quantity),
+					conversions,
+				)
+				if (conversion) convertedQty = conversion.result
+				// If no conversion path, use raw quantity (best effort)
 			}
+
+			const lineCost = Money.of(costPrice).mul(convertedQty)
+			totalCost = totalCost.add(lineCost)
+
+			breakdown.push({
+				materialId: line.materialId,
+				materialName: material.name,
+				quantity: line.quantity,
+				uomCode,
+				unitCost: costPrice,
+				lineCost: lineCost.toCost(),
+			})
+		}
+
+		// 5. Divide by yield qty
+		const yieldQty = Qty.of(recipe.yieldQty)
+		const hpp = yieldQty.isZero() ? '0.0000' : totalCost.div(yieldQty).toCost()
+
+		return {
+			menuItemId,
+			locationId,
+			hpp,
+			breakdown,
+		}
+	}
+
+	// ─── Private ───
+
+	private async requireMenuItem(menuItemId: number, actor: Actor): Promise<MenuItemDto> {
+		try {
+			return await this.itemGetById(menuItemId, actor)
+		} catch (error) {
+			if (error instanceof NotFoundError) throw RecipeError.menuItemNotFound(menuItemId)
+			throw error
+		}
+	}
+
+	private async validateLines(
+		lines: { materialId: number; quantity: string; uomId: number }[],
+	): Promise<void> {
+		const conversions = await this.uomService.getAllConversions()
+
+		for (const line of lines) {
+			// Validate material exists
+			const material = await this.materialService.getById(line.materialId)
+			if (!material) throw RecipeError.materialNotFound(line.materialId)
+
+			// Validate UoM exists
+			await this.uomService.handleGetById(line.uomId)
+
+			// Validate UoM is convertible to material base UoM
+			if (line.uomId !== material.baseUomId) {
+				const conversion = resolveConversion(
+					line.uomId,
+					material.baseUomId,
+					Qty.of('1'),
+					conversions,
+				)
+				if (!conversion) {
+					throw RecipeError.uomNotConvertible(line.uomId, material.baseUomId)
+				}
+			}
+		}
+	}
+
+	private async enrichLines(lines: RecipeLineDto[]): Promise<RecipeDetailDto['lines']> {
+		if (lines.length === 0) return []
+
+		// Batch fetch materials
+		const materialIds = [...new Set(lines.map((l) => l.materialId))]
+		const materials = await this.materialService.getByIds(materialIds)
+		const materialMap = new Map(materials.map((m) => [m.id, m]))
+
+		// Batch fetch UoMs
+		const uomIds = [...new Set(lines.map((l) => l.uomId))]
+		const uomPromises = uomIds.map(async (id) => {
+			const uom = await this.uomService.getById(id)
+			return [id, uom] as const
 		})
+		const uomEntries = await Promise.all(uomPromises)
+		const uomMap = new Map(uomEntries.map(([id, uom]) => [id, uom]))
+
+		return lines.map((line) => ({
+			...line,
+			materialName: materialMap.get(line.materialId)?.name ?? '',
+			uomCode: uomMap.get(line.uomId)?.code ?? '',
+		}))
+	}
+
+	private async getCostPrice(materialId: number, locationId: number): Promise<string> {
+		const row = await this.repo.db
+			.select({ costPrice: stockBalances.costPrice })
+			.from(stockBalances)
+			.where(
+				and(eq(stockBalances.materialId, materialId), eq(stockBalances.locationId, locationId)),
+			)
+			.limit(1)
+			.then((rows) => rows[0])
+		return row?.costPrice ?? '0'
+	}
+
+	private async invalidateMenuItemCache(menuItemId: number): Promise<void> {
+		await this.cache.deleteFromKeys([`recipe:byMenuItemId:${menuItemId}`])
 	}
 }
