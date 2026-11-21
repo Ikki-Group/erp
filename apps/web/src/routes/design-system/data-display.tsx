@@ -169,9 +169,9 @@ function DataDisplayPage() {
 						<DetailList
 							items={[
 								{ label: 'Supplier', value: 'PT Sumber Jaya' },
-								{ label: 'Last Price / kg', value: <CurrencyCell value={85000} /> },
-								{ label: 'Stock', value: <NumericCell value={24.5} unit="kg" /> },
-								{ label: 'Avg Cost / kg', value: <CurrencyCell value={82340} /> },
+								{ label: 'Last Price / kg', value: <CurrencyCell value={85000} />, align: 'right' },
+								{ label: 'Stock', value: <NumericCell value={24.5} unit="kg" />, align: 'right' },
+								{ label: 'Avg Cost / kg', value: <CurrencyCell value={82340} />, align: 'right' },
 							]}
 						/>
 					</DataCard>
@@ -182,7 +182,10 @@ function DataDisplayPage() {
 						icon={<AlertTriangleIcon className="size-4" />}
 						tone="warning"
 					>
-						<p className="text-sm text-muted-foreground">7 materials below minimum stock.</p>
+						<div className="flex items-center gap-2 text-sm font-medium text-warning">
+							<AlertTriangleIcon className="size-3.5 shrink-0" />
+							<span>7 materials below minimum stock</span>
+						</div>
 					</DataCard>
 				</div>
 			</PageSection>
@@ -197,7 +200,7 @@ function DataDisplayPage() {
 						{ label: 'Name', value: 'Coffee Beans (Arabica)' },
 						{ label: 'Category', value: 'Raw Material' },
 						{ label: 'Base UoM', value: 'kg' },
-						{ label: 'Min Stock', value: <NumericCell value={10} unit="kg" /> },
+						{ label: 'Min Stock', value: <NumericCell value={10} unit="kg" />, align: 'right' },
 						{ label: 'Status', value: <StatusBadge variant="success">Active</StatusBadge> },
 					]}
 					columns={3}
