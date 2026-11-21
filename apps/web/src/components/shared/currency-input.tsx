@@ -44,7 +44,7 @@ export function CurrencyInput({
 	return (
 		<InputGroup className={cn(className)}>
 			{prefix && (
-				<InputGroupAddon className="border-r pr-2">
+				<InputGroupAddon className="self-stretch border-r py-0 pr-2">
 					<InputGroupText>{prefix}</InputGroupText>
 				</InputGroupAddon>
 			)}

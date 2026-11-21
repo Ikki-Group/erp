@@ -56,7 +56,7 @@ export const NumberInputGroupAddon = React.forwardRef<HTMLInputElement, NumberIn
 					data-slot="input-group-addon"
 					data-align="inline-end"
 					className={cn(
-						'order-last flex shrink-0 items-center justify-center gap-1 pr-2 font-mono text-xs/relaxed text-muted-foreground select-none',
+						'order-last flex shrink-0 items-center justify-center gap-1 self-stretch border-l pr-2 pl-2 font-mono text-xs/relaxed text-muted-foreground select-none',
 						disabled && 'opacity-50',
 					)}
 				>
@@ -174,7 +174,7 @@ export const NumberInputGroup = React.forwardRef<HTMLInputElement, NumberInputGr
 						aria-label="Satuan"
 						{...uomTriggerProps}
 						className={cn(
-							'order-last h-6 shrink-0 rounded-none rounded-r-md border-0 border-l bg-transparent px-2 font-mono shadow-none focus-visible:ring-inset dark:bg-transparent',
+							'order-last shrink-0 rounded-none rounded-r-md border-0 border-l bg-transparent px-2 font-mono shadow-none focus-visible:ring-inset data-[size=sm]:h-auto self-stretch dark:bg-transparent',
 							'data-placeholder:text-muted-foreground',
 							uomTriggerProps?.className,
 						)}

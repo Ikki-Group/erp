@@ -65,7 +65,6 @@ export function DatePickerField({
 							onBlur={field.handleBlur}
 							aria-describedby={describedBy}
 							variant="outline"
-							size="sm"
 							disabled={disabled}
 							aria-invalid={!!error}
 							className={cn(
