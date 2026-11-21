@@ -77,11 +77,10 @@ export function StatCard({
 					: undefined
 			}
 			className={cn(
-				'rounded-xl border border-border bg-card text-card-foreground',
-				'p-6 transition-colors',
-				'hover:border-border/80',
+				'rounded-lg border border-border bg-card text-card-foreground',
+				'p-4 transition-colors',
 				onClick &&
-					'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/40 hover:bg-muted/30',
+					'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/40 hover:border-foreground/15 hover:bg-muted/30',
 				className,
 			)}
 		>
@@ -97,14 +96,14 @@ export function StatCard({
 			</div>
 
 			{isLoading ? (
-				<div className="mt-6 space-y-3">
+				<div className="mt-4 space-y-2">
 					<Skeleton className="h-8 w-24" />
 					<Skeleton className="h-4 w-32" />
 				</div>
 			) : (
-				<div className="mt-6 space-y-0.5">
-					<div className="flex flex-wrap items-baseline justify-end gap-3">
-						<p className="text-right font-mono text-2xl font-semibold tracking-tight tabular-nums">
+				<div className="mt-4 space-y-1">
+					<div className="flex flex-wrap items-baseline gap-3">
+						<p className="font-mono text-2xl font-semibold tracking-tight tabular-nums">
 							{typeof value === 'number' ? value.toLocaleString('id-ID') : value}
 						</p>
 						{trend && (
