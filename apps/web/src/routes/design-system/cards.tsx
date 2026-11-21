@@ -7,6 +7,7 @@ import { ArrowRightIcon, BoxesIcon, ShoppingCartIcon, TrendingUpIcon } from 'luc
 import { cn } from '@/lib/utils'
 
 import { CurrencyCell, NumericCell } from '@/components/data-table'
+import { IconTile } from '@/components/reui/icon-tile'
 import { PageHeader, PageSection } from '@/components/shared'
 
 import { Button } from '@/components/ui/button'
@@ -42,7 +43,7 @@ function CardsPage() {
 						<CardDescription>MAT-001 · Raw Material</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<p className="text-sm text-muted-foreground">24.5 kg on hand across 3 locations.</p>
+						<p className="text-muted-foreground">24.5 kg on hand across 3 locations.</p>
 					</CardContent>
 					<CardFooter className="gap-2">
 						<Button
@@ -67,14 +68,14 @@ function CardsPage() {
 				title="Card Layout Patterns"
 				description="Different content structures for various use cases."
 			>
-				<div className="grid gap-4 lg:grid-cols-2">
+				<div className="grid items-start gap-4 lg:grid-cols-2">
 					{/* Icon + Title + Action */}
 					<Card className="max-w-sm">
 						<CardHeader className="flex flex-row items-center justify-between">
 							<div className="flex items-center gap-3">
-								<div className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+								<IconTile variant="soft" size="sm">
 									<BoxesIcon className="size-4" />
-								</div>
+								</IconTile>
 								<div>
 									<CardTitle className="text-sm">Materials</CardTitle>
 									<CardDescription className="text-xs">Total in inventory</CardDescription>
@@ -95,7 +96,7 @@ function CardsPage() {
 					{/* Metric Display */}
 					<Card className="max-w-sm">
 						<CardHeader>
-							<CardTitle className="text-right font-mono text-2xl font-semibold tabular-nums">
+							<CardTitle className="font-mono text-2xl font-semibold tabular-nums">
 								{(1284).toLocaleString('id-ID')}
 							</CardTitle>
 							<CardDescription>Total orders this month (+12.5%)</CardDescription>
@@ -180,7 +181,7 @@ function CardsPage() {
 								</div>
 							</CardHeader>
 							<CardContent>
-								<NumericCell value={42} className="text-2xl font-semibold" />
+								<NumericCell value={42} className="text-left text-2xl font-semibold" />
 								<p className="text-xs text-muted-foreground">Active items</p>
 							</CardContent>
 						</Card>
@@ -200,7 +201,7 @@ function CardsPage() {
 				title="Content-Rich Cards"
 				description="Cards handling complex layouts and multiple content types."
 			>
-				<div className="grid gap-4 lg:grid-cols-2">
+				<div className="grid items-start gap-4 lg:grid-cols-2">
 					<Card className="max-w-md">
 						<CardHeader>
 							<CardTitle>Material Details</CardTitle>
@@ -214,22 +215,21 @@ function CardsPage() {
 								</div>
 								<div className="space-y-1">
 									<p className="text-xs text-muted-foreground">Last Price</p>
-									<CurrencyCell value={85000} />
+									<CurrencyCell value={85000} className="text-left" />
 								</div>
 								<div className="space-y-1">
 									<p className="text-xs text-muted-foreground">Stock</p>
-									<NumericCell value={24.5} unit="kg" />
+									<NumericCell value={24.5} unit="kg" className="text-left" />
 								</div>
 								<div className="space-y-1">
 									<p className="text-xs text-muted-foreground">Avg Cost</p>
-									<CurrencyCell value={82340} />
+									<CurrencyCell value={82340} className="text-left" />
 								</div>
 							</div>
 						</CardContent>
 						<CardFooter>
 							<Button
 								variant="outline"
-								size="sm"
 								className="w-full"
 								nativeButton={false}
 								render={<Link to="/design-system/forms" />}
