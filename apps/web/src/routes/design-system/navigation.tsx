@@ -4,6 +4,8 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { BoxesIcon, LayoutDashboardIcon, SettingsIcon, StoreIcon, TruckIcon } from 'lucide-react'
 
+import { usePageTabs } from '@/hooks/use-page-tabs'
+
 import { PageHeader, PageSection, PageTabs, pageTabPanelId } from '@/components/shared'
 
 import {
@@ -147,7 +149,8 @@ function SidebarNavDemo() {
 }
 
 function PageTabsDemo() {
-	const [activeTab, setActiveTab] = useState('info')
+	const TABS = ['info', 'stock', 'history', 'pricing'] as const
+	const [activeTab, setActiveTab] = usePageTabs('tab', 'info', TABS)
 
 	return (
 		<div className="space-y-4">
@@ -163,7 +166,14 @@ function PageTabsDemo() {
 			/>
 			<div role="tabpanel" id={pageTabPanelId(activeTab)} aria-labelledby={`tab-${activeTab}`}>
 				<p className="text-sm text-muted-foreground">
-					Active tab: <span className="font-medium text-foreground">{activeTab}</span>
+					Active tab: <span className="font-medium text-foreground">{activeTab}</span> (
+					<kbd className="px-1.5 py-0.5 text-xs bg-muted rounded font-mono ml-2">
+						?tab={activeTab}
+					</kbd>
+					)
+				</p>
+				<p className="text-xs text-muted-foreground mt-1">
+					Try clicking tabs — the URL updates. Refresh to restore state.
 				</p>
 			</div>
 		</div>
