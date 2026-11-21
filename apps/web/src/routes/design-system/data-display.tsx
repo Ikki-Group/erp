@@ -169,9 +169,9 @@ function DataDisplayPage() {
 						<DetailList
 							items={[
 								{ label: 'Supplier', value: 'PT Sumber Jaya' },
-								{ label: 'Last Price / kg', value: <CurrencyCell value={85000} />, align: 'right' },
-								{ label: 'Stock', value: <NumericCell value={24.5} unit="kg" />, align: 'right' },
-								{ label: 'Avg Cost / kg', value: <CurrencyCell value={82340} />, align: 'right' },
+								{ label: 'Last Price / kg', value: <CurrencyCell value={85000} /> },
+								{ label: 'Stock', value: <NumericCell value={24.5} unit="kg" /> },
+								{ label: 'Avg Cost / kg', value: <CurrencyCell value={82340} /> },
 							]}
 						/>
 					</DataCard>
@@ -200,7 +200,7 @@ function DataDisplayPage() {
 						{ label: 'Name', value: 'Coffee Beans (Arabica)' },
 						{ label: 'Category', value: 'Raw Material' },
 						{ label: 'Base UoM', value: 'kg' },
-						{ label: 'Min Stock', value: <NumericCell value={10} unit="kg" />, align: 'right' },
+						{ label: 'Min Stock', value: <NumericCell value={10} unit="kg" /> },
 						{ label: 'Status', value: <StatusBadge variant="success">Active</StatusBadge> },
 					]}
 					columns={3}
